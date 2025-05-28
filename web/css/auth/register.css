@@ -1,0 +1,36 @@
+/*
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css to edit this template
+*/
+/* 
+    Created on : May 26, 2025, 8:49:50 PM
+    Author     : quang
+*/
+
+.form-group input.error,
+.form-group input.is-invalid {
+    border-color: #ff3860 !important;
+    box-shadow: 0 0 0 1px #ff3860;
+}
+
+.form-group input.success,
+.form-group input.is-valid {
+    border-color: #09c372 !important;
+    box-shadow: 0 0 0 1px #09c372;
+}
+
+.form-group .error {
+    color: #ff3860;
+    font-size: 0.95em;
+    margin-top: 0.25em;
+    display: block;
+    /* Optionally: */
+    /* font-weight: 500; */
+}
+
+.form-group .success {
+    color: #09c372;
+    font-size: 0.95em;
+    margin-top: 0.25em;
+    display: block;
+}
