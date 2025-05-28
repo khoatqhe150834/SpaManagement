@@ -1,4 +1,3 @@
-
 -- -----------------------------------------------------
 -- Bước 1: Sử dụng cơ sở dữ liệu
 -- -----------------------------------------------------
@@ -9,7 +8,6 @@ USE `spamanagement`;
 -- -----------------------------------------------------
 
 -- 1. Bảng Spa_Information (Thông tin Spa)
--- Chỉ chèn 1 bản ghi vì đây là thông tin của spa (thường chỉ có 1 spa hoặc chi nhánh)
 INSERT INTO `Spa_Information` (
     `name`, `address_line1`, `address_line2`, `city`, `postal_code`, `country`, 
     `phone_number_main`, `phone_number_secondary`, `email_main`, `email_secondary`, 
@@ -17,7 +15,7 @@ INSERT INTO `Spa_Information` (
     `booking_terms`, `about_us_short`, `about_us_long`, `vat_percentage`, 
     `default_appointment_buffer_minutes`
 ) VALUES (
-    'Hương Sắc Spa', 
+    'Lotus Spa', 
     '123 Đường Láng Hạ', 
     'Tòa nhà A1', 
     'Hà Nội', 
@@ -25,15 +23,15 @@ INSERT INTO `Spa_Information` (
     'Việt Nam', 
     '0909123456', 
     '0987654321', 
-    'contact@huongsacspa.vn', 
-    'support@huongsacspa.vn', 
-    'https://huongsacspa.vn', 
-    'https://huongsacspa.vn/logo.png', 
+    'contact@lotusspa.vn', 
+    'support@lotusspa.vn', 
+    'https://lotusspa.vn', 
+    'https://lotusspa.vn/logo.png', 
     '123456789', 
     'Hủy lịch hẹn trước 24 giờ để được hoàn tiền 100%.', 
     'Đặt lịch trước ít nhất 2 giờ và thanh toán trước 50% cho nhóm trên 3 người.', 
-    'Hương Sắc Spa - Nơi thư giãn và làm đẹp tuyệt vời.', 
-    'Hương Sắc Spa cung cấp các dịch vụ làm đẹp và thư giãn chuyên nghiệp với đội ngũ kỹ thuật viên giàu kinh nghiệm.', 
+    'Lotus Spa - Nơi thư giãn và làm đẹp tuyệt vời.', 
+    'Lotus Spa cung cấp các dịch vụ làm đẹp và thư giãn chuyên nghiệp với đội ngũ kỹ thuật viên giàu kinh nghiệm.', 
     10.00, 
     15
 ) ON DUPLICATE KEY UPDATE 
@@ -49,7 +47,8 @@ INSERT INTO `Roles` (`name`, `display_name`, `description`) VALUES
 ('ADMIN', 'Quản trị viên cấp cao', 'Toàn quyền quản lý hệ thống'),
 ('MANAGER', 'Quản lý Spa', 'Quản lý lịch hẹn, nhân viên, và báo cáo'),
 ('THERAPIST', 'Kỹ thuật viên', 'Thực hiện các dịch vụ spa'),
-('RECEPTIONIST', 'Lễ tân', 'Tiếp nhận khách hàng và quản lý lịch hẹn')
+('RECEPTIONIST', 'Lễ tân', 'Tiếp nhận khách hàng và quản lý lịch hẹn'),
+('CUSTOMER', 'Khách hàng', 'Vai trò dành cho khách hàng của spa')
 ON DUPLICATE KEY UPDATE 
     `display_name` = VALUES(`display_name`), 
     `description` = VALUES(`description`);
@@ -66,13 +65,13 @@ INSERT INTO `Users` (
 
 -- 4. Bảng Customers (Khách hàng)
 INSERT INTO `Customers` (
-    `full_name`, `email`, `phone_number`, `gender`, `birthday`, 
-    `address`, `loyalty_points`, `notes`
+    `full_name`, `email`, `phone_number`, `hash_password`, `is_active`, 
+    `gender`, `birthday`, `address`, `loyalty_points`, `notes`, `role_id`
 ) VALUES
-('Phạm Thị Lan', 'lan.pham@gmail.com', '0945678902', 'FEMALE', '1992-11-25', '456 Đường Nguyễn Trãi, Hà Nội', 100, 'Khách hàng VIP'),
-('Ngô Quốc Anh', 'anh.ngo@gmail.com', '0956789013', 'MALE', '1988-04-12', '789 Đường Láng, Hà Nội', 50, NULL),
-('Trần Thị Ngọc', 'ngoc.tran@gmail.com', '0967890123', 'FEMALE', '1995-06-30', '12 Đường Cầu Giấy, Hà Nội', 200, 'Thích massage thư giãn'),
-('Lê Văn Minh', 'minh.le@gmail.com', '0978901234', 'MALE', '1990-09-15', '34 Đường Kim Mã, Hà Nội', 0, NULL);
+('Phạm Thị Lan', 'lan.pham@gmail.com', '0945678902', 'hashed_password_customer_1', TRUE, 'FEMALE', '1992-11-25', '456 Đường Nguyễn Trãi, Hà Nội', 100, 'Khách hàng VIP', 5),
+('Ngô Quốc Anh', 'anh.ngo@gmail.com', '0956789013', 'hashed_password_customer_2', TRUE, 'MALE', '1988-04-12', '789 Đường Láng, Hà Nội', 50, NULL, 5),
+('Trần Thị Ngọc', 'ngoc.tran@gmail.com', '0967890123', 'hashed_password_customer_3', TRUE, 'FEMALE', '1995-06-30', '12 Đường Cầu Giấy, Hà Nội', 200, 'Thích massage thư giãn', 5),
+('Lê Văn Minh', 'minh.le@gmail.com', '0978901234', NULL, TRUE, 'MALE', '1990-09-15', '34 Đường Kim Mã, Hà Nội', 0, NULL, 5);
 
 -- 5. Bảng Categories (Danh mục)
 INSERT INTO `Categories` (
