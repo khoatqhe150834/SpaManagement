@@ -19,13 +19,14 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
     @Override
     public <S extends Customer> S save(S customer) {
 
-        String sql = "INSERT INTO customers (full_name, email, hash_password, phone_number) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO customers (full_name, email, hash_password, phone_number, role_id) VALUES (?, ?, ?, ?, ?)";
         try (Connection conn = DBContext.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, customer.getFullName());
             ps.setString(2, customer.getEmail());
             ps.setString(3, customer.getHashPassword());
             ps.setString(4, customer.getPhoneNumber());
+            ps.setInt(5, customer.getRoleId());
             int rows = ps.executeUpdate();
 
         } catch (SQLException e) {

@@ -11,6 +11,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -24,7 +26,9 @@ public class Customer {
     private String gender;
     private Date birthday;
     private String address;
+    private Boolean isActive;
     private Integer loyaltyPoints;
+    private Integer roleId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -33,15 +37,10 @@ public class Customer {
         this.email = email;
         this.hashPassword = hashPassword;
         this.phoneNumber = phoneNumber;
+        this.roleId = RoleConstants.CUSTOMER_ID;
     }
 
-    public Object getPassword() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    public Object getPhone() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
+    
     
     
     
