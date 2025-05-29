@@ -15,19 +15,19 @@ public class ServiceType {
     private String name;
     private String description;
     private String imageUrl;
-    private boolean isActive;
+    private boolean active;
     private Timestamp createdAt;
     private Timestamp updatedAt;
 
     public ServiceType() {
     }
 
-    public ServiceType(int serviceTypeId, String name, String description, String imageUrl, boolean isActive, Timestamp createdAt, Timestamp updatedAt) {
+    public ServiceType(int serviceTypeId, String name, String description, String imageUrl, boolean active, Timestamp createdAt, Timestamp updatedAt) {
         this.serviceTypeId = serviceTypeId;
         this.name = name;
         this.description = description;
         this.imageUrl = imageUrl;
-        this.isActive = isActive;
+        this.active = active;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -64,12 +64,12 @@ public class ServiceType {
         this.imageUrl = imageUrl;
     }
 
-    public boolean isIsActive() {
-        return isActive;
+    public boolean isActive() {
+        return active;
     }
 
-    public void setIsActive(boolean isActive) {
-        this.isActive = isActive;
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
     public Timestamp getCreatedAt() {
@@ -87,6 +87,11 @@ public class ServiceType {
     public void setUpdatedAt(Timestamp updatedAt) {
         this.updatedAt = updatedAt;
     }
-    
+
+    @Override
+    public String toString() {
+        return "ServiceType{" + "serviceTypeId=" + serviceTypeId + ", name=" + name + ", description=" + description + ", imageUrl=" + imageUrl + ", active=" + active + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + '}';
+    }
+
     
 }
