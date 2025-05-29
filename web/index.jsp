@@ -523,7 +523,7 @@
     </div>
     <!-- Content END-->
 	<!-- Footer -->
-    
+    <jsp:include page="/WEB-INF/view/common/home/footer.jsp"></jsp:include>
     <!-- Footer END-->	
     <button class="scroltop fa fa-chevron-up" ></button>
 </div>

@@ -1,6 +1,6 @@
 <%-- Document : header Created on : May 25, 2025, 4:22:29 PM Author : quang --%>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %> <%@page
-    contentType="text/html" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %> 
+<%@page  contentType="text/html" pageEncoding="UTF-8"%>
    
     
     <header class="site-header header header-transparent mo-left spa-header">
@@ -10,7 +10,7 @@
                 <div class="container clearfix">
                     <!-- website logo -->
                     <div class="logo-header mostion">
-						<a href="index.html" class="dez-page"><img src="${pageContext.request.contextPath}/assets/home/images/logo-4.png" alt=""></a>
+						<a href="${pageContext.request.contextPath}/" class="dez-page"><img src="${pageContext.request.contextPath}/assets/home/images/logo-4.png" alt=""></a>
 					</div>
                     <!-- nav toggle button -->
                     <button class="navbar-toggler collapsed navicon justify-content-end" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
@@ -74,7 +74,7 @@
 									<li><a href="coming-soon.html" class="dez-page">Coming Soon</a></li>
 									<li><a href="error-404.html" class="dez-page">Error 404</a></li>
 									<li><a href="login.html" class="dez-page">Login</a></li>
-									<li><a href="register.html" class="dez-page">Register</a></li>
+									<li><a href="${pageContext.request.contextPath}/register" class="dez-page">Register</a></li>
 									<li><a href="contact.html" class="dez-page">Contact Us</a></li>
 								</ul>
 							</li>

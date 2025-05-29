@@ -30,17 +30,17 @@
             <!-- FAVICONS ICON -->
             <link
                 rel="icon"
-                href="${pageContext.request.contextPath}/images/favicon.ico"
+                href="${pageContext.request.contextPath}/assets/home/images/favicon.ico"
                 type="image/x-icon"
                 />
             <link
                 rel="shortcut icon"
                 type="image/x-icon"
-                href="${pageContext.request.contextPath}/images/favicon.png"
+                href="${pageContext.request.contextPath}/assets/home/images/favicon.png"
                 />
 
             <!-- Add CSS for validation styling -->
-            <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/auth/register.css" />
+            <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/home/css/auth/register.css" />
 
             <!-- PAGE TITLE HERE -->
             <title>BeautyZone : Beauty Spa Salon</title>
@@ -54,43 +54,13 @@
             <![endif]-->
 
             <!-- STYLESHEETS -->
-            <link
-                rel="stylesheet"
-                type="text/css"
-                href="${pageContext.request.contextPath}/css/plugins.css"
-                />
-            <link
-                rel="stylesheet"
-                type="text/css"
-                href="${pageContext.request.contextPath}/css/style.min.css"
-                />
-            <link
-                rel="stylesheet"
-                type="text/css"
-                href="${pageContext.request.contextPath}/css/templete.min.css"
-                />
-            <link
-                class="skin"
-                rel="stylesheet"
-                type="text/css"
-                href="${pageContext.request.contextPath}/css/skin/skin-1.css"
-                />
-            <link
-                rel="stylesheet"
-                type="text/css"
-                href="${pageContext.request.contextPath}/css/styleSwitcher.css"
-                />
-            <link
-                rel="stylesheet"
-                type="text/css"
-                href="${pageContext.request.contextPath}/plugins/perfect-scrollbar/css/perfect-scrollbar.css"
-                />
+            <jsp:include page="/WEB-INF/view/common/home/stylesheet.jsp"></jsp:include>
         </head>
         <body id="bg">
             <div class="page-wraper">
                 <div id="loading-area"></div>
                 <!-- header -->
-                <jsp:include page="/WEB-INF/view/common/header.jsp"></jsp:include>
+                <jsp:include page="/WEB-INF/view/common/home/header.jsp"></jsp:include>
                     <!-- header END -->
                     <!-- Content -->
                     <div class="page-content bg-white">
@@ -98,7 +68,7 @@
                         <div
                             class="dlab-bnr-inr overlay-primary bg-pt"
                             style="
-                            background-image: url(${pageContext.request.contextPath}/images/banner/bnr2.jpg);
+                            background-image: url(${pageContext.request.contextPath}/assets/home/images/banner/bnr2.jpg);
                         "
                         >
                         <div class="container">
@@ -246,14 +216,14 @@
                 </div>
                 <!-- Content END-->
                 <!-- Footer -->
-                <jsp:include page="/WEB-INF/view/common/footer.jsp"></jsp:include>
+               <jsp:include page="/WEB-INF/view/common/home/footer.jsp"></jsp:include>
                     <!-- Footer END -->
                     <button type="button" class="scroltop" aria-label="Scroll to top">
                         <i class="fa fa-chevron-up" aria-hidden="true"></i>
                     </button>
                 </div>
                 <!-- JAVASCRIPT FILES ========================================= -->
-            <jsp:include page="../common/js.jsp"></jsp:include>
+            <jsp:include page="/WEB-INF/view/common/home/js.jsp"></jsp:include>
         </body>
 
     </html>
