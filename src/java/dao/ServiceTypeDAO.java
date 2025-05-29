@@ -46,19 +46,19 @@ public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
         try (Connection connection = DBContext.getConnection(); PreparedStatement stm = connection.prepareStatement(sql)) {
 
             stm.setInt(1, id);
-            ResultSet rs = stm.executeQuery();
 
-            if (rs.next()) {
-                ServiceType serviceType = new ServiceType(
-                        rs.getInt("service_type_id"),
-                        rs.getString("name"),
-                        rs.getString("description"),
-                        rs.getString("image_url"),
-                        rs.getBoolean("is_active"),
-                        rs.getTimestamp("created_at"),
-                        rs.getTimestamp("updated_at")
-                );
-                return Optional.of(serviceType);
+            try (ResultSet rs = stm.executeQuery()) {
+                if (rs.next()) {
+                    ServiceType st = new ServiceType();
+                    st.setServiceTypeId(rs.getInt("service_type_id"));
+                    st.setName(rs.getString("name"));
+                    st.setDescription(rs.getString("description"));
+                    st.setImageUrl(rs.getString("image_url"));
+                    st.setActive(rs.getBoolean("is_active"));
+                    st.setCreatedAt(rs.getTimestamp("created_at"));
+                    st.setUpdatedAt(rs.getTimestamp("updated_at"));
+                    return Optional.of(st);
+                }
             }
 
         } catch (SQLException ex) {
@@ -141,10 +141,16 @@ public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
 //    public static void main(String[] args) {
 //        ServiceTypeDAO dao = new ServiceTypeDAO();
 //
-//        List<ServiceType> list = dao.findAll();
-//        for (ServiceType st : list) {
+//        // Thay đổi ID tùy theo dữ liệu có trong database
+//        int testId = 1;
+//
+//        Optional<ServiceType> optional = dao.findById(testId);
+//
+//        if (optional.isPresent()) {
+//            ServiceType st = optional.get();
 //            System.out.println(st);
+//        } else {
+//            System.out.println("ServiceType with ID " + testId + " not found.");
 //        }
 //    }
-
 }

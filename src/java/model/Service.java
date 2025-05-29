@@ -158,6 +158,11 @@ public class Service {
     public void setUpdatedAt(Timestamp updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+    @Override
+    public String toString() {
+        return "Service{" + "serviceId=" + serviceId + ", serviceTypeId=" + serviceTypeId + ", name=" + name + ", description=" + description + ", price=" + price + ", durationMinutes=" + durationMinutes + ", bufferTimeAfterMinutes=" + bufferTimeAfterMinutes + ", imageUrl=" + imageUrl + ", isActive=" + isActive + ", averageRating=" + averageRating + ", bookableOnline=" + bookableOnline + ", requiresConsultation=" + requiresConsultation + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + '}';
+    }
     
     
 }
