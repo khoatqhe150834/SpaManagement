@@ -7,40 +7,42 @@ contentType="text/html" pageEncoding="UTF-8"%>
       <div class="row d-flex align-items-center">
         <div class="col-xl-3 col-12 col-lg-3 col-md-6 col-sm-6">
           <div class="widget">
-            <h6>Phone &amp; E-mail</h6>
+            <h6>Liên lạc</h6>
             <ul>
               <li>
-                +91 800-123456 <br />
-                office@example.com
+                +84 800-123456 <br />
+                beautyzone@gmail.com
               </li>
             </ul>
           </div>
         </div>
         <div class="col-xl-3 col-12 col-lg-3 col-md-6 col-sm-6">
           <div class="widget">
-            <h6>Address</h6>
+            <h6>Địa chỉ</h6>
             <ul>
               <li>
-                #8901 Marmora Road<br />
-                Chi Minh City, Vietnam
+                123 Nguyễn Huệ<br />
+                Quận 1, TP Hồ Chí Minh
               </li>
             </ul>
           </div>
         </div>
         <div class="col-xl-4 col-12 col-lg-3 col-md-6 col-sm-6">
           <div class="widget">
-            <h6>Opening Times</h6>
+            <h6>Thời gian mở cửa</h6>
             <ul>
               <li>
-                +91 800-123456 <br />
-                office@example.com
+                T2 - T7 : 7:00 - 19:00 <br />
+                CN : 8:00 - 18:00
               </li>
             </ul>
           </div>
         </div>
         <div class="col-xl-2 col-12 col-lg-3 col-md-6 col-sm-6">
           <div class="widget">
-            <a href="booking.html" class="site-button radius-no">Book Now</a>
+            <a href="booking.html" class="site-button radius-no"
+              >ĐẶT LỊCH NGAY</a
+            >
           </div>
         </div>
       </div>

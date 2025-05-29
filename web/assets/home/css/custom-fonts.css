@@ -1,0 +1,44 @@
+/* Override Abhaya Libre font with Playfair Display */
+
+/* Main heading replacements - Spa sections */
+.spa-testimonial .section-head h2, 
+.spa-our-portfolio .section-head h2, 
+.spa-price-bx .section-head h2, 
+.spa-about-content h2, .spa-price-bx .section-head h5 {
+    font-family: 'Playfair Display', serif !important;
+}
+
+/* Price table headings */
+.spa-price-tbl li .spa-price-content h4 {
+    font-family: 'Playfair Display', serif !important;
+}
+
+/* Portfolio box headings */
+.spa-our-portfolio .overlay-bx .spa-port-bx h4 {
+    font-family: 'Playfair Display', serif !important;
+}
+
+/* Footer headings */
+.spa-footer.footer-white .footer-top h6 {
+    font-family: 'Playfair Display', serif !important;
+}
+
+/* Service box titles */
+.spa-ser-bx .dlab-info-bx .dlab-title {
+    font-family: 'Playfair Display', serif !important;
+}
+
+/* Testimonial text */
+.spa-testimonial .testimonial-text p {
+    font-family: 'Playfair Display', serif !important;
+}
+
+/* Testimonial names */
+.spa-testimonial .testimonial-name {
+    font-family: 'Playfair Display', serif !important;
+}
+
+/* Any other Abhaya Libre instances */
+.font-abhaya {
+    font-family: 'Playfair Display', serif !important;
+}

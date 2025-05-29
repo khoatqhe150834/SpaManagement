@@ -29,7 +29,7 @@
 <!-- OWL SLIDER -->
 <script src="${pageContext.request.contextPath}/assets/home/plugins/rangeslider/rangeslider.js"></script>
 <!-- Rangeslider -->
-<script src="${pageContext.request.contextPath}/assets/home/plugins/lightgallery/js/lightgallery-all.js"></script>
+<!--<script src="${pageContext.request.contextPath}/assets/home/plugins/lightgallery/js/lightgallery-all.js"></script>-->
 <!-- LIGHT GALLERY -->
 <script src="${pageContext.request.contextPath}/assets/home/js/custom.min.js"></script>
 <!-- CUSTOM FUCTIONS  -->
@@ -38,7 +38,7 @@
 <script src="${pageContext.request.contextPath}/assets/home/js/dz.ajax.js"></script>
 <!-- CONTACT JS  -->
 <script src="${pageContext.request.contextPath}/assets/home/plugins/perfect-scrollbar/js/perfect-scrollbar.min.js"></script>
-<script src="${pageContext.request.contextPath}/assets/home/js/styleSwitcher.js"></script>
+
 <!-- revolution JS FILES -->
 <script src="${pageContext.request.contextPath}/assets/home/plugins/revolution/revolution/js/jquery.themepunch.tools.min.js"></script>
 <script src="${pageContext.request.contextPath}/assets/home/plugins/revolution/revolution/js/jquery.themepunch.revolution.min.js"></script>
