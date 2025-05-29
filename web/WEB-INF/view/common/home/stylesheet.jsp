@@ -1,18 +1,50 @@
-<%-- 
-    Document   : stylesheet
-    Created on : May 26, 2025, 10:15:46 PM
-    Author     : quang
---%>
-
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
-
-<link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/home/css/plugins.css">
-<link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/home/css/style.min.css">
-<link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/home/css/templete.min.css">
-<link class="skin" rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/home/css/skin/skin-1.css">
-<link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/home/css/styleSwitcher.css">
-<link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/home/plugins/perfect-scrollbar/css/perfect-scrollbar.css">
+<%-- Document : stylesheet Created on : May 26, 2025, 10:15:46 PM Author : quang
+--%> <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<!-- STYLESHEETS -->
+<link
+  rel="stylesheet"
+  type="text/css"
+  href="${pageContext.request.contextPath}/assets/home/css/plugins.css"
+/>
+<link
+  rel="stylesheet"
+  type="text/css"
+  href="${pageContext.request.contextPath}/assets/home/css/style.min.css"
+/>
+<link
+  rel="stylesheet"
+  type="text/css"
+  href="${pageContext.request.contextPath}/assets/home/css/templete.min.css"
+/>
+<link
+  class="skin"
+  rel="stylesheet"
+  type="text/css"
+  href="${pageContext.request.contextPath}/assets/home/css/skin/skin-3.css"
+/>
+<link
+  rel="stylesheet"
+  type="text/css"
+  href="${pageContext.request.contextPath}/assets/home/css/styleSwitcher.css"
+/>
+<link
+  rel="stylesheet"
+  type="text/css"
+  href="${pageContext.request.contextPath}/assets/home/plugins/perfect-scrollbar/css/perfect-scrollbar.css"
+/>
 <!-- Revolution Slider Css -->
-<link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/home/plugins/revolution/revolution/css/layers.css">
-<link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/home/plugins/revolution/revolution/css/settings.css">
-<link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/home/plugins/revolution/revolution/css/navigation.css">
+<link
+  rel="stylesheet"
+  type="text/css"
+  href="${pageContext.request.contextPath}/assets/home/plugins/revolution/revolution/css/layers.css"
+/>
+<link
+  rel="stylesheet"
+  type="text/css"
+  href="${pageContext.request.contextPath}/assets/home/plugins/revolution/revolution/css/settings.css"
+/>
+<link
+  rel="stylesheet"
+  type="text/css"
+  href="${pageContext.request.contextPath}/assets/home/plugins/revolution/revolution/css/navigation.css"
+/>
