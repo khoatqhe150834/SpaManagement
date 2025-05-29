@@ -2,29 +2,26 @@ package dao;
 
 import db.DBContext;
 import model.ServiceType;
+
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class ServiceTypeDAO {
+public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
 
-    public ArrayList<ServiceType> getAll() {
-        ArrayList<ServiceType> serviceTypes = new ArrayList<>();
-        String sql = "SELECT * FROM Service_Types"; // <-- Tên bảng đúng trong DB
+    // --- Implemented methods ---
+    @Override
+    public List<ServiceType> findAll() {
+        List<ServiceType> serviceTypes = new ArrayList<>();
+        String sql = "SELECT * FROM Service_Types";
 
-        Connection connection = null;
-        PreparedStatement stm = null;
-        ResultSet rs = null;
-
-        try {
-            connection = DBContext.getConnection();
-            stm = connection.prepareStatement(sql);
-            rs = stm.executeQuery();
+        try (Connection connection = DBContext.getConnection(); PreparedStatement stm = connection.prepareStatement(sql); ResultSet rs = stm.executeQuery()) {
 
             while (rs.next()) {
                 ServiceType serviceType = new ServiceType();
-
                 serviceType.setServiceTypeId(rs.getInt("service_type_id"));
                 serviceType.setName(rs.getString("name"));
                 serviceType.setDescription(rs.getString("description"));
@@ -32,29 +29,122 @@ public class ServiceTypeDAO {
                 serviceType.setActive(rs.getBoolean("is_active"));
                 serviceType.setCreatedAt(rs.getTimestamp("created_at"));
                 serviceType.setUpdatedAt(rs.getTimestamp("updated_at"));
-
                 serviceTypes.add(serviceType);
             }
+
         } catch (SQLException ex) {
             Logger.getLogger(ServiceTypeDAO.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            try {
-                if (rs != null) rs.close();
-                if (stm != null) stm.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
         }
 
         return serviceTypes;
     }
-    
-    public static void main(String[] args) {
-        ServiceTypeDAO serviceTypeDAO = new ServiceTypeDAO();
-        
-        ArrayList<ServiceType> list = serviceTypeDAO.getAll();
-        for (ServiceType c : list) {
-            System.out.println(c);
+
+    @Override
+    public Optional<ServiceType> findById(Integer id) {
+        String sql = "SELECT * FROM Service_Types WHERE service_type_id = ?";
+
+        try (Connection connection = DBContext.getConnection(); PreparedStatement stm = connection.prepareStatement(sql)) {
+
+            stm.setInt(1, id);
+            ResultSet rs = stm.executeQuery();
+
+            if (rs.next()) {
+                ServiceType serviceType = new ServiceType(
+                        rs.getInt("service_type_id"),
+                        rs.getString("name"),
+                        rs.getString("description"),
+                        rs.getString("image_url"),
+                        rs.getBoolean("is_active"),
+                        rs.getTimestamp("created_at"),
+                        rs.getTimestamp("updated_at")
+                );
+                return Optional.of(serviceType);
+            }
+
+        } catch (SQLException ex) {
+            Logger.getLogger(ServiceTypeDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return Optional.empty();
+    }
+
+    @Override
+    public <S extends ServiceType> S save(S entity) {
+        String sql = "INSERT INTO Service_Types (name, description, image_url, is_active) VALUES (?, ?, ?, ?)";
+
+        try (Connection connection = DBContext.getConnection(); PreparedStatement stm = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
+            stm.setString(1, entity.getName());
+            stm.setString(2, entity.getDescription());
+            stm.setString(3, entity.getImageUrl());
+            stm.setBoolean(4, entity.isActive());
+
+            stm.executeUpdate();
+            ResultSet rs = stm.getGeneratedKeys();
+            if (rs.next()) {
+                entity.setServiceTypeId(rs.getInt(1));
+            }
+
+        } catch (SQLException ex) {
+            Logger.getLogger(ServiceTypeDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return entity;
+    }
+
+    @Override
+    public <S extends ServiceType> S update(S entity) {
+        String sql = "UPDATE Service_Types SET name = ?, description = ?, image_url = ?, is_active = ? WHERE service_type_id = ?";
+
+        try (Connection connection = DBContext.getConnection(); PreparedStatement stm = connection.prepareStatement(sql)) {
+
+            stm.setString(1, entity.getName());
+            stm.setString(2, entity.getDescription());
+            stm.setString(3, entity.getImageUrl());
+            stm.setBoolean(4, entity.isActive());
+            stm.setInt(5, entity.getServiceTypeId());
+
+            stm.executeUpdate();
+
+        } catch (SQLException ex) {
+            Logger.getLogger(ServiceTypeDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return entity;
+    }
+
+    @Override
+    public void deleteById(Integer id) {
+        String sql = "DELETE FROM Service_Types WHERE service_type_id = ?";
+
+        try (Connection connection = DBContext.getConnection(); PreparedStatement stm = connection.prepareStatement(sql)) {
+
+            stm.setInt(1, id);
+            stm.executeUpdate();
+
+        } catch (SQLException ex) {
+            Logger.getLogger(ServiceTypeDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+
+    // --- Unimplemented methods (default for now) ---
+    @Override
+    public void delete(ServiceType entity) {
+        throw new UnsupportedOperationException("Not implemented yet.");
+    }
+
+    @Override
+    public boolean existsById(Integer id) {
+        throw new UnsupportedOperationException("Not implemented yet.");
+    }
+
+//    public static void main(String[] args) {
+//        ServiceTypeDAO dao = new ServiceTypeDAO();
+//
+//        List<ServiceType> list = dao.findAll();
+//        for (ServiceType st : list) {
+//            System.out.println(st);
+//        }
+//    }
+
 }
