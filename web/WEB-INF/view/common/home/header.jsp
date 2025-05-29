@@ -130,13 +130,13 @@
               <a href="javascript:void(0);">Pages <i class="fa fa-chevron-down"></i></a>
               <ul class="sub-menu">
                 <li>
-                  <a href="javascript:void(0);" class="dez-page">Header <i class="fa fa-angle-right"></i></a>
-                  <ul class="sub-menu">
+                  <a href="${pageContext.request.contextPath}/login" class="dez-page">ĐĂNG NHẬP</a>
+<!--                  <ul class="sub-menu">
                     <li><a href="header-1.html" class="dez-page">Header 1</a></li>
                     <li><a href="header-2.html" class="dez-page">Header 2</a></li>
-                  </ul>
+                  </ul>-->
                 </li>
-                <li><a href="${pageContext.request.contextPath}/register" class="dez-page">Register</a></li>
+                <li><a href="${pageContext.request.contextPath}/register" class="dez-page">ĐĂNG KÝ</a></li>
                 <%-- Add other page links here --%>
               </ul>
             </li>

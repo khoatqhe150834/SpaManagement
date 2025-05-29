@@ -16,6 +16,9 @@ import org.mindrot.jbcrypt.BCrypt;
  */
 public class CustomerDAO implements BaseDAO<Customer, Integer> {
 
+    
+    
+    
     @Override
     public <S extends Customer> S save(S customer) {
 
@@ -136,6 +139,42 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         }
 
         return false;
+    }
+
+    public Customer getCustomerByEmailAndPassword(String email, String password) {
+        
+        Customer customer = null;
+        try (Connection connection = DBContext.getConnection();
+                PreparedStatement ps = connection
+                        .prepareStatement("SELECT * FROM Customers WHERE email = ?")) {
+
+            ps.setString(1, email);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                String storedHash = rs.getString("hash_password");
+                if (BCrypt.checkpw(password, storedHash)) {
+                    customer = new Customer();
+                    customer.setFullName(rs.getString("full_name"));
+                    customer.setEmail(rs.getString("email"));
+                    customer.setPhoneNumber(rs.getString("phone_number"));
+                    customer.setRoleId(rs.getInt("role_id"));
+                    customer.setIsActive(rs.getBoolean("is_active"));
+                    customer.setGender(rs.getString("gender"));
+                    customer.setAddress(rs.getString("address"));
+                    customer.setBirthday(rs.getDate("birthday"));
+
+
+
+                    
+                }
+            }
+
+        } catch (SQLException e) {
+            return null; // or throw an exception based on requirements
+        }
+
+        return customer;
     }
 
 }
