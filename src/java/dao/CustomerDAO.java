@@ -6,6 +6,7 @@ package dao;
 
 import db.DBContext;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import model.Customer;
@@ -48,10 +49,41 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
     }
 
     @Override
-    public List<Customer> findAll() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from
-                                                                       // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+public List<Customer> findAll() {
+    List<Customer> customers = new ArrayList<>();
+    String sql = "SELECT * FROM Customers"; // Đổi tên table nếu cần
+
+    try (Connection connection = DBContext.getConnection();
+         PreparedStatement ps = connection.prepareStatement(sql);
+         ResultSet rs = ps.executeQuery()) {
+
+        while (rs.next()) {
+            Customer customer = Customer.builder()
+                .customerId(rs.getInt("customer_id"))
+                .fullName(rs.getString("full_name"))
+                .email(rs.getString("email"))
+                .hashPassword(rs.getString("hash_password"))
+                .phoneNumber(rs.getString("phone_number"))
+                .gender(rs.getString("gender"))
+                .birthday(rs.getDate("birthday"))
+                .address(rs.getString("address"))
+                .isActive(rs.getBoolean("is_active"))
+                .loyaltyPoints(rs.getInt("loyalty_points"))
+                .roleId(rs.getInt("role_id"))
+                .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
+                .updatedAt(rs.getTimestamp("updated_at").toLocalDateTime())
+                .build();
+
+            customers.add(customer);
+        }
+
+    } catch (SQLException e) {
+        throw new RuntimeException("Error retrieving customers: " + e.getMessage(), e);
     }
+
+    return customers;
+}
+
 
     @Override
     public boolean existsById(Integer id) {
@@ -177,4 +209,18 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         return customer;
     }
 
+    
+    public static void main(String[] args) {
+        CustomerDAO customerDAO = new CustomerDAO();
+        List<Customer> customers = customerDAO.findAll();
+        for (Customer customer : customers) {
+            System.out.println(customer.toString());
+        }
+        
+        
+        System.out.println("Hejtrtrt");
+    }
+    
+    
+    
 }
