@@ -15,4 +15,24 @@ public class RoleConstants {
     public static final int RECEPTIONIST_ID = 4;
     public static final int CUSTOMER_ID = 5;
     
+    public static String getUserTypeFromRole(Integer roleId) {
+        if (roleId == null) {
+            return "customer"; // Default to customer if no role specified
+        }
+        
+        switch (roleId) {
+            case ADMIN_ID:
+                return "admin";
+            case MANAGER_ID:
+                return "manager";
+            case THERAPIST_ID:
+                return "therapist";
+            case RECEPTIONIST_ID:
+                return "receptionist";
+            case CUSTOMER_ID:
+                return "customer";
+            default:
+                return "customer"; // Default to customer for unknown roles
+        }
+    }
 }
