@@ -27,6 +27,35 @@ public class ServiceTypeController extends HttpServlet {
             request.getRequestDispatcher(SERVICE_TYPE).forward(request, response);
         }
 
+        if (service.equals("pre-update")) {
+            int id = Integer.parseInt(request.getParameter("id"));
+            ServiceTypeDAO dao = new ServiceTypeDAO();
+            ServiceType st = dao.findById(id).orElse(null);
+            request.setAttribute("stype", st);
+            request.getRequestDispatcher("update_service_type.jsp").forward(request, response);
+        }
+
+        if (service.equals("delete")) {
+            int id = Integer.parseInt(request.getParameter("id"));
+            ServiceTypeDAO dao = new ServiceTypeDAO();
+            dao.deleteById(id);
+            response.sendRedirect("servicetype");
+        }
+
+        if (service.equals("searchByKeyword")) {
+            String keyword = request.getParameter("keyword");
+            List<ServiceType> serviceTypes = new ServiceTypeDAO().findByKeyword(keyword);
+            
+            if (serviceTypes == null || serviceTypes.isEmpty()){
+                request.setAttribute("notFoundServiceType", "Your keywords do not match with any Service Type");
+                serviceTypes = (new ServiceTypeDAO()).findAll();
+            }
+            
+            request.setAttribute("keyword", keyword);
+            request.setAttribute("serviceTypes", serviceTypes);
+            request.getRequestDispatcher(SERVICE_TYPE).forward(request, response);
+        }
+
     }
 
     @Override
@@ -55,6 +84,26 @@ public class ServiceTypeController extends HttpServlet {
         } else {
             // Nếu không phải action hợp lệ, có thể redirect hoặc báo lỗi
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid action in POST");
+        }
+
+        if (service.equals("update")) {
+            int id = Integer.parseInt(request.getParameter("id"));
+            String name = request.getParameter("name");
+            String description = request.getParameter("description");
+            String imageUrl = request.getParameter("image_url");
+            boolean isActive = request.getParameter("is_active") != null;
+
+            ServiceType st = new ServiceType();
+            st.setServiceTypeId(id);
+            st.setName(name);
+            st.setDescription(description);
+            st.setImageUrl(imageUrl);
+            st.setActive(isActive);
+
+            ServiceTypeDAO dao = new ServiceTypeDAO();
+            dao.update(st);
+
+            response.sendRedirect("servicetype");
         }
     }
 

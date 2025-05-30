@@ -184,17 +184,17 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
         return service;
     }
 
-    public static void main(String[] args) {
-        ServiceDAO serviceDAO = new ServiceDAO();
-        List<Service> services = serviceDAO.findAll();
-
-        if (services.isEmpty()) {
-            System.out.println("No services found.");
-        } else {
-            for (Service service : services) {
-                System.out.println(service);
-            }
-        }
-    }
+//    public static void main(String[] args) {
+//        ServiceDAO serviceDAO = new ServiceDAO();
+//        List<Service> services = serviceDAO.findAll();
+//
+//        if (services.isEmpty()) {
+//            System.out.println("No services found.");
+//        } else {
+//            for (Service service : services) {
+//                System.out.println(service);
+//            }
+//        }
+//    }
 
 }
