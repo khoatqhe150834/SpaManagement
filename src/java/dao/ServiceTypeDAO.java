@@ -12,7 +12,6 @@ import java.util.logging.Logger;
 
 public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
 
-    // --- Implemented methods ---
     @Override
     public List<ServiceType> findAll() {
         List<ServiceType> serviceTypes = new ArrayList<>();
@@ -46,7 +45,6 @@ public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
         try (Connection connection = DBContext.getConnection(); PreparedStatement stm = connection.prepareStatement(sql)) {
 
             stm.setInt(1, id);
-
             try (ResultSet rs = stm.executeQuery()) {
                 if (rs.next()) {
                     ServiceType st = new ServiceType();
@@ -80,9 +78,10 @@ public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
             stm.setBoolean(4, entity.isActive());
 
             stm.executeUpdate();
-            ResultSet rs = stm.getGeneratedKeys();
-            if (rs.next()) {
-                entity.setServiceTypeId(rs.getInt(1));
+            try (ResultSet rs = stm.getGeneratedKeys()) {
+                if (rs.next()) {
+                    entity.setServiceTypeId(rs.getInt(1));
+                }
             }
 
         } catch (SQLException ex) {
@@ -127,18 +126,60 @@ public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
         }
     }
 
-    // --- Unimplemented methods (default for now) ---
     @Override
     public void delete(ServiceType entity) {
-        throw new UnsupportedOperationException("Not implemented yet.");
+            deleteById(entity.getServiceTypeId());
     }
 
     @Override
     public boolean existsById(Integer id) {
-        throw new UnsupportedOperationException("Not implemented yet.");
+        String sql = "SELECT 1 FROM Service_Types WHERE service_type_id = ?";
+        try (Connection connection = DBContext.getConnection(); PreparedStatement stm = connection.prepareStatement(sql)) {
+
+            stm.setInt(1, id);
+            try (ResultSet rs = stm.executeQuery()) {
+                return rs.next();
+            }
+
+        } catch (SQLException ex) {
+            Logger.getLogger(ServiceTypeDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return false;
     }
 
-//    public static void main(String[] args) {
+    public List<ServiceType> findByKeyword(String keyword) {
+        List<ServiceType> serviceTypes = new ArrayList<>();
+        String sql = "SELECT * FROM Service_Types WHERE LOWER(name) LIKE ? OR LOWER(description) LIKE ?";
+
+        try (Connection connection = DBContext.getConnection(); PreparedStatement stm = connection.prepareStatement(sql)) {
+
+            String queryParam = "%" + keyword.toLowerCase() + "%";
+            stm.setString(1, queryParam);
+            stm.setString(2, queryParam);
+
+            try (ResultSet rs = stm.executeQuery()) {
+                while (rs.next()) {
+                    ServiceType serviceType = new ServiceType();
+                    serviceType.setServiceTypeId(rs.getInt("service_type_id"));
+                    serviceType.setName(rs.getString("name"));
+                    serviceType.setDescription(rs.getString("description"));
+                    serviceType.setImageUrl(rs.getString("image_url"));
+                    serviceType.setActive(rs.getBoolean("is_active"));
+                    serviceType.setCreatedAt(rs.getTimestamp("created_at"));
+                    serviceType.setUpdatedAt(rs.getTimestamp("updated_at"));
+                    serviceTypes.add(serviceType);
+                }
+            }
+
+        } catch (SQLException ex) {
+            Logger.getLogger(ServiceTypeDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return serviceTypes;
+    }
+
+    //    public static void main(String[] args) {
 //        ServiceTypeDAO dao = new ServiceTypeDAO();
 //
 //        // Thay đổi ID tùy theo dữ liệu có trong database
