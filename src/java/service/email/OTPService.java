@@ -13,7 +13,7 @@ import lombok.Data;
  *
  * @author quang
  */
-public class OTP {
+public class OTPService {
     private static int OTP_LENGTH = 6;
     
     private static final int OTP_EXPIRY_MINUTES = 4;
