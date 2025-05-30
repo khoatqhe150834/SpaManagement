@@ -29,9 +29,16 @@ contentType="text/html" pageEncoding="UTF-8"%>
     <meta name="format-detection" content="telephone=no" />
 
     <!-- FAVICONS ICON -->
-    <link rel="icon" href="images/favicon.ico" type="image/x-icon" />
-    <link rel="shortcut icon" type="image/x-icon" href="images/favicon.png" />
-
+     <link
+      rel="icon"
+      href="${pageContext.request.contextPath}/assets/home/images/favicon.ico"
+      type="image/x-icon"
+    />
+    <link
+      rel="shortcut icon"
+      type="image/x-icon"
+      href="${pageContext.request.contextPath}/assets/home/images/favicon.png"
+    />
     <!-- PAGE TITLE HERE -->
     <title>BeautyZone : Beauty Spa Salon HTML Template</title>
 
@@ -44,13 +51,13 @@ contentType="text/html" pageEncoding="UTF-8"%>
     <![endif]-->
 
     <!-- STYLESHEETS -->
-    <jsp:include page="/WEB-INF/view/common/stylesheet.jsp"></jsp:include>
+    <jsp:include page="/WEB-INF/view/common/home/stylesheet.jsp"></jsp:include>
   </head>
   <body id="bg">
     <div class="page-wraper">
       <div id="loading-area"></div>
       <!-- header -->
-      <jsp:include page="/WEB-INF/view/common/header.jsp"></jsp:include>
+      <jsp:include page="/WEB-INF/view/common/home/header.jsp"></jsp:include>
 
       <!-- header END -->
       <!-- Content -->
@@ -164,12 +171,12 @@ contentType="text/html" pageEncoding="UTF-8"%>
       </div>
       <!-- Content END-->
       <!-- Footer -->
-      <jsp:include page="/WEB-INF/view/common/footer.jsp"></jsp:include>
+      <jsp:include page="/WEB-INF/view/common/home/footer.jsp"></jsp:include>
       <!-- Footer END -->
       <button class="scroltop fa fa-chevron-up"></button>
     </div>
     <!-- JAVASCRIPT FILES ========================================= -->
-    <jsp:include page="/WEB-INF/view/common/js.jsp"></jsp:include>
+    <jsp:include page="/WEB-INF/view/common/home/js.jsp"></jsp:include>
   </body>
 
   <!-- Mirrored from www.beautyzone.dexignzone.com/xhtml/login.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 24 May 2025 16:40:31 GMT -->
