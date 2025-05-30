@@ -51,7 +51,7 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
     @Override
 public List<Customer> findAll() {
     List<Customer> customers = new ArrayList<>();
-    String sql = "SELECT * FROM Customers"; // Đổi tên table nếu cần
+    String sql = "SELECT * FROM Customers"; 
 
     try (Connection connection = DBContext.getConnection();
          PreparedStatement ps = connection.prepareStatement(sql);
