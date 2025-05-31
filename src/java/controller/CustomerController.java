@@ -20,7 +20,7 @@ import java.util.Optional;
 /**
  * @author Admin
  */
-@WebServlet("/customer")
+@WebServlet(urlPatterns = {"/customer/*"})
 public class CustomerController extends HttpServlet {
     private CustomerDAO customerDAO;
 
@@ -32,10 +32,22 @@ public class CustomerController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        String action = req.getParameter("action");
+        String pathInfo = req.getPathInfo();
         try {
-            switch (action != null ? action : "list") {
-                
+            // Default to list if no path is specified
+            if (pathInfo == null || pathInfo.equals("/")) {
+                listCustomer(req, resp);
+                return;
+            }
+
+            // Remove leading slash and split on remaining slashes
+            String[] pathParts = pathInfo.substring(1).split("/");
+            String action = pathParts[0].toLowerCase(); // Convert to lowercase for case-insensitive matching
+
+            switch (action) {
+                case "list":
+                    listCustomer(req, resp);
+                    break;
                 case "edit":
                     showEditForm(req, resp);
                     break;
@@ -46,12 +58,12 @@ public class CustomerController extends HttpServlet {
                     searchCustomer(req, resp);
                     break;
                 default:
-                    listCustomer(req, resp);
+                    resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Invalid path: " + pathInfo);
                     break;
             }
         } catch (Exception e) {
             req.setAttribute("error", "An error occurred: " + e.getMessage());
-            req.getRequestDispatcher("error.jsp").forward(req, resp);
+            req.getRequestDispatcher("/error.jsp").forward(req, resp);
         }
     }
 
@@ -71,7 +83,7 @@ public class CustomerController extends HttpServlet {
             }
         } catch (Exception e) {
             req.setAttribute("error", "An error occurred: " + e.getMessage());
-            req.getRequestDispatcher("error.jsp").forward(req, resp);
+            req.getRequestDispatcher("/WEB-INF/view/customer/customer-view.jsp").forward(req, resp);
         }
     }
 
@@ -81,12 +93,12 @@ public class CustomerController extends HttpServlet {
             throws ServletException, IOException {
         List<Customer> list = customerDAO.findAll();
         req.setAttribute("listCustomer", list);
-        req.getRequestDispatcher("/customer/list.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/view/customer/customer-view.jsp").forward(req, resp);
     }
 
     private void showCreateForm(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        req.getRequestDispatcher("/customer/form.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/view/customer/form.jsp").forward(req, resp);
     }
 
     private void showEditForm(HttpServletRequest req, HttpServletResponse resp)
@@ -96,7 +108,7 @@ public class CustomerController extends HttpServlet {
             Optional<Customer> customerOpt = customerDAO.findById(id);
             if (customerOpt.isPresent()) {
                 req.setAttribute("customer", customerOpt.get());
-                req.getRequestDispatcher("/customer/form.jsp").forward(req, resp);
+                req.getRequestDispatcher("/WEB-INF/view/customer/form.jsp").forward(req, resp);
             } else {
                 resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Customer not found");
             }
@@ -201,7 +213,7 @@ public class CustomerController extends HttpServlet {
         req.setAttribute("listCustomer", list);
         req.setAttribute("searchType", searchType);
         req.setAttribute("searchValue", searchValue);
-        req.getRequestDispatcher("/customer/list.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/view/customer/customer-view.jsp").forward(req, resp);
     }
     
     
