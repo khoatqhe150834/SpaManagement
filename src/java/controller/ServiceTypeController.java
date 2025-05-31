@@ -14,7 +14,7 @@ import java.util.List;
 @WebServlet(name = "ServiceTypeController", urlPatterns = {"/servicetype"})
 public class ServiceTypeController extends HttpServlet {
 
-    private final String SERVICE_TYPE = "test_service.jsp";
+    private final String SERVICE_TYPE_URL = "WEB-INF/view/admin_pages/ServiceTypeManager.jsp";
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -24,7 +24,7 @@ public class ServiceTypeController extends HttpServlet {
         if (service == null || service.equals("list-all")) {
             List<ServiceType> serviceTypes = (new ServiceTypeDAO()).findAll();
             request.setAttribute("serviceTypes", serviceTypes);
-            request.getRequestDispatcher(SERVICE_TYPE).forward(request, response);
+            request.getRequestDispatcher(SERVICE_TYPE_URL).forward(request, response);
         }
 
         if (service.equals("pre-update")) {
@@ -53,7 +53,7 @@ public class ServiceTypeController extends HttpServlet {
             
             request.setAttribute("keyword", keyword);
             request.setAttribute("serviceTypes", serviceTypes);
-            request.getRequestDispatcher(SERVICE_TYPE).forward(request, response);
+            request.getRequestDispatcher(SERVICE_TYPE_URL).forward(request, response);
         }
 
     }
