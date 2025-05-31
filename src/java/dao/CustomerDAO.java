@@ -5,27 +5,25 @@
 package dao;
 
 import db.DBContext;
+import static db.DBContext.getConnection;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import model.Customer;
 import org.mindrot.jbcrypt.BCrypt;
+
 /**
  *
  * @author quang
  */
 public class CustomerDAO implements BaseDAO<Customer, Integer> {
 
-    
-    
-    
     @Override
     public <S extends Customer> S save(S customer) {
 
         String sql = "INSERT INTO customers (full_name, email, hash_password, phone_number, role_id) VALUES (?, ?, ?, ?, ?)";
-        try (Connection conn = DBContext.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, customer.getFullName());
             ps.setString(2, customer.getEmail());
             ps.setString(3, customer.getHashPassword());
@@ -40,73 +38,174 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
 
         return customer;
 
-    }
+    }// cai nay kh fix nhé
 
     @Override
     public Optional<Customer> findById(Integer id) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from
-                                                                       // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
+        String sql = "SELECT * FROM Customers WHERE customer_id = ?";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                Customer customer = new Customer();
+                customer.setCustomerId(rs.getInt("customer_id"));
+                customer.setFullName(rs.getString("full_name"));
+                customer.setEmail(rs.getString("email"));
+                customer.setPhoneNumber(rs.getString("phone_number"));
+                customer.setHashPassword(rs.getString("hash_password"));
+                customer.setGender(rs.getString("gender"));
+                customer.setBirthday(rs.getDate("birthday"));
+                customer.setAddress(rs.getString("address"));
+                customer.setIsActive(rs.getBoolean("is_active"));
+                customer.setLoyaltyPoints(rs.getInt("loyalty_points"));
+                customer.setRoleId(rs.getInt("role_id"));
+                customer.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                customer.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
 
-    @Override
-public List<Customer> findAll() {
-    List<Customer> customers = new ArrayList<>();
-    String sql = "SELECT * FROM Customers"; 
-
-    try (Connection connection = DBContext.getConnection();
-         PreparedStatement ps = connection.prepareStatement(sql);
-         ResultSet rs = ps.executeQuery()) {
-
-        while (rs.next()) {
-            Customer customer = Customer.builder()
-                .customerId(rs.getInt("customer_id"))
-                .fullName(rs.getString("full_name"))
-                .email(rs.getString("email"))
-                .hashPassword(rs.getString("hash_password"))
-                .phoneNumber(rs.getString("phone_number"))
-                .gender(rs.getString("gender"))
-                .birthday(rs.getDate("birthday"))
-                .address(rs.getString("address"))
-                .isActive(rs.getBoolean("is_active"))
-                .loyaltyPoints(rs.getInt("loyalty_points"))
-                .roleId(rs.getInt("role_id"))
-                .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
-                .updatedAt(rs.getTimestamp("updated_at").toLocalDateTime())
-                .build();
-
-            customers.add(customer);
+                return Optional.of(customer);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-
-    } catch (SQLException e) {
-        throw new RuntimeException("Error retrieving customers: " + e.getMessage(), e);
+        return Optional.empty();
     }
 
-    return customers;
-}
+    public List<Customer> findByNameContain(String name) {
+        List<Customer> customers = new ArrayList<>();
+        String sql = "SELECT * FROM Customers WHERE full_name LIKE ?";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, "%" + name + "%");
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Customer customer = new Customer();
+                customer.setCustomerId(rs.getInt("customer_id"));
+                customer.setFullName(rs.getString("full_name"));
+                customer.setEmail(rs.getString("email"));
+                customer.setPhoneNumber(rs.getString("phone_number"));
+                customer.setHashPassword(rs.getString("hash_password"));
+                customer.setGender(rs.getString("gender"));
+                customer.setBirthday(rs.getDate("birthday"));
+                customer.setAddress(rs.getString("address"));
+                customer.setIsActive(rs.getBoolean("is_active"));
+                customer.setLoyaltyPoints(rs.getInt("loyalty_points"));
+                customer.setRoleId(rs.getInt("role_id"));
+                customer.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                customer.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
+                customers.add(customer);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return customers;
+    }
 
+    public List<Customer> findByPhoneContain(String phone) {
+        List<Customer> customers = new ArrayList<>();
+        String sql = "SELECT * FROM Customers WHERE phone_number LIKE ?";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, "%" + phone + "%");
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Customer customer = new Customer();
+                customer.setCustomerId(rs.getInt("customer_id"));
+                customer.setFullName(rs.getString("full_name"));
+                customer.setEmail(rs.getString("email"));
+                customer.setPhoneNumber(rs.getString("phone_number"));
+                customer.setHashPassword(rs.getString("hash_password"));
+                customer.setGender(rs.getString("gender"));
+                customer.setBirthday(rs.getDate("birthday"));
+                customer.setAddress(rs.getString("address"));
+                customer.setIsActive(rs.getBoolean("is_active"));
+                customer.setLoyaltyPoints(rs.getInt("loyalty_points"));
+                customer.setRoleId(rs.getInt("role_id"));
+                customer.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                customer.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
+                customers.add(customer);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return customers;
+    }
 
+    public List<Customer> findByEmailContain(String email) {
+        List<Customer> customers = new ArrayList<>();
+        String sql = "SELECT * FROM Customers WHERE email LIKE ?";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, "%" + email + "%");
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Customer customer = new Customer();
+                customer.setCustomerId(rs.getInt("customer_id"));
+                customer.setFullName(rs.getString("full_name"));
+                customer.setEmail(rs.getString("email"));
+                customer.setPhoneNumber(rs.getString("phone_number"));
+                customer.setHashPassword(rs.getString("hash_password"));
+                customer.setGender(rs.getString("gender"));
+                customer.setBirthday(rs.getDate("birthday"));
+                customer.setAddress(rs.getString("address"));
+                customer.setIsActive(rs.getBoolean("is_active"));
+                customer.setLoyaltyPoints(rs.getInt("loyalty_points"));
+                customer.setRoleId(rs.getInt("role_id"));
+                customer.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                customer.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
+                customers.add(customer);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return customers;
+    }
+
+   
     @Override
     public boolean existsById(Integer id) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from
-                                                                       // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
     public void deleteById(Integer id) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from
-                                                                       // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        String sql = "DELETE FROM customers WHERE customer_id = ?";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
-    public <S extends Customer> S update(S entity) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from
-                                                                       // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    public <S extends Customer> S update(S customer) {
+        String sql = "UPDATE Customers SET full_name=?, email=?, phone_number=?, gender=?, birthday=?, address=?, is_active=?, loyalty_points=?, role_id=?, updated_at=? WHERE customer_id=?";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, customer.getFullName());
+            ps.setString(2, customer.getEmail());
+            ps.setString(3, customer.getPhoneNumber());
+            ps.setString(4, customer.getGender());
+            ps.setDate(6, new java.sql.Date(customer.getBirthday().getTime()));
+            ps.setString(6, customer.getAddress());
+            ps.setBoolean(7, customer.getIsActive());
+            ps.setInt(8, customer.getLoyaltyPoints());
+            ps.setInt(9, customer.getRoleId());
+            ps.setTimestamp(10, Timestamp.valueOf(java.time.LocalDateTime.now()));
+            ps.setInt(11, customer.getCustomerId());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return customer;
     }
 
     @Override
     public void delete(Customer entity) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from
-                                                                       // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        String sql = "DELETE FROM Customers WHERE customer_id = ?";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, entity.getCustomerId());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public boolean isExistsByEmail(String email) {
@@ -116,8 +215,7 @@ public List<Customer> findAll() {
             return false; // or throw an IllegalArgumentException based on requirements
         }
 
-        try (Connection connection = DBContext.getConnection();
-                PreparedStatement ps = connection.prepareStatement("SELECT * FROM Customers WHERE email = ?")) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement ps = connection.prepareStatement("SELECT * FROM Customers WHERE email = ?")) {
 
             ps.setString(1, email);
             ResultSet rs = ps.executeQuery();
@@ -139,9 +237,8 @@ public List<Customer> findAll() {
         if (phone == null || phone.trim().isEmpty()) {
             return false;
         }
-        try (Connection connection = DBContext.getConnection();
-                PreparedStatement ps = connection
-                        .prepareStatement("SELECT COUNT(*) FROM Customers WHERE phone_number = ?")) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement ps = connection
+                .prepareStatement("SELECT COUNT(*) FROM Customers WHERE phone_number = ?")) {
             ps.setString(1, phone);
             ResultSet rs = ps.executeQuery();
             if (rs.next() && rs.getInt(1) > 0) {
@@ -154,9 +251,8 @@ public List<Customer> findAll() {
     }
 
     public boolean validateAccount(String email, String password) {
-        try (Connection connection = DBContext.getConnection();
-                PreparedStatement ps = connection
-                        .prepareStatement("SELECT hash_password FROM Customers WHERE email = ?")) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement ps = connection
+                .prepareStatement("SELECT hash_password FROM Customers WHERE email = ?")) {
 
             ps.setString(1, email);
             ResultSet rs = ps.executeQuery();
@@ -174,11 +270,10 @@ public List<Customer> findAll() {
     }
 
     public Customer getCustomerByEmailAndPassword(String email, String password) {
-        
+
         Customer customer = null;
-        try (Connection connection = DBContext.getConnection();
-                PreparedStatement ps = connection
-                        .prepareStatement("SELECT * FROM Customers WHERE email = ?")) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement ps = connection
+                .prepareStatement("SELECT * FROM Customers WHERE email = ?")) {
 
             ps.setString(1, email);
             ResultSet rs = ps.executeQuery();
@@ -196,9 +291,6 @@ public List<Customer> findAll() {
                     customer.setAddress(rs.getString("address"));
                     customer.setBirthday(rs.getDate("birthday"));
 
-
-
-                    
                 }
             }
 
@@ -209,18 +301,43 @@ public List<Customer> findAll() {
         return customer;
     }
 
-    
     public static void main(String[] args) {
         CustomerDAO customerDAO = new CustomerDAO();
         List<Customer> customers = customerDAO.findAll();
         for (Customer customer : customers) {
             System.out.println(customer.toString());
         }
-        
-        
+
         System.out.println("Hejtrtrt");
     }
-    
-    
-    
+
+    @Override
+    public List<Customer> findAll() {
+        
+         List<Customer> list = new ArrayList<>();
+        String sql = "SELECT * FROM customers";
+        try (Connection conn = getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                Customer c = new Customer();
+                c.setCustomerId(rs.getInt("customer_id"));
+                c.setFullName(rs.getString("full_name"));
+                c.setEmail(rs.getString("email"));
+                c.setHashPassword(rs.getString("hash_password"));
+                c.setPhoneNumber(rs.getString("phone_number"));
+                c.setGender(rs.getString("gender"));
+                c.setBirthday(rs.getDate("birthday"));
+                c.setAddress(rs.getString("address"));
+                c.setIsActive(rs.getBoolean("is_active"));
+                c.setLoyaltyPoints(rs.getInt("loyalty_points"));
+                c.setRoleId(rs.getInt("role_id"));
+                c.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                c.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
+                list.add(c);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
 }
