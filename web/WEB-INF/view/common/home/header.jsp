@@ -112,7 +112,7 @@
             </div>
         </div>
         <button type="button" class="user-notification-button" style="background: transparent; border: none; margin-left: 10px; position: relative;">
-            <i class="fa fa-bell" style="font-size: 22px; color: #7C3AED;"></i>
+            <i class="fa fa-bell" style="font-size: 22px; color: #586BB4;"></i>
             <%-- <span class="notification-badge">3</span> --%>
         </button>
     </c:when>
@@ -134,7 +134,7 @@
             </div>
         </div>
         <button type="button" class="user-notification-button" style="background: transparent; border: none; margin-left: 10px; position: relative;">
-            <i class="fa fa-bell" style="font-size: 22px; color: #DC2626;"></i>
+            <i class="fa fa-bell" style="font-size: 22px; color: #586BB4;"></i>
             <%-- <span class="notification-badge">5</span> --%>
         </button>
     </c:when>
