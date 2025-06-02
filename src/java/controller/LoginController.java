@@ -17,8 +17,8 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
 import model.Customer;
-import model.User;
 import model.RoleConstants;
+import model.User;
 
 /**
  *
@@ -76,6 +76,10 @@ public class LoginController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        
+        
+        
+        
         request.getRequestDispatcher("/WEB-INF/view/auth/login.jsp").forward(request, response);
     }
 
@@ -107,11 +111,11 @@ public class LoginController extends HttpServlet {
             HttpSession session = request.getSession();
             session.setAttribute("user", user);
             session.setAttribute("authenticated", true);
-            
+
             // Set userType based on role using RoleConstants
             String userType = RoleConstants.getUserTypeFromRole(user.getRoleId());
             session.setAttribute("userType", userType);
-            
+
             // Redirect based on role
             String redirectUrl = getRedirectUrlForRole(user.getRoleId());
             response.sendRedirect(request.getContextPath() + redirectUrl);
@@ -125,11 +129,11 @@ public class LoginController extends HttpServlet {
             HttpSession session = request.getSession();
             session.setAttribute("customer", customer);
             session.setAttribute("authenticated", true);
-            
+
             // Set userType based on role using RoleConstants
             String userType = RoleConstants.getUserTypeFromRole(customer.getRoleId());
             session.setAttribute("userType", userType);
-            
+
             // Redirect to homepage for customers
             response.sendRedirect(request.getContextPath() + "/");
             return;
@@ -144,7 +148,7 @@ public class LoginController extends HttpServlet {
         if (roleId == null) {
             return "/";
         }
-        
+
         switch (roleId) {
             case RoleConstants.ADMIN_ID:
                 return "/admin/dashboard";

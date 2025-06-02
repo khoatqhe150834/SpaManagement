@@ -93,34 +93,58 @@
           <div class="extra-cell">
             <a href="booking.html" class="site-button radius-no">ĐẶT LỊCH NGAY</a>
             
-            <c:if test="${not empty sessionScope.user}">
-              <div class="user-avatar-container">
-                <button type="button" class="user-avatar-button" id="userAvatarButton" aria-haspopup="true" aria-expanded="false">
-                  <c:choose>
-                    <c:when test="${not empty sessionScope.user.avatarUrl}">
-                      <img src="${pageContext.request.contextPath}${sessionScope.user.avatarUrl}" alt="User Avatar"
-                           onerror="this.onerror=null; this.src='https://placehold.co/40x40/7C3AED/FFFFFF?text=U';">
-                    </c:when>
-                    <c:otherwise>
-                      <img src="https://placehold.co/40x40/7C3AED/FFFFFF?text=U" alt="Default Avatar"
-                           onerror="this.onerror=null; this.src='https://placehold.co/40x40/CCCCCC/FFFFFF?text=Error';">
-                    </c:otherwise>
-                  </c:choose>
-                </button>
-                <div class="avatar-dropdown" id="userAvatarDropdown" aria-labelledby="userAvatarButton">
-                  <%-- Dropdown content is always generated if avatar is shown, as it's part of the logged-in state --%>
-                  <c:if test="${not empty sessionScope.user.name}">
-                     <div style="padding: 8px 15px; font-weight: bold; border-bottom: 1px solid #eee; margin-bottom: 5px;">Chào, ${sessionScope.user.name}</div>
-                  </c:if>
-                  <a href="${pageContext.request.contextPath}/user/profile">Hồ sơ của bạn</a>
-                  <a href="${pageContext.request.contextPath}/user/bookings">Lịch sử đặt lịch</a>
-                  <a href="${pageContext.request.contextPath}/user/settings">Cài đặt</a>
-                  <div style="height: 1px; background-color: #eee; margin: 5px 0;"></div> <%-- Separator --%>
-                  <a href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
-                </div>
-              </div>
-            </c:if>
+            <c:choose>
+    <%-- Customer is logged in --%>
+    <c:when test="${not empty sessionScope.customer}">
+        <div class="user-avatar-container">
+            <button type="button" class="user-avatar-button" id="customerAvatarButton" aria-haspopup="true" aria-expanded="false">
+                <img src="https://placehold.co/40x40/7C3AED/FFFFFF?text=C" alt="Customer Avatar">
+            </button>
+            <div class="avatar-dropdown" id="customerAvatarDropdown" aria-labelledby="customerAvatarButton">
+                <c:if test="${not empty sessionScope.customer.fullName}">
+                    <div style="padding: 8px 15px; font-weight: bold; border-bottom: 1px solid #eee; margin-bottom: 5px;">Chào, ${sessionScope.customer.fullName}</div>
+                </c:if>
+                <a href="${pageContext.request.contextPath}/customer/profile">Hồ sơ của bạn</a>
+                <a href="${pageContext.request.contextPath}/customer/bookings">Lịch sử đặt lịch</a>
+                <a href="${pageContext.request.contextPath}/customer/settings">Cài đặt</a>
+                <div style="height: 1px; background-color: #eee; margin: 5px 0;"></div>
+                <a href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
             </div>
+        </div>
+        <button type="button" class="user-notification-button" style="background: transparent; border: none; margin-left: 10px; position: relative;">
+            <i class="fa fa-bell" style="font-size: 22px; color: #586BB4;"></i>
+            <%-- <span class="notification-badge">3</span> --%>
+        </button>
+    </c:when>
+    <%-- User (admin/manager/staff) is logged in --%>
+    <c:when test="${not empty sessionScope.user}">
+        <div class="user-avatar-container">
+            <button type="button" class="user-avatar-button" id="userAvatarButton" aria-haspopup="true" aria-expanded="false">
+                <img src="https://placehold.co/40x40/DC2626/FFFFFF?text=U" alt="User Avatar">
+            </button>
+            <div class="avatar-dropdown" id="userAvatarDropdown" aria-labelledby="userAvatarButton">
+                <c:if test="${not empty sessionScope.user.fullName}">
+                    <div style="padding: 8px 15px; font-weight: bold; border-bottom: 1px solid #eee; margin-bottom: 5px;">Chào, ${sessionScope.user.fullName}</div>
+                </c:if>
+                <a href="${pageContext.request.contextPath}/admin/profile">Hồ sơ cá nhân</a>
+                <a href="${pageContext.request.contextPath}/admin/dashboard">Bảng điều khiển</a>
+                <a href="${pageContext.request.contextPath}/admin/settings">Cài đặt</a>
+                <div style="height: 1px; background-color: #eee; margin: 5px 0;"></div>
+                <a href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
+            </div>
+        </div>
+        <button type="button" class="user-notification-button" style="background: transparent; border: none; margin-left: 10px; position: relative;">
+            <i class="fa fa-bell" style="font-size: 22px; color: #586BB4;"></i>
+            <%-- <span class="notification-badge">5</span> --%>
+        </button>
+    </c:when>
+    <%-- No one is logged in --%>
+    <c:otherwise>
+        <a href="${pageContext.request.contextPath}/login" class=" site-button radius-no" style="margin-left: 10px; width: 120px;">Đăng nhập</a>
+        <a href="${pageContext.request.contextPath}/register" class="site-button radius-no" style="margin-left: 5px; width: 120px;">Đăng ký</a>
+    </c:otherwise>
+</c:choose>
+          </div>
         </div>
 
         <div class="header-nav navbar-collapse collapse justify-content-end" id="navbarNavDropdown">
@@ -168,36 +192,63 @@
 <script>
   // JavaScript for Avatar Dropdown Toggle
   document.addEventListener('DOMContentLoaded', function() {
+    // Handle Customer Avatar Dropdown
+    const customerAvatarButton = document.getElementById('customerAvatarButton');
+    const customerAvatarDropdown = document.getElementById('customerAvatarDropdown');
+
+    if (customerAvatarButton && customerAvatarDropdown) {
+      customerAvatarButton.addEventListener('click', function(event) {
+        event.stopPropagation();
+        const isExpanded = customerAvatarButton.getAttribute('aria-expanded') === 'true';
+        customerAvatarDropdown.style.display = isExpanded ? 'none' : 'block';
+        customerAvatarButton.setAttribute('aria-expanded', !isExpanded);
+      });
+    }
+
+    // Handle User Avatar Dropdown
     const userAvatarButton = document.getElementById('userAvatarButton');
     const userAvatarDropdown = document.getElementById('userAvatarDropdown');
 
-    // Only attach event listeners if the avatar button (and thus dropdown) exists in the DOM
     if (userAvatarButton && userAvatarDropdown) {
       userAvatarButton.addEventListener('click', function(event) {
-        event.stopPropagation(); // Prevent this click from immediately closing the dropdown via the window click listener
+        event.stopPropagation();
         const isExpanded = userAvatarButton.getAttribute('aria-expanded') === 'true';
         userAvatarDropdown.style.display = isExpanded ? 'none' : 'block';
         userAvatarButton.setAttribute('aria-expanded', !isExpanded);
       });
-
-      // Close dropdown if clicked outside
-      document.addEventListener('click', function(event) {
-        // Check if dropdown is visible and click is outside both button and dropdown
-        if (userAvatarDropdown.style.display === 'block' && 
-            !userAvatarButton.contains(event.target) && 
-            !userAvatarDropdown.contains(event.target)) {
-          userAvatarDropdown.style.display = 'none';
-          userAvatarButton.setAttribute('aria-expanded', 'false');
-        }
-      });
-
-      // Optional: Close dropdown with Escape key
-      document.addEventListener('keydown', function(event) {
-        if (event.key === 'Escape' && userAvatarDropdown.style.display === 'block') {
-          userAvatarDropdown.style.display = 'none';
-          userAvatarButton.setAttribute('aria-expanded', 'false');
-        }
-      });
     }
+
+    // Close dropdown if clicked outside (for both customer and user)
+    document.addEventListener('click', function(event) {
+      // Close customer dropdown
+      if (customerAvatarDropdown && customerAvatarDropdown.style.display === 'block' && 
+          !customerAvatarButton.contains(event.target) && 
+          !customerAvatarDropdown.contains(event.target)) {
+        customerAvatarDropdown.style.display = 'none';
+        customerAvatarButton.setAttribute('aria-expanded', 'false');
+      }
+      
+      // Close user dropdown
+      if (userAvatarDropdown && userAvatarDropdown.style.display === 'block' && 
+          !userAvatarButton.contains(event.target) && 
+          !userAvatarDropdown.contains(event.target)) {
+        userAvatarDropdown.style.display = 'none';
+        userAvatarButton.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    // Close dropdown with Escape key (for both customer and user)
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+        if (customerAvatarDropdown && customerAvatarDropdown.style.display === 'block') {
+          customerAvatarDropdown.style.display = 'none';
+          customerAvatarButton.setAttribute('aria-expanded', 'false');
+        }
+        if (userAvatarDropdown && userAvatarDropdown.style.display === 'block') {
+          userAvatarDropdown.style.display = 'none';
+          userAvatarButton.setAttribute('aria-expanded', 'false');
+        }
+      }
+    });
   });
 </script>
