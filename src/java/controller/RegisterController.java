@@ -5,7 +5,6 @@
 
 package controller;
 
-
 import dao.CustomerDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -96,7 +95,8 @@ public class RegisterController extends HttpServlet {
         String confirmPassword = request.getParameter("confirmPassword");
 
         // Create validator instance
-        RegisterValidator validator = new RegisterValidator(customerDAO);        if (fullName == null || fullName.length() < 6) {
+        RegisterValidator validator = new RegisterValidator(customerDAO);
+        if (fullName == null || fullName.length() < 6) {
             request.setAttribute("error", "Họ tên phải có ít nhất 6 ký tự.");
             request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
             return;
@@ -155,9 +155,14 @@ public class RegisterController extends HttpServlet {
 
         customerDAO.save(newCustomer);
 
-        // redirect to homepage
+        // Set success message in session for login page
+        request.setAttribute("success", "Đăng ký thành công! Vui lòng đăng nhập với tài khoản mới.");
 
-        response.sendRedirect(request.getContextPath() + "/");
+        // redirect to login page
+
+        request.getRequestDispatcher("/WEB-INF/view/auth/login.jsp").forward(request, response);
+        
+        
     }
 
     /**

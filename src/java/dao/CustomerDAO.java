@@ -157,7 +157,6 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         return customers;
     }
 
-   
     @Override
     public boolean existsById(Integer id) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from
@@ -215,9 +214,15 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
             return false; // or throw an IllegalArgumentException based on requirements
         }
 
-        try (Connection connection = DBContext.getConnection(); PreparedStatement ps = connection.prepareStatement("SELECT * FROM Customers WHERE email = ?")) {
+        try (Connection connection = DBContext.getConnection();
+                PreparedStatement ps = connection.prepareStatement(
+                        "SELECT 1 FROM customers WHERE email = ? " +
+                                "UNION " +
+                                "SELECT 1 FROM users WHERE email = ? " +
+                                "LIMIT 1")) {
 
             ps.setString(1, email);
+            ps.setString(2, email);
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
@@ -237,11 +242,16 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         if (phone == null || phone.trim().isEmpty()) {
             return false;
         }
-        try (Connection connection = DBContext.getConnection(); PreparedStatement ps = connection
-                .prepareStatement("SELECT COUNT(*) FROM Customers WHERE phone_number = ?")) {
+        try (Connection connection = DBContext.getConnection();
+                PreparedStatement ps = connection.prepareStatement(
+                        "SELECT 1 FROM customers WHERE phone_number = ? " +
+                                "UNION " +
+                                "SELECT 1 FROM users WHERE phone_number = ? " +
+                                "LIMIT 1")) {
             ps.setString(1, phone);
+            ps.setString(2, phone);
             ResultSet rs = ps.executeQuery();
-            if (rs.next() && rs.getInt(1) > 0) {
+            if (rs.next()) {
                 isExists = true;
             }
         } catch (SQLException e) {
@@ -251,8 +261,9 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
     }
 
     public boolean validateAccount(String email, String password) {
-        try (Connection connection = DBContext.getConnection(); PreparedStatement ps = connection
-                .prepareStatement("SELECT hash_password FROM Customers WHERE email = ?")) {
+        try (Connection connection = DBContext.getConnection();
+                PreparedStatement ps = connection
+                        .prepareStatement("SELECT hash_password FROM Customers WHERE email = ?")) {
 
             ps.setString(1, email);
             ResultSet rs = ps.executeQuery();
@@ -269,11 +280,49 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         return false;
     }
 
+    public Optional<Customer> findCustomerByEmail(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            return Optional.empty();
+        }
+
+        try (Connection connection = DBContext.getConnection();
+                PreparedStatement ps = connection.prepareStatement("SELECT * FROM customers WHERE email = ?")) {
+
+            ps.setString(1, email);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                Customer customer = new Customer();
+                customer.setCustomerId(rs.getInt("customer_id"));
+                customer.setFullName(rs.getString("full_name"));
+                customer.setEmail(rs.getString("email"));
+                customer.setHashPassword(rs.getString("hash_password"));
+                customer.setPhoneNumber(rs.getString("phone_number"));
+                customer.setGender(rs.getString("gender"));
+                customer.setBirthday(rs.getDate("birthday"));
+                customer.setAddress(rs.getString("address"));
+                customer.setIsActive(rs.getBoolean("is_active"));
+                customer.setLoyaltyPoints(rs.getInt("loyalty_points"));
+                customer.setRoleId(rs.getInt("role_id"));
+                customer.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                customer.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
+
+                return Optional.of(customer);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return Optional.empty();
+    }
+
     public Customer getCustomerByEmailAndPassword(String email, String password) {
 
         Customer customer = null;
-        try (Connection connection = DBContext.getConnection(); PreparedStatement ps = connection
-                .prepareStatement("SELECT * FROM Customers WHERE email = ?")) {
+        try (Connection connection = DBContext.getConnection();
+                PreparedStatement ps = connection
+                        .prepareStatement("SELECT * FROM Customers WHERE email = ?")) {
 
             ps.setString(1, email);
             ResultSet rs = ps.executeQuery();
@@ -303,20 +352,24 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
 
     public static void main(String[] args) {
         CustomerDAO customerDAO = new CustomerDAO();
-        List<Customer> customers = customerDAO.findAll();
-        for (Customer customer : customers) {
-            System.out.println(customer.toString());
-        }
+        // List<Customer> customers = customerDAO.findAll();
+        // for (Customer customer : customers) {
+        // System.out.println(customer.toString());
+        // }
+        //
+        // System.out.println("Hejtrtrt");
 
-        System.out.println("Hejtrtrt");
+        System.out.println(customerDAO.isExistsByEmail("quangkhoa5112@gmail.com"));
     }
 
     @Override
     public List<Customer> findAll() {
-        
-         List<Customer> list = new ArrayList<>();
+
+        List<Customer> list = new ArrayList<>();
         String sql = "SELECT * FROM customers";
-        try (Connection conn = getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
+        try (Connection conn = getConnection();
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
                 Customer c = new Customer();
                 c.setCustomerId(rs.getInt("customer_id"));

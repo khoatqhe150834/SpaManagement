@@ -45,3 +45,4 @@ Thumbs.db
 *.properties
 !nbproject/project.properties
 !src/main/resources/application.properties
+ 

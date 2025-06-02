@@ -1,23 +1,8 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package model;
-
+import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
-/**
- *
- * @author ADMIN
- */
 @ToString
 @Builder
 @Data
@@ -26,25 +11,26 @@ import lombok.ToString;
 @Getter
 @Setter
 public class Appointment {
-    private int appointmentId;
-    private int customerId;
+    private Integer appointmentId;
+    private Integer customerId;
     private Integer bookingGroupId;
     private Integer therapistUserId;
-    private int serviceId;
+
     private LocalDateTime startTime;
     private LocalDateTime endTime;
-    private BigDecimal originalServicePrice;
-    private BigDecimal discountAmountApplied;
-    private BigDecimal finalPriceAfterDiscount;
+
+    private BigDecimal totalOriginalPrice;
+    private BigDecimal totalDiscountAmount;
     private BigDecimal pointsRedeemedValue;
-    private BigDecimal finalAmountPayable;
+    private BigDecimal totalFinalPrice;
+
     private Integer promotionId;
-    private String status;
-    private String paymentStatus;
-    private String notesByCustomer;
-    private String notesByStaff;
+    private String status;         // e.g. "PENDING_CONFIRMATION", "CONFIRMED", ...
+    private String paymentStatus;  // e.g. "UNPAID", "PAID", ...
+
     private String cancelReason;
     private Integer createdFromCartItemId;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
