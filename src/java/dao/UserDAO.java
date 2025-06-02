@@ -23,7 +23,7 @@ public class UserDAO implements BaseDAO<User, Integer> {
       ps.setDate(7, user.getBirthday() != null ? new java.sql.Date(user.getBirthday().getTime()) : null);
       ps.setString(8, user.getAvatarUrl());
       ps.setBoolean(9, user.getIsActive());
-      
+
       int rows = ps.executeUpdate();
       if (rows > 0) {
         try (ResultSet rs = ps.getGeneratedKeys()) {
@@ -119,6 +119,40 @@ public class UserDAO implements BaseDAO<User, Integer> {
       throw new RuntimeException("Error validating account: " + e.getMessage(), e);
     }
     return false;
+  }
+
+  public Optional<User> findUserByEmail(String email) {
+    if (email == null || email.trim().isEmpty()) {
+      return Optional.empty();
+    }
+
+    try (Connection connection = DBContext.getConnection();
+        PreparedStatement ps = connection.prepareStatement("SELECT * FROM users WHERE email = ?")) {
+      ps.setString(1, email);
+      ResultSet rs = ps.executeQuery();
+
+      if (rs.next()) {
+        User user = new User();
+        user.setUserId(rs.getInt("user_id"));
+        user.setRoleId(rs.getInt("role_id"));
+        user.setFullName(rs.getString("full_name"));
+        user.setEmail(rs.getString("email"));
+        user.setPasswordHash(rs.getString("password_hash"));
+        user.setPhoneNumber(rs.getString("phone_number"));
+        user.setIsActive(rs.getBoolean("is_active"));
+        user.setGender(rs.getString("gender"));
+        user.setBirthday(rs.getDate("birthday"));
+        user.setAvatarUrl(rs.getString("avatar_url"));
+        user.setLastLoginAt(rs.getDate("last_login_at"));
+        user.setRegisteredAt(rs.getDate("created_at"));
+        user.setUpdatedAt(rs.getDate("updated_at"));
+
+        return Optional.of(user);
+      }
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+    return Optional.empty();
   }
 
   public User getUserByEmailAndPassword(String email, String password) {

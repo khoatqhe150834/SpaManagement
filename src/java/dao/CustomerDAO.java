@@ -280,6 +280,43 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         return false;
     }
 
+    public Optional<Customer> findCustomerByEmail(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            return Optional.empty();
+        }
+
+        try (Connection connection = DBContext.getConnection();
+                PreparedStatement ps = connection.prepareStatement("SELECT * FROM customers WHERE email = ?")) {
+
+            ps.setString(1, email);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                Customer customer = new Customer();
+                customer.setCustomerId(rs.getInt("customer_id"));
+                customer.setFullName(rs.getString("full_name"));
+                customer.setEmail(rs.getString("email"));
+                customer.setHashPassword(rs.getString("hash_password"));
+                customer.setPhoneNumber(rs.getString("phone_number"));
+                customer.setGender(rs.getString("gender"));
+                customer.setBirthday(rs.getDate("birthday"));
+                customer.setAddress(rs.getString("address"));
+                customer.setIsActive(rs.getBoolean("is_active"));
+                customer.setLoyaltyPoints(rs.getInt("loyalty_points"));
+                customer.setRoleId(rs.getInt("role_id"));
+                customer.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                customer.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
+
+                return Optional.of(customer);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return Optional.empty();
+    }
+
     public Customer getCustomerByEmailAndPassword(String email, String password) {
 
         Customer customer = null;
@@ -315,12 +352,14 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
 
     public static void main(String[] args) {
         CustomerDAO customerDAO = new CustomerDAO();
-        List<Customer> customers = customerDAO.findAll();
-        for (Customer customer : customers) {
-            System.out.println(customer.toString());
-        }
+        // List<Customer> customers = customerDAO.findAll();
+        // for (Customer customer : customers) {
+        // System.out.println(customer.toString());
+        // }
+        //
+        // System.out.println("Hejtrtrt");
 
-        System.out.println("Hejtrtrt");
+        System.out.println(customerDAO.isExistsByEmail("quangkhoa5112@gmail.com"));
     }
 
     @Override
