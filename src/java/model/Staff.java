@@ -12,10 +12,10 @@ import java.sql.Timestamp;
  */
 public class Staff {
 
-    private User userId;
-    private ServiceType serviceTypeId;
+    private User user;
+    private ServiceType serviceType;
     private String bio;
-    private String availabilityStatus;
+    private AvailabilityStatus availabilityStatus;
     private int yearsOfExperience;
     private Timestamp createdAt;
     private Timestamp updatedAt;
@@ -23,9 +23,10 @@ public class Staff {
     public Staff() {
     }
 
-    public Staff(User userId, ServiceType serviceTypeId, String bio, String availabilityStatus, int yearsOfExperience, Timestamp createdAt, Timestamp updatedAt) {
-        this.userId = userId;
-        this.serviceTypeId = serviceTypeId;
+    public Staff(User user, ServiceType serviceType, String bio, AvailabilityStatus availabilityStatus,
+                 int yearsOfExperience, Timestamp createdAt, Timestamp updatedAt) {
+        this.user = user;
+        this.serviceType = serviceType;
         this.bio = bio;
         this.availabilityStatus = availabilityStatus;
         this.yearsOfExperience = yearsOfExperience;
@@ -33,20 +34,20 @@ public class Staff {
         this.updatedAt = updatedAt;
     }
 
-    public User getUserId() {
-        return userId;
+    public User getUser() {
+        return user;
     }
 
-    public void setUserId(User userId) {
-        this.userId = userId;
+    public void setUser(User user) {
+        this.user = user;
     }
 
-    public ServiceType getServiceTypeId() {
-        return serviceTypeId;
+    public ServiceType getServiceType() {
+        return serviceType;
     }
 
-    public void setServiceTypeId(ServiceType serviceTypeId) {
-        this.serviceTypeId = serviceTypeId;
+    public void setServiceType(ServiceType serviceType) {
+        this.serviceType = serviceType;
     }
 
     public String getBio() {
@@ -57,11 +58,11 @@ public class Staff {
         this.bio = bio;
     }
 
-    public String getAvailabilityStatus() {
+    public AvailabilityStatus getAvailabilityStatus() {
         return availabilityStatus;
     }
 
-    public void setAvailabilityStatus(String availabilityStatus) {
+    public void setAvailabilityStatus(AvailabilityStatus availabilityStatus) {
         this.availabilityStatus = availabilityStatus;
     }
 
@@ -91,7 +92,20 @@ public class Staff {
 
     @Override
     public String toString() {
-        return "Staff{" + "userId=" + userId + ", serviceTypeId=" + serviceTypeId + ", bio=" + bio + ", availabilityStatus=" + availabilityStatus + ", yearsOfExperience=" + yearsOfExperience + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + '}';
+        return "Staff{" +
+                "user=" + (user != null ? user.getFullName() : "null") +
+                ", serviceType=" + (serviceType != null ? serviceType.getName() : "null") +
+                ", bio='" + bio + '\'' +
+                ", availabilityStatus=" + availabilityStatus +
+                ", yearsOfExperience=" + yearsOfExperience +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                '}';
     }
-
+    public enum AvailabilityStatus {
+    AVAILABLE,
+    BUSY,
+    OFFLINE,
+    ON_LEAVE
+}
 }

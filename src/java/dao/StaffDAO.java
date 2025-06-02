@@ -8,6 +8,7 @@ import java.util.Optional;
 import model.ServiceType;
 import model.Staff;
 import model.User;
+import model.Staff.AvailabilityStatus;
 
 public class StaffDAO implements BaseDAO<Staff, Integer> {
 
@@ -16,16 +17,16 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
         String sql = "INSERT INTO therapists(user_id, service_type_id, bio, availability_status, years_of_experience, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setInt(1, entity.getUserId().getUserId());
+            ps.setInt(1, entity.getUser().getUserId());
 
-            if (entity.getServiceTypeId() != null) {
-                ps.setInt(2, entity.getServiceTypeId().getServiceTypeId());
+            if (entity.getServiceType() != null) {
+                ps.setInt(2, entity.getServiceType().getServiceTypeId());
             } else {
                 ps.setNull(2, Types.INTEGER);
             }
 
             ps.setString(3, entity.getBio());
-            ps.setString(4, entity.getAvailabilityStatus());
+            ps.setString(4, entity.getAvailabilityStatus() != null ? entity.getAvailabilityStatus().name() : null);
             ps.setInt(5, entity.getYearsOfExperience());
             ps.setTimestamp(6, entity.getCreatedAt());
             ps.setTimestamp(7, entity.getUpdatedAt());
@@ -110,16 +111,16 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
         String sql = "UPDATE therapists SET service_type_id = ?, bio = ?, availability_status = ?, years_of_experience = ?, updated_at = ? WHERE user_id = ?";
         try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            if (entity.getServiceTypeId() != null) {
-                ps.setInt(1, entity.getServiceTypeId().getServiceTypeId());
+            if (entity.getServiceType() != null) {
+                ps.setInt(1, entity.getServiceType().getServiceTypeId());
             } else {
                 ps.setNull(1, Types.INTEGER);
             }
             ps.setString(2, entity.getBio());
-            ps.setString(3, entity.getAvailabilityStatus());
+            ps.setString(3, entity.getAvailabilityStatus() != null ? entity.getAvailabilityStatus().name() : null);
             ps.setInt(4, entity.getYearsOfExperience());
             ps.setTimestamp(5, entity.getUpdatedAt());
-            ps.setInt(6, entity.getUserId().getUserId());
+            ps.setInt(6, entity.getUser().getUserId());
 
             ps.executeUpdate();
 
@@ -133,8 +134,8 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
 
     @Override
     public void delete(Staff entity) {
-        if (entity != null && entity.getUserId() != null) {
-            deleteById(entity.getUserId().getUserId());
+        if (entity != null && entity.getUser() != null) {
+            deleteById(entity.getUser().getUserId());
         }
     }
 
@@ -142,29 +143,32 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
     private Staff mapResultSetToStaff(ResultSet rs) throws SQLException {
         Staff staff = new Staff();
 
-        // Lấy User
         User user = new User();
         user.setUserId(rs.getInt("user_id"));
-        staff.setUserId(user);
+        staff.setUser(user);
 
-        // Lấy ServiceType (có thể null)
         int serviceTypeId = rs.getInt("service_type_id");
         if (rs.wasNull()) {
-            staff.setServiceTypeId(null);
+            staff.setServiceType(null);
         } else {
             ServiceType st = new ServiceType();
             st.setServiceTypeId(serviceTypeId);
-            staff.setServiceTypeId(st);
+            staff.setServiceType(st);
         }
 
         staff.setBio(rs.getString("bio"));
-        staff.setAvailabilityStatus(rs.getString("availability_status"));
+
+        String availabilityStr = rs.getString("availability_status");
+        AvailabilityStatus availabilityStatus = availabilityStr != null ? AvailabilityStatus.valueOf(availabilityStr) : null;
+        staff.setAvailabilityStatus(availabilityStatus);
+
         staff.setYearsOfExperience(rs.getInt("years_of_experience"));
         staff.setCreatedAt(rs.getTimestamp("created_at"));
         staff.setUpdatedAt(rs.getTimestamp("updated_at"));
 
         return staff;
     }
+
     public static void main(String[] args) {
         StaffDAO staffDAO = new StaffDAO();
         List<Staff> list = staffDAO.findAll();
@@ -172,5 +176,4 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
             System.out.println(staff);
         }
     }
-    
 }
