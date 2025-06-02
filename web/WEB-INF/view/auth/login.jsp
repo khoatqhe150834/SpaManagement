@@ -98,6 +98,11 @@ contentType="text/html" pageEncoding="UTF-8"%>
                         ${error}
                     </div>
                 </c:if>
+                <c:if test="${not empty success}">
+                    <div class="alert alert-success" style="margin-bottom: 20px;">
+                        ${success}
+                    </div>
+                </c:if>
                 <div class="p-a30 border-1 seth">
                   <div class="tab-content nav">
                       <form id="loginForm" method="post" action="login"  class="tab-pane active col-12 p-a0" >
