@@ -3,12 +3,9 @@ package dao;
 import db.DBContext;
 import model.Service;
 import model.ServiceType;
+
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -16,7 +13,7 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
 
     @Override
     public <S extends Service> S save(S entity) {
-        String sql = "INSERT INTO Services (service_type_id, name, description, price, duration_minutes, buffer_time_after_minutes, image_url, is_active, average_rating, bookable_online, requires_consultation) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO services (service_type_id, name, description, price, duration_minutes, buffer_time_after_minutes, image_url, is_active, average_rating, bookable_online, requires_consultation) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DBContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -48,13 +45,19 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
 
     @Override
     public Optional<Service> findById(Integer id) {
-        String sql = "SELECT * FROM Services WHERE service_id = ?";
+        String sql = "SELECT * FROM services WHERE service_id = ?";
+        ServiceTypeDAO typeDAO = new ServiceTypeDAO();
+        Map<Integer, ServiceType> typeMap = new HashMap<>();
+        for (ServiceType type : typeDAO.findAll()) {
+            typeMap.put(type.getServiceTypeId(), type);
+        }
+
         try (Connection conn = DBContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, id);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                return Optional.of(mapResultSet(rs));
+                return Optional.of(mapResultSet(rs, typeMap));
             }
 
         } catch (SQLException ex) {
@@ -67,39 +70,46 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
     @Override
     public List<Service> findAll() {
         List<Service> services = new ArrayList<>();
-        String sql = "SELECT * FROM Services";
+        String sql = "SELECT * FROM services";
 
-        // Load ServiceType ra Map trước khi mở ResultSet
         ServiceTypeDAO typeDAO = new ServiceTypeDAO();
-        List<ServiceType> serviceTypes = typeDAO.findAll();
         Map<Integer, ServiceType> typeMap = new HashMap<>();
-        for (ServiceType type : serviceTypes) {
+        for (ServiceType type : typeDAO.findAll()) {
             typeMap.put(type.getServiceTypeId(), type);
         }
 
         try (Connection conn = DBContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
-
             while (rs.next()) {
-                Service service = new Service();
+                services.add(mapResultSet(rs, typeMap));
+            }
 
-                int typeId = rs.getInt("service_type_id");
+        } catch (SQLException ex) {
+            Logger.getLogger(ServiceDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
-                service.setServiceId(rs.getInt("service_id"));
-                service.setServiceTypeId(typeMap.get(typeId));
-                service.setName(rs.getString("name"));
-                service.setDescription(rs.getString("description"));
-                service.setPrice(rs.getBigDecimal("price"));
-                service.setDurationMinutes(rs.getInt("duration_minutes"));
-                service.setBufferTimeAfterMinutes(rs.getInt("buffer_time_after_minutes"));
-                service.setImageUrl(rs.getString("image_url"));
-                service.setIsActive(rs.getBoolean("is_active"));
-                service.setAverageRating(rs.getBigDecimal("average_rating"));
-                service.setBookableOnline(rs.getBoolean("bookable_online"));
-                service.setRequiresConsultation(rs.getBoolean("requires_consultation"));
-                service.setCreatedAt(rs.getTimestamp("created_at"));
-                service.setUpdatedAt(rs.getTimestamp("updated_at"));
+        return services;
+    }
 
-                services.add(service);
+    public List<Service> findByKeyword(String keyword) {
+        List<Service> services = new ArrayList<>();
+        String sql = "SELECT * FROM services WHERE LOWER(name) LIKE ? OR LOWER(description) LIKE ?";
+
+        ServiceTypeDAO typeDAO = new ServiceTypeDAO();
+        Map<Integer, ServiceType> typeMap = new HashMap<>();
+        for (ServiceType type : typeDAO.findAll()) {
+            typeMap.put(type.getServiceTypeId(), type);
+        }
+
+        try (Connection conn = DBContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            String query = "%" + keyword.toLowerCase() + "%";
+            stmt.setString(1, query);
+            stmt.setString(2, query);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    services.add(mapResultSet(rs, typeMap));
+                }
             }
 
         } catch (SQLException ex) {
@@ -116,13 +126,11 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
 
     @Override
     public void deleteById(Integer id) {
-        String sql = "DELETE FROM Services WHERE service_id = ?";
+        String sql = "DELETE FROM services WHERE service_id = ?";
 
         try (Connection conn = DBContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-
             stmt.setInt(1, id);
             stmt.executeUpdate();
-
         } catch (SQLException ex) {
             Logger.getLogger(ServiceDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -130,7 +138,7 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
 
     @Override
     public <S extends Service> S update(S entity) {
-        String sql = "UPDATE Services SET service_type_id = ?, name = ?, description = ?, price = ?, duration_minutes = ?, buffer_time_after_minutes = ?, image_url = ?, is_active = ?, average_rating = ?, bookable_online = ?, requires_consultation = ? WHERE service_id = ?";
+        String sql = "UPDATE services SET service_type_id = ?, name = ?, description = ?, price = ?, duration_minutes = ?, buffer_time_after_minutes = ?, image_url = ?, is_active = ?, average_rating = ?, bookable_online = ?, requires_consultation = ? WHERE service_id = ?";
 
         try (Connection conn = DBContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
 
@@ -161,14 +169,12 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
         deleteById(entity.getServiceId());
     }
 
-    private Service mapResultSet(ResultSet rs) throws SQLException {
+    // Reusable mapper with type cache
+    private Service mapResultSet(ResultSet rs, Map<Integer, ServiceType> typeMap) throws SQLException {
         Service service = new Service();
+
         service.setServiceId(rs.getInt("service_id"));
-
-        ServiceTypeDAO serviceTypeDAO = new ServiceTypeDAO();
-        int typeId = rs.getInt("service_type_id");
-        service.setServiceTypeId(serviceTypeDAO.findById(typeId).orElse(null));
-
+        service.setServiceTypeId(typeMap.get(rs.getInt("service_type_id")));
         service.setName(rs.getString("name"));
         service.setDescription(rs.getString("description"));
         service.setPrice(rs.getBigDecimal("price"));
@@ -181,20 +187,35 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
         service.setRequiresConsultation(rs.getBoolean("requires_consultation"));
         service.setCreatedAt(rs.getTimestamp("created_at"));
         service.setUpdatedAt(rs.getTimestamp("updated_at"));
+
         return service;
     }
 
-//    public static void main(String[] args) {
-//        ServiceDAO serviceDAO = new ServiceDAO();
-//        List<Service> services = serviceDAO.findAll();
-//
-//        if (services.isEmpty()) {
-//            System.out.println("No services found.");
-//        } else {
-//            for (Service service : services) {
-//                System.out.println(service);
-//            }
-//        }
-//    }
+    public static void main(String[] args) {
+        ServiceDAO serviceDAO = new ServiceDAO();
 
+        // Test findAll
+        List<Service> services = serviceDAO.findAll();
+        if (services.isEmpty()) {
+            System.out.println("No services found.");
+        } else {
+            System.out.println("Services list:");
+            for (Service service : services) {
+                System.out.println(service);
+            }
+        }
+
+        // Test findById
+        int testId = 1; // <-- bạn có thể thay đổi ID này
+        System.out.println("\nTesting findById(" + testId + "):");
+        Optional<Service> optionalService = serviceDAO.findById(testId);
+        if (optionalService.isPresent()) {
+            System.out.println("Service found:\n" + optionalService.get());
+        } else {
+            System.out.println("Service with ID " + testId + " not found.");
+        }
+    }
+
+    
+    
 }
