@@ -12,7 +12,7 @@ public class DBContext {
     private static Connection connection = null;
 
     // Private constructor to prevent instantiation
-    private DBContext() {
+    public DBContext() {
     }
 
     /**
@@ -64,4 +64,8 @@ public class DBContext {
             System.out.println("Database connection test failed: " + e.getMessage());
         }
     }
+    public static void main(String[] args) {
+        DBContext.testConnection();
+    }
+    
 }
