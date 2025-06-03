@@ -133,8 +133,8 @@ contentType="text/html" pageEncoding="UTF-8"%>
                       <div class="text-left">
                        <button class="site-button m-r5 button-lg radius-no">ĐĂNG NHẬP</button>
                         <a
-                          data-toggle="tab"
-                          href="#forgot-password"
+                          
+                          href="${pageContext.request.contextPath}/reset-password"
                           class="m-l5"
                           ><i class="fa fa-unlock-alt"></i> Quên mật khẩu</a
                         >
