@@ -198,12 +198,16 @@ public class PasswordController extends HttpServlet {
             // Update password in database
             boolean updated = customerDAO.updatePassword(email, newPassword);
             if (updated) {
-                // Clean up tokens and session
+                
                 passwordResetTokenDao.deleteTokensByEmail(email);
                 request.getSession().removeAttribute("resetEmail");
 
-                request.setAttribute("success", "Mật khẩu đã được thay đổi thành công. Vui lòng đăng nhập.");
-                request.getRequestDispatcher("/login.jsp").forward(request, response);
+                
+                request.setAttribute("success",
+                        "Mật khẩu đã được thay đổi thành công. Vui lòng đăng nhập bằng mật khẩu mới.");
+
+                // Redirect to login page/controller
+                request.getRequestDispatcher("/WEB-INF/view/auth/login.jsp").forward(request, response);
             } else {
                 request.setAttribute("error", "Có lỗi khi cập nhật mật khẩu. Vui lòng thử lại.");
                 request.getRequestDispatcher("/change-password.jsp").forward(request, response);
