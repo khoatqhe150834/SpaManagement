@@ -16,6 +16,11 @@ public class Appointment {
     private Integer bookingGroupId;
     private Integer therapistUserId;
 
+    // Hiển thị tên thay vì chỉ ID
+    private String customerName;
+    private String bookingGroupName;
+    private String therapistName;
+
     private LocalDateTime startTime;
     private LocalDateTime endTime;
 
@@ -34,3 +39,4 @@ public class Appointment {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
+

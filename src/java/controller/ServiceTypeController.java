@@ -21,10 +21,19 @@ public class ServiceTypeController extends HttpServlet {
             throws ServletException, IOException {
 
         String service = request.getParameter("service");
-        if (service == null || service.equals("list-all")) {
+
+        if (service == null) {
+            service = "list-all";
+        }
+
+        if (service.equals("list-all")) {
             List<ServiceType> serviceTypes = (new ServiceTypeDAO()).findAll();
             request.setAttribute("serviceTypes", serviceTypes);
             request.getRequestDispatcher(SERVICE_TYPE_URL).forward(request, response);
+        }
+
+        if (service.equals("pre-insert")) {
+            request.getRequestDispatcher("WEB-INF/view/admin_pages/AddServiceType.jsp").forward(request, response);
         }
 
         if (service.equals("pre-update")) {
@@ -45,12 +54,12 @@ public class ServiceTypeController extends HttpServlet {
         if (service.equals("searchByKeyword")) {
             String keyword = request.getParameter("keyword");
             List<ServiceType> serviceTypes = new ServiceTypeDAO().findByKeyword(keyword);
-            
-            if (serviceTypes == null || serviceTypes.isEmpty()){
+
+            if (serviceTypes == null || serviceTypes.isEmpty()) {
                 request.setAttribute("notFoundServiceType", "Your keywords do not match with any Service Type");
                 serviceTypes = (new ServiceTypeDAO()).findAll();
             }
-            
+
             request.setAttribute("keyword", keyword);
             request.setAttribute("serviceTypes", serviceTypes);
             request.getRequestDispatcher(SERVICE_TYPE_URL).forward(request, response);
@@ -64,8 +73,7 @@ public class ServiceTypeController extends HttpServlet {
 
         String service = request.getParameter("service");
 
-        if (service != null && service.equals("insert")) {
-            // Lấy dữ liệu từ form gửi lên
+        if (service.equals("insert")) {
             String name = request.getParameter("name");
             String description = request.getParameter("description");
             String imageUrl = request.getParameter("image_url");
@@ -78,15 +86,9 @@ public class ServiceTypeController extends HttpServlet {
             st.setActive(isActive);
 
             new ServiceTypeDAO().save(st);
-
-            // Chuyển hướng về danh sách sau khi thêm thành công
             response.sendRedirect("servicetype");
-        } else {
-            // Nếu không phải action hợp lệ, có thể redirect hoặc báo lỗi
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid action in POST");
-        }
 
-        if (service.equals("update")) {
+        } else if (service.equals("update")) {
             int id = Integer.parseInt(request.getParameter("id"));
             String name = request.getParameter("name");
             String description = request.getParameter("description");
@@ -100,10 +102,11 @@ public class ServiceTypeController extends HttpServlet {
             st.setImageUrl(imageUrl);
             st.setActive(isActive);
 
-            ServiceTypeDAO dao = new ServiceTypeDAO();
-            dao.update(st);
-
+            new ServiceTypeDAO().update(st);
             response.sendRedirect("servicetype");
+
+        } else {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid action in POST");
         }
     }
 
