@@ -13,6 +13,7 @@ public class PasswordResetToken {
     private String token; // Sẽ được tạo bởi generateToken()
     private LocalDateTime expiryDate;
     private static final int TOKEN_VALIDITY_HOURS = 24;
+    private boolean isUsed;
 
     // Constructor: Có thể bạn muốn token được tạo ngay khi khởi tạo,
     // hoặc gọi generateToken() sau đó.
@@ -24,6 +25,7 @@ public class PasswordResetToken {
         this.userEmail = userEmail;
         this.token = generateToken();
         this.expiryDate = LocalDateTime.now().plusHours(TOKEN_VALIDITY_HOURS);
+        isUsed = false;
     }
 
     // Constructor for existing tokens from database
@@ -42,6 +44,16 @@ public class PasswordResetToken {
     public String getToken() {
         return token;
     }
+
+    public boolean isIsUsed() {
+        return isUsed;
+    }
+
+    public void setIsUsed(boolean isUsed) {
+        this.isUsed = isUsed;
+    }
+    
+    
 
     public String getUserEmail() {
         return userEmail;
