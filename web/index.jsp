@@ -416,7 +416,7 @@
                     </div>
                     <div class="spa-price-content">
                       <h4>
-                        <a href="booking.html">Massage Thư Giãn Toàn Thân</a> <%-- Updated --%>
+                        <a href="booking.html">Massage Toàn Thân</a> <%-- Updated --%>
                         <span class="spa-price ml-auto text-primary"
                           >800.000 VNĐ</span <%-- Updated currency --%>
                         >
