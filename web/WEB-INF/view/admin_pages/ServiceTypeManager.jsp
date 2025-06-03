@@ -17,7 +17,7 @@
         <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Wowdash - Bootstrap 5 Admin Dashboard HTML Template</title>
+        <title>Service Types - Admin Dashboard</title>
         <link rel="icon" type="image/png" href="assets/images/favicon.png" sizes="16x16">
         <!-- CSS here -->
         <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp"></jsp:include>
@@ -60,44 +60,46 @@
                                 <option>9</option>
                                 <option>10</option>
                             </select>
-                            <form class="navbar-search">
-                                <input type="text" class="bg-base h-40-px w-auto" name="search" placeholder="Search">
-                                <iconify-icon icon="ion:search-outline" class="icon"></iconify-icon>
-                            </form>
-                            <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px">
-                                <option>Status</option>
-                                <option>Active</option>
-                                <option>Inactive</option>
-                            </select>
-                        </div>
-                        <a href="servicetype?service=pre-insert" class="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2"> 
-                            <iconify-icon icon="ic:baseline-plus" class="icon text-xl line-height-1"></iconify-icon>
-                            Add New Service Type
-                        </a>
+                            <form class="navbar-search" method="get" action="servicetype">
+                                <input type="hidden" name="service" value="searchByKeyword">
+                                <input type="text" class="bg-base h-40-px w-auto" name="keyword" placeholder="Search" value="${keyword}">
+                            <iconify-icon icon="ion:search-outline" class="icon"></iconify-icon>
+                        </form>
+
+                        <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px">
+                            <option>Status</option>
+                            <option>Active</option>
+                            <option>Inactive</option>
+                        </select>
                     </div>
-                    <div class="card-body p-24">
-                        <div class="table-responsive scroll-sm">
-                            <table class="table bordered-table sm-table mb-0">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">
-                                            <div class="d-flex align-items-center gap-10">
-                                                <div class="form-check style-check d-flex align-items-center">
-                                                    <input class="form-check-input radius-4 border input-form-dark" type="checkbox" name="checkbox" id="selectAll">
-                                                </div>
-                                                ID
+                    <a href="servicetype?service=pre-insert" class="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2"> 
+                        <iconify-icon icon="ic:baseline-plus" class="icon text-xl line-height-1"></iconify-icon>
+                        Add New Service Type
+                    </a>
+                </div>
+                <div class="card-body p-24">
+                    <div class="table-responsive scroll-sm">
+                        <table class="table bordered-table sm-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th scope="col">
+                                        <div class="d-flex align-items-center gap-10">
+                                            <div class="form-check style-check d-flex align-items-center">
+                                                <input class="form-check-input radius-4 border input-form-dark" type="checkbox" name="checkbox" id="selectAll">
                                             </div>
-                                        </th>
-                                        <th scope="col">Name</th>
-                                        <th scope="col">Description</th>
-                                        <th scope="col">Image</th>
-                                        <th scope="col" class="text-center">Status</th>
-                                        <th scope="col">Created At</th>
-                                        <th scope="col">Updated At</th>
-                                        <th scope="col" class="text-center">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
+                                            ID
+                                        </div>
+                                    </th>
+                                    <th scope="col">Name</th>
+                                    <th scope="col">Description</th>
+                                    <th scope="col">Image</th>
+                                    <th scope="col" class="text-center">Status</th>
+                                    <th scope="col">Created At</th>
+                                    <th scope="col">Updated At</th>
+                                    <th scope="col" class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
                                 <c:forEach var="stype" items="${serviceTypes}" varStatus="loop">
                                     <tr>
                                         <td>
