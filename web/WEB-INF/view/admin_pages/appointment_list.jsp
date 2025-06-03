@@ -1,4 +1,12 @@
+<%-- 
+    Document   : appointment_details.jsp
+    Created on : Jun 3, 2025, 8:02:13 PM
+    Author     : ADMIN
+--%>
+
+
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
@@ -16,6 +24,7 @@
         <jsp:include page="/WEB-INF/view/common/admin/header.jsp"></jsp:include>
 
         <c:url value="/appointment" var="paginationUrl">
+            <c:param name="action" value="list" />
             <c:if test="${not empty param.status}">
                 <c:param name="status" value="${param.status}" />
             </c:if>
@@ -81,9 +90,13 @@
                                     <th>Therapist</th>
                                     <th>Start</th>
                                     <th>End</th>
+                                    <th>Original Price</th>
+                                    <th>Discount</th>
+                                    <th>Redeemed Points</th>
                                     <th>Total</th>
                                     <th>Status</th>
                                     <th>Payment</th>
+                                    <th>Cancel Reason</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -95,16 +108,28 @@
                                         <td>${a.therapistName}</td>
                                         <td>${a.startTime}</td>
                                         <td>${a.endTime}</td>
-                                        <td>${a.totalFinalPrice}</td>
+                                        <td><fmt:formatNumber value="${a.totalOriginalPrice}" type="number" maxFractionDigits="0" />đ</td>
+                                        <td><fmt:formatNumber value="${a.totalDiscountAmount}" type="number" maxFractionDigits="0" />đ</td>
+                                        <td><fmt:formatNumber value="${a.pointsRedeemedValue}" type="number" maxFractionDigits="0" />đ</td>
+                                        <td><fmt:formatNumber value="${a.totalFinalPrice}" type="number" maxFractionDigits="0" />đ</td>                                      
                                         <td>${a.status}</td>
                                         <td>${a.paymentStatus}</td>
+                                        <td>${a.cancelReason}</td>
+                                        <td class="text-center">
+                                            <button type="button"
+                                                    class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
+                                                    onclick="window.location.href = '${pageContext.request.contextPath}/appointment?action=details&amp;id=${a.appointmentId}'">
+                                                <iconify-icon icon="lucide:edit" class="menu-icon"></iconify-icon>
+                                            </button>
+                                        </td>
                                     </tr>
                                 </c:forEach>
                                 <c:if test="${empty appointments}">
-                                    <tr><td colspan="9" class="text-center">No appointments found.</td></tr>
+                                    <tr><td colspan="18" class="text-center">No appointments found.</td></tr>
                                 </c:if>
                             </tbody>
                         </table>
+
                     </div>
 
                     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-24">
