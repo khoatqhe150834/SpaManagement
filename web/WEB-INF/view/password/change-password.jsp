@@ -38,6 +38,9 @@
     <!-- STYLESHEETS -->
     <jsp:include page="/WEB-INF/view/common/home/stylesheet.jsp"></jsp:include>
     
+    <!-- Password Pages Specific CSS -->
+    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/home/css/password-pages.css">
+    
     <style>
         /* Reset and base styles */
         .page-content {
@@ -605,13 +608,15 @@
                                                 type="password"
                                                 minlength="6"
                                             />
-                                            <div class="input-help">
-                                                <i class="fa fa-info-circle"></i>
-                                                <span>Mật khẩu phải có ít nhất 6 ký tự</span>
+                                            <div class="input-feedback-container">
+                                                <div class="input-help">
+                                                    <i class="fa fa-info-circle"></i>
+                                                    <span>Mật khẩu phải có ít nhất 6 ký tự</span>
+                                                </div>
                                             </div>
                                         </div>
                                         
-                                        <!-- Confirm Password Field - UPDATED HTML STRUCTURE -->
+                                        <!-- Confirm Password Field -->
                                         <div class="input-group">
                                             <label class="input-label">
                                                 <i class="fa fa-check"></i>
