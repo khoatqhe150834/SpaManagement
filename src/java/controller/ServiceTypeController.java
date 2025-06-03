@@ -41,7 +41,7 @@ public class ServiceTypeController extends HttpServlet {
             ServiceTypeDAO dao = new ServiceTypeDAO();
             ServiceType st = dao.findById(id).orElse(null);
             request.setAttribute("stype", st);
-            request.getRequestDispatcher("update_service_type.jsp").forward(request, response);
+            request.getRequestDispatcher("WEB-INF/view/admin_pages/UpdateServiceType.jsp").forward(request, response);
         }
 
         if (service.equals("delete")) {
