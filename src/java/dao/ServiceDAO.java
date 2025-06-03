@@ -169,6 +169,30 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
         deleteById(entity.getServiceId());
     }
 
+    public List<Service> findByServiceTypeId(int serviceTypeId) {
+        List<Service> services = new ArrayList<>();
+        String sql = "SELECT * FROM Services WHERE service_type_id = ?";
+
+        ServiceTypeDAO typeDAO = new ServiceTypeDAO();
+        Map<Integer, ServiceType> typeMap = new HashMap<>();
+        for (ServiceType type : typeDAO.findAll()) {
+            typeMap.put(type.getServiceTypeId(), type);
+        }
+
+        try (Connection connection = DBContext.getConnection(); PreparedStatement stm = connection.prepareStatement(sql)) {
+            stm.setInt(1, serviceTypeId);
+            try (ResultSet rs = stm.executeQuery()) {
+                while (rs.next()) {
+                    services.add(mapResultSet(rs, typeMap));
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ServiceDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return services;
+    }
+
     // Reusable mapper with type cache
     private Service mapResultSet(ResultSet rs, Map<Integer, ServiceType> typeMap) throws SQLException {
         Service service = new Service();
@@ -216,6 +240,4 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
         }
     }
 
-    
-    
 }

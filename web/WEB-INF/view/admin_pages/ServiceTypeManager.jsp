@@ -128,18 +128,21 @@
                                         <td class="text-center">
                                             <div class="d-flex align-items-center gap-10 justify-content-center">
                                                 <!-- View button -->
-                                                <button type="button" class="bg-info-focus bg-hover-info-200 text-info-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
+                                                <a href="service?service=viewByServiceType&id=${stype.serviceTypeId}" ... 
+                                                   class="bg-info-focus bg-hover-info-200 text-info-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
                                                     <iconify-icon icon="majesticons:eye-line" class="icon text-xl"></iconify-icon>
-                                                </button>
+                                                </a>
 
                                                 <!-- Edit button -->
                                                 <a href="servicetype?service=pre-update&id=${stype.serviceTypeId}" class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
                                                     <iconify-icon icon="lucide:edit" class="menu-icon"></iconify-icon>
                                                 </a>
 
-                                                <!-- Delete button -->
-                                                <a href="servicetype?service=delete&id=${stype.serviceTypeId}" class="remove-item-btn bg-danger-focus bg-hover-danger-200 text-danger-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle" onclick="return confirm('Delete this Service Type?');">
-                                                    <iconify-icon icon="fluent:delete-24-regular" class="menu-icon"></iconify-icon>
+                                                <!-- Deactivate button (soft delete) -->
+                                                <a href="servicetype?service=deactiveById&id=${stype.serviceTypeId}" 
+                                                   class="remove-item-btn bg-danger-focus bg-hover-danger-200 text-danger-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
+                                                   onclick="return confirm('Do you want to deactivate this Service Type?');">
+                                                    <iconify-icon icon="mdi:block-helper" class="menu-icon"></iconify-icon>
                                                 </a>
                                             </div>
                                         </td>

@@ -128,7 +128,7 @@ public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
 
     @Override
     public void delete(ServiceType entity) {
-            deleteById(entity.getServiceTypeId());
+        deleteById(entity.getServiceTypeId());
     }
 
     @Override
@@ -177,6 +177,17 @@ public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
         }
 
         return serviceTypes;
+    }
+
+    public void deactivateById(int id) {
+        String sql = "UPDATE service_types SET is_active = 0 WHERE service_type_id = ?";
+
+        try (Connection conn = DBContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            stmt.executeUpdate();
+        } catch (SQLException ex) {
+            Logger.getLogger(ServiceTypeDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     //    public static void main(String[] args) {

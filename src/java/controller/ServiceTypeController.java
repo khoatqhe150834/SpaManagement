@@ -1,5 +1,6 @@
 package controller;
 
+import dao.ServiceDAO;
 import dao.ServiceTypeDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -10,6 +11,7 @@ import model.ServiceType;
 
 import java.io.IOException;
 import java.util.List;
+import model.Service;
 
 @WebServlet(name = "ServiceTypeController", urlPatterns = {"/servicetype"})
 public class ServiceTypeController extends HttpServlet {
@@ -63,6 +65,28 @@ public class ServiceTypeController extends HttpServlet {
             request.setAttribute("keyword", keyword);
             request.setAttribute("serviceTypes", serviceTypes);
             request.getRequestDispatcher(SERVICE_TYPE_URL).forward(request, response);
+        }
+
+        if (service.equals("deactiveById")) {
+            int id = Integer.parseInt(request.getParameter("id"));
+            ServiceTypeDAO dao = new ServiceTypeDAO();
+            dao.deactivateById(id);
+            response.sendRedirect("servicetype");
+        }
+
+        if (service.equals("view")) {
+            int id = Integer.parseInt(request.getParameter("id"));
+
+            ServiceTypeDAO stDAO = new ServiceTypeDAO();
+            ServiceDAO sDAO = new ServiceDAO();
+
+            ServiceType st = stDAO.findById(id).orElse(null);
+            List<Service> services = sDAO.findByServiceTypeId(id);
+
+            request.setAttribute("stype", st);
+            request.setAttribute("services", services);
+
+            request.getRequestDispatcher("WEB-INF/view/admin_pages/ViewServiceDetails.jsp").forward(request, response);
         }
 
     }
