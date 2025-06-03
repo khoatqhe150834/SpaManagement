@@ -50,10 +50,10 @@ public class PasswordController extends HttpServlet {
 
         switch (servletPath) {
             case "/reset-password":
-                request.getRequestDispatcher("/reset-password.jsp").forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/view/password/reset-password.jsp").forward(request, response);
                 break;
             case "/change-password":
-                request.getRequestDispatcher("/change-password.jsp").forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/view/password/change-password.jsp").forward(request, response);
                 break;
             case "/verify-reset-token":
                 handleVerifyResetToken(request, response);
@@ -96,7 +96,7 @@ public class PasswordController extends HttpServlet {
 
         if (email == null || email.trim().isEmpty()) {
             request.setAttribute("error", "Vui lòng nhập địa chỉ email");
-            request.getRequestDispatcher("/reset-password.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/view/password/reset-password.jsp").forward(request, response);
             return;
         }
 
@@ -142,7 +142,7 @@ public class PasswordController extends HttpServlet {
                     Level.INFO, "Password reset attempted for non-existent email: " + email);
         }
 
-        request.getRequestDispatcher("/reset-password.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/view/password/reset-password.jsp").forward(request, response);
     }
 
     private void handleVerifyResetToken(HttpServletRequest request, HttpServletResponse response)
@@ -151,7 +151,7 @@ public class PasswordController extends HttpServlet {
 
         if (token == null || token.trim().isEmpty()) {
             request.setAttribute("error", "Token không hợp lệ hoặc bị thiếu.");
-            request.getRequestDispatcher("/reset-password.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/view/password/reset-password.jsp").forward(request, response);
             return;
         }
 
@@ -160,19 +160,19 @@ public class PasswordController extends HttpServlet {
             PasswordResetToken resetToken = passwordResetTokenDao.findByToken(token.trim());
             if (resetToken == null || resetToken.isExpired()) {
                 request.setAttribute("error", "Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.");
-                request.getRequestDispatcher("/reset-password.jsp").forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/view/password/reset-password.jsp").forward(request, response);
                 return;
             }
 
             // Token valid, store email in session and redirect to change password page
             request.getSession().setAttribute("resetEmail", resetToken.getUserEmail());
-            request.getRequestDispatcher("/change-password.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/view/password/change-password.jsp").forward(request, response);
 
         } catch (SQLException ex) {
             Logger.getLogger(PasswordController.class.getName()).log(Level.SEVERE,
                     "Database error while verifying token: " + token, ex);
             request.setAttribute("error", "Có lỗi hệ thống xảy ra. Vui lòng thử lại sau.");
-            request.getRequestDispatcher("/reset-password.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/view/password/reset-password.jsp").forward(request, response);
         }
     }
 
@@ -184,13 +184,13 @@ public class PasswordController extends HttpServlet {
 
         if (email == null) {
             request.setAttribute("error", "Phiên đặt lại mật khẩu không hợp lệ. Vui lòng thử lại.");
-            request.getRequestDispatcher("/reset-password.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/view/password/reset-password.jsp").forward(request, response);
             return;
         }
 
         if (newPassword == null || confirmPassword == null || !newPassword.equals(confirmPassword)) {
             request.setAttribute("error", "Mật khẩu mới và xác nhận mật khẩu không khớp.");
-            request.getRequestDispatcher("/change-password.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/view/password/change-password.jsp").forward(request, response);
             return;
         }
 
@@ -198,11 +198,10 @@ public class PasswordController extends HttpServlet {
             // Update password in database
             boolean updated = customerDAO.updatePassword(email, newPassword);
             if (updated) {
-                
+
                 passwordResetTokenDao.deleteTokensByEmail(email);
                 request.getSession().removeAttribute("resetEmail");
 
-                
                 request.setAttribute("success",
                         "Mật khẩu đã được thay đổi thành công. Vui lòng đăng nhập bằng mật khẩu mới.");
 
@@ -210,13 +209,13 @@ public class PasswordController extends HttpServlet {
                 request.getRequestDispatcher("/WEB-INF/view/auth/login.jsp").forward(request, response);
             } else {
                 request.setAttribute("error", "Có lỗi khi cập nhật mật khẩu. Vui lòng thử lại.");
-                request.getRequestDispatcher("/change-password.jsp").forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/view/password/change-password.jsp").forward(request, response);
             }
         } catch (SQLException ex) {
             Logger.getLogger(PasswordController.class.getName()).log(Level.SEVERE,
                     "Database error while changing password for email: " + email, ex);
             request.setAttribute("error", "Có lỗi hệ thống xảy ra. Vui lòng thử lại sau.");
-            request.getRequestDispatcher("/change-password.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/view/password/change-password.jsp").forward(request, response);
         }
     }
 }

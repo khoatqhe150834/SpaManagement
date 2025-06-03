@@ -38,11 +38,17 @@
     <jsp:include page="/WEB-INF/view/common/home/stylesheet.jsp"></jsp:include>
     
     <style>
+        /* Roboto font for password pages */
+        * {
+            font-family: 'Roboto', sans-serif;
+        }
+        
         /* Reset and base styles */
         .page-content {
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            font-family: 'Roboto', sans-serif;
         }
         
         .section-full {
@@ -77,13 +83,14 @@
         .reset-header h3 {
             margin: 0 0 10px;
             font-size: 28px;
-            font-weight: 700;
+            font-weight: 500;
         }
         
         .reset-header p {
             margin: 0;
             opacity: 0.9;
             font-size: 16px;
+            font-weight: 400;
         }
         
         /* Form container */
@@ -149,6 +156,7 @@
             margin-bottom: 25px;
             font-size: 15px;
             line-height: 1.5;
+            font-weight: 400;
         }
         
         /* Input group */
@@ -160,7 +168,7 @@
             display: block;
             margin-bottom: 8px;
             color: #333;
-            font-weight: 600;
+            font-weight: 500;
             font-size: 14px;
         }
         
@@ -177,6 +185,7 @@
             font-size: 16px;
             transition: all 0.3s ease;
             background-color: #fafafa;
+            font-weight: 400;
         }
         
         .email-input:focus {
@@ -192,6 +201,7 @@
             color: #666;
             display: flex;
             align-items: center;
+            font-weight: 400;
         }
         
         .input-help i {
@@ -212,13 +222,14 @@
             border: none;
             border-radius: 8px;
             font-size: 16px;
-            font-weight: 600;
+            font-weight: 500;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
             min-height: 54px;
+            font-family: 'Roboto', sans-serif;
         }
         
         .reset-button:hover {
@@ -285,6 +296,7 @@
             border: 1px solid;
             display: flex;
             align-items: flex-start;
+            font-weight: 400;
         }
         
         .alert i {
