@@ -46,7 +46,7 @@ public class AppointmentDAO extends DBContext implements BaseDAO<Appointment, In
                 + "u.full_name AS therapist_name, "
                 + "a.start_time, a.end_time, "
                 + "a.total_original_price, a.total_discount_amount, "
-                + "a.points_redeemed_value, a.total_final_price, "
+                + "a.points_redeemed_value, a.total_final_price, a.promotion_id,"
                 + "a.status, a.payment_status, a.cancel_reason, "
                 + "a.created_at, a.updated_at "
                 + "FROM Appointments a "
@@ -76,7 +76,7 @@ public class AppointmentDAO extends DBContext implements BaseDAO<Appointment, In
             params.add(keyword);
         }
 
-        sql.append(" ORDER BY a.appointment_id DESC LIMIT ? OFFSET ? ");
+        sql.append(" ORDER BY a.appointment_id ASC LIMIT ? OFFSET ? ");
         params.add(pageSize);
         params.add((page - 1) * pageSize);
 
@@ -191,6 +191,7 @@ public class AppointmentDAO extends DBContext implements BaseDAO<Appointment, In
         ap.setTotalDiscountAmount(rs.getBigDecimal("total_discount_amount"));
         ap.setPointsRedeemedValue(rs.getBigDecimal("points_redeemed_value"));
         ap.setTotalFinalPrice(rs.getBigDecimal("total_final_price"));
+        ap.setPromotionId(rs.getInt("promotion_id"));
         ap.setStatus(rs.getString("status"));
         ap.setPaymentStatus(rs.getString("payment_status"));
         ap.setCancelReason(rs.getString("cancel_reason"));

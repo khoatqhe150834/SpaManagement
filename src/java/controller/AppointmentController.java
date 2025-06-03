@@ -29,7 +29,14 @@ public class AppointmentController extends HttpServlet {
             throws ServletException, IOException {
         String action = request.getParameter("action");
         if (action == null || action.equals("list")) {
-            listWithFilters(request, response);}
+            listWithFilters(request, response);
+        }else {
+            switch (action) {
+                case "details":
+
+                    break;
+            }
+        }
     }
 
     @Override
