@@ -13,6 +13,7 @@ import model.Appointment;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.PreparedStatement;
+import model.AppointmentDetails;
 
 /**
  *
@@ -41,21 +42,21 @@ public class AppointmentDAO extends DBContext implements BaseDAO<Appointment, In
 
         StringBuilder sql = new StringBuilder(
                 "SELECT "
-                + "c.full_name AS customer_name, "
-                + "bg.group_name AS booking_group_name, "
-                + "u.full_name AS therapist_name, "
-                + "a.start_time, a.end_time, "
-                + "a.total_original_price, a.total_discount_amount, "
-                + "a.points_redeemed_value, a.total_final_price, a.promotion_id,"
-                + "a.status, a.payment_status, a.cancel_reason, "
-                + "a.created_at, a.updated_at "
+                + "  a.appointment_id, "
+                + "  c.full_name   AS customer_name, "
+                + "  bg.group_name AS booking_group_name, "
+                + "  u.full_name   AS therapist_name, "
+                + "  a.start_time, a.end_time, "
+                + "  a.total_original_price, a.total_discount_amount, "
+                + "  a.points_redeemed_value, a.total_final_price, a.promotion_id, "
+                + "  a.status, a.payment_status, a.cancel_reason, "
+                + "  a.created_at, a.updated_at "
                 + "FROM Appointments a "
-                + "JOIN Customers c ON a.customer_id = c.customer_id "
-                + "LEFT JOIN Booking_Groups bg ON a.booking_group_id = bg.booking_group_id "
-                + "LEFT JOIN Users u ON a.therapist_user_id = u.user_id AND u.role_id = 3 "
+                + "  JOIN Customers c ON a.customer_id = c.customer_id "
+                + "  LEFT JOIN Booking_Groups bg ON a.booking_group_id = bg.booking_group_id "
+                + "  LEFT JOIN Users u ON a.therapist_user_id = u.user_id AND u.role_id = 3 "
                 + "WHERE 1=1 "
         );
-
         List<Object> params = new ArrayList<>();
 
         if (statusFilter != null && !statusFilter.isEmpty()) {
@@ -154,6 +155,68 @@ public class AppointmentDAO extends DBContext implements BaseDAO<Appointment, In
         return 0;
     }
 
+    public List<AppointmentDetails> findDetailsByAppointmentId(int appointmentId, String serviceSearch) {
+        List<AppointmentDetails> list = new ArrayList<>();
+        
+        StringBuilder sql = new StringBuilder(
+            "SELECT "
+          + "  ad.detail_id, "
+          + "  ad.appointment_id, "
+          + "  ad.service_id, "
+          + "  s.name AS service_name, "
+          + "  ad.original_service_price, "
+          + "  ad.discount_amount_applied, "
+          + "  ad.final_price_after_discount, "
+          + "  ad.notes_by_customer, "
+          + "  ad.notes_by_staff "
+          + "FROM Appointment_Details ad "
+          + "JOIN Services s ON ad.service_id = s.service_id "
+          + "WHERE ad.appointment_id = ? "
+        );
+        
+        List<Object> params = new ArrayList<>();
+        params.add(appointmentId);
+        
+        if (serviceSearch != null && !serviceSearch.trim().isEmpty()) {
+            sql.append(" AND s.name LIKE ? ");
+            params.add("%" + serviceSearch.trim().toLowerCase() + "%");
+        }
+        
+        sql.append(" ORDER BY ad.detail_id ASC ");
+        
+        try {
+            Connection conn = DBContext.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql.toString());
+            
+            // 2) Đặt tham số: trước hết appointmentId, rồi là serviceSearch (nếu có)
+            for (int i = 0; i < params.size(); i++) {
+                stmt.setObject(i + 1, params.get(i));
+            }
+            
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                AppointmentDetails det = AppointmentDetails.builder()
+                    .detailId(rs.getInt("detail_id"))
+                    .appointmentId(rs.getInt("appointment_id"))
+                    .serviceId(rs.getInt("service_id"))
+                    .serviceName(rs.getString("service_name"))
+                    .originalServicePrice(rs.getBigDecimal("original_service_price"))
+                    .discountAmountApplied(rs.getBigDecimal("discount_amount_applied"))
+                    .finalPriceAfterDiscount(rs.getBigDecimal("final_price_after_discount"))
+                    .notesByCustomer(rs.getString("notes_by_customer"))
+                    .notesByStaff(rs.getString("notes_by_staff"))
+                    .build();
+                list.add(det);
+            }
+        } catch (SQLException ex) {
+            System.out.println("Error finding appointment details: " + ex.getMessage());
+        } finally {
+            DBContext.closeConnection();
+        }
+        
+        return list;
+    }
+
     @Override
     public List<Appointment> findAll() {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
@@ -181,7 +244,7 @@ public class AppointmentDAO extends DBContext implements BaseDAO<Appointment, In
 
     public Appointment getFromResultSet(ResultSet rs) throws SQLException {
         Appointment ap = new Appointment();
-
+        ap.setAppointmentId(rs.getInt("appointment_id"));      
         ap.setCustomerName(rs.getString("customer_name"));
         ap.setBookingGroupName(rs.getString("booking_group_name"));
         ap.setTherapistName(rs.getString("therapist_name"));

@@ -1,3 +1,10 @@
+<%-- 
+    Document   : appointment_details.jsp
+    Created on : Jun 3, 2025, 8:02:13 PM
+    Author     : ADMIN
+--%>
+
+
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
@@ -108,13 +115,12 @@
                                         <td>${a.status}</td>
                                         <td>${a.paymentStatus}</td>
                                         <td>${a.cancelReason}</td>
-                                        <td class="text-center"> 
-                                            <div class="d-flex align-items-center gap-10 justify-content-center">
-                                                <button type="button" class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
-                                                        onclick="window.location.href = '${pageContext.request.contextPath}/appointment?action=details&id=${appointment.appointmentId}'"> 
-                                                    <iconify-icon icon="lucide:edit" class="menu-icon"></iconify-icon>
-                                                </button>
-                                            </div>
+                                        <td class="text-center">
+                                            <button type="button"
+                                                    class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
+                                                    onclick="window.location.href = '${pageContext.request.contextPath}/appointment?action=details&amp;id=${a.appointmentId}'">
+                                                <iconify-icon icon="lucide:edit" class="menu-icon"></iconify-icon>
+                                            </button>
                                         </td>
                                     </tr>
                                 </c:forEach>

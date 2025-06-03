@@ -13,11 +13,10 @@ public class AppointmentDetails {
     private Integer detailId;
     private Integer appointmentId;
     private Integer serviceId;
-
+    private String serviceName;
     private BigDecimal originalServicePrice;
     private BigDecimal discountAmountApplied;
     private BigDecimal finalPriceAfterDiscount;
-
     private String notesByCustomer;
     private String notesByStaff;
 }
