@@ -393,4 +393,30 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         return list;
     }
 
+    /**
+     * Updates the password for a customer with the given email
+     */
+    public boolean updatePassword(String email, String newPassword) throws SQLException {
+        String sql = "UPDATE customers SET password = ? WHERE email = ?";
+
+        try (Connection connection = DBContext.getConnection();
+                PreparedStatement stmt = connection.prepareStatement(sql)) {
+
+            // Hash the password before storing (using BCrypt or similar)
+            String hashedPassword = hashPassword(newPassword);
+
+            stmt.setString(1, hashedPassword);
+            stmt.setString(2, email);
+
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0;
+        }
+    }
+
+    private String hashPassword(String password) {
+        // Implement password hashing here (BCrypt recommended)
+        // For now, returning plain text - CHANGE THIS IN PRODUCTION!
+        return password;
+    }
+
 }

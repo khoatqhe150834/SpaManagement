@@ -29,7 +29,7 @@ public class EmailService {
   private static final String FROM_NAME = "Spa Online";
 
   // Application URL for password reset links
-  private static final String APP_BASE_URL = "http://localhost:8080/SpaManagement"; // Configure this
+  private static final String APP_BASE_URL = "http://localhost:8080/spa"; // Configure this
 
   /**
    * Sends a password reset email to the specified user
@@ -95,7 +95,7 @@ public class EmailService {
    * @return HTML email content
    */
   private String createPasswordResetEmailContent(String resetToken, String userName) {
-    String resetUrl = APP_BASE_URL + "/reset-password?token=" + resetToken;
+    String resetUrl = APP_BASE_URL + "/verify-reset-token?token=" + resetToken;
     String greeting = userName != null ? "Xin chào " + userName + "," : "Xin chào,";
 
     return "<!DOCTYPE html>" +

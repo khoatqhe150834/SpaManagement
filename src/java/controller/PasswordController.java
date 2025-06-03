@@ -93,75 +93,60 @@ public class PasswordController extends HttpServlet {
     }
 
     private void handleResetPassword(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        String email = request.getParameter("email");
+        throws ServletException, IOException {
+    String email = request.getParameter("email");
 
-        // Validate input
-        if (email == null || email.trim().isEmpty()) {
-            request.setAttribute("error", "Vui lòng nhập địa chỉ email");
-            request.getRequestDispatcher("/reset-password.jsp").forward(request, response);
-            return;
-        }
-
-        email = email.trim();
-
-        // Check if email exists in database
-        boolean isExistsByEmail = customerDAO.isExistsByEmail(email);
-
-        if (isExistsByEmail) {
-            try {
-                // Clean up any existing tokens for this email
-                passwordResetTokenDao.deleteTokensByEmail(email);
-
-                // Create new password reset token
-                PasswordResetToken passwordResetToken = new PasswordResetToken(email);
-                passwordResetTokenDao.save(passwordResetToken);
-
-                // Generate reset link
-                String resetLink = request.getScheme() + "://" + request.getServerName() + 
-                    ":" + request.getServerPort() + request.getContextPath() + 
-                    "/verify-reset-token?token=" + passwordResetToken.getToken();
-
-                // Send password reset email
-                boolean emailSent = emailService.sendPasswordResetEmail(
-                        email,
-                        resetLink,
-                        null // Pass null for customer name
-                );
-
-                if (emailSent) {
-                    String successMessage = "Liên kết đặt lại mật khẩu đã được gửi đến email của bạn. " +
-                            "Vui lòng kiểm tra hộp thư và làm theo hướng dẫn.";
-                    request.setAttribute("success", successMessage);
-                    Logger.getLogger(PasswordController.class.getName()).log(
-                            Level.INFO, "Password reset email sent successfully to: " + email);
-                } else {
-                    String errorMessage = "Có lỗi xảy ra khi gửi email. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.";
-                    request.setAttribute("error", errorMessage);
-                    Logger.getLogger(PasswordController.class.getName()).log(
-                            Level.WARNING, "Failed to send password reset email to: " + email);
-                }
-
-            } catch (SQLException ex) {
-                Logger.getLogger(PasswordController.class.getName()).log(Level.SEVERE,
-                        "Database error while processing password reset for email: " + email, ex);
-                String errorMessage = "Có lỗi hệ thống xảy ra. Vui lòng thử lại sau.";
-                request.setAttribute("error", errorMessage);
-            } catch (Exception ex) {
-                Logger.getLogger(PasswordController.class.getName()).log(Level.SEVERE,
-                        "Unexpected error while processing password reset for email: " + email, ex);
-                String errorMessage = "Có lỗi không xác định xảy ra. Vui lòng thử lại sau.";
-                request.setAttribute("error", errorMessage);
-            }
-        } else {
-            String error = "Email không tồn tại trong hệ thống. Vui lòng kiểm tra lại địa chỉ email.";
-            request.setAttribute("error", error);
-            Logger.getLogger(PasswordController.class.getName()).log(
-                    Level.INFO, "Password reset attempted for non-existent email: " + email);
-        }
-
+    if (email == null || email.trim().isEmpty()) {
+        request.setAttribute("error", "Vui lòng nhập địa chỉ email");
         request.getRequestDispatcher("/reset-password.jsp").forward(request, response);
+        return;
     }
+
+    email = email.trim();
+
+    boolean isExistsByEmail = customerDAO.isExistsByEmail(email);
+
+    if (isExistsByEmail) {
+        try {
+            passwordResetTokenDao.deleteTokensByEmail(email);
+            PasswordResetToken passwordResetToken = new PasswordResetToken(email);
+            passwordResetTokenDao.save(passwordResetToken);
+
+            // Generate the full reset link
+           
+
+            boolean emailSent = emailService.sendPasswordResetEmail(email, passwordResetToken.getToken(), null);
+
+            if (emailSent) {
+                String successMessage = "Liên kết đặt lại mật khẩu đã được gửi đến email của bạn. " +
+                        "Vui lòng kiểm tra hộp thư và làm theo hướng dẫn.";
+                request.setAttribute("success", successMessage);
+                Logger.getLogger(PasswordController.class.getName()).log(
+                        Level.INFO, "Password reset email sent successfully to: " + email);
+            } else {
+                String errorMessage = "Có lỗi xảy ra khi gửi email. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.";
+                request.setAttribute("error", errorMessage);
+                Logger.getLogger(PasswordController.class.getName()).log(
+                        Level.WARNING, "Failed to send password reset email to: " + email);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(PasswordController.class.getName()).log(Level.SEVERE,
+                    "Database error while processing password reset for email: " + email, ex);
+            request.setAttribute("error", "Có lỗi hệ thống xảy ra. Vui lòng thử lại sau.");
+        } catch (Exception ex) {
+            Logger.getLogger(PasswordController.class.getName()).log(Level.SEVERE,
+                    "Unexpected error while processing password reset for email: " + email, ex);
+            request.setAttribute("error", "Có lỗi không xác định xảy ra. Vui lòng thử lại sau.");
+        }
+    } else {
+        String error = "Email không tồn tại trong hệ thống. Vui lòng kiểm tra lại địa chỉ email.";
+        request.setAttribute("error", error);
+        Logger.getLogger(PasswordController.class.getName()).log(
+                Level.INFO, "Password reset attempted for non-existent email: " + email);
+    }
+
+    request.getRequestDispatcher("/reset-password.jsp").forward(request, response);
+}
 
     private void handleVerifyResetToken(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
