@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Optional;
 import model.Customer;
 import org.mindrot.jbcrypt.BCrypt;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -395,28 +397,63 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
 
     /**
      * Updates the password for a customer with the given email
+     * 
+     * @param email       The customer's email
+     * @param newPassword The new plain text password (will be hashed)
+     * @return true if password was updated successfully, false otherwise
+     * @throws SQLException if database error occurs
      */
     public boolean updatePassword(String email, String newPassword) throws SQLException {
-        String sql = "UPDATE customers SET password = ? WHERE email = ?";
+        if (email == null || email.trim().isEmpty() || newPassword == null || newPassword.trim().isEmpty()) {
+            return false;
+        }
+
+        String sql = "UPDATE customers SET hash_password = ?, updated_at = ? WHERE email = ?";
 
         try (Connection connection = DBContext.getConnection();
                 PreparedStatement stmt = connection.prepareStatement(sql)) {
 
-            // Hash the password before storing (using BCrypt or similar)
-            String hashedPassword = hashPassword(newPassword);
+            // Hash the password using BCrypt (same as used in registration)
+            String hashedPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt());
 
             stmt.setString(1, hashedPassword);
-            stmt.setString(2, email);
+            stmt.setTimestamp(2, java.sql.Timestamp.valueOf(java.time.LocalDateTime.now()));
+            stmt.setString(3, email);
 
             int rowsAffected = stmt.executeUpdate();
             return rowsAffected > 0;
         }
     }
 
-    private String hashPassword(String password) {
-        // Implement password hashing here (BCrypt recommended)
-        // For now, returning plain text - CHANGE THIS IN PRODUCTION!
-        return password;
+    /**
+     * Gets customer name by email for personalized emails
+     * 
+     * @param email The customer's email
+     * @return The customer's full name, or null if not found
+     */
+    public String getCustomerNameByEmail(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            return null;
+        }
+
+        String sql = "SELECT full_name FROM customers WHERE email = ?";
+
+        try (Connection connection = DBContext.getConnection();
+                PreparedStatement stmt = connection.prepareStatement(sql)) {
+
+            stmt.setString(1, email);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("full_name");
+                }
+            }
+        } catch (SQLException e) {
+            Logger.getLogger(CustomerDAO.class.getName()).log(Level.WARNING,
+                    "Error getting customer name for email: " + email, e);
+        }
+
+        return null;
     }
 
 }
