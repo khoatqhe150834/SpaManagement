@@ -169,7 +169,7 @@ public class MenuService {
         return getTherapistMenuItems(contextPath);
       case "RECEPTIONIST":
         return getReceptionistMenuItems(contextPath);
-      case "CUSTOMER_REGISTERED":
+      case "CUSTOMER":
         return getCustomerMenuItems(contextPath);
       default:
         return new ArrayList<>();

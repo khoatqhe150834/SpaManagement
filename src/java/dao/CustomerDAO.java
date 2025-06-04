@@ -333,15 +333,26 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
                 String storedHash = rs.getString("hash_password");
                 if (BCrypt.checkpw(password, storedHash)) {
                     customer = new Customer();
+                    customer.setCustomerId(rs.getInt("customer_id"));
                     customer.setFullName(rs.getString("full_name"));
                     customer.setEmail(rs.getString("email"));
+                    customer.setHashPassword(rs.getString("hash_password"));
                     customer.setPhoneNumber(rs.getString("phone_number"));
                     customer.setRoleId(rs.getInt("role_id"));
                     customer.setIsActive(rs.getBoolean("is_active"));
                     customer.setGender(rs.getString("gender"));
                     customer.setAddress(rs.getString("address"));
                     customer.setBirthday(rs.getDate("birthday"));
-
+                    customer.setLoyaltyPoints(rs.getInt("loyalty_points"));
+                    // Handle optional timestamp fields
+                    Timestamp createdAt = rs.getTimestamp("created_at");
+                    if (createdAt != null) {
+                        customer.setCreatedAt(createdAt.toLocalDateTime());
+                    }
+                    Timestamp updatedAt = rs.getTimestamp("updated_at");
+                    if (updatedAt != null) {
+                        customer.setUpdatedAt(updatedAt.toLocalDateTime());
+                    }
                 }
             }
 
@@ -454,6 +465,37 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         }
 
         return null;
+    }
+
+    /**
+     * Updates customer profile information
+     * 
+     * @param customer Customer object with updated information
+     * @return true if update was successful, false otherwise
+     * @throws SQLException if database error occurs
+     */
+    public boolean updateProfile(Customer customer) throws SQLException {
+        if (customer == null || customer.getCustomerId() == null) {
+            return false;
+        }
+
+        String sql = "UPDATE customers SET full_name = ?, phone_number = ?, gender = ?, birthday = ?, address = ?, updated_at = ? WHERE customer_id = ?";
+
+        try (Connection connection = DBContext.getConnection();
+                PreparedStatement stmt = connection.prepareStatement(sql)) {
+
+            stmt.setString(1, customer.getFullName());
+            stmt.setString(2, customer.getPhoneNumber());
+            stmt.setString(3, customer.getGender());
+            stmt.setDate(4,
+                    customer.getBirthday() != null ? new java.sql.Date(customer.getBirthday().getTime()) : null);
+            stmt.setString(5, customer.getAddress());
+            stmt.setTimestamp(6, java.sql.Timestamp.valueOf(java.time.LocalDateTime.now()));
+            stmt.setInt(7, customer.getCustomerId());
+
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0;
+        }
     }
 
 }
