@@ -23,8 +23,8 @@ import service.email.PasswordResetToken;
  *
  * @author quang
  */
-@WebServlet(name = "PasswordController", urlPatterns = { "/reset-password", "/change-password", "/verify-reset-token" })
-public class PasswordController extends HttpServlet {
+@WebServlet(name = "ResetPasswordController", urlPatterns = { "/reset-password", "/change-password", "/verify-reset-token" })
+public class ResetPasswordController extends HttpServlet {
 
     private CustomerDAO customerDAO;
     private PasswordResetTokenDAO passwordResetTokenDao;
@@ -118,27 +118,27 @@ public class PasswordController extends HttpServlet {
                     String successMessage = "Liên kết đặt lại mật khẩu đã được gửi đến email của bạn. " +
                             "Vui lòng kiểm tra hộp thư và làm theo hướng dẫn.";
                     request.setAttribute("success", successMessage);
-                    Logger.getLogger(PasswordController.class.getName()).log(
+                    Logger.getLogger(ResetPasswordController.class.getName()).log(
                             Level.INFO, "Password reset email sent successfully to: " + email);
                 } else {
                     String errorMessage = "Có lỗi xảy ra khi gửi email. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.";
                     request.setAttribute("error", errorMessage);
-                    Logger.getLogger(PasswordController.class.getName()).log(
+                    Logger.getLogger(ResetPasswordController.class.getName()).log(
                             Level.WARNING, "Failed to send password reset email to: " + email);
                 }
             } catch (SQLException ex) {
-                Logger.getLogger(PasswordController.class.getName()).log(Level.SEVERE,
+                Logger.getLogger(ResetPasswordController.class.getName()).log(Level.SEVERE,
                         "Database error while processing password reset for email: " + email, ex);
                 request.setAttribute("error", "Có lỗi hệ thống xảy ra. Vui lòng thử lại sau.");
             } catch (Exception ex) {
-                Logger.getLogger(PasswordController.class.getName()).log(Level.SEVERE,
+                Logger.getLogger(ResetPasswordController.class.getName()).log(Level.SEVERE,
                         "Unexpected error while processing password reset for email: " + email, ex);
                 request.setAttribute("error", "Có lỗi không xác định xảy ra. Vui lòng thử lại sau.");
             }
         } else {
             String error = "Email không tồn tại trong hệ thống. Vui lòng kiểm tra lại địa chỉ email.";
             request.setAttribute("error", error);
-            Logger.getLogger(PasswordController.class.getName()).log(
+            Logger.getLogger(ResetPasswordController.class.getName()).log(
                     Level.INFO, "Password reset attempted for non-existent email: " + email);
         }
 
@@ -169,7 +169,7 @@ public class PasswordController extends HttpServlet {
             request.getRequestDispatcher("/WEB-INF/view/password/change-password.jsp").forward(request, response);
 
         } catch (SQLException ex) {
-            Logger.getLogger(PasswordController.class.getName()).log(Level.SEVERE,
+            Logger.getLogger(ResetPasswordController.class.getName()).log(Level.SEVERE,
                     "Database error while verifying token: " + token, ex);
             request.setAttribute("error", "Có lỗi hệ thống xảy ra. Vui lòng thử lại sau.");
             request.getRequestDispatcher("/WEB-INF/view/password/reset-password.jsp").forward(request, response);
@@ -212,7 +212,7 @@ public class PasswordController extends HttpServlet {
                 request.getRequestDispatcher("/WEB-INF/view/password/change-password.jsp").forward(request, response);
             }
         } catch (SQLException ex) {
-            Logger.getLogger(PasswordController.class.getName()).log(Level.SEVERE,
+            Logger.getLogger(ResetPasswordController.class.getName()).log(Level.SEVERE,
                     "Database error while changing password for email: " + email, ex);
             request.setAttribute("error", "Có lỗi hệ thống xảy ra. Vui lòng thử lại sau.");
             request.getRequestDispatcher("/WEB-INF/view/password/change-password.jsp").forward(request, response);

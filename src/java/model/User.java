@@ -15,13 +15,13 @@ public class User {
   private Integer roleId;
   private String fullName;
   private String email;
-  private String passwordHash;
+  private String hashPassword;
   private String phoneNumber;
   private String gender;
   private Date birthday;
   private String avatarUrl;
   private Boolean isActive;
   private Date lastLoginAt;
-  private Date registeredAt;
+  private Date createdAt;
   private Date updatedAt;
 }
