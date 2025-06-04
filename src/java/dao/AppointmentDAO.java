@@ -157,55 +157,59 @@ public class AppointmentDAO extends DBContext implements BaseDAO<Appointment, In
 
     public List<AppointmentDetails> findDetailsByAppointmentId(int appointmentId, String serviceSearch) {
         List<AppointmentDetails> list = new ArrayList<>();
-        
+
         StringBuilder sql = new StringBuilder(
-            "SELECT "
-          + "  ad.detail_id, "
-          + "  ad.appointment_id, "
-          + "  ad.service_id, "
-          + "  s.name AS service_name, "
-          + "  ad.original_service_price, "
-          + "  ad.discount_amount_applied, "
-          + "  ad.final_price_after_discount, "
-          + "  ad.notes_by_customer, "
-          + "  ad.notes_by_staff "
-          + "FROM Appointment_Details ad "
-          + "JOIN Services s ON ad.service_id = s.service_id "
-          + "WHERE ad.appointment_id = ? "
+                "SELECT "
+                + "  ad.detail_id, "
+                + "  ad.appointment_id, "
+                + "  ad.service_id, "
+                + "  s.name AS service_name, "
+                + "  ad.original_service_price, "
+                + "  ad.discount_amount_applied, "
+                + "  ad.final_price_after_discount, "
+                + "  ad.notes_by_customer, "
+                + "  ad.notes_by_staff, "
+                + "  a.status, "
+                + "  a.payment_status "
+                + "FROM Appointment_Details ad "
+                + "JOIN Services s ON ad.service_id = s.service_id "
+                + "JOIN Appointments a ON ad.appointment_id = a.appointment_id "
+                + "WHERE ad.appointment_id = ? "
         );
-        
+
         List<Object> params = new ArrayList<>();
         params.add(appointmentId);
-        
+
         if (serviceSearch != null && !serviceSearch.trim().isEmpty()) {
             sql.append(" AND s.name LIKE ? ");
             params.add("%" + serviceSearch.trim().toLowerCase() + "%");
         }
-        
+
         sql.append(" ORDER BY ad.detail_id ASC ");
-        
+
         try {
             Connection conn = DBContext.getConnection();
             PreparedStatement stmt = conn.prepareStatement(sql.toString());
-            
-            // 2) Đặt tham số: trước hết appointmentId, rồi là serviceSearch (nếu có)
+
             for (int i = 0; i < params.size(); i++) {
                 stmt.setObject(i + 1, params.get(i));
             }
-            
+
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 AppointmentDetails det = AppointmentDetails.builder()
-                    .detailId(rs.getInt("detail_id"))
-                    .appointmentId(rs.getInt("appointment_id"))
-                    .serviceId(rs.getInt("service_id"))
-                    .serviceName(rs.getString("service_name"))
-                    .originalServicePrice(rs.getBigDecimal("original_service_price"))
-                    .discountAmountApplied(rs.getBigDecimal("discount_amount_applied"))
-                    .finalPriceAfterDiscount(rs.getBigDecimal("final_price_after_discount"))
-                    .notesByCustomer(rs.getString("notes_by_customer"))
-                    .notesByStaff(rs.getString("notes_by_staff"))
-                    .build();
+                        .detailId(rs.getInt("detail_id"))
+                        .appointmentId(rs.getInt("appointment_id"))
+                        .serviceId(rs.getInt("service_id"))
+                        .serviceName(rs.getString("service_name"))
+                        .originalServicePrice(rs.getBigDecimal("original_service_price"))
+                        .discountAmountApplied(rs.getBigDecimal("discount_amount_applied"))
+                        .finalPriceAfterDiscount(rs.getBigDecimal("final_price_after_discount"))
+                        .notesByCustomer(rs.getString("notes_by_customer"))
+                        .notesByStaff(rs.getString("notes_by_staff"))
+                        .status(rs.getString("status"))
+                        .paymentStatus(rs.getString("payment_status"))
+                        .build();
                 list.add(det);
             }
         } catch (SQLException ex) {
@@ -213,8 +217,32 @@ public class AppointmentDAO extends DBContext implements BaseDAO<Appointment, In
         } finally {
             DBContext.closeConnection();
         }
-        
+
         return list;
+    }
+
+    public boolean updateStatusAndPayment(int appointmentId, String newStatus, String newPaymentStatus) {
+        String sql
+                = "UPDATE Appointments "
+                + "SET status = ?, payment_status = ? "
+                + "WHERE appointment_id = ?";
+
+        try {
+            Connection conn = DBContext.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setString(1, newStatus);
+            stmt.setString(2, newPaymentStatus);
+            stmt.setInt(3, appointmentId);
+
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0;  // nếu >=1 dòng thay đổi thì trả về true
+
+        } catch (SQLException ex) {
+            System.out.println("Error updating status/payment: " + ex.getMessage());
+            return false;
+        } finally {
+            DBContext.closeConnection();
+        }
     }
 
     @Override
@@ -244,7 +272,7 @@ public class AppointmentDAO extends DBContext implements BaseDAO<Appointment, In
 
     public Appointment getFromResultSet(ResultSet rs) throws SQLException {
         Appointment ap = new Appointment();
-        ap.setAppointmentId(rs.getInt("appointment_id"));      
+        ap.setAppointmentId(rs.getInt("appointment_id"));
         ap.setCustomerName(rs.getString("customer_name"));
         ap.setBookingGroupName(rs.getString("booking_group_name"));
         ap.setTherapistName(rs.getString("therapist_name"));
