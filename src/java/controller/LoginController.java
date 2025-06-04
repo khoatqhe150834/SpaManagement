@@ -151,11 +151,14 @@ public class LoginController extends HttpServlet {
                 return "/";
 
             case RoleConstants.MANAGER_ID:
-                return "/manager/dashboard";
+                return "/";
+//                return "/manager/dashboard";
             case RoleConstants.THERAPIST_ID:
-                return "/therapist/dashboard";
+                return "/";
+//                return "/therapist/dashboard";
             case RoleConstants.RECEPTIONIST_ID:
-                return "/receptionist/dashboard";
+                return "/";
+//                return "/receptionist/dashboard";
             default:
                 return "/";
         }
