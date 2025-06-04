@@ -201,7 +201,12 @@ contentType="text/html" pageEncoding="UTF-8"%>
                         />
                       </div>
                       <div class="text-left">
-                        <button class="site-button m-r5 button-lg radius-no">
+                        <button
+                          type="submit"
+                          class="btn btn-primary "
+                          style="background-color: #586bb4"
+                          
+                        >
                           TẠO TÀI KHOẢN
                         </button>
                       </div>
