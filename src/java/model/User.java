@@ -1,7 +1,6 @@
 package model;
 
 import java.util.Date;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
@@ -11,7 +10,7 @@ import lombok.Setter;
 @Data
 @Builder
 @NoArgsConstructor
-@AllArgsConstructor
+
 @Getter
 @Setter
 public class User {
@@ -29,9 +28,7 @@ public class User {
   private Date createdAt;
   private Date updatedAt;
 
-    public User() {
-    }
-
+    
     public User(Integer userId, Integer roleId, String fullName, String email, String hashPassword, String phoneNumber, String gender, Date birthday, String avatarUrl, Boolean isActive, Date lastLoginAt, Date createdAt, Date updatedAt) {
         this.userId = userId;
         this.roleId = roleId;
