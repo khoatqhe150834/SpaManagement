@@ -248,6 +248,13 @@
         <div class="header-nav navbar-collapse collapse justify-content-end" id="navbarNavDropdown">
           <ul class="nav navbar-nav">
             <%-- Your existing menu items --%>
+
+            <li>
+              <a href="${pageContext.request.contextPath}/spa-info">About us</a>
+              
+            </li>
+
+
             <li>
               <a href="javascript:void(0);">Pages <i class="fa fa-chevron-down"></i></a>
               <ul class="sub-menu">
