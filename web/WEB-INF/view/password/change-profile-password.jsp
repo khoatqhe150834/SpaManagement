@@ -180,7 +180,7 @@
                                             Cập Nhật Mật Khẩu
                                         </button>
                                     </div>
-                                </form>
+        </form>
                             </div>
                             
                             <div class="back-link">

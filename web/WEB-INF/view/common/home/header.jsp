@@ -1,5 +1,8 @@
 <%-- Document : header Created on : May 25, 2025, 4:22:29 PM Author : quang --%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page import="model.MenuService" %>
+<%@ page import="model.RoleConstants" %>
+<%@ page import="java.util.List" %>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 
 <style>
@@ -59,6 +62,26 @@
     color: #000;
   }
 
+  .avatar-dropdown a i {
+    margin-right: 8px;
+    width: 16px;
+    text-align: center;
+  }
+
+  .avatar-dropdown .dropdown-divider {
+    height: 1px;
+    background-color: #eee;
+    margin: 5px 0;
+  }
+
+  .avatar-dropdown .dropdown-header {
+    padding: 8px 15px;
+    font-weight: bold;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 5px;
+    color: #333;
+  }
+
   /* Ensure the extra-cell items are aligned nicely */
   .extra-nav .extra-cell {
     display: flex;
@@ -94,56 +117,131 @@
             <a href="booking.html" class="site-button radius-no">ĐẶT LỊCH NGAY</a>
             
             <c:choose>
-    <%-- Customer is logged in --%>
-    <c:when test="${not empty sessionScope.customer}">
-        <div class="user-avatar-container">
-            <button type="button" class="user-avatar-button" id="customerAvatarButton" aria-haspopup="true" aria-expanded="false">
-                <img src="https://placehold.co/40x40/7C3AED/FFFFFF?text=C" alt="Customer Avatar">
-            </button>
-            <div class="avatar-dropdown" id="customerAvatarDropdown" aria-labelledby="customerAvatarButton">
-                <c:if test="${not empty sessionScope.customer.fullName}">
-                    <div style="padding: 8px 15px; font-weight: bold; border-bottom: 1px solid #eee; margin-bottom: 5px;">Chào, ${sessionScope.customer.fullName}</div>
-                </c:if>
-                <a href="${pageContext.request.contextPath}/profile">Hồ sơ của bạn</a>
-                <a href="${pageContext.request.contextPath}/customer/bookings">Lịch sử đặt lịch</a>
-                <a href="${pageContext.request.contextPath}/customer/settings">Cài đặt</a>
-                <div style="height: 1px; background-color: #eee; margin: 5px 0;"></div>
-                <a href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
-            </div>
-        </div>
-        <button type="button" class="user-notification-button" style="background: transparent; border: none; margin-left: 10px; position: relative;">
-            <i class="fa fa-bell" style="font-size: 22px; color: #586BB4;"></i>
-            <%-- <span class="notification-badge">3</span> --%>
-        </button>
-    </c:when>
-    <%-- User (admin/manager/staff) is logged in --%>
-    <c:when test="${not empty sessionScope.user}">
-        <div class="user-avatar-container">
-            <button type="button" class="user-avatar-button" id="userAvatarButton" aria-haspopup="true" aria-expanded="false">
-                <img src="https://placehold.co/40x40/DC2626/FFFFFF?text=U" alt="User Avatar">
-            </button>
-            <div class="avatar-dropdown" id="userAvatarDropdown" aria-labelledby="userAvatarButton">
-                <c:if test="${not empty sessionScope.user.fullName}">
-                    <div style="padding: 8px 15px; font-weight: bold; border-bottom: 1px solid #eee; margin-bottom: 5px;">Chào, ${sessionScope.user.fullName}</div>
-                </c:if>
-                <a href="${pageContext.request.contextPath}/admin/profile">Hồ sơ cá nhân</a>
-                <a href="${pageContext.request.contextPath}/admin/dashboard">Bảng điều khiển</a>
-                <a href="${pageContext.request.contextPath}/admin/settings">Cài đặt</a>
-                <div style="height: 1px; background-color: #eee; margin: 5px 0;"></div>
-                <a href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
-            </div>
-        </div>
-        <button type="button" class="user-notification-button" style="background: transparent; border: none; margin-left: 10px; position: relative;">
-            <i class="fa fa-bell" style="font-size: 22px; color: #586BB4;"></i>
-            <%-- <span class="notification-badge">5</span> --%>
-        </button>
-    </c:when>
-    <%-- No one is logged in --%>
-    <c:otherwise>
-        <a href="${pageContext.request.contextPath}/login" class=" site-button radius-no" style="margin-left: 10px; width: 120px;">Đăng nhập</a>
-        <a href="${pageContext.request.contextPath}/register" class="site-button radius-no" style="margin-left: 5px; width: 120px;">Đăng ký</a>
-    </c:otherwise>
-</c:choose>
+                <%-- Customer is logged in --%>
+                <c:when test="${not empty sessionScope.customer}">
+                    <%
+                        // Get customer menu items using MenuService
+                        List<MenuService.MenuItem> customerMenuItems = MenuService.getCustomerMenuItems(pageContext.getServletContext().getContextPath());
+                        request.setAttribute("menuItems", customerMenuItems);
+                    %>
+                    <div class="user-avatar-container">
+                        <button type="button" class="user-avatar-button" id="customerAvatarButton" aria-haspopup="true" aria-expanded="false">
+                            <img src="https://placehold.co/40x40/7C3AED/FFFFFF?text=C" alt="Customer Avatar">
+                        </button>
+                        <div class="avatar-dropdown" id="customerAvatarDropdown" aria-labelledby="customerAvatarButton">
+                            <c:if test="${not empty sessionScope.customer.fullName}">
+                                <div class="dropdown-header">Chào, ${sessionScope.customer.fullName}</div>
+                            </c:if>
+                            
+                            <c:forEach var="menuItem" items="${menuItems}">
+                                <c:choose>
+                                    <c:when test="${menuItem.divider}">
+                                        <div class="dropdown-divider"></div>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <a href="${menuItem.url}">
+                                            <i class="${menuItem.icon}"></i>
+                                            ${menuItem.label}
+                                        </a>
+                                    </c:otherwise>
+                                </c:choose>
+                            </c:forEach>
+                        </div>
+                    </div>
+                    <button type="button" class="user-notification-button" style="background: transparent; border: none; margin-left: 10px; position: relative;">
+                        <i class="fa fa-bell" style="font-size: 22px; color: #586BB4;"></i>
+                    </button>
+                </c:when>
+                
+                <%-- User (admin/manager/staff) is logged in --%>
+                <c:when test="${not empty sessionScope.user}">
+                    <%
+                        // Get user role name and menu items using MenuService
+                        model.User user = (model.User) session.getAttribute("user");
+                        String roleName = null;
+                        if (user != null && user.getRoleId() != null) {
+                            switch (user.getRoleId()) {
+                                case RoleConstants.ADMIN_ID:
+                                    roleName = "ADMIN";
+                                    break;
+                                case RoleConstants.MANAGER_ID:
+                                    roleName = "MANAGER";
+                                    break;
+                                case RoleConstants.THERAPIST_ID:
+                                    roleName = "THERAPIST";
+                                    break;
+                                case RoleConstants.RECEPTIONIST_ID:
+                                    roleName = "RECEPTIONIST";
+                                    break;
+                                default:
+                                    roleName = "ADMIN"; // Default fallback
+                            }
+                        }
+                        
+                        List<MenuService.MenuItem> userMenuItems = MenuService.getMenuItemsByRole(roleName, pageContext.getServletContext().getContextPath());
+                        request.setAttribute("userMenuItems", userMenuItems);
+                        
+                        // Set avatar color based on role
+                        String avatarColor = "#DC2626"; // Default red
+                        String avatarText = "U";
+                        if (roleName != null) {
+                            switch (roleName) {
+                                case "ADMIN":
+                                    avatarColor = "#DC2626"; // Red
+                                    avatarText = "A";
+                                    break;
+                                case "MANAGER":
+                                    avatarColor = "#2563EB"; // Blue
+                                    avatarText = "M";
+                                    break;
+                                case "THERAPIST":
+                                    avatarColor = "#059669"; // Green
+                                    avatarText = "T";
+                                    break;
+                                case "RECEPTIONIST":
+                                    avatarColor = "#7C3AED"; // Purple
+                                    avatarText = "R";
+                                    break;
+                            }
+                        }
+                        request.setAttribute("avatarColor", avatarColor);
+                        request.setAttribute("avatarText", avatarText);
+                    %>
+                    <div class="user-avatar-container">
+                        <button type="button" class="user-avatar-button" id="userAvatarButton" aria-haspopup="true" aria-expanded="false">
+                            <img src="https://placehold.co/40x40/${avatarColor.substring(1)}/FFFFFF?text=${avatarText}" alt="User Avatar">
+                        </button>
+                        <div class="avatar-dropdown" id="userAvatarDropdown" aria-labelledby="userAvatarButton">
+                            <c:if test="${not empty sessionScope.user.fullName}">
+                                <div class="dropdown-header">Chào, ${sessionScope.user.fullName}</div>
+                            </c:if>
+                            
+                            <c:forEach var="menuItem" items="${userMenuItems}">
+                                <c:choose>
+                                    <c:when test="${menuItem.divider}">
+                                        <div class="dropdown-divider"></div>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <a href="${menuItem.url}">
+                                            <i class="${menuItem.icon}"></i>
+                                            ${menuItem.label}
+                                        </a>
+                                    </c:otherwise>
+                                </c:choose>
+                            </c:forEach>
+                        </div>
+                    </div>
+                    <button type="button" class="user-notification-button" style="background: transparent; border: none; margin-left: 10px; position: relative;">
+                        <i class="fa fa-bell" style="font-size: 22px; color: #586BB4;"></i>
+                    </button>
+                </c:when>
+                
+                <%-- No one is logged in --%>
+                <c:otherwise>
+                    <a href="${pageContext.request.contextPath}/login" class="site-button radius-no" style="margin-left: 10px; width: 120px;">Đăng nhập</a>
+                    <a href="${pageContext.request.contextPath}/register" class="site-button radius-no" style="margin-left: 5px; width: 120px;">Đăng ký</a>
+                </c:otherwise>
+            </c:choose>
           </div>
         </div>
 
