@@ -47,7 +47,14 @@ public class AppointmentController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
+        // Chúng ta để update bằng POST
+        String action = request.getParameter("action");
+        if (action.equals("update")) {
+            updateStatusAndPayment(request, response);
+        } else {
+            // Nếu còn các POST action khác, đặt ở đây
+            doGet(request, response);
+        }
     }
 
     public void listWithFilters(HttpServletRequest request, HttpServletResponse response)
@@ -88,7 +95,7 @@ public class AppointmentController extends HttpServlet {
         request.getRequestDispatcher("/WEB-INF/view/admin_pages/appointment_list.jsp").forward(request, response);
     }
 
-    private void viewDetails(HttpServletRequest request, HttpServletResponse response)
+    public void viewDetails(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         // 1) Lấy appointment_id từ parameter, nếu không hợp lệ thì redirect về list
@@ -107,19 +114,61 @@ public class AppointmentController extends HttpServlet {
 
         // 2) Lấy thêm tham số tìm kiếm serviceName (có thể null hoặc rỗng)
         String serviceSearch = request.getParameter("serviceSearch");
-        // Nếu không truyền gì, serviceSearch = null hoặc rỗng
 
         // 3) Gọi DAO để lấy danh sách chi tiết theo appointmentId và serviceSearch
-        List<AppointmentDetails> details
-                = appointmentDAO.findDetailsByAppointmentId(appointmentId, serviceSearch);
+        List<AppointmentDetails> details = appointmentDAO.findDetailsByAppointmentId(appointmentId, serviceSearch);
 
-        // 4) Truyền sang JSP:
+        // 4) Lấy thông tin appointment để hiển thị status hiện tại
+        String currentStatus = "";
+        String currentPaymentStatus = "";
+        if (!details.isEmpty()) {
+            // Lấy status từ detail đầu tiên (vì tất cả details của cùng 1 appointment sẽ có cùng status)
+            currentStatus = details.get(0).getStatus();
+            currentPaymentStatus = details.get(0).getPaymentStatus();
+        }
+
+        // 5) Truyền sang JSP:
         request.setAttribute("details", details);
         request.setAttribute("appointmentId", appointmentId);
+        request.setAttribute("currentStatus", currentStatus);
+        request.setAttribute("currentPaymentStatus", currentPaymentStatus);
         // Giữ lại giá trị serviceSearch để hiển thị trong ô tìm kiếm
         request.setAttribute("serviceSearch", serviceSearch == null ? "" : serviceSearch);
 
         request.getRequestDispatcher("/WEB-INF/view/admin_pages/appointment_details.jsp").forward(request, response);
+    }
+
+    public void updateStatusAndPayment(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        // 1) Lấy tham số từ form: appointmentId, status, paymentStatus.
+        String idStr = request.getParameter("appointmentId");
+        String newStatus = request.getParameter("status");
+        String newPaymentStatus = request.getParameter("paymentStatus");
+
+        if (idStr == null || idStr.isEmpty() || newStatus == null || newPaymentStatus == null) {
+            // Thiếu dữ liệu → redirect về list
+            response.sendRedirect(request.getContextPath() + "/appointment?action=list");
+            return;
+        }
+
+        int appointmentId;
+        try {
+            appointmentId = Integer.parseInt(idStr);
+        } catch (NumberFormatException e) {
+            response.sendRedirect(request.getContextPath() + "/appointment?action=list");
+            return;
+        }
+
+        // 2) Gọi DAO để cập nhật
+        boolean updated = appointmentDAO.updateStatusAndPayment(appointmentId, newStatus, newPaymentStatus);
+
+        // 3) Sau khi cập nhật xong, redirect về trang details với thông báo thành công
+        if (updated) {
+            response.sendRedirect(request.getContextPath() + "/appointment?action=details&id=" + appointmentId + "&success=true");
+        } else {
+            response.sendRedirect(request.getContextPath() + "/appointment?action=details&id=" + appointmentId + "&error=true");
+        }
     }
 
 }
