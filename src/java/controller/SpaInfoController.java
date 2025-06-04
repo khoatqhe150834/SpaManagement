@@ -4,6 +4,7 @@
  */
 package controller;
 
+import dao.SpaInformationDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -16,6 +17,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import model.SpaInformation;
 
 /**
  *
@@ -68,7 +70,9 @@ public class SpaInfoController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         // show spa information
-
+        SpaInformationDAO dao = new SpaInformationDAO();
+        SpaInformation spa = dao.read(1); // or the correct spa_id
+        request.setAttribute("spa", spa);
         request.getRequestDispatcher("/WEB-INF/view/spa/spa-info.jsp").forward(request, response);
 
     }
