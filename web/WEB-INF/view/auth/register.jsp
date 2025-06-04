@@ -203,9 +203,24 @@ contentType="text/html" pageEncoding="UTF-8"%>
                       <div class="text-left">
                         <button
                           type="submit"
-                          class="btn btn-primary "
-                          style="background-color: #586bb4"
-                          
+                          style="
+                            background-color: #586BB4;
+                            color: #fff;
+                            border: none;
+                            border-radius: 0;
+                            padding: 12px 20px;
+                            width: 180px;
+                            font-size: 14px;
+                            font-weight: 600;
+                            text-align: center;
+                            cursor: pointer;
+                            display: inline-block;
+                            text-transform: none;
+                            line-height: 1.42857;
+                            outline: none;
+                          "
+                          onmouseover="this.style.backgroundColor='#455790'"
+                          onmouseout="this.style.backgroundColor='#586BB4'"
                         >
                           TẠO TÀI KHOẢN
                         </button>
