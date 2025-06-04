@@ -74,21 +74,6 @@ public class ServiceTypeController extends HttpServlet {
             response.sendRedirect("servicetype");
         }
 
-        if (service.equals("view")) {
-            int id = Integer.parseInt(request.getParameter("id"));
-
-            ServiceTypeDAO stDAO = new ServiceTypeDAO();
-            ServiceDAO sDAO = new ServiceDAO();
-
-            ServiceType st = stDAO.findById(id).orElse(null);
-            List<Service> services = sDAO.findByServiceTypeId(id);
-
-            request.setAttribute("stype", st);
-            request.setAttribute("services", services);
-
-            request.getRequestDispatcher("WEB-INF/view/admin_pages/ViewServiceDetails.jsp").forward(request, response);
-        }
-
     }
 
     @Override

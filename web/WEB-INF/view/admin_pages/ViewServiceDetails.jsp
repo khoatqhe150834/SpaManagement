@@ -1,184 +1,88 @@
-<%-- 
-    Document   : ViewServiceDetails
-    Created on : Jun 3, 2025, 2:02:14 PM
-    Author     : ADMIN
---%>
-
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
-
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
-
-    <!-- Mirrored from wowdash.wowtheme7.com/demo/view-profile.html by HTTrack Website Copier/3.x [XR&CO'2014], Mon, 03 Feb 2025 04:44:21 GMT -->
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Wowdash - Bootstrap 5 Admin Dashboard HTML Template</title>
-        <link rel="icon" type="image/png" href="assets/images/favicon.png" sizes="16x16">
-        <!-- CSS here -->
-        <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp"></jsp:include>
-        </head>
-        <body>
-            <!-- SIDEBAR here -->
-        <jsp:include page="/WEB-INF/view/common/admin/sidebar.jsp"></jsp:include>
+        <title>Service Type Details</title>
+        <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp" />
+    </head>
+    <body>
 
-            <!-- HEADER here -->
-        <jsp:include page="/WEB-INF/view/common/admin/header.jsp"></jsp:include>
+        <jsp:include page="/WEB-INF/view/common/admin/sidebar.jsp" />
+        <jsp:include page="/WEB-INF/view/common/admin/header.jsp" />
 
-            <div class="dashboard-main-body">
-                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
-                    <h6 class="fw-semibold mb-0">View Profile</h6>
-                    <ul class="d-flex align-items-center gap-2">
-                        <li class="fw-medium">
-                            <a href="index.html" class="d-flex align-items-center gap-1 hover-text-primary">
-                                <iconify-icon icon="solar:home-smile-angle-outline" class="icon text-lg"></iconify-icon>
-                                Dashboard
-                            </a>
-                        </li>
-                        <li>-</li>
-                        <li class="fw-medium">View Profile</li>
-                    </ul>
-                </div>
+        <div class="dashboard-main-body">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
+                <h3 class="fw-bold mb-0">Service Type Details</h3>
+                <ul class="d-flex align-items-center gap-2">
+                    <li><a href="servicetype" class="text-primary">Back to List</a></li>
+                    <li>-</li>
+                    <li>Service Type Details</li>
+                </ul>
+            </div>
 
-                <div class="row gy-4">
-                    <div class="col-lg-4">
-                        <div class="user-grid-card position-relative border radius-16 overflow-hidden bg-base h-100">
-                            <img src="assets/images/user-grid/user-grid-bg1.png" alt="" class="w-100 object-fit-cover">
-                            <div class="pb-24 ms-16 mb-24 me-16  mt--100">
-                                <div class="text-center border border-top-0 border-start-0 border-end-0">
-                                    <img src="assets/images/user-grid/user-grid-img14.png" alt="" class="border br-white border-width-2-px w-200-px h-200-px rounded-circle object-fit-cover">
-                                    <h6 class="mb-0 mt-16">Jacob Jones</h6>
-                                    <span class="text-secondary-light mb-16">ifrandom@gmail.com</span>
-                                </div>
-                                <div class="mt-24">
-                                    <h6 class="text-xl mb-16">Personal Info</h6>
-                                <c:forEach var="service" items="${services}">
-                                    <div class="border-bottom pb-16 mb-16">
-                                        <h6 class="text-lg text-primary-light mb-12">Service ID: ${service.serviceId}</h6>
-                                        <ul>
-                                            <li class="d-flex align-items-center gap-1 mb-8">
-                                                <span class="w-40 text-md fw-semibold text-primary-light">Service Type</span>
-                                                <span class="w-60 text-secondary-light fw-medium">: ${service.serviceTypeId.name}</span>
-                                            </li>
-                                            <li class="d-flex align-items-center gap-1 mb-8">
-                                                <span class="w-40 text-md fw-semibold text-primary-light">Name</span>
-                                                <span class="w-60 text-secondary-light fw-medium">: ${service.name}</span>
-                                            </li>
-                                            <li class="d-flex align-items-center gap-1 mb-8">
-                                                <span class="w-40 text-md fw-semibold text-primary-light">Description</span>
-                                                <span class="w-60 text-secondary-light fw-medium">: ${service.description}</span>
-                                            </li>
-                                            <li class="d-flex align-items-center gap-1 mb-8">
-                                                <span class="w-40 text-md fw-semibold text-primary-light">Price</span>
-                                                <span class="w-60 text-secondary-light fw-medium">: $${service.price}</span>
-                                            </li>
-                                            <li class="d-flex align-items-center gap-1 mb-8">
-                                                <span class="w-40 text-md fw-semibold text-primary-light">Duration</span>
-                                                <span class="w-60 text-secondary-light fw-medium">: ${service.durationMinutes} mins</span>
-                                            </li>
-                                            <li class="d-flex align-items-center gap-1 mb-8">
-                                                <span class="w-40 text-md fw-semibold text-primary-light">Buffer</span>
-                                                <span class="w-60 text-secondary-light fw-medium">: ${service.bufferTimeAfterMinutes} mins</span>
-                                            </li>
-                                            <li class="d-flex align-items-center gap-1 mb-8">
-                                                <span class="w-40 text-md fw-semibold text-primary-light">Active</span>
-                                                <span class="w-60 text-secondary-light fw-medium">: 
-                                                    <c:choose>
-                                                        <c:when test="${service.active}">Yes</c:when>
-                                                        <c:otherwise>No</c:otherwise>
-                                                    </c:choose>
-                                                </span>
-                                            </li>
-                                            <li class="d-flex align-items-center gap-1 mb-8">
-                                                <span class="w-40 text-md fw-semibold text-primary-light">Rating</span>
-                                                <span class="w-60 text-secondary-light fw-medium">: ${service.averageRating}</span>
-                                            </li>
-                                            <li class="d-flex align-items-center gap-1 mb-8">
-                                                <span class="w-40 text-md fw-semibold text-primary-light">Online?</span>
-                                                <span class="w-60 text-secondary-light fw-medium">: 
-                                                    <c:choose>
-                                                        <c:when test="${service.bookableOnline}">Yes</c:when>
-                                                        <c:otherwise>No</c:otherwise>
-                                                    </c:choose>
-                                                </span>
-                                            </li>
-                                            <li class="d-flex align-items-center gap-1 mb-8">
-                                                <span class="w-40 text-md fw-semibold text-primary-light">Consultation?</span>
-                                                <span class="w-60 text-secondary-light fw-medium">: 
-                                                    <c:choose>
-                                                        <c:when test="${service.requiresConsultation}">Yes</c:when>
-                                                        <c:otherwise>No</c:otherwise>
-                                                    </c:choose>
-                                                </span>
-                                            </li>
-                                            <li class="d-flex align-items-center gap-1 mb-8">
-                                                <span class="w-40 text-md fw-semibold text-primary-light">Created</span>
-                                                <span class="w-60 text-secondary-light fw-medium">: 
-                                                    <fmt:formatDate value="${service.createdAt}" pattern="dd MMM yyyy HH:mm"/>
-                                                </span>
-                                            </li>
-                                            <li class="d-flex align-items-center gap-1 mb-8">
-                                                <span class="w-40 text-md fw-semibold text-primary-light">Updated</span>
-                                                <span class="w-60 text-secondary-light fw-medium">: 
-                                                    <fmt:formatDate value="${service.updatedAt}" pattern="dd MMM yyyy HH:mm"/>
-                                                </span>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </c:forEach>
+            <div class="card p-24 radius-16 mb-24">
+                <h4>Service Type: ${stype.name}</h4>
+                <p>${stype.description}</p>
+                <p>
+                    Status:
+                    <c:choose>
+                        <c:when test="${stype.active}">
+                            <span class="text-success">Active</span>
+                        </c:when>
+                        <c:otherwise>
+                            <span class="text-danger">Inactive</span>
+                        </c:otherwise>
+                    </c:choose>
+                </p>
+            </div>
 
-
-                            </div>
+            <div class="card p-24 radius-16">
+                <h4 class="mb-16">Services in This Type</h4>
+                <c:if test="${not empty services}">
+                    <c:forEach var="s" items="${services}">
+                        <div class="border-bottom pb-16 mb-16">
+                            <h5>Service ID: ${s.serviceId}</h5>
+                            <ul>
+                                <li><strong>Name:</strong> ${s.name}</li>
+                                <li><strong>Description:</strong> ${s.description}</li>
+                                <li><strong>Price:</strong> $<fmt:formatNumber value="${s.price}" type="number" minFractionDigits="2"/></li>
+                                <li><strong>Duration:</strong> ${s.durationMinutes} mins</li>
+                                <li><strong>Buffer Time:</strong> ${s.bufferTimeAfterMinutes} mins</li>
+                                <li><strong>Status:</strong> 
+                                    <c:choose>
+                                        <c:when test="${s.isActive}">Active</c:when>
+                                        <c:otherwise>Inactive</c:otherwise>
+                                    </c:choose>
+                                </li>
+                                <li><strong>Online Booking:</strong> 
+                                    <c:choose>
+                                        <c:when test="${s.bookableOnline}">Yes</c:when>
+                                        <c:otherwise>No</c:otherwise>
+                                    </c:choose>
+                                </li>
+                                <li><strong>Consultation:</strong> 
+                                    <c:choose>
+                                        <c:when test="${s.requiresConsultation}">Yes</c:when>
+                                        <c:otherwise>No</c:otherwise>
+                                    </c:choose>
+                                </li>
+                                <li><strong>Rating:</strong> ${s.averageRating}</li>
+                                <li><strong>Created:</strong> <fmt:formatDate value="${s.createdAt}" pattern="dd MMM yyyy HH:mm"/></li>
+                                <li><strong>Updated:</strong> <fmt:formatDate value="${s.updatedAt}" pattern="dd MMM yyyy HH:mm"/></li>
+                            </ul>
                         </div>
-                    </div>
-                </div>
-                <div class="col-lg-8">
+                    </c:forEach>
+                </c:if>
 
-                </div>
+                <c:if test="${empty services}">
+                    <p class="text-muted">No services available for this type.</p>
+                </c:if>
             </div>
         </div>
 
-        <!-- JS here -->
-        <jsp:include page="/WEB-INF/view/common/admin/js.jsp"></jsp:include>
-
-        <script>
-            // ======================== Upload Image Start =====================
-            function readURL(input) {
-                if (input.files && input.files[0]) {
-                    var reader = new FileReader();
-                    reader.onload = function (e) {
-                        $('#imagePreview').css('background-image', 'url(' + e.target.result + ')');
-                        $('#imagePreview').hide();
-                        $('#imagePreview').fadeIn(650);
-                    }
-                    reader.readAsDataURL(input.files[0]);
-                }
-            }
-            $("#imageUpload").change(function () {
-                readURL(this);
-            });
-            // ======================== Upload Image End =====================
-
-            // ================== Password Show Hide Js Start ==========
-            function initializePasswordToggle(toggleSelector) {
-                $(toggleSelector).on('click', function () {
-                    $(this).toggleClass("ri-eye-off-line");
-                    var input = $($(this).attr("data-toggle"));
-                    if (input.attr("type") === "password") {
-                        input.attr("type", "text");
-                    } else {
-                        input.attr("type", "password");
-                    }
-                });
-            }
-            // Call the function
-            initializePasswordToggle('.toggle-password');
-            // ========================= Password Show Hide Js End ===========================
-        </script>
-
+        <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
     </body>
-
-    <!-- Mirrored from wowdash.wowtheme7.com/demo/view-profile.html by HTTrack Website Copier/3.x [XR&CO'2014], Mon, 03 Feb 2025 04:44:22 GMT -->
 </html>
