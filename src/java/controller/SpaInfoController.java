@@ -17,6 +17,9 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import model.SpaInformation;
 
 /**
@@ -71,7 +74,12 @@ public class SpaInfoController extends HttpServlet {
             throws ServletException, IOException {
         // show spa information
         SpaInformationDAO dao = new SpaInformationDAO();
-        SpaInformation spa = dao.read(1); // or the correct spa_id
+        SpaInformation spa = null;
+        try {
+            spa = dao.read(1); // or the correct spa_id
+        } catch (SQLException ex) {
+            Logger.getLogger(SpaInfoController.class.getName()).log(Level.SEVERE, null, ex);
+        }
         request.setAttribute("spa", spa);
         request.getRequestDispatcher("/WEB-INF/view/spa/spa-info.jsp").forward(request, response);
 

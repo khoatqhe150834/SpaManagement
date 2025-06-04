@@ -1,5 +1,6 @@
 package dao;
 
+import db.DBContext;
 import model.SpaInformation;
 import java.sql.*;
 import java.util.ArrayList;
@@ -7,12 +8,10 @@ import java.util.List;
 
 public class SpaInformationDAO {
 
-    private Connection connection;
-
     // Create a new spa information record
     public boolean create(SpaInformation spa) throws SQLException {
         String sql = "INSERT INTO spa_information (name, address_line1, address_line2, city, postal_code, country, phone_number_main, phone_number_secondary, email_main, email_secondary, website_url, logo_url, tax_identification_number, cancellation_policy, booking_terms, about_us_short, about_us_long, vat_percentage, default_appointment_buffer_minutes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, spa.getName());
             stmt.setString(2, spa.getAddressLine1());
             stmt.setString(3, spa.getAddressLine2());
@@ -48,7 +47,7 @@ public class SpaInformationDAO {
     // Read a spa information record by ID
     public SpaInformation read(int spaId) throws SQLException {
         String sql = "SELECT * FROM spa_information WHERE spa_id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, spaId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -62,7 +61,7 @@ public class SpaInformationDAO {
     // Update an existing spa information record
     public boolean update(SpaInformation spa) throws SQLException {
         String sql = "UPDATE spa_information SET name = ?, address_line1 = ?, address_line2 = ?, city = ?, postal_code = ?, country = ?, phone_number_main = ?, phone_number_secondary = ?, email_main = ?, email_secondary = ?, website_url = ?, logo_url = ?, tax_identification_number = ?, cancellation_policy = ?, booking_terms = ?, about_us_short = ?, about_us_long = ?, vat_percentage = ?, default_appointment_buffer_minutes = ? WHERE spa_id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, spa.getName());
             stmt.setString(2, spa.getAddressLine1());
             stmt.setString(3, spa.getAddressLine2());
@@ -90,7 +89,7 @@ public class SpaInformationDAO {
     // Delete a spa information record by ID
     public boolean delete(int spaId) throws SQLException {
         String sql = "DELETE FROM spa_information WHERE spa_id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, spaId);
             return stmt.executeUpdate() > 0;
         }
@@ -100,7 +99,7 @@ public class SpaInformationDAO {
     public List<SpaInformation> listAll() throws SQLException {
         List<SpaInformation> spas = new ArrayList<>();
         String sql = "SELECT * FROM spa_information";
-        try (Statement stmt = connection.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
+        try (Connection conn = DBContext.getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
                 spas.add(mapResultSetToSpaInformation(rs));
             }
