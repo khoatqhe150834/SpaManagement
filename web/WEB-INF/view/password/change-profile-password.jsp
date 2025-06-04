@@ -65,7 +65,7 @@
             .change-password-header {
                 text-align: center;
                 padding: 40px 30px 30px;
-                background: linear-gradient(135deg, #c59952, #b8893b);
+                background: linear-gradient(135deg, #586BB4, #4a5aa3);
                 color: white;
             }
             
@@ -91,49 +91,6 @@
             /* Form container */
             .change-password-form-container {
                 padding: 40px 30px;
-            }
-            
-            /* User info section */
-            .user-info-section {
-                background: linear-gradient(135deg, #f8f4e6, #faf7ed);
-                border: 1px solid #e6d7b3;
-                border-radius: 8px;
-                padding: 25px;
-                margin-bottom: 30px;
-                position: relative;
-            }
-            
-            .user-info-section::before {
-                content: "\f007";
-                font-family: "FontAwesome";
-                position: absolute;
-                top: 25px;
-                left: 25px;
-                color: #c59952;
-                font-size: 18px;
-            }
-            
-            .user-info-content {
-                margin-left: 35px;
-            }
-            
-            .user-info-content h6 {
-                color: #8b6914;
-                margin: 0 0 10px;
-                font-weight: 600;
-                font-size: 16px;
-                font-family: 'Montserrat', sans-serif;
-            }
-            
-            .user-info-content p {
-                color: #6d5a2e;
-                margin: 5px 0;
-                font-size: 14px;
-            }
-            
-            .user-email, .user-name {
-                color: #c59952;
-                font-weight: 600;
             }
             
             /* Alert styles */
@@ -180,7 +137,7 @@
             
             .form-section h4 i {
                 margin-right: 10px;
-                color: #c59952;
+                color: #586BB4;
             }
             
             .form-description {
@@ -207,13 +164,13 @@
             
             .input-label i {
                 margin-right: 8px;
-                color: #c59952;
+                color: #586BB4;
             }
             
             .password-input {
                 width: 100%;
                 padding: 15px 20px;
-                border: 2px solid #e6d7b3;
+                border: 2px solid #9fa8da;
                 border-radius: 8px;
                 font-size: 16px;
                 transition: all 0.3s ease;
@@ -224,9 +181,9 @@
             
             .password-input:focus {
                 outline: none;
-                border-color: #c59952;
+                border-color: #586BB4;
                 background-color: white;
-                box-shadow: 0 0 0 3px rgba(197, 153, 82, 0.15);
+                box-shadow: 0 0 0 3px rgba(88, 107, 180, 0.15);
             }
             
             .input-help {
@@ -236,6 +193,10 @@
                 display: block;
             }
             
+            .input-help i {
+                color: #586BB4;
+            }
+            
             /* Button styles */
             .submit-section {
                 margin-top: 30px;
@@ -243,7 +204,7 @@
             }
             
             .change-password-button {
-                background: linear-gradient(135deg, #c59952, #b8893b);
+                background: linear-gradient(135deg, #586BB4, #4a5aa3);
                 color: white;
                 border: none;
                 border-radius: 8px;
@@ -262,9 +223,9 @@
             }
             
             .change-password-button:hover:not(:disabled) {
-                background: linear-gradient(135deg, #b8893b, #a67829);
+                background: linear-gradient(135deg, #4a5aa3, #3f4d8a);
                 transform: translateY(-2px);
-                box-shadow: 0 5px 15px rgba(197, 153, 82, 0.4);
+                box-shadow: 0 5px 15px rgba(88, 107, 180, 0.4);
             }
             
             .change-password-button:disabled {
@@ -287,7 +248,7 @@
             }
             
             .back-link a {
-                color: #c59952;
+                color: #586BB4;
                 text-decoration: none;
                 font-size: 14px;
                 transition: color 0.3s ease;
@@ -297,7 +258,7 @@
             }
             
             .back-link a:hover {
-                color: #b8893b;
+                color: #4a5aa3;
             }
             
             .back-link a i {
@@ -369,35 +330,6 @@
                         
                         <!-- Form Container -->
                         <div class="change-password-form-container">
-                            <!-- User Info Section -->
-                            <div class="user-info-section">
-                                <div class="user-info-content">
-                                    <h6>Thông Tin Tài Khoản</h6>
-                                    <p><strong>Loại tài khoản:</strong> 
-                                        <span class="text-primary">
-                                            <c:choose>
-                                                <c:when test="${sessionScope.userType == 'ADMIN'}">Quản trị viên</c:when>
-                                                <c:when test="${sessionScope.userType == 'MANAGER'}">Quản lý</c:when>
-                                                <c:when test="${sessionScope.userType == 'THERAPIST'}">Kỹ thuật viên</c:when>
-                                                <c:when test="${sessionScope.userType == 'RECEPTIONIST'}">Lễ tân</c:when>
-                                                <c:when test="${sessionScope.userType == 'CUSTOMER'}">Khách hàng</c:when>
-                                                <c:otherwise>${sessionScope.userType}</c:otherwise>
-                                            </c:choose>
-                                        </span>
-                                    </p>
-                                    
-                                    <!-- Display user/customer name and email -->
-                                    <c:if test="${not empty sessionScope.user}">
-                                        <p><strong>Tên:</strong> <span class="user-name">${sessionScope.user.fullName}</span></p>
-                                        <p><strong>Email:</strong> <span class="user-email">${sessionScope.user.email}</span></p>
-                                    </c:if>
-                                    <c:if test="${not empty sessionScope.customer}">
-                                        <p><strong>Tên:</strong> <span class="user-name">${sessionScope.customer.fullName}</span></p>
-                                        <p><strong>Email:</strong> <span class="user-email">${sessionScope.customer.email}</span></p>
-                                    </c:if>
-                                </div>
-                            </div>
-                            
                             <!-- Display Success Message -->
                             <c:if test="${not empty success}">
                                 <div class="alert alert-success">
@@ -569,7 +501,7 @@
                     if (confirmPassword && newPassword !== confirmPassword) {
                         this.style.borderColor = '#f44336';
                     } else {
-                        this.style.borderColor = '#c59952';
+                        this.style.borderColor = '#586BB4';
                     }
                 });
             }
