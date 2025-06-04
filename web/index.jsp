@@ -352,7 +352,7 @@
                   riêng biệt nhất.
                 </p> <%-- Already Vietnamese --%>
                 <a
-                  href="about-us.html"
+                  href="${pageContext.request.contextPath}/spa-info"
                   class="site-button radius-no button-effect1"
                   >Xem Thêm<span></span
                 ></a> <%-- Already Vietnamese --%>

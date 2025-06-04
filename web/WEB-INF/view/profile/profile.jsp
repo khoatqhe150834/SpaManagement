@@ -187,6 +187,19 @@
                 </span>
             </div>
             
+            <!-- Change Password Button -->
+            <div style="margin-top: 30px; text-align: center;">
+                <button onclick="window.location.href='${pageContext.request.contextPath}/profile/change-password'" 
+                class="site-button   radius-no">ĐỔI MẬT KHẨU</button>
+
+
+                <%-- <button onclick="window.location.href='${pageContext.request.contextPath}/profile/update-info'" 
+                class="site-button  button-md radius-no">CẬP NHẬT THÔNG TIN</button> --%>
+                
+                <button onclick="window.location.href='${pageContext.request.contextPath}/'" 
+                class="site-button   radius-no">QUAY VỀ TRANG CHỦ</button>
+            </div>
+            
         </div>
     </body>
 </html>
