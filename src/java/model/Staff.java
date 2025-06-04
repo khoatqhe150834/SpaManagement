@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package model;
 
 import java.sql.Timestamp;
@@ -93,8 +89,8 @@ public class Staff {
     @Override
     public String toString() {
         return "Staff{" +
-                "user=" + (user != null ? user.getFullName() : "null") +
-                ", serviceType=" + (serviceType != null ? serviceType.getName() : "null") +
+                "user=" + (user != null ? user.getFullName() : "No name assigned") +
+                ", serviceType=" + (serviceType != null ? serviceType.getName() : "Not assigned") +
                 ", bio='" + bio + '\'' +
                 ", availabilityStatus=" + availabilityStatus +
                 ", yearsOfExperience=" + yearsOfExperience +
@@ -102,10 +98,11 @@ public class Staff {
                 ", updatedAt=" + updatedAt +
                 '}';
     }
+
     public enum AvailabilityStatus {
-    AVAILABLE,
-    BUSY,
-    OFFLINE,
-    ON_LEAVE
-}
+        AVAILABLE,
+        BUSY,
+        OFFLINE,
+        ON_LEAVE
+    }
 }
