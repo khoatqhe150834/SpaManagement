@@ -115,19 +115,30 @@
             <jsp:include page="/WEB-INF/view/common/home/header.jsp"></jsp:include>
             
             <div class="page-content bg-white">
-                <!-- Hero Section -->
-                <div class="spa-info-header">
-                    <div class="container">
-                        <div class="row">
-                            <div class="col-md-12">
-                                <h1>${spa.name}</h1>
-                                <c:if test="${not empty spa.aboutUsShort}">
-                                    <p class="spa-subtitle">${spa.aboutUsShort}</p>
-                                </c:if>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                        <!-- inner page banner -->
+        <div
+          class="dlab-bnr-inr overlay-primary bg-pt"
+          style="
+            background-image: url(${pageContext.request.contextPath}/assets/home/images/banner/bnr2.jpg);
+          "
+        >
+          <div class="container">
+            <div class="dlab-bnr-inr-entry">
+              <h1 class="text-white">Thông Tin Spa</h1>
+              <!-- Breadcrumb row -->
+              <div class="breadcrumb-row">
+                <ul class="list-inline">
+                  <li>
+                    <a href="${pageContext.request.contextPath}/">Trang chủ</a>
+                  </li>
+                  <li>Thông Tin Spa</li>
+                </ul>
+              </div>
+              <!-- Breadcrumb row END -->
+            </div>
+          </div>
+        </div>
+        <!-- inner page banner END -->
 
                 <!-- Contact & Business Info Section -->
                 <div class="section-full content-inner-2 bg-white">
