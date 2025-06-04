@@ -19,4 +19,6 @@ public class AppointmentDetails {
     private BigDecimal finalPriceAfterDiscount;
     private String notesByCustomer;
     private String notesByStaff;
+    private String status;        
+    private String paymentStatus;
 }
