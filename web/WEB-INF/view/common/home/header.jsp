@@ -104,7 +104,7 @@
                 <c:if test="${not empty sessionScope.customer.fullName}">
                     <div style="padding: 8px 15px; font-weight: bold; border-bottom: 1px solid #eee; margin-bottom: 5px;">Chào, ${sessionScope.customer.fullName}</div>
                 </c:if>
-                <a href="${pageContext.request.contextPath}/customer/profile">Hồ sơ của bạn</a>
+                <a href="${pageContext.request.contextPath}/profile">Hồ sơ của bạn</a>
                 <a href="${pageContext.request.contextPath}/customer/bookings">Lịch sử đặt lịch</a>
                 <a href="${pageContext.request.contextPath}/customer/settings">Cài đặt</a>
                 <div style="height: 1px; background-color: #eee; margin: 5px 0;"></div>
