@@ -5,6 +5,9 @@
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+
 <!-- meta tags and other links -->
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
@@ -13,7 +16,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Wowdash - Bootstrap 5 Admin Dashboard HTML Template</title>
+        <title>Staff - Admin Dashboard</title>
         <link rel="icon" type="image/png" href="assets/images/favicon.png" sizes="16x16">
         <!-- CSS here -->
         <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp"></jsp:include>
@@ -27,7 +30,7 @@
 
             <div class="dashboard-main-body">
                 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
-                    <h6 class="fw-semibold mb-0">Users Grid</h6>
+                    <h6 class="fw-semibold mb-0">Staff List</h6>
                     <ul class="d-flex align-items-center gap-2">
                         <li class="fw-medium">
                             <a href="index.html" class="d-flex align-items-center gap-1 hover-text-primary">
@@ -36,7 +39,7 @@
                             </a>
                         </li>
                         <li>-</li>
-                        <li class="fw-medium">Users Grid</li>
+                        <li class="fw-medium">Staff List</li>
                     </ul>
                 </div>
 
@@ -66,7 +69,7 @@
                                 <option>Inactive</option>
                             </select>
                         </div>
-                        <a href="add-user.html" class="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2"> 
+                        <a href="add-user.html" class="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2">
                             <iconify-icon icon="ic:baseline-plus" class="icon text-xl line-height-1"></iconify-icon>
                             Add New User
                         </a>
@@ -84,75 +87,69 @@
                                                 ID
                                             </div>
                                         </th>
-                                        <th scope="col">Join Date</th> 
-                                        <th scope="col">Name</th>      
-                                        <th scope="col">Service Type</th> 
-                                        <th scope="col">Bio</th>       
-                                        <th scope="col" class="text-center">Status</th>  
-                                        <th scope="col">Experience (Years)</th> 
+                                        <th scope="col">Join Date</th>
+                                        <th scope="col">Name</th>
+                                        <th scope="col">Service Type</th>
+                                        <th scope="col">Bio</th>
+                                        <th scope="col" class="text-center">Status</th>
+                                        <th scope="col">Experience (Years)</th>
                                         <th scope="col" class="text-center">Action</th>
                                     </tr>
                                 </thead>
 
                                 <tbody>
-                                <c:forEach var="therapist" items="${therapists}">
-                                <tr>
-                                    <td>
-                                        <div class="d-flex align-items-center gap-10">
-                                            <div class="form-check style-check d-flex align-items-center">
-                                                <input class="form-check-input radius-4 border input-form-dark" type="checkbox" name="checkbox" value="${therapist.user_id}">
+                                    <!-- Loop through the list of therapists -->
+                                <c:forEach var="therapist" items="${staffList}">
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-10">
+                                                <div class="form-check style-check d-flex align-items-center">
+                                                    <input class="form-check-input radius-4 border input-form-dark" type="checkbox" name="checkbox" value="${therapist.user.userId}">
+                                                </div>
+                                                ${therapist.user.userId}
                                             </div>
-                                            ${therapist.user_id}
-                                        </div>
-                                    </td>
-                                    <td>
-                                <fmt:formatDate value="${therapist.created_at}" pattern="dd MMM yyyy"/>
-                                </td>
-                                <td>
-                                    <!-- Giả sử bạn đã có tên kỹ thuật viên trong therapist.fullName -->
-                                    ${therapist.fullName}
-                                </td>
-                                <td>
-                                <c:forEach var="stype" items="${serviceTypes}">
-                                    <c:if test="${stype.serviceTypeId == therapist.service_type_id}">
-                                        ${stype.name}
-                                    </c:if>
+                                        </td>
+                                        <td>
+                                            <fmt:formatDate value="${therapist.createdAt}" pattern="dd MMM yyyy"/>
+                                        </td>
+                                        <td>${therapist.user.fullName}</td>
+                                        <td>
+                                            <c:if test="${not empty therapist.serviceType}">
+                                                ${therapist.serviceType.name}
+                                            </c:if>
+                                        </td>
+                                        <td>${therapist.bio}</td>
+                                        <td class="text-center">
+                                            <c:choose>
+                                                <c:when test="${therapist.availabilityStatus == 'AVAILABLE'}">
+                                                    <span class="bg-success-focus text-success-600 border border-success-main px-24 py-4 radius-4 fw-medium text-sm">Available</span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="bg-neutral-200 text-neutral-600 border border-neutral-400 px-24 py-4 radius-4 fw-medium text-sm">${therapist.availabilityStatus}</span>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </td>
+                                        <td>${therapist.yearsOfExperience}</td>
+                                        <td class="text-center">
+                                            <div class="d-flex align-items-center gap-10 justify-content-center">
+                                                <!-- View button -->
+                                                <button type="button" class="bg-info-focus bg-hover-info-200 text-info-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle" title="View">
+                                                    <iconify-icon icon="majesticons:eye-line" class="icon text-xl"></iconify-icon>
+                                                </button>
+
+                                                <!-- Edit button -->
+                                                <a href="staff?service=pre-update&id=${therapist.user.userId}" class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle" title="Edit">
+                                                    <iconify-icon icon="lucide:edit" class="menu-icon"></iconify-icon>
+                                                </a>
+
+                                                <!-- Delete button -->
+                                                <a href="staff?service=delete&id=${therapist.user.userId}" class="remove-item-btn bg-danger-focus bg-hover-danger-200 text-danger-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle" title="Delete" onclick="return confirm('Delete this Therapist?');">
+                                                    <iconify-icon icon="fluent:delete-24-regular" class="menu-icon"></iconify-icon>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
                                 </c:forEach>
-                                </td>
-                                <td>${therapist.bio}</td>
-                                <td class="text-center">
-                                <c:choose>
-                                    <c:when test="${therapist.availability_status == 'AVAILABLE'}">
-                                        <span class="bg-success-focus text-success-600 border border-success-main px-24 py-4 radius-4 fw-medium text-sm">Available</span>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <span class="bg-neutral-200 text-neutral-600 border border-neutral-400 px-24 py-4 radius-4 fw-medium text-sm">
-                                            ${therapist.availability_status}
-                                        </span>
-                                    </c:otherwise>
-                                </c:choose>
-                                </td>
-                                <td>${therapist.years_of_experience}</td>
-                                <td class="text-center">
-                                    <div class="d-flex align-items-center gap-10 justify-content-center">
-                                        <!-- View button -->
-                                        <button type="button" class="bg-info-focus bg-hover-info-200 text-info-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle" title="View">
-                                            <iconify-icon icon="majesticons:eye-line" class="icon text-xl"></iconify-icon>
-                                        </button>
-
-                                        <!-- Edit button -->
-                                        <a href="therapist?service=pre-update&id=${therapist.user_id}" class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle" title="Edit">
-                                            <iconify-icon icon="lucide:edit" class="menu-icon"></iconify-icon>
-                                        </a>
-
-                                        <!-- Delete button -->
-                                        <a href="therapist?service=delete&id=${therapist.user_id}" class="remove-item-btn bg-danger-focus bg-hover-danger-200 text-danger-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle" title="Delete" onclick="return confirm('Delete this Therapist?');">
-                                            <iconify-icon icon="fluent:delete-24-regular" class="menu-icon"></iconify-icon>
-                                        </a>
-                                    </div>
-                                </td>
-                                </tr>
-                            </c:forEach>
                             </tbody>
 
                         </table>
