@@ -205,12 +205,12 @@ contentType="text/html" pageEncoding="UTF-8"%>
                           type="submit"
                           style="
                             background-color: #586BB4;
-                            color: #fff;
+                            color: white;
                             border: none;
                             border-radius: 0;
                             padding: 12px 20px;
                             width: 180px;
-                            font-size: 14px;
+                            font-size: 16px;
                             font-weight: 600;
                             text-align: center;
                             cursor: pointer;
