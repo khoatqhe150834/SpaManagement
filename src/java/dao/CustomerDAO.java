@@ -68,7 +68,7 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
 
     @Override
     public Optional<Customer> findById(Integer id) {
-        String sql = "SELECT * FROM Customers WHERE customer_id = ?";
+        String sql = "SELECT * FROM customers WHERE customer_id = ?";
         try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
@@ -144,7 +144,7 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
 
     @Override
     public <S extends Customer> S update(S customer) {
-        String sql = "UPDATE Customers SET full_name=?, email=?, phone_number=?, gender=?, birthday=?, address=?, is_active=?, loyalty_points=?, role_id=?, updated_at=? WHERE customer_id=?";
+        String sql = "UPDATE customers SET full_name=?, email=?, phone_number=?, gender=?, birthday=?, address=?, is_active=?, loyalty_points=?, role_id=?, updated_at=? WHERE customer_id=?";
         try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, customer.getFullName());
             ps.setString(2, customer.getEmail());
@@ -171,7 +171,7 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
 
     public List<Customer> findByNameContain(String name) {
         List<Customer> customers = new ArrayList<>();
-        String sql = "SELECT * FROM Customers WHERE full_name LIKE ?";
+        String sql = "SELECT * FROM customers WHERE full_name LIKE ?";
         try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, "%" + name + "%");
             try (ResultSet rs = ps.executeQuery()) {
@@ -187,7 +187,7 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
 
     public List<Customer> findByPhoneContain(String phone) {
         List<Customer> customers = new ArrayList<>();
-        String sql = "SELECT * FROM Customers WHERE phone_number LIKE ?";
+        String sql = "SELECT * FROM customers WHERE phone_number LIKE ?";
         try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, "%" + phone + "%");
             try (ResultSet rs = ps.executeQuery()) {
@@ -203,7 +203,7 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
 
     public List<Customer> findByEmailContain(String email) {
         List<Customer> customers = new ArrayList<>();
-        String sql = "SELECT * FROM Customers WHERE email LIKE ?";
+        String sql = "SELECT * FROM customers WHERE email LIKE ?";
         try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, "%" + email + "%");
             try (ResultSet rs = ps.executeQuery()) {
