@@ -171,25 +171,41 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
 
     public List<Service> findByServiceTypeId(int serviceTypeId) {
         List<Service> services = new ArrayList<>();
-        String sql = "SELECT * FROM Services WHERE service_type_id = ?";
+        String sql = "SELECT * FROM services WHERE service_type_id = ?";
 
         ServiceTypeDAO typeDAO = new ServiceTypeDAO();
-        Map<Integer, ServiceType> typeMap = new HashMap<>();
-        for (ServiceType type : typeDAO.findAll()) {
-            typeMap.put(type.getServiceTypeId(), type);
-        }
+        ServiceType serviceType = typeDAO.findById(serviceTypeId).orElse(null);
 
-        try (Connection connection = DBContext.getConnection(); PreparedStatement stm = connection.prepareStatement(sql)) {
+        System.out.println("Service Type: " + serviceType);
+
+        try (Connection conn = DBContext.getConnection(); PreparedStatement stm = conn.prepareStatement(sql)) {
             stm.setInt(1, serviceTypeId);
             try (ResultSet rs = stm.executeQuery()) {
                 while (rs.next()) {
-                    services.add(mapResultSet(rs, typeMap));
+                    Service s = new Service();
+                    s.setServiceId(rs.getInt("service_id"));
+                    s.setServiceTypeId(serviceType);
+                    s.setName(rs.getString("name"));
+                    s.setDescription(rs.getString("description"));
+                    s.setPrice(rs.getBigDecimal("price"));
+                    s.setDurationMinutes(rs.getInt("duration_minutes"));
+                    s.setBufferTimeAfterMinutes(rs.getInt("buffer_time_after_minutes"));
+                    s.setImageUrl(rs.getString("image_url"));
+                    s.setIsActive(rs.getBoolean("is_active"));
+                    s.setAverageRating(rs.getBigDecimal("average_rating"));
+                    s.setBookableOnline(rs.getBoolean("bookable_online"));
+                    s.setRequiresConsultation(rs.getBoolean("requires_consultation"));
+                    s.setCreatedAt(rs.getTimestamp("created_at"));
+                    s.setUpdatedAt(rs.getTimestamp("updated_at"));
+
+                    services.add(s);
                 }
             }
-        } catch (SQLException ex) {
-            Logger.getLogger(ServiceDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
 
+        System.out.println("Services found: " + services.size());
         return services;
     }
 
