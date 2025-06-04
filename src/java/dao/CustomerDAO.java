@@ -319,6 +319,7 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
                     if (updatedAt != null) {
                         customer.setUpdatedAt(updatedAt.toLocalDateTime());
                     }
+                    return customer; // <- THIS WAS MISSING!
                 }
             }
         } catch (SQLException e) {

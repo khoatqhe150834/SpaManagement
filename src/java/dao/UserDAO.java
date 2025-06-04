@@ -204,4 +204,8 @@ public class UserDAO implements BaseDAO<User, Integer> {
     }
     return user;
   }
+
+    public boolean updateProfile(User user) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
 }
