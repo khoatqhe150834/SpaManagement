@@ -63,20 +63,20 @@
                         <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px" name="status">
                             <option value="">All Status</option>
                             <option value="PENDING_CONFIRMATION" ${param.status == 'PENDING_CONFIRMATION' ? 'selected' : ''}>Pending</option>
-                            <option value="CONFIRMED"               ${param.status == 'CONFIRMED'               ? 'selected' : ''}>Confirmed</option>
-                            <option value="CANCELLED_BY_CUSTOMER"   ${param.status == 'CANCELLED_BY_CUSTOMER'   ? 'selected' : ''}>Cancelled by Customer</option>
-                            <option value="CANCELLED_BY_SPA"        ${param.status == 'CANCELLED_BY_SPA'        ? 'selected' : ''}>Cancelled by SPA</option>
-                            <option value="IN_PROGRESS"             ${param.status == 'IN_PROGRESS'             ? 'selected' : ''}>In Progress</option>
-                            <option value="COMPLETED"               ${param.status == 'COMPLETED'               ? 'selected' : ''}>Completed</option>
-                            <option value="NO_SHOW"                 ${param.status == 'NO_SHOW'                 ? 'selected' : ''}>No-show</option>
+                            <option value="CONFIRMED" ${param.status == 'CONFIRMED' ? 'selected' : ''}>Confirmed</option>
+                            <option value="CANCELLED_BY_CUSTOMER" ${param.status == 'CANCELLED_BY_CUSTOMER' ? 'selected' : ''}>Cancelled by Customer</option>
+                            <option value="CANCELLED_BY_SPA" ${param.status == 'CANCELLED_BY_SPA' ? 'selected' : ''}>Cancelled by SPA</option>
+                            <option value="IN_PROGRESS" ${param.status == 'IN_PROGRESS' ? 'selected' : ''}>In Progress</option>
+                            <option value="COMPLETED" ${param.status == 'COMPLETED' ? 'selected' : ''}>Completed</option>
+                            <option value="NO_SHOW" ${param.status == 'NO_SHOW' ? 'selected' : ''}>No-show</option>
                         </select>
 
                         <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px" name="paymentStatus">
                             <option value="">All Payment</option>
-                            <option value="UNPAID"           ${param.paymentStatus == 'UNPAID'           ? 'selected' : ''}>Unpaid</option>
-                            <option value="PARTIALLY_PAID"  ${param.paymentStatus == 'PARTIALLY_PAID'  ? 'selected' : ''}>Partially Paid</option>
-                            <option value="PAID"             ${param.paymentStatus == 'PAID'             ? 'selected' : ''}>Paid</option>
-                            <option value="REFUNDED"        ${param.paymentStatus == 'REFUNDED'        ? 'selected' : ''}>Refunded</option>
+                            <option value="UNPAID" ${param.paymentStatus == 'UNPAID' ? 'selected' : ''}>Unpaid</option>
+                            <option value="PARTIALLY_PAID" ${param.paymentStatus == 'PARTIALLY_PAID' ? 'selected' : ''}>Partially Paid</option>
+                            <option value="PAID" ${param.paymentStatus == 'PAID' ? 'selected' : ''}>Paid</option>
+                            <option value="REFUNDED" ${param.paymentStatus == 'REFUNDED' ? 'selected' : ''}>Refunded</option>
                         </select>
 
                         <button type="submit" class="btn btn-primary h-40-px radius-12">Search</button>
