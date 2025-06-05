@@ -30,12 +30,12 @@
                 <div class="dlab-bnr-inr overlay-primary bg-pt" style="background-image:url(images/banner/bnr1.jpg);">
                     <div class="container">
                         <div class="dlab-bnr-inr-entry">
-                            <h1 class="text-white">Cart</h1>
+                            <h1 class="text-white">Appointments</h1>
                             <!-- Breadcrumb row -->
                             <div class="breadcrumb-row">
                                 <ul class="list-inline">
-                                    <li><a href="index.html">Home</a></li>
-                                    <li>Shop Cart</li>
+                                    <li><a href="${pageContext.request.contextPath}/">Home</a></li>
+                                    <li>Appointments</li>
                                 </ul>
                             </div>
                             <!-- Breadcrumb row END -->
@@ -46,7 +46,7 @@
                 <!-- contact area -->
                 <div class="section-full content-inner">
                     <!-- Product -->
-                    <div class="container py-5">
+                    <div class="container-fluid py-5">
                         <div class="row mb-4">
                             <div class="col">
                                 <h2 class="mb-0">My Appointments</h2>
@@ -62,34 +62,10 @@
                                             <input type="text" class="form-control" name="search" 
                                                    placeholder="Search by group or therapist" 
                                                    value="${param.search != null ? param.search : ''}">
-                                            <button class="btn btn-primary" type="submit">
-                                                <i class="bi bi-search"></i>
-                                            </button>
                                         </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <select class="form-select" name="status">
-                                            <option value="">All Status</option>
-                                            <option value="PENDING_CONFIRMATION" ${param.status == 'PENDING_CONFIRMATION' ? 'selected' : ''}>Pending</option>
-                                            <option value="CONFIRMED" ${param.status == 'CONFIRMED' ? 'selected' : ''}>Confirmed</option>
-                                            <option value="IN_PROGRESS" ${param.status == 'IN_PROGRESS' ? 'selected' : ''}>In Progress</option>
-                                            <option value="COMPLETED" ${param.status == 'COMPLETED' ? 'selected' : ''}>Completed</option>
-                                            <option value="CANCELLED_BY_CUSTOMER" ${param.status == 'CANCELLED_BY_CUSTOMER' ? 'selected' : ''}>Cancelled by You</option>
-                                            <option value="CANCELLED_BY_SPA" ${param.status == 'CANCELLED_BY_SPA' ? 'selected' : ''}>Cancelled by SPA</option>
-                                            <option value="NO_SHOW" ${param.status == 'NO_SHOW' ? 'selected' : ''}>No-show</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <select class="form-select" name="paymentStatus">
-                                            <option value="">All Payment Status</option>
-                                            <option value="UNPAID" ${param.paymentStatus == 'UNPAID' ? 'selected' : ''}>Unpaid</option>
-                                            <option value="PARTIALLY_PAID" ${param.paymentStatus == 'PARTIALLY_PAID' ? 'selected' : ''}>Partially Paid</option>
-                                            <option value="PAID" ${param.paymentStatus == 'PAID' ? 'selected' : ''}>Paid</option>
-                                            <option value="REFUNDED" ${param.paymentStatus == 'REFUNDED' ? 'selected' : ''}>Refunded</option>
-                                        </select>
-                                    </div>
+                                    </div>                                   
                                     <div class="col-md-2">
-                                        <button type="submit" class="btn btn-primary w-100">Filter</button>
+                                        <button type="submit" class="btn btn-primary w-100">Search</button>
                                     </div>
                                 </form>
                             </div>
@@ -98,53 +74,38 @@
                         <!-- Appointments List -->
                         <div class="card">
                             <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-hover">
+                                <div class="table-responsive w-80">
+                                    <table class="table table-hover w-80">
                                         <thead>
                                             <tr>
                                                 <th>#</th>
                                                 <th>Booking Group</th>
                                                 <th>Therapist</th>
-                                                <th>Date & Time</th>
-                                                <th>Total</th>
-                                                <th>Status</th>
-                                                <th>Payment</th>
-                                                <th>Action</th>
+                                                <th>Start Time</th>
+                                                <th>End Time</th>
+                                                <th>Original Price</th>
+                                                <th>Discount</th>
+                                                <th>Redeemed</th>
+                                                <th>Final Price</th>
+                                                <th>Details</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <c:forEach var="a" items="${appointments}" varStatus="loop">
                                                 <tr>
-                                                    <td>${(currentPage - 1) * 10 + loop.index + 1}</td>
+                                                    <td>${loop.index +1}</td>
                                                     <td>${a.bookingGroupName}</td>
                                                     <td>${a.therapistName}</td>
-                                                    <td>
-                                                        <fmt:formatDate value="${a.startTime}" pattern="dd/MM/yyyy HH:mm" />
-                                                    </td>
-                                                    <td>
-                                                        <fmt:formatNumber value="${a.totalFinalPrice}" type="number" maxFractionDigits="0" />đ
-                                                    </td>
-                                                    <td>
-                                                        <span class="badge bg-${a.status == 'COMPLETED' ? 'success' : 
-                                                                  a.status == 'IN_PROGRESS' ? 'primary' : 
-                                                                  a.status == 'CONFIRMED' ? 'info' : 
-                                                                  a.status == 'PENDING_CONFIRMATION' ? 'warning' : 
-                                                                  'danger'}">
-                                                            ${a.status}
-                                                        </span>
-                                                    </td>
-                                                    <td>
-                                                        <span class="badge bg-${a.paymentStatus == 'PAID' ? 'success' : 
-                                                                  a.paymentStatus == 'PARTIALLY_PAID' ? 'warning' : 
-                                                                  a.paymentStatus == 'REFUNDED' ? 'info' : 
-                                                                  'danger'}">
-                                                            ${a.paymentStatus}
-                                                        </span>
-                                                    </td>
+                                                    <td>${a.startTime}</td>
+                                                    <td>${a.endTime}</td>
+                                                    <td><fmt:formatNumber value="${a.totalOriginalPrice}" type="number" maxFractionDigits="0" />đ</td>
+                                                    <td><fmt:formatNumber value="${a.totalDiscountAmount}" type="number" maxFractionDigits="0" />đ</td>
+                                                    <td><fmt:formatNumber value="${a.pointsRedeemedValue}" type="number" maxFractionDigits="0" />đ</td>
+                                                    <td><fmt:formatNumber value="${a.totalFinalPrice}" type="number" maxFractionDigits="0" />đ</td>
                                                     <td>
                                                         <a href="${pageContext.request.contextPath}/appointment?action=details&id=${a.appointmentId}" 
                                                            class="btn btn-sm btn-outline-primary">
-                                                            View Details
+                                                            Details
                                                         </a>
                                                     </td>
                                                 </tr>
@@ -158,36 +119,6 @@
                                     </table>
                                 </div>
 
-                                <!-- Pagination -->
-                                <c:if test="${totalpages > 1}">
-                                    <nav class="mt-4">
-                                        <ul class="pagination justify-content-center">
-                                            <c:if test="${currentPage > 1}">
-                                                <li class="page-item">
-                                                    <a class="page-link" href="${pageContext.request.contextPath}/appointment?page=${currentPage - 1}${param.status != null ? '&status=' + param.status : ''}${param.paymentStatus != null ? '&paymentStatus=' + param.paymentStatus : ''}${param.search != null ? '&search=' + param.search : ''}">
-                                                        Previous
-                                                    </a>
-                                                </li>
-                                            </c:if>
-                                            
-                                            <c:forEach begin="1" end="${totalpages}" var="i">
-                                                <li class="page-item ${currentPage == i ? 'active' : ''}">
-                                                    <a class="page-link" href="${pageContext.request.contextPath}/appointment?page=${i}${param.status != null ? '&status=' + param.status : ''}${param.paymentStatus != null ? '&paymentStatus=' + param.paymentStatus : ''}${param.search != null ? '&search=' + param.search : ''}">
-                                                        ${i}
-                                                    </a>
-                                                </li>
-                                            </c:forEach>
-                                            
-                                            <c:if test="${currentPage < totalpages}">
-                                                <li class="page-item">
-                                                    <a class="page-link" href="${pageContext.request.contextPath}/appointment?page=${currentPage + 1}${param.status != null ? '&status=' + param.status : ''}${param.paymentStatus != null ? '&paymentStatus=' + param.paymentStatus : ''}${param.search != null ? '&search=' + param.search : ''}">
-                                                        Next
-                                                    </a>
-                                                </li>
-                                            </c:if>
-                                        </ul>
-                                    </nav>
-                                </c:if>
                             </div>
                         </div>
                     </div>

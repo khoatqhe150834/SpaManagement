@@ -26,7 +26,7 @@
         <!-- Tiêu đề và nút quay lại -->
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
             <div>
-                <h6 class="fw-semibold mb-0">Appointment Details (ID = ${appointmentId})</h6>
+                <h6 class="fw-semibold mb-0">Appointment Details</h6>
                 <ul class="d-flex align-items-center gap-2">
                     <li class="fw-medium">
                         <a href="${pageContext.request.contextPath}/appointment?action=list"
