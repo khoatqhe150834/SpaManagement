@@ -190,6 +190,50 @@ public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
         }
     }
 
+    public List<ServiceType> findPaginated(int offset, int limit) {
+        List<ServiceType> serviceTypes = new ArrayList<>();
+        String sql = "SELECT * FROM Service_Types ORDER BY service_type_id LIMIT ? OFFSET ?";
+
+        try (Connection conn = DBContext.getConnection(); PreparedStatement stm = conn.prepareStatement(sql)) {
+
+            stm.setInt(1, limit);
+            stm.setInt(2, offset);
+
+            try (ResultSet rs = stm.executeQuery()) {
+                while (rs.next()) {
+                    ServiceType st = new ServiceType();
+                    st.setServiceTypeId(rs.getInt("service_type_id"));
+                    st.setName(rs.getString("name"));
+                    st.setDescription(rs.getString("description"));
+                    st.setImageUrl(rs.getString("image_url"));
+                    st.setActive(rs.getBoolean("is_active"));
+                    st.setCreatedAt(rs.getTimestamp("created_at"));
+                    st.setUpdatedAt(rs.getTimestamp("updated_at"));
+                    serviceTypes.add(st);
+                }
+            }
+
+        } catch (SQLException ex) {
+            Logger.getLogger(ServiceTypeDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return serviceTypes;
+    }
+
+    public int countAll() {
+        String sql = "SELECT COUNT(*) FROM Service_Types";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement stm = conn.prepareStatement(sql); ResultSet rs = stm.executeQuery()) {
+
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+
+        } catch (SQLException ex) {
+            Logger.getLogger(ServiceTypeDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return 0;
+    }
+
     //    public static void main(String[] args) {
 //        ServiceTypeDAO dao = new ServiceTypeDAO();
 //

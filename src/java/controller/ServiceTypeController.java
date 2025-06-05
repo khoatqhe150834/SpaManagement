@@ -29,8 +29,28 @@ public class ServiceTypeController extends HttpServlet {
         }
 
         if (service.equals("list-all")) {
-            List<ServiceType> serviceTypes = (new ServiceTypeDAO()).findAll();
+            int page = 1;
+            int limit = 5;
+
+            if (request.getParameter("page") != null) {
+                try {
+                    page = Integer.parseInt(request.getParameter("page"));
+                } catch (NumberFormatException ignored) {
+                }
+            }
+
+            int offset = (page - 1) * limit;
+
+            ServiceTypeDAO dao = new ServiceTypeDAO();
+            List<ServiceType> serviceTypes = dao.findPaginated(offset, limit);
+            int totalRecords = dao.countAll();
+            int totalPages = (int) Math.ceil((double) totalRecords / limit);
+
             request.setAttribute("serviceTypes", serviceTypes);
+            request.setAttribute("currentPage", page);
+            request.setAttribute("totalPages", totalPages);
+            request.setAttribute("totalEntries", totalRecords); // optional: show "x of y entries"
+
             request.getRequestDispatcher(SERVICE_TYPE_URL).forward(request, response);
         }
 

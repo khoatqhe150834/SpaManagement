@@ -155,31 +155,60 @@
                     </div>
 
                     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-24">
-                        <span>Showing 1 to 10 of 12 entries</span>
+                        <span>
+                            Showing ${(currentPage - 1) * 5 + 1}
+                            to ${currentPage * 5 > totalEntries ? totalEntries : currentPage * 5}
+                            of ${totalEntries} entries
+                        </span>
+                        
                         <ul class="pagination d-flex flex-wrap align-items-center gap-2 justify-content-center">
-                            <li class="page-item">
-                                <a class="page-link bg-neutral-200 text-secondary-light fw-semibold radius-8 border-0 d-flex align-items-center justify-content-center h-32-px w-32-px text-md" href="javascript:void(0)"><iconify-icon icon="ep:d-arrow-left" class=""></iconify-icon></a>
+                            <!-- Previous -->
+                            <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
+                                <c:choose>
+                                    <c:when test="${currentPage == 1}">
+                                        <a class="page-link disabled">
+                                            <iconify-icon icon="ep:d-arrow-left"></iconify-icon>
+                                        </a>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <a class="page-link" href="servicetype?service=list-all&page=${currentPage - 1}">
+                                            <iconify-icon icon="ep:d-arrow-left"></iconify-icon>
+                                        </a>
+                                    </c:otherwise>
+                                </c:choose>
                             </li>
-                            <li class="page-item">
-                                <a class="page-link text-secondary-light fw-semibold radius-8 border-0 d-flex align-items-center justify-content-center h-32-px w-32-px text-md bg-primary-600 text-white" href="javascript:void(0)">1</a>
+
+                            <!-- Page numbers -->
+                            <c:forEach var="i" begin="1" end="${totalPages}">
+                                <li class="page-item ${i == currentPage ? 'active' : ''}">
+                                    <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px
+                                       ${i == currentPage ? 'bg-primary-600 text-white' : 'bg-neutral-200 text-secondary-light'}"
+                                       href="servicetype?service=list-all&page=${i}">
+                                        ${i}
+                                    </a>
+                                </li>
+                            </c:forEach>
+
+                            <!-- Next -->
+                            <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
+                                <c:choose>
+                                    <c:when test="${currentPage == totalPages}">
+                                        <a class="page-link disabled">
+                                            <iconify-icon icon="ep:d-arrow-right"></iconify-icon>
+                                        </a>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <a class="page-link" href="servicetype?service=list-all&page=${currentPage + 1}">
+                                            <iconify-icon icon="ep:d-arrow-right"></iconify-icon>
+                                        </a>
+                                    </c:otherwise>
+                                </c:choose>
                             </li>
-                            <li class="page-item">
-                                <a class="page-link bg-neutral-200 text-secondary-light fw-semibold radius-8 border-0 d-flex align-items-center justify-content-center h-32-px w-32-px" href="javascript:void(0)">2</a>
-                            </li>
-                            <li class="page-item">
-                                <a class="page-link bg-neutral-200 text-secondary-light fw-semibold radius-8 border-0 d-flex align-items-center justify-content-center h-32-px w-32-px text-md" href="javascript:void(0)">3</a>
-                            </li>
-                            <li class="page-item">
-                                <a class="page-link bg-neutral-200 text-secondary-light fw-semibold radius-8 border-0 d-flex align-items-center justify-content-center h-32-px w-32-px text-md" href="javascript:void(0)">4</a>
-                            </li>
-                            <li class="page-item">
-                                <a class="page-link bg-neutral-200 text-secondary-light fw-semibold radius-8 border-0 d-flex align-items-center justify-content-center h-32-px w-32-px text-md" href="javascript:void(0)">5</a>
-                            </li>
-                            <li class="page-item">
-                                <a class="page-link bg-neutral-200 text-secondary-light fw-semibold radius-8 border-0 d-flex align-items-center justify-content-center h-32-px w-32-px text-md" href="javascript:void(0)"> <iconify-icon icon="ep:d-arrow-right" class=""></iconify-icon> </a>
-                            </li>
+
                         </ul>
+
                     </div>
+
                 </div>
             </div>
         </div>
