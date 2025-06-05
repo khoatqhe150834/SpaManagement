@@ -130,6 +130,24 @@ contentType="text/html" pageEncoding="UTF-8"%>
                           type="password"
                         />
                       </div>
+
+<!-- Remember Me Checkbox -->
+<div class="form-group">
+  <div class="form-check">
+    <input 
+      type="checkbox" 
+      name="rememberMe" 
+      id="rememberMe" 
+      class="form-check-input"
+      style="margin-right: 8px;"
+      value="true"
+    />
+    <label for="rememberMe" class="form-check-label font-weight-600">
+      Ghi nhớ tôi
+    </label>
+  </div>
+</div>
+
                       <div class="text-left">
                        <button class="site-button m-r5 button-lg radius-no">ĐĂNG NHẬP</button>
                         <a

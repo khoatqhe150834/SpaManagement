@@ -9,12 +9,14 @@ import dao.UserDAO;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.UUID;
 import model.Customer;
 import model.RoleConstants;
 import model.User;
@@ -25,6 +27,8 @@ import model.User;
  */
 @WebServlet(name = "LoginController", urlPatterns = {"/login"})
 public class LoginController extends HttpServlet {
+    
+    private final int COOKIE_DURATION = 30;
 
     private CustomerDAO customerDAO;
     private UserDAO userDAO;
@@ -112,6 +116,7 @@ public class LoginController extends HttpServlet {
             String userType = RoleConstants.getUserTypeFromRole(user.getRoleId());
             session.setAttribute("userType", userType);
 
+            handleRememberLogin(request, response, email);
             // Redirect based on role
             String redirectUrl = getRedirectUrlForRole(user.getRoleId());
             response.sendRedirect(request.getContextPath() + redirectUrl);
@@ -130,6 +135,7 @@ public class LoginController extends HttpServlet {
             String userType = RoleConstants.getUserTypeFromRole(customer.getRoleId());
             session.setAttribute("userType", userType);
 
+            handleRememberLogin(request, response, email);
             // Redirect to homepage for customers
             response.sendRedirect(request.getContextPath() + "/");
             return;
@@ -173,5 +179,38 @@ public class LoginController extends HttpServlet {
     public String getServletInfo() {
         return "Short description";
     }// </editor-fold>
+
+    public void handleRememberLogin(HttpServletRequest request, HttpServletResponse response, String email) throws ServletException, IOException {
+
+        String rememberMe = request.getParameter("rememberMe");
+
+        // Check if the checkbox is checked (true) or not (false)
+        boolean isRememberMe = "true".equals(rememberMe);
+
+        // Log or process the result
+        if (isRememberMe) {
+            String token = UUID.randomUUID().toString();
+
+            // Store token in database, linked to username (pseudo-code)
+//            storeTokenInDatabase(username, token); // Implement this method
+
+            // Create cookie with a valid name and the token as value
+            Cookie userCookie = new Cookie("rememberedUser", token);
+            userCookie.setMaxAge(COOKIE_DURATION * 24 * 60 * 60); // 30 days
+            userCookie.setPath("/");
+            userCookie.setHttpOnly(true);
+            userCookie.setSecure(request.isSecure());
+
+            // Add cookie to response
+            response.addCookie(userCookie);
+
+        } else {
+
+            // Add your logic here, e.g., clear a cookie or session attribute
+        }
+
+        request.getRequestDispatcher("/test.jsp").forward(request, response);
+
+    }
 
 }
