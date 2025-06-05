@@ -52,6 +52,25 @@ public class ServiceController extends HttpServlet {
             request.setAttribute("stype", stype);
             request.getRequestDispatcher("WEB-INF/view/admin_pages/AddService.jsp").forward(request, response);
             return;
+        } else if ("pre-update".equals(action)) {
+            int id = Integer.parseInt(request.getParameter("id"));
+            Service service = serviceDAO.findById(id).orElse(null);
+            if (service == null) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Service not found");
+                return;
+            }
+            request.setAttribute("service", service);
+            request.getRequestDispatcher("WEB-INF/view/admin_pages/UpdateService.jsp").forward(request, response);
+        } else if ("deactivate".equals(action)) {
+            int id = Integer.parseInt(request.getParameter("id"));
+            Service service = serviceDAO.findById(id).orElse(null);
+
+            if (service == null) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Service not found");
+                return;
+            }
+            serviceDAO.deactivateById(id);
+            response.sendRedirect("service?service=viewByServiceType&id=" + service.getServiceTypeId().getServiceTypeId());
         } else {
             // ONLY sendError if không rơi vào case nào
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid action.");
@@ -95,7 +114,47 @@ public class ServiceController extends HttpServlet {
             new ServiceDAO().save(s);
 
             response.sendRedirect("service?service=viewByServiceType&id=" + stypeId);
+        } else if ("update".equals(action)) {
+            int serviceId = Integer.parseInt(request.getParameter("id"));
+            int stypeId = Integer.parseInt(request.getParameter("stypeId"));
+            String name = request.getParameter("name");
+            String description = request.getParameter("description");
+            String imageUrl = request.getParameter("imageUrl");
+            boolean isActive = request.getParameter("isActive") != null;
+            boolean bookableOnline = request.getParameter("bookableOnline") != null;
+            boolean requiresConsultation = request.getParameter("requiresConsultation") != null;
+
+            BigDecimal price = new BigDecimal(request.getParameter("price"));
+            int duration = Integer.parseInt(request.getParameter("durationMinutes"));
+            int buffer = Integer.parseInt(request.getParameter("bufferTimeAfterMinutes"));
+
+            ServiceType stype = new ServiceTypeDAO().findById(stypeId).orElse(null);
+
+            if (stype == null) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Service Type not found");
+                return;
+            }
+
+            Service s = new Service();
+            s.setServiceId(serviceId);
+            s.setServiceTypeId(stype);
+            s.setName(name);
+            s.setDescription(description);
+            s.setImageUrl(imageUrl);
+            s.setIsActive(isActive);
+            s.setBookableOnline(bookableOnline);
+            s.setRequiresConsultation(requiresConsultation);
+            s.setPrice(price);
+            s.setDurationMinutes(duration);
+            s.setBufferTimeAfterMinutes(buffer);
+
+            new ServiceDAO().update(s);
+
+            response.sendRedirect("service?service=viewByServiceType&id=" + stypeId);
+        } else {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid POST action.");
         }
+
     }
 
 }

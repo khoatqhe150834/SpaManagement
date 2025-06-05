@@ -23,70 +23,70 @@
                 </ul>
             </div>
 
-            <div class="card p-24 radius-16 mb-24">
-                <h4>Service Type: ${stype.name}</h4>
-                <p>${stype.description}</p>
-                <p>Status:
-                    <c:choose>
-                        <c:when test="${stype.active}">
-                            <span class="badge bg-success">Active</span>
-                        </c:when>
-                        <c:otherwise>
-                            <span class="badge bg-secondary">Inactive</span>
-                        </c:otherwise>
-                    </c:choose>
-                </p>
-                <a href="service?service=pre-insert&stypeId=${stype.serviceTypeId}" class="btn btn-primary mt-3 float-end">
-                    Add Service
+            <!-- Service Type Card -->
+            <div class="card p-24 radius-16 mb-24 shadow d-flex align-items-center justify-content-between">
+                <div>
+                    <h4 class="fw-bold text-primary mb-12">Service Type: ${stype.name}</h4>
+                    <p class="mb-2">${stype.description}</p>
+                    <p>Status:
+                        <span class="badge ${stype.active ? 'bg-success' : 'bg-secondary'}">
+                            ${stype.active ? 'Active' : 'Inactive'}
+                        </span>
+                    </p>
+                </div>
+                <a href="service?service=pre-insert&stypeId=${stype.serviceTypeId}" 
+                   class="btn btn-sm btn-primary px-3 py-2 mt-2 mt-md-0">
+                    <i class="bi bi-plus-circle me-1"></i> Add Service
                 </a>
             </div>
 
-            <div class="card p-24 radius-16">
+            <!-- Services in This Type -->
+            <div class="card p-24 radius-16 shadow">
                 <h4 class="mb-16">Services in This Type</h4>
 
                 <c:if test="${not empty services}">
                     <c:forEach var="s" items="${services}">
-                        <div class="row border-bottom pb-24 mb-24">
-                            <div class="col-md-9">
-                                <h5>Service ID: ${s.serviceId}</h5>
-                                <ul>
-                                    <li><strong>Name:</strong> ${s.name}</li>
-                                    <li><strong>Description:</strong> ${s.description}</li>
-                                    <li><strong>Price:</strong> $<fmt:formatNumber value="${s.price}" type="number" minFractionDigits="2"/></li>
-                                    <li><strong>Duration:</strong> ${s.durationMinutes} mins</li>
-                                    <li><strong>Buffer Time:</strong> ${s.bufferTimeAfterMinutes} mins</li>
-                                    <li><strong>Status:</strong> <c:choose>
-                                            <c:when test="${s.isActive}">Active</c:when>
-                                            <c:otherwise>Inactive</c:otherwise>
-                                        </c:choose>
-                                    </li>
-                                    <li><strong>Online Booking:</strong> <c:choose>
-                                            <c:when test="${s.bookableOnline}">Yes</c:when>
-                                            <c:otherwise>No</c:otherwise>
-                                        </c:choose>
-                                    </li>
-                                    <li><strong>Consultation:</strong> <c:choose>
-                                            <c:when test="${s.requiresConsultation}">Yes</c:when>
-                                            <c:otherwise>No</c:otherwise>
-                                        </c:choose>
-                                    </li>
-                                    <li><strong>Rating:</strong> ${s.averageRating}</li>
-                                    <li><strong>Created:</strong> <fmt:formatDate value="${s.createdAt}" pattern="dd MMM yyyy HH:mm"/></li>
-                                    <li><strong>Updated:</strong> <fmt:formatDate value="${s.updatedAt}" pattern="dd MMM yyyy HH:mm"/></li>
-                                </ul>
-                            </div>
+                        <div class="card mb-16 p-16 radius-12 shadow-sm">
+                            <div class="row">
+                                <!-- Info -->
+                                <div class="col-md-9 col-12">
+                                    <h5 class="fw-semibold text-dark mb-12">Service ID: ${s.serviceId} - ${s.name}</h5>
+                                    <ul class="mb-2">
+                                        <li><strong>Description:</strong> ${s.description}</li>
+                                        <li><strong>Price:</strong> $<fmt:formatNumber value="${s.price}" type="number" minFractionDigits="2"/></li>
+                                        <li><strong>Duration:</strong> ${s.durationMinutes} mins</li>
+                                        <li><strong>Buffer Time:</strong> ${s.bufferTimeAfterMinutes} mins</li>
+                                        <li><strong>Status:</strong> 
+                                            <span class="badge ${s.isActive ? 'bg-success' : 'bg-secondary'}">
+                                                ${s.isActive ? 'Active' : 'Inactive'}
+                                            </span>
+                                        </li>
+                                        <li><strong>Online Booking:</strong> ${s.bookableOnline ? 'Yes' : 'No'}</li>
+                                        <li><strong>Consultation:</strong> ${s.requiresConsultation ? 'Yes' : 'No'}</li>
+                                        <li><strong>Rating:</strong> ${s.averageRating}</li>
+                                        <li><strong>Created:</strong> <fmt:formatDate value="${s.createdAt}" pattern="dd MMM yyyy HH:mm"/></li>
+                                        <li><strong>Updated:</strong> <fmt:formatDate value="${s.updatedAt}" pattern="dd MMM yyyy HH:mm"/></li>
+                                    </ul>
+                                </div>
 
-                            <div class="col-md-3 d-flex flex-column align-items-center justify-content-start">
-                                <img src="${s.imageUrl}" alt="Service Image" class="img-thumbnail mb-3" style="max-width: 100%; height: auto;" />
-                                <div class="d-flex gap-2">
-                                    <a href="service?service=pre-update&id=${s.serviceId}" class="btn btn-outline-primary btn-sm">Update</a>
-                                    <a href="service?service=deactivate&id=${s.serviceId}"
-                                       class="btn btn-outline-danger btn-sm"
-                                       onclick="return confirm('Are you sure you want to deactivate this service?');">Deactivate</a>
+                                <!-- Image & buttons under image -->
+                                <div class="col-md-3 col-12 d-flex flex-column align-items-center">
+                                    <img src="${s.imageUrl}" alt="Service Image" class="img-thumbnail mb-3" style="max-width: 100%; height: auto;" />
+
+                                    <!-- Buttons block at the bottom -->
+                                    <div class="d-flex justify-content-center gap-2 w-100 mt-auto">
+                                        <a href="service?service=pre-update&id=${s.serviceId}" class="btn btn-outline-primary btn-sm w-50">Update</a>
+                                        <a href="service?service=deactivate&id=${s.serviceId}"
+                                           class="btn btn-outline-danger btn-sm w-50"
+                                           onclick="return confirm('Are you sure you want to deactivate this service?');">
+                                            Deactivate
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </c:forEach>
+
                 </c:if>
 
                 <c:if test="${empty services}">
@@ -94,7 +94,6 @@
                 </c:if>
             </div>
         </div>
-
 
         <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
     </body>
