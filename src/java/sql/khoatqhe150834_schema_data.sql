@@ -1,3 +1,5 @@
+CREATE DATABASE  IF NOT EXISTS `spamanagement` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+USE `spamanagement`;
 -- MySQL dump 10.13  Distrib 8.0.42, for Win64 (x86_64)
 --
 -- Host: localhost    Database: spamanagement
@@ -272,37 +274,6 @@ INSERT INTO `categories` VALUES (1,NULL,'Massage','massage','Các dịch vụ ma
 UNLOCK TABLES;
 
 --
--- Table structure for table `customer_remember_me_tokens`
---
-
-DROP TABLE IF EXISTS `customer_remember_me_tokens`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `customer_remember_me_tokens` (
-  `token` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `customer_id` int NOT NULL,
-  `expiry_date` timestamp NOT NULL,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `last_used_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`token`),
-  UNIQUE KEY `unique_customer_token` (`customer_id`),
-  KEY `idx_expiry` (`expiry_date`),
-  KEY `idx_token` (`token`),
-  CONSTRAINT `fk_customer_token` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `customer_remember_me_tokens`
---
-
-LOCK TABLES `customer_remember_me_tokens` WRITE;
-/*!40000 ALTER TABLE `customer_remember_me_tokens` DISABLE KEYS */;
-INSERT INTO `customer_remember_me_tokens` VALUES ('50dfc624-abf6-42d8-a43e-6ba26b4894a2',7,'2025-07-01 15:20:36','2025-06-01 15:20:36','2025-06-01 15:56:29');
-/*!40000 ALTER TABLE `customer_remember_me_tokens` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `customer_sent_notifications`
 --
 
@@ -372,7 +343,7 @@ CREATE TABLE `customers` (
   KEY `idx_customer_phone` (`phone_number`),
   KEY `idx_customer_email` (`email`),
   CONSTRAINT `customers_ibfk_1` FOREIGN KEY (`role_id`) REFERENCES `roles` (`role_id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -381,7 +352,7 @@ CREATE TABLE `customers` (
 
 LOCK TABLES `customers` WRITE;
 /*!40000 ALTER TABLE `customers` DISABLE KEYS */;
-INSERT INTO `customers` VALUES (1,'Nguyễn Thị Mai','mai.nguyen@email.com','0988111222','$2b$10$abcdefghijklmnopqrstu',1,'FEMALE','1990-07-15','123 Đường Hoa, Quận 1, TP. HCM',250,'Khách hàng VIP, thích trà gừng.',5,'2025-06-01 09:40:23','2025-06-01 09:40:23','https://placehold.co/100x100/FFC0CB/333333?text=NTHMai'),(2,'Trần Văn Nam','nam.tran@email.com','0977333444','$2b$10$abcdefghijklmnopqrstu',1,'MALE','1988-02-20','456 Đường Cây, Quận 3, TP. HCM',60,'Thường đặt dịch vụ massage chân.',5,'2025-06-01 09:40:23','2025-06-01 09:40:23','https://placehold.co/100x100/B0E0E6/333333?text=TVNam'),(3,'Lê Thị Lan','lan.le@email.com','0966555666','$2b$10$abcdefghijklmnopqrstu',1,'FEMALE','1995-11-30','789 Đường Lá, Quận Bình Thạnh, TP. HCM',200,'Hay đi cùng bạn bè.',5,'2025-06-01 09:40:23','2025-06-01 09:40:23','https://placehold.co/100x100/98FB98/333333?text=LTLan'),(4,'Phạm Văn Hùng','hung.pham@email.com','0955777888','$2b$10$abcdefghijklmnopqrstu',0,'MALE','1985-01-01','101 Đường Sông, Quận 2, TP. HCM',10,'Tài khoản không hoạt động.',5,'2025-06-01 09:40:23','2025-06-01 09:40:23','https://placehold.co/100x100/D3D3D3/333333?text=PVHung'),(5,'Võ Thị Kim Chi','kimchi.vo@email.com','0944999000','$2b$10$abcdefghijklmnopqrstu',1,'FEMALE','2000-10-10','202 Đường Núi, Quận 7, TP. HCM',50,NULL,5,'2025-06-01 09:40:23','2025-06-01 09:40:23','https://placehold.co/100x100/FFE4E1/333333?text=VTKChi'),(6,'Khách Vãng Lai A',NULL,'0912345001',NULL,1,'UNKNOWN',NULL,NULL,0,'Khách đặt qua điện thoại',NULL,'2025-06-01 09:40:23','2025-06-01 09:40:23',NULL),(7,'Clementine Shields','qaxyb@mailinator.com','0075252946','$2a$10$Mg7a1qbG3Wpt5/LL1hJXdORgyMD8WFuuFS49lZKuEpf33xp6wDM0G',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-01 09:44:15','2025-06-01 09:44:15',NULL),(8,'Preston Reeves','wogelyvi@mailinator.com','0621707951','$2a$10$LfSiDBEkpBQh9uWhQwnW1.iG3TrMf3w0ucvWyw9GisHH.LNU63Oyy',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-02 02:37:54','2025-06-02 02:37:54',NULL),(9,'Hector Gill','qepem@mailinator.com','0488215435','$2a$10$.GhDdGMtOZGoZsZlikXXA..J3OjZ4ka4t8iEEGEWQhRg5HXi9yESi',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-02 02:40:08','2025-06-02 02:40:08',NULL),(10,'John Walters','hybux@mailinator.com','0764611157','$2a$10$FIUJAcV5Tp4IGs9CD8jr5ePKbM28eoPYtMxj2egfVCtU/W8wnFQX2',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-02 02:44:44','2025-06-02 02:44:44',NULL),(11,'Gregory Jacobs','fetoryby@mailinator.com','0868681648','$2a$10$kZUd1FfHe9.C/KOzKJZcxOL.uShM946L30qhvxDyRp39Ga0IlKj..',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-02 02:47:15','2025-06-02 02:47:15',NULL),(12,'Taylor Gross','jygemi@mailinator.com','0370784956','$2a$10$xfj9S0w1KsRoYkxlCK7wveQVequmL7r6bN5KifZG6m5TUO89zWata',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-02 02:49:28','2025-06-02 02:49:28',NULL),(13,'Jerry Morales','quangkhoa5112@gmail.com','0932972867','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-03 02:53:41','2025-06-04 03:01:10',NULL);
+INSERT INTO `customers` VALUES (1,'Nguyễn Thị Mai','mai.nguyen@email.com','0988111222','$2b$10$abcdefghijklmnopqrstu',1,'FEMALE','1990-07-15','123 Đường Hoa, Quận 1, TP. HCM',250,'Khách hàng VIP, thích trà gừng.',5,'2025-06-01 09:40:23','2025-06-01 09:40:23','https://placehold.co/100x100/FFC0CB/333333?text=NTHMai'),(2,'Trần Văn Nam','nam.tran@email.com','0977333444','$2b$10$abcdefghijklmnopqrstu',1,'MALE','1988-02-20','456 Đường Cây, Quận 3, TP. HCM',60,'Thường đặt dịch vụ massage chân.',5,'2025-06-01 09:40:23','2025-06-01 09:40:23','https://placehold.co/100x100/B0E0E6/333333?text=TVNam'),(3,'Lê Thị Lan','lan.le@email.com','0966555666','$2b$10$abcdefghijklmnopqrstu',1,'FEMALE','1995-11-30','789 Đường Lá, Quận Bình Thạnh, TP. HCM',200,'Hay đi cùng bạn bè.',5,'2025-06-01 09:40:23','2025-06-01 09:40:23','https://placehold.co/100x100/98FB98/333333?text=LTLan'),(4,'Phạm Văn Hùng','hung.pham@email.com','0955777888','$2b$10$abcdefghijklmnopqrstu',0,'MALE','1985-01-01','101 Đường Sông, Quận 2, TP. HCM',10,'Tài khoản không hoạt động.',5,'2025-06-01 09:40:23','2025-06-01 09:40:23','https://placehold.co/100x100/D3D3D3/333333?text=PVHung'),(5,'Võ Thị Kim Chi','kimchi.vo@email.com','0944999000','$2b$10$abcdefghijklmnopqrstu',1,'FEMALE','2000-10-10','202 Đường Núi, Quận 7, TP. HCM',50,NULL,5,'2025-06-01 09:40:23','2025-06-01 09:40:23','https://placehold.co/100x100/FFE4E1/333333?text=VTKChi'),(6,'Khách Vãng Lai A',NULL,'0912345001',NULL,1,'UNKNOWN',NULL,NULL,0,'Khách đặt qua điện thoại',NULL,'2025-06-01 09:40:23','2025-06-01 09:40:23',NULL),(7,'Clementine Shields','qaxyb@mailinator.com','0075252946','$2a$10$Mg7a1qbG3Wpt5/LL1hJXdORgyMD8WFuuFS49lZKuEpf33xp6wDM0G',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-01 09:44:15','2025-06-01 09:44:15',NULL),(8,'Preston Reeves','wogelyvi@mailinator.com','0621707951','$2a$10$LfSiDBEkpBQh9uWhQwnW1.iG3TrMf3w0ucvWyw9GisHH.LNU63Oyy',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-02 02:37:54','2025-06-02 02:37:54',NULL),(9,'Hector Gill','qepem@mailinator.com','0488215435','$2a$10$.GhDdGMtOZGoZsZlikXXA..J3OjZ4ka4t8iEEGEWQhRg5HXi9yESi',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-02 02:40:08','2025-06-02 02:40:08',NULL),(10,'John Walters','hybux@mailinator.com','0764611157','$2a$10$FIUJAcV5Tp4IGs9CD8jr5ePKbM28eoPYtMxj2egfVCtU/W8wnFQX2',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-02 02:44:44','2025-06-02 02:44:44',NULL),(11,'Gregory Jacobs','fetoryby@mailinator.com','0868681648','$2a$10$kZUd1FfHe9.C/KOzKJZcxOL.uShM946L30qhvxDyRp39Ga0IlKj..',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-02 02:47:15','2025-06-02 02:47:15',NULL),(12,'Taylor Gross','jygemi@mailinator.com','0370784956','$2a$10$xfj9S0w1KsRoYkxlCK7wveQVequmL7r6bN5KifZG6m5TUO89zWata',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-02 02:49:28','2025-06-02 02:49:28',NULL),(13,'Jerry Morales','quangkhoa5112@gmail.com','0932972867','$2a$10$IwLTqV2cRMNTZdS51Y8MVuAWLwRs6.gPw1sY1CsPYeel1lvvKZUSq',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-03 02:53:41','2025-06-05 02:47:00',NULL),(14,'Kameko Leach','vadyrud@mailinator.com','0575726427','$2a$10$Ry4BL4CuoaI7Djki6.jD0eawqu/iEUt1aG/uHBqFO.yBuuiNb/Eiq',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-05 02:53:25','2025-06-05 02:53:25',NULL),(15,'Geoffrey White','hudyq@mailinator.com','0838898566','$2a$10$I7NizmxcWCvvsCUQGGoFqOdtwNAWE3oaFJuakQXtCsU9/rGtI1qkq',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-05 05:26:40','2025-06-05 05:26:40',NULL);
 /*!40000 ALTER TABLE `customers` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -556,7 +527,7 @@ CREATE TABLE `password_reset_tokens` (
   UNIQUE KEY `token` (`token`),
   KEY `idx_user_email` (`user_email`),
   KEY `idx_token` (`token`)
-) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=34 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -565,7 +536,7 @@ CREATE TABLE `password_reset_tokens` (
 
 LOCK TABLES `password_reset_tokens` WRITE;
 /*!40000 ALTER TABLE `password_reset_tokens` DISABLE KEYS */;
-INSERT INTO `password_reset_tokens` VALUES (4,'8c09d300-9181-435b-b1e4-5c6d2faee0f1','qaxyb@mailinator.com','2025-06-03 02:10:37','2025-06-04 02:10:38',0),(24,'a9ad3536-8e13-4933-b6c1-c6f1633a5733','quangkhoa5112@gmail.com','2025-06-03 04:31:22','2025-06-04 04:31:23',0);
+INSERT INTO `password_reset_tokens` VALUES (4,'8c09d300-9181-435b-b1e4-5c6d2faee0f1','qaxyb@mailinator.com','2025-06-03 02:10:37','2025-06-04 02:10:38',0);
 /*!40000 ALTER TABLE `password_reset_tokens` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -655,6 +626,35 @@ LOCK TABLES `promotions` WRITE;
 /*!40000 ALTER TABLE `promotions` DISABLE KEYS */;
 INSERT INTO `promotions` VALUES (1,'Chào Hè Rực Rỡ - Giảm 20%','Giảm giá 20% cho tất cả dịch vụ massage.','SUMMER20','PERCENTAGE',20.00,NULL,500000.00,'2025-06-01 00:00:00','2025-08-31 23:59:59','ACTIVE',1,100,10,'SPECIFIC_SERVICES','[1, 2]','https://placehold.co/400x200/FFD700/333333?text=SummerPromo','Áp dụng cho các dịch vụ massage. Không áp dụng cùng KM khác.',1,0,'2025-06-01 09:40:23','2025-06-01 09:40:23'),(2,'Tri Ân Khách Hàng - Tặng Voucher 100K','Tặng voucher 100.000 VNĐ cho hóa đơn từ 1.000.000 VNĐ.','THANKS100K','FIXED_AMOUNT',100000.00,NULL,1000000.00,'2025-07-01 00:00:00','2025-07-31 23:59:59','SCHEDULED',1,200,0,'ENTIRE_APPOINTMENT',NULL,'https://placehold.co/400x200/E6E6FA/333333?text=VoucherPromo','Mỗi khách hàng được sử dụng 1 lần.',2,0,'2025-06-01 09:40:23','2025-06-01 09:40:23'),(3,'Đi Cùng Bạn Bè - Miễn Phí 1 Dịch Vụ Gội Đầu','Khi đặt 2 dịch vụ bất kỳ, tặng 1 dịch vụ gội đầu thảo dược.','FRIENDSFREE','FREE_SERVICE',6.00,NULL,800000.00,'2025-06-15 00:00:00','2025-07-15 23:59:59','ACTIVE',1,50,5,'ENTIRE_APPOINTMENT',NULL,'https://placehold.co/400x200/B0C4DE/333333?text=FriendsPromo','Dịch vụ tặng kèm là Gội Đầu Thảo Dược (ID: 6).',1,0,'2025-06-01 09:40:23','2025-06-01 09:40:23');
 /*!40000 ALTER TABLE `promotions` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `remember_me_tokens`
+--
+
+DROP TABLE IF EXISTS `remember_me_tokens`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `remember_me_tokens` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `email` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `token` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `expiry_date` datetime NOT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `token` (`token`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `remember_me_tokens`
+--
+
+LOCK TABLES `remember_me_tokens` WRITE;
+/*!40000 ALTER TABLE `remember_me_tokens` DISABLE KEYS */;
+INSERT INTO `remember_me_tokens` VALUES (6,'quangkhoa5112@gmail.com','123456','b2da3492-5ff1-4fea-819e-15a3f6b7ac8a','2025-07-05 12:19:22','2025-06-05 12:19:21'),(8,'manager@beautyzone.com','123456','bc3004f7-8ef8-4601-afa9-ff16eddd48b3','2025-07-05 12:22:02','2025-06-05 12:22:01'),(9,'quangkhoa5112@5dulieu.com','123456789','2e570a01-32f7-48a2-b4c1-eae5c55d4613','2025-07-05 12:22:41','2025-06-05 12:22:40');
+/*!40000 ALTER TABLE `remember_me_tokens` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -890,7 +890,7 @@ CREATE TABLE `spa_information` (
 
 LOCK TABLES `spa_information` WRITE;
 /*!40000 ALTER TABLE `spa_information` DISABLE KEYS */;
-INSERT INTO `spa_information` VALUES (1,'An nhiên Spa','Số 10 Đường An Bình','Phường Yên Hòa','Hà Nội','100000','Việt Nam','02412345678','0912345678','contact@annhienspa.vn','support@annhienspa.vn','https://annhienspa.vn','https://placehold.co/200x100/E6F2FF/333333?text=AnNhienLogo','0123456789','Vui lòng hủy lịch trước 24 giờ để tránh phí hủy. Chi tiết xem tại website.','Điều khoản đặt lịch chi tiết có tại quầy lễ tân và website của spa.','Nơi bạn tìm thấy sự thư giãn và tái tạo năng lượng.','An nhiên Spa cung cấp các dịch vụ chăm sóc sức khỏe và sắc đẹp hàng đầu với đội ngũ chuyên nghiệp và không gian yên tĩnh.',8.00,15,'2025-06-01 09:40:23','2025-06-01 09:40:23');
+INSERT INTO `spa_information` VALUES (1,'BeautyZone','Số 10 Đường An Bình','Phường Yên Hòa','Hà Nội','100000','Việt Nam','02412345678','0912345678','contact@annhienspa.vn','support@annhienspa.vn','https://annhienspa.vn','https://placehold.co/200x100/E6F2FF/333333?text=AnNhienLogo','0123456789','Vui lòng hủy lịch trước 24 giờ để tránh phí hủy. Chi tiết xem tại website.','Điều khoản đặt lịch chi tiết có tại quầy lễ tân và website của spa.','Nơi bạn tìm thấy sự thư giãn và tái tạo năng lượng.','An nhiên Spa cung cấp các dịch vụ chăm sóc sức khỏe và sắc đẹp hàng đầu với đội ngũ chuyên nghiệp và không gian yên tĩnh.',8.00,15,'2025-06-01 09:40:23','2025-06-04 15:18:58');
 /*!40000 ALTER TABLE `spa_information` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -956,36 +956,6 @@ LOCK TABLES `therapists` WRITE;
 /*!40000 ALTER TABLE `therapists` DISABLE KEYS */;
 INSERT INTO `therapists` VALUES (3,1,'Chuyên gia massage trị liệu với 5 năm kinh nghiệm. Am hiểu các kỹ thuật massage Thụy Điển và đá nóng.','AVAILABLE',5,'2025-06-01 09:40:23','2025-06-01 09:40:23'),(4,2,'Kỹ thuật viên chăm sóc da mặt, đặc biệt có kinh nghiệm trong điều trị mụn và trẻ hóa da.','AVAILABLE',3,'2025-06-01 09:40:23','2025-06-01 09:40:23');
 /*!40000 ALTER TABLE `therapists` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `user_remember_me_tokens`
---
-
-DROP TABLE IF EXISTS `user_remember_me_tokens`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `user_remember_me_tokens` (
-  `token` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `user_id` int NOT NULL,
-  `expiry_date` timestamp NOT NULL,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `last_used_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`token`),
-  UNIQUE KEY `unique_user_token` (`user_id`),
-  KEY `idx_expiry` (`expiry_date`),
-  KEY `idx_token` (`token`),
-  CONSTRAINT `fk_user_token` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `user_remember_me_tokens`
---
-
-LOCK TABLES `user_remember_me_tokens` WRITE;
-/*!40000 ALTER TABLE `user_remember_me_tokens` DISABLE KEYS */;
-/*!40000 ALTER TABLE `user_remember_me_tokens` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -1063,7 +1033,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,1,'Nguyễn Văn An','admin@spademo.com','$2b$10$abcdefghijklmnopqrstuv','0912345678','MALE','1980-01-15','https://placehold.co/100x100/E6E6FA/333333?text=NVAn',1,'2025-06-01 09:40:23','2025-06-01 09:40:23','2025-06-01 09:40:23'),(2,2,'Trần Thị Bình','manager@spademo.com','$2b$10$abcdefghijklmnopqrstuv','0987654321','FEMALE','1985-05-20','https://placehold.co/100x100/FFF0F5/333333?text=TTBinh',1,'2025-06-01 09:40:23','2025-06-01 09:40:23','2025-06-01 09:40:23'),(3,3,'Lê Minh Cường','therapist1@spademo.com','$2b$10$abcdefghijklmnopqrstuv','0905112233','MALE','1990-09-10','https://placehold.co/100x100/F0FFF0/333333?text=LMCuong',1,'2025-06-01 09:40:23','2025-06-01 09:40:23','2025-06-01 09:40:23'),(4,3,'Phạm Thị Dung','therapist2@spademo.com','$2b$10$abcdefghijklmnopqrstuv','0905445566','FEMALE','1992-12-01','https://placehold.co/100x100/FAFAD2/333333?text=PTDung',1,'2025-06-01 09:40:23','2025-06-01 09:40:23','2025-06-01 09:40:23'),(5,4,'Hoàng Văn Em','receptionist@spademo.com','$2b$10$abcdefghijklmnopqrstuv','0918778899','MALE','1995-03-25','https://placehold.co/100x100/ADD8E6/333333?text=HVEm',1,'2025-06-01 09:40:23','2025-06-01 09:40:23','2025-06-01 09:40:23'),(6,1,'Nguyễn Văn Admin','admin@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234567','MALE','1985-01-15','/assets/avatars/admin.jpg',1,NULL,'2025-06-04 03:47:10','2025-06-04 03:47:10'),(7,2,'Trần Thị Manager','manager@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234568','FEMALE','1988-03-20','/assets/avatars/manager.jpg',1,NULL,'2025-06-04 03:57:48','2025-06-04 03:57:48'),(8,3,'Lê Văn Therapist','therapist@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234569','MALE','1990-07-10','/assets/avatars/therapist.jpg',1,NULL,'2025-06-04 03:57:48','2025-06-04 03:57:48'),(9,4,'Phạm Thị Receptionist','receptionist@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234570','FEMALE','1992-11-25','/assets/avatars/receptionist.jpg',1,NULL,'2025-06-04 03:57:48','2025-06-04 03:57:48'),(10,1,'Hoàng Minh Quản Trị','admin2@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234571','MALE','1987-05-12','/assets/avatars/admin2.jpg',1,NULL,'2025-06-04 03:57:48','2025-06-04 03:57:48'),(11,3,'Nguyễn Thị Spa Master','therapist2@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234572','FEMALE','1989-09-18','/assets/avatars/therapist2.jpg',1,NULL,'2025-06-04 03:57:48','2025-06-04 03:57:48');
+INSERT INTO `users` VALUES (1,1,'Nguyễn Văn An','quangkhoa5112@5dulieu.com','$2a$10$Q8m8OY5RIEWeo1alSpOx1up8kZLEz.QDkfiKfyBlbO3GN0ySqwEm.','0912345678','MALE','1980-01-15','https://placehold.co/100x100/E6E6FA/333333?text=NVAn',1,'2025-06-01 09:40:23','2025-06-01 09:40:23','2025-06-05 02:51:26'),(2,2,'Trần Thị Bình','manager@spademo.com','$2b$10$abcdefghijklmnopqrstuv','0987654321','FEMALE','1985-05-20','https://placehold.co/100x100/FFF0F5/333333?text=TTBinh',1,'2025-06-01 09:40:23','2025-06-01 09:40:23','2025-06-01 09:40:23'),(3,3,'Lê Minh Cường','therapist1@spademo.com','$2b$10$abcdefghijklmnopqrstuv','0905112233','MALE','1990-09-10','https://placehold.co/100x100/F0FFF0/333333?text=LMCuong',1,'2025-06-01 09:40:23','2025-06-01 09:40:23','2025-06-01 09:40:23'),(4,3,'Phạm Thị Dung','therapist2@spademo.com','$2b$10$abcdefghijklmnopqrstuv','0905445566','FEMALE','1992-12-01','https://placehold.co/100x100/FAFAD2/333333?text=PTDung',1,'2025-06-01 09:40:23','2025-06-01 09:40:23','2025-06-01 09:40:23'),(5,4,'Hoàng Văn Em','receptionist@spademo.com','$2b$10$abcdefghijklmnopqrstuv','0918778899','MALE','1995-03-25','https://placehold.co/100x100/ADD8E6/333333?text=HVEm',1,'2025-06-01 09:40:23','2025-06-01 09:40:23','2025-06-01 09:40:23'),(6,1,'Nguyễn Văn Admin','admin@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234567','MALE','1985-01-15','/assets/avatars/admin.jpg',1,NULL,'2025-06-04 03:47:10','2025-06-04 03:47:10'),(7,2,'Trần Thị Manager','manager@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234568','FEMALE','1988-03-20','/assets/avatars/manager.jpg',1,NULL,'2025-06-04 03:57:48','2025-06-04 03:57:48'),(8,3,'Lê Văn Therapist','therapist@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234569','MALE','1990-07-10','/assets/avatars/therapist.jpg',1,NULL,'2025-06-04 03:57:48','2025-06-04 03:57:48'),(9,4,'Phạm Thị Receptionist','receptionist@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234570','FEMALE','1992-11-25','/assets/avatars/receptionist.jpg',1,NULL,'2025-06-04 03:57:48','2025-06-04 03:57:48'),(10,1,'Hoàng Minh Quản Trị','admin2@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234571','MALE','1987-05-12','/assets/avatars/admin2.jpg',1,NULL,'2025-06-04 03:57:48','2025-06-04 03:57:48'),(11,3,'Nguyễn Thị Spa Master','therapist2@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234572','FEMALE','1989-09-18','/assets/avatars/therapist2.jpg',1,NULL,'2025-06-04 03:57:48','2025-06-04 03:57:48');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -1076,4 +1046,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-06-04 15:12:34
+-- Dump completed on 2025-06-05 14:41:15
