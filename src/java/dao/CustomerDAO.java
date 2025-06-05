@@ -45,15 +45,17 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
             throw new IllegalArgumentException("Phone number already exists");
         }
 
-        String sql = "INSERT INTO customers (full_name, email, hash_password, phone_number, role_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO customers (full_name, email, hash_password, phone_number, role_id, is_active, loyalty_points, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, customer.getFullName());
             ps.setString(2, customer.getEmail());
             ps.setString(3, BCrypt.hashpw(customer.getHashPassword(), BCrypt.gensalt()));
             ps.setString(4, customer.getPhoneNumber());
             ps.setInt(5, customer.getRoleId());
-            ps.setTimestamp(6, Timestamp.valueOf(java.time.LocalDateTime.now()));
-            ps.setTimestamp(7, Timestamp.valueOf(java.time.LocalDateTime.now()));
+            ps.setBoolean(6, customer.getIsActive() != null ? customer.getIsActive() : true);
+            ps.setInt(7, customer.getLoyaltyPoints() != null ? customer.getLoyaltyPoints() : 0);
+            ps.setTimestamp(8, Timestamp.valueOf(java.time.LocalDateTime.now()));
+            ps.setTimestamp(9, Timestamp.valueOf(java.time.LocalDateTime.now()));
             int rows = ps.executeUpdate();
             if (rows > 0) {
                 ResultSet rs = ps.getGeneratedKeys();
