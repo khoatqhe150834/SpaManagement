@@ -27,8 +27,14 @@ public class CustomerController extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         String pathInfo = req.getPathInfo();
+        System.out.println("CustomerController.doGet called with pathInfo: " + pathInfo);
+        System.out.println("Request URI: " + req.getRequestURI());
+        System.out.println("Context Path: " + req.getContextPath());
+        System.out.println("Servlet Path: " + req.getServletPath());
+        
         try {
             if (pathInfo == null || pathInfo.equals("/")) {
+                System.out.println("Calling listCustomer for root path");
                 listCustomer(req, resp);
                 return;
             }
@@ -38,6 +44,7 @@ public class CustomerController extends HttpServlet {
 
             switch (action) {
                 case "list":
+                    System.out.println("Calling listCustomer for 'list' action");
                     listCustomer(req, resp);
                     break;
                 case "create":
@@ -87,21 +94,67 @@ public class CustomerController extends HttpServlet {
         }
     }
 
-    private void listCustomer(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
+  private void listCustomer(HttpServletRequest req, HttpServletResponse resp)
+        throws ServletException, IOException {
+    try {
         int page = req.getParameter("page") != null ? Integer.parseInt(req.getParameter("page")) : 1;
         int pageSize = req.getParameter("pageSize") != null ? Integer.parseInt(req.getParameter("pageSize")) : 10;
-        List<Customer> list = customerDAO.findAll(page, pageSize);
-        int totalCustomers = customerDAO.getTotalCustomers();
+        
+        // Handle status filter
+        String status = req.getParameter("status");
+        List<Customer> list;
+        int totalCustomers;
+        
+        if (status != null && !status.trim().isEmpty()) {
+            // Filter by status
+            List<Customer> allCustomers = customerDAO.findAll();
+            if ("active".equals(status)) {
+                list = allCustomers.stream()
+                    .filter(c -> c.getIsActive() != null && c.getIsActive())
+                    .collect(java.util.stream.Collectors.toList());
+            } else if ("inactive".equals(status)) {
+                list = allCustomers.stream()
+                    .filter(c -> c.getIsActive() == null || !c.getIsActive())
+                    .collect(java.util.stream.Collectors.toList());
+            } else {
+                list = allCustomers;
+            }
+            totalCustomers = list.size();
+            
+            // Apply pagination to filtered results
+            int startIndex = (page - 1) * pageSize;
+            int endIndex = Math.min(startIndex + pageSize, list.size());
+            list = list.subList(startIndex, endIndex);
+        } else {
+            // No status filter
+            list = customerDAO.findAll(page, pageSize);
+            totalCustomers = customerDAO.getTotalCustomers();
+        }
+        
         int totalPages = (int) Math.ceil((double) totalCustomers / pageSize);
-
+        
         req.setAttribute("listCustomer", list);
         req.setAttribute("currentPage", page);
         req.setAttribute("pageSize", pageSize);
         req.setAttribute("totalPages", totalPages);
         req.setAttribute("totalCustomers", totalCustomers);
-        req.getRequestDispatcher("/WEB-INF/view/customer/customer_list.jsp").forward(req, resp);
+        req.setAttribute("status", status);
+
+        System.out.println("DEBUG: Forwarding to customer_list.jsp with " + list.size() + " customers");
+        
+        // Using original JSP with fixes applied:
+        req.getRequestDispatcher("/WEB-INF/view/admin_pages/customer_list.jsp").forward(req, resp);
+        
+        // Test JSPs (working correctly):
+        // req.getRequestDispatcher("/property_test.jsp").forward(req, resp);
+        
+    } catch (Exception e) {
+        System.err.println("ERROR in listCustomer: " + e.getMessage());
+        e.printStackTrace();
+        req.setAttribute("error", "Error loading customer list: " + e.getMessage());
+        req.getRequestDispatcher("/WEB-INF/view/admin_pages/customer_list.jsp").forward(req, resp);
     }
+}
 
     private void showCreateForm(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
@@ -165,13 +218,13 @@ public class CustomerController extends HttpServlet {
             Customer customer = new Customer();
             customer.setFullName(name);
             customer.setEmail(email);
-            customer.setHashPassword(password); // Mật khẩu sẽ được băm trong DAO
+            customer.setHashPassword(BCrypt.hashpw(password, BCrypt.gensalt()));
             customer.setPhoneNumber(phone);
             customer.setGender(gender);
             customer.setAddress(address);
             customer.setIsActive(isActive != null && isActive.equals("on"));
-            customer.setRoleId(1); // Giả định RoleConstants.CUSTOMER_ID = 1
-            customer.setLoyaltyPoints(0); // Mặc định
+            customer.setRoleId(1);
+            customer.setLoyaltyPoints(0);
             if (birthdayStr != null && !birthdayStr.trim().isEmpty()) {
                 customer.setBirthday(Date.valueOf(birthdayStr));
             }
@@ -222,14 +275,14 @@ public class CustomerController extends HttpServlet {
             customer.setAddress(address);
             customer.setIsActive(isActive != null && isActive.equals("on"));
             customer.setLoyaltyPoints(loyaltyPointsStr != null ? Integer.parseInt(loyaltyPointsStr) : 0);
+            
             if (password != null && !password.trim().isEmpty()) {
-                customer.setHashPassword(password); // Mật khẩu sẽ được băm trong DAO
+                customer.setHashPassword(BCrypt.hashpw(password, BCrypt.gensalt()));
             }
             customer.setUpdatedAt(LocalDateTime.now());
+            
             if (birthdayStr != null && !birthdayStr.trim().isEmpty()) {
                 customer.setBirthday(Date.valueOf(birthdayStr));
-            } else {
-                customer.setBirthday(null);
             }
 
             customerDAO.update(customer);
@@ -299,6 +352,6 @@ public class CustomerController extends HttpServlet {
         req.setAttribute("pageSize", pageSize);
         req.setAttribute("totalPages", totalPages);
         req.setAttribute("totalCustomers", totalCustomers);
-        req.getRequestDispatcher("/WEB-INF/view/customer/customer_list.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/view/admin_pages/customer_list.jsp").forward(req, resp);
     }
 }

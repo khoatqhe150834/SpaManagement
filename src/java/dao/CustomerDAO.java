@@ -90,22 +90,24 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         return findAll(1, 10); // Default to first page with 10 items
     }
 
-    public List<Customer> findAll(int page, int pageSize) {
-        List<Customer> list = new ArrayList<>();
-        String sql = "SELECT * FROM customers LIMIT ? OFFSET ?";
-        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, pageSize);
-            ps.setInt(2, (page - 1) * pageSize);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    list.add(buildCustomerFromResultSet(rs));
-                }
+  public List<Customer> findAll(int page, int pageSize) {
+    List<Customer> list = new ArrayList<>();
+    String sql = "SELECT * FROM customers LIMIT ? OFFSET ?";
+    try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+        ps.setInt(1, pageSize);
+        ps.setInt(2, (page - 1) * pageSize);
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                list.add(buildCustomerFromResultSet(rs));
             }
-        } catch (SQLException e) {
-            throw new RuntimeException("Error finding customers: " + e.getMessage(), e);
+            Logger.getLogger(CustomerDAO.class.getName()).log(Level.INFO, "Retrieved " + list.size() + " customers for page " + page);
         }
-        return list;
+    } catch (SQLException e) {
+        Logger.getLogger(CustomerDAO.class.getName()).log(Level.SEVERE, "Error finding customers", e);
+        throw new RuntimeException("Error finding customers: " + e.getMessage(), e);
     }
+    return list;
+}
 
     public int getTotalCustomers() {
         String sql = "SELECT COUNT(*) FROM customers";
@@ -343,6 +345,18 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
 
             int rowsAffected = stmt.executeUpdate();
             return rowsAffected > 0;
+        }
+    }
+    
+    
+    public static void main(String[] args) {
+        CustomerDAO customerDAO = new CustomerDAO();
+        
+        
+        List<Customer> customers = customerDAO.findAll(1, 5);
+        
+        for (Customer customer : customers) {
+            System.out.println(customer.toString());
         }
     }
 

@@ -15,7 +15,7 @@
     <link rel="icon" type="image/png" href="${pageContext.request.contextPath}/assets/images/favicon.png" sizes="16x16">
     <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp"></jsp:include>
 </head>
-<body>git
+<body>
     <jsp:include page="/WEB-INF/view/common/admin/sidebar.jsp"></jsp:include>
     <jsp:include page="/WEB-INF/view/common/admin/header.jsp"></jsp:include>
 
@@ -94,7 +94,19 @@
 
             <c:if test="${not empty error}">
                 <div class="alert alert-danger mx-24 mt-16">
-                    ${error}
+                    <c:out value="${error}"/>
+                </div>
+            </c:if>
+
+            <!-- Debug Information -->
+            <c:if test="${listCustomer == null}">
+                <div class="alert alert-warning mx-24 mt-16">
+                    Warning: Customer list is null. Please check the servlet or database connection.
+                </div>
+            </c:if>
+            <c:if test="${empty listCustomer && listCustomer != null}">
+                <div class="alert alert-info mx-24 mt-16">
+                    Info: No customers found for the current filters.
                 </div>
             </c:if>
 
@@ -130,26 +142,41 @@
                                             <div class="form-check style-check d-flex align-items-center">
                                                 <input class="form-check-input radius-4 border border-neutral-400" type="checkbox" name="checkbox">
                                             </div>
-                                            ${customer.customerId}
+                                            <c:out value="${customer.customerId}" default="N/A"/>
                                         </div>
                                     </td>
-                                    <td><fmt:formatDate value="${customer.createdAt}" pattern="dd MMM yyyy"/></td>
+                                    <td>
+                                        <c:choose>
+                                            <c:when test="${not empty customer.createdAt}">
+                                                <fmt:parseDate value="${customer.createdAt}" pattern="yyyy-MM-dd'T'HH:mm" var="parsedCreatedAt" type="both"/>
+                                                <fmt:formatDate value="${parsedCreatedAt}" pattern="dd MMM yyyy"/>
+                                            </c:when>
+                                            <c:otherwise>N/A</c:otherwise>
+                                        </c:choose>
+                                    </td>
                                     <td>
                                         <div class="d-flex align-items-center">
-                                            <img src="${pageContext.request.contextPath}/assets/images/avatar.png" alt="" class="w-40-px h-40-px rounded-circle flex-shrink-0 me-12 overflow-hidden">
+                                            <img src="${pageContext.request.contextPath}/assets/images/avatar.png" alt="avatar" class="w-40-px h-40-px rounded-circle flex-shrink-0 me-12 overflow-hidden">
                                             <div class="flex-grow-1">
-                                                <span class="text-md mb-0 fw-normal text-secondary-light"><c:out value="${customer.fullName}"/></span>
+                                                <span class="text-md mb-0 fw-normal text-secondary-light"><c:out value="${customer.fullName}" default="Unknown"/></span>
                                             </div>
                                         </div>
                                     </td>
-                                    <td><span class="text-md mb-0 fw-normal text-secondary-light"><c:out value="${customer.email}"/></span></td>
-                                    <td><c:out value="${customer.phoneNumber}"/></td>
-                                    <td><c:out value="${customer.gender}"/></td>
-                                    <td><fmt:formatDate value="${customer.birthday}" pattern="dd MMM yyyy"/></td>
-                                    <td><c:out value="${customer.address}"/></td>
+                                    <td><span class="text-md mb-0 fw-normal text-secondary-light"><c:out value="${customer.email}" default="N/A"/></span></td>
+                                    <td><c:out value="${customer.phoneNumber}" default="N/A"/></td>
+                                    <td><c:out value="${customer.gender}" default="N/A"/></td>
+                                    <td>
+                                        <c:choose>
+                                            <c:when test="${not empty customer.birthday}">
+                                                <fmt:formatDate value="${customer.birthday}" pattern="dd MMM yyyy"/>
+                                            </c:when>
+                                            <c:otherwise>N/A</c:otherwise>
+                                        </c:choose>
+                                    </td>
+                                    <td><c:out value="${customer.address}" default="N/A"/></td>
                                     <td class="text-center">
                                         <span class="bg-${customer.isActive ? 'success-focus text-success-600 border border-success-main' : 'neutral-200 text-neutral-600 border border-neutral-400'} px-24 py-4 radius-4 fw-medium text-sm">
-                                            ${customer.isActive ? 'Active' : 'Inactive'}
+                                            <c:out value="${customer.isActive ? 'Active' : 'Inactive'}"/>
                                         </span>
                                     </td>
                                     <td class="text-center">
@@ -167,9 +194,14 @@
                                     </td>
                                 </tr>
                             </c:forEach>
-                            <c:if test="${empty listCustomer}">
+                            <c:if test="${empty listCustomer && listCustomer != null}">
                                 <tr>
-                                    <td colspan="10" class="text-center">No customers found</td>
+                                    <td colspan="10" class="text-center">No customers found for the current filters</td>
+                                </tr>
+                            </c:if>
+                            <c:if test="${listCustomer == null}">
+                                <tr>
+                                    <td colspan="10" class="text-center">Customer data not available. Please check the server configuration.</td>
                                 </tr>
                             </c:if>
                         </tbody>
@@ -177,22 +209,22 @@
                 </div>
 
                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-24">
-                    <span>Showing ${(currentPage - 1) * pageSize + 1} to ${Math.min(currentPage * pageSize, totalCustomers)} of ${totalCustomers} entries</span>
+                    <span>Showing <c:out value="${(currentPage - 1) * pageSize + 1}"/> to <c:out value="${Math.min(currentPage * pageSize, totalCustomers)}"/> of <c:out value="${totalCustomers}"/> entries</span>
                     <ul class="pagination d-flex flex-wrap align-items-center gap-2 justify-content-center">
                         <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
-                            <a class="page-link bg-neutral-200 text-secondary-light fw-semibold radius-8 border-0 d-flex align-items-center justify-content-center h-32-px w-32-px text-md" href="${pageContext.request.contextPath}/customer?page=${currentPage - 1}&pageSize=${pageSize}${not empty searchType ? '&searchType=' += searchType += '&searchValue=' += searchValue : ''}${not empty status ? '&status=' += status : ''}">
+                            <a class="page-link bg-neutral-200 text-secondary-light fw-semibold radius-8 border-0 d-flex align-items-center justify-content-center h-32-px w-32-px text-md" href="${pageContext.request.contextPath}/customer?page=${currentPage - 1}&pageSize=${pageSize}${not empty searchType ? '&searchType=' += searchType += '&searchValue=' += java.net.URLEncoder.encode(searchValue, 'UTF-8') : ''}${not empty status ? '&status=' += status : ''}">
                                 <iconify-icon icon="ep:d-arrow-left"></iconify-icon>
                             </a>
                         </li>
                         <c:forEach begin="1" end="${totalPages}" var="i">
                             <li class="page-item ${i == currentPage ? 'active' : ''}">
-                                <a class="page-link text-secondary-light fw-semibold radius-8 border-0 d-flex align-items-center justify-content-center h-32-px w-32-px text-md ${i == currentPage ? 'bg-primary-600 text-white' : 'bg-neutral-200'}" href="${pageContext.request.contextPath}/customer?page=${i}&pageSize=${pageSize}${not empty searchType ? '&searchType=' += searchType += '&searchValue=' += searchValue : ''}${not empty status ? '&status=' += status : ''}">
+                                <a class="page-link text-secondary-light fw-semibold radius-8 border-0 d-flex align-items-center justify-content-center h-32-px w-32-px text-md ${i == currentPage ? 'bg-primary-600 text-white' : 'bg-neutral-200'}" href="${pageContext.request.contextPath}/customer?page=${i}&pageSize=${pageSize}${not empty searchType ? '&searchType=' += searchType += '&searchValue=' += java.net.URLEncoder.encode(searchValue, 'UTF-8') : ''}${not empty status ? '&status=' += status : ''}">
                                     ${i}
                                 </a>
                             </li>
                         </c:forEach>
                         <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
-                            <a class="page-link bg-neutral-200 text-secondary-light fw-semibold radius-8 border-0 d-flex align-items-center justify-content-center h-32-px w-32-px text-md" href="${pageContext.request.contextPath}/customer?page=${currentPage + 1}&pageSize=${pageSize}${not empty searchType ? '&searchType=' += searchType += '&searchValue=' += searchValue : ''}${not empty status ? '&status=' += status : ''}">
+                            <a class="page-link bg-neutral-200 text-secondary-light fw-semibold radius-8 border-0 d-flex align-items-center justify-content-center h-32-px w-32-px text-md" href="${pageContext.request.contextPath}/customer?page=${currentPage + 1}&pageSize=${pageSize}${not empty searchType ? '&searchType=' += searchType += '&searchValue=' += java.net.URLEncoder.encode(searchValue, 'UTF-8') : ''}${not empty status ? '&status=' += status : ''}">
                                 <iconify-icon icon="ep:d-arrow-right"></iconify-icon>
                             </a>
                         </li>
