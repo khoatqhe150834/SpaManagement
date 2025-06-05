@@ -4,146 +4,95 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Appointment Details</title>
-    <link rel="icon" type="image/png" href="assets/images/favicon.png" sizes="16x16">
-    <jsp:include page="/WEB-INF/view/common/home/stylesheet.jsp" />
-</head>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Appointment Details</title>
+        <link rel="icon" type="image/png" href="assets/images/favicon.png" sizes="16x16">
+        <jsp:include page="/WEB-INF/view/common/home/stylesheet.jsp" />
+    </head>
 
-<body>
-    <jsp:include page="/WEB-INF/view/common/home/header.jsp" />
+    <body>
+        <jsp:include page="/WEB-INF/view/common/home/header.jsp" />
 
-    <div class="container py-5">
-        <div class="row mb-4">
-            <div class="col">
-                <a href="${pageContext.request.contextPath}/appointment" class="btn btn-outline-primary">
-                    <i class="bi bi-arrow-left"></i> Back to Appointments
-                </a>
+        <!-- inner page banner -->
+        <div class="dlab-bnr-inr overlay-primary bg-pt" style="background-image:url(images/banner/bnr1.jpg);">
+            <div class="container">
+                <div class="dlab-bnr-inr-entry">
+                    <h1 class="text-white">Appointment Details</h1>
+                    <!-- Breadcrumb row -->
+                    <div class="breadcrumb-row">
+                        <ul class="list-inline">
+                            <li><a href="${pageContext.request.contextPath}/">Home</a></li>
+                            <li><a href="${pageContext.request.contextPath}/appointment">Appointments</a></li>
+                            <li>Details</li>
+                        </ul>
+                    </div>
+                    <!-- Breadcrumb row END -->
+                </div>
             </div>
         </div>
+        <!-- inner page banner END -->
 
-        <div class="row">
-            <!-- Appointment Summary -->
-            <div class="col-md-4">
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Appointment Summary</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <label class="form-label">Status</label>
-                            <div>
-                                <span class="badge bg-${appointment.status == 'COMPLETED' ? 'success' : 
-                                                  appointment.status == 'IN_PROGRESS' ? 'primary' : 
-                                                  appointment.status == 'CONFIRMED' ? 'info' : 
-                                                  appointment.status == 'PENDING_CONFIRMATION' ? 'warning' : 
-                                                  'danger'}">
-                                    ${appointment.status}
-                                </span>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Payment Status</label>
-                            <div>
-                                <span class="badge bg-${appointment.paymentStatus == 'PAID' ? 'success' : 
-                                                  appointment.paymentStatus == 'PARTIALLY_PAID' ? 'warning' : 
-                                                  appointment.paymentStatus == 'REFUNDED' ? 'info' : 
-                                                  'danger'}">
-                                    ${appointment.paymentStatus}
-                                </span>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Date & Time</label>
-                            <div>
-                                <fmt:formatDate value="${appointment.startTime}" pattern="dd/MM/yyyy HH:mm" />
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Therapist</label>
-                            <div>${appointment.therapistName}</div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Booking Group</label>
-                            <div>${appointment.bookingGroupName}</div>
-                        </div>
+        <div class="section-full content-inner">
+            <div class="container-fluid py-5">
+                <div class="row mb-4">
+                    <div class="col">
+                        <h2 class="mb-3">Appointment Details</h2>
+                        <a href="${pageContext.request.contextPath}/appointment" class="btn btn-outline-primary mb-4">
+                            <i class="bi bi-arrow-left"></i> Back to Appointments
+                        </a>
                     </div>
                 </div>
 
-                <!-- Payment Summary -->
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Payment Summary</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Original Price:</span>
-                            <span><fmt:formatNumber value="${appointment.totalOriginalPrice}" type="number" maxFractionDigits="0" />đ</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Discount:</span>
-                            <span>-<fmt:formatNumber value="${appointment.totalDiscount}" type="number" maxFractionDigits="0" />đ</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Points Used:</span>
-                            <span>-<fmt:formatNumber value="${appointment.pointsUsed}" type="number" maxFractionDigits="0" />đ</span>
-                        </div>
-                        <hr>
-                        <div class="d-flex justify-content-between fw-bold">
-                            <span>Final Price:</span>
-                            <span><fmt:formatNumber value="${appointment.totalFinalPrice}" type="number" maxFractionDigits="0" />đ</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Services List -->
-            <div class="col-md-8">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Services</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Service</th>
-                                        <th>Original Price</th>
-                                        <th>Discount</th>
-                                        <th>Final Price</th>
-                                        <th>Notes</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <c:forEach var="service" items="${appointment.services}">
-                                        <tr>
-                                            <td>${service.serviceName}</td>
-                                            <td><fmt:formatNumber value="${service.originalPrice}" type="number" maxFractionDigits="0" />đ</td>
-                                            <td><fmt:formatNumber value="${service.discount}" type="number" maxFractionDigits="0" />đ</td>
-                                            <td><fmt:formatNumber value="${service.finalPrice}" type="number" maxFractionDigits="0" />đ</td>
-                                            <td>
-                                                <c:if test="${not empty service.customerNote}">
-                                                    <div class="text-muted small">Customer: ${service.customerNote}</div>
-                                                </c:if>
-                                                <c:if test="${not empty service.staffNote}">
-                                                    <div class="text-muted small">Staff: ${service.staffNote}</div>
-                                                </c:if>
-                                            </td>
-                                        </tr>
-                                    </c:forEach>
-                                </tbody>
-                            </table>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Services</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive w-100">
+                                    <table class="table table-hover w-100">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Service Name</th>
+                                                <th>Original Price</th>
+                                                <th>Discount</th>
+                                                <th>Final Price</th>
+                                                <th>Notes (Customer)</th>
+                                                <th>Notes (Staff)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <c:forEach var="d" items="${details}" varStatus="loop">
+                                                <tr>
+                                                    <td>${loop.index + 1}</td>
+                                                    <td>${d.serviceName}</td>
+                                                    <td><fmt:formatNumber value="${d.originalServicePrice}" type="number" maxFractionDigits="0" />đ</td>
+                                                    <td><fmt:formatNumber value="${d.discountAmountApplied}" type="number" maxFractionDigits="0" />đ</td>
+                                                    <td><fmt:formatNumber value="${d.finalPriceAfterDiscount}" type="number" maxFractionDigits="0" />đ</td>
+                                                    <td><c:out value="${d.notesByCustomer}" default="-" /></td>
+                                                    <td><c:out value="${d.notesByStaff}" default="-" /></td>
+                                                </tr>
+                                            </c:forEach>
+                                            <c:if test="${empty details}">
+                                                <tr>
+                                                    <td colspan="7" class="text-center">No services found for this appointment.</td>
+                                                </tr>
+                                            </c:if>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <jsp:include page="/WEB-INF/view/common/home/footer.jsp" />
-    <jsp:include page="/WEB-INF/view/common/home/js.jsp" />
-</body>
-</html> 
+        <jsp:include page="/WEB-INF/view/common/home/footer.jsp" />
+        <jsp:include page="/WEB-INF/view/common/home/js.jsp" />
+    </body>
+</html>
