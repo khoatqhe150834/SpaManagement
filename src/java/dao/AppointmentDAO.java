@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package dao;
 
 import db.DBContext;
@@ -39,10 +35,10 @@ public class AppointmentDAO extends DBContext implements BaseDAO<Appointment, In
                 + "  a.points_redeemed_value, a.total_final_price, a.promotion_id, "
                 + "  a.status, a.payment_status, a.cancel_reason, "
                 + "  a.created_at, a.updated_at "
-                + "FROM Appointments a "
-                + "  JOIN Customers c ON a.customer_id = c.customer_id "
-                + "  LEFT JOIN Booking_Groups bg ON a.booking_group_id = bg.booking_group_id "
-                + "  LEFT JOIN Users u ON a.therapist_user_id = u.user_id AND u.role_id = 3 "
+                + "FROM appointments a "
+                + "  JOIN customers c ON a.customer_id = c.customer_id "
+                + "  LEFT JOIN booking_groups bg ON a.booking_group_id = bg.booking_group_id "
+                + "  LEFT JOIN users u ON a.therapist_user_id = u.user_id AND u.role_id = 3 "
                 + "WHERE a.appointment_id = ?";
 
         try {
@@ -84,10 +80,10 @@ public class AppointmentDAO extends DBContext implements BaseDAO<Appointment, In
                 + "  a.points_redeemed_value, a.total_final_price, a.promotion_id, "
                 + "  a.status, a.payment_status, a.cancel_reason, "
                 + "  a.created_at, a.updated_at "
-                + "FROM Appointments a "
-                + "  JOIN Customers c ON a.customer_id = c.customer_id "
-                + "  LEFT JOIN Booking_Groups bg ON a.booking_group_id = bg.booking_group_id "
-                + "  LEFT JOIN Users u ON a.therapist_user_id = u.user_id AND u.role_id = 3 "
+                + "FROM appointments a "
+                + "  JOIN customers c ON a.customer_id = c.customer_id "
+                + "  LEFT JOIN booking_groups bg ON a.booking_group_id = bg.booking_group_id "
+                + "  LEFT JOIN users u ON a.therapist_user_id = u.user_id AND u.role_id = 3 "
                 + "WHERE 1=1 "
         );
         List<Object> params = new ArrayList<>();
@@ -139,10 +135,10 @@ public class AppointmentDAO extends DBContext implements BaseDAO<Appointment, In
     public int getTotalFilteredAppointments(String statusFilter, String paymentStatusFilter, String searchFilter) {
         StringBuilder sql = new StringBuilder(
                 "SELECT COUNT(*) "
-                + "FROM Appointments a "
-                + "JOIN Customers c ON a.customer_id = c.customer_id "
-                + "LEFT JOIN Booking_Groups bg ON a.booking_group_id = bg.booking_group_id "
-                + "LEFT JOIN Users u ON a.therapist_user_id = u.user_id AND u.role_id = 3 "
+                + "FROM appointments a "
+                + "JOIN customers c ON a.customer_id = c.customer_id "
+                + "LEFT JOIN booking_groups bg ON a.booking_group_id = bg.booking_group_id "
+                + "LEFT JOIN users u ON a.therapist_user_id = u.user_id AND u.role_id = 3 "
                 + "WHERE 1=1 "
         );
 
@@ -204,9 +200,9 @@ public class AppointmentDAO extends DBContext implements BaseDAO<Appointment, In
                 + "  ad.notes_by_staff, "
                 + "  a.status, "
                 + "  a.payment_status "
-                + "FROM Appointment_Details ad "
-                + "JOIN Services s ON ad.service_id = s.service_id "
-                + "JOIN Appointments a ON ad.appointment_id = a.appointment_id "
+                + "FROM appointment_details ad "
+                + "JOIN services s ON ad.service_id = s.service_id "
+                + "JOIN appointments a ON ad.appointment_id = a.appointment_id "
                 + "WHERE ad.appointment_id = ? "
         );
 
@@ -256,7 +252,7 @@ public class AppointmentDAO extends DBContext implements BaseDAO<Appointment, In
 
     public boolean updateStatusAndPayment(int appointmentId, String newStatus, String newPaymentStatus) {
         String sql
-                = "UPDATE Appointments "
+                = "UPDATE appointments "
                 + "SET status = ?, payment_status = ? "
                 + "WHERE appointment_id = ?";
 
@@ -346,10 +342,10 @@ public class AppointmentDAO extends DBContext implements BaseDAO<Appointment, In
                 + "  a.points_redeemed_value, a.total_final_price, a.promotion_id, "
                 + "  a.status, a.payment_status, a.cancel_reason, "
                 + "  a.created_at, a.updated_at "
-                + "FROM Appointments a "
-                + "  JOIN Customers c ON a.customer_id = c.customer_id "
-                + "  LEFT JOIN Booking_Groups bg ON a.booking_group_id = bg.booking_group_id "
-                + "  LEFT JOIN Users u ON a.therapist_user_id = u.user_id AND u.role_id = 3 "
+                + "FROM appointments a "
+                + "  JOIN customers c ON a.customer_id = c.customer_id "
+                + "  LEFT JOIN booking_groups bg ON a.booking_group_id = bg.booking_group_id "
+                + "  LEFT JOIN users u ON a.therapist_user_id = u.user_id AND u.role_id = 3 "
                 + "WHERE a.customer_id = ? "
         );
         List<Object> params = new ArrayList<>();
@@ -406,10 +402,10 @@ public class AppointmentDAO extends DBContext implements BaseDAO<Appointment, In
         
         StringBuilder sql = new StringBuilder(
                 "SELECT COUNT(*) "
-                + "FROM Appointments a "
-                + "JOIN Customers c ON a.customer_id = c.customer_id "
-                + "LEFT JOIN Booking_Groups bg ON a.booking_group_id = bg.booking_group_id "
-                + "LEFT JOIN Users u ON a.therapist_user_id = u.user_id AND u.role_id = 3 "
+                + "FROM appointments a "
+                + "JOIN customers c ON a.customer_id = c.customer_id "
+                + "LEFT JOIN booking_groups bg ON a.booking_group_id = bg.booking_group_id "
+                + "LEFT JOIN users u ON a.therapist_user_id = u.user_id AND u.role_id = 3 "
                 + "WHERE a.customer_id = ? "
         );
 
