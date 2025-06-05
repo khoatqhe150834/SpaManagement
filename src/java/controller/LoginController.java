@@ -5,6 +5,7 @@
 package controller;
 
 import dao.CustomerDAO;
+import dao.RememberMeTokenDAO;
 import dao.UserDAO;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
@@ -16,8 +17,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.UUID;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import model.Customer;
+import model.RememberMeToken;
 import model.RoleConstants;
 import model.User;
 
@@ -25,29 +29,32 @@ import model.User;
  *
  * @author quang
  */
-@WebServlet(name = "LoginController", urlPatterns = {"/login"})
+@WebServlet(name = "LoginController", urlPatterns = { "/login" })
 public class LoginController extends HttpServlet {
-    
+
     private final int COOKIE_DURATION = 30;
 
     private CustomerDAO customerDAO;
     private UserDAO userDAO;
+
+    private RememberMeTokenDAO rememberMeTokenDAO;
 
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
         customerDAO = new CustomerDAO();
         userDAO = new UserDAO();
+        rememberMeTokenDAO = new RememberMeTokenDAO();
     }
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
      *
-     * @param request servlet request
+     * @param request  servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @throws IOException      if an I/O error occurs
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -71,14 +78,41 @@ public class LoginController extends HttpServlet {
     /**
      * Handles the HTTP <code>GET</code> method.
      *
-     * @param request servlet request
+     * @param request  servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @throws IOException      if an I/O error occurs
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
+        // Check for remember me cookie
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("rememberedUser".equals(cookie.getName())) {
+                    String tokenValue = cookie.getValue();
+                    if (tokenValue != null && !tokenValue.isEmpty()) {
+                        try {
+                            // Get token from database
+                            RememberMeToken token = rememberMeTokenDAO.findToken(tokenValue);
+                            if (token != null) {
+                                // Set email and password as request attributes to pre-fill form
+                                request.setAttribute("rememberedEmail", token.getEmail());
+                                request.setAttribute("rememberedPassword", token.getPassword());
+                                request.setAttribute("rememberMeChecked", true);
+                            }
+                        } catch (SQLException ex) {
+                            Logger.getLogger(LoginController.class.getName()).log(Level.SEVERE,
+                                    "Error retrieving remember me token", ex);
+                            // Continue without pre-filling - don't break the login page
+                        }
+                    }
+                    break; // Found the cookie, no need to continue
+                }
+            }
+        }
 
         request.getRequestDispatcher("/WEB-INF/view/auth/login.jsp").forward(request, response);
     }
@@ -86,10 +120,10 @@ public class LoginController extends HttpServlet {
     /**
      * Handles the HTTP <code>POST</code> method.
      *
-     * @param request servlet request
+     * @param request  servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @throws IOException      if an I/O error occurs
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -116,7 +150,7 @@ public class LoginController extends HttpServlet {
             String userType = RoleConstants.getUserTypeFromRole(user.getRoleId());
             session.setAttribute("userType", userType);
 
-            handleRememberLogin(request, response, email);
+            handleRememberLogin(request, response, email, password);
             // Redirect based on role
             String redirectUrl = getRedirectUrlForRole(user.getRoleId());
             response.sendRedirect(request.getContextPath() + redirectUrl);
@@ -135,7 +169,7 @@ public class LoginController extends HttpServlet {
             String userType = RoleConstants.getUserTypeFromRole(customer.getRoleId());
             session.setAttribute("userType", userType);
 
-            handleRememberLogin(request, response, email);
+            handleRememberLogin(request, response, email, password);
             // Redirect to homepage for customers
             response.sendRedirect(request.getContextPath() + "/");
             return;
@@ -153,18 +187,18 @@ public class LoginController extends HttpServlet {
 
         switch (roleId) {
             case RoleConstants.ADMIN_ID:
-//                return "/admin/dashboard";
+                // return "/admin/dashboard";
                 return "/";
 
             case RoleConstants.MANAGER_ID:
                 return "/";
-//                return "/manager/dashboard";
+            // return "/manager/dashboard";
             case RoleConstants.THERAPIST_ID:
                 return "/";
-//                return "/therapist/dashboard";
+            // return "/therapist/dashboard";
             case RoleConstants.RECEPTIONIST_ID:
                 return "/";
-//                return "/receptionist/dashboard";
+            // return "/receptionist/dashboard";
             default:
                 return "/";
         }
@@ -180,37 +214,57 @@ public class LoginController extends HttpServlet {
         return "Short description";
     }// </editor-fold>
 
-    public void handleRememberLogin(HttpServletRequest request, HttpServletResponse response, String email) throws ServletException, IOException {
+    public void handleRememberLogin(HttpServletRequest request, HttpServletResponse response, String email,
+            String password) throws ServletException, IOException {
 
         String rememberMe = request.getParameter("rememberMe");
 
         // Check if the checkbox is checked (true) or not (false)
         boolean isRememberMe = "true".equals(rememberMe);
 
-        // Log or process the result
         if (isRememberMe) {
-            String token = UUID.randomUUID().toString();
+            try {
+                // Delete any existing tokens for this email first to ensure only one token per
+                // email
+                rememberMeTokenDAO.deleteTokensByEmail(email);
 
-            // Store token in database, linked to username (pseudo-code)
-//            storeTokenInDatabase(username, token); // Implement this method
+                // ⚠️ SECURITY WARNING: This stores the password - NOT RECOMMENDED!
+                RememberMeToken token = new RememberMeToken(email, password);
 
-            // Create cookie with a valid name and the token as value
-            Cookie userCookie = new Cookie("rememberedUser", token);
-            userCookie.setMaxAge(COOKIE_DURATION * 24 * 60 * 60); // 30 days
-            userCookie.setPath("/");
-            userCookie.setHttpOnly(true);
-            userCookie.setSecure(request.isSecure());
+                // Save token to database
+                rememberMeTokenDAO.insertToken(token);
 
-            // Add cookie to response
-            response.addCookie(userCookie);
+                // Create cookie with the token as value
+                Cookie userCookie = new Cookie("rememberedUser", token.getToken());
+                userCookie.setMaxAge(COOKIE_DURATION * 24 * 60 * 60); // 30 days
+                userCookie.setPath("/");
+                userCookie.setHttpOnly(true);
+                userCookie.setSecure(request.isSecure());
 
+                // Add cookie to response
+                response.addCookie(userCookie);
+
+            } catch (SQLException ex) {
+                Logger.getLogger(LoginController.class.getName()).log(Level.SEVERE,
+                        "Error saving remember me token", ex);
+                // Don't fail login just because remember me failed
+            }
         } else {
+            // User unchecked remember me - clear existing tokens
+            try {
+                // Delete existing tokens for this user
+                rememberMeTokenDAO.deleteTokensByEmail(email);
 
-            // Add your logic here, e.g., clear a cookie or session attribute
+                // Clear the cookie
+                Cookie clearCookie = new Cookie("rememberedUser", "");
+                clearCookie.setMaxAge(0); // Delete immediately
+                clearCookie.setPath("/");
+                response.addCookie(clearCookie);
+
+            } catch (SQLException ex) {
+                Logger.getLogger(LoginController.class.getName()).log(Level.SEVERE,
+                        "Error clearing remember me token", ex);
+            }
         }
-
-        request.getRequestDispatcher("/test.jsp").forward(request, response);
-
     }
-
 }
