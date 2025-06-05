@@ -155,12 +155,12 @@
                     </div>
 
                     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-24">
+                        <c:set var="start" value="${(currentPage - 1) * limit + 1}" />
+                        <c:set var="end" value="${currentPage * limit > totalEntries ? totalEntries : currentPage * limit}" />
                         <span>
-                            Showing ${(currentPage - 1) * 5 + 1}
-                            to ${currentPage * 5 > totalEntries ? totalEntries : currentPage * 5}
-                            of ${totalEntries} entries
+                            Showing ${start} to ${end} of ${totalEntries} entries
                         </span>
-                        
+
                         <ul class="pagination d-flex flex-wrap align-items-center gap-2 justify-content-center">
                             <!-- Previous -->
                             <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
@@ -171,9 +171,10 @@
                                         </a>
                                     </c:when>
                                     <c:otherwise>
-                                        <a class="page-link" href="servicetype?service=list-all&page=${currentPage - 1}">
+                                        <a class="page-link" href="servicetype?service=list-all&page=${currentPage - 1}&limit=${limit}">
                                             <iconify-icon icon="ep:d-arrow-left"></iconify-icon>
                                         </a>
+
                                     </c:otherwise>
                                 </c:choose>
                             </li>
@@ -183,7 +184,7 @@
                                 <li class="page-item ${i == currentPage ? 'active' : ''}">
                                     <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px
                                        ${i == currentPage ? 'bg-primary-600 text-white' : 'bg-neutral-200 text-secondary-light'}"
-                                       href="servicetype?service=list-all&page=${i}">
+                                       href="servicetype?service=list-all&page=${i}&limit=${limit}">
                                         ${i}
                                     </a>
                                 </li>
@@ -198,7 +199,7 @@
                                         </a>
                                     </c:when>
                                     <c:otherwise>
-                                        <a class="page-link" href="servicetype?service=list-all&page=${currentPage + 1}">
+                                        <a class="page-link" href="servicetype?service=list-all&page=${currentPage + 1}&limit=${limit}">
                                             <iconify-icon icon="ep:d-arrow-right"></iconify-icon>
                                         </a>
                                     </c:otherwise>

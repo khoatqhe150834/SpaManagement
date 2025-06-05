@@ -46,6 +46,7 @@ public class ServiceTypeController extends HttpServlet {
             int totalRecords = dao.countAll();
             int totalPages = (int) Math.ceil((double) totalRecords / limit);
 
+            request.setAttribute("limit", limit);
             request.setAttribute("serviceTypes", serviceTypes);
             request.setAttribute("currentPage", page);
             request.setAttribute("totalPages", totalPages);
