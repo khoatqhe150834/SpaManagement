@@ -137,7 +137,7 @@ contentType="text/html" pageEncoding="UTF-8"%>
                           minlength="6"
                           maxlength="100"
                           title="Họ tên phải có ít nhất 6 ký tự và không chứa ký tự đặc biệt."
-                          pattern="^[a-zA-Z\s]{6,}$"
+                          pattern="^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂẾưăạảấầẩẫậắằẳẵặẹẻẽềềểếỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s]{6,}$"
                         />
                       </div>
                       <div class="form-group">
