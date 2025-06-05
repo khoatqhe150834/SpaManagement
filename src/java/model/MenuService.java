@@ -104,7 +104,7 @@ public class MenuService {
 
     menuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/profile", "fa fa-user"));
     menuItems.add(new MenuItem("Bảng điều khiển", contextPath + "/admin/dashboard", "fa fa-tachometer"));
-    menuItems.add(new MenuItem("Quản lý nhân viên", contextPath + "/admin/staff", "fa fa-users"));
+    menuItems.add(new MenuItem("Quản lý nhân viên", contextPath + "/staff", "fa fa-users"));
     menuItems.add(new MenuItem("Quản lý lịch hẹn", contextPath + "/appointment", "fa fa-calendar"));
     menuItems.add(new MenuItem("Quản lý dịch vụ", contextPath + "/servicetype", "fa fa-tasks"));
     menuItems.add(new MenuItem("Báo cáo doanh thu", contextPath + "/admin/revenue-reports", "fa fa-line-chart"));
