@@ -36,10 +36,12 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
 
     @Override
     public <S extends Customer> S save(S customer) {
-        if (isExistsByEmail(customer.getEmail())) {
+        AccountDAO accountDAO = new AccountDAO();
+
+        if (accountDAO.isEmailTakenInSystem(customer.getEmail())) {
             throw new IllegalArgumentException("Email already exists");
         }
-        if (isExistsByPhone(customer.getPhoneNumber())) {
+        if (accountDAO.isPhoneTakenInSystem(customer.getPhoneNumber())) {
             throw new IllegalArgumentException("Phone number already exists");
         }
 
@@ -217,38 +219,6 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         return customers;
     }
 
-    public boolean isExistsByEmail(String email) {
-        if (email == null || email.trim().isEmpty()) {
-            return false;
-        }
-        String sql = "SELECT 1 FROM customers WHERE email = ? UNION SELECT 1 FROM users WHERE email = ? LIMIT 1";
-        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, email);
-            ps.setString(2, email);
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Error checking email existence: " + e.getMessage(), e);
-        }
-    }
-
-    public boolean isExistsByPhone(String phone) {
-        if (phone == null || phone.trim().isEmpty()) {
-            return false;
-        }
-        String sql = "SELECT 1 FROM customers WHERE phone_number = ? UNION SELECT 1 FROM users WHERE phone_number = ? LIMIT 1";
-        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, phone);
-            ps.setString(2, phone);
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Error checking phone existence: " + e.getMessage(), e);
-        }
-    }
-
     public boolean validateAccount(String email, String password) {
         if (email == null || password == null || email.trim().isEmpty() || password.trim().isEmpty()) {
             return false;
@@ -328,22 +298,6 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         return null;
     }
 
-    public boolean updatePassword(String email, String newPassword) {
-        if (email == null || email.trim().isEmpty() || newPassword == null || newPassword.trim().isEmpty()) {
-            return false;
-        }
-        String sql = "UPDATE customers SET hash_password = ?, updated_at = ? WHERE email = ?";
-        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, BCrypt.hashpw(newPassword, BCrypt.gensalt()));
-            ps.setTimestamp(2, Timestamp.valueOf(java.time.LocalDateTime.now()));
-            ps.setString(3, email);
-            int rowsAffected = ps.executeUpdate();
-            return rowsAffected > 0;
-        } catch (SQLException e) {
-            throw new RuntimeException("Error updating password: " + e.getMessage(), e);
-        }
-    }
-
     public String getCustomerNameByEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
             return null;
@@ -393,5 +347,8 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
             return rowsAffected > 0;
         }
     }
+
+    // Deprecated - kept for backward compatibility, but recommend using more
+    // specific methods above
 
 }

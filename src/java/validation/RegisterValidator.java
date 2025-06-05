@@ -1,19 +1,19 @@
 package validation;
 
-import dao.CustomerDAO;
+import dao.AccountDAO;
 
 public class RegisterValidator {
-    private final CustomerDAO customerDAO;
+    private final AccountDAO accountDAO;
 
-    public RegisterValidator(CustomerDAO customerDAO) {
-        this.customerDAO = customerDAO;
+    public RegisterValidator() {
+        this.accountDAO = new AccountDAO();
     }
 
     public boolean isEmailDuplicate(String email) {
-        return customerDAO.isExistsByEmail(email);
+        return accountDAO.isEmailTakenInSystem(email);
     }
 
     public boolean isPhoneDuplicate(String phone) {
-        return customerDAO.isExistsByPhone(phone);
+        return accountDAO.isPhoneTakenInSystem(phone);
     }
 }

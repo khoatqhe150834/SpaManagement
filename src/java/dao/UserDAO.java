@@ -68,42 +68,7 @@ public class UserDAO implements BaseDAO<User, Integer> {
     throw new UnsupportedOperationException("Not supported yet.");
   }
 
-  public boolean isExistsByEmail(String email) {
-    boolean isExists = false;
-    if (email == null || email.trim().isEmpty()) {
-      return false;
-    }
-
-    try (Connection connection = DBContext.getConnection();
-        PreparedStatement ps = connection.prepareStatement("SELECT * FROM users WHERE email = ?")) {
-      ps.setString(1, email);
-      ResultSet rs = ps.executeQuery();
-      if (rs.next()) {
-        isExists = true;
-      }
-    } catch (SQLException e) {
-      throw new RuntimeException("Error checking email existence: " + e.getMessage(), e);
-    }
-    return isExists;
-  }
-
-  public boolean isExistsByPhone(String phone) {
-    boolean isExists = false;
-    if (phone == null || phone.trim().isEmpty()) {
-      return false;
-    }
-    try (Connection connection = DBContext.getConnection();
-        PreparedStatement ps = connection.prepareStatement("SELECT COUNT(*) FROM users WHERE phone_number = ?")) {
-      ps.setString(1, phone);
-      ResultSet rs = ps.executeQuery();
-      if (rs.next() && rs.getInt(1) > 0) {
-        isExists = true;
-      }
-    } catch (SQLException e) {
-      throw new RuntimeException("Error checking phone existence: " + e.getMessage(), e);
-    }
-    return isExists;
-  }
+  // User-specific methods - only check users table
 
   public boolean validateAccount(String email, String password) {
     try (Connection connection = DBContext.getConnection();
@@ -155,28 +120,6 @@ public class UserDAO implements BaseDAO<User, Integer> {
     return Optional.empty();
   }
 
-  public boolean updatePassword(String email, String newPassword) throws SQLException {
-    if (email == null || email.trim().isEmpty() || newPassword == null || newPassword.trim().isEmpty()) {
-      return false;
-    }
-
-    String sql = "UPDATE users SET hash_password = ?, updated_at = ? WHERE email = ?";
-
-    try (Connection connection = DBContext.getConnection();
-        PreparedStatement stmt = connection.prepareStatement(sql)) {
-
-      // Hash the password using BCrypt (same as used in registration)
-      String hashedPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt());
-
-      stmt.setString(1, hashedPassword);
-      stmt.setTimestamp(2, java.sql.Timestamp.valueOf(java.time.LocalDateTime.now()));
-      stmt.setString(3, email);
-
-      int rowsAffected = stmt.executeUpdate();
-      return rowsAffected > 0;
-    }
-  }
-
   public User getUserByEmailAndPassword(String email, String password) {
     User user = null;
     try (Connection connection = DBContext.getConnection();
@@ -205,7 +148,10 @@ public class UserDAO implements BaseDAO<User, Integer> {
     return user;
   }
 
-    public boolean updateProfile(User user) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
+  public boolean updateProfile(User user) {
+    throw new UnsupportedOperationException("Not supported yet."); // Generated from
+                                                                   // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+  }
+
+ 
 }

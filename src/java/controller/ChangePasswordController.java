@@ -5,6 +5,7 @@
 
 package controller;
 
+import dao.AccountDAO;
 import dao.CustomerDAO;
 import dao.UserDAO;
 import jakarta.servlet.ServletConfig;
@@ -28,12 +29,14 @@ public class ChangePasswordController extends HttpServlet {
 
     private CustomerDAO customerDAO;
     private UserDAO userDAO;
+    private AccountDAO accountDAO;
 
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
         customerDAO = new CustomerDAO();
         userDAO = new UserDAO();
+        accountDAO = new AccountDAO();
     }
 
     /**
@@ -143,7 +146,7 @@ public class ChangePasswordController extends HttpServlet {
         }
 
         // Update password
-        boolean success = userDAO.updatePassword(user.getEmail(), newPassword);
+        boolean success = accountDAO.updateUserPassword(user.getEmail(), newPassword);
         if (!success) {
             request.setAttribute("error", "Không thể cập nhật mật khẩu. Vui lòng thử lại.");
             return false;
@@ -163,7 +166,7 @@ public class ChangePasswordController extends HttpServlet {
         }
 
         // Update password
-        boolean success = customerDAO.updatePassword(customer.getEmail(), newPassword);
+        boolean success = accountDAO.updateCustomerPassword(customer.getEmail(), newPassword);
         if (!success) {
             request.setAttribute("error", "Không thể cập nhật mật khẩu. Vui lòng thử lại.");
             return false;

@@ -4,8 +4,10 @@
  */
 package controller;
 
+import dao.AccountDAO;
 import dao.CustomerDAO;
 import dao.PasswordResetTokenDAO;
+import dao.UserDAO;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -20,12 +22,17 @@ import service.email.EmailService;
 import service.email.PasswordResetToken;
 
 /**
- *
+ * Extended ResetPasswordController that handles both Customer and User account
+ * types
+ * 
  * @author quang
  */
-@WebServlet(name = "ResetPasswordController", urlPatterns = { "/reset-password", "/change-password", "/verify-reset-token" })
+@WebServlet(name = "ResetPasswordController", urlPatterns = { "/reset-password", "/change-password",
+        "/verify-reset-token" })
 public class ResetPasswordController extends HttpServlet {
 
+    private AccountDAO accountDAO;
+    private UserDAO userDAO;
     private CustomerDAO customerDAO;
     private PasswordResetTokenDAO passwordResetTokenDao;
     private EmailService emailService;
@@ -33,9 +40,11 @@ public class ResetPasswordController extends HttpServlet {
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
+        accountDAO = new AccountDAO();
         customerDAO = new CustomerDAO();
         passwordResetTokenDao = new PasswordResetTokenDAO();
         emailService = new EmailService();
+        userDAO = new UserDAO();
     }
 
     @Override
@@ -87,7 +96,7 @@ public class ResetPasswordController extends HttpServlet {
 
     @Override
     public String getServletInfo() {
-        return "Handles password reset and change functionality";
+        return "Handles password reset and change functionality for both Customer and User accounts";
     }
 
     private void handleResetPassword(HttpServletRequest request, HttpServletResponse response)
@@ -102,15 +111,14 @@ public class ResetPasswordController extends HttpServlet {
 
         email = email.trim();
 
-        boolean isExistsByEmail = customerDAO.isExistsByEmail(email);
+        // Use AccountDAO to check if email exists in either table
+        boolean isEmailTakenInSystem = accountDAO.isEmailTakenInSystem(email);
 
-        if (isExistsByEmail) {
+        if (isEmailTakenInSystem) {
             try {
                 passwordResetTokenDao.deleteTokensByEmail(email);
                 PasswordResetToken passwordResetToken = new PasswordResetToken(email);
                 passwordResetTokenDao.save(passwordResetToken);
-
-                // Generate the full reset link
 
                 boolean emailSent = emailService.sendPasswordResetEmail(email, passwordResetToken.getToken(), null);
 
@@ -118,8 +126,7 @@ public class ResetPasswordController extends HttpServlet {
                     String successMessage = "Liên kết đặt lại mật khẩu đã được gửi đến email của bạn. " +
                             "Vui lòng kiểm tra hộp thư và làm theo hướng dẫn.";
                     request.setAttribute("success", successMessage);
-                    Logger.getLogger(ResetPasswordController.class.getName()).log(
-                            Level.INFO, "Password reset email sent successfully to: " + email);
+
                 } else {
                     String errorMessage = "Có lỗi xảy ra khi gửi email. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.";
                     request.setAttribute("error", errorMessage);
@@ -164,8 +171,20 @@ public class ResetPasswordController extends HttpServlet {
                 return;
             }
 
-            // Token valid, store email in session and redirect to change password page
-            request.getSession().setAttribute("resetEmail", resetToken.getUserEmail());
+            // Determine account type and store both email and account type in session
+            String email = resetToken.getUserEmail();
+
+            boolean isEmailTakenInSystem = accountDAO.isEmailTakenInSystem(email);
+
+            if (!isEmailTakenInSystem) {
+                request.setAttribute("error", "Tài khoản không tồn tại trong hệ thống.");
+                request.getRequestDispatcher("/WEB-INF/view/password/reset-password.jsp").forward(request, response);
+                return;
+            }
+
+            // Store both email and account type in session
+            request.getSession().setAttribute("resetEmail", email);
+
             request.getRequestDispatcher("/WEB-INF/view/password/change-password.jsp").forward(request, response);
 
         } catch (SQLException ex) {
@@ -194,18 +213,35 @@ public class ResetPasswordController extends HttpServlet {
             return;
         }
 
-        try {
-            // Update password in database
-            boolean updated = customerDAO.updatePassword(email, newPassword);
-            if (updated) {
+        // Validate password length
+        if (newPassword.length() < 6) {
+            request.setAttribute("error", "Mật khẩu phải có ít nhất 6 ký tự.");
+            request.getRequestDispatcher("/WEB-INF/view/password/change-password.jsp").forward(request, response);
+            return;
+        }
 
+        try {
+            boolean updated = false;
+
+            // Update password based on account type
+            if (accountDAO.isCustomerEmailExists(email)) {
+                updated = accountDAO.updateCustomerPassword(email, newPassword);
+            } else if (accountDAO.isUserEmailExists(email)) {
+                updated = accountDAO.updateUserPassword(email, newPassword);
+            }
+
+            if (updated) {
+                // Clean up: remove tokens and session data
                 passwordResetTokenDao.deleteTokensByEmail(email);
                 request.getSession().removeAttribute("resetEmail");
 
-                request.setAttribute("success",
-                        "Mật khẩu đã được thay đổi thành công. Vui lòng đăng nhập bằng mật khẩu mới.");
+                String successMessage = "Mật khẩu đã được thay đổi thành công. Vui lòng đăng nhập bằng mật khẩu mới.";
+                request.setAttribute("success", successMessage);
 
-                // Redirect to login page/controller
+                Logger.getLogger(ResetPasswordController.class.getName()).log(
+                        Level.INFO, "Password successfully reset for email: " + email);
+
+                // Redirect to login page
                 request.getRequestDispatcher("/WEB-INF/view/auth/login.jsp").forward(request, response);
             } else {
                 request.setAttribute("error", "Có lỗi khi cập nhật mật khẩu. Vui lòng thử lại.");
