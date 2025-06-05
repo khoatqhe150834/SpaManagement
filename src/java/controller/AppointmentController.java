@@ -16,6 +16,7 @@ import java.util.List;
 import model.Appointment;
 import model.AppointmentDetails;
 import model.User;
+import model.Customer;
 
 @WebServlet(name = "AppointmentController", urlPatterns = {"/appointment"})
 public class AppointmentController extends HttpServlet {
@@ -33,29 +34,34 @@ public class AppointmentController extends HttpServlet {
         // Check if user is logged in
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
-        if (user == null) {
+        Customer customer = (Customer) session.getAttribute("customer");
+        
+        if (user == null && customer == null) {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
 
         String action = request.getParameter("action");
         if (action == null || action.equals("list")) {
-            if (user.getRoleId() == 1) { // Admin
+            if (user != null && user.getRoleId() == 2) { // Admin
                 listWithFilters(request, response);
-            } else { // User
-                listUserAppointments(request, response, user.getUserId());
+            } else { // User or Customer
+                int userId = user != null ? user.getUserId() : customer.getCustomerId();
+                listUserAppointments(request, response, userId);
             }
         } else if (action.equals("details")) {
-            if (user.getRoleId() == 1) { // Admin
+            if (user != null && user.getRoleId() == 2) { // Admin
                 viewDetails(request, response);
-            } else { // User
-                viewUserAppointmentDetails(request, response, user.getUserId());
+            } else { // User or Customer
+                int userId = user != null ? user.getUserId() : customer.getCustomerId();
+                viewUserAppointmentDetails(request, response, userId);
             }
         } else {
-            if (user.getRoleId() == 1) { // Admin
+            if (user != null && user.getRoleId() == 2) { // Admin
                 listWithFilters(request, response);
-            } else { // User
-                listUserAppointments(request, response, user.getUserId());
+            } else { // User or Customer
+                int userId = user != null ? user.getUserId() : customer.getCustomerId();
+                listUserAppointments(request, response, userId);
             }
         }
     }
@@ -66,7 +72,7 @@ public class AppointmentController extends HttpServlet {
         // Check if user is logged in and is admin
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
-        if (user == null || user.getRoleId() != 1) {
+        if (user == null || user.getRoleId() != 2) {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
@@ -150,7 +156,7 @@ public class AppointmentController extends HttpServlet {
         request.setAttribute("currentPage", page);
         request.setAttribute("totalpages", totalPages);
 
-        request.getRequestDispatcher("/WEB-INF/view/user_pages/appointment_list.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/view/home_pages/appointment_list.jsp").forward(request, response);
     }
 
     public void viewDetails(HttpServletRequest request, HttpServletResponse response)
@@ -221,7 +227,7 @@ public class AppointmentController extends HttpServlet {
         request.setAttribute("appointment", appointment);
         request.setAttribute("serviceSearch", serviceSearch == null ? "" : serviceSearch);
 
-        request.getRequestDispatcher("/WEB-INF/view/user_pages/appointment_details.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/view/home_pages/appointment_details.jsp").forward(request, response);
     }
 
     public void updateStatusAndPayment(HttpServletRequest request, HttpServletResponse response)
