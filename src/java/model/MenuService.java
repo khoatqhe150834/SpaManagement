@@ -68,7 +68,7 @@ public class MenuService {
     List<MenuItem> menuItems = new ArrayList<>();
 
     menuItems.add(new MenuItem("Hồ sơ của bạn", contextPath + "/profile", "fa fa-user"));
-    menuItems.add(new MenuItem("Lịch hẹn đã đặt", contextPath + "/customer/appointments", "fa fa-calendar"));
+    menuItems.add(new MenuItem("Lịch hẹn đã đặt", contextPath + "appointment", "fa fa-calendar"));
     menuItems.add(new MenuItem("Lịch sử dịch vụ", contextPath + "/customer/service-history", "fa fa-history"));
     menuItems.add(new MenuItem("Đánh giá của tôi", contextPath + "/customer/reviews", "fa fa-star"));
     menuItems.add(new MenuItem("Cài đặt tài khoản", contextPath + "/profile/settings", "fa fa-cog"));
@@ -106,7 +106,7 @@ public class MenuService {
     menuItems.add(new MenuItem("Bảng điều khiển", contextPath + "/admin/dashboard", "fa fa-tachometer"));
     menuItems.add(new MenuItem("Quản lý nhân viên", contextPath + "/admin/staff", "fa fa-users"));
     menuItems.add(new MenuItem("Quản lý lịch hẹn", contextPath + "/appointment", "fa fa-calendar"));
-    menuItems.add(new MenuItem("Quản lý dịch vụ", contextPath + "/admin/services", "fa fa-tasks"));
+    menuItems.add(new MenuItem("Quản lý dịch vụ", contextPath + "/servicetype", "fa fa-tasks"));
     menuItems.add(new MenuItem("Báo cáo doanh thu", contextPath + "/admin/revenue-reports", "fa fa-line-chart"));
     menuItems.add(new MenuItem("Cài đặt", contextPath + "/profile/settings", "fa fa-cog"));
     menuItems.add(new MenuItem()); // Divider
