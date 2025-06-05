@@ -256,7 +256,7 @@
 
 
             <li>
-              <a href="javascript:void(0);">Pages <i class="fa fa-chevron-down"></i></a>
+              <%-- <a href="javascript:void(0);">Pages <i class="fa fa-chevron-down"></i></a> --%>
               <ul class="sub-menu">
                 <li>
                   <a href="${pageContext.request.contextPath}/login" class="dez-page">ĐĂNG NHẬP</a>

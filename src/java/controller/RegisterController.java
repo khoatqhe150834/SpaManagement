@@ -143,10 +143,12 @@ public class RegisterController extends HttpServlet {
             return;
         }
 
-        String hashPassword = BCrypt.hashpw(password, BCrypt.gensalt());
-
-        // create new customer to store form data
-        Customer newCustomer = new Customer(fullName, email, hashPassword, phone);
+        // create new customer to store form data - pass plain password, it will be hashed in DAO
+        Customer newCustomer = new Customer(fullName, email, password, phone);
+        
+        // Set default values
+        newCustomer.setIsActive(true);
+        newCustomer.setLoyaltyPoints(0);
 
         // save data to database
         customerDAO.save(newCustomer);

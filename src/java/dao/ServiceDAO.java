@@ -204,9 +204,18 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
         System.out.println("Services found: " + services.size());
         return services;
+    }
+
+    public void deactivateById(int id) {
+        String sql = "UPDATE services SET is_active = 0 WHERE service_id = ?";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            stmt.executeUpdate();
+        } catch (SQLException ex) {
+            Logger.getLogger(ServiceDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     // Reusable mapper with type cache

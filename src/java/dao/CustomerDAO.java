@@ -45,16 +45,17 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
             throw new IllegalArgumentException("Phone number already exists");
         }
 
-        String sql = "INSERT INTO customers (full_name, email, hash_password, phone_number, role_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        try (Connection conn = DBContext.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        String sql = "INSERT INTO customers (full_name, email, hash_password, phone_number, role_id, is_active, loyalty_points, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, customer.getFullName());
             ps.setString(2, customer.getEmail());
             ps.setString(3, BCrypt.hashpw(customer.getHashPassword(), BCrypt.gensalt()));
             ps.setString(4, customer.getPhoneNumber());
             ps.setInt(5, customer.getRoleId());
-            ps.setTimestamp(6, Timestamp.valueOf(java.time.LocalDateTime.now()));
-            ps.setTimestamp(7, Timestamp.valueOf(java.time.LocalDateTime.now()));
+            ps.setBoolean(6, customer.getIsActive() != null ? customer.getIsActive() : true);
+            ps.setInt(7, customer.getLoyaltyPoints() != null ? customer.getLoyaltyPoints() : 0);
+            ps.setTimestamp(8, Timestamp.valueOf(java.time.LocalDateTime.now()));
+            ps.setTimestamp(9, Timestamp.valueOf(java.time.LocalDateTime.now()));
             int rows = ps.executeUpdate();
             if (rows > 0) {
                 ResultSet rs = ps.getGeneratedKeys();
@@ -223,8 +224,7 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         if (email == null || password == null || email.trim().isEmpty() || password.trim().isEmpty()) {
             return false;
         }
-        try (Connection conn = DBContext.getConnection();
-                PreparedStatement ps = conn.prepareStatement("SELECT hash_password FROM Customers WHERE email = ?")) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement("SELECT hash_password FROM customers WHERE email = ?")) {
             ps.setString(1, email);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -260,8 +260,7 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         if (email == null || password == null || email.trim().isEmpty() || password.trim().isEmpty()) {
             return null;
         }
-        try (Connection conn = DBContext.getConnection();
-                PreparedStatement ps = conn.prepareStatement("SELECT * FROM Customers WHERE email = ?")) {
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement("SELECT * FROM customers WHERE email = ?")) {
             ps.setString(1, email);
             ResultSet rs = ps.executeQuery();
 
@@ -319,7 +318,7 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
 
     /**
      * Updates customer profile information
-     * 
+     *
      * @param customer Customer object with updated information
      * @return true if update was successful, false otherwise
      * @throws SQLException if database error occurs
@@ -331,8 +330,7 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
 
         String sql = "UPDATE customers SET full_name = ?, phone_number = ?, gender = ?, birthday = ?, address = ?, updated_at = ? WHERE customer_id = ?";
 
-        try (Connection connection = DBContext.getConnection();
-                PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection(); PreparedStatement stmt = connection.prepareStatement(sql)) {
 
             stmt.setString(1, customer.getFullName());
             stmt.setString(2, customer.getPhoneNumber());
@@ -350,5 +348,4 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
 
     // Deprecated - kept for backward compatibility, but recommend using more
     // specific methods above
-
 }
