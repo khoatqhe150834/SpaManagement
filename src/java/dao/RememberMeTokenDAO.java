@@ -1,5 +1,5 @@
-package dao;
 
+package dao;
 import db.DBContext;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -8,26 +8,30 @@ import java.sql.SQLException;
 import java.util.Date;
 import model.RememberMeToken;
 
+// Updated RememberMeToken class
+
+
+// Updated RememberMeTokenDAO class
 public class RememberMeTokenDAO {
-    
     // Insert a new token into the database
     public void insertToken(RememberMeToken token) throws SQLException {
-        String sql = "INSERT INTO remember_me_tokens (email, token, expiry_date) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO remember_me_tokens (email, token, password, expiry_date) VALUES (?, ?, ?, ?)";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, token.getEmail());
             stmt.setString(2, token.getToken());
-            stmt.setTimestamp(3, new java.sql.Timestamp(token.getExpiryDate().getTime()));
+            stmt.setString(3, token.getPassword()); // Store password (not recommended)
+            stmt.setTimestamp(4, new java.sql.Timestamp(token.getExpiryDate().getTime()));
             stmt.executeUpdate();
         } catch (SQLException e) {
             System.out.println("Error inserting token: " + e.getMessage());
             throw e;
         }
     }
-    
+
     // Find a token by its value and return the associated RememberMeToken
     public RememberMeToken findToken(String tokenValue) throws SQLException {
-        String sql = "SELECT id, email, token, expiry_date, created_at FROM remember_me_tokens " +
+        String sql = "SELECT id, email, token, password, expiry_date, created_at FROM remember_me_tokens " +
                      "WHERE token = ? AND expiry_date > NOW()";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -38,6 +42,7 @@ public class RememberMeTokenDAO {
                         rs.getInt("id"),
                         rs.getString("email"),
                         rs.getString("token"),
+                        rs.getString("password"), // Retrieve password
                         new Date(rs.getTimestamp("expiry_date").getTime()),
                         new Date(rs.getTimestamp("created_at").getTime())
                     );
@@ -49,7 +54,7 @@ public class RememberMeTokenDAO {
         }
         return null; // Token not found or expired
     }
-    
+
     // Delete a token from the database
     public void deleteToken(String tokenValue) throws SQLException {
         String sql = "DELETE FROM remember_me_tokens WHERE token = ?";
@@ -62,7 +67,7 @@ public class RememberMeTokenDAO {
             throw e;
         }
     }
-    
+
     // Delete all tokens for a given email
     public void deleteTokensByEmail(String email) throws SQLException {
         String sql = "DELETE FROM remember_me_tokens WHERE email = ?";
@@ -76,3 +81,5 @@ public class RememberMeTokenDAO {
         }
     }
 }
+
+// Example usage in LoginController
