@@ -28,7 +28,40 @@ public class AppointmentDAO extends DBContext implements BaseDAO<Appointment, In
 
     @Override
     public Optional<Appointment> findById(Integer id) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        String sql = "SELECT "
+                + "  a.appointment_id, "
+                + "  a.customer_id, "
+                + "  c.full_name   AS customer_name, "
+                + "  bg.group_name AS booking_group_name, "
+                + "  u.full_name   AS therapist_name, "
+                + "  a.start_time, a.end_time, "
+                + "  a.total_original_price, a.total_discount_amount, "
+                + "  a.points_redeemed_value, a.total_final_price, a.promotion_id, "
+                + "  a.status, a.payment_status, a.cancel_reason, "
+                + "  a.created_at, a.updated_at "
+                + "FROM Appointments a "
+                + "  JOIN Customers c ON a.customer_id = c.customer_id "
+                + "  LEFT JOIN Booking_Groups bg ON a.booking_group_id = bg.booking_group_id "
+                + "  LEFT JOIN Users u ON a.therapist_user_id = u.user_id AND u.role_id = 3 "
+                + "WHERE a.appointment_id = ?";
+
+        try {
+            Connection conn = DBContext.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, id);
+
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return Optional.of(getFromResultSet(rs));
+            }
+
+        } catch (SQLException ex) {
+            System.out.println("Error finding appointment by ID: " + ex.getMessage());
+        } finally {
+            DBContext.closeConnection();
+        }
+
+        return Optional.empty();
     }
 
     public List<Appointment> findAppointmentsWithFilters(
@@ -290,6 +323,136 @@ public class AppointmentDAO extends DBContext implements BaseDAO<Appointment, In
         ap.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
 
         return ap;
+    }
+
+    public List<Appointment> findUserAppointmentsWithFilters(
+            int userId,
+            String statusFilter,
+            String paymentStatusFilter,
+            String searchFilter,
+            int page,
+            int pageSize) {
+
+        List<Appointment> appointments = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder(
+                "SELECT "
+                + "  a.appointment_id, "
+                + "  c.full_name   AS customer_name, "
+                + "  bg.group_name AS booking_group_name, "
+                + "  u.full_name   AS therapist_name, "
+                + "  a.start_time, a.end_time, "
+                + "  a.total_original_price, a.total_discount_amount, "
+                + "  a.points_redeemed_value, a.total_final_price, a.promotion_id, "
+                + "  a.status, a.payment_status, a.cancel_reason, "
+                + "  a.created_at, a.updated_at "
+                + "FROM Appointments a "
+                + "  JOIN Customers c ON a.customer_id = c.customer_id "
+                + "  LEFT JOIN Booking_Groups bg ON a.booking_group_id = bg.booking_group_id "
+                + "  LEFT JOIN Users u ON a.therapist_user_id = u.user_id AND u.role_id = 3 "
+                + "WHERE a.customer_id = ? "
+        );
+        List<Object> params = new ArrayList<>();
+        params.add(userId);
+
+        if (statusFilter != null && !statusFilter.isEmpty()) {
+            sql.append(" AND a.status = ? ");
+            params.add(statusFilter);
+        }
+
+        if (paymentStatusFilter != null && !paymentStatusFilter.isEmpty()) {
+            sql.append(" AND a.payment_status = ? ");
+            params.add(paymentStatusFilter);
+        }
+
+        if (searchFilter != null && !searchFilter.trim().isEmpty()) {
+            sql.append(" AND (bg.group_name LIKE ? OR u.full_name LIKE ?) ");
+            String keyword = "%" + searchFilter.trim() + "%";
+            params.add(keyword);
+            params.add(keyword);
+        }
+
+        sql.append(" ORDER BY a.appointment_id DESC LIMIT ? OFFSET ? ");
+        params.add(pageSize);
+        params.add((page - 1) * pageSize);
+
+        try {
+            Connection conn = DBContext.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql.toString());
+
+            for (int i = 0; i < params.size(); i++) {
+                stmt.setObject(i + 1, params.get(i));
+            }
+
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                appointments.add(getFromResultSet(rs));
+            }
+
+        } catch (SQLException ex) {
+            System.out.println("Error finding user appointments: " + ex.getMessage());
+        } finally {
+            closeConnection();
+        }
+
+        return appointments;
+    }
+
+    public int getTotalUserFilteredAppointments(
+            int userId,
+            String statusFilter,
+            String paymentStatusFilter,
+            String searchFilter) {
+        
+        StringBuilder sql = new StringBuilder(
+                "SELECT COUNT(*) "
+                + "FROM Appointments a "
+                + "JOIN Customers c ON a.customer_id = c.customer_id "
+                + "LEFT JOIN Booking_Groups bg ON a.booking_group_id = bg.booking_group_id "
+                + "LEFT JOIN Users u ON a.therapist_user_id = u.user_id AND u.role_id = 3 "
+                + "WHERE a.customer_id = ? "
+        );
+
+        List<Object> params = new ArrayList<>();
+        params.add(userId);
+
+        if (statusFilter != null && !statusFilter.isEmpty()) {
+            sql.append(" AND a.status = ? ");
+            params.add(statusFilter);
+        }
+
+        if (paymentStatusFilter != null && !paymentStatusFilter.isEmpty()) {
+            sql.append(" AND a.payment_status = ? ");
+            params.add(paymentStatusFilter);
+        }
+
+        if (searchFilter != null && !searchFilter.trim().isEmpty()) {
+            sql.append(" AND (bg.group_name LIKE ? OR u.full_name LIKE ?) ");
+            String keyword = "%" + searchFilter.trim() + "%";
+            params.add(keyword);
+            params.add(keyword);
+        }
+
+        try {
+            Connection conn = DBContext.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql.toString());
+
+            for (int i = 0; i < params.size(); i++) {
+                stmt.setObject(i + 1, params.get(i));
+            }
+
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+
+        } catch (SQLException ex) {
+            System.out.println("Error counting user appointments: " + ex.getMessage());
+        } finally {
+            DBContext.closeConnection();
+        }
+
+        return 0;
     }
 
 }
