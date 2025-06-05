@@ -65,7 +65,9 @@ contentType="text/html" pageEncoding="UTF-8"%>
         <!-- inner page banner -->
         <div
           class="dlab-bnr-inr overlay-primary bg-pt"
-          style="background-image: url(images/banner/bnr2.jpg)"
+           style="
+            background-image: url(${pageContext.request.contextPath}/assets/home/images/banner/bnr2.jpg);
+          "
         >
           <div class="container">
             <div class="dlab-bnr-inr-entry">
@@ -118,6 +120,7 @@ contentType="text/html" pageEncoding="UTF-8"%>
                           class="form-control"
                           placeholder="example@gmail.com"
                           type="email"
+                          value="${rememberedEmail != null ? rememberedEmail : ''}"
                         />
                       </div>
                       <div class="form-group">
@@ -128,8 +131,28 @@ contentType="text/html" pageEncoding="UTF-8"%>
                           class="form-control"
                           placeholder="******"
                           type="password"
+                          value="${rememberedPassword != null ? rememberedPassword : ''}"
                         />
                       </div>
+
+<!-- Remember Me Checkbox -->
+<div class="form-group">
+  <div class="form-check">
+    <input 
+      type="checkbox" 
+      name="rememberMe" 
+      id="rememberMe" 
+      class="form-check-input"
+      style="margin-right: 8px;"
+      value="true"
+      ${rememberMeChecked ? 'checked="checked"' : ''}
+    />
+    <label for="rememberMe" class="form-check-label font-weight-600">
+      Ghi nhớ tôi
+    </label>
+  </div>
+</div>
+
                       <div class="text-left">
                        <button class="site-button m-r5 button-lg radius-no">ĐĂNG NHẬP</button>
                         <a

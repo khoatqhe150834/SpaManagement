@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
 package controller;
 
 import dao.CustomerDAO;
@@ -11,22 +7,20 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Customer;
+import org.mindrot.jbcrypt.BCrypt;
 import java.io.IOException;
 import java.sql.Date;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * @author Admin
- */
 @WebServlet(urlPatterns = {"/customer/*"})
 public class CustomerController extends HttpServlet {
     private CustomerDAO customerDAO;
 
     @Override
     public void init() throws ServletException {
-        customerDAO = new CustomerDAO(); // Inject DAO
+        customerDAO = new CustomerDAO();
     }
 
     @Override
@@ -34,19 +28,20 @@ public class CustomerController extends HttpServlet {
             throws ServletException, IOException {
         String pathInfo = req.getPathInfo();
         try {
-            // Default to list if no path is specified
             if (pathInfo == null || pathInfo.equals("/")) {
                 listCustomer(req, resp);
                 return;
             }
 
-            // Remove leading slash and split on remaining slashes
             String[] pathParts = pathInfo.substring(1).split("/");
-            String action = pathParts[0].toLowerCase(); // Convert to lowercase for case-insensitive matching
+            String action = pathParts[0].toLowerCase();
 
             switch (action) {
                 case "list":
                     listCustomer(req, resp);
+                    break;
+                case "create":
+                    showCreateForm(req, resp);
                     break;
                 case "edit":
                     showEditForm(req, resp);
@@ -57,13 +52,16 @@ public class CustomerController extends HttpServlet {
                 case "search":
                     searchCustomer(req, resp);
                     break;
+                case "view": // Thêm chức năng View
+                    viewCustomer(req, resp);
+                    break;
                 default:
                     resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Invalid path: " + pathInfo);
                     break;
             }
         } catch (Exception e) {
             req.setAttribute("error", "An error occurred: " + e.getMessage());
-            req.getRequestDispatcher("/error.jsp").forward(req, resp);
+            req.getRequestDispatcher("/WEB-INF/view/error.jsp").forward(req, resp);
         }
     }
 
@@ -72,8 +70,10 @@ public class CustomerController extends HttpServlet {
             throws ServletException, IOException {
         String action = req.getParameter("action");
         try {
-            switch (action != null ? action : "") {
-                
+            switch (action != null ? action.toLowerCase() : "") {
+                case "create":
+                    createCustomer(req, resp);
+                    break;
                 case "update":
                     updateCustomer(req, resp);
                     break;
@@ -83,17 +83,24 @@ public class CustomerController extends HttpServlet {
             }
         } catch (Exception e) {
             req.setAttribute("error", "An error occurred: " + e.getMessage());
-            req.getRequestDispatcher("/WEB-INF/view/customer/customer-view.jsp").forward(req, resp);
+            req.getRequestDispatcher("/WEB-INF/view/customer/form.jsp").forward(req, resp);
         }
     }
 
-    // ========= CRUD Methods ========= //
-
     private void listCustomer(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        List<Customer> list = customerDAO.findAll();
+        int page = req.getParameter("page") != null ? Integer.parseInt(req.getParameter("page")) : 1;
+        int pageSize = req.getParameter("pageSize") != null ? Integer.parseInt(req.getParameter("pageSize")) : 10;
+        List<Customer> list = customerDAO.findAll(page, pageSize);
+        int totalCustomers = customerDAO.getTotalCustomers();
+        int totalPages = (int) Math.ceil((double) totalCustomers / pageSize);
+
         req.setAttribute("listCustomer", list);
-        req.getRequestDispatcher("/WEB-INF/view/customer/customer-view.jsp").forward(req, resp);
+        req.setAttribute("currentPage", page);
+        req.setAttribute("pageSize", pageSize);
+        req.setAttribute("totalPages", totalPages);
+        req.setAttribute("totalCustomers", totalCustomers);
+        req.getRequestDispatcher("/WEB-INF/view/customer/customer_list.jsp").forward(req, resp);
     }
 
     private void showCreateForm(HttpServletRequest req, HttpServletResponse resp)
@@ -117,7 +124,65 @@ public class CustomerController extends HttpServlet {
         }
     }
 
+    private void viewCustomer(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        try {
+            int id = Integer.parseInt(req.getParameter("id"));
+            Optional<Customer> customerOpt = customerDAO.findById(id);
+            if (customerOpt.isPresent()) {
+                req.setAttribute("customer", customerOpt.get());
+                req.getRequestDispatcher("/WEB-INF/view/customer/view.jsp").forward(req, resp);
+            } else {
+                resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Customer not found");
+            }
+        } catch (NumberFormatException e) {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid customer ID");
+        }
+    }
 
+    private void createCustomer(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        try {
+            String name = req.getParameter("name");
+            String email = req.getParameter("email");
+            String phone = req.getParameter("phone");
+            String password = req.getParameter("password");
+            String gender = req.getParameter("gender");
+            String birthdayStr = req.getParameter("birthday");
+            String address = req.getParameter("address");
+            String isActive = req.getParameter("isActive");
+
+            if (name == null || email == null || password == null || name.trim().isEmpty() || email.trim().isEmpty() || password.trim().isEmpty()) {
+                throw new IllegalArgumentException("Name, email, and password are required");
+            }
+            if (!email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+                throw new IllegalArgumentException("Invalid email format");
+            }
+            if (phone != null && !phone.trim().isEmpty() && !phone.matches("^[0-9]{10,11}$")) {
+                throw new IllegalArgumentException("Invalid phone number format");
+            }
+
+            Customer customer = new Customer();
+            customer.setFullName(name);
+            customer.setEmail(email);
+            customer.setHashPassword(password); // Mật khẩu sẽ được băm trong DAO
+            customer.setPhoneNumber(phone);
+            customer.setGender(gender);
+            customer.setAddress(address);
+            customer.setIsActive(isActive != null && isActive.equals("on"));
+            customer.setRoleId(1); // Giả định RoleConstants.CUSTOMER_ID = 1
+            customer.setLoyaltyPoints(0); // Mặc định
+            if (birthdayStr != null && !birthdayStr.trim().isEmpty()) {
+                customer.setBirthday(Date.valueOf(birthdayStr));
+            }
+
+            customerDAO.save(customer);
+            resp.sendRedirect(req.getContextPath() + "/customer");
+        } catch (IllegalArgumentException e) {
+            req.setAttribute("error", e.getMessage());
+            req.getRequestDispatcher("/WEB-INF/view/customer/form.jsp").forward(req, resp);
+        }
+    }
 
     private void updateCustomer(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
@@ -130,10 +195,17 @@ public class CustomerController extends HttpServlet {
             String birthdayStr = req.getParameter("birthday");
             String address = req.getParameter("address");
             String password = req.getParameter("password");
+            String isActive = req.getParameter("isActive");
+            String loyaltyPointsStr = req.getParameter("loyaltyPoints");
 
-            // Validate inputs
             if (name == null || email == null || name.trim().isEmpty() || email.trim().isEmpty()) {
                 throw new IllegalArgumentException("Name and email are required");
+            }
+            if (!email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+                throw new IllegalArgumentException("Invalid email format");
+            }
+            if (phone != null && !phone.trim().isEmpty() && !phone.matches("^[0-9]{10,11}$")) {
+                throw new IllegalArgumentException("Invalid phone number format");
             }
 
             Optional<Customer> customerOpt = customerDAO.findById(id);
@@ -148,11 +220,12 @@ public class CustomerController extends HttpServlet {
             customer.setPhoneNumber(phone);
             customer.setGender(gender);
             customer.setAddress(address);
+            customer.setIsActive(isActive != null && isActive.equals("on"));
+            customer.setLoyaltyPoints(loyaltyPointsStr != null ? Integer.parseInt(loyaltyPointsStr) : 0);
             if (password != null && !password.trim().isEmpty()) {
-                customer.setHashPassword(password); // In production, hash the password
+                customer.setHashPassword(password); // Mật khẩu sẽ được băm trong DAO
             }
             customer.setUpdatedAt(LocalDateTime.now());
-
             if (birthdayStr != null && !birthdayStr.trim().isEmpty()) {
                 customer.setBirthday(Date.valueOf(birthdayStr));
             } else {
@@ -160,12 +233,12 @@ public class CustomerController extends HttpServlet {
             }
 
             customerDAO.update(customer);
-            resp.sendRedirect("customer");
+            resp.sendRedirect(req.getContextPath() + "/customer");
         } catch (NumberFormatException e) {
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid customer ID");
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid customer ID or loyalty points");
         } catch (IllegalArgumentException e) {
             req.setAttribute("error", e.getMessage());
-            req.getRequestDispatcher("/customer/form.jsp").forward(req, resp);
+            req.getRequestDispatcher("/WEB-INF/view/customer/form.jsp").forward(req, resp);
         }
     }
 
@@ -176,7 +249,7 @@ public class CustomerController extends HttpServlet {
             Optional<Customer> customerOpt = customerDAO.findById(id);
             if (customerOpt.isPresent()) {
                 customerDAO.delete(customerOpt.get());
-                resp.sendRedirect("customer");
+                resp.sendRedirect(req.getContextPath() + "/customer");
             } else {
                 resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Customer not found");
             }
@@ -189,12 +262,18 @@ public class CustomerController extends HttpServlet {
             throws ServletException, IOException {
         String searchType = req.getParameter("searchType");
         String searchValue = req.getParameter("searchValue");
+        int page = req.getParameter("page") != null ? Integer.parseInt(req.getParameter("page")) : 1;
+        int pageSize = req.getParameter("pageSize") != null ? Integer.parseInt(req.getParameter("pageSize")) : 10;
         List<Customer> list;
+        int totalCustomers;
+        int totalPages;
 
         if (searchValue == null || searchValue.trim().isEmpty()) {
-            list = customerDAO.findAll();
+            list = customerDAO.findAll(page, pageSize);
+            totalCustomers = customerDAO.getTotalCustomers();
+            totalPages = (int) Math.ceil((double) totalCustomers / pageSize);
         } else {
-            switch (searchType != null ? searchType : "") {
+            switch (searchType != null ? searchType.toLowerCase() : "") {
                 case "name":
                     list = customerDAO.findByNameContain(searchValue);
                     break;
@@ -205,20 +284,21 @@ public class CustomerController extends HttpServlet {
                     list = customerDAO.findByEmailContain(searchValue);
                     break;
                 default:
-                    list = customerDAO.findAll();
+                    list = customerDAO.findAll(page, pageSize);
                     break;
             }
+            totalCustomers = list.size();
+            totalPages = (int) Math.ceil((double) totalCustomers / pageSize);
+            list = list.subList((page - 1) * pageSize, Math.min(page * pageSize, list.size()));
         }
 
         req.setAttribute("listCustomer", list);
         req.setAttribute("searchType", searchType);
         req.setAttribute("searchValue", searchValue);
-        req.getRequestDispatcher("/WEB-INF/view/customer/customer-view.jsp").forward(req, resp);
+        req.setAttribute("currentPage", page);
+        req.setAttribute("pageSize", pageSize);
+        req.setAttribute("totalPages", totalPages);
+        req.setAttribute("totalCustomers", totalCustomers);
+        req.getRequestDispatcher("/WEB-INF/view/customer/customer_list.jsp").forward(req, resp);
     }
-    
-    
-    
-    
-    
-    
 }

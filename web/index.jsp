@@ -352,7 +352,7 @@
                   riêng biệt nhất.
                 </p> <%-- Already Vietnamese --%>
                 <a
-                  href="about-us.html"
+                  href="${pageContext.request.contextPath}/spa-info"
                   class="site-button radius-no button-effect1"
                   >Xem Thêm<span></span
                 ></a> <%-- Already Vietnamese --%>
@@ -970,7 +970,8 @@
         </div>
         </div>
       <jsp:include page="/WEB-INF/view/common/home/footer.jsp"></jsp:include>
-      <button class="scroltop fa fa-chevron-up"></button>
+      <button class="scroltop">↑</button>
+
     </div>
     <jsp:include page="/WEB-INF/view/common/home/js.jsp"></jsp:include>
 

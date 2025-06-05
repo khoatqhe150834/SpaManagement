@@ -204,10 +204,10 @@ public class PasswordResetTokenDAO {
       System.out.println("=== All PasswordResetTokenDAO Tests Completed Successfully! ===");
 
     } catch (SQLException e) {
-      System.err.println("❌ Database error during testing: " + e.getMessage());
+      System.err.println("Database error during testing: " + e.getMessage());
       e.printStackTrace();
     } catch (Exception e) {
-      System.err.println("❌ Unexpected error during testing: " + e.getMessage());
+      System.err.println("Unexpected error during testing: " + e.getMessage());
       e.printStackTrace();
     }
   }
