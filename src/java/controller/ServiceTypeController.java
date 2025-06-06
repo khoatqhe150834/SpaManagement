@@ -94,9 +94,11 @@ public class ServiceTypeController extends HttpServlet {
             int n = dao.deactiveById(id);
 
             if (n == 1) {
-                request.setAttribute("deactiveDone", "Deactivate Service Type (Id = " + id + ") done!");
+                request.setAttribute("toastType", "success");
+                request.setAttribute("toastMessage", "Deactivate Service Type (Id = " + id + ") done!");
             } else {
-                request.setAttribute("deactiveDone", "Failed to deactivate service type (Id = " + id + ") because this service type is associated with an order.");
+                request.setAttribute("toastType", "error");
+                request.setAttribute("toastMessage", "Failed to deactivate Service Type (Id = " + id + ") because it is associated with an order.");
             }
 
             // 👇 Gọi lại logic phân trang y như "list-all"

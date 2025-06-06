@@ -78,12 +78,8 @@
                     </a>
                 </div>
 
-                <c:if test="${deactiveDone ne null}">
-                    <h4 class="font-weight-semi-bold text-uppercase mb-3 text-center">
-                        ${deactiveDone}
-                    </h4>
-                </c:if>
-                            
+
+
                 <c:if test="${not empty serviceTypes}">
                     <div class="card-body p-24">
                         <div class="table-responsive scroll-sm">
@@ -227,12 +223,63 @@
         <!-- JS here -->
         <jsp:include page="/WEB-INF/view/common/admin/js.jsp"></jsp:include>
 
+        <c:if test="${not empty toastMessage}">
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    const toast = document.createElement("div");
+                    toast.textContent = "${toastMessage}";
+                    toast.className = "toast-message ${toastType eq 'success' ? 'toast-success' : 'toast-error'}";
+
+                    document.body.appendChild(toast);
+
+                    setTimeout(() => {
+                        toast.classList.add("show");
+                    }, 100); // Show after small delay
+
+                    setTimeout(() => {
+                        toast.classList.remove("show");
+                        setTimeout(() => toast.remove(), 300); // remove after transition
+                    }, 4000); // auto hide after 4s
+                });
+            </script>
+            <style>
+                .toast-message {
+                    position: fixed;
+                    top: 20px;
+                    right: -300px;
+                    z-index: 9999;
+                    padding: 12px 20px;
+                    border-radius: 8px;
+                    font-weight: 500;
+                    color: white;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                    transition: right 0.3s ease;
+                    max-width: 300px;
+                }
+
+                .toast-success {
+                    background-color: #4CAF50;
+                }
+
+                .toast-error {
+                    background-color: #f44336;
+                }
+
+                .toast-message.show {
+                    right: 20px;
+                }
+            </style>
+        </c:if>
+
+
 
         <script>
             function confirmDelete(id) {
                 return confirm("Are you sure you want to deactive this Service Type (ID = " + id + ") ?");
             }
         </script>
+        
+
     </body>
 
     <!-- Mirrored from wowdash.wowtheme7.com/demo/users-list.html by HTTrack Website Copier/3.x [XR&CO'2014], Mon, 03 Feb 2025 04:44:16 GMT -->
