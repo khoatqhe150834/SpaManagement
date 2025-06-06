@@ -235,6 +235,54 @@ public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
         return 0;
     }
 
+    public List<ServiceType> searchByKeywordAndStatus(String keyword, String status) {
+        List<ServiceType> serviceTypes = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder("SELECT * FROM Service_Types WHERE 1=1");
+
+        // Tìm theo từ khóa trong name hoặc description
+        boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
+        if (hasKeyword) {
+            sql.append(" AND (LOWER(name) LIKE ? OR LOWER(description) LIKE ?)");
+        }
+
+        // Tìm theo trạng thái
+        if ("active".equalsIgnoreCase(status)) {
+            sql.append(" AND is_active = TRUE");
+        } else if ("inactive".equalsIgnoreCase(status)) {
+            sql.append(" AND is_active = FALSE");
+        }
+
+        try (Connection conn = DBContext.getConnection(); PreparedStatement stm = conn.prepareStatement(sql.toString())) {
+
+            int index = 1;
+            if (hasKeyword) {
+                String kw = "%" + keyword.toLowerCase() + "%";
+                stm.setString(index++, kw);
+                stm.setString(index++, kw);
+            }
+
+            try (ResultSet rs = stm.executeQuery()) {
+                while (rs.next()) {
+                    ServiceType st = new ServiceType();
+                    st.setServiceTypeId(rs.getInt("service_type_id"));
+                    st.setName(rs.getString("name"));
+                    st.setDescription(rs.getString("description"));
+                    st.setImageUrl(rs.getString("image_url"));
+                    st.setActive(rs.getBoolean("is_active"));
+                    st.setCreatedAt(rs.getTimestamp("created_at"));
+                    st.setUpdatedAt(rs.getTimestamp("updated_at"));
+                    serviceTypes.add(st);
+                }
+            }
+
+        } catch (SQLException ex) {
+            Logger.getLogger(ServiceTypeDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return serviceTypes;
+    }
+
     //    public static void main(String[] args) {
 //        ServiceTypeDAO dao = new ServiceTypeDAO();
 //
