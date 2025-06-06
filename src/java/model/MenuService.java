@@ -86,7 +86,7 @@ public class MenuService {
 
     menuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/profile", "fa fa-user"));
     menuItems.add(new MenuItem("Bảng điều khiển", contextPath + "/admin/dashboard", "fa fa-tachometer"));
-    menuItems.add(new MenuItem("Quản lý người dùng", contextPath + "/admin/users", "fa fa-users"));
+    menuItems.add(new MenuItem("Quản lý người dùng", contextPath + "/customer/list", "fa fa-users"));
     menuItems.add(new MenuItem("Quản lý dịch vụ", contextPath + "/admin/services", "fa fa-tasks"));
     menuItems.add(new MenuItem("Báo cáo hệ thống", contextPath + "/admin/reports", "fa fa-bar-chart"));
     menuItems.add(new MenuItem("Cài đặt hệ thống", contextPath + "/admin/settings", "fa fa-cog"));
