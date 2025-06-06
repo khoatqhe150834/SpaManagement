@@ -88,6 +88,29 @@ public class ServiceTypeController extends HttpServlet {
             request.getRequestDispatcher(SERVICE_TYPE_URL).forward(request, response);
         }
 
+        if (service.equals("searchByKeywordAndStatus")) {
+            String keyword = request.getParameter("keyword");
+            String status = request.getParameter("status"); // "active", "inactive", ""
+
+            ServiceTypeDAO dao = new ServiceTypeDAO();
+            List<ServiceType> serviceTypes = dao.searchByKeywordAndStatus(keyword, status);
+
+            if (serviceTypes == null || serviceTypes.isEmpty()) {
+                request.setAttribute("notFoundServiceType", "No matching service types found.");
+                serviceTypes = dao.findAll(); // fallback
+            }
+
+            request.setAttribute("keyword", keyword);
+            request.setAttribute("status", status);
+            request.setAttribute("serviceTypes", serviceTypes);
+            request.setAttribute("limit", serviceTypes.size()); // optional
+            request.setAttribute("currentPage", 1);
+            request.setAttribute("totalPages", 1);
+            request.setAttribute("totalEntries", serviceTypes.size());
+
+            request.getRequestDispatcher(SERVICE_TYPE_URL).forward(request, response);
+        }
+
         if (service.equals("deactiveById")) {
             int id = Integer.parseInt(request.getParameter("id"));
             ServiceTypeDAO dao = new ServiceTypeDAO();
