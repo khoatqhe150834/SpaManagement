@@ -20,7 +20,7 @@ import validation.RegisterValidator;
  *
  * @author quang
  */
-@WebServlet(name = "RegisterController", urlPatterns = { "/register" })
+@WebServlet(name = "RegisterController", urlPatterns = {"/register"})
 public class RegisterController extends HttpServlet {
 
     final CustomerDAO customerDAO;
@@ -33,10 +33,10 @@ public class RegisterController extends HttpServlet {
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
      *
-     * @param request  servlet request
+     * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException      if an I/O error occurs
+     * @throws IOException if an I/O error occurs
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -60,10 +60,10 @@ public class RegisterController extends HttpServlet {
     /**
      * Handles the HTTP <code>GET</code> method.
      *
-     * @param request  servlet request
+     * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException      if an I/O error occurs
+     * @throws IOException if an I/O error occurs
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -77,10 +77,10 @@ public class RegisterController extends HttpServlet {
     /**
      * Handles the HTTP <code>POST</code> method.
      *
-     * @param request  servlet request
+     * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException      if an I/O error occurs
+     * @throws IOException if an I/O error occurs
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -95,7 +95,7 @@ public class RegisterController extends HttpServlet {
 
         // Create validator instance
         RegisterValidator validator = new RegisterValidator();
-        if (fullName == null || fullName.length() < 6) {
+        if (fullName == null || fullName.isBlank() || fullName.isEmpty() || fullName.length() < 6) {
             request.setAttribute("error", "Họ tên phải có ít nhất 6 ký tự.");
             request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
             return;
@@ -145,7 +145,7 @@ public class RegisterController extends HttpServlet {
 
         // create new customer to store form data - pass plain password, it will be hashed in DAO
         Customer newCustomer = new Customer(fullName, email, password, phone);
-        
+
         // Set default values
         newCustomer.setIsActive(true);
         newCustomer.setLoyaltyPoints(0);
