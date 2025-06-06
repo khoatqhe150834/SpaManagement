@@ -77,6 +77,13 @@
                         Add New Service Type
                     </a>
                 </div>
+
+                <c:if test="${deactiveDone ne null}">
+                    <h4 class="font-weight-semi-bold text-uppercase mb-3 text-center">
+                        ${deactiveDone}
+                    </h4>
+                </c:if>
+                            
                 <c:if test="${not empty serviceTypes}">
                     <div class="card-body p-24">
                         <div class="table-responsive scroll-sm">

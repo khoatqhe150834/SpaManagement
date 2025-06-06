@@ -91,15 +91,29 @@ public class ServiceTypeController extends HttpServlet {
         if (service.equals("deactiveById")) {
             int id = Integer.parseInt(request.getParameter("id"));
             ServiceTypeDAO dao = new ServiceTypeDAO();
-            int n = dao.deactivateById(id);
+            int n = dao.deactiveById(id);
+
             if (n == 1) {
-            request.setAttribute("deleteDone", "Deactivate Service Type (Id = " + id +") done!");
+                request.setAttribute("deactiveDone", "Deactivate Service Type (Id = " + id + ") done!");
             } else {
-                request.setAttribute("deleteDone", "Failed to deactive service type (Id  = " + id + ") because this service type is associated with an order.");
+                request.setAttribute("deactiveDone", "Failed to deactivate service type (Id = " + id + ") because this service type is associated with an order.");
             }
-            
-            List<ServiceType> serviceTypes = dao.findAll();
+
+            // 👇 Gọi lại logic phân trang y như "list-all"
+            int page = 1;
+            int limit = 5;
+            int offset = (page - 1) * limit;
+
+            List<ServiceType> serviceTypes = dao.findPaginated(offset, limit);
+            int totalRecords = dao.countAll();
+            int totalPages = (int) Math.ceil((double) totalRecords / limit);
+
+            request.setAttribute("limit", limit);
             request.setAttribute("serviceTypes", serviceTypes);
+            request.setAttribute("currentPage", page);
+            request.setAttribute("totalPages", totalPages);
+            request.setAttribute("totalEntries", totalRecords);
+
             request.getRequestDispatcher(SERVICE_TYPE_URL).forward(request, response);
         }
 

@@ -179,17 +179,16 @@ public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
         return serviceTypes;
     }
 
-    public int deactivateById(int id) {
-        int n = 0;
+    public int deactiveById(int id) {
         String sql = "UPDATE service_types SET is_active = 0 WHERE service_type_id = ?";
-
         try (Connection conn = DBContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, id);
-            stmt.executeUpdate();
+            int affectedRows = stmt.executeUpdate(); // ✅ Lấy số dòng bị ảnh hưởng
+            return affectedRows; // ✅ Trả về giá trị đúng
         } catch (SQLException ex) {
             Logger.getLogger(ServiceTypeDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return n;
+        return 0; // nếu lỗi
     }
 
     public List<ServiceType> findPaginated(int offset, int limit) {
