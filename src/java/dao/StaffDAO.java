@@ -19,7 +19,7 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
 
     @Override
     public <S extends Staff> S save(S entity) {
-        String sql = "INSERT INTO therapists(user_id, service_type_id, bio, availability_status, years_of_experience, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO therapists(user_id, service_type_id, bio, availability_status, years_of_experience) VALUES (?, ?, ?, ?, ?)";
         try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, entity.getUser().getUserId());
             if (entity.getServiceType() != null) {
@@ -28,10 +28,8 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
                 ps.setNull(2, Types.INTEGER);
             }
             ps.setString(3, entity.getBio());
-            ps.setString(4, entity.getAvailabilityStatus() != null ? entity.getAvailabilityStatus().name() : null);
+            ps.setString(4, entity.getAvailabilityStatus().name());
             ps.setInt(5, entity.getYearsOfExperience());
-            ps.setTimestamp(6, entity.getCreatedAt());
-            ps.setTimestamp(7, entity.getUpdatedAt());
             ps.executeUpdate();
             return entity;
         } catch (SQLException e) {
@@ -42,12 +40,25 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
 
     @Override
     public Optional<Staff> findById(Integer id) {
-        String sql = "SELECT * FROM therapists WHERE user_id = ?";
+        String sql = "SELECT t.*, u.full_name, st.name AS service_type_name "
+                + "FROM therapists t "
+                + "JOIN users u ON t.user_id = u.user_id "
+                + "LEFT JOIN service_types st ON t.service_type_id = st.service_type_id "
+                + "WHERE t.user_id = ?";
         try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return Optional.of(mapResultSetToStaff(rs));
+                    Staff staff = mapResultSetToStaff(rs);
+                    User user = new User();
+                    user.setFullName(rs.getString("full_name"));
+                    staff.setUser(user);
+
+                    ServiceType serviceType = new ServiceType();
+                    serviceType.setName(rs.getString("service_type_name"));
+                    staff.setServiceType(serviceType);
+
+                    return Optional.of(staff);
                 }
             }
         } catch (SQLException e) {
@@ -58,16 +69,34 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
 
     @Override
     public List<Staff> findAll() {
-        List<Staff> list = new ArrayList<>();
-        String sql = "SELECT * FROM therapists";
+        List<Staff> staffList = new ArrayList<>();
+        String sql = "SELECT t.*, u.full_name, st.name AS service_type_name "
+                + "FROM therapists t "
+                + "JOIN users u ON t.user_id = u.user_id "
+                + "LEFT JOIN service_types st ON t.service_type_id = st.service_type_id";
         try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                list.add(mapResultSetToStaff(rs));
+                Staff staff = new Staff();
+                staff.setUser(new User());
+                staff.getUser().setUserId(rs.getInt("user_id"));
+                staff.getUser().setFullName(rs.getString("full_name"));
+
+                ServiceType serviceType = new ServiceType();
+                serviceType.setName(rs.getString("service_type_name"));
+                staff.setServiceType(serviceType);
+
+                staff.setBio(rs.getString("bio"));
+                staff.setAvailabilityStatus(Staff.AvailabilityStatus.valueOf(rs.getString("availability_status")));
+                staff.setYearsOfExperience(rs.getInt("years_of_experience"));
+                staff.setCreatedAt(rs.getTimestamp("created_at"));
+                staff.setUpdatedAt(rs.getTimestamp("updated_at"));
+
+                staffList.add(staff);
             }
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error finding all staff", e);
+            LOGGER.log(Level.SEVERE, "Error fetching all staff", e);
         }
-        return list;
+        return staffList;
     }
 
     @Override
@@ -97,19 +126,27 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
 
     @Override
     public <S extends Staff> S update(S entity) {
-        String sql = "UPDATE therapists SET service_type_id = ?, bio = ?, availability_status = ?, years_of_experience = ?, updated_at = ? WHERE user_id = ?";
+        // Câu lệnh SQL chỉ cần 5 tham số (service_type_id, bio, availability_status, years_of_experience, user_id)
+        String sql = "UPDATE therapists SET service_type_id = ?, bio = ?, availability_status = ?, years_of_experience = ? WHERE user_id = ?";
         try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            if (entity.getServiceType() != null) {
-                ps.setInt(1, entity.getServiceType().getServiceTypeId());
-            } else {
-                ps.setNull(1, Types.INTEGER);
-            }
+            // Kiểm tra xem entity.getServiceType() có khác null không, nếu không sẽ set null cho service_type_id
+            ps.setObject(1, entity.getServiceType() != null ? entity.getServiceType().getServiceTypeId() : null, Types.INTEGER);
             ps.setString(2, entity.getBio());
-            ps.setString(3, entity.getAvailabilityStatus() != null ? entity.getAvailabilityStatus().name() : null);
+            ps.setString(3, entity.getAvailabilityStatus().name());
             ps.setInt(4, entity.getYearsOfExperience());
-            ps.setTimestamp(5, entity.getUpdatedAt());
-            ps.setInt(6, entity.getUser().getUserId());
-            ps.executeUpdate();
+            // Dùng userId để cập nhật dòng tương ứng với userId trong bảng therapists
+            ps.setInt(5, entity.getUser().getUserId());
+
+            // Thực thi câu lệnh UPDATE và trả về số dòng ảnh hưởng
+            int rowsAffected = ps.executeUpdate();
+
+            // Kiểm tra nếu không có dòng nào bị ảnh hưởng (tức là không cập nhật được)
+            if (rowsAffected > 0) {
+                System.out.println("Staff updated successfully.");
+            } else {
+                System.out.println("No rows updated, check user_id.");
+            }
+
             return entity;
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error updating staff", e);
@@ -117,48 +154,62 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
         }
     }
 
-    @Override
-    public void delete(Staff entity) {
-        if (entity != null && entity.getUser() != null) {
-            deleteById(entity.getUser().getUserId());
-        }
-    }
-
-    // Helper method to map ResultSet to Staff object
     private Staff mapResultSetToStaff(ResultSet rs) throws SQLException {
         Staff staff = new Staff();
-
-        User user = new User();
-        user.setUserId(rs.getInt("user_id"));
-        staff.setUser(user);
-
-        int serviceTypeId = rs.getInt("service_type_id");
-        if (rs.wasNull()) {
-            staff.setServiceType(null);
-        } else {
-            ServiceType serviceType = new ServiceType();
-            serviceType.setServiceTypeId(serviceTypeId);
-            staff.setServiceType(serviceType);
-        }
-
+        staff.setUser(new User());
+        staff.getUser().setUserId(rs.getInt("user_id"));
         staff.setBio(rs.getString("bio"));
-
-        String availabilityStr = rs.getString("availability_status");
-        AvailabilityStatus availabilityStatus = availabilityStr != null ? AvailabilityStatus.valueOf(availabilityStr) : null;
-        staff.setAvailabilityStatus(availabilityStatus);
-
+        staff.setAvailabilityStatus(Staff.AvailabilityStatus.valueOf(rs.getString("availability_status")));
         staff.setYearsOfExperience(rs.getInt("years_of_experience"));
         staff.setCreatedAt(rs.getTimestamp("created_at"));
         staff.setUpdatedAt(rs.getTimestamp("updated_at"));
-
         return staff;
     }
 
-    public static void main(String[] args) {
-        StaffDAO staffDAO = new StaffDAO();
-        List<Staff> staffList = staffDAO.findAll();
-        for (Staff staff : staffList) {
-            System.out.println(staff);
-        }
+    @Override
+    public void delete(Staff entity) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
+
+    public List<Staff> searchByNameOrServiceType(String searchQuery) {
+    List<Staff> staffList = new ArrayList<>();
+    String sql = "SELECT t.*, u.full_name, st.name AS service_type_name "
+               + "FROM therapists t "
+               + "JOIN users u ON t.user_id = u.user_id "
+               + "LEFT JOIN service_types st ON t.service_type_id = st.service_type_id "
+               + "WHERE u.full_name LIKE ? OR st.name LIKE ?";
+
+    try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+        String searchPattern = "%" + searchQuery + "%"; // Tạo mẫu tìm kiếm
+        ps.setString(1, searchPattern);
+        ps.setString(2, searchPattern);
+
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Staff staff = new Staff();
+                staff.setUser(new User());
+                staff.getUser().setUserId(rs.getInt("user_id"));
+                staff.getUser().setFullName(rs.getString("full_name"));
+
+                ServiceType serviceType = new ServiceType();
+                serviceType.setName(rs.getString("service_type_name"));
+                staff.setServiceType(serviceType);
+
+                staff.setBio(rs.getString("bio"));
+                staff.setAvailabilityStatus(Staff.AvailabilityStatus.valueOf(rs.getString("availability_status")));
+                staff.setYearsOfExperience(rs.getInt("years_of_experience"));
+                staff.setCreatedAt(rs.getTimestamp("created_at"));
+                staff.setUpdatedAt(rs.getTimestamp("updated_at"));
+
+                staffList.add(staff);
+            }
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+
+    return staffList;
+}
+
+
 }
