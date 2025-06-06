@@ -34,3 +34,15 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css
     margin-top: 0.25em;
     display: block;
 }
+
+.form-group .loading {
+    color: #ffa500 !important;
+    font-size: 0.95em;
+    margin-top: 0.25em;
+    display: block;
+}
+
+.form-group input.is-loading {
+    border-color: #ffa500 !important;
+    box-shadow: 0 0 0 1px #ffa500;
+}
