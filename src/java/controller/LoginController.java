@@ -134,6 +134,9 @@ public class LoginController extends HttpServlet {
 
         if (email == null || email.isEmpty() || password == null || password.isEmpty()) {
             request.setAttribute("error", "Các trường không được để trống.");
+            // Preserve attempted values
+            request.setAttribute("attemptedEmail", email != null ? email : "");
+            request.setAttribute("attemptedPassword", password != null ? password : "");
             request.getRequestDispatcher("/WEB-INF/view/auth/login.jsp").forward(request, response);
             return;
         }
@@ -177,6 +180,9 @@ public class LoginController extends HttpServlet {
 
         // If both logins failed
         request.setAttribute("error", "Sai mật khẩu hoặc tài khoản. Vui lòng thử lại!");
+        // Preserve attempted values so user doesn't have to retype
+        request.setAttribute("attemptedEmail", email);
+        request.setAttribute("attemptedPassword", password);
         request.getRequestDispatcher("/WEB-INF/view/auth/login.jsp").forward(request, response);
     }
 
