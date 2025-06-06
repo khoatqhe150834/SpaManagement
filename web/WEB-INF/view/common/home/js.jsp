@@ -37,6 +37,8 @@
 <!-- SORTCODE FUCTIONS  -->
 <script src="${pageContext.request.contextPath}/assets/home/js/dz.ajax.js"></script>
 <!-- CONTACT JS  -->
+<script src="${pageContext.request.contextPath}/assets/home/js/header-custom.js"></script>
+<!-- HEADER CUSTOM JS -->
 <script src="${pageContext.request.contextPath}/assets/home/plugins/perfect-scrollbar/js/perfect-scrollbar.min.js"></script>
 
 <!-- revolution JS FILES -->

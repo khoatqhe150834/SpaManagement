@@ -17,6 +17,9 @@
         <!-- Include theme stylesheets like index.jsp -->
         <jsp:include page="/WEB-INF/view/common/home/stylesheet.jsp"></jsp:include>
         
+        <!-- Font Awesome CDN fallback -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        
         <style>
             .profile-container {
                 max-width: 600px;
@@ -26,6 +29,15 @@
                 border-radius: 10px;
                 box-shadow: 0 5px 15px rgba(0,0,0,0.1);
                 font-family: 'Inter', sans-serif !important;
+                position: relative;
+                z-index: 1;
+            }
+            
+            /* Ensure proper spacing with header/footer */
+            .page-content {
+                min-height: calc(100vh - 200px);
+                padding-top: 50px;
+                padding-bottom: 50px;
             }
             
             .profile-header {
@@ -80,11 +92,61 @@
             * {
                 font-family: 'Inter', sans-serif !important;
             }
+            
+            /* Fix Font Awesome icons - override Inter font for icons */
+            .fa,
+            i[class^="fa-"], 
+            i[class*=" fa-"],
+            .avatar-dropdown i,
+            .header i {
+                font-family: 'FontAwesome' !important;
+                font-weight: normal !important;
+                font-style: normal !important;
+                text-decoration: none !important;
+                display: inline-block !important;
+                width: auto !important;
+                line-height: 1 !important;
+                vertical-align: baseline !important;
+                speak: none !important;
+                text-rendering: auto !important;
+                -webkit-font-smoothing: antialiased !important;
+                -moz-osx-font-smoothing: grayscale !important;
+            }
+            
+            /* Force Font Awesome to work */
+            .fa:before,
+            i[class^="fa-"]:before, 
+            i[class*=" fa-"]:before {
+                font-family: 'FontAwesome' !important;
+                font-weight: normal !important;
+                display: inline-block !important;
+            }
+            
+            /* Test icon visibility */
+            .avatar-dropdown .fa {
+                color: #333 !important;
+                font-size: 14px !important;
+                margin-right: 8px !important;
+                width: 16px !important;
+                text-align: center !important;
+            }
+            
+            /* Debug: Add a test icon */
+            .test-icon:before {
+                content: "\f007" !important; /* fa-user */
+                font-family: 'FontAwesome' !important;
+                font-weight: normal !important;
+                color: red !important;
+            }
         </style>
     </head>
 
-    <body>
-        <div class="profile-container">
+    <body id="bg">
+        <div class="page-wraper">
+            <div id="loading-area"></div>
+            <jsp:include page="/WEB-INF/view/common/home/header.jsp"></jsp:include>
+            <div class="page-content bg-white">
+                <div class="profile-container">
             
             <!-- Profile Header -->
             <div class="profile-header">
@@ -98,6 +160,10 @@
                         </c:otherwise>
                     </c:choose>
                 </h1>
+                <!-- Debug test icon -->
+                <div style="color: white; margin-top: 10px;">
+                    Test Icon: <i class="fa fa-user test-icon"></i> <span class="test-icon"></span>
+                </div>
             </div>
             
             <!-- Basic Information -->
@@ -200,6 +266,11 @@
                 class="site-button   radius-no">QUAY VỀ TRANG CHỦ</button>
             </div>
             
+                </div>
+            </div>
+            <jsp:include page="/WEB-INF/view/common/home/footer.jsp"></jsp:include>
+            <button class="scroltop">↑</button>
         </div>
+        <jsp:include page="/WEB-INF/view/common/home/js.jsp"></jsp:include>
     </body>
 </html>

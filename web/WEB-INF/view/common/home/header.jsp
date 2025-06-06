@@ -5,89 +5,7 @@
 <%@ page import="java.util.List" %>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 
-<style>
-  /* Basic styling for the avatar and dropdown */
-  /* You should integrate this with your theme's CSS */
-  .user-avatar-container {
-    position: relative;
-    display: inline-block; /* Aligns with the button */
-    vertical-align: middle; /* Aligns with the button */
-    margin-left: 15px; /* Space between button and avatar */
-  }
-
-  .user-avatar-button {
-    background: transparent;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-    display: block; /* Ensures image is block for consistent behavior */
-  }
-
-  .user-avatar-button img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid #fff; /* Example border, adjust to your theme */
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  }
-
-  .avatar-dropdown {
-    display: none; /* Hidden by default */
-    position: absolute;
-    right: 0;
-    top: 100%;
-    margin-top: 8px; /* Space below avatar */
-    background-color: #ffffff;
-    border: 1px solid #e0e0e0; /* Theme-like border */
-    border-radius: 4px; /* Rounded corners */
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    z-index: 1050; /* Ensure it's above other elements, Bootstrap's dropdown z-index is often 1000+ */
-    min-width: 180px; /* Minimum width for dropdown items */
-    padding-top: 5px;
-    padding-bottom: 5px;
-  }
-
-  .avatar-dropdown a {
-    display: block;
-    padding: 8px 15px;
-    color: #333; /* Standard text color */
-    text-decoration: none;
-    font-size: 14px;
-    white-space: nowrap;
-  }
-
-  .avatar-dropdown a:hover {
-    background-color: #f5f5f5; /* Hover effect */
-    color: #000;
-  }
-
-  .avatar-dropdown a i {
-    margin-right: 8px;
-    width: 16px;
-    text-align: center;
-  }
-
-  .avatar-dropdown .dropdown-divider {
-    height: 1px;
-    background-color: #eee;
-    margin: 5px 0;
-  }
-
-  .avatar-dropdown .dropdown-header {
-    padding: 8px 15px;
-    font-weight: bold;
-    border-bottom: 1px solid #eee;
-    margin-bottom: 5px;
-    color: #333;
-  }
-
-  /* Ensure the extra-cell items are aligned nicely */
-  .extra-nav .extra-cell {
-    display: flex;
-    align-items: center;
-  }
-</style>
+<%-- Header-specific CSS has been moved to /assets/home/css/header-custom.css for better maintainability --%>
 
 <header class="site-header header header-transparent mo-left spa-header">
   <div class="sticky-header main-bar-wraper navbar-expand-lg">
@@ -148,8 +66,8 @@
                             </c:forEach>
                         </div>
                     </div>
-                    <button type="button" class="user-notification-button" style="background: transparent; border: none; margin-left: 10px; position: relative;">
-                        <i class="fa fa-bell" style="font-size: 22px; color: #586BB4;"></i>
+                    <button type="button" class="user-notification-button">
+                        <i class="fa fa-bell"></i>
                     </button>
                 </c:when>
                 
@@ -231,8 +149,8 @@
                             </c:forEach>
                         </div>
                     </div>
-                    <button type="button" class="user-notification-button" style="background: transparent; border: none; margin-left: 10px; position: relative;">
-                        <i class="fa fa-bell" style="font-size: 22px; color: #586BB4;"></i>
+                    <button type="button" class="user-notification-button">
+                        <i class="fa fa-bell"></i>
                     </button>
                 </c:when>
                 
@@ -294,66 +212,4 @@
   </div>
   </header>
 
-<script>
-  // JavaScript for Avatar Dropdown Toggle
-  document.addEventListener('DOMContentLoaded', function() {
-    // Handle Customer Avatar Dropdown
-    const customerAvatarButton = document.getElementById('customerAvatarButton');
-    const customerAvatarDropdown = document.getElementById('customerAvatarDropdown');
-
-    if (customerAvatarButton && customerAvatarDropdown) {
-      customerAvatarButton.addEventListener('click', function(event) {
-        event.stopPropagation();
-        const isExpanded = customerAvatarButton.getAttribute('aria-expanded') === 'true';
-        customerAvatarDropdown.style.display = isExpanded ? 'none' : 'block';
-        customerAvatarButton.setAttribute('aria-expanded', !isExpanded);
-      });
-    }
-
-    // Handle User Avatar Dropdown
-    const userAvatarButton = document.getElementById('userAvatarButton');
-    const userAvatarDropdown = document.getElementById('userAvatarDropdown');
-
-    if (userAvatarButton && userAvatarDropdown) {
-      userAvatarButton.addEventListener('click', function(event) {
-        event.stopPropagation();
-        const isExpanded = userAvatarButton.getAttribute('aria-expanded') === 'true';
-        userAvatarDropdown.style.display = isExpanded ? 'none' : 'block';
-        userAvatarButton.setAttribute('aria-expanded', !isExpanded);
-      });
-    }
-
-    // Close dropdown if clicked outside (for both customer and user)
-    document.addEventListener('click', function(event) {
-      // Close customer dropdown
-      if (customerAvatarDropdown && customerAvatarDropdown.style.display === 'block' && 
-          !customerAvatarButton.contains(event.target) && 
-          !customerAvatarDropdown.contains(event.target)) {
-        customerAvatarDropdown.style.display = 'none';
-        customerAvatarButton.setAttribute('aria-expanded', 'false');
-      }
-      
-      // Close user dropdown
-      if (userAvatarDropdown && userAvatarDropdown.style.display === 'block' && 
-          !userAvatarButton.contains(event.target) && 
-          !userAvatarDropdown.contains(event.target)) {
-        userAvatarDropdown.style.display = 'none';
-        userAvatarButton.setAttribute('aria-expanded', 'false');
-      }
-    });
-
-    // Close dropdown with Escape key (for both customer and user)
-    document.addEventListener('keydown', function(event) {
-      if (event.key === 'Escape') {
-        if (customerAvatarDropdown && customerAvatarDropdown.style.display === 'block') {
-          customerAvatarDropdown.style.display = 'none';
-          customerAvatarButton.setAttribute('aria-expanded', 'false');
-        }
-        if (userAvatarDropdown && userAvatarDropdown.style.display === 'block') {
-          userAvatarDropdown.style.display = 'none';
-          userAvatarButton.setAttribute('aria-expanded', 'false');
-        }
-      }
-    });
-  });
-</script>
+<%-- Header JavaScript has been moved to /assets/home/js/header-custom.js for better maintainability --%>

@@ -18,6 +18,11 @@
   type="text/css"
   href="${pageContext.request.contextPath}/assets/home/css/custom-fonts.css"
 />
+<link
+  rel="stylesheet"
+  type="text/css"
+  href="${pageContext.request.contextPath}/assets/home/css/header-custom.css"
+/>
 
 <link
   rel="stylesheet"

@@ -1,0 +1,197 @@
+/* ===================================================
+   Header Custom Styles - User Avatar & Dropdown
+   =================================================== */
+
+/* Basic styling for the avatar and dropdown */
+.user-avatar-container {
+  position: relative;
+  display: inline-block; /* Aligns with the button */
+  vertical-align: middle; /* Aligns with the button */
+  margin-left: 15px; /* Space between button and avatar */
+}
+
+.user-avatar-button {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: block; /* Ensures image is block for consistent behavior */
+}
+
+.user-avatar-button img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff; /* Example border, adjust to your theme */
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  transition: box-shadow 0.3s ease;
+}
+
+.user-avatar-button:hover img {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* Avatar Dropdown Styles */
+.avatar-dropdown {
+  display: none; /* Hidden by default */
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 8px; /* Space below avatar */
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0; /* Theme-like border */
+  border-radius: 4px; /* Rounded corners */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 1050; /* Ensure it's above other elements, Bootstrap's dropdown z-index is often 1000+ */
+  min-width: 180px; /* Minimum width for dropdown items */
+  padding-top: 5px;
+  padding-bottom: 5px;
+  animation: fadeInDropdown 0.2s ease-out;
+}
+
+@keyframes fadeInDropdown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.avatar-dropdown a {
+  display: block;
+  padding: 8px 15px;
+  color: #333; /* Standard text color */
+  text-decoration: none;
+  font-size: 14px;
+  white-space: nowrap;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.avatar-dropdown a:hover {
+  background-color: #f5f5f5; /* Hover effect */
+  color: #000;
+  text-decoration: none;
+}
+
+.avatar-dropdown a i {
+  margin-right: 8px;
+  width: 16px;
+  text-align: center;
+  font-family: 'FontAwesome' !important;
+  font-weight: normal !important;
+  font-style: normal !important;
+}
+
+.avatar-dropdown .dropdown-divider {
+  height: 1px;
+  background-color: #eee;
+  margin: 5px 0;
+}
+
+.avatar-dropdown .dropdown-header {
+  padding: 8px 15px;
+  font-weight: bold;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 5px;
+  color: #333;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Ensure the extra-cell items are aligned nicely */
+.extra-nav .extra-cell {
+  display: flex;
+  align-items: center;
+}
+
+/* Notification Button Styles */
+.user-notification-button {
+  background: transparent;
+  border: none;
+  margin-left: 10px;
+  position: relative;
+  padding: 8px;
+  border-radius: 50%;
+  transition: background-color 0.3s ease;
+}
+
+.user-notification-button:hover {
+  background-color: rgba(88, 107, 180, 0.1);
+}
+
+.user-notification-button i {
+  font-size: 22px;
+  color: #586BB4;
+  font-family: 'FontAwesome' !important;
+  font-weight: normal !important;
+}
+
+/* Fix Font Awesome icons globally in header */
+.site-header .fa,
+.site-header i[class^="fa-"], 
+.site-header i[class*=" fa-"] {
+  font-family: 'FontAwesome' !important;
+  font-weight: normal !important;
+  font-style: normal !important;
+  text-decoration: none !important;
+  display: inline-block !important;
+  line-height: 1 !important;
+  text-rendering: auto !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+}
+
+.site-header .fa:before,
+.site-header i[class^="fa-"]:before, 
+.site-header i[class*=" fa-"]:before {
+  font-family: 'FontAwesome' !important;
+  font-weight: normal !important;
+  display: inline-block !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .user-avatar-container {
+    margin-left: 10px;
+  }
+  
+  .user-avatar-button img {
+    width: 35px;
+    height: 35px;
+  }
+  
+  .avatar-dropdown {
+    min-width: 160px;
+    right: -20px; /* Adjust for mobile */
+  }
+  
+  .user-notification-button {
+    margin-left: 5px;
+  }
+  
+  .user-notification-button i {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .avatar-dropdown {
+    right: -40px;
+    min-width: 140px;
+  }
+  
+  .avatar-dropdown a {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+  
+  .avatar-dropdown .dropdown-header {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+} 
