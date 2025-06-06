@@ -21,122 +21,293 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         
         <style>
-            .profile-container {
-                max-width: 600px;
-                margin: 50px auto;
-                padding: 30px;
-                background: white;
-                border-radius: 10px;
-                box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-                font-family: 'Inter', sans-serif !important;
+            /* Profile page integrated styling */
+            .profile-banner {
+                background: linear-gradient(135deg, #586BB4 0%, #455790 100%);
                 position: relative;
+                overflow: hidden;
+                padding: 80px 0 60px;
+                margin-bottom: 0;
+            }
+            
+            .profile-banner:before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: url('${pageContext.request.contextPath}/assets/home/images/background/bg1.jpg') center/cover;
+                opacity: 0.1;
                 z-index: 1;
             }
             
-            /* Ensure proper spacing with header/footer */
-            .page-content {
-                min-height: calc(100vh - 200px);
-                padding-top: 50px;
-                padding-bottom: 50px;
+            .profile-banner .container {
+                position: relative;
+                z-index: 2;
             }
             
-            .profile-header {
-                background: #586BB4;
+            .profile-avatar {
+                width: 120px;
+                height: 120px;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.2);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto 20px;
+                border: 4px solid rgba(255, 255, 255, 0.3);
+                backdrop-filter: blur(10px);
+            }
+            
+            .profile-avatar i {
+                font-size: 48px;
                 color: white;
-                padding: 30px;
-                border-radius: 10px;
-                margin-bottom: 30px;
+                font-family: 'FontAwesome' !important;
+            }
+            
+            .profile-banner h1 {
+                color: white;
+                font-size: 2.5rem;
+                font-weight: 600;
+                margin: 0 0 10px;
                 text-align: center;
+                text-shadow: 0 2px 10px rgba(0,0,0,0.3);
             }
             
-            .profile-header h1 {
-                font-family: 'Inter', sans-serif !important;
-                font-weight: 600;
-                margin: 0;
-                font-size: 2rem;
-                line-height: 1.3;
+            .profile-role {
+                color: rgba(255, 255, 255, 0.9);
+                font-size: 1.1rem;
+                text-align: center;
+                margin-bottom: 0;
             }
             
-            .profile-container h3 {
-                font-family: 'Inter', sans-serif !important;
-                font-weight: 600;
-                color: #333;
-                margin-bottom: 20px;
+            .profile-content {
+                padding: 60px 0;
+                background: #f8f9fa;
+            }
+            
+            .profile-info-card {
+                background: white;
+                border-radius: 15px;
+                padding: 40px;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+                margin-bottom: 30px;
+                border-top: 4px solid #586BB4;
+            }
+            
+            .profile-section-title {
+                color: #586BB4;
                 font-size: 1.5rem;
+                font-weight: 600;
+                margin-bottom: 30px;
+                display: flex;
+                align-items: center;
+                padding-bottom: 15px;
+                border-bottom: 2px solid #f0f0f0;
+            }
+            
+            .profile-section-title i {
+                font-size: 20px;
+                margin-right: 10px;
+                color: #586BB4;
+                font-family: 'FontAwesome' !important;
+            }
+            
+            .info-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 25px;
             }
             
             .info-item {
-                display: flex;
-                padding: 15px 0;
-                border-bottom: 1px solid #eee;
-                font-family: 'Inter', sans-serif !important;
+                background: #f8f9fa;
+                padding: 20px;
+                border-radius: 10px;
+                border-left: 4px solid #586BB4;
+                transition: all 0.3s ease;
+            }
+            
+            .info-item:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 20px rgba(88, 107, 180, 0.15);
             }
             
             .info-label {
-                font-family: 'Inter', sans-serif !important;
                 font-weight: 600;
-                min-width: 150px;
-                color: #333;
-                font-size: 0.95rem;
+                color: #586BB4;
+                font-size: 0.9rem;
+                margin-bottom: 5px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
             }
             
             .info-value {
-                font-family: 'Inter', sans-serif !important;
-                font-weight: 400;
+                color: #333;
+                font-size: 1.1rem;
+                font-weight: 500;
+            }
+            
+            .profile-actions {
+                background: white;
+                border-radius: 15px;
+                padding: 30px;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+                text-align: center;
+            }
+            
+            .profile-actions .site-button {
+                display: block;
+                width: 100%;
+                margin: 0 0 15px 0;
+                padding: 15px 25px;
+                font-weight: 600;
+                letter-spacing: 0.5px;
+                transition: all 0.3s ease;
+                text-align: center;
+                text-decoration: none;
+                border: none;
+                cursor: pointer;
+                border-radius: 8px;
+                font-size: 14px;
+                text-transform: uppercase;
+                position: relative;
+                overflow: hidden;
+            }
+            
+            /* Primary button (Change Password) */
+            .profile-actions .site-button:not(.outline) {
+                background: linear-gradient(135deg, #586BB4 0%, #455790 100%);
+                color: white;
+                border: 2px solid transparent;
+                box-shadow: 0 4px 15px rgba(88, 107, 180, 0.3);
+            }
+            
+            .profile-actions .site-button:not(.outline):hover {
+                background: linear-gradient(135deg, #455790 0%, #3a4a7a 100%);
+                transform: translateY(-3px);
+                box-shadow: 0 6px 20px rgba(88, 107, 180, 0.4);
+            }
+            
+            /* Outline buttons */
+            .profile-actions .site-button.outline {
+                background: transparent;
+                color: #586BB4;
+                border: 2px solid #586BB4;
+                box-shadow: 0 2px 10px rgba(88, 107, 180, 0.1);
+            }
+            
+            .profile-actions .site-button.outline:hover {
+                background: #586BB4;
+                color: white;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 15px rgba(88, 107, 180, 0.3);
+            }
+            
+            .profile-actions .site-button:last-child {
+                margin-bottom: 0;
+            }
+            
+            .profile-actions .site-button i {
+                font-family: 'FontAwesome' !important;
+                margin-right: 8px;
+                font-size: 14px;
+                vertical-align: middle;
+            }
+            
+            /* Button active state */
+            .profile-actions .site-button:active {
+                transform: translateY(0);
+            }
+            
+            /* Loading state for buttons */
+            .profile-actions .site-button:focus {
+                outline: none;
+                box-shadow: 0 0 0 3px rgba(88, 107, 180, 0.2);
+            }
+            
+            .stats-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 15px;
+                margin-bottom: 30px;
+            }
+            
+            .stat-card {
+                background: white;
+                padding: 25px;
+                border-radius: 12px;
+                text-align: center;
+                box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+                border-top: 3px solid #586BB4;
+            }
+            
+            .stat-number {
+                font-size: 2rem;
+                font-weight: 700;
+                color: #586BB4;
+                margin-bottom: 5px;
+            }
+            
+            .stat-label {
                 color: #666;
-                font-size: 0.95rem;
-                line-height: 1.6;
+                font-size: 0.9rem;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
             }
             
-            /* Ensure all text uses Inter font */
-            * {
-                font-family: 'Inter', sans-serif !important;
+            /* Responsive design */
+            @media (max-width: 768px) {
+                .profile-banner {
+                    padding: 60px 0 40px;
+                }
+                
+                .profile-banner h1 {
+                    font-size: 2rem;
+                }
+                
+                .profile-avatar {
+                    width: 100px;
+                    height: 100px;
+                }
+                
+                .profile-avatar i {
+                    font-size: 36px;
+                }
+                
+                .profile-info-card {
+                    padding: 25px;
+                }
+                
+                .info-grid {
+                    grid-template-columns: 1fr;
+                }
+                
+                .profile-actions .site-button {
+                    width: 100%;
+                    margin: 0 0 12px 0;
+                    padding: 12px 20px;
+                    font-size: 13px;
+                }
+                
+                .profile-actions .site-button i {
+                    font-size: 13px;
+                    margin-right: 6px;
+                }
+                
+                .stats-grid {
+                    grid-template-columns: 1fr 1fr;
+                    margin-bottom: 30px;
+                }
             }
             
-            /* Fix Font Awesome icons - override Inter font for icons */
+            /* Fix Font Awesome icons */
             .fa,
             i[class^="fa-"], 
-            i[class*=" fa-"],
-            .avatar-dropdown i,
-            .header i {
+            i[class*=" fa-"] {
                 font-family: 'FontAwesome' !important;
                 font-weight: normal !important;
                 font-style: normal !important;
-                text-decoration: none !important;
-                display: inline-block !important;
-                width: auto !important;
-                line-height: 1 !important;
-                vertical-align: baseline !important;
-                speak: none !important;
-                text-rendering: auto !important;
-                -webkit-font-smoothing: antialiased !important;
-                -moz-osx-font-smoothing: grayscale !important;
-            }
-            
-            /* Force Font Awesome to work */
-            .fa:before,
-            i[class^="fa-"]:before, 
-            i[class*=" fa-"]:before {
-                font-family: 'FontAwesome' !important;
-                font-weight: normal !important;
-                display: inline-block !important;
-            }
-            
-            /* Test icon visibility */
-            .avatar-dropdown .fa {
-                color: #333 !important;
-                font-size: 14px !important;
-                margin-right: 8px !important;
-                width: 16px !important;
-                text-align: center !important;
-            }
-            
-            /* Debug: Add a test icon */
-            .test-icon:before {
-                content: "\f007" !important; /* fa-user */
-                font-family: 'FontAwesome' !important;
-                font-weight: normal !important;
-                color: red !important;
             }
         </style>
     </head>
@@ -145,131 +316,208 @@
         <div class="page-wraper">
             <div id="loading-area"></div>
             <jsp:include page="/WEB-INF/view/common/home/header.jsp"></jsp:include>
-            <div class="page-content bg-white">
-                <div class="profile-container">
             
-            <!-- Profile Header -->
-            <div class="profile-header">
-                <h1>
-                    <c:choose>
-                        <c:when test="${not empty sessionScope.user}">
-                            ${sessionScope.user.fullName}
-                        </c:when>
-                        <c:otherwise>
-                            ${sessionScope.customer.fullName}
-                        </c:otherwise>
-                    </c:choose>
-                </h1>
-                <!-- Debug test icon -->
-                <div style="color: white; margin-top: 10px;">
-                    Test Icon: <i class="fa fa-user test-icon"></i> <span class="test-icon"></span>
+            <!-- Profile Banner Section -->
+            <div class="profile-banner">
+                <div class="container">
+                    <div class="profile-avatar">
+                        <i class="fa fa-user"></i>
+                    </div>
+                    <h1>
+                        <c:choose>
+                            <c:when test="${not empty sessionScope.user}">
+                                ${sessionScope.user.fullName}
+                            </c:when>
+                            <c:otherwise>
+                                ${sessionScope.customer.fullName}
+                            </c:otherwise>
+                        </c:choose>
+                    </h1>
+                    <p class="profile-role">
+                        <c:choose>
+                            <c:when test="${not empty sessionScope.user}">
+                                Nhân viên
+                            </c:when>
+                            <c:otherwise>
+                                Khách hàng thân thiết
+                            </c:otherwise>
+                        </c:choose>
+                    </p>
                 </div>
             </div>
             
-            <!-- Basic Information -->
-            <h3>Thông tin cá nhân</h3>
-            
-            <div class="info-item">
-                <span class="info-label">Họ và tên:</span>
-                <span class="info-value">
-                    <c:choose>
-                        <c:when test="${not empty sessionScope.user}">
-                            ${sessionScope.user.fullName}
-                        </c:when>
-                        <c:otherwise>
-                            ${sessionScope.customer.fullName}
-                        </c:otherwise>
-                    </c:choose>
-                </span>
-            </div>
-            
-            <div class="info-item">
-                <span class="info-label">Email:</span>
-                <span class="info-value">
-                    <c:choose>
-                        <c:when test="${not empty sessionScope.user}">
-                            ${sessionScope.user.email}
-                        </c:when>
-                        <c:otherwise>
-                            ${sessionScope.customer.email}
-                        </c:otherwise>
-                    </c:choose>
-                </span>
-            </div>
-            
-            <div class="info-item">
-                <span class="info-label">Số điện thoại:</span>
-                <span class="info-value">
-                    <c:choose>
-                        <c:when test="${not empty sessionScope.user}">
-                            ${sessionScope.user.phoneNumber}
-                        </c:when>
-                        <c:otherwise>
-                            ${sessionScope.customer.phoneNumber}
-                        </c:otherwise>
-                    </c:choose>
-                </span>
-            </div>
-            
-            <div class="info-item">
-                <span class="info-label">Giới tính:</span>
-                <span class="info-value">
-                    <c:choose>
-                        <c:when test="${not empty sessionScope.user}">
-                            <c:choose>
-                                <c:when test="${sessionScope.user.gender == 'MALE'}">Nam</c:when>
-                                <c:when test="${sessionScope.user.gender == 'FEMALE'}">Nữ</c:when>
-                                <c:when test="${sessionScope.user.gender == 'OTHER'}">Khác</c:when>
-                                <c:when test="${sessionScope.user.gender == 'UNKNOWN'}">Chưa cập nhật</c:when>
-                                <c:when test="${empty sessionScope.user.gender}">Chưa cập nhật</c:when>
-                                <c:otherwise>Khác</c:otherwise>
-                            </c:choose>
-                        </c:when>
-                        <c:otherwise>
-                            <c:choose>
-                                <c:when test="${sessionScope.customer.gender == 'MALE'}">Nam</c:when>
-                                <c:when test="${sessionScope.customer.gender == 'FEMALE'}">Nữ</c:when>
-                                <c:when test="${sessionScope.customer.gender == 'OTHER'}">Khác</c:when>
-                                <c:when test="${sessionScope.customer.gender == 'UNKNOWN'}">Chưa cập nhật</c:when>
-                                <c:when test="${empty sessionScope.customer.gender}">Chưa cập nhật</c:when>
-                                <c:otherwise>Khác</c:otherwise>
-                            </c:choose>
-                        </c:otherwise>
-                    </c:choose>
-                </span>
-            </div>
-            
-            <div class="info-item">
-                <span class="info-label">Ngày sinh:</span>
-                <span class="info-value">
-                    <c:choose>
-                        <c:when test="${not empty sessionScope.user}">
-                            ${sessionScope.user.birthday}
-                        </c:when>
-                        <c:otherwise>
-                            ${sessionScope.customer.birthday}
-                        </c:otherwise>
-                    </c:choose>
-                </span>
-            </div>
-            
-            <!-- Change Password Button -->
-            <div style="margin-top: 30px; text-align: center;">
-                <button onclick="window.location.href='${pageContext.request.contextPath}/profile/change-password'" 
-                class="site-button   radius-no">ĐỔI MẬT KHẨU</button>
-
-
-                <%-- <button onclick="window.location.href='${pageContext.request.contextPath}/profile/update-info'" 
-                class="site-button  button-md radius-no">CẬP NHẬT THÔNG TIN</button> --%>
-                
-                <button onclick="window.location.href='${pageContext.request.contextPath}/'" 
-                class="site-button   radius-no">QUAY VỀ TRANG CHỦ</button>
-            </div>
-            
+            <!-- Profile Content Section -->
+            <div class="profile-content">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-8 col-md-12">
+                            <!-- Personal Information Card -->
+                            <div class="profile-info-card">
+                                <div class="profile-section-title">
+                                    <i class="fa fa-user"></i>
+                                    Thông tin cá nhân
+                                </div>
+                                
+                                <div class="info-grid">
+                                    <div class="info-item">
+                                        <div class="info-label">Họ và tên</div>
+                                        <div class="info-value">
+                                            <c:choose>
+                                                <c:when test="${not empty sessionScope.user}">
+                                                    ${sessionScope.user.fullName}
+                                                </c:when>
+                                                <c:otherwise>
+                                                    ${sessionScope.customer.fullName}
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="info-item">
+                                        <div class="info-label">Email</div>
+                                        <div class="info-value">
+                                            <c:choose>
+                                                <c:when test="${not empty sessionScope.user}">
+                                                    ${sessionScope.user.email}
+                                                </c:when>
+                                                <c:otherwise>
+                                                    ${sessionScope.customer.email}
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="info-item">
+                                        <div class="info-label">Số điện thoại</div>
+                                        <div class="info-value">
+                                            <c:choose>
+                                                <c:when test="${not empty sessionScope.user}">
+                                                    ${sessionScope.user.phoneNumber}
+                                                </c:when>
+                                                <c:otherwise>
+                                                    ${sessionScope.customer.phoneNumber}
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="info-item">
+                                        <div class="info-label">Giới tính</div>
+                                        <div class="info-value">
+                                            <c:choose>
+                                                <c:when test="${not empty sessionScope.user}">
+                                                    <c:choose>
+                                                        <c:when test="${sessionScope.user.gender == 'MALE'}">Nam</c:when>
+                                                        <c:when test="${sessionScope.user.gender == 'FEMALE'}">Nữ</c:when>
+                                                        <c:when test="${sessionScope.user.gender == 'OTHER'}">Khác</c:when>
+                                                        <c:when test="${sessionScope.user.gender == 'UNKNOWN'}">Chưa cập nhật</c:when>
+                                                        <c:when test="${empty sessionScope.user.gender}">Chưa cập nhật</c:when>
+                                                        <c:otherwise>Khác</c:otherwise>
+                                                    </c:choose>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <c:choose>
+                                                        <c:when test="${sessionScope.customer.gender == 'MALE'}">Nam</c:when>
+                                                        <c:when test="${sessionScope.customer.gender == 'FEMALE'}">Nữ</c:when>
+                                                        <c:when test="${sessionScope.customer.gender == 'OTHER'}">Khác</c:when>
+                                                        <c:when test="${sessionScope.customer.gender == 'UNKNOWN'}">Chưa cập nhật</c:when>
+                                                        <c:when test="${empty sessionScope.customer.gender}">Chưa cập nhật</c:when>
+                                                        <c:otherwise>Khác</c:otherwise>
+                                                    </c:choose>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="info-item">
+                                        <div class="info-label">Ngày sinh</div>
+                                        <div class="info-value">
+                                            <c:choose>
+                                                <c:when test="${not empty sessionScope.user}">
+                                                    <c:choose>
+                                                        <c:when test="${not empty sessionScope.user.birthday}">
+                                                            ${sessionScope.user.birthday}
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            Chưa cập nhật
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <c:choose>
+                                                        <c:when test="${not empty sessionScope.customer.birthday}">
+                                                            ${sessionScope.customer.birthday}
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            Chưa cập nhật
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="info-item">
+                                        <div class="info-label">Trạng thái tài khoản</div>
+                                        <div class="info-value" style="color: #28a745; font-weight: 600;">
+                                            Đang hoạt động
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-4 col-md-12">
+                            <!-- Quick Stats -->
+                            <c:if test="${not empty sessionScope.customer}">
+                                <div class="stats-grid">
+                                    <div class="stat-card">
+                                        <div class="stat-number">0</div>
+                                        <div class="stat-label">Lịch hẹn</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-number">0</div>
+                                        <div class="stat-label">Điểm tích lũy</div>
+                                    </div>
+                                </div>
+                            </c:if>
+                            
+                            <!-- Action Buttons -->
+                            <div class="profile-actions">
+                                <div class="profile-section-title">
+                                    <i class="fa fa-cog"></i>
+                                    Hành động
+                                </div>
+                                
+                                <a href="${pageContext.request.contextPath}/profile/change-password" 
+                                   class="site-button radius-no">
+                                    <i class="fa fa-lock" style="margin-right: 8px;"></i>
+                                    ĐỔI MẬT KHẨU
+                                </a>
+                                
+                                <c:if test="${not empty sessionScope.customer}">
+                                    <a href="${pageContext.request.contextPath}/appointment" 
+                                       class="site-button outline radius-no">
+                                        <i class="fa fa-calendar" style="margin-right: 8px;"></i>
+                                        ĐẶT LỊCH HẸN
+                                    </a>
+                                </c:if>
+                                
+                                <a href="${pageContext.request.contextPath}/" 
+                                   class="site-button outline radius-no">
+                                    <i class="fa fa-home" style="margin-right: 8px;"></i>
+                                    TRANG CHỦ
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
+            
             <jsp:include page="/WEB-INF/view/common/home/footer.jsp"></jsp:include>
-            <button class="scroltop">↑</button>
+            <button class="scroltop" style="color: #586BB4;">
+                <i class="fa fa-chevron-up"></i>
+            </button>
         </div>
         <jsp:include page="/WEB-INF/view/common/home/js.jsp"></jsp:include>
     </body>
