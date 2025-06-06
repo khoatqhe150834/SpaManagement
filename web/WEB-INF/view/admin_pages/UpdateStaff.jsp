@@ -42,9 +42,10 @@
                                         <input type="hidden" name="userId" value="${staff.user.userId}" />
 
                                         <!-- Full Name -->
+                                        <!-- Full Name (Readonly) -->
                                         <div class="mb-20">
                                             <label for="fullName" class="form-label fw-semibold text-primary-light text-sm mb-8">Full Name <span class="text-danger-600">*</span></label>
-                                            <input type="text" name="fullName" class="form-control radius-8" id="fullName" value="${staff.user.fullName}" required />
+                                            <input type="text" name="fullName" class="form-control radius-8" id="fullName" value="${staff.user.fullName}" required readonly />
                                         </div>
 
                                         <!-- Bio -->
