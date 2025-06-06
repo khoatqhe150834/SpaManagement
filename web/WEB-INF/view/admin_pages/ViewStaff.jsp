@@ -8,9 +8,8 @@
         <title>View Staff - Admin Dashboard</title>
         <link rel="icon" type="image/png" href="assets/images/favicon.png" sizes="16x16">
         <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp" />
-
         <script type="text/javascript">
-            // Thêm các logic JS cần thiết nếu có
+            // Logic JS can be added here if needed
         </script>
     </head>
     <body>

@@ -48,6 +48,7 @@
                                             <input type="text" name="fullName" class="form-control radius-8" id="fullName" value="${staff.user.fullName}" required readonly />
                                         </div>
 
+
                                         <!-- Bio -->
                                         <div class="mb-20">
                                             <label for="bio" class="form-label fw-semibold text-primary-light text-sm mb-8">Bio</label>
