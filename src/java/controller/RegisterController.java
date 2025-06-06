@@ -20,7 +20,7 @@ import validation.RegisterValidator;
  *
  * @author quang
  */
-@WebServlet(name = "RegisterController", urlPatterns = {"/register"})
+@WebServlet(name = "RegisterController", urlPatterns = { "/register" })
 public class RegisterController extends HttpServlet {
 
     final CustomerDAO customerDAO;
@@ -33,10 +33,10 @@ public class RegisterController extends HttpServlet {
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
      *
-     * @param request servlet request
+     * @param request  servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @throws IOException      if an I/O error occurs
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -60,14 +60,23 @@ public class RegisterController extends HttpServlet {
     /**
      * Handles the HTTP <code>GET</code> method.
      *
-     * @param request servlet request
+     * @param request  servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @throws IOException      if an I/O error occurs
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
+        // Check if this is an AJAX validation request
+        String validateType = request.getParameter("validate");
+        String value = request.getParameter("value");
+
+        if (validateType != null && value != null) {
+            handleAjaxValidation(request, response, validateType, value);
+            return;
+        }
 
         String url = request.getContextPath();
         request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
@@ -75,12 +84,66 @@ public class RegisterController extends HttpServlet {
     }
 
     /**
+     * Handle AJAX validation requests for duplicate checking
+     */
+    private void handleAjaxValidation(HttpServletRequest request, HttpServletResponse response,
+            String validateType, String value) throws IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        RegisterValidator validator = new RegisterValidator();
+        boolean isDuplicate = false;
+        String message = "";
+
+        try (PrintWriter out = response.getWriter()) {
+            if (value.trim().isEmpty()) {
+                out.print("{\"valid\": false, \"message\": \"Giá trị không được để trống\"}");
+                return;
+            }
+
+            switch (validateType.toLowerCase()) {
+                case "email":
+                    isDuplicate = validator.isEmailDuplicate(value.trim());
+                    if (isDuplicate) {
+                        message = "Email đã tồn tại trong hệ thống.";
+                    } else {
+                        message = "Email có thể sử dụng.";
+                    }
+                    break;
+
+                case "phone":
+                    isDuplicate = validator.isPhoneDuplicate(value.trim());
+                    if (isDuplicate) {
+                        message = "Số điện thoại đã tồn tại trong hệ thống.";
+                    } else {
+                        message = "Số điện thoại có thể sử dụng.";
+                    }
+                    break;
+
+                default:
+                    out.print("{\"valid\": false, \"message\": \"Loại validation không hỗ trợ\"}");
+                    return;
+            }
+
+            // Return JSON response
+            out.print("{\"valid\": " + !isDuplicate + ", \"isDuplicate\": " + isDuplicate + ", \"message\": \""
+                    + message + "\"}");
+
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            try (PrintWriter out = response.getWriter()) {
+                out.print("{\"valid\": false, \"message\": \"Lỗi hệ thống, vui lòng thử lại.\"}");
+            }
+        }
+    }
+
+    /**
      * Handles the HTTP <code>POST</code> method.
      *
-     * @param request servlet request
+     * @param request  servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @throws IOException      if an I/O error occurs
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -143,7 +206,8 @@ public class RegisterController extends HttpServlet {
             return;
         }
 
-        // create new customer to store form data - pass plain password, it will be hashed in DAO
+        // create new customer to store form data - pass plain password, it will be
+        // hashed in DAO
         Customer newCustomer = new Customer(fullName, email, password, phone);
 
         // Set default values
