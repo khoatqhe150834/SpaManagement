@@ -217,8 +217,10 @@ public class RegisterController extends HttpServlet {
         // save data to database
         customerDAO.save(newCustomer);
 
-        // Set success message in session for login page
+        // Set success message and prefill data for login page
         request.setAttribute("success", "Đăng ký thành công! Vui lòng đăng nhập với tài khoản mới.");
+        request.setAttribute("prefillEmail", email);
+        request.setAttribute("prefillPassword", password);
 
         // redirect to login page
         request.getRequestDispatcher("/WEB-INF/view/auth/login.jsp").forward(request, response);
