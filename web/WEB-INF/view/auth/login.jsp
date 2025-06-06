@@ -120,7 +120,7 @@ contentType="text/html" pageEncoding="UTF-8"%>
                           class="form-control"
                           placeholder="example@gmail.com"
                           type="email"
-                          value="${rememberedEmail != null ? rememberedEmail : ''}"
+                          value="${attemptedEmail != null ? attemptedEmail : (prefillEmail != null ? prefillEmail : (rememberedEmail != null ? rememberedEmail : ''))}"
                         />
                       </div>
                       <div class="form-group">
@@ -131,7 +131,7 @@ contentType="text/html" pageEncoding="UTF-8"%>
                           class="form-control"
                           placeholder="******"
                           type="password"
-                          value="${rememberedPassword != null ? rememberedPassword : ''}"
+                          value="${attemptedPassword != null ? attemptedPassword : (prefillPassword != null ? prefillPassword : (rememberedPassword != null ? rememberedPassword : ''))}"
                         />
                       </div>
 
@@ -210,6 +210,65 @@ contentType="text/html" pageEncoding="UTF-8"%>
     </div>
     <!-- JAVASCRIPT FILES ========================================= -->
     <jsp:include page="/WEB-INF/view/common/home/js.jsp"></jsp:include>
+    
+    <!-- Auto-focus and highlight for prefilled login -->
+    <c:if test="${not empty prefillEmail && not empty prefillPassword}">
+    <script>
+        $(document).ready(function() {
+            // Add visual indicator that fields are prefilled
+            $('input[name="email"]').addClass('prefilled');
+            $('input[name="password"]').addClass('prefilled');
+            
+            // Focus on the login button to encourage user to just click login
+            setTimeout(function() {
+                $('.site-button').focus();
+                
+                // Add some styling to indicate the form is ready
+                $('.site-button').css({
+                    'box-shadow': '0 0 10px rgba(88, 107, 180, 0.5)',
+                    'border': '2px solid #586BB4'
+                });
+                
+                // Add a subtle animation to draw attention
+                $('.site-button').animate({
+                    'padding-left': '25px',
+                    'padding-right': '25px'
+                }, 200).animate({
+                    'padding-left': '20px',
+                    'padding-right': '20px'
+                }, 200);
+            }, 500);
+        });
+    </script>
+    <style>
+        .prefilled {
+            background-color: #f8fff8 !important;
+            border-color: #28a745 !important;
+        }
+    </style>
+    </c:if>
+    
+    <!-- Handle failed login attempts -->
+    <c:if test="${not empty attemptedEmail && not empty error}">
+    <script>
+        $(document).ready(function() {
+            // Add visual indicator for failed attempt
+            $('input[name="email"]').addClass('attempted-login');
+            $('input[name="password"]').addClass('attempted-login').focus().select();
+            
+            // Focus on password field since email is likely correct
+            setTimeout(function() {
+                $('input[name="password"]').focus().select();
+            }, 100);
+        });
+    </script>
+    <style>
+        .attempted-login {
+            background-color: #fff9f9 !important;
+            border-color: #dc3545 !important;
+        }
+    </style>
+    </c:if>
   </body>
 
   <!-- Mirrored from www.beautyzone.dexignzone.com/xhtml/login.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 24 May 2025 16:40:31 GMT -->
