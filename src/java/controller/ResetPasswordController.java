@@ -19,6 +19,7 @@ import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import service.email.EmailService;
+import service.email.AsyncEmailService;
 import service.email.PasswordResetToken;
 
 /**
@@ -36,6 +37,7 @@ public class ResetPasswordController extends HttpServlet {
     private CustomerDAO customerDAO;
     private PasswordResetTokenDAO passwordResetTokenDao;
     private EmailService emailService;
+    private AsyncEmailService asyncEmailService;
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -44,6 +46,7 @@ public class ResetPasswordController extends HttpServlet {
         customerDAO = new CustomerDAO();
         passwordResetTokenDao = new PasswordResetTokenDAO();
         emailService = new EmailService();
+        asyncEmailService = new AsyncEmailService();
         userDAO = new UserDAO();
     }
 
@@ -99,6 +102,22 @@ public class ResetPasswordController extends HttpServlet {
         return "Handles password reset and change functionality for both Customer and User accounts";
     }
 
+    /**
+     * Handles password reset requests
+     * 
+     * This method has been optimized for performance by using asynchronous email
+     * sending.
+     * Instead of blocking the request thread waiting for email delivery (which can
+     * take 5-30 seconds),
+     * the email is queued for background sending, allowing immediate response to
+     * the user.
+     * 
+     * Benefits:
+     * - Faster user experience (immediate feedback)
+     * - Better server performance (no blocked threads)
+     * - Improved scalability (can handle more concurrent requests)
+     * - Better error isolation (email failures don't affect user experience)
+     */
     private void handleResetPassword(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String email = request.getParameter("email");
@@ -120,19 +139,18 @@ public class ResetPasswordController extends HttpServlet {
                 PasswordResetToken passwordResetToken = new PasswordResetToken(email);
                 passwordResetTokenDao.save(passwordResetToken);
 
-                boolean emailSent = emailService.sendPasswordResetEmail(email, passwordResetToken.getToken(), null);
+                // Send email asynchronously to avoid blocking the request
+                asyncEmailService.sendPasswordResetEmailFireAndForget(email, passwordResetToken.getToken(),
+                        request.getContextPath());
 
-                if (emailSent) {
-                    String successMessage = "Liên kết đặt lại mật khẩu đã được gửi đến email của bạn. " +
-                            "Vui lòng kiểm tra hộp thư và làm theo hướng dẫn.";
-                    request.setAttribute("success", successMessage);
+                // Immediately show success message to user without waiting for email
+                String successMessage = "Liên kết đặt lại mật khẩu đã được gửi đến email của bạn. " +
+                        "Vui lòng kiểm tra hộp thư và làm theo hướng dẫn. " +
+                        "Nếu không thấy email, vui lòng kiểm tra thư mục spam.";
+                request.setAttribute("success", successMessage);
 
-                } else {
-                    String errorMessage = "Có lỗi xảy ra khi gửi email. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.";
-                    request.setAttribute("error", errorMessage);
-                    Logger.getLogger(ResetPasswordController.class.getName()).log(
-                            Level.WARNING, "Failed to send password reset email to: " + email);
-                }
+                Logger.getLogger(ResetPasswordController.class.getName()).log(
+                        Level.INFO, "Password reset email queued for sending to: " + email);
             } catch (SQLException ex) {
                 Logger.getLogger(ResetPasswordController.class.getName()).log(Level.SEVERE,
                         "Database error while processing password reset for email: " + email, ex);
