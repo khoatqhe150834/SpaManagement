@@ -115,7 +115,7 @@
                                             </c:if>
                                         </td>
 
-                                        <td><pre>${therapist.bio}</pre></td> <!-- Bio -->
+                                        <td>${therapist.bio}</td> <!-- Bio -->
 
                                         <td class="text-center">
                                             <c:choose>
