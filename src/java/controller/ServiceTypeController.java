@@ -91,8 +91,16 @@ public class ServiceTypeController extends HttpServlet {
         if (service.equals("deactiveById")) {
             int id = Integer.parseInt(request.getParameter("id"));
             ServiceTypeDAO dao = new ServiceTypeDAO();
-            dao.deactivateById(id);
-            response.sendRedirect("servicetype");
+            int n = dao.deactivateById(id);
+            if (n == 1) {
+            request.setAttribute("deleteDone", "Deactivate Service Type (Id = " + id +") done!");
+            } else {
+                request.setAttribute("deleteDone", "Failed to deactive service type (Id  = " + id + ") because this service type is associated with an order.");
+            }
+            
+            List<ServiceType> serviceTypes = dao.findAll();
+            request.setAttribute("serviceTypes", serviceTypes);
+            request.getRequestDispatcher(SERVICE_TYPE_URL).forward(request, response);
         }
 
     }

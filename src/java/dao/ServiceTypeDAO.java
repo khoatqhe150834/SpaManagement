@@ -179,7 +179,8 @@ public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
         return serviceTypes;
     }
 
-    public void deactivateById(int id) {
+    public int deactivateById(int id) {
+        int n = 0;
         String sql = "UPDATE service_types SET is_active = 0 WHERE service_type_id = ?";
 
         try (Connection conn = DBContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -188,6 +189,7 @@ public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
         } catch (SQLException ex) {
             Logger.getLogger(ServiceTypeDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
+        return n;
     }
 
     public List<ServiceType> findPaginated(int offset, int limit) {

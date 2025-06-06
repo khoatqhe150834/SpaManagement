@@ -34,8 +34,3 @@
   <!-- main js -->
   <script src="${pageContext.request.contextPath}/assets/admin/js/app.js"></script>
 
-  <script>
-    $('.remove-item-btn').on('click', function () {
-      $(this).closest('tr').addClass('d-none')
-    }); 
-  </script>

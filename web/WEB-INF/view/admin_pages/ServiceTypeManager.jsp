@@ -77,83 +77,86 @@
                         Add New Service Type
                     </a>
                 </div>
-                <div class="card-body p-24">
-                    <div class="table-responsive scroll-sm">
-                        <table class="table bordered-table sm-table mb-0">
-                            <thead>
-                                <tr>
-                                    <th scope="col">
-                                        <div class="d-flex align-items-center gap-10">
-                                            <div class="form-check style-check d-flex align-items-center">
-                                                <input class="form-check-input radius-4 border input-form-dark" type="checkbox" name="checkbox" id="selectAll">
-                                            </div>
-                                            ID
-                                        </div>
-                                    </th>
-                                    <th scope="col">Name</th>
-                                    <th scope="col">Description</th>
-                                    <th scope="col">Image</th>
-                                    <th scope="col" class="text-center">Status</th>
-                                    <th scope="col">Created At</th>
-                                    <th scope="col">Updated At</th>
-                                    <th scope="col" class="text-center">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <c:forEach var="stype" items="${serviceTypes}" varStatus="loop">
+                <c:if test="${not empty serviceTypes}">
+                    <div class="card-body p-24">
+                        <div class="table-responsive scroll-sm">
+                            <table class="table bordered-table sm-table mb-0">
+                                <thead>
                                     <tr>
-                                        <td>
+                                        <th scope="col">
                                             <div class="d-flex align-items-center gap-10">
                                                 <div class="form-check style-check d-flex align-items-center">
-                                                    <input class="form-check-input radius-4 border border-neutral-400" type="checkbox">
+                                                    <input class="form-check-input radius-4 border input-form-dark" type="checkbox" name="checkbox" id="selectAll">
                                                 </div>
-                                                ${stype.serviceTypeId}
+                                                ID
                                             </div>
-                                        </td>
-                                        <td>${stype.name}</td>
-                                        <td>${stype.description}</td>
-                                        <td><img src="${stype.imageUrl}" alt="Image" class="w-40-px h-40-px rounded" /></td>
-                                        <td class="text-center">
-                                            <c:choose>
-                                                <c:when test="${stype.active}">
-                                                    <span class="bg-success-focus text-success-600 border border-success-main px-24 py-4 radius-4 fw-medium text-sm">Active</span>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <span class="bg-neutral-200 text-neutral-600 border border-neutral-400 px-24 py-4 radius-4 fw-medium text-sm">Inactive</span>
-                                                </c:otherwise>
-                                            </c:choose>
-                                        </td>
-                                        <td><fmt:formatDate value="${stype.createdAt}" pattern="dd MMM yyyy"/></td>
-                                        <td><fmt:formatDate value="${stype.updatedAt}" pattern="dd MMM yyyy"/></td>
-                                        <td class="text-center">
-                                            <div class="d-flex align-items-center gap-10 justify-content-center">
-                                                <!-- View button -->
-                                                <a href="service?service=viewByServiceType&id=${stype.serviceTypeId}"
-                                                   class="bg-info-focus bg-hover-info-200 text-info-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
-                                                    <iconify-icon icon="majesticons:eye-line" class="icon text-xl"></iconify-icon>
-                                                </a>
-                                                <!-- Edit button -->
-                                                <a href="servicetype?service=pre-update&id=${stype.serviceTypeId}" class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
-                                                    <iconify-icon icon="lucide:edit" class="menu-icon"></iconify-icon>
-                                                </a>
-
-                                                <!-- Deactivate button (soft delete) -->
-                                                <a href="servicetype?service=deactiveById&id=${stype.serviceTypeId}" 
-                                                   class="remove-item-btn bg-danger-focus bg-hover-danger-200 text-danger-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
-                                                   onclick="return confirm('Do you want to deactivate this Service Type?');">
-                                                    <iconify-icon icon="mdi:block-helper" class="menu-icon"></iconify-icon>
-                                                </a>
-                                            </div>
-                                        </td>
+                                        </th>
+                                        <th scope="col">Name</th>
+                                        <th scope="col">Description</th>
+                                        <th scope="col">Image</th>
+                                        <th scope="col" class="text-center">Status</th>
+                                        <th scope="col">Created At</th>
+                                        <th scope="col">Updated At</th>
+                                        <th scope="col" class="text-center">Action</th>
                                     </tr>
-                                </c:forEach>
-                            </tbody>
+                                </thead>
+                                <tbody>
+                                    <c:forEach var="stype" items="${serviceTypes}" varStatus="loop">
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center gap-10">
+                                                    <div class="form-check style-check d-flex align-items-center">
+                                                        <input class="form-check-input radius-4 border border-neutral-400" type="checkbox">
+                                                    </div>
+                                                    ${stype.serviceTypeId}
+                                                </div>
+                                            </td>
+                                            <td>${stype.name}</td>
+                                            <td>${stype.description}</td>
+                                            <td><img src="${stype.imageUrl}" alt="Image" class="w-40-px h-40-px rounded" /></td>
+                                            <td class="text-center">
+                                                <c:choose>
+                                                    <c:when test="${stype.active}">
+                                                        <span class="bg-success-focus text-success-600 border border-success-main px-24 py-4 radius-4 fw-medium text-sm">Active</span>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <span class="bg-neutral-200 text-neutral-600 border border-neutral-400 px-24 py-4 radius-4 fw-medium text-sm">Inactive</span>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </td>
+                                            <td><fmt:formatDate value="${stype.createdAt}" pattern="dd MMM yyyy"/></td>
+                                            <td><fmt:formatDate value="${stype.updatedAt}" pattern="dd MMM yyyy"/></td>
+                                            <td class="text-center">
+                                                <div class="d-flex align-items-center gap-10 justify-content-center">
+                                                    <!-- View button -->
+                                                    <a href="service?service=viewByServiceType&id=${stype.serviceTypeId}"
+                                                       class="bg-info-focus bg-hover-info-200 text-info-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
+                                                        <iconify-icon icon="majesticons:eye-line" class="icon text-xl"></iconify-icon>
+                                                    </a>
+                                                    <!-- Edit button -->
+                                                    <a href="servicetype?service=pre-update&id=${stype.serviceTypeId}" class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
+                                                        <iconify-icon icon="lucide:edit" class="menu-icon"></iconify-icon>
+                                                    </a>
+
+                                                    <!-- Deactivate button (soft delete) -->
+                                                    <a href="servicetype?service=deactiveById&id=${stype.serviceTypeId}" 
+                                                       class=" bg-danger-focus bg-hover-danger-200 text-danger-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
+                                                       onclick="return confirmDelete(${stype.serviceTypeId})">
+                                                        <iconify-icon icon="mdi:block-helper" class="menu-icon"></iconify-icon>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </c:forEach>
+                                </tbody>
 
 
 
-                        </table>
-                    </div>
+                            </table>
+                        </div>
 
+
+                    </c:if>
                     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-24">
                         <c:set var="start" value="${(currentPage - 1) * limit + 1}" />
                         <c:set var="end" value="${currentPage * limit > totalEntries ? totalEntries : currentPage * limit}" />
@@ -217,6 +220,12 @@
         <!-- JS here -->
         <jsp:include page="/WEB-INF/view/common/admin/js.jsp"></jsp:include>
 
+
+        <script>
+            function confirmDelete(id) {
+                return confirm("Are you sure you want to deactive this Service Type (ID = " + id + ") ?");
+            }
+        </script>
     </body>
 
     <!-- Mirrored from wowdash.wowtheme7.com/demo/users-list.html by HTTrack Website Copier/3.x [XR&CO'2014], Mon, 03 Feb 2025 04:44:16 GMT -->
