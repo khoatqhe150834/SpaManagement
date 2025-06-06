@@ -1,9 +1,3 @@
-<%-- 
-    Document   : staff
-    Created on : May 30, 2025, 5:03:57 PM
-    Author     : Admin
---%>
-
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
@@ -47,30 +41,18 @@
                 <div class="card h-100 p-0 radius-12">
                     <div class="card-header border-bottom bg-base py-16 px-24 d-flex align-items-center flex-wrap gap-3 justify-content-between">
                         <div class="d-flex align-items-center flex-wrap gap-3">
-                            <span class="text-md fw-medium text-secondary-light mb-0">Show</span>
-                            <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px">
-                                <option>1</option>
-                                <option>2</option>
-                                <option>3</option>
-                                <option>4</option>
-                                <option>5</option>
-                                <option>6</option>
-                                <option>7</option>
-                                <option>8</option>
-                                <option>9</option>
-                                <option>10</option>
-                            </select>
-                            <form class="navbar-search" method="get" action="servicetype">
-                                <input type="hidden" name="service" value="searchByKeyword">
+                            <form class="navbar-search d-flex gap-2 align-items-center" method="get" action="servicetype">
+                                <input type="hidden" name="service" value="searchByKeywordAndStatus">
                                 <input type="text" class="bg-base h-40-px w-auto" name="keyword" placeholder="Search" value="${keyword}">
-                            <iconify-icon icon="ion:search-outline" class="icon"></iconify-icon>
-                        </form>
 
-                        <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px">
-                            <option>Status</option>
-                            <option>Active</option>
-                            <option>Inactive</option>
-                        </select>
+                            <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px" name="status">
+                                <option value="">Status</option>
+                                <option value="active" ${status == 'active' ? 'selected' : ''}>Active</option>
+                                <option value="inactive" ${status == 'inactive' ? 'selected' : ''}>Inactive</option>
+                            </select>
+
+                            <button type="submit" class="btn btn-primary h-40-px radius-12">Search</button>
+                        </form>
                     </div>
                     <a href="servicetype?service=pre-insert" class="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2"> 
                         <iconify-icon icon="ic:baseline-plus" class="icon text-xl line-height-1"></iconify-icon>
@@ -278,7 +260,7 @@
                 return confirm("Are you sure you want to deactive this Service Type (ID = " + id + ") ?");
             }
         </script>
-        
+
 
     </body>
 
