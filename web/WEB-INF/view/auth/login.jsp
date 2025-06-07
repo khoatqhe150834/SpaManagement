@@ -211,6 +211,61 @@ contentType="text/html" pageEncoding="UTF-8"%>
     <!-- JAVASCRIPT FILES ========================================= -->
     <jsp:include page="/WEB-INF/view/common/home/js.jsp"></jsp:include>
     
+    <!-- Handle password change success prefill -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if user just changed password
+            const passwordJustChanged = sessionStorage.getItem('passwordJustChanged');
+            const loginEmail = sessionStorage.getItem('loginEmail');
+            const loginPassword = sessionStorage.getItem('loginPassword');
+            
+            if (passwordJustChanged === 'true' && loginEmail && loginPassword) {
+                // Prefill the form
+                const emailInput = document.querySelector('input[name="email"]');
+                const passwordInput = document.querySelector('input[name="password"]');
+                
+                if (emailInput && passwordInput) {
+                    emailInput.value = loginEmail;
+                    passwordInput.value = loginPassword;
+                    
+                    // Add visual indicators
+                    emailInput.classList.add('prefilled-success');
+                    passwordInput.classList.add('prefilled-success');
+                    
+                    // Focus on login button
+                    setTimeout(function() {
+                        const loginButton = document.querySelector('.site-button');
+                        if (loginButton) {
+                            loginButton.focus();
+                            
+                            // Add pulsing effect to login button
+                            loginButton.style.animation = 'pulse 2s infinite';
+                        }
+                    }, 500);
+                    
+                    // Clear the session storage after use
+                    sessionStorage.removeItem('passwordJustChanged');
+                    sessionStorage.removeItem('loginEmail');
+                    sessionStorage.removeItem('loginPassword');
+                }
+            }
+        });
+    </script>
+    
+    <style>
+        .prefilled-success {
+            background-color: #f8fff8 !important;
+            border-color: #28a745 !important;
+            box-shadow: 0 0 5px rgba(40, 167, 69, 0.3) !important;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+    
     <!-- Auto-focus and highlight for prefilled login -->
     <c:if test="${not empty prefillEmail && not empty prefillPassword}">
     <script>
@@ -220,24 +275,7 @@ contentType="text/html" pageEncoding="UTF-8"%>
             $('input[name="password"]').addClass('prefilled');
             
             // Focus on the login button to encourage user to just click login
-            setTimeout(function() {
-                $('.site-button').focus();
-                
-                // Add some styling to indicate the form is ready
-                $('.site-button').css({
-                    'box-shadow': '0 0 10px rgba(88, 107, 180, 0.5)',
-                    'border': '2px solid #586BB4'
-                });
-                
-                // Add a subtle animation to draw attention
-                $('.site-button').animate({
-                    'padding-left': '25px',
-                    'padding-right': '25px'
-                }, 200).animate({
-                    'padding-left': '20px',
-                    'padding-right': '20px'
-                }, 200);
-            }, 500);
+            
         });
     </script>
     <style>

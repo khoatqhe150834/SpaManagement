@@ -149,6 +149,7 @@
                                                 type="email"
                                                 value="${param.email}"
                                             />
+                                            <div class="validation-message" id="emailInputMessage" style="display: none;"></div>
                                             <%-- <div class="input-help">
                                                 <i class="fa fa-info-circle"></i>
                                                 Email phải đã được đăng ký trong hệ thống của chúng tôi
@@ -190,56 +191,7 @@
     <!-- JAVASCRIPT FILES ========================================= -->
     <jsp:include page="/WEB-INF/view/common/home/js.jsp"></jsp:include>
     
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const form = document.getElementById('resetPasswordForm');
-            const submitBtn = document.getElementById('submitBtn');
-            const emailInput = document.getElementById('emailInput');
-            
-            if (form) {
-                emailInput.focus();
-                
-                form.addEventListener('submit', function(e) {
-                    const email = emailInput.value.trim();
-                    
-                    if (!email || !isValidEmail(email)) {
-                        e.preventDefault();
-                        alert('Vui lòng nhập địa chỉ email hợp lệ.');
-                        emailInput.focus();
-                        return;
-                    }
-                    
-                    // Show loading state
-                    submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<div class="loading-spinner"></div><i class="fa fa-spinner fa-spin"></i> ĐANG GỬI...';
-                });
-                
-                emailInput.addEventListener('input', function() {
-                    const email = this.value.trim();
-                    if (email && !isValidEmail(email)) {
-                        this.style.borderColor = '#f44336';
-                    } else {
-                        this.style.borderColor = '#e0e0e0';
-                    }
-                });
-            }
-            
-            function isValidEmail(email) {
-                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-            }
-            
-            // Auto-hide alerts
-            setTimeout(function() {
-                const alerts = document.querySelectorAll('.alert');
-                alerts.forEach(function(alert) {
-                    if (!alert.classList.contains('alert-success')) {
-                        alert.style.transition = 'opacity 0.5s ease';
-                        alert.style.opacity = '0';
-                        setTimeout(() => alert.remove(), 500);
-                    }
-                });
-            }, 8000);
-        });
-    </script>
+    <!-- Reset Password Validation Script -->
+    <script src="${pageContext.request.contextPath}/assets/home/js/password/reset-password-validation.js"></script>
     </body>
 </html>
