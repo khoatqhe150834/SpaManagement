@@ -108,8 +108,11 @@ public class EmailService {
         "        .content { padding: 20px; background-color: #f9f9f9; }" +
         "        .button { display: inline-block; padding: 12px 24px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 4px; margin: 20px 0; }"
         +
-        "        .footer { padding: 20px; text-align: center; font-size: 12px; color: #666; }" +
-        "        .warning { background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; margin: 15px 0; border-radius: 4px; }"
+        "        .footer { padding: 20px; text-align: center; font-size: 12px; color: #333; }" +
+        "        .warning { background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; margin: 15px 0; border-radius: 4px; color: #333; }"
+        +
+        "        .warning strong { color: #b8860b; }" +
+        "        .url-box { word-break: break-all; background-color: #f0f0f0; padding: 10px; border-radius: 4px; color: #333; }"
         +
         "    </style>" +
         "</head>" +
@@ -127,9 +130,9 @@ public class EmailService {
         "                <a href=\"" + resetUrl + "\" class=\"button\">Đặt Lại Mật Khẩu</a>" +
         "            </div>" +
         "            <p>Hoặc sao chép và dán liên kết này vào trình duyệt của bạn:</p>" +
-        "            <p style=\"word-break: break-all; background-color: #f0f0f0; padding: 10px; border-radius: 4px;\">"
-        +
-        "                <a href=\"" + resetUrl + "\">" + resetUrl + "</a>" +
+        "            <p class=\"url-box\">" +
+        "                <a href=\"" + resetUrl + "\" style=\"color: #333; text-decoration: underline;\">" + resetUrl
+        + "</a>" +
         "            </p>" +
         "            <div class=\"warning\">" +
         "                <strong>Quan trọng:</strong>" +
@@ -196,9 +199,10 @@ public class EmailService {
         "        .container { max-width: 600px; margin: 0 auto; padding: 20px; }" +
         "        .header { background-color: #4CAF50; color: white; padding: 20px; text-align: center; }" +
         "        .content { padding: 20px; background-color: #f9f9f9; }" +
-        "        .footer { padding: 20px; text-align: center; font-size: 12px; color: #666; }" +
+        "        .footer { padding: 20px; text-align: center; font-size: 12px; color: #333; }" +
         "        .success { background-color: #d4edda; border: 1px solid #c3e6cb; padding: 10px; margin: 15px 0; border-radius: 4px; color: #155724; }"
         +
+        "        .success strong { color: #0f5132; }" +
         "    </style>" +
         "</head>" +
         "<body>" +
@@ -281,8 +285,11 @@ public class EmailService {
         "        .content { padding: 20px; background-color: #f9f9f9; }" +
         "        .button { display: inline-block; padding: 12px 24px; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px; margin: 20px 0; }"
         +
-        "        .footer { padding: 20px; text-align: center; font-size: 12px; color: #666; }" +
-        "        .warning { background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; margin: 15px 0; border-radius: 4px; }"
+        "        .footer { padding: 20px; text-align: center; font-size: 12px; color: #333; }" +
+        "        .warning { background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; margin: 15px 0; border-radius: 4px; color: #333; }"
+        +
+        "        .warning strong { color: #b8860b; }" +
+        "        .url-box { word-break: break-all; background-color: #f0f0f0; padding: 10px; border-radius: 4px; color: #333; }"
         +
         "    </style>" +
         "</head>" +
@@ -299,9 +306,9 @@ public class EmailService {
         "                <a href=\"" + verifyUrl + "\" class=\"button\">Xác Thực Email</a>" +
         "            </div>" +
         "            <p>Hoặc sao chép và dán liên kết này vào trình duyệt của bạn:</p>" +
-        "            <p style=\"word-break: break-all; background-color: #f0f0f0; padding: 10px; border-radius: 4px;\">"
-        +
-        "                <a href=\"" + verifyUrl + "\">" + verifyUrl + "</a>" +
+        "            <p class=\"url-box\">" +
+        "                <a href=\"" + verifyUrl + "\" style=\"color: #333; text-decoration: underline;\">" + verifyUrl
+        + "</a>" +
         "            </p>" +
         "            <div class=\"warning\">" +
         "                <strong>Lưu ý:</strong> Liên kết xác thực này sẽ hết hạn sau 24 giờ vì lý do bảo mật." +

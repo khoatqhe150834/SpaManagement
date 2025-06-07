@@ -233,13 +233,12 @@ public class RegisterController extends HttpServlet {
             // Send verification email asynchronously
             asyncEmailService.sendVerificationEmailAsync(email, verificationToken.getToken(), request.getContextPath());
 
-            // Set email attribute for the success page
-            request.setAttribute("email", email);
-
-            // Redirect to success page
-            request.getRequestDispatcher("/WEB-INF/view/auth/register-success.jsp").forward(request, response);
-
-            // request.getRequestDispatcher("/test.jsp").forward(request, response);
+            // Redirect to login page with prefilled credentials
+            request.setAttribute("success",
+                    "Đăng ký thành công! Vui lòng đăng nhập. Chúng tôi đã gửi email xác thực đến bạn.");
+            request.setAttribute("prefillEmail", email);
+            request.setAttribute("prefillPassword", password);
+            request.getRequestDispatcher("/WEB-INF/view/auth/login.jsp").forward(request, response);
 
         } catch (Exception e) {
             // Log the error but don't expose it to the user
