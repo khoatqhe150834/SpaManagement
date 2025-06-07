@@ -156,6 +156,37 @@ public class LoginController extends HttpServlet {
                     "Email xác thực đã được gửi lại thành công! Vui lòng kiểm tra hộp thư của bạn.");
         }
 
+        // Check for email parameter to pre-fill the form (e.g., from verification
+        // success page)
+        String emailParam = request.getParameter("email");
+        if (emailParam != null && !emailParam.trim().isEmpty()) {
+            request.setAttribute("prefillEmail", emailParam);
+
+            // Check if there's verification login data in session
+            if (session != null) {
+                String verificationEmail = (String) session.getAttribute("verificationLoginEmail");
+                String verificationPassword = (String) session.getAttribute("verificationLoginPassword");
+
+                if (verificationEmail != null && verificationEmail.equals(emailParam.trim())
+                        && verificationPassword != null) {
+                    // Use the password from recent registration
+                    request.setAttribute("prefillPassword", verificationPassword);
+                    // Clear the verification data after use for security
+                    session.removeAttribute("verificationLoginEmail");
+                    session.removeAttribute("verificationLoginPassword");
+                } else {
+                    // When coming from email verification without registration password, don't use
+                    // remember-me data
+                    // This prevents old passwords from interfering with newly verified accounts
+                    request.removeAttribute("rememberedPassword");
+                }
+            }
+
+            // Don't use remember-me data when coming from email verification
+            request.removeAttribute("rememberedEmail");
+            request.setAttribute("rememberMeChecked", false);
+        }
+
         request.getRequestDispatcher("/WEB-INF/view/auth/login.jsp").forward(request, response);
     }
 

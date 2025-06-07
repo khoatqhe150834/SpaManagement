@@ -156,7 +156,7 @@
                                     </div>
                                     <% if (request.getAttribute("canLogin") != null) { %>
                                         <div class="button-group">
-                                            <a href="${pageContext.request.contextPath}/login" class="site-button radius-no">Đăng nhập ngay</a>
+                                            <a href="${pageContext.request.contextPath}/login?email=<%= java.net.URLEncoder.encode((String)request.getAttribute("email"), "UTF-8") %>" class="site-button radius-no">Đăng nhập ngay</a>
                                             <a href="${pageContext.request.contextPath}/" class="site-button radius-no">Về trang chủ</a>
                                         </div>
                                     <% } else { %>

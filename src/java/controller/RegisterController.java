@@ -240,6 +240,7 @@ public class RegisterController extends HttpServlet {
         HttpSession session = request.getSession();
         session.setAttribute("registrationEmail", email);
         session.setAttribute("registrationFullName", fullName);
+        session.setAttribute("registrationPassword", password); // Store password for login pre-filling
         session.setAttribute("registrationSuccess", true);
 
         // Redirect to register success page with email parameter for refresh-proof

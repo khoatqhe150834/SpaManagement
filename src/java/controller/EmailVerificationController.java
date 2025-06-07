@@ -7,6 +7,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Optional;
@@ -90,6 +91,24 @@ public class EmailVerificationController extends HttpServlet {
       request.setAttribute("success", "Xác thực email thành công! Tài khoản của bạn đã được kích hoạt.");
       request.setAttribute("email", customer.getEmail());
       request.setAttribute("canLogin", true);
+
+      // Check if there's a registration password in session for this email
+      HttpSession session = request.getSession(false);
+      if (session != null) {
+        String registrationEmail = (String) session.getAttribute("registrationEmail");
+        String registrationPassword = (String) session.getAttribute("registrationPassword");
+        if (registrationEmail != null && registrationEmail.equals(customer.getEmail())
+            && registrationPassword != null) {
+          // Store password for login pre-filling
+          session.setAttribute("verificationLoginEmail", customer.getEmail());
+          session.setAttribute("verificationLoginPassword", registrationPassword);
+          // Clear registration data as it's no longer needed
+          session.removeAttribute("registrationEmail");
+          session.removeAttribute("registrationFullName");
+          session.removeAttribute("registrationPassword");
+          session.removeAttribute("registrationSuccess");
+        }
+      }
 
       // Forward to result page
       request.getRequestDispatcher("/WEB-INF/view/auth/verification-result.jsp").forward(request, response);
