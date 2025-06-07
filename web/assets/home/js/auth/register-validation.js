@@ -417,4 +417,91 @@ $(document).ready(function() {
     Object.keys(validationState).forEach(key => {
         validationState[key] = false;
     });
+
+    /**
+     * Initialize space normalization for form fields
+     * Handles aggressive space removal for email field and general normalization for other fields
+     */
+    function initializeSpaceNormalization() {
+        console.log('Starting space normalization initialization');
+        
+        // Function to normalize spaces
+        function normalizeSpaces(value) {
+            if (!value) return '';
+            return value.trim().replace(/\s+/g, ' ');
+        }
+        
+        // Check if email field exists
+        const emailField = $('#email');
+        if (emailField.length === 0) {
+            console.error('Email field not found!');
+            return;
+        }
+        
+        console.log('Email field found, attaching space prevention events');
+        
+        // Ultra-aggressive email space prevention - multiple events
+        emailField.on('keydown keypress', function(e) {
+            console.log('Key event on email:', e.type, e.keyCode, e.key, e.which);
+            // Block space key entirely for email
+            if (e.keyCode === 32 || e.key === ' ' || e.which === 32) {
+                console.log('Blocking space in email field');
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+        });
+        
+        // Handle paste for email - remove spaces
+        emailField.on('paste', function(e) {
+            console.log('Paste event on email field');
+            e.preventDefault();
+            let pastedText = '';
+            if (e.originalEvent.clipboardData && e.originalEvent.clipboardData.getData) {
+                pastedText = e.originalEvent.clipboardData.getData('text');
+            } else if (window.clipboardData && window.clipboardData.getData) {
+                pastedText = window.clipboardData.getData('Text');
+            }
+            const cleanText = pastedText.replace(/\s/g, ''); // Remove ALL spaces for email
+            console.log('Pasted text cleaned:', pastedText, '->', cleanText);
+            $(this).val(cleanText).trigger('input');
+        });
+        
+        // Continuous space removal for email on any input
+        emailField.on('input', function() {
+            const originalValue = $(this).val();
+            const cleanValue = originalValue.replace(/\s/g, ''); // Remove ALL spaces
+            if (originalValue !== cleanValue) {
+                console.log('Removing spaces from email:', originalValue, '->', cleanValue);
+                $(this).val(cleanValue);
+            }
+        });
+        
+        // General space normalization for other fields on blur
+        $('#fullName, #phone, #confirmPassword').on('blur', function() {
+            const originalValue = $(this).val();
+            const normalizedValue = normalizeSpaces(originalValue);
+            if (originalValue !== normalizedValue) {
+                console.log('Normalizing spaces in field:', this.id, originalValue, '->', normalizedValue);
+                $(this).val(normalizedValue).trigger('input');
+            }
+        });
+        
+        // Final normalization on form submission
+        $('#registerForm').on('submit', function() {
+            console.log('Form submission - normalizing all fields');
+            $('#fullName, #phone, #confirmPassword').each(function() {
+                const normalizedValue = normalizeSpaces($(this).val());
+                $(this).val(normalizedValue);
+            });
+            // Remove ALL spaces from email
+            const emailValue = $('#email').val().replace(/\s/g, '');
+            $('#email').val(emailValue);
+        });
+        
+        console.log('Space normalization initialized successfully');
+    }
+
+    // Initialize space normalization after all functions are defined
+    initializeSpaceNormalization();
 }); 

@@ -168,7 +168,8 @@ contentType="text/html" pageEncoding="UTF-8"%>
                           placeholder="email@gmail.com"
                           type="email"
                           maxlength="255"
-                          title="Vui lòng nhập đúng định dạng email."
+                          pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                          title="Vui lòng nhập đúng định dạng email (không chứa khoảng trắng)."
                         />
                       </div>
                       <div class="form-group">

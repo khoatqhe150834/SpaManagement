@@ -155,12 +155,23 @@ public class RegisterController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // retrieve form data
+        // retrieve form data and trim whitespace
         String fullName = request.getParameter("fullName");
         String phone = request.getParameter("phone");
         String email = request.getParameter("email");
         String password = request.getParameter("password");
         String confirmPassword = request.getParameter("confirmPassword");
+
+        // Trim all input fields to remove leading/trailing spaces
+        if (fullName != null)
+            fullName = fullName.trim();
+        if (phone != null)
+            phone = phone.trim();
+        if (email != null)
+            email = email.trim();
+        // Note: Don't trim password as spaces might be intentional
+        if (confirmPassword != null)
+            confirmPassword = confirmPassword.trim();
 
         // Create validator instance
         RegisterValidator validator = new RegisterValidator();
