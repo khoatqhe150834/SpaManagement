@@ -9,14 +9,14 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import model.Customer;
-import model.EmailVerificationToken;
-import service.email.AsyncEmailService;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import model.Customer;
+import model.EmailVerificationToken;
+import service.email.AsyncEmailService;
 
 /**
  * Controller for resending email verification
@@ -69,7 +69,7 @@ public class ResendVerificationController extends HttpServlet {
           long timeSinceLastSent = (System.currentTimeMillis() - lastSentTime) / 1000;
           if (timeSinceLastSent < 60) {
             long remainingTime = 60 - timeSinceLastSent;
-            response.setStatus(HttpServletResponse.SC_TOO_MANY_REQUESTS);
+//            response.setStatus(HttpServletResponse.SC);
             out.print("{\"success\": false, \"message\": \"Vui lòng đợi " + remainingTime
                 + " giây trước khi gửi lại email.\"}");
             return;
@@ -88,7 +88,7 @@ public class ResendVerificationController extends HttpServlet {
         if (customerName == null) {
           customerName = customer.getFullName();
         }
-        asyncEmailService.sendVerificationEmailAsync(customer.getEmail(), customerName, token.getToken());
+        asyncEmailService.sendVerificationEmailAsync(customer.getEmail(), token.getToken(), customerName);
 
         // Store timestamp to prevent rapid resending
         session.setAttribute(lastSentKey, System.currentTimeMillis());

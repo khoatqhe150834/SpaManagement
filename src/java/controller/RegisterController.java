@@ -231,7 +231,7 @@ public class RegisterController extends HttpServlet {
             verificationTokenDAO.save(verificationToken);
 
             // Send verification email asynchronously
-            asyncEmailService.sendVerificationEmailAsync(email, verificationToken.getToken(), request.getContextPath());
+            asyncEmailService.sendVerificationEmailAsync(email, verificationToken.getToken(), fullName);
 
             // Redirect to login page with prefilled credentials
             request.setAttribute("success",
