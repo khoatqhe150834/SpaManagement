@@ -149,10 +149,10 @@
                                                 type="email"
                                                 value="${param.email}"
                                             />
-                                            <div class="input-help">
+                                            <%-- <div class="input-help">
                                                 <i class="fa fa-info-circle"></i>
                                                 Email phải đã được đăng ký trong hệ thống của chúng tôi
-                                            </div>
+                                            </div> --%>
                                         </div>
                                         
                                         <div class="submit-section">
