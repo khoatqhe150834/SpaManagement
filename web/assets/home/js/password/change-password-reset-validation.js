@@ -12,37 +12,63 @@ document.addEventListener('DOMContentLoaded', function() {
     if (form) {
         newPassword.focus();
         
-        // Check password match
-        function checkPasswordMatch() {
-            const password = newPassword.value;
-            const confirm = confirmPassword.value;
-            
-            if (confirm.length === 0) {
-                passwordMatch.innerHTML = '';
-                return false;
+            // Show validation messages
+    function showPasswordValidation() {
+        const password = newPassword.value;
+        const passwordMessageElement = document.getElementById('newPasswordMessage');
+        
+        if (password.length === 0) {
+            if (passwordMessageElement) {
+                passwordMessageElement.style.display = 'none';
             }
-            
-            if (password === confirm) {
-                passwordMatch.innerHTML = '<span class="valid"><i class="fa fa-check"></i> Mật khẩu khớp</span>';
-                return true;
-            } else {
-                passwordMatch.innerHTML = '<span class="invalid"><i class="fa fa-times"></i> Mật khẩu không khớp</span>';
-                return false;
+        } else if (password.length < 6) {
+            if (passwordMessageElement) {
+                passwordMessageElement.innerHTML = '<span class="invalid"><i class="fa fa-exclamation-triangle"></i> Mật khẩu phải có ít nhất 6 ký tự</span>';
+                passwordMessageElement.style.display = 'block';
             }
+        } else {
+            if (passwordMessageElement) {
+                passwordMessageElement.innerHTML = '<span class="valid"><i class="fa fa-check"></i> Mật khẩu hợp lệ</span>';
+                passwordMessageElement.style.display = 'block';
+            }
+        }
+    }
+
+    // Check password match
+    function checkPasswordMatch() {
+        const password = newPassword.value;
+        const confirm = confirmPassword.value;
+        
+        if (confirm.length === 0) {
+            passwordMatch.innerHTML = '';
+            return false;
         }
         
-        // Validate form
-        function validateForm() {
-            const password = newPassword.value;
-            const confirm = confirmPassword.value;
-            const isPasswordValid = password.length >= 6;
-            const isPasswordMatch = password === confirm && confirm.length > 0;
-            
-            submitBtn.disabled = !(isPasswordValid && isPasswordMatch);
+        if (password === confirm && password.length >= 6) {
+            passwordMatch.innerHTML = '<span class="valid"><i class="fa fa-check"></i> Mật khẩu khớp</span>';
+            return true;
+        } else if (password !== confirm) {
+            passwordMatch.innerHTML = '<span class="invalid"><i class="fa fa-times"></i> Nhập lại mật khẩu để xác nhận</span>';
+            return false;
+        } else {
+            passwordMatch.innerHTML = '';
+            return false;
         }
+    }
+    
+    // Validate form
+    function validateForm() {
+        const password = newPassword.value;
+        const confirm = confirmPassword.value;
+        const isPasswordValid = password.length >= 6;
+        const isPasswordMatch = password === confirm && confirm.length > 0;
+        
+        submitBtn.disabled = !(isPasswordValid && isPasswordMatch);
+    }
         
         // Event listeners
         newPassword.addEventListener('input', function() {
+            showPasswordValidation();
             if (confirmPassword.value.length > 0) {
                 checkPasswordMatch();
             }
@@ -89,6 +115,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         // Initial validation
+        showPasswordValidation();
         validateForm();
     }
     

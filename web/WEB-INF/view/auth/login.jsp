@@ -109,8 +109,16 @@ contentType="text/html" pageEncoding="UTF-8"%>
                     </div>
                 </c:if>
                 <c:if test="${not empty success}">
-                    <div class="alert alert-success" style="margin-bottom: 20px;">
+                    <div class="alert alert-success ${param.passwordChanged == 'true' ? 'password-change-success' : ''}" style="margin-bottom: 20px;">
+                        <c:if test="${param.passwordChanged == 'true'}">
+                            <i class="fa fa-check-circle" style="font-size: 18px; margin-right: 8px;"></i>
+                        </c:if>
                         ${success}
+                        <c:if test="${param.passwordChanged == 'true'}">
+                            <br><small style="margin-top: 8px; display: block; opacity: 0.9;">
+                                <i class="fa fa-info-circle"></i> Email của bạn đã được điền sẵn bên dưới
+                            </small>
+                        </c:if>
                     </div>
                 </c:if>
                 <div class="p-a30 border-1 seth">
@@ -222,7 +230,36 @@ contentType="text/html" pageEncoding="UTF-8"%>
     <!-- Handle password change success prefill -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Check if user just changed password
+            // Check if coming from password change
+            const urlParams = new URLSearchParams(window.location.search);
+            const isPasswordChanged = urlParams.get('passwordChanged') === 'true';
+            
+            if (isPasswordChanged) {
+                // Highlight the pre-filled email field
+                const emailInput = document.querySelector('input[name="email"]');
+                if (emailInput && emailInput.value) {
+                    emailInput.classList.add('password-change-prefill');
+                    
+                    // Add a gentle pulse effect to draw attention
+                    emailInput.style.animation = 'pulse 3s ease-in-out 2';
+                    
+                    // Focus on password field since email is already filled
+                    const passwordInput = document.querySelector('input[name="password"]');
+                    if (passwordInput) {
+                        setTimeout(function() {
+                            passwordInput.focus();
+                        }, 1000);
+                    }
+                }
+                
+                // Make success message more prominent
+                const successAlert = document.querySelector('.password-change-success');
+                if (successAlert) {
+                    successAlert.style.boxShadow = '0 4px 20px rgba(40, 167, 69, 0.3)';
+                }
+            }
+            
+            // Legacy: Check if user just changed password via session storage
             const passwordJustChanged = sessionStorage.getItem('passwordJustChanged');
             const loginEmail = sessionStorage.getItem('loginEmail');
             const loginPassword = sessionStorage.getItem('loginPassword');
@@ -271,6 +308,34 @@ contentType="text/html" pageEncoding="UTF-8"%>
             0% { transform: scale(1); }
             50% { transform: scale(1.05); }
             100% { transform: scale(1); }
+        }
+        
+        /* Enhanced styling for password change success */
+        .password-change-success {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb) !important;
+            border: 2px solid #28a745 !important;
+            border-radius: 8px !important;
+            padding: 20px !important;
+            font-weight: 600 !important;
+            animation: slideInFromTop 0.5s ease-out;
+        }
+        
+        @keyframes slideInFromTop {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Highlight the email field when pre-filled from password change */
+        .form-control.password-change-prefill {
+            background-color: #f8fff8 !important;
+            border-color: #28a745 !important;
+            box-shadow: 0 0 8px rgba(40, 167, 69, 0.3) !important;
         }
     </style>
     

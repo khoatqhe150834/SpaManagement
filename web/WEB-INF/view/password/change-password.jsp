@@ -613,6 +613,7 @@
                                                     <i class="fa fa-info-circle"></i>
                                                     <span>Mật khẩu phải có ít nhất 6 ký tự</span>
                                                 </div>
+                                                <div id="newPasswordMessage" class="validation-message" style="display: none;"></div>
                                             </div>
                                         </div>
                                         

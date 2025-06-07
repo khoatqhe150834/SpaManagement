@@ -125,6 +125,7 @@
                                             required
                                             class="password-input"
                                             placeholder="Nhập mật khẩu hiện tại"
+                                            value="${attemptedCurrentPassword != null ? attemptedCurrentPassword : ''}"
                                         />
                                         <div class="validation-message" id="currentPasswordMessage" style="display: none;"></div>
                                         <%-- <div class="input-help">
@@ -147,6 +148,7 @@
                                             minlength="6"
                                             class="password-input"
                                             placeholder="Nhập mật khẩu mới"
+                                            value="${attemptedNewPassword != null ? attemptedNewPassword : ''}"
                                         />
                                         <div class="validation-message" id="newPasswordMessage" style="display: none;"></div>
                                         <%-- <div class="input-help">
@@ -169,6 +171,7 @@
                                             minlength="6"
                                             class="password-input"
                                             placeholder="Nhập lại mật khẩu mới"
+                                            value="${attemptedConfirmPassword != null ? attemptedConfirmPassword : ''}"
                                         />
                                         <div class="validation-message" id="confirmPasswordMessage" style="display: none;"></div>
                                         <%-- <div class="input-help">
@@ -213,5 +216,58 @@
     
     <!-- Password Change Validation Script -->
     <script src="${pageContext.request.contextPath}/assets/home/js/password/change-password-validation.js"></script>
+    
+    <!-- Handle preserved values after error -->
+    <c:if test="${not empty error && (not empty attemptedCurrentPassword || not empty attemptedNewPassword || not empty attemptedConfirmPassword)}">
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Add visual feedback for preserved values
+                const currentPassword = document.getElementById('currentPassword');
+                const newPassword = document.getElementById('newPassword');
+                const confirmPassword = document.getElementById('confirmPassword');
+                
+                // Style preserved fields
+                if (currentPassword && currentPassword.value) {
+                    currentPassword.style.backgroundColor = '#fff8e1';
+                    currentPassword.style.borderColor = '#ff9800';
+                    currentPassword.style.boxShadow = '0 0 5px rgba(255, 152, 0, 0.3)';
+                }
+                
+                if (newPassword && newPassword.value) {
+                    newPassword.style.backgroundColor = '#fff8e1';
+                    newPassword.style.borderColor = '#ff9800';
+                    newPassword.style.boxShadow = '0 0 5px rgba(255, 152, 0, 0.3)';
+                }
+                
+                if (confirmPassword && confirmPassword.value) {
+                    confirmPassword.style.backgroundColor = '#fff8e1';
+                    confirmPassword.style.borderColor = '#ff9800';
+                    confirmPassword.style.boxShadow = '0 0 5px rgba(255, 152, 0, 0.3)';
+                }
+                
+                // Focus on the field that likely has the error (current password for wrong password error)
+                if (currentPassword) {
+                    currentPassword.focus();
+                    currentPassword.select(); // Select the text so user can easily replace it
+                }
+            });
+        </script>
+    </c:if>
+    
+    <style>
+        /* Styling for preserved input values */
+        .password-input.preserved {
+            background-color: #fff8e1 !important;
+            border-color: #ff9800 !important;
+            box-shadow: 0 0 5px rgba(255, 152, 0, 0.3) !important;
+        }
+        
+        /* Error state styling */
+        .password-input.error {
+            background-color: #ffebee !important;
+            border-color: #f44336 !important;
+            box-shadow: 0 0 5px rgba(244, 67, 54, 0.3) !important;
+        }
+    </style>
     </body>
 </html>

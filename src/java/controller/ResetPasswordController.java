@@ -60,6 +60,13 @@ public class ResetPasswordController extends HttpServlet {
             return;
         }
 
+        // Check if this is an AJAX request for email validation
+        String ajaxCheck = request.getParameter("ajax");
+        if ("checkEmail".equals(ajaxCheck)) {
+            handleAjaxEmailCheck(request, response);
+            return;
+        }
+
         switch (servletPath) {
             case "/reset-password":
                 request.getRequestDispatcher("/WEB-INF/view/password/reset-password.jsp").forward(request, response);
@@ -100,6 +107,46 @@ public class ResetPasswordController extends HttpServlet {
     @Override
     public String getServletInfo() {
         return "Handles password reset and change functionality for both Customer and User accounts";
+    }
+
+    /**
+     * Handle AJAX requests to check if email exists in the system
+     */
+    private void handleAjaxEmailCheck(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        String email = request.getParameter("email");
+
+        try (java.io.PrintWriter out = response.getWriter()) {
+            if (email == null || email.trim().isEmpty()) {
+                out.print("{\"exists\": false, \"message\": \"Email không được để trống\"}");
+                return;
+            }
+
+            email = email.trim();
+
+            // Validate email format first
+            if (!email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+                out.print("{\"exists\": false, \"message\": \"Định dạng email không hợp lệ\"}");
+                return;
+            }
+
+            boolean emailExists = accountDAO.isEmailTakenInSystem(email);
+
+            if (emailExists) {
+                out.print("{\"exists\": true, \"message\": \"Email tồn tại trong hệ thống\"}");
+            } else {
+                out.print("{\"exists\": false, \"message\": \"Email không tồn tại trong hệ thống\"}");
+            }
+
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            try (java.io.PrintWriter out = response.getWriter()) {
+                out.print("{\"exists\": false, \"message\": \"Lỗi hệ thống, vui lòng thử lại\"}");
+            }
+        }
     }
 
     /**

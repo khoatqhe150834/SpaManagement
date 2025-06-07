@@ -97,7 +97,7 @@
                                 <div class="alert alert-success">
                                     <i class="fa fa-check-circle success-icon"></i>
                                     <div class="success-title">Email Đã Được Gửi!</div>
-                                    <div class="success-message">${success}</div>
+                                    <div class="">${success}</div>
                                     <div class="success-note">
                                         <i class="fa fa-info-circle"></i>
                                         Vui lòng kiểm tra cả thư mục spam nếu không thấy email.

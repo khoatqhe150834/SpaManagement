@@ -122,33 +122,6 @@ public class LoginController extends HttpServlet {
             }
         }
 
-        // Check for remember me cookie
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("rememberedUser".equals(cookie.getName())) {
-                    String tokenValue = cookie.getValue();
-                    if (tokenValue != null && !tokenValue.isEmpty()) {
-                        try {
-                            // Get token from database
-                            RememberMeToken token = rememberMeTokenDAO.findToken(tokenValue);
-                            if (token != null) {
-                                // Set email and password as request attributes to pre-fill form
-                                request.setAttribute("rememberedEmail", token.getEmail());
-                                request.setAttribute("rememberedPassword", token.getPassword());
-                                request.setAttribute("rememberMeChecked", true);
-                            }
-                        } catch (SQLException ex) {
-                            Logger.getLogger(LoginController.class.getName()).log(Level.SEVERE,
-                                    "Error retrieving remember me token", ex);
-                            // Continue without pre-filling - don't break the login page
-                        }
-                    }
-                    break; // Found the cookie, no need to continue
-                }
-            }
-        }
-
         // Check if verification email was resent successfully
         String resent = request.getParameter("resent");
         if ("true".equals(resent)) {
@@ -156,11 +129,66 @@ public class LoginController extends HttpServlet {
                     "Email xác thực đã được gửi lại thành công! Vui lòng kiểm tra hộp thư của bạn.");
         }
 
+        // Check if user just changed password successfully - THIS TAKES PRECEDENCE
+        String passwordChanged = request.getParameter("passwordChanged");
+        boolean isPasswordChange = "true".equals(passwordChanged);
+
+        if (isPasswordChange && session != null) {
+            Boolean passwordChangeSuccess = (Boolean) session.getAttribute("passwordChangeSuccess");
+            String passwordChangeEmail = (String) session.getAttribute("passwordChangeEmail");
+
+            if (passwordChangeSuccess != null && passwordChangeSuccess && passwordChangeEmail != null) {
+                request.setAttribute("success",
+                        "Mật khẩu đã được thay đổi thành công! Vui lòng đăng nhập bằng mật khẩu mới.");
+                request.setAttribute("prefillEmail", passwordChangeEmail);
+
+                // Clear the session data after use
+                session.removeAttribute("passwordChangeSuccess");
+                session.removeAttribute("passwordChangeEmail");
+
+                // Don't use remember-me data when coming from password change
+                request.setAttribute("rememberMeChecked", false);
+            }
+        }
+
+        // Check for remember me cookie ONLY if NOT coming from password change
+        if (!isPasswordChange) {
+            Cookie[] cookies = request.getCookies();
+            if (cookies != null) {
+                for (Cookie cookie : cookies) {
+                    if ("rememberedUser".equals(cookie.getName())) {
+                        String tokenValue = cookie.getValue();
+                        if (tokenValue != null && !tokenValue.isEmpty()) {
+                            try {
+                                // Get token from database
+                                RememberMeToken token = rememberMeTokenDAO.findToken(tokenValue);
+                                if (token != null) {
+                                    // Set email and password as request attributes to pre-fill form
+                                    request.setAttribute("rememberedEmail", token.getEmail());
+                                    request.setAttribute("rememberedPassword", token.getPassword());
+                                    request.setAttribute("rememberMeChecked", true);
+                                }
+                            } catch (SQLException ex) {
+                                Logger.getLogger(LoginController.class.getName()).log(Level.SEVERE,
+                                        "Error retrieving remember me token", ex);
+                                // Continue without pre-filling - don't break the login page
+                            }
+                        }
+                        break; // Found the cookie, no need to continue
+                    }
+                }
+            }
+        }
+
         // Check for email parameter to pre-fill the form (e.g., from verification
         // success page)
+        // BUT NOT if coming from password change (which has higher priority)
         String emailParam = request.getParameter("email");
-        if (emailParam != null && !emailParam.trim().isEmpty()) {
-            request.setAttribute("prefillEmail", emailParam);
+        if (emailParam != null && !emailParam.trim().isEmpty() && !isPasswordChange) {
+            // Only set prefillEmail if not already set by password change
+            if (request.getAttribute("prefillEmail") == null) {
+                request.setAttribute("prefillEmail", emailParam);
+            }
 
             // Check if there's verification login data in session
             if (session != null) {
