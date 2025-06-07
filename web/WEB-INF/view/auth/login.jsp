@@ -3,7 +3,6 @@
 contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html lang="en">
-  <!-- Mirrored from www.beautyzone.dexignzone.com/xhtml/login.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 24 May 2025 16:40:31 GMT -->
   <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -98,6 +97,15 @@ contentType="text/html" pageEncoding="UTF-8"%>
                 <c:if test="${not empty error}">
                     <div class="alert alert-danger" style="margin-bottom: 20px;">
                         ${error}
+                        <c:if test="${showResendLink == true}">
+                            <br><br>
+                            <div class="text-center">
+                                <a href="${pageContext.request.contextPath}/resend-verification?email=${customerEmail}" 
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="fa fa-envelope"></i> Gửi lại email xác thực
+                                </a>
+                            </div>
+                        </c:if>
                     </div>
                 </c:if>
                 <c:if test="${not empty success}">

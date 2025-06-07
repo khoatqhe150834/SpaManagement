@@ -11,6 +11,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
 import model.Customer;
@@ -234,33 +235,17 @@ public class RegisterController extends HttpServlet {
         // save data to database
         customerDAO.save(newCustomer);
 
-        try {
-            // Create verification token
-            EmailVerificationToken verificationToken = new EmailVerificationToken(email);
+        // Use POST-redirect-GET pattern to prevent refresh issues
+        // Store success data in session temporarily
+        HttpSession session = request.getSession();
+        session.setAttribute("registrationEmail", email);
+        session.setAttribute("registrationFullName", fullName);
+        session.setAttribute("registrationSuccess", true);
 
-            // Save token to database
-            verificationTokenDAO.save(verificationToken);
-
-            // Send verification email asynchronously
-            asyncEmailService.sendVerificationEmailAsync(email, verificationToken.getToken(), fullName);
-
-            // Redirect to login page with prefilled credentials
-            request.setAttribute("success",
-                    "Đăng ký thành công! Vui lòng đăng nhập. Chúng tôi đã gửi email xác thực đến bạn.");
-            request.setAttribute("prefillEmail", email);
-            request.setAttribute("prefillPassword", password);
-            request.getRequestDispatcher("/WEB-INF/view/auth/login.jsp").forward(request, response);
-
-        } catch (Exception e) {
-            // Log the error but don't expose it to the user
-            e.printStackTrace();
-            // Still show success but without mentioning verification
-            request.setAttribute("success", "Đăng ký thành công! Vui lòng đăng nhập với tài khoản mới.");
-            request.setAttribute("prefillEmail", email);
-            request.setAttribute("prefillPassword", password);
-            // In case of error, redirect to login page
-            request.getRequestDispatcher("/WEB-INF/view/auth/login.jsp").forward(request, response);
-        }
+        // Redirect to register success page with email parameter for refresh-proof
+        // access
+        response.sendRedirect(request.getContextPath() + "/register-success?email=" +
+                java.net.URLEncoder.encode(email, "UTF-8"));
 
     }
 

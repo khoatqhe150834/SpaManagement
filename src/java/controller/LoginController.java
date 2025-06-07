@@ -149,6 +149,13 @@ public class LoginController extends HttpServlet {
             }
         }
 
+        // Check if verification email was resent successfully
+        String resent = request.getParameter("resent");
+        if ("true".equals(resent)) {
+            request.setAttribute("success",
+                    "Email xác thực đã được gửi lại thành công! Vui lòng kiểm tra hộp thư của bạn.");
+        }
+
         request.getRequestDispatcher("/WEB-INF/view/auth/login.jsp").forward(request, response);
     }
 
@@ -198,7 +205,24 @@ public class LoginController extends HttpServlet {
         // If not staff, try customer login
         Customer customer = customerDAO.getCustomerByEmailAndPassword(email, password);
         if (customer != null) {
-            // Customer login successful
+            // Check if customer's email is verified BEFORE allowing login
+            try {
+                if (!customerDAO.isCustomerVerified(email)) {
+                    // Email not verified, redirect to email verification required page
+                    response.sendRedirect(request.getContextPath() + "/email-verification-required?email=" +
+                            java.net.URLEncoder.encode(email, "UTF-8"));
+                    return;
+                }
+            } catch (RuntimeException ex) {
+                Logger.getLogger(LoginController.class.getName()).log(Level.SEVERE,
+                        "Error checking customer verification status", ex);
+                // If verification check fails, redirect to verification page as safety measure
+                response.sendRedirect(request.getContextPath() + "/email-verification-required?email=" +
+                        java.net.URLEncoder.encode(email, "UTF-8"));
+                return;
+            }
+
+            // Customer login successful AND verified
             HttpSession session = request.getSession();
             session.setAttribute("customer", customer);
             session.setAttribute("authenticated", true);
@@ -208,22 +232,6 @@ public class LoginController extends HttpServlet {
             session.setAttribute("userType", userType);
 
             handleRememberLogin(request, response, email, password);
-
-            // Check if customer's email is verified
-            try {
-                if (!customerDAO.isCustomerVerified(email)) {
-                    // Email not verified, redirect to verification pending page
-                    response.sendRedirect(request.getContextPath() + "/verification-pending");
-                    return;
-                }
-            } catch (RuntimeException ex) {
-                Logger.getLogger(LoginController.class.getName()).log(Level.SEVERE,
-                        "Error checking customer verification status", ex);
-                // If verification check fails, redirect to verification pending as safety
-                // measure
-                response.sendRedirect(request.getContextPath() + "/verification-pending");
-                return;
-            }
 
             // Email is verified, redirect to homepage for customers
             response.sendRedirect(request.getContextPath() + "/");

@@ -69,7 +69,7 @@ public class ResendVerificationController extends HttpServlet {
           long timeSinceLastSent = (System.currentTimeMillis() - lastSentTime) / 1000;
           if (timeSinceLastSent < 60) {
             long remainingTime = 60 - timeSinceLastSent;
-//            response.setStatus(HttpServletResponse.SC);
+            // response.setStatus(HttpServletResponse.SC);
             out.print("{\"success\": false, \"message\": \"Vui lòng đợi " + remainingTime
                 + " giây trước khi gửi lại email.\"}");
             return;
@@ -113,7 +113,110 @@ public class ResendVerificationController extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
-    response.getWriter().print("{\"success\": false, \"message\": \"Method not allowed\"}");
+    // Handle resend verification from login page for unverified customers
+    String email = request.getParameter("email");
+
+    if (email == null || email.trim().isEmpty()) {
+      request.setAttribute("error", "Email không hợp lệ.");
+      response.sendRedirect(request.getContextPath() + "/login");
+      return;
+    }
+
+    try {
+      // Check if customer exists
+      Customer customer = customerDAO.findCustomerByEmail(email).orElse(null);
+      if (customer == null) {
+        request.setAttribute("error", "Không tìm thấy tài khoản với email này.");
+        response.sendRedirect(request.getContextPath() + "/login");
+        return;
+      }
+
+      // Check if customer is already verified
+      if (customerDAO.isCustomerVerified(email)) {
+        request.setAttribute("error", "Email của bạn đã được xác thực. Vui lòng đăng nhập.");
+        response.sendRedirect(request.getContextPath() + "/login");
+        return;
+      }
+
+      // Check rate limiting using session
+      HttpSession session = request.getSession();
+      String lastSentKey = "lastVerificationSent_" + email;
+      Long lastSentTime = (Long) session.getAttribute(lastSentKey);
+      if (lastSentTime != null) {
+        long timeSinceLastSent = (System.currentTimeMillis() - lastSentTime) / 1000;
+        if (timeSinceLastSent < 60) {
+          long remainingTime = 60 - timeSinceLastSent;
+          request.setAttribute("error", "Vui lòng đợi " + remainingTime + " giây trước khi gửi lại email.");
+          response.sendRedirect(request.getContextPath() + "/login");
+          return;
+        }
+      }
+
+      // Delete any existing tokens for this email
+      tokenDAO.deleteTokensByEmail(email);
+
+      // Create new verification token
+      EmailVerificationToken token = new EmailVerificationToken(email);
+      tokenDAO.save(token);
+
+      // Send verification email asynchronously
+      String customerName = customer.getFullName();
+      asyncEmailService.sendVerificationEmailAsync(email, token.getToken(), customerName);
+
+      // Store timestamp to prevent rapid resending
+      session.setAttribute(lastSentKey, System.currentTimeMillis());
+
+      // Check if this is an AJAX request (from register-success page)
+      String ajaxHeader = request.getHeader("X-Requested-With");
+      if ("XMLHttpRequest".equals(ajaxHeader) || request.getParameter("ajax") != null) {
+        // Return JSON response for AJAX
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        try (PrintWriter out = response.getWriter()) {
+          out.print("{\"success\": true, \"message\": \"Email xác thực đã được gửi thành công!\"}");
+        }
+        return;
+      }
+
+      // Redirect to login with success message (for non-AJAX requests)
+      response.sendRedirect(request.getContextPath() + "/login?resent=true");
+
+    } catch (SQLException ex) {
+      Logger.getLogger(ResendVerificationController.class.getName()).log(Level.SEVERE,
+          "Error resending verification email", ex);
+
+      // Check if this is an AJAX request
+      String ajaxHeader = request.getHeader("X-Requested-With");
+      if ("XMLHttpRequest".equals(ajaxHeader) || request.getParameter("ajax") != null) {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        try (PrintWriter out = response.getWriter()) {
+          out.print("{\"success\": false, \"message\": \"Có lỗi xảy ra khi gửi email. Vui lòng thử lại sau.\"}");
+        }
+        return;
+      }
+
+      request.setAttribute("error", "Có lỗi xảy ra khi gửi email. Vui lòng thử lại sau.");
+      response.sendRedirect(request.getContextPath() + "/login");
+    } catch (Exception ex) {
+      Logger.getLogger(ResendVerificationController.class.getName()).log(Level.SEVERE,
+          "Unexpected error resending verification email", ex);
+
+      // Check if this is an AJAX request
+      String ajaxHeader = request.getHeader("X-Requested-With");
+      if ("XMLHttpRequest".equals(ajaxHeader) || request.getParameter("ajax") != null) {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        try (PrintWriter out = response.getWriter()) {
+          out.print("{\"success\": false, \"message\": \"Có lỗi không mong muốn xảy ra. Vui lòng thử lại sau.\"}");
+        }
+        return;
+      }
+
+      request.setAttribute("error", "Có lỗi không mong muốn xảy ra. Vui lòng thử lại sau.");
+      response.sendRedirect(request.getContextPath() + "/login");
+    }
   }
 }

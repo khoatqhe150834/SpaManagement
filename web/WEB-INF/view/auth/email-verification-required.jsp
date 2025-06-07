@@ -8,15 +8,15 @@
         <meta name="keywords" content="" />
         <meta name="author" content="" />
         <meta name="robots" content="" />
-        <meta name="description" content="BeautyZone : Đăng ký thành công" />
-        <meta property="og:title" content="BeautyZone : Đăng ký thành công" />
-        <meta property="og:description" content="BeautyZone : Đăng ký thành công" />
+        <meta name="description" content="BeautyZone : Xác thực email bắt buộc" />
+        <meta property="og:title" content="BeautyZone : Xác thực email bắt buộc" />
+        <meta property="og:description" content="BeautyZone : Xác thực email bắt buộc" />
         <meta name="format-detection" content="telephone=no" />
 
         <link rel="icon" href="${pageContext.request.contextPath}/assets/home/images/favicon.ico" type="image/x-icon" />
         <link rel="shortcut icon" type="image/x-icon" href="${pageContext.request.contextPath}/assets/home/images/favicon.png" />
 
-        <title>Đăng ký thành công | BeautyZone</title>
+        <title>Xác thực email bắt buộc | BeautyZone</title>
 
         <meta name="viewport" content="width=device-width, initial-scale=1" />
 
@@ -26,14 +26,14 @@
             .page-content {
                 padding-top: 120px; /* Add space for fixed header */
             }
-            .success-container {
+            .verification-container {
                 min-height: 70vh;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 padding: 40px 0;
             }
-            .success-card {
+            .verification-card {
                 background: white;
                 border-radius: 15px;
                 box-shadow: 0 10px 30px rgba(0,0,0,0.1);
@@ -42,10 +42,10 @@
                 width: 100%;
                 text-align: center;
             }
-            .success-icon {
+            .warning-icon {
                 width: 100px;
                 height: 100px;
-                background: #28a745;
+                background: #ffc107;
                 border-radius: 50%;
                 display: flex;
                 align-items: center;
@@ -53,52 +53,17 @@
                 margin: 0 auto 30px;
                 color: white;
                 font-size: 50px;
-                box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+                box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
             }
-            .success-title {
+            .verification-title {
                 color: #333;
                 font-size: 2.5rem;
                 font-weight: 600;
                 margin-bottom: 20px;
             }
-            .success-alert {
-                background: #d4edda;
-                border: 1px solid #c3e6cb;
-                color: #155724;
-                padding: 20px;
-                border-radius: 10px;
-                margin-bottom: 30px;
-            }
-            .success-alert h5 {
-                color: #155724;
-                font-weight: 600;
-                margin-bottom: 15px;
-            }
-            .success-alert p {
-                margin-bottom: 10px;
-                line-height: 1.6;
-            }
-            .success-alert hr {
-                border-color: #c3e6cb;
-                margin: 15px 0;
-            }
             .email-highlight {
                 color: #007bff;
                 font-weight: 600;
-            }
-            .action-links {
-                margin-top: 20px;
-            }
-            .action-links p {
-                margin-bottom: 10px;
-            }
-            .action-links a {
-                color: #007bff;
-                text-decoration: none;
-                font-weight: 500;
-            }
-            .action-links a:hover {
-                text-decoration: underline;
             }
             /* Match header button styles */
             .btn-custom {
@@ -186,25 +151,25 @@
             <div class="page-content bg-white">
                 <div class="section-full">
                     <div class="container">
-                        <div class="success-container">
-                            <div class="success-card">
-                                <div class="success-icon">
-                                    ✓
+                        <div class="verification-container">
+                            <div class="verification-card">
+                                <div class="warning-icon">
+                                    ⚠
                                 </div>
-                                <h2 class="success-title">Đăng ký thành công!</h2>
+                                <h2 class="verification-title">Xác thực email bắt buộc</h2>
                                 <div class="mt-4">
                                     <div id="initialButtons">
-                                        <p class="text-center mb-3">Tài khoản của bạn đã được tạo với email <span class="email-highlight">${email}</span></p>
+                                        <p class="text-center mb-3">Tài khoản <span class="email-highlight">${email}</span> chưa được xác thực</p>
                                         <div class="alert alert-info text-center mb-4" style="background: #e7f3ff; border: 1px solid #b8daff; color: #0c5460; border-radius: 10px; padding: 15px;">
-                                            <i class="fa fa-info-circle"></i> Để sử dụng hết tính năng của trang web, bạn phải xác thực tài khoản qua email.
+                                            <i class="fa fa-info-circle"></i> Để đăng nhập và sử dụng hết tính năng của trang web, bạn phải xác thực tài khoản qua email.
                                         </div>
                                         <div class="text-center">
                                             <button class="btn-custom" id="sendVerificationBtn" data-email="${email}">
                                                 <i class="fa fa-envelope"></i> Gửi email xác thực
                                             </button>
-                                            <a href="${pageContext.request.contextPath}/" 
+                                            <a href="${pageContext.request.contextPath}/login" 
                                                class="btn-outline-custom">
-                                                <i class="fa fa-home"></i> Về trang chủ
+                                                <i class="fa fa-arrow-left"></i> Quay lại đăng nhập
                                             </a>
                                         </div>
                                     </div>
@@ -232,9 +197,9 @@
                                             </div>
                                             
                                             <div class="mt-3">
-                                                <a href="${pageContext.request.contextPath}/" 
+                                                <a href="${pageContext.request.contextPath}/login" 
                                                    class="btn-outline-custom">
-                                                    <i class="fa fa-home"></i> Về trang chủ
+                                                    <i class="fa fa-arrow-left"></i> Quay lại đăng nhập
                                                 </a>
                                             </div>
                                         </div>
@@ -242,7 +207,7 @@
                                     
                                     <div class="mt-3">
                                         <p class="text-center">
-                                            <small>Đã có email xác thực? <a href="${pageContext.request.contextPath}/login">Đăng nhập ngay</a></small>
+                                            <small>Đã xác thực email? <a href="${pageContext.request.contextPath}/login">Đăng nhập ngay</a></small>
                                         </p>
                                     </div>
                                 </div>
@@ -260,11 +225,6 @@
         
         <script>
             jQuery(document).ready(function() {
-                // Show success message when page loads
-                <c:if test="${not empty fullName}">
-                    console.log("Registration successful for: ${fullName}");
-                </c:if>
-                
                 var countdownInterval;
                 var email = '${email}';
                 var COUNTDOWN_DURATION = 60; // seconds
@@ -370,24 +330,6 @@
                         }
                     }, 1000);
                 }
-                
-                // Update URL to include email parameter for refresh-proof access
-                function updateUrlWithEmail() {
-                    var currentUrl = window.location.href;
-                    var urlParams = new URLSearchParams(window.location.search);
-                    
-                    // Only add email param if it's not already there
-                    if (!urlParams.has('email') && email) {
-                        var separator = currentUrl.includes('?') ? '&' : '?';
-                        var newUrl = currentUrl + separator + 'email=' + encodeURIComponent(email);
-                        
-                        // Update URL without reloading page
-                        window.history.replaceState({}, document.title, newUrl);
-                    }
-                }
-                
-                // Update URL on page load if needed
-                updateUrlWithEmail();
                 
                 // Clean up localStorage when user leaves the page after countdown expires
                 $(window).on('beforeunload', function() {
