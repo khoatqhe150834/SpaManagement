@@ -40,6 +40,37 @@
         
         <!-- Password Pages Specific CSS -->
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/home/css/password-pages.css">
+        
+        <!-- Validation Message Styles -->
+        <style>
+            .validation-message {
+                color: #f44336;
+                font-size: 14px;
+                margin-top: 5px;
+                padding: 5px 0;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            }
+            
+            .validation-message.success {
+                color: #4CAF50;
+            }
+            
+            .validation-message i {
+                font-size: 12px;
+            }
+            
+            .password-input.error {
+                border-color: #f44336 !important;
+                box-shadow: 0 0 5px rgba(244, 67, 54, 0.3);
+            }
+            
+            .password-input.success {
+                border-color: #4CAF50 !important;
+                box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+            }
+        </style>
     </head>
 
 <body id="bg">
@@ -126,10 +157,11 @@
                                             class="password-input"
                                             placeholder="Nhập mật khẩu hiện tại"
                                         />
-                                        <div class="input-help">
+                                        <div class="validation-message" id="currentPasswordMessage" style="display: none;"></div>
+                                        <%-- <div class="input-help">
                                             <i class="fa fa-info-circle"></i>
                                             <span>Mật khẩu bạn đang sử dụng</span>
-                                        </div>
+                                        </div> --%>
                                     </div>
                                     
                                     <!-- New Password Field -->
@@ -147,10 +179,11 @@
                                             class="password-input"
                                             placeholder="Nhập mật khẩu mới"
                                         />
-                                        <div class="input-help">
+                                        <div class="validation-message" id="newPasswordMessage" style="display: none;"></div>
+                                        <%-- <div class="input-help">
                                             <i class="fa fa-info-circle"></i>
                                             <span>Mật khẩu phải có ít nhất 6 ký tự</span>
-                                        </div>
+                                        </div> --%>
                                     </div>
                                     
                                     <!-- Confirm Password Field -->
@@ -168,10 +201,11 @@
                                             class="password-input"
                                             placeholder="Nhập lại mật khẩu mới"
                                         />
-                                        <div class="input-help">
+                                        <div class="validation-message" id="confirmPasswordMessage" style="display: none;"></div>
+                                        <%-- <div class="input-help">
                                             <i class="fa fa-info-circle"></i>
                                             <span>Nhập lại mật khẩu để xác nhận</span>
-                                        </div>
+                                        </div> --%>
                                     </div>
                                     
                                     <div class="submit-section">
@@ -213,51 +247,148 @@
             const form = document.getElementById('passwordChangeForm');
             const submitBtn = document.getElementById('submitBtn');
             
+            // Validation message utility functions
+            function showErrorMessage(fieldId, message) {
+                const field = document.getElementById(fieldId);
+                const messageElement = document.getElementById(fieldId + 'Message');
+                
+                field.classList.remove('success');
+                field.classList.add('error');
+                messageElement.innerHTML = '<i class="fa fa-exclamation-circle"></i>' + message;
+                messageElement.className = 'validation-message';
+                messageElement.style.display = 'flex';
+            }
+            
+            function showSuccessMessage(fieldId, message) {
+                const field = document.getElementById(fieldId);
+                const messageElement = document.getElementById(fieldId + 'Message');
+                
+                field.classList.remove('error');
+                field.classList.add('success');
+                messageElement.innerHTML = '<i class="fa fa-check-circle"></i>' + message;
+                messageElement.className = 'validation-message success';
+                messageElement.style.display = 'flex';
+            }
+            
+            function hideMessage(fieldId) {
+                const field = document.getElementById(fieldId);
+                const messageElement = document.getElementById(fieldId + 'Message');
+                
+                field.classList.remove('error', 'success');
+                messageElement.style.display = 'none';
+            }
+            
             if (form) {
                 // Focus on current password field
                 document.getElementById('currentPassword').focus();
                 
-                // Form submission validation
-                form.addEventListener('submit', function(e) {
+                // Real-time validation for current password
+                document.getElementById('currentPassword').addEventListener('input', function() {
+                    const currentPassword = this.value.trim();
+                    
+                    if (currentPassword === '') {
+                        hideMessage('currentPassword');
+                    } else if (currentPassword.length < 6) {
+                        showErrorMessage('currentPassword', 'Mật khẩu hiện tại phải có ít nhất 6 ký tự');
+                    } else {
+                        hideMessage('currentPassword');
+                    }
+                });
+                
+                // Real-time validation for new password
+                document.getElementById('newPassword').addEventListener('input', function() {
                     const currentPassword = document.getElementById('currentPassword').value;
+                    const newPassword = this.value.trim();
+                    
+                    if (newPassword === '') {
+                        hideMessage('newPassword');
+                    } else if (newPassword.length < 6) {
+                        showErrorMessage('newPassword', 'Mật khẩu mới phải có ít nhất 6 ký tự');
+                    } else if (currentPassword && newPassword === currentPassword) {
+                        showErrorMessage('newPassword', 'Mật khẩu mới phải khác với mật khẩu hiện tại');
+                    } else {
+                        showSuccessMessage('newPassword', 'Mật khẩu mới hợp lệ');
+                    }
+                    
+                    // Re-validate confirm password if it has value
+                    const confirmPassword = document.getElementById('confirmPassword').value;
+                    if (confirmPassword) {
+                        validateConfirmPassword();
+                    }
+                });
+                
+                // Real-time validation for confirm password
+                function validateConfirmPassword() {
                     const newPassword = document.getElementById('newPassword').value;
                     const confirmPassword = document.getElementById('confirmPassword').value;
                     
-                    if (!currentPassword || !newPassword || !confirmPassword) {
-                        e.preventDefault();
-                        alert('Vui lòng điền đầy đủ tất cả các trường!');
-                        return;
+                    if (confirmPassword === '') {
+                        hideMessage('confirmPassword');
+                    } else if (confirmPassword.length < 6) {
+                        showErrorMessage('confirmPassword', 'Xác nhận mật khẩu phải có ít nhất 6 ký tự');
+                    } else if (newPassword !== confirmPassword) {
+                        showErrorMessage('confirmPassword', 'Xác nhận mật khẩu không khớp với mật khẩu mới');
+                    } else {
+                        showSuccessMessage('confirmPassword', 'Xác nhận mật khẩu khớp');
+                    }
+                }
+                
+                document.getElementById('confirmPassword').addEventListener('input', validateConfirmPassword);
+                
+                // Form submission validation
+                form.addEventListener('submit', function(e) {
+                    const currentPassword = document.getElementById('currentPassword').value.trim();
+                    const newPassword = document.getElementById('newPassword').value.trim();
+                    const confirmPassword = document.getElementById('confirmPassword').value.trim();
+                    
+                    let hasErrors = false;
+                    
+                    // Validate current password
+                    if (!currentPassword) {
+                        showErrorMessage('currentPassword', 'Vui lòng nhập mật khẩu hiện tại');
+                        hasErrors = true;
+                    } else if (currentPassword.length < 6) {
+                        showErrorMessage('currentPassword', 'Mật khẩu hiện tại phải có ít nhất 6 ký tự');
+                        hasErrors = true;
                     }
                     
-                    if (newPassword !== confirmPassword) {
-                        e.preventDefault();
-                        alert('Mật khẩu mới và xác nhận mật khẩu không khớp!');
-                        document.getElementById('confirmPassword').focus();
-                        return;
+                    // Validate new password
+                    if (!newPassword) {
+                        showErrorMessage('newPassword', 'Vui lòng nhập mật khẩu mới');
+                        hasErrors = true;
+                    } else if (newPassword.length < 6) {
+                        showErrorMessage('newPassword', 'Mật khẩu mới phải có ít nhất 6 ký tự');
+                        hasErrors = true;
+                    } else if (currentPassword === newPassword) {
+                        showErrorMessage('newPassword', 'Mật khẩu mới phải khác với mật khẩu hiện tại');
+                        hasErrors = true;
                     }
                     
-                    if (newPassword.length < 6) {
+                    // Validate confirm password
+                    if (!confirmPassword) {
+                        showErrorMessage('confirmPassword', 'Vui lòng nhập xác nhận mật khẩu');
+                        hasErrors = true;
+                    } else if (confirmPassword.length < 6) {
+                        showErrorMessage('confirmPassword', 'Xác nhận mật khẩu phải có ít nhất 6 ký tự');
+                        hasErrors = true;
+                    } else if (newPassword !== confirmPassword) {
+                        showErrorMessage('confirmPassword', 'Xác nhận mật khẩu không khớp với mật khẩu mới');
+                        hasErrors = true;
+                    }
+                    
+                    if (hasErrors) {
                         e.preventDefault();
-                        alert('Mật khẩu mới phải có ít nhất 6 ký tự!');
-                        document.getElementById('newPassword').focus();
+                        // Focus on first error field
+                        const firstErrorField = document.querySelector('.password-input.error');
+                        if (firstErrorField) {
+                            firstErrorField.focus();
+                        }
                         return;
                     }
                     
                     // Show loading state
                     submitBtn.disabled = true;
                     submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> ĐANG XỬ LÝ...';
-                });
-                
-                // Real-time password confirmation validation
-                document.getElementById('confirmPassword').addEventListener('input', function() {
-                    const newPassword = document.getElementById('newPassword').value;
-                    const confirmPassword = this.value;
-                    
-                    if (confirmPassword && newPassword !== confirmPassword) {
-                        this.style.borderColor = '#f44336';
-                    } else {
-                        this.style.borderColor = '#586BB4';
-                    }
                 });
             }
             
