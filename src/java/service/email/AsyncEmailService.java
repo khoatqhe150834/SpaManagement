@@ -184,4 +184,34 @@ public class AsyncEmailService {
     }
     return "Email service is running";
   }
+
+  /**
+   * Send verification email asynchronously
+   * 
+   * @param email       The recipient email address
+   * @param token       The verification token
+   * @param contextPath The application context path (can be null)
+   * @return Future<Boolean> representing the email sending result
+   */
+  public Future<Boolean> sendVerificationEmailAsync(String email, String token, String contextPath) {
+    return emailExecutor.submit(() -> {
+      try {
+        LOGGER.info("Starting async verification email for: " + email);
+
+        boolean result = emailService.sendVerificationEmail(email, token, contextPath);
+
+        if (result) {
+          LOGGER.info("Successfully sent verification email to: " + email);
+        } else {
+          LOGGER.warning("Failed to send verification email to: " + email);
+        }
+
+        return result;
+
+      } catch (Exception e) {
+        LOGGER.log(Level.SEVERE, "Error sending verification email to: " + email, e);
+        return false;
+      }
+    });
+  }
 }

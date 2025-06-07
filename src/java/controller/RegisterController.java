@@ -5,6 +5,7 @@
 package controller;
 
 import dao.CustomerDAO;
+import dao.EmailVerificationTokenDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -13,7 +14,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import model.Customer;
-import org.mindrot.jbcrypt.BCrypt;
+import model.EmailVerificationToken;
+import service.email.AsyncEmailService;
 import validation.RegisterValidator;
 
 /**
@@ -24,9 +26,13 @@ import validation.RegisterValidator;
 public class RegisterController extends HttpServlet {
 
     final CustomerDAO customerDAO;
+    final AsyncEmailService asyncEmailService;
+    final EmailVerificationTokenDAO verificationTokenDAO;
 
     public RegisterController() {
         this.customerDAO = new CustomerDAO();
+        this.asyncEmailService = new AsyncEmailService();
+        this.verificationTokenDAO = new EmailVerificationTokenDAO();
     }
 
     /**
@@ -217,13 +223,34 @@ public class RegisterController extends HttpServlet {
         // save data to database
         customerDAO.save(newCustomer);
 
-        // Set success message and prefill data for login page
-        request.setAttribute("success", "Đăng ký thành công! Vui lòng đăng nhập với tài khoản mới.");
-        request.setAttribute("prefillEmail", email);
-        request.setAttribute("prefillPassword", password);
+        try {
+            // Create verification token
+            EmailVerificationToken verificationToken = new EmailVerificationToken(email);
 
-        // redirect to login page
-        request.getRequestDispatcher("/WEB-INF/view/auth/login.jsp").forward(request, response);
+            // Save token to database
+            verificationTokenDAO.save(verificationToken);
+
+            // Send verification email asynchronously
+            asyncEmailService.sendVerificationEmailAsync(email, verificationToken.getToken(), request.getContextPath());
+
+            // Set email attribute for the success page
+            request.setAttribute("email", email);
+
+            // Redirect to success page
+            request.getRequestDispatcher("/WEB-INF/view/auth/register-success.jsp").forward(request, response);
+
+            // request.getRequestDispatcher("/test.jsp").forward(request, response);
+
+        } catch (Exception e) {
+            // Log the error but don't expose it to the user
+            e.printStackTrace();
+            // Still show success but without mentioning verification
+            request.setAttribute("success", "Đăng ký thành công! Vui lòng đăng nhập với tài khoản mới.");
+            request.setAttribute("prefillEmail", email);
+            request.setAttribute("prefillPassword", password);
+            // In case of error, redirect to login page
+            request.getRequestDispatcher("/WEB-INF/view/auth/login.jsp").forward(request, response);
+        }
 
     }
 

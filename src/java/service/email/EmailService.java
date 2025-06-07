@@ -225,7 +225,96 @@ public class EmailService {
         "</html>";
   }
 
-  
+  /**
+   * Sends an email verification email to the specified user
+   * 
+   * @param userEmail         The email address of the user
+   * @param verificationToken The verification token
+   * @param userName          The name of the user (optional, can be null)
+   * @return true if email was sent successfully, false otherwise
+   */
+  public boolean sendVerificationEmail(String userEmail, String verificationToken, String userName) {
+    try {
+      // Create email session
+      Session session = createEmailSession();
+
+      // Create the email message
+      Message message = new MimeMessage(session);
+      message.setFrom(new InternetAddress(FROM_EMAIL, FROM_NAME));
+      message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(userEmail));
+      message.setSubject("Email Verification - Spa Management System");
+
+      // Create the email content
+      String emailContent = createVerificationEmailContent(verificationToken, userName);
+      message.setContent(emailContent, "text/html; charset=utf-8");
+
+      // Send the email
+      Transport.send(message);
+
+      LOGGER.info("Verification email sent successfully to: " + userEmail);
+      return true;
+
+    } catch (Exception e) {
+      LOGGER.log(Level.SEVERE, "Failed to send verification email to: " + userEmail, e);
+      return false;
+    }
+  }
+
+  /**
+   * Creates the HTML content for the email verification email
+   * 
+   * @param verificationToken The verification token
+   * @param userName          The user's name (can be null)
+   * @return HTML email content
+   */
+  private String createVerificationEmailContent(String verificationToken, String userName) {
+    String verifyUrl = APP_BASE_URL + "/verify-email?token=" + verificationToken;
+    String greeting = userName != null ? "Xin chào " + userName + "," : "Xin chào,";
+
+    return "<!DOCTYPE html>" +
+        "<html>" +
+        "<head>" +
+        "    <style>" +
+        "        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }" +
+        "        .container { max-width: 600px; margin: 0 auto; padding: 20px; }" +
+        "        .header { background-color: #007bff; color: white; padding: 20px; text-align: center; }" +
+        "        .content { padding: 20px; background-color: #f9f9f9; }" +
+        "        .button { display: inline-block; padding: 12px 24px; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px; margin: 20px 0; }"
+        +
+        "        .footer { padding: 20px; text-align: center; font-size: 12px; color: #666; }" +
+        "        .warning { background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; margin: 15px 0; border-radius: 4px; }"
+        +
+        "    </style>" +
+        "</head>" +
+        "<body>" +
+        "    <div class=\"container\">" +
+        "        <div class=\"header\">" +
+        "            <h1>Xác Thực Email</h1>" +
+        "        </div>" +
+        "        <div class=\"content\">" +
+        "            <p>" + greeting + "</p>" +
+        "            <p>Cảm ơn bạn đã đăng ký tài khoản tại Spa Management System.</p>" +
+        "            <p>Vui lòng nhấp vào nút bên dưới để xác thực email của bạn:</p>" +
+        "            <div style=\"text-align: center;\">" +
+        "                <a href=\"" + verifyUrl + "\" class=\"button\">Xác Thực Email</a>" +
+        "            </div>" +
+        "            <p>Hoặc sao chép và dán liên kết này vào trình duyệt của bạn:</p>" +
+        "            <p style=\"word-break: break-all; background-color: #f0f0f0; padding: 10px; border-radius: 4px;\">"
+        +
+        "                <a href=\"" + verifyUrl + "\">" + verifyUrl + "</a>" +
+        "            </p>" +
+        "            <div class=\"warning\">" +
+        "                <strong>Lưu ý:</strong> Liên kết xác thực này sẽ hết hạn sau 24 giờ vì lý do bảo mật." +
+        "            </div>" +
+        "        </div>" +
+        "        <div class=\"footer\">" +
+        "            <p>Email này được gửi từ Hệ Thống Quản Lý Spa.</p>" +
+        "            <p>Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với đội ngũ hỗ trợ của chúng tôi.</p>" +
+        "        </div>" +
+        "    </div>" +
+        "</body>" +
+        "</html>";
+  }
 
   /**
    * Test method to verify email configuration

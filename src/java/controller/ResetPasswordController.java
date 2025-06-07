@@ -20,7 +20,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import service.email.EmailService;
 import service.email.AsyncEmailService;
-import service.email.PasswordResetToken;
+import model.PasswordResetToken;
 
 /**
  * Extended ResetPasswordController that handles both Customer and User account

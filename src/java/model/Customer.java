@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.Date;
 import lombok.ToString;
 
-
 @ToString
 public class Customer {
     private Integer customerId;
@@ -20,8 +19,10 @@ public class Customer {
     private Integer roleId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Boolean isVerified; // TRUE = Email verified, FALSE = Not verified
 
-    public Customer() {}
+    public Customer() {
+    }
 
     public Customer(String fullName, String email, String hashPassword, String phoneNumber) {
         this.fullName = fullName;
@@ -31,42 +32,115 @@ public class Customer {
         this.roleId = RoleConstants.CUSTOMER_ID;
     }
 
-    public Integer getCustomerId() { return customerId; }
-    public void setCustomerId(Integer customerId) { this.customerId = customerId; }
+    public Integer getCustomerId() {
+        return customerId;
+    }
 
-    public String getFullName() { return fullName; }
-    public void setFullName(String fullName) { this.fullName = fullName; }
+    public void setCustomerId(Integer customerId) {
+        this.customerId = customerId;
+    }
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    public String getFullName() {
+        return fullName;
+    }
 
-    public String getHashPassword() { return hashPassword; }
-    public void setHashPassword(String hashPassword) { this.hashPassword = hashPassword; }
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
 
-    public String getPhoneNumber() { return phoneNumber; }
-    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+    public String getEmail() {
+        return email;
+    }
 
-    public String getGender() { return gender; }
-    public void setGender(String gender) { this.gender = gender; }
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
-    public Date getBirthday() { return birthday; }
-    public void setBirthday(Date birthday) { this.birthday = birthday; }
+    public String getHashPassword() {
+        return hashPassword;
+    }
 
-    public String getAddress() { return address; }
-    public void setAddress(String address) { this.address = address; }
+    public void setHashPassword(String hashPassword) {
+        this.hashPassword = hashPassword;
+    }
 
-    public Boolean getIsActive() { return isActive; }
-    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
 
-    public Integer getLoyaltyPoints() { return loyaltyPoints; }
-    public void setLoyaltyPoints(Integer loyaltyPoints) { this.loyaltyPoints = loyaltyPoints; }
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
 
-    public Integer getRoleId() { return roleId; }
-    public void setRoleId(Integer roleId) { this.roleId = roleId; }
+    public String getGender() {
+        return gender;
+    }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
 
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public Date getBirthday() {
+        return birthday;
+    }
+
+    public void setBirthday(Date birthday) {
+        this.birthday = birthday;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public Boolean getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
+    }
+
+    public Integer getLoyaltyPoints() {
+        return loyaltyPoints;
+    }
+
+    public void setLoyaltyPoints(Integer loyaltyPoints) {
+        this.loyaltyPoints = loyaltyPoints;
+    }
+
+    public Integer getRoleId() {
+        return roleId;
+    }
+
+    public void setRoleId(Integer roleId) {
+        this.roleId = roleId;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public Boolean getIsVerified() {
+        return isVerified;
+    }
+
+    public void setIsVerified(Boolean isVerified) {
+        this.isVerified = isVerified;
+    }
 }

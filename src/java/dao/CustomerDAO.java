@@ -31,6 +31,7 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         customer.setRoleId(rs.getInt("role_id"));
         customer.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
         customer.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
+        customer.setIsVerified(rs.getObject("is_verified") != null ? rs.getBoolean("is_verified") : false);
         return customer;
     }
 
@@ -45,8 +46,9 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
             throw new IllegalArgumentException("Phone number already exists");
         }
 
-        String sql = "INSERT INTO customers (full_name, email, hash_password, phone_number, role_id, is_active, loyalty_points, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        String sql = "INSERT INTO customers (full_name, email, hash_password, phone_number, role_id, is_active, loyalty_points, is_verified, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, customer.getFullName());
             ps.setString(2, customer.getEmail());
             ps.setString(3, BCrypt.hashpw(customer.getHashPassword(), BCrypt.gensalt()));
@@ -54,8 +56,9 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
             ps.setInt(5, customer.getRoleId());
             ps.setBoolean(6, customer.getIsActive() != null ? customer.getIsActive() : true);
             ps.setInt(7, customer.getLoyaltyPoints() != null ? customer.getLoyaltyPoints() : 0);
-            ps.setTimestamp(8, Timestamp.valueOf(java.time.LocalDateTime.now()));
+            ps.setBoolean(8, customer.getIsVerified() != null ? customer.getIsVerified() : false);
             ps.setTimestamp(9, Timestamp.valueOf(java.time.LocalDateTime.now()));
+            ps.setTimestamp(10, Timestamp.valueOf(java.time.LocalDateTime.now()));
             int rows = ps.executeUpdate();
             if (rows > 0) {
                 ResultSet rs = ps.getGeneratedKeys();
@@ -90,24 +93,25 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         return findAll(1, 10); // Default to first page with 10 items
     }
 
-  public List<Customer> findAll(int page, int pageSize) {
-    List<Customer> list = new ArrayList<>();
-    String sql = "SELECT * FROM customers LIMIT ? OFFSET ?";
-    try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-        ps.setInt(1, pageSize);
-        ps.setInt(2, (page - 1) * pageSize);
-        try (ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                list.add(buildCustomerFromResultSet(rs));
+    public List<Customer> findAll(int page, int pageSize) {
+        List<Customer> list = new ArrayList<>();
+        String sql = "SELECT * FROM customers LIMIT ? OFFSET ?";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, pageSize);
+            ps.setInt(2, (page - 1) * pageSize);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(buildCustomerFromResultSet(rs));
+                }
+                Logger.getLogger(CustomerDAO.class.getName()).log(Level.INFO,
+                        "Retrieved " + list.size() + " customers for page " + page);
             }
-            Logger.getLogger(CustomerDAO.class.getName()).log(Level.INFO, "Retrieved " + list.size() + " customers for page " + page);
+        } catch (SQLException e) {
+            Logger.getLogger(CustomerDAO.class.getName()).log(Level.SEVERE, "Error finding customers", e);
+            throw new RuntimeException("Error finding customers: " + e.getMessage(), e);
         }
-    } catch (SQLException e) {
-        Logger.getLogger(CustomerDAO.class.getName()).log(Level.SEVERE, "Error finding customers", e);
-        throw new RuntimeException("Error finding customers: " + e.getMessage(), e);
+        return list;
     }
-    return list;
-}
 
     public int getTotalCustomers() {
         String sql = "SELECT COUNT(*) FROM customers";
@@ -149,7 +153,7 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
 
     @Override
     public <S extends Customer> S update(S customer) {
-        String sql = "UPDATE customers SET full_name=?, email=?, phone_number=?, gender=?, birthday=?, address=?, is_active=?, loyalty_points=?, role_id=?, updated_at=? WHERE customer_id=?";
+        String sql = "UPDATE customers SET full_name=?, email=?, phone_number=?, gender=?, birthday=?, address=?, is_active=?, loyalty_points=?, role_id=?, is_verified=?, updated_at=? WHERE customer_id=?";
         try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, customer.getFullName());
             ps.setString(2, customer.getEmail());
@@ -160,8 +164,9 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
             ps.setBoolean(7, customer.getIsActive());
             ps.setInt(8, customer.getLoyaltyPoints());
             ps.setInt(9, customer.getRoleId());
-            ps.setTimestamp(10, Timestamp.valueOf(java.time.LocalDateTime.now()));
-            ps.setInt(11, customer.getCustomerId());
+            ps.setBoolean(10, customer.getIsVerified() != null ? customer.getIsVerified() : false);
+            ps.setTimestamp(11, Timestamp.valueOf(java.time.LocalDateTime.now()));
+            ps.setInt(12, customer.getCustomerId());
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Error updating customer: " + e.getMessage(), e);
@@ -226,7 +231,8 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         if (email == null || password == null || email.trim().isEmpty() || password.trim().isEmpty()) {
             return false;
         }
-        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement("SELECT hash_password FROM customers WHERE email = ?")) {
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement ps = conn.prepareStatement("SELECT hash_password FROM customers WHERE email = ?")) {
             ps.setString(1, email);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -262,7 +268,8 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         if (email == null || password == null || email.trim().isEmpty() || password.trim().isEmpty()) {
             return null;
         }
-        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement("SELECT * FROM customers WHERE email = ?")) {
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement ps = conn.prepareStatement("SELECT * FROM customers WHERE email = ?")) {
             ps.setString(1, email);
             ResultSet rs = ps.executeQuery();
 
@@ -332,7 +339,8 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
 
         String sql = "UPDATE customers SET full_name = ?, phone_number = ?, gender = ?, birthday = ?, address = ?, updated_at = ? WHERE customer_id = ?";
 
-        try (Connection connection = DBContext.getConnection(); PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection();
+                PreparedStatement stmt = connection.prepareStatement(sql)) {
 
             stmt.setString(1, customer.getFullName());
             stmt.setString(2, customer.getPhoneNumber());
@@ -347,14 +355,36 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
             return rowsAffected > 0;
         }
     }
-    
-    
+
+    /**
+     * Checks if a customer is verified by their email address.
+     * 
+     * @param email The customer's email
+     * @return true if the customer exists and is_verified is true, false otherwise
+     */
+    public boolean isCustomerVerified(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            return false;
+        }
+        String sql = "SELECT is_verified FROM customers WHERE email = ?";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, email);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getBoolean("is_verified");
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error checking if customer is verified: " + e.getMessage(), e);
+        }
+        return false;
+    }
+
     public static void main(String[] args) {
         CustomerDAO customerDAO = new CustomerDAO();
-        
-        
+
         List<Customer> customers = customerDAO.findAll(1, 5);
-        
+
         for (Customer customer : customers) {
             System.out.println(customer.toString());
         }

@@ -6,13 +6,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import model.EmailVerificationToken;
 import model.PasswordResetToken;
 
-public class PasswordResetTokenDAO {
+public class EmailVerificationTokenDAO {
 
   // Save a new password reset token to the database
-  public void save(PasswordResetToken token) throws SQLException {
-    String sql = "INSERT INTO password_reset_tokens (token, user_email, expires_at, is_used) VALUES (?, ?, ?, ?)";
+  public void save(EmailVerificationToken token) throws SQLException {
+    String sql = "INSERT INTO email_verification_tokens (token, user_email, expires_at, is_used) VALUES (?, ?, ?, ?)";
     try (Connection connection = DBContext.getConnection();
         PreparedStatement stmt = connection.prepareStatement(sql)) {
       stmt.setString(1, token.getToken());
@@ -24,8 +25,8 @@ public class PasswordResetTokenDAO {
   }
 
   // Find a token by its value
-  public PasswordResetToken findByToken(String tokenValue) throws SQLException {
-    String sql = "SELECT token, user_email, expires_at, is_used FROM password_reset_tokens WHERE token = ?";
+  public EmailVerificationToken findByToken(String tokenValue) throws SQLException {
+    String sql = "SELECT token, user_email, expires_at, is_used FROM email_verification_tokens WHERE token = ?";
     try (Connection connection = DBContext.getConnection();
         PreparedStatement stmt = connection.prepareStatement(sql)) {
       stmt.setString(1, tokenValue);
@@ -34,7 +35,7 @@ public class PasswordResetTokenDAO {
           String userEmail = rs.getString("user_email");
           String token = rs.getString("token");
           LocalDateTime expiryDate = rs.getTimestamp("expires_at").toLocalDateTime();
-          return new PasswordResetToken(userEmail, token, expiryDate);
+          return new EmailVerificationToken(userEmail, token, expiryDate);
         }
         return null;
       }
@@ -43,7 +44,7 @@ public class PasswordResetTokenDAO {
 
   // Mark a token as used
   public void markAsUsed(String tokenValue) throws SQLException {
-    String sql = "UPDATE password_reset_tokens SET is_used = TRUE WHERE token = ?";
+    String sql = "UPDATE email_verification_tokens SET is_used = TRUE WHERE token = ?";
     try (Connection connection = DBContext.getConnection();
         PreparedStatement stmt = connection.prepareStatement(sql)) {
       stmt.setString(1, tokenValue);
@@ -53,7 +54,7 @@ public class PasswordResetTokenDAO {
 
   // Check if a token is valid (not expired and not used)
   public boolean isValid(String tokenValue) throws SQLException {
-    String sql = "SELECT expires_at, is_used FROM password_reset_tokens WHERE token = ?";
+    String sql = "SELECT expires_at, is_used FROM email_verification_tokens WHERE token = ?";
     try (Connection connection = DBContext.getConnection();
         PreparedStatement stmt = connection.prepareStatement(sql)) {
       stmt.setString(1, tokenValue);
@@ -70,7 +71,7 @@ public class PasswordResetTokenDAO {
 
   // Delete expired tokens (cleanup method)
   public void deleteExpiredTokens() throws SQLException {
-    String sql = "DELETE FROM password_reset_tokens WHERE expires_at < NOW()";
+    String sql = "DELETE FROM email_verification_tokens WHERE expires_at < NOW()";
     try (Connection connection = DBContext.getConnection();
         PreparedStatement stmt = connection.prepareStatement(sql)) {
       stmt.executeUpdate();
@@ -79,7 +80,7 @@ public class PasswordResetTokenDAO {
 
   // Delete tokens for a specific user email
   public void deleteTokensByEmail(String userEmail) throws SQLException {
-    String sql = "DELETE FROM password_reset_tokens WHERE user_email = ?";
+    String sql = "DELETE FROM email_verification_tokens WHERE user_email = ?";
     try (Connection connection = DBContext.getConnection();
         PreparedStatement stmt = connection.prepareStatement(sql)) {
       stmt.setString(1, userEmail);
@@ -92,10 +93,10 @@ public class PasswordResetTokenDAO {
    * Run this method to test the database operations
    */
   public static void main(String[] args) {
-    PasswordResetTokenDAO dao = new PasswordResetTokenDAO();
+    EmailVerificationTokenDAO dao = new EmailVerificationTokenDAO();
     String testEmail = "test@example.com";
 
-    System.out.println("=== Starting PasswordResetTokenDAO Tests ===\n");
+    System.out.println("=== Starting EmailVerificationTokenDAO Tests ===\n");
 
     try {
       // Test database connection
@@ -110,7 +111,7 @@ public class PasswordResetTokenDAO {
 
       // Test 1: Create and save a new token
       System.out.println("3. Testing token creation and saving...");
-      PasswordResetToken newToken = new PasswordResetToken(testEmail);
+      EmailVerificationToken newToken = new EmailVerificationToken(testEmail);
       String tokenValue = newToken.getToken();
       System.out.println("   Generated token: " + tokenValue);
       System.out.println("   Token expires at: " + newToken.getExpiryDate());
@@ -120,7 +121,7 @@ public class PasswordResetTokenDAO {
 
       // Test 2: Find token by value
       System.out.println("4. Testing findByToken...");
-      PasswordResetToken foundToken = dao.findByToken(tokenValue);
+      EmailVerificationToken foundToken = dao.findByToken(tokenValue);
       if (foundToken != null) {
         System.out.println("✓ Token found successfully");
         System.out.println("   Email: " + foundToken.getUserEmail());
@@ -161,7 +162,7 @@ public class PasswordResetTokenDAO {
       // Test 6: Test non-existent token
       System.out.println("8. Testing non-existent token...");
       String fakeToken = "fake-token-12345";
-      PasswordResetToken nonExistentToken = dao.findByToken(fakeToken);
+      EmailVerificationToken nonExistentToken = dao.findByToken(fakeToken);
       boolean fakeTokenValid = dao.isValid(fakeToken);
       if (nonExistentToken == null && !fakeTokenValid) {
         System.out.println("✓ Non-existent token handling works correctly");
@@ -172,8 +173,8 @@ public class PasswordResetTokenDAO {
 
       // Test 7: Create multiple tokens for testing cleanup
       System.out.println("9. Testing multiple tokens and cleanup...");
-      PasswordResetToken token2 = new PasswordResetToken("test2@example.com");
-      PasswordResetToken token3 = new PasswordResetToken("test3@example.com");
+      EmailVerificationToken token2 = new EmailVerificationToken("test2@example.com");
+      EmailVerificationToken token3 = new EmailVerificationToken("test3@example.com");
       dao.save(token2);
       dao.save(token3);
       System.out.println("✓ Multiple tokens created\n");
@@ -181,7 +182,7 @@ public class PasswordResetTokenDAO {
       // Test 8: Delete tokens by email
       System.out.println("10. Testing deleteTokensByEmail...");
       dao.deleteTokensByEmail(testEmail);
-      PasswordResetToken deletedToken = dao.findByToken(tokenValue);
+      EmailVerificationToken deletedToken = dao.findByToken(tokenValue);
       if (deletedToken == null) {
         System.out.println("✓ Tokens deleted by email successfully");
       } else {
@@ -201,7 +202,7 @@ public class PasswordResetTokenDAO {
       dao.deleteTokensByEmail("test3@example.com");
       System.out.println("✓ Final cleanup completed\n");
 
-      System.out.println("=== All PasswordResetTokenDAO Tests Completed Successfully! ===");
+      System.out.println("=== All EmailVerificationTokenDAO Tests Completed Successfully! ===");
 
     } catch (SQLException e) {
       System.err.println("Database error during testing: " + e.getMessage());

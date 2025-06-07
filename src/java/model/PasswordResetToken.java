@@ -1,4 +1,4 @@
-package service.email;
+package model;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
