@@ -1,4 +1,4 @@
-<%@ page contentType="text/html" pageEncoding="UTF-8" %>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 
@@ -12,64 +12,61 @@
         <link rel="icon" type="image/png" href="assets/images/favicon.png" sizes="16x16">
         <!-- CSS here -->
         <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp"></jsp:include>
-        </head>
-        <body>
-            <!-- SIDEBAR here -->
+    </head>
+    <body>
+        <!-- SIDEBAR here -->
         <jsp:include page="/WEB-INF/view/common/admin/sidebar.jsp"></jsp:include>
 
-            <!-- HEADER here -->
+        <!-- HEADER here -->
         <jsp:include page="/WEB-INF/view/common/admin/header.jsp"></jsp:include>
 
-            <div class="dashboard-main-body">
-                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
-                    <h6 class="fw-semibold mb-0">Staff List</h6>
-                    <ul class="d-flex align-items-center gap-2">
-                        <li class="fw-medium">
-                            <a href="index.html" class="d-flex align-items-center gap-1 hover-text-primary">
-                                <iconify-icon icon="solar:home-smile-angle-outline" class="icon text-lg"></iconify-icon>
-                                Dashboard
-                            </a>
-                        </li>
-                        <li>-</li>
-                        <li class="fw-medium">Staff List</li>
-                    </ul>
-                </div>
+        <div class="dashboard-main-body">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
+                <h6 class="fw-semibold mb-0">Danh sách Nhân Viên</h6>
+                <ul class="d-flex align-items-center gap-2">
+                    <li class="fw-medium">
+                        <a href="index.html" class="d-flex align-items-center gap-1 hover-text-primary">
+                            <iconify-icon icon="solar:home-smile-angle-outline" class="icon text-lg"></iconify-icon>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li>-</li>
+                    <li class="fw-medium">Danh sách Nhân Viên</li>
+                </ul>
+            </div>
 
-                <div class="card h-100 p-0 radius-12">
-                    <div class="card-header border-bottom bg-base py-16 px-24 d-flex align-items-center flex-wrap gap-3 justify-content-between">
-                        <div class="d-flex align-items-center flex-wrap gap-3">
-                            <span class="text-md fw-medium text-secondary-light mb-0">Show</span>
-                            <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px">
-                                <option>1</option>
-                                <option>2</option>
-                                <option>3</option>
-                                <option>4</option>
-                                <option>5</option>
-                                <option>6</option>
-                                <option>7</option>
-                                <option>8</option>
-                                <option>9</option>
-                                <option>10</option>
-                            </select>
-                            <form class="navbar-search" method="get" action="staff">
-                                <input type="text" class="bg-base h-40-px w-auto" name="search" value="${param.search}" placeholder="Search">
+            <div class="card h-100 p-0 radius-12">
+                <div class="card-header border-bottom bg-base py-16 px-24 d-flex align-items-center flex-wrap gap-3 justify-content-between">
+                    <div class="d-flex align-items-center flex-wrap gap-3">
+                        <span class="text-md fw-medium text-secondary-light mb-0">Hiển thị</span>
+                        <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px">
+                            <option>1</option>
+                            <option>2</option>
+                            <option>3</option>
+                            <option>4</option>
+                            <option>5</option>
+                            <option>6</option>
+                            <option>7</option>
+                            <option>8</option>
+                            <option>9</option>
+                            <option>10</option>
+                        </select>
+                        <form class="navbar-search" method="get" action="staff">
+                            <input type="text" class="bg-base h-40-px w-auto" name="search" value="${param.search}" placeholder="Tìm kiếm">
                             <iconify-icon icon="ion:search-outline" class="icon"></iconify-icon>
                         </form>
-
-
-                        <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px">
+                        <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px" name="availabilityStatus">
                             <option>Status</option>
-                            <option>Available</option>
-                            <option>Busy</option>
-                            <option>OffLine</option>
-                            <option>On Leave</option>
+                            <option value="Available" ${availabilityStatus == 'Available' ? 'selected' : ''}>Available</option>
+                            <option value="Busy" ${availabilityStatus == 'Busy' ? 'selected' : ''}>Busy</option>
+                            <option value="OffLine" ${availabilityStatus == 'OffLine' ? 'selected' : ''}>Offline</option>
+                            <option value="On Leave" ${availabilityStatus == 'On Leave' ? 'selected' : ''}>On Leave</option>
                         </select>
                     </div>
                     <a href="staff?service=pre-insert" class="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2">
                         <iconify-icon icon="ic:baseline-plus" class="icon text-xl line-height-1"></iconify-icon>
-                        Add New Staff
+                        Thêm Nhân Viên Mới
                     </a>
-
                 </div>
 
                 <div class="card-body p-24">
@@ -85,17 +82,16 @@
                                             ID
                                         </div>
                                     </th>
-                                    <th scope="col">Name</th>
-                                    <th scope="col">Service Type</th>
-                                    <th scope="col">Bio</th>
-                                    <th scope="col" class="text-center">Status</th>
-                                    <th scope="col">Experience (Years)</th>
-                                    <th scope="col" class="text-center">Action</th>
+                                    <th scope="col">Tên</th>
+                                    <th scope="col">Loại Dịch Vụ</th>
+                                    <th scope="col">Tiểu Sử</th>
+                                    <th scope="col" class="text-center">Trạng Thái</th>
+                                    <th scope="col">Kinh Nghiệm (Năm)</th>
+                                    <th scope="col" class="text-center">Hành Động</th>
                                 </tr>
                             </thead>
 
                             <tbody>
-                                <!-- Loop through the list of staff -->
                                 <c:forEach var="therapist" items="${staffList}" varStatus="status">
                                     <tr>
                                         <td>
@@ -103,19 +99,19 @@
                                                 <div class="form-check style-check d-flex align-items-center">
                                                     <input class="form-check-input radius-4 border input-form-dark" type="checkbox" name="checkbox" value="${therapist.user.userId}">
                                                 </div>
-                                                ${status.index + 1} <!-- Display row number as the ID -->
+                                                ${status.index + 1} <!-- Hiển thị số thứ tự -->
                                             </div>
                                         </td>
 
-                                        <td>${therapist.user.fullName}</td> <!-- Full Name -->
+                                        <td>${therapist.user.fullName}</td> <!-- Tên Nhân Viên -->
 
                                         <td>
                                             <c:if test="${not empty therapist.serviceType}">
-                                                ${therapist.serviceType.name} <!-- Service Type -->
+                                                ${therapist.serviceType.name} <!-- Loại Dịch Vụ -->
                                             </c:if>
                                         </td>
 
-                                        <td>${therapist.bio}</td> <!-- Bio -->
+                                        <td>${therapist.bio}</td> <!-- Tiểu Sử -->
 
                                         <td class="text-center">
                                             <c:choose>
@@ -126,31 +122,26 @@
                                                     <span class="bg-neutral-200 text-neutral-600 border border-neutral-400 px-24 py-4 radius-4 fw-medium text-sm">${therapist.availabilityStatus}</span>
                                                 </c:otherwise>
                                             </c:choose>
-<pre>
                                         </td>
 
-                                        <td>${therapist.yearsOfExperience}</td> <!-- Years of Experience -->
+                                        <td>${therapist.yearsOfExperience}</td> <!-- Kinh Nghiệm -->
 
                                         <td class="text-center">
                                             <div class="d-flex align-items-center gap-10 justify-content-center">
                                                 <!-- View button -->
-                                                <button type="button" class="bg-info-focus bg-hover-info-200 text-info-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle" title="View">
+                                                <a href="staff?service=viewById&id=${therapist.user.userId}" class="bg-info-focus text-info-600 w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
                                                     <iconify-icon icon="majesticons:eye-line" class="icon text-xl"></iconify-icon>
-                                                </button>
+                                                </a>
 
                                                 <!-- Edit button -->
-                                                <a href="staff?service=pre-update&id=${therapist.user.userId}" class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle" title="Edit">
+                                                <a href="staff?service=pre-update&id=${therapist.user.userId}" class="bg-success-focus text-success-600 w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
                                                     <iconify-icon icon="lucide:edit" class="menu-icon"></iconify-icon>
                                                 </a>
 
-                                                <!-- Deactivate button (soft delete) -->
-                                                <a href="staff?service=deactiveById&id=${therapist.user.userId}" 
-                                                   class="remove-item-btn bg-warning-focus bg-hover-warning-200 text-warning-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
-                                                   onclick="return confirm('Do you want to deactivate this staff member?');" title="Deactivate">
-                                                    <iconify-icon icon="uil:calendar" class="menu-icon"></iconify-icon> <!-- Calendar icon replaces the block icon -->
+                                                <!-- Deactivate button -->
+                                                <a href="staff?service=deactiveById&id=${therapist.user.userId}" class="remove-item-btn bg-warning-focus bg-hover-warning-200 text-warning-600 w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle" onclick="return confirm('Bạn có chắc chắn muốn vô hiệu hóa nhân viên này?');">
+                                                    <iconify-icon icon="uil:calendar" class="menu-icon"></iconify-icon> <!-- Calendar icon -->
                                                 </a>
-
-
                                             </div>
                                         </td>
                                     </tr>
@@ -160,18 +151,28 @@
                     </div>
 
                     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-24">
-                        <span>Showing 1 to 10 of 12 entries</span>
+                        <span>Hiển thị từ ${start} đến ${end} của ${totalEntries} mục</span>
                         <ul class="pagination d-flex flex-wrap align-items-center gap-2 justify-content-center">
-                            <!-- Pagination buttons -->
-                            <li class="page-item">
-                                <a class="page-link bg-neutral-200 text-secondary-light fw-semibold radius-8 border-0 d-flex align-items-center justify-content-center h-32-px w-32-px text-md" href="javascript:void(0)">
+                            <!-- Previous button -->
+                            <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
+                                <a class="page-link" href="staff?service=list-all&page=${currentPage - 1}&limit=${limit}">
                                     <iconify-icon icon="ep:d-arrow-left"></iconify-icon>
                                 </a>
                             </li>
-                            <li class="page-item">
-                                <a class="page-link text-secondary-light fw-semibold radius-8 border-0 d-flex align-items-center justify-content-center h-32-px w-32-px text-md bg-primary-600 text-white" href="javascript:void(0)">1</a>
+
+                            <!-- Page numbers -->
+                            <c:forEach var="i" begin="1" end="${totalPages}">
+                                <li class="page-item ${i == currentPage ? 'active' : ''}">
+                                    <a class="page-link" href="staff?service=list-all&page=${i}&limit=${limit}">${i}</a>
+                                </li>
+                            </c:forEach>
+
+                            <!-- Next button -->
+                            <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
+                                <a class="page-link" href="staff?service=list-all&page=${currentPage + 1}&limit=${limit}">
+                                    <iconify-icon icon="ep:d-arrow-right"></iconify-icon>
+                                </a>
                             </li>
-                            <!-- More page buttons as needed -->
                         </ul>
                     </div>
                 </div>
@@ -180,6 +181,21 @@
 
         <!-- JS here -->
         <jsp:include page="/WEB-INF/view/common/admin/js.jsp"></jsp:include>
+
+        <!-- Toast Message Script -->
+        <c:if test="${not empty toastMessage}">
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    const toast = document.createElement("div");
+                    toast.textContent = "${toastMessage}";
+                    toast.className = "toast-message ${toastType eq 'success' ? 'toast-success' : 'toast-error'}";
+                    document.body.appendChild(toast);
+
+                    setTimeout(() => toast.classList.add("show"), 100);
+                    setTimeout(() => toast.classList.remove("show"), 4000);
+                });
+            </script>
+        </c:if>
 
     </body>
 </html>
