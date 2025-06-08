@@ -6,15 +6,13 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import model.Customer;
-import org.mindrot.jbcrypt.BCrypt;
 import java.io.IOException;
 import java.sql.Date;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import model.Customer;
 
 /**
  * Complete CustomerController with proper error handling and validation
@@ -111,7 +109,7 @@ public class CustomerController extends HttpServlet {
                     handleCreateCustomer(request, response);
                     break;
                 case "update":
-                    handleUpdateCustomer(request, response);
+//                    handleUpdateCustomer(request, response);
                     break;
                 default:
                     response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid action: " + action);
@@ -463,96 +461,96 @@ public class CustomerController extends HttpServlet {
     /**
      * Handle update customer
      */
-    private void handleUpdateCustomer(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        
-        try {
-            // Get customer ID
-            int customerId = getIntParameter(request, "id", 0);
-            if (customerId <= 0) {
-                throw new IllegalArgumentException("Invalid customer ID");
-            }
-            
-            // Check if customer exists
-            Optional<Customer> customerOpt = customerDAO.findById(customerId);
-            if (!customerOpt.isPresent()) {
-                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Customer not found");
-                return;
-            }
-            
-            Customer customer = customerOpt.get();
-            
-            // Validate required fields
-            String name = getStringParameter(request, "name");
-            String email = getStringParameter(request, "email");
-            
-            if (name == null || email == null) {
-                throw new IllegalArgumentException("Name and email are required");
-            }
-            
-            // Validate email format
-            if (!isValidEmail(email)) {
-                throw new IllegalArgumentException("Invalid email format");
-            }
-            
-            // Get optional fields
-            String phone = request.getParameter("phone");
-            String gender = request.getParameter("gender");
-            String birthdayStr = request.getParameter("birthday");
-            String address = request.getParameter("address");
-            String password = request.getParameter("password");
-            boolean isActive = "on".equals(request.getParameter("isActive"));
-            int loyaltyPoints = getIntParameter(request, "loyaltyPoints", customer.getLoyaltyPoints());
-            
-            // Validate phone if provided
-            if (phone != null && !phone.trim().isEmpty() && !isValidPhone(phone)) {
-                throw new IllegalArgumentException("Invalid phone number format");
-            }
-            
-            // Update customer fields
-            customer.setFullName(name);
-            customer.setEmail(email.toLowerCase());
-            customer.setPhoneNumber(phone);
-            customer.setGender(gender);
-            customer.setAddress(address);
-            customer.setIsActive(isActive);
-            customer.setLoyaltyPoints(loyaltyPoints);
-            
-            // Update password if provided
-            if (password != null && !password.trim().isEmpty()) {
-                customerDAO.updatePassword(customerId, password);
-            }
-            
-            // Parse birthday if provided
-            if (birthdayStr != null && !birthdayStr.trim().isEmpty()) {
-                try {
-                    customer.setBirthday(Date.valueOf(birthdayStr));
-                } catch (IllegalArgumentException e) {
-                    throw new IllegalArgumentException("Invalid birthday format");
-                }
-            }
-            
-            // Update customer
-            customerDAO.update(customer);
-            
-            logger.info("Customer updated successfully: " + customerId);
-            
-            // Return success response for AJAX
-            response.setStatus(200);
-            response.getWriter().write("Customer updated successfully");
-            
-        } catch (IllegalArgumentException e) {
-            logger.warning("Validation error updating customer: " + e.getMessage());
-            request.setAttribute("error", e.getMessage());
-            request.getRequestDispatcher("/WEB-INF/view/customer/form.jsp")
-                    .forward(request, response);
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error updating customer", e);
-            request.setAttribute("error", "Error updating customer: " + e.getMessage());
-            request.getRequestDispatcher("/WEB-INF/view/customer/form.jsp")
-                    .forward(request, response);
-        }
-    }
+//    private void handleUpdateCustomer(HttpServletRequest request, HttpServletResponse response)
+//            throws ServletException, IOException {
+//        
+//        try {
+//            // Get customer ID
+//            int customerId = getIntParameter(request, "id", 0);
+//            if (customerId <= 0) {
+//                throw new IllegalArgumentException("Invalid customer ID");
+//            }
+//            
+//            // Check if customer exists
+//            Optional<Customer> customerOpt = customerDAO.findById(customerId);
+//            if (!customerOpt.isPresent()) {
+//                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Customer not found");
+//                return;
+//            }
+//            
+//            Customer customer = customerOpt.get();
+//            
+//            // Validate required fields
+//            String name = getStringParameter(request, "name");
+//            String email = getStringParameter(request, "email");
+//            
+//            if (name == null || email == null) {
+//                throw new IllegalArgumentException("Name and email are required");
+//            }
+//            
+//            // Validate email format
+//            if (!isValidEmail(email)) {
+//                throw new IllegalArgumentException("Invalid email format");
+//            }
+//            
+//            // Get optional fields
+//            String phone = request.getParameter("phone");
+//            String gender = request.getParameter("gender");
+//            String birthdayStr = request.getParameter("birthday");
+//            String address = request.getParameter("address");
+//            String password = request.getParameter("password");
+//            boolean isActive = "on".equals(request.getParameter("isActive"));
+//            int loyaltyPoints = getIntParameter(request, "loyaltyPoints", customer.getLoyaltyPoints());
+//            
+//            // Validate phone if provided
+//            if (phone != null && !phone.trim().isEmpty() && !isValidPhone(phone)) {
+//                throw new IllegalArgumentException("Invalid phone number format");
+//            }
+//            
+//            // Update customer fields
+//            customer.setFullName(name);
+//            customer.setEmail(email.toLowerCase());
+//            customer.setPhoneNumber(phone);
+//            customer.setGender(gender);
+//            customer.setAddress(address);
+//            customer.setIsActive(isActive);
+//            customer.setLoyaltyPoints(loyaltyPoints);
+//            
+//            // Update password if provided
+//            if (password != null && !password.trim().isEmpty()) {
+//                customerDAO.updatePassword(customerId, password);
+//            }
+//            
+//            // Parse birthday if provided
+//            if (birthdayStr != null && !birthdayStr.trim().isEmpty()) {
+//                try {
+//                    customer.setBirthday(Date.valueOf(birthdayStr));
+//                } catch (IllegalArgumentException e) {
+//                    throw new IllegalArgumentException("Invalid birthday format");
+//                }
+//            }
+//            
+//            // Update customer
+//            customerDAO.update(customer);
+//            
+//            logger.info("Customer updated successfully: " + customerId);
+//            
+//            // Return success response for AJAX
+//            response.setStatus(200);
+//            response.getWriter().write("Customer updated successfully");
+//            
+//        } catch (IllegalArgumentException e) {
+//            logger.warning("Validation error updating customer: " + e.getMessage());
+//            request.setAttribute("error", e.getMessage());
+//            request.getRequestDispatcher("/WEB-INF/view/customer/form.jsp")
+//                    .forward(request, response);
+//        } catch (Exception e) {
+//            logger.log(Level.SEVERE, "Error updating customer", e);
+//            request.setAttribute("error", "Error updating customer: " + e.getMessage());
+//            request.getRequestDispatcher("/WEB-INF/view/customer/form.jsp")
+//                    .forward(request, response);
+//        }
+//    }
 
     /**
      * Handle delete customer
