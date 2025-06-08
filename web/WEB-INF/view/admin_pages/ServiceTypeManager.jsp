@@ -23,6 +23,8 @@
             <!-- HEADER here -->
         <jsp:include page="/WEB-INF/view/common/admin/header.jsp"></jsp:include>
 
+        
+        
             <div class="dashboard-main-body">
                 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
                     <h6 class="fw-semibold mb-0">Service Type List</h6>
@@ -80,8 +82,6 @@
                                         <th scope="col">Description</th>
                                         <th scope="col">Image</th>
                                         <th scope="col" class="text-center">Status</th>
-                                        <th scope="col">Created At</th>
-                                        <th scope="col">Updated At</th>
                                         <th scope="col" class="text-center">Action</th>
                                     </tr>
                                 </thead>
@@ -97,7 +97,7 @@
                                                 </div>
                                             </td>
                                             <td>${stype.name}</td>
-                                            <td>${stype.description}</td>
+                                            <td class="limit-description">${stype.description}</td>
                                             <td><img src="${stype.imageUrl}" alt="Image" class="w-40-px h-40-px rounded" /></td>
                                             <td class="text-center">
                                                 <c:choose>
@@ -109,15 +109,9 @@
                                                     </c:otherwise>
                                                 </c:choose>
                                             </td>
-                                            <td><fmt:formatDate value="${stype.createdAt}" pattern="dd MMM yyyy"/></td>
-                                            <td><fmt:formatDate value="${stype.updatedAt}" pattern="dd MMM yyyy"/></td>
                                             <td class="text-center">
                                                 <div class="d-flex align-items-center gap-10 justify-content-center">
-                                                    <!-- View button -->
-                                                    <a href="service?service=viewByServiceType&id=${stype.serviceTypeId}"
-                                                       class="bg-info-focus bg-hover-info-200 text-info-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
-                                                        <iconify-icon icon="majesticons:eye-line" class="icon text-xl"></iconify-icon>
-                                                    </a>
+
                                                     <!-- Edit button -->
                                                     <a href="servicetype?service=pre-update&id=${stype.serviceTypeId}" class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
                                                         <iconify-icon icon="lucide:edit" class="menu-icon"></iconify-icon>
