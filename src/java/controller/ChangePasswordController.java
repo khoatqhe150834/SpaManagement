@@ -188,7 +188,7 @@ public class ChangePasswordController extends HttpServlet {
     private boolean handleCustomerPasswordChange(Customer customer, String currentPassword, String newPassword,
             HttpServletRequest request) throws SQLException {
         // Verify current password by attempting login (similar to LoginController)
-        Customer verifyCustomer = customerDAO.getCustomerByEmailAndPassword(customer.getEmail(), currentPassword);
+        Customer verifyCustomer = customerDAO.getCustomerByEmailAndPasswordDirect(customer.getEmail(), currentPassword);
         if (verifyCustomer == null) {
             request.setAttribute("error", "Mật khẩu hiện tại không đúng.");
             return false;

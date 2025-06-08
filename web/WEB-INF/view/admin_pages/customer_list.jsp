@@ -6,6 +6,7 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
@@ -14,6 +15,100 @@
     <title>Customer List - Wowdash</title>
     <link rel="icon" type="image/png" href="${pageContext.request.contextPath}/assets/images/favicon.png" sizes="16x16">
     <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp"></jsp:include>
+    <style>
+        .search-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+        .search-input {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        .search-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .search-btn:hover {
+            background: #2563eb;
+        }
+        .custom-select {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+        }
+        .action-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            margin: 0 4px;
+            transition: all 0.3s ease;
+        }
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .btn-view {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+        .btn-edit {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        .btn-delete {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        /* Customer name - no truncation */
+        .customer-name {
+            /* Let names display fully */
+        }
+
+        /* Responsive table - no horizontal scroll */
+        .table {
+            table-layout: auto;
+            width: 100%;
+        }
+        
+        .table-responsive {
+            overflow-x: visible;
+        }
+        
+        /* Compact form selects */
+        .form-select-sm {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            min-width: 40px;
+        }
+
+    </style>
 </head>
 <body>
     <jsp:include page="/WEB-INF/view/common/admin/sidebar.jsp"></jsp:include>
@@ -24,231 +119,321 @@
             <h6 class="fw-semibold mb-0">Customer List</h6>
             <ul class="d-flex align-items-center gap-2">
                 <li class="fw-medium">
-                    <a href="${pageContext.request.contextPath}/index.html" class="d-flex align-items-center gap-1 hover-text-primary">
-                        <iconify-icon icon="solar:home-smile-angle-outline" class="icon text-lg"></iconify-icon>
-                        Dashboard
+                    <a href="${pageContext.request.contextPath}/dashboard" class="d-flex align-items-center gap-1 hover-text-primary text-decoration-none">
+                        🏠 Dashboard
                     </a>
                 </li>
                 <li>-</li>
-                <li class="fw-medium">Customer List</li>
+                <li class="fw-medium text-muted">Customer List</li>
             </ul>
         </div>
 
-        <div class="card h-100 p-0 radius-12">
-            <div class="card-header border-bottom bg-base py-16 px-24 d-flex align-items-center flex-wrap gap-3 justify-content-between">
-                <div class="d-flex align-items-center flex-wrap gap-3">
-                    <span class="text-md fw-medium text-secondary-light mb-0">Show</span>
-                    <form action="${pageContext.request.contextPath}/customer" method="get" class="d-inline">
-                        <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px" name="pageSize" onchange="this.form.submit()">
-                            <option value="5" ${pageSize == 5 ? 'selected' : ''}>5</option>
-                            <option value="10" ${pageSize == 10 ? 'selected' : ''}>10</option>
-                            <option value="20" ${pageSize == 20 ? 'selected' : ''}>20</option>
+        <!-- Search and Filter Section -->
+        <div class="search-section">
+            <div class="row">
+                <div class="col-lg-8">
+                    <form class="d-flex gap-3 align-items-center flex-wrap" action="${pageContext.request.contextPath}/customer/search" method="get">
+                        <div class="flex-grow-1" style="min-width: 300px;">
+                            <input type="text" 
+                                   class="form-control search-input" 
+                                   name="searchValue" 
+                                   value="${searchValue}" 
+                                   placeholder="🔍 Search by name, email or phone number...">
+                        </div>
+                        
+                        <select class="form-select custom-select" name="searchType" style="width: auto;">
+                            <option value="name" ${searchType == 'name' ? 'selected' : ''}>👤 Name</option>
+                            <option value="email" ${searchType == 'email' ? 'selected' : ''}>📧 Email</option>
+                            <option value="phone" ${searchType == 'phone' ? 'selected' : ''}>📱 Phone</option>
                         </select>
-                        <input type="hidden" name="page" value="1">
-                        <c:if test="${not empty searchType}">
-                            <input type="hidden" name="searchType" value="${searchType}"/>
-                            <input type="hidden" name="searchValue" value="${searchValue}"/>
-                        </c:if>
-                        <c:if test="${not empty status}">
-                            <input type="hidden" name="status" value="${status}"/>
-                        </c:if>
-                    </form>
-
-                    <form class="navbar-search" action="${pageContext.request.contextPath}/customer/search" method="get">
-                        <input type="text" class="bg-base h-40-px w-auto" name="searchValue" value="${searchValue}" placeholder="Search by Name, Email, or Phone">
-                        <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px" name="searchType">
-                            <option value="name" ${searchType == 'name' ? 'selected' : ''}>Name</option>
-                            <option value="email" ${searchType == 'email' ? 'selected' : ''}>Email</option>
-                            <option value="phone" ${searchType == 'phone' ? 'selected' : ''}>Phone</option>
-                        </select>
-                        <input type="hidden" name="page" value="1">
-                        <input type="hidden" name="pageSize" value="${pageSize}">
-                        <c:if test="${not empty status}">
-                            <input type="hidden" name="status" value="${status}"/>
-                        </c:if>
-                        <button type="submit" class="border-0 bg-transparent p-0">
-                            <iconify-icon icon="ion:search-outline" class="icon"></iconify-icon>
+                        
+                        <button type="submit" class="btn search-btn">
+                            🔍 Search
                         </button>
-                    </form>
-
-                    <form action="${pageContext.request.contextPath}/customer" method="get" class="d-inline">
-                        <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px" name="status" onchange="this.form.submit()">
-                            <option value="" ${empty status ? 'selected' : ''}>All Status</option>
-                            <option value="active" ${status == 'active' ? 'selected' : ''}>Active</option>
-                            <option value="inactive" ${status == 'inactive' ? 'selected' : ''}>Inactive</option>
-                        </select>
+                        
                         <input type="hidden" name="page" value="1">
                         <input type="hidden" name="pageSize" value="${pageSize}">
-                        <c:if test="${not empty searchType}">
-                            <input type="hidden" name="searchType" value="${searchType}"/>
-                            <input type="hidden" name="searchValue" value="${searchValue}"/>
+                        <c:if test="${not empty status}">
+                            <input type="hidden" name="status" value="${status}"/>
                         </c:if>
                     </form>
                 </div>
+                
+                <div class="col-lg-4">
+                    <div class="d-flex gap-3 justify-content-lg-end align-items-center flex-wrap">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-sm fw-medium">Show:</span>
+                            <form action="${pageContext.request.contextPath}/customer" method="get">
+                                <select class="form-select custom-select" name="pageSize" onchange="this.form.submit()" style="width: auto;">
+                                    <option value="5" ${pageSize == 5 ? 'selected' : ''}>5</option>
+                                    <option value="10" ${pageSize == 10 ? 'selected' : ''}>10</option>
+                                    <option value="20" ${pageSize == 20 ? 'selected' : ''}>20</option>
+                                    <option value="50" ${pageSize == 50 ? 'selected' : ''}>50</option>
+                                    <option value="100" ${pageSize == 100 ? 'selected' : ''}>100</option>
+                                    <option value="999999" ${pageSize >= 999999 ? 'selected' : ''}>🌟 All</option>
+                                </select>
+                                <input type="hidden" name="page" value="1">
+                                <c:if test="${not empty searchType}">
+                                    <input type="hidden" name="searchType" value="${searchType}"/>
+                                    <input type="hidden" name="searchValue" value="${searchValue}"/>
+                                </c:if>
+                                <c:if test="${not empty status}">
+                                    <input type="hidden" name="status" value="${status}"/>
+                                </c:if>
+                            </form>
+                        </div>
+                        
 
-                <a href="${pageContext.request.contextPath}/customer/create" class="btn btn-primary btn-primary-light text-sm btn-sm px-3 py-2 radius-8 d-flex align-items-center gap-2">
-                    <iconify-icon icon="ic:baseline-plus" class="icon text-xl"></iconify-icon>
-                    Add New Customer
-                </a>
+                        
+
+                        
+                        <a href="${pageContext.request.contextPath}/customer/create" class="btn search-btn text-decoration-none">
+                            ➕ Add New
+                        </a>
+                    </div>
+                </div>
             </div>
+        </div>
 
+        <div class="card h-100 p-0 radius-12">
             <c:if test="${not empty error}">
                 <div class="alert alert-danger mx-24 mt-16">
                     <c:out value="${error}"/>
                 </div>
             </c:if>
 
-            <!-- Debug Information -->
-            <c:if test="${listCustomer == null}">
-                <div class="alert alert-warning mx-24 mt-16">
-                    Warning: Customer list is null. Please check the servlet or database connection.
-                </div>
-            </c:if>
-            <c:if test="${empty listCustomer && listCustomer != null}">
-                <div class="alert alert-info mx-24 mt-16">
-                    Info: No customers found for the current filters.
-                </div>
-            </c:if>
-
             <div class="card-body p-24">
-                <div class="table-responsive scroll-sm">
-                    <table class="table bordered-table sm-table mb-0">
+                <div class="table-responsive">
+                    <table class="table bordered-table mb-0">
                         <thead>
-                            <tr>
-                                <th scope="col">
-                                    <div class="d-flex align-items-center gap-10">
-                                        <div class="form-check style-check d-flex align-items-center">
-                                            <input class="form-check-input radius-4 border input-form-dark" type="checkbox" name="checkbox" id="selectAll">
-                                        </div>
-                                        ID
-                                    </div>
+                            <!-- Filter/Sort Row -->
+                            <tr class="bg-light">
+                                <th class="p-2">
+                                    <form action="${pageContext.request.contextPath}/customer" method="get">
+                                        <select class="form-select form-select-sm" name="sortOrder" onchange="this.form.submit()">
+                                            <option value="" ${empty sortOrder ? 'selected' : ''}>↕️</option>
+                                            <option value="asc" ${sortOrder == 'asc' ? 'selected' : ''}>↗️</option>
+                                            <option value="desc" ${sortOrder == 'desc' ? 'selected' : ''}>↘️</option>
+                                        </select>
+                                        <input type="hidden" name="sortBy" value="id">
+                                        <input type="hidden" name="page" value="1">
+                                        <input type="hidden" name="pageSize" value="${pageSize}">
+                                        <c:if test="${not empty searchType}">
+                                            <input type="hidden" name="searchType" value="${searchType}"/>
+                                            <input type="hidden" name="searchValue" value="${searchValue}"/>
+                                        </c:if>
+                                        <c:if test="${not empty status}">
+                                            <input type="hidden" name="status" value="${status}"/>
+                                        </c:if>
+                                    </form>
                                 </th>
-                                <th scope="col">Join Date</th>
-                                <th scope="col">Name</th>
-                                <th scope="col">Email</th>
-                                <th scope="col">Phone</th>
-                                <th scope="col">Gender</th>
-                                <th scope="col">Birthday</th>
-                                <th scope="col">Address</th>
-                                <th scope="col" class="text-center">Status</th>
-                                <th scope="col" class="text-center">Action</th>
+                                <th class="p-2"></th>
+                                <th class="p-2"></th>
+                                <th class="text-center p-2">
+                                    <form action="${pageContext.request.contextPath}/customer" method="get">
+                                        <select class="form-select form-select-sm" name="status" onchange="this.form.submit()">
+                                            <option value="" ${empty status ? 'selected' : ''}>🔄</option>
+                                            <option value="active" ${status == 'active' ? 'selected' : ''}>✅</option>
+                                            <option value="inactive" ${status == 'inactive' ? 'selected' : ''}>❌</option>
+                                        </select>
+                                        <input type="hidden" name="page" value="1">
+                                        <input type="hidden" name="pageSize" value="${pageSize}">
+                                        <c:if test="${not empty searchType}">
+                                            <input type="hidden" name="searchType" value="${searchType}"/>
+                                            <input type="hidden" name="searchValue" value="${searchValue}"/>
+                                        </c:if>
+                                        <c:if test="${not empty sortBy}">
+                                            <input type="hidden" name="sortBy" value="${sortBy}"/>
+                                            <input type="hidden" name="sortOrder" value="${sortOrder}"/>
+                                        </c:if>
+                                    </form>
+                                </th>
+                                <th class="text-center p-2"></th>
+                            </tr>
+                            <!-- Header Row -->
+                            <tr>
+                                <th>ID</th>
+                                <th>👤 Customer Name</th>
+                                <th>📧 Email</th>
+                                <th class="text-center">📊 Status</th>
+                                <th class="text-center">⚙️ Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <c:forEach var="customer" items="${listCustomer}" varStatus="loop">
+                            <c:forEach var="customer" items="${listCustomer}">
                                 <tr>
                                     <td>
-                                        <div class="d-flex align-items-center gap-10">
-                                            <div class="form-check style-check d-flex align-items-center">
-                                                <input class="form-check-input radius-4 border border-neutral-400" type="checkbox" name="checkbox">
-                                            </div>
-                                            <c:out value="${customer.customerId}" default="N/A"/>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <c:choose>
-                                            <c:when test="${not empty customer.createdAt}">
-                                                <fmt:parseDate value="${customer.createdAt}" pattern="yyyy-MM-dd'T'HH:mm" var="parsedCreatedAt" type="both"/>
-                                                <fmt:formatDate value="${parsedCreatedAt}" pattern="dd MMM yyyy"/>
-                                            </c:when>
-                                            <c:otherwise>N/A</c:otherwise>
-                                        </c:choose>
+                                        <span class="fw-semibold text-primary fs-6">#${customer.customerId}</span>
                                     </td>
                                     <td>
                                         <div class="d-flex align-items-center">
-                                            <img src="${pageContext.request.contextPath}/assets/images/avatar.png" alt="avatar" class="w-40-px h-40-px rounded-circle flex-shrink-0 me-12 overflow-hidden">
-                                            <div class="flex-grow-1">
-                                                <span class="text-md mb-0 fw-normal text-secondary-light"><c:out value="${customer.fullName}" default="Unknown"/></span>
+                                            <img src="${pageContext.request.contextPath}/assets/admin/images/avatar/avatar1.png" alt="avatar" class="w-40-px h-40-px rounded-circle me-3">
+                                            <div class="customer-name">
+                                                <h6 class="mb-0 fw-semibold">${customer.fullName}</h6>
+                                                <small class="text-muted">ID: #${customer.customerId}</small>
                                             </div>
                                         </div>
                                     </td>
-                                    <td><span class="text-md mb-0 fw-normal text-secondary-light"><c:out value="${customer.email}" default="N/A"/></span></td>
-                                    <td><c:out value="${customer.phoneNumber}" default="N/A"/></td>
-                                    <td><c:out value="${customer.gender}" default="N/A"/></td>
                                     <td>
+                                        <span class="text-muted">${customer.email}</span>
+                                    </td>
+                                    <td class="text-center">
                                         <c:choose>
-                                            <c:when test="${not empty customer.birthday}">
-                                                <fmt:formatDate value="${customer.birthday}" pattern="dd MMM yyyy"/>
+                                            <c:when test="${customer.isActive}">
+                                                <span class="badge bg-success">✅ Active</span>
                                             </c:when>
-                                            <c:otherwise>N/A</c:otherwise>
+                                            <c:otherwise>
+                                                <span class="badge bg-secondary">❌ Inactive</span>
+                                            </c:otherwise>
                                         </c:choose>
                                     </td>
-                                    <td><c:out value="${customer.address}" default="N/A"/></td>
                                     <td class="text-center">
-                                        <span class="bg-${customer.isActive ? 'success-focus text-success-600 border border-success-main' : 'neutral-200 text-neutral-600 border border-neutral-400'} px-24 py-4 radius-4 fw-medium text-sm">
-                                            <c:out value="${customer.isActive ? 'Active' : 'Inactive'}"/>
-                                        </span>
-                                    </td>
-                                    <td class="text-center">
-                                        <div class="d-flex align-items-center gap-10 justify-content-center">
-                                            <a href="${pageContext.request.contextPath}/customer/view?id=${customer.customerId}" class="bg-info-focus bg-hover-info-200 text-info-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
-                                                <iconify-icon icon="majesticons:eye-line" class="icon text-xl"></iconify-icon>
-                                            </a>
-                                            <a href="${pageContext.request.contextPath}/customer/edit?id=${customer.customerId}" class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
-                                                <iconify-icon icon="lucide:edit" class="menu-icon"></iconify-icon>
-                                            </a>
-                                            <a href="${pageContext.request.contextPath}/customer/delete?id=${customer.customerId}" class="remove-item-btn bg-danger-focus bg-hover-danger-200 text-danger-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
-                                                <iconify-icon icon="fluent:delete-24-regular" class="menu-icon"></iconify-icon>
-                                            </a>
-                                        </div>
+                                        <a href="${pageContext.request.contextPath}/customer/view?id=${customer.customerId}" 
+                                           class="action-btn btn-view" title="View Details">👁️</a>
+                                        <a href="${pageContext.request.contextPath}/customer/edit?id=${customer.customerId}" 
+                                           class="action-btn btn-edit" title="Edit">✏️</a>
+                                        <button onclick="confirmDelete(${customer.customerId}, this.getAttribute('data-name'))" 
+                                               class="action-btn btn-delete" title="Delete" data-name="${customer.fullName}">🗑️</button>
                                     </td>
                                 </tr>
                             </c:forEach>
-                            <c:if test="${empty listCustomer && listCustomer != null}">
+                            
+                            <c:if test="${empty listCustomer}">
                                 <tr>
-                                    <td colspan="10" class="text-center">No customers found for the current filters</td>
-                                </tr>
-                            </c:if>
-                            <c:if test="${listCustomer == null}">
-                                <tr>
-                                    <td colspan="10" class="text-center">Customer data not available. Please check the server configuration.</td>
+                                    <td colspan="5" class="text-center py-5">
+                                        <div>
+                                            <div style="font-size: 64px;">👥</div>
+                                            <h6 class="mt-3">No customers found</h6>
+                                            <p class="text-muted">Try adjusting your search filters or add new customers</p>
+                                        </div>
+                                    </td>
                                 </tr>
                             </c:if>
                         </tbody>
                     </table>
                 </div>
 
-                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-24">
-                    <span>Showing <c:out value="${(currentPage - 1) * pageSize + 1}"/> to <c:out value="${Math.min(currentPage * pageSize, totalCustomers)}"/> of <c:out value="${totalCustomers}"/> entries</span>
-                    <ul class="pagination d-flex flex-wrap align-items-center gap-2 justify-content-center">
-                        <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
-                            <a class="page-link bg-neutral-200 text-secondary-light fw-semibold radius-8 border-0 d-flex align-items-center justify-content-center h-32-px w-32-px text-md" href="${pageContext.request.contextPath}/customer?page=${currentPage - 1}&pageSize=${pageSize}${not empty searchType ? '&searchType=' += searchType += '&searchValue=' += java.net.URLEncoder.encode(searchValue, 'UTF-8') : ''}${not empty status ? '&status=' += status : ''}">
-                                <iconify-icon icon="ep:d-arrow-left"></iconify-icon>
-                            </a>
-                        </li>
-                        <c:forEach begin="1" end="${totalPages}" var="i">
-                            <li class="page-item ${i == currentPage ? 'active' : ''}">
-                                <a class="page-link text-secondary-light fw-semibold radius-8 border-0 d-flex align-items-center justify-content-center h-32-px w-32-px text-md ${i == currentPage ? 'bg-primary-600 text-white' : 'bg-neutral-200'}" href="${pageContext.request.contextPath}/customer?page=${i}&pageSize=${pageSize}${not empty searchType ? '&searchType=' += searchType += '&searchValue=' += java.net.URLEncoder.encode(searchValue, 'UTF-8') : ''}${not empty status ? '&status=' += status : ''}">
-                                    ${i}
-                                </a>
-                            </li>
-                        </c:forEach>
-                        <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
-                            <a class="page-link bg-neutral-200 text-secondary-light fw-semibold radius-8 border-0 d-flex align-items-center justify-content-center h-32-px w-32-px text-md" href="${pageContext.request.contextPath}/customer?page=${currentPage + 1}&pageSize=${pageSize}${not empty searchType ? '&searchType=' += searchType += '&searchValue=' += java.net.URLEncoder.encode(searchValue, 'UTF-8') : ''}${not empty status ? '&status=' += status : ''}">
-                                <iconify-icon icon="ep:d-arrow-right"></iconify-icon>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+                <!-- Pagination -->
+                <c:if test="${totalPages > 1}">
+                    <div class="d-flex align-items-center justify-content-between mt-4">
+                        <span>Showing ${(currentPage - 1) * pageSize + 1} to ${Math.min(currentPage * pageSize, totalCustomers)} of ${totalCustomers} entries</span>
+                        <nav>
+                            <ul class="pagination mb-0">
+                                <c:if test="${currentPage > 1}">
+                                    <li class="page-item">
+                                        <a class="page-link" href="${pageContext.request.contextPath}/customer?page=${currentPage - 1}&pageSize=${pageSize}">←</a>
+                                    </li>
+                                </c:if>
+                                
+                                <c:forEach begin="1" end="${totalPages}" var="i">
+                                    <li class="page-item ${i == currentPage ? 'active' : ''}">
+                                        <a class="page-link" href="${pageContext.request.contextPath}/customer?page=${i}&pageSize=${pageSize}">${i}</a>
+                                    </li>
+                                </c:forEach>
+                                
+                                <c:if test="${currentPage < totalPages}">
+                                    <li class="page-item">
+                                        <a class="page-link" href="${pageContext.request.contextPath}/customer?page=${currentPage + 1}&pageSize=${pageSize}">→</a>
+                                    </li>
+                                </c:if>
+                            </ul>
+                        </nav>
+                    </div>
+                </c:if>
             </div>
         </div>
     </div>
 
     <jsp:include page="/WEB-INF/view/common/admin/js.jsp"></jsp:include>
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <script>
-        $(document).ready(function() {
-            $('#selectAll').on('change', function() {
-                $('input[name="checkbox"]').prop('checked', $(this).prop('checked'));
-            });
-
-            $('.remove-item-btn').on('click', function(e) {
-                e.preventDefault();
-                if (confirm('Are you sure you want to delete this customer?')) {
-                    window.location.href = $(this).attr('href');
+        function confirmDelete(customerId, customerName) {
+            // Delete any customer - no order checking required
+            Swal.fire({
+                title: '🗑️ Confirm Delete',
+                html: 'Are you sure you want to delete customer:<br><strong>"' + customerName + '"</strong><br>ID: #' + customerId + '?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '✅ Yes, delete it!',
+                cancelButtonText: '❌ Cancel',
+                reverseButtons: true,
+                focusCancel: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading
+                    Swal.fire({
+                        title: '🔄 Deleting...',
+                        text: 'Please wait a moment',
+                        icon: 'info',
+                        allowOutsideClick: false,
+                        showConfirmButton: false,
+                        willOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                    
+                    fetch('${pageContext.request.contextPath}/customer/delete?id=' + customerId)
+                    .then(response => {
+                        if (response.ok) {
+                            Swal.fire({
+                                title: '🎉 Deleted Successfully!',
+                                text: 'Customer "' + customerName + '" has been removed from the system.',
+                                icon: 'success',
+                                timer: 2500,
+                                showConfirmButton: false
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                title: '❌ Delete Failed!',
+                                text: 'Unable to delete customer. Please try again.',
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Delete error:', error);
+                        Swal.fire({
+                            title: '⚠️ System Error!',
+                            text: 'An error occurred while deleting customer. Please try again.',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    });
                 }
             });
-        });
+        }
+        
+        // Enhanced pagination with sorting preservation
+        function goToPage(page) {
+            const params = new URLSearchParams();
+            params.set('page', page);
+            params.set('pageSize', '${pageSize}');
+            
+            // Preserve sorting
+            <c:if test="${not empty sortBy}">
+                params.set('sortBy', '${sortBy}');
+                params.set('sortOrder', '${sortOrder}');
+            </c:if>
+            
+            // Preserve search
+            <c:if test="${not empty searchType}">
+                params.set('searchType', '${searchType}');
+                params.set('searchValue', '${searchValue}');
+            </c:if>
+            
+            // Preserve status
+            <c:if test="${not empty status}">
+                params.set('status', '${status}');
+            </c:if>
+            
+            window.location.href = '${pageContext.request.contextPath}/customer?' + params.toString();
+        }
     </script>
 </body>
 </html>

@@ -262,7 +262,7 @@ public class LoginController extends HttpServlet {
         }
 
         // If not staff, try customer login
-        Customer customer = customerDAO.getCustomerByEmailAndPassword(email, password);
+        Customer customer = customerDAO.getCustomerByEmailAndPasswordDirect(email, password);
         if (customer != null) {
             // Check if customer's email is verified BEFORE allowing login
             try {

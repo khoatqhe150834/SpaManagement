@@ -143,4 +143,13 @@ public class Customer {
     public void setIsVerified(Boolean isVerified) {
         this.isVerified = isVerified;
     }
+    
+    // Convenience methods for better readability
+    public boolean isActive() {
+        return Boolean.TRUE.equals(this.isActive);
+    }
+    
+    public boolean isVerified() {
+        return Boolean.TRUE.equals(this.isVerified);
+    }
 }
