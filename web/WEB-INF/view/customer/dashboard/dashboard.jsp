@@ -10,13 +10,18 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <title>Customer Dashboard - BeautyZone Spa</title>
+    <title>Bảng Điều Khiển Khách Hàng - BeautyZone Spa</title>
+    
+    <!-- Include Admin Framework Styles -->
+    <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp" />
+    
     <style>
-        /* Dashboard Styles */
+        /* Essential Layout Styles - Using Admin Framework Variables */
         .dashboard-container {
-            padding: 1.5rem;
+            padding: 2rem;
             max-width: 1400px;
             margin: 0 auto;
+            min-height: 100vh;
         }
         
         .dashboard-header {
@@ -26,35 +31,11 @@
             margin-bottom: 2rem;
             flex-wrap: wrap;
             gap: 1rem;
-        }
-        
-        .welcome-section h2 {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #2d3748;
-            margin: 0 0 0.25rem 0;
-        }
-        
-        .welcome-section p {
-            color: #4a5568;
-            margin: 0;
+            padding: 1.5rem 2rem;
         }
         
         .next-appointment {
             text-align: right;
-        }
-        
-        .next-appointment p:first-child {
-            font-size: 0.875rem;
-            color: #4a5568;
-            margin: 0;
-        }
-        
-        .next-appointment p:last-child {
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: #2d3748;
-            margin: 0;
         }
         
         /* Grid Layouts */
@@ -81,35 +62,7 @@
         
         /* Stat Cards */
         .stat-card {
-            background: linear-gradient(135deg, #f7fafc 0%, #e2e8f0 100%);
             padding: 1.5rem;
-            border-radius: 0.75rem;
-            border: 1px solid #e2e8f0;
-            transition: box-shadow 0.2s ease;
-        }
-        
-        .stat-card:hover {
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-        
-        .stat-card.sage {
-            background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
-            border-color: #5eead4;
-        }
-        
-        .stat-card.coral {
-            background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
-            border-color: #fc8181;
-        }
-        
-        .stat-card.stone {
-            background: linear-gradient(135deg, #fafaf9 0%, #e7e5e4 100%);
-            border-color: #a8a29e;
-        }
-        
-        .stat-card.emerald {
-            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-            border-color: #6ee7b7;
         }
         
         .stat-content {
@@ -119,45 +72,16 @@
         
         .stat-icon {
             padding: 0.75rem;
-            border-radius: 0.5rem;
             margin-right: 1rem;
-            color: white;
             font-size: 1.5rem;
-        }
-        
-        .stat-icon.sage { background-color: #0d9488; }
-        .stat-icon.coral { background-color: #e53e3e; }
-        .stat-icon.stone { background-color: #57534e; }
-        .stat-icon.emerald { background-color: #059669; }
-        
-        .stat-info p:first-child {
-            font-size: 0.875rem;
-            font-weight: 500;
-            margin: 0;
-            color: #374151;
-        }
-        
-        .stat-info p:nth-child(2) {
-            font-size: 2rem;
-            font-weight: bold;
-            margin: 0;
-            color: #1f2937;
-        }
-        
-        .stat-info p:last-child {
-            font-size: 0.75rem;
-            margin: 0;
-            color: #6b7280;
         }
         
         /* Promotion Banner */
         .promotion-banner {
-            background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
-            color: white;
             padding: 2rem;
-            border-radius: 0.75rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
             margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
         }
         
         .promotion-content {
@@ -168,17 +92,6 @@
             gap: 1rem;
         }
         
-        .promotion-text h3 {
-            font-size: 1.25rem;
-            font-weight: bold;
-            margin: 0 0 0.5rem 0;
-        }
-        
-        .promotion-text p {
-            color: rgba(255, 255, 255, 0.9);
-            margin: 0 0 1rem 0;
-        }
-        
         .promotion-actions {
             display: flex;
             align-items: center;
@@ -186,70 +99,16 @@
             flex-wrap: wrap;
         }
         
-        .promotion-badge {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.875rem;
-            font-weight: 500;
-        }
-        
-        .promotion-button {
-            background: white;
-            color: #e53e3e;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            font-weight: 500;
-            text-decoration: none;
-            transition: background-color 0.2s ease;
-        }
-        
-        .promotion-button:hover {
-            background: #f7fafc;
-        }
-        
         .promotion-discount {
             text-align: right;
         }
         
-        .promotion-discount p:first-child {
-            font-size: 3rem;
-            font-weight: bold;
-            margin: 0;
-        }
-        
-        .promotion-discount p:last-child {
-            color: rgba(255, 255, 255, 0.9);
-            margin: 0;
-        }
-        
-        /* Cards */
-        .card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 0.75rem;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-            border: 1px solid #e5e7eb;
-        }
-        
+        /* Card Headers */
         .card-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             margin-bottom: 1rem;
-        }
-        
-        .card-header h3 {
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: #1f2937;
-            margin: 0;
-        }
-        
-        .card-icon {
-            width: 1.25rem;
-            height: 1.25rem;
-            color: #6b7280;
         }
         
         /* List Items */
@@ -258,93 +117,19 @@
             align-items: center;
             justify-content: space-between;
             padding: 0.75rem;
-            background: #f9fafb;
-            border-radius: 0.5rem;
             margin-bottom: 0.75rem;
-            transition: background-color 0.2s ease;
-        }
-        
-        .list-item:hover {
-            background: #f3f4f6;
         }
         
         .list-item:last-child {
             margin-bottom: 0;
         }
         
-        /* Buttons */
-        .btn {
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            font-weight: 500;
-            text-decoration: none;
-            text-align: center;
-            display: inline-block;
-            transition: all 0.2s ease;
-            border: none;
-            cursor: pointer;
-        }
-        
-        .btn-primary {
-            background: #0d9488;
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: #0f766e;
-        }
-        
-        .btn-coral {
-            background: #e53e3e;
-            color: white;
-        }
-        
-        .btn-coral:hover {
-            background: #c53030;
-        }
-        
-        .btn-emerald {
-            background: #059669;
-            color: white;
-        }
-        
-        .btn-emerald:hover {
-            background: #047857;
-        }
-        
+        /* Custom Utilities */
         .btn-full {
             width: 100%;
             margin-top: 1rem;
         }
         
-        .btn-text {
-            background: none;
-            color: #0d9488;
-            padding: 0.5rem 0;
-        }
-        
-        .btn-text:hover {
-            color: #0f766e;
-        }
-        
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 2rem 0;
-        }
-        
-        .empty-state-icon {
-            font-size: 3rem;
-            color: #d1d5db;
-            margin-bottom: 1rem;
-        }
-        
-        .empty-state p {
-            color: #6b7280;
-            margin-bottom: 1rem;
-        }
-        
-        /* Notification Dot */
         .notification-dot {
             width: 0.5rem;
             height: 0.5rem;
@@ -353,15 +138,20 @@
             flex-shrink: 0;
         }
         
-        .dot-coral { background: #e53e3e; }
-        .dot-emerald { background: #059669; }
-        .dot-sage { background: #0d9488; }
+        .dot-coral { background: var(--danger-600); }
+        .dot-emerald { background: var(--success-600); }
+        .dot-sage { background: var(--primary-600); }
         
         /* Responsive */
         @media (max-width: 768px) {
+            .dashboard-container {
+                padding: 1rem;
+            }
+            
             .dashboard-header {
                 flex-direction: column;
                 align-items: flex-start;
+                padding: 1rem;
             }
             
             .next-appointment {
@@ -376,84 +166,109 @@
             .promotion-discount {
                 text-align: left;
             }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .quick-actions-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .two-column-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
+
 </head>
 <body>
-    <div class="dashboard-container">
+    <jsp:include page="/WEB-INF/view/customer/shared/sidebar.jsp" />
+    <jsp:include page="/WEB-INF/view/common/admin/header.jsp" />
+    
+    <div class="dashboard-main-body">
+        <div class="dashboard-container bg-base">
         <!-- Header Section -->
-        <div class="dashboard-header">
+        <div class="dashboard-header card bg-base border-neutral-200 radius-12 shadow-1">
             <div class="welcome-section">
-                <h2>Welcome back, ${sessionScope.customer.fullName != null ? sessionScope.customer.fullName : 'Valued Customer'}!</h2>
-                <p>Here's your spa journey overview</p>
+                <h2 class="text-neutral-900">Chào mừng trở lại, ${sessionScope.customer.fullName != null ? sessionScope.customer.fullName : 'Khách Hàng Thân Thiết'}!</h2>
+                <p class="text-neutral-600">Đây là tổng quan hành trình spa của bạn</p>
             </div>
             <div class="next-appointment">
-                <p>Next Appointment</p>
-                <p>Tomorrow at 2:00 PM</p>
+                <p class="text-neutral-600">Lịch Hẹn Tiếp Theo</p>
+                <p class="text-neutral-900">Ngày mai lúc 2:00 PM</p>
             </div>
         </div>
 
         <!-- Stats Cards -->
         <div class="stats-grid">
-            <div class="stat-card sage">
+            <div class="stat-card sage card bg-base border-neutral-200 radius-12 shadow-1">
                 <div class="stat-content">
-                    <div class="stat-icon sage">📅</div>
+                    <div class="stat-icon sage">
+                        <iconify-icon icon="solar:calendar-bold"></iconify-icon>
+                    </div>
                     <div class="stat-info">
-                        <p>Upcoming</p>
-                        <p>2</p>
-                        <p>appointments</p>
+                        <p class="text-neutral-600">Sắp Tới</p>
+                        <p class="text-neutral-900">2</p>
+                        <p class="text-neutral-500">lịch hẹn</p>
                     </div>
                 </div>
             </div>
 
-            <div class="stat-card coral">
+            <div class="stat-card coral card bg-base border-neutral-200 radius-12 shadow-1">
                 <div class="stat-content">
-                    <div class="stat-icon coral">🎁</div>
+                    <div class="stat-icon coral">
+                        <iconify-icon icon="solar:gift-bold"></iconify-icon>
+                    </div>
                     <div class="stat-info">
-                        <p>Reward Points</p>
-                        <p>${sessionScope.customer.loyaltyPoints != null ? sessionScope.customer.loyaltyPoints : 1240}</p>
-                        <p>available to redeem</p>
+                        <p class="text-neutral-600">Điểm Thưởng</p>
+                        <p class="text-neutral-900">${sessionScope.customer.loyaltyPoints != null ? sessionScope.customer.loyaltyPoints : 1240}</p>
+                        <p class="text-neutral-500">có thể đổi thưởng</p>
                     </div>
                 </div>
             </div>
 
-            <div class="stat-card stone">
+            <div class="stat-card stone card bg-base border-neutral-200 radius-12 shadow-1">
                 <div class="stat-content">
-                    <div class="stat-icon stone">⏰</div>
+                    <div class="stat-icon stone">
+                        <iconify-icon icon="solar:clock-circle-bold"></iconify-icon>
+                    </div>
                     <div class="stat-info">
-                        <p>Hours Relaxed</p>
-                        <p>24</p>
-                        <p>this year</p>
+                        <p class="text-neutral-600">Giờ Thư Giãn</p>
+                        <p class="text-neutral-900">24</p>
+                        <p class="text-neutral-500">năm nay</p>
                     </div>
                 </div>
             </div>
 
-            <div class="stat-card emerald">
+            <div class="stat-card emerald card bg-base border-neutral-200 radius-12 shadow-1">
                 <div class="stat-content">
-                    <div class="stat-icon emerald">📈</div>
+                    <div class="stat-icon emerald">
+                        <iconify-icon icon="solar:chart-2-bold"></iconify-icon>
+                    </div>
                     <div class="stat-info">
-                        <p>Membership</p>
-                        <p style="font-size: 1.5rem;">Gold</p>
-                        <p>tier status</p>
+                        <p class="text-neutral-600">Thành Viên</p>
+                        <p class="text-neutral-900" style="font-size: 1.5rem;">Vàng</p>
+                        <p class="text-neutral-500">hạng thành viên</p>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Current Promotion -->
-        <div class="promotion-banner">
+        <div class="promotion-banner bg-danger-gradient text-white radius-12">
             <div class="promotion-content">
                 <div class="promotion-text">
-                    <h3>🌸 Spring Special Offer</h3>
-                    <p>Book any 90-minute massage and get a complimentary facial treatment</p>
+                    <h3 class="text-white"><iconify-icon icon="solar:leaf-bold" style="margin-right: 0.5rem;"></iconify-icon>Ưu Đãi Mùa Xuân Đặc Biệt</h3>
+                    <p class="text-light-100">Đặt bất kỳ liệu pháp massage 90 phút và nhận miễn phí dịch vụ chăm sóc da mặt</p>
                     <div class="promotion-actions">
-                        <span class="promotion-badge">Valid until March 31st</span>
-                        <a href="${pageContext.request.contextPath}/customer/appointments/booking" class="promotion-button">Book Now</a>
+                        <span class="promotion-badge bg-light-100 bg-opacity-20 text-white radius-50">Có hiệu lực đến 31 tháng 3</span>
+                        <a href="${pageContext.request.contextPath}/customer/appointments/booking" class="promotion-button btn btn-light-100 text-danger-600 radius-8">Đặt Ngay</a>
                     </div>
                 </div>
                 <div class="promotion-discount">
-                    <p>25%</p>
-                    <p>OFF</p>
+                    <p class="text-white">25%</p>
+                    <p class="text-light-100">GIẢM</p>
                 </div>
             </div>
         </div>
@@ -461,202 +276,206 @@
         <!-- Quick Actions Grid -->
         <div class="quick-actions-grid">
             <!-- Upcoming Appointments -->
-            <div class="card">
+            <div class="card bg-base border-neutral-200 radius-12 shadow-1">
                 <div class="card-header">
-                    <h3>Upcoming Appointments</h3>
-                    <span class="card-icon">📅</span>
+                    <h3 class="text-neutral-900">Lịch Hẹn Sắp Tới</h3>
+                    <iconify-icon icon="solar:calendar-bold" class="card-icon text-neutral-600"></iconify-icon>
                 </div>
                 <div class="appointments-list">
-                    <div class="list-item">
+                    <div class="list-item bg-neutral-50 radius-8">
                         <div>
-                            <p style="font-weight: 500; margin: 0; color: #1f2937;">Deep Tissue Massage</p>
-                            <p style="font-size: 0.875rem; margin: 0; color: #6b7280;">with Emma Thompson</p>
+                            <p class="fw-medium text-neutral-900 m-0">Massage Mô Sâu</p>
+                            <p class="text-sm text-neutral-600 m-0">với Emma Thompson</p>
                         </div>
-                        <div style="text-align: right;">
-                            <p style="font-size: 0.875rem; font-weight: 500; margin: 0; color: #1f2937;">Tomorrow</p>
-                            <p style="font-size: 0.875rem; margin: 0; color: #6b7280;">2:00 PM</p>
+                        <div class="text-end">
+                            <p class="text-sm fw-medium text-neutral-900 m-0">Ngày Mai</p>
+                            <p class="text-sm text-neutral-600 m-0">2:00 PM</p>
                         </div>
                     </div>
-                    <div class="list-item">
+                    <div class="list-item bg-neutral-50 radius-8">
                         <div>
-                            <p style="font-weight: 500; margin: 0; color: #1f2937;">Aromatherapy Session</p>
-                            <p style="font-size: 0.875rem; margin: 0; color: #6b7280;">with Sarah Wilson</p>
+                            <p class="fw-medium text-neutral-900 m-0">Liệu Pháp Hương Thơm</p>
+                            <p class="text-sm text-neutral-600 m-0">với Sarah Wilson</p>
                         </div>
-                        <div style="text-align: right;">
-                            <p style="font-size: 0.875rem; font-weight: 500; margin: 0; color: #1f2937;">March 28</p>
-                            <p style="font-size: 0.875rem; margin: 0; color: #6b7280;">10:00 AM</p>
+                        <div class="text-end">
+                            <p class="text-sm fw-medium text-neutral-900 m-0">28 tháng 3</p>
+                            <p class="text-sm text-neutral-600 m-0">10:00 AM</p>
                         </div>
                     </div>
                 </div>
-                <a href="${pageContext.request.contextPath}/customer/appointments/booking" class="btn btn-primary btn-full">Book New Appointment</a>
+                <a href="${pageContext.request.contextPath}/customer/appointments/booking" class="btn btn-primary-600 text-white btn-full radius-8">Đặt Lịch Hẹn Mới</a>
             </div>
 
             <!-- Available Rewards -->
-            <div class="card">
+            <div class="card bg-base border-neutral-200 radius-12 shadow-1">
                 <div class="card-header">
-                    <h3>Available Rewards</h3>
-                    <span class="card-icon">🎁</span>
+                    <h3 class="text-neutral-900">Phần Thưởng Có Sẵn</h3>
+                    <iconify-icon icon="solar:gift-bold" class="card-icon text-neutral-600"></iconify-icon>
                 </div>
                 <div class="rewards-list">
-                    <div class="list-item">
+                    <div class="list-item bg-neutral-50 radius-8">
                         <div>
-                            <p style="font-weight: 500; margin: 0; color: #1f2937;">Free 30-min Massage</p>
-                            <p style="font-size: 0.875rem; margin: 0; color: #6b7280;">800 points</p>
+                            <p class="fw-medium text-neutral-900 m-0">Massage Miễn Phí 30 Phút</p>
+                            <p class="text-sm text-neutral-600 m-0">800 điểm</p>
                         </div>
-                        <button class="btn btn-coral">Redeem</button>
+                        <button class="btn btn-danger-600 text-white radius-8">Đổi Thưởng</button>
                     </div>
-                    <div class="list-item">
+                    <div class="list-item bg-neutral-50 radius-8">
                         <div>
-                            <p style="font-weight: 500; margin: 0; color: #1f2937;">Facial Treatment</p>
-                            <p style="font-size: 0.875rem; margin: 0; color: #6b7280;">1200 points</p>
+                            <p class="fw-medium text-neutral-900 m-0">Chăm Sóc Da Mặt</p>
+                            <p class="text-sm text-neutral-600 m-0">1200 điểm</p>
                         </div>
-                        <button class="btn btn-coral">Redeem</button>
+                        <button class="btn btn-danger-600 text-white radius-8">Đổi Thưởng</button>
                     </div>
                 </div>
-                <a href="${pageContext.request.contextPath}/customer/rewards/rewards-list" class="btn btn-coral btn-full">View All Rewards</a>
+                <a href="${pageContext.request.contextPath}/customer/rewards/rewards-list" class="btn btn-danger-600 text-white btn-full radius-8">Xem Tất Cả Phần Thưởng</a>
             </div>
 
             <!-- Quick Book Favorites -->
-            <div class="card">
+            <div class="card bg-base border-neutral-200 radius-12 shadow-1">
                 <div class="card-header">
-                    <h3>Quick Book Favorites</h3>
-                    <span class="card-icon">⭐</span>
+                    <h3 class="text-neutral-900">Dịch Vụ Yêu Thích</h3>
+                    <iconify-icon icon="solar:star-bold" class="card-icon text-neutral-600"></iconify-icon>
                 </div>
                 <div class="favorites-list">
-                    <div class="list-item">
+                    <div class="list-item bg-neutral-50 radius-8">
                         <div>
-                            <p style="font-weight: 500; margin: 0; color: #1f2937;">Deep Tissue Massage</p>
-                            <p style="font-size: 0.875rem; margin: 0; color: #6b7280;">with Emma Thompson</p>
+                            <p class="fw-medium text-neutral-900 m-0">Massage Mô Sâu</p>
+                            <p class="text-sm text-neutral-600 m-0">với Emma Thompson</p>
                         </div>
-                        <button class="btn btn-emerald">Book</button>
+                        <button class="btn btn-success-600 text-white radius-8">Đặt Lịch</button>
                     </div>
-                    <div class="list-item">
+                    <div class="list-item bg-neutral-50 radius-8">
                         <div>
-                            <p style="font-weight: 500; margin: 0; color: #1f2937;">Aromatherapy Session</p>
-                            <p style="font-size: 0.875rem; margin: 0; color: #6b7280;">with Emma Thompson</p>
+                            <p class="fw-medium text-neutral-900 m-0">Liệu Pháp Hương Thơm</p>
+                            <p class="text-sm text-neutral-600 m-0">với Emma Thompson</p>
                         </div>
-                        <button class="btn btn-emerald">Book</button>
+                        <button class="btn btn-success-600 text-white radius-8">Đặt Lịch</button>
                     </div>
                 </div>
-                <a href="#" class="btn btn-emerald btn-full">Manage Favorites</a>
+                <a href="#" class="btn btn-success-600 text-white btn-full radius-8">Quản Lý Yêu Thích</a>
             </div>
         </div>
 
         <!-- Recent Activity & Recommendations -->
         <div class="two-column-grid">
             <!-- Recent Treatments -->
-            <div class="card">
+            <div class="card bg-base border-neutral-200 radius-12 shadow-1">
                 <div class="card-header">
-                    <h3>Recent Treatments</h3>
-                    <span class="card-icon">📄</span>
+                    <h3 class="text-neutral-900">Liệu Pháp Gần Đây</h3>
+                    <iconify-icon icon="solar:document-text-bold" class="card-icon text-neutral-600"></iconify-icon>
                 </div>
                 <div class="treatments-list">
-                    <div class="list-item">
-                        <div style="display: flex; align-items: center; gap: 1rem;">
-                            <div style="width: 0.5rem; height: 0.5rem; background: #059669; border-radius: 50%;"></div>
+                    <div class="list-item bg-neutral-50 radius-8">
+                        <div class="d-flex align-items-center gap-16">
+                            <div class="dot-emerald notification-dot"></div>
                             <div>
-                                <p style="font-weight: 500; margin: 0; color: #1f2937;">Swedish Massage</p>
-                                <p style="font-size: 0.875rem; margin: 0; color: #6b7280;">with Emma Thompson</p>
+                                <p class="fw-medium text-neutral-900 m-0">Massage Thụy Điển</p>
+                                <p class="text-sm text-neutral-600 m-0">với Emma Thompson</p>
                             </div>
                         </div>
-                        <div style="text-align: right;">
-                            <p style="font-size: 0.875rem; font-weight: 500; margin: 0; color: #1f2937;">March 15</p>
-                            <p style="font-size: 0.875rem; margin: 0; color: #6b7280;">$120</p>
+                        <div class="text-end">
+                            <p class="text-sm fw-medium text-neutral-900 m-0">15 tháng 3</p>
+                            <p class="text-sm text-neutral-600 m-0">120.000đ</p>
                         </div>
                     </div>
-                    <div class="list-item">
-                        <div style="display: flex; align-items: center; gap: 1rem;">
-                            <div style="width: 0.5rem; height: 0.5rem; background: #059669; border-radius: 50%;"></div>
+                    <div class="list-item bg-neutral-50 radius-8">
+                        <div class="d-flex align-items-center gap-16">
+                            <div class="dot-emerald notification-dot"></div>
                             <div>
-                                <p style="font-weight: 500; margin: 0; color: #1f2937;">Facial Treatment</p>
-                                <p style="font-size: 0.875rem; margin: 0; color: #6b7280;">with Sarah Wilson</p>
+                                <p class="fw-medium text-neutral-900 m-0">Chăm Sóc Da Mặt</p>
+                                <p class="text-sm text-neutral-600 m-0">với Sarah Wilson</p>
                             </div>
                         </div>
-                        <div style="text-align: right;">
-                            <p style="font-size: 0.875rem; font-weight: 500; margin: 0; color: #1f2937;">March 10</p>
-                            <p style="font-size: 0.875rem; margin: 0; color: #6b7280;">$85</p>
+                        <div class="text-end">
+                            <p class="text-sm fw-medium text-neutral-900 m-0">10 tháng 3</p>
+                            <p class="text-sm text-neutral-600 m-0">85.000đ</p>
                         </div>
                     </div>
-                    <div class="list-item">
-                        <div style="display: flex; align-items: center; gap: 1rem;">
-                            <div style="width: 0.5rem; height: 0.5rem; background: #059669; border-radius: 50%;"></div>
+                    <div class="list-item bg-neutral-50 radius-8">
+                        <div class="d-flex align-items-center gap-16">
+                            <div class="dot-emerald notification-dot"></div>
                             <div>
-                                <p style="font-weight: 500; margin: 0; color: #1f2937;">Aromatherapy</p>
-                                <p style="font-size: 0.875rem; margin: 0; color: #6b7280;">with Emma Thompson</p>
+                                <p class="fw-medium text-neutral-900 m-0">Liệu Pháp Hương Thơm</p>
+                                <p class="text-sm text-neutral-600 m-0">với Emma Thompson</p>
                             </div>
                         </div>
-                        <div style="text-align: right;">
-                            <p style="font-size: 0.875rem; font-weight: 500; margin: 0; color: #1f2937;">March 5</p>
-                            <p style="font-size: 0.875rem; margin: 0; color: #6b7280;">$95</p>
+                        <div class="text-end">
+                            <p class="text-sm fw-medium text-neutral-900 m-0">5 tháng 3</p>
+                            <p class="text-sm text-neutral-600 m-0">95.000đ</p>
                         </div>
                     </div>
                 </div>
-                <a href="${pageContext.request.contextPath}/customer/treatments/history" class="btn btn-text btn-full">View Full History</a>
+                <a href="${pageContext.request.contextPath}/customer/treatments/history" class="btn btn-text text-primary-600 btn-full">Xem Lịch Sử Đầy Đủ</a>
             </div>
 
             <!-- Product Recommendations -->
-            <div class="card">
+            <div class="card bg-base border-neutral-200 radius-12 shadow-1">
                 <div class="card-header">
-                    <h3>Recommended for You</h3>
-                    <span class="card-icon">🛍️</span>
+                    <h3 class="text-neutral-900">Đề Xuất Cho Bạn</h3>
+                    <iconify-icon icon="solar:bag-smile-bold" class="card-icon text-neutral-600"></iconify-icon>
                 </div>
                 <div class="products-list">
-                    <div class="list-item" style="border: 1px solid #e5e7eb;">
+                    <div class="list-item bg-neutral-50 radius-8 border border-neutral-200">
                         <div>
-                            <p style="font-weight: 500; margin: 0; color: #1f2937;">Lavender Body Oil</p>
-                            <p style="font-size: 0.875rem; margin: 0; color: #6b7280;">Based on your aromatherapy sessions</p>
+                            <p class="fw-medium text-neutral-900 m-0">Tinh Dầu Hoa Oải Hương</p>
+                            <p class="text-sm text-neutral-600 m-0">Dựa trên liệu pháp hương thơm của bạn</p>
                         </div>
-                        <div style="text-align: right;">
-                            <p style="font-weight: bold; margin: 0; color: #1f2937;">$45</p>
-                            <button style="background: none; border: none; color: #0d9488; font-size: 0.875rem; cursor: pointer;">Add to Cart</button>
+                        <div class="text-end">
+                            <p class="fw-semibold text-neutral-900 m-0">45.000đ</p>
+                            <button class="btn btn-text text-primary-600 text-sm p-0">Thêm Vào Giỏ</button>
                         </div>
                     </div>
-                    <div class="list-item" style="border: 1px solid #e5e7eb;">
+                    <div class="list-item bg-neutral-50 radius-8 border border-neutral-200">
                         <div>
-                            <p style="font-weight: 500; margin: 0; color: #1f2937;">Hydrating Face Mask</p>
-                            <p style="font-size: 0.875rem; margin: 0; color: #6b7280;">Perfect for your skin type</p>
+                            <p class="fw-medium text-neutral-900 m-0">Mặt Nạ Dưỡng Ẩm</p>
+                            <p class="text-sm text-neutral-600 m-0">Hoàn hảo cho loại da của bạn</p>
                         </div>
-                        <div style="text-align: right;">
-                            <p style="font-weight: bold; margin: 0; color: #1f2937;">$32</p>
-                            <button style="background: none; border: none; color: #0d9488; font-size: 0.875rem; cursor: pointer;">Add to Cart</button>
+                        <div class="text-end">
+                            <p class="fw-semibold text-neutral-900 m-0">32.000đ</p>
+                            <button class="btn btn-text text-primary-600 text-sm p-0">Thêm Vào Giỏ</button>
                         </div>
                     </div>
                 </div>
-                <a href="${pageContext.request.contextPath}/customer/recommendations/services" class="btn btn-primary btn-full">View All Recommendations</a>
+                <a href="${pageContext.request.contextPath}/customer/recommendations/services" class="btn btn-primary-600 text-white btn-full radius-8">Xem Tất Cả Đề Xuất</a>
             </div>
         </div>
 
         <!-- Notifications -->
-        <div class="card">
+        <div class="card bg-base border-neutral-200 radius-12 shadow-1">
             <div class="card-header">
-                <h3>Recent Notifications</h3>
-                <span class="card-icon">🔔</span>
+                <h3 class="text-neutral-900">Thông Báo Gần Đây</h3>
+                <iconify-icon icon="solar:bell-bold" class="card-icon text-neutral-600"></iconify-icon>
             </div>
             <div class="notifications-list">
-                <div style="display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.75rem; background: #f9fafb; border-radius: 0.5rem; margin-bottom: 0.75rem;">
+                <div class="d-flex align-items-start gap-12 p-12 bg-neutral-50 radius-8 mb-12">
                     <div class="notification-dot dot-coral"></div>
-                    <div style="flex: 1;">
-                        <p style="font-size: 0.875rem; margin: 0 0 0.25rem 0; color: #1f2937;">Appointment reminder: Swedish Massage tomorrow at 2:00 PM</p>
-                        <p style="font-size: 0.75rem; margin: 0; color: #6b7280;">2 hours ago</p>
+                    <div class="flex-grow-1">
+                        <p class="text-sm text-neutral-900 m-0 mb-4">Nhắc nhở lịch hẹn: Massage Thụy Điển ngày mai lúc 2:00 PM</p>
+                        <p class="text-xxs text-neutral-600 m-0">2 giờ trước</p>
                     </div>
                 </div>
-                <div style="display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.75rem; background: #f9fafb; border-radius: 0.5rem; margin-bottom: 0.75rem;">
+                <div class="d-flex align-items-start gap-12 p-12 bg-neutral-50 radius-8 mb-12">
                     <div class="notification-dot dot-emerald"></div>
-                    <div style="flex: 1;">
-                        <p style="font-size: 0.875rem; margin: 0 0 0.25rem 0; color: #1f2937;">New spring promotion available - 25% off facial treatments</p>
-                        <p style="font-size: 0.75rem; margin: 0; color: #6b7280;">1 day ago</p>
+                    <div class="flex-grow-1">
+                        <p class="text-sm text-neutral-900 m-0 mb-4">Chương trình khuyến mãi mùa xuân mới - Giảm 25% dịch vụ chăm sóc da mặt</p>
+                        <p class="text-xxs text-neutral-600 m-0">1 ngày trước</p>
                     </div>
                 </div>
-                <div style="display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.75rem; background: #f9fafb; border-radius: 0.5rem;">
+                <div class="d-flex align-items-start gap-12 p-12 bg-neutral-50 radius-8">
                     <div class="notification-dot dot-sage"></div>
-                    <div style="flex: 1;">
-                        <p style="font-size: 0.875rem; margin: 0 0 0.25rem 0; color: #1f2937;">You earned 120 reward points from your last visit</p>
-                        <p style="font-size: 0.75rem; margin: 0; color: #6b7280;">3 days ago</p>
+                    <div class="flex-grow-1">
+                        <p class="text-sm text-neutral-900 m-0 mb-4">Bạn đã nhận được 120 điểm thưởng từ lần ghé thăm gần nhất</p>
+                        <p class="text-xxs text-neutral-600 m-0">3 ngày trước</p>
                     </div>
                 </div>
             </div>
-            <a href="${pageContext.request.contextPath}/customer/dashboard/notifications" class="btn btn-text btn-full">View All Notifications</a>
+            <a href="${pageContext.request.contextPath}/customer/dashboard/notifications" class="btn btn-text text-primary-600 btn-full">Xem Tất Cả Thông Báo</a>
+        </div>
         </div>
     </div>
+    
+    <!-- Include Admin Framework JavaScript -->
+    <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
 </body>
 </html> 
