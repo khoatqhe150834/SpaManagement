@@ -16,7 +16,7 @@ import model.Service;
 @WebServlet(name = "ServiceTypeController", urlPatterns = {"/servicetype"})
 public class ServiceTypeController extends HttpServlet {
 
-    private final String SERVICE_TYPE_URL = "WEB-INF/view/admin_pages/ServiceTypeManager.jsp";
+    private final String SERVICE_TYPE_URL = "WEB-INF/view/admin_pages/Service_Type/ServiceTypeManager.jsp";
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -56,7 +56,7 @@ public class ServiceTypeController extends HttpServlet {
         }
 
         if (service.equals("pre-insert")) {
-            request.getRequestDispatcher("WEB-INF/view/admin_pages/AddServiceType.jsp").forward(request, response);
+            request.getRequestDispatcher("WEB-INF/view/admin_pages/Service_Type/AddServiceType.jsp").forward(request, response);
         }
 
         if (service.equals("pre-update")) {
@@ -64,7 +64,7 @@ public class ServiceTypeController extends HttpServlet {
             ServiceTypeDAO dao = new ServiceTypeDAO();
             ServiceType st = dao.findById(id).orElse(null);
             request.setAttribute("stype", st);
-            request.getRequestDispatcher("WEB-INF/view/admin_pages/UpdateServiceType.jsp").forward(request, response);
+            request.getRequestDispatcher("WEB-INF/view/admin_pages/Service_Type/UpdateServiceType.jsp").forward(request, response);
         }
 
         if (service.equals("delete")) {

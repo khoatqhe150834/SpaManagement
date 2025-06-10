@@ -23,8 +23,22 @@
             <!-- HEADER here -->
         <jsp:include page="/WEB-INF/view/common/admin/header.jsp"></jsp:include>
 
-        
-        
+
+            <style>
+                .limit-description {
+                    display: -webkit-box;
+                    -webkit-box-orient: vertical;
+                    -webkit-line-clamp: 4;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    max-height: 6.4em; /* 4 dÃ²ng x 1.6em */
+                    min-width: 0;
+                    width: 100%;
+                    line-height: 1.6em;
+                    word-break: break-word;
+                    white-space: normal;
+                }
+            </style>
             <div class="dashboard-main-body">
                 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
                     <h6 class="fw-semibold mb-0">Service Type List</h6>
@@ -67,24 +81,23 @@
                 <c:if test="${not empty serviceTypes}">
                     <div class="card-body p-24">
                         <div class="table-responsive scroll-sm">
-                            <table class="table bordered-table sm-table mb-0">
+                            <table class="table bordered-table sm-table mb-0" style="table-layout: fixed;">
                                 <thead>
                                     <tr>
-                                        <th scope="col">
-                                            <div class="d-flex align-items-center gap-10">
-                                                <div class="form-check style-check d-flex align-items-center">
-                                                    <input class="form-check-input radius-4 border input-form-dark" type="checkbox" name="checkbox" id="selectAll">
-                                                </div>
-                                                ID
+                                        <th scope="col" style="width: 8%;">
+                                            <div class="form-check d-flex align-items-center gap-2">
+                                                <input class="form-check-input" type="checkbox" id="selectAll">
+                                                <label class="form-check-label mb-0" for="selectAll">ID</label>
                                             </div>
                                         </th>
-                                        <th scope="col">Name</th>
-                                        <th scope="col">Description</th>
-                                        <th scope="col">Image</th>
-                                        <th scope="col" class="text-center">Status</th>
-                                        <th scope="col" class="text-center">Action</th>
+                                        <th scope="col" style="width: 15%;">Name</th>
+                                        <th scope="col" style="width: 37%;" class="d-none d-md-table-cell">Description</th>
+                                        <th scope="col" style="width: 15%;" class="text-center">Image</th>
+                                        <th scope="col" style="width: 10%;" class="text-center">Status</th>
+                                        <th scope="col" style="width: 10%;" class="text-center">Action</th>
                                     </tr>
                                 </thead>
+
                                 <tbody>
                                     <c:forEach var="stype" items="${serviceTypes}" varStatus="loop">
                                         <tr>
@@ -97,7 +110,9 @@
                                                 </div>
                                             </td>
                                             <td>${stype.name}</td>
-                                            <td class="limit-description">${stype.description}</td>
+                                            <td class="limit-description" title="${stype.description}">
+                                                ${stype.description}
+                                            </td>
                                             <td><img src="${stype.imageUrl}" alt="Image" class="w-40-px h-40-px rounded" /></td>
                                             <td class="text-center">
                                                 <c:choose>

@@ -36,11 +36,4 @@
 <!-- main css -->
 <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/admin/css/style.css">
 
-<style>
-    .limit-description {
-        max-width: 300px;
-        white-space: normal;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-    }
-</style>
+
