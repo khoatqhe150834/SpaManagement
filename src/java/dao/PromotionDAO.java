@@ -1,7 +1,6 @@
 package dao;
 
 import db.DBContext;
-import model.Promotion;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.time.LocalDateTime;
@@ -10,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import model.Promotion;
 
 /**
  * Complete PromotionDAO implementation for promotion management

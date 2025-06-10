@@ -7,12 +7,11 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.sql.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import model.Customer;
+import java.util.Optional;
 
 /**
  * Complete CustomerController with proper error handling and validation
@@ -46,16 +45,16 @@ public class CustomerController extends HttpServlet {
                 handleListCustomers(request, response);
                 return;
             }
-            
+
             // Parse path to get action and parameters
             String[] pathParts = pathInfo.split("/");
             if (pathParts.length < 2) {
                 handleListCustomers(request, response);
                 return;
             }
-            
+
             String action = pathParts[1].toLowerCase();
-            
+
             switch (action) {
                 case "list":
                     handleListCustomers(request, response);
@@ -96,7 +95,7 @@ public class CustomerController extends HttpServlet {
             throws ServletException, IOException {
         
         String action = request.getParameter("action");
-        logger.info("CustomerController POST request - Action: " + action);
+        
         
         try {
             if (action == null || action.trim().isEmpty()) {
@@ -106,7 +105,7 @@ public class CustomerController extends HttpServlet {
             
             switch (action.toLowerCase()) {
                 case "create":
-                    handleCreateCustomer(request, response);
+//                    handleCreateCustomer(request, response);
                     break;
                 case "update":
 //                    handleUpdateCustomer(request, response);
@@ -140,7 +139,10 @@ public class CustomerController extends HttpServlet {
             
             // Get search parameters
             String searchType = request.getParameter("searchType");
-            String searchValue = request.getParameter("searchValue");
+            String searchValue = request.getParameter("search"); // Changed from "searchValue" to "search"
+            if (searchValue == null) {
+                searchValue = request.getParameter("searchValue"); // Fallback for backward compatibility
+            }
             
             // Validate pagination parameters
             if (page < 1) page = 1;
@@ -150,51 +152,33 @@ public class CustomerController extends HttpServlet {
             List<Customer> customers;
             int totalCustomers;
             
-            // Handle search first
+            // Get all customers first, then filter
+            customers = customerDAO.findAll(1, Integer.MAX_VALUE);
+            totalCustomers = customers.size();
+            
+            // Apply search filter if provided
             if (searchValue != null && !searchValue.trim().isEmpty()) {
-                // Perform search based on type
-                switch (searchType != null ? searchType.toLowerCase() : "name") {
-                    case "email":
-                        customers = customerDAO.findByEmailContain(searchValue.trim());
-                        break;
-                    case "phone":
-                        customers = customerDAO.findByPhoneContain(searchValue.trim());
-                        break;
-                    case "name":
-                    default:
-                        customers = customerDAO.findByNameContain(searchValue.trim());
-                        break;
-                }
-                
-                // Apply status filter to search results
-                if (status != null && !status.trim().isEmpty()) {
-                    boolean isActive = "active".equalsIgnoreCase(status);
-                    customers = customers.stream()
-                            .filter(c -> c.isActive() == isActive)
-                            .collect(java.util.stream.Collectors.toList());
-                }
-                
-                totalCustomers = customers.size();
-                
-            } else {
-                // Handle status filtering when no search
-                if (status != null && !status.trim().isEmpty()) {
-                    switch (status.toLowerCase()) {
-                        case "active":
-                            customers = customerDAO.findByActiveStatus(true, 1, Integer.MAX_VALUE);
-                            break;
-                        case "inactive":
-                            customers = customerDAO.findByActiveStatus(false, 1, Integer.MAX_VALUE);
-                            break;
-                        default:
-                            customers = customerDAO.findAll(1, Integer.MAX_VALUE);
-                            break;
-                    }
-                } else {
-                    customers = customerDAO.findAll(1, Integer.MAX_VALUE);
-                }
-                totalCustomers = customers.size();
+                String searchTerm = searchValue.trim().toLowerCase();
+                customers = customers.stream()
+                    .filter(c -> 
+                        (c.getFullName() != null && c.getFullName().toLowerCase().contains(searchTerm)) ||
+                        (c.getEmail() != null && c.getEmail().toLowerCase().contains(searchTerm)) ||
+                        (c.getPhoneNumber() != null && c.getPhoneNumber().contains(searchTerm)) ||
+                        String.valueOf(c.getCustomerId()).contains(searchTerm)
+                    )
+                    .collect(java.util.stream.Collectors.toList());
             }
+            
+            // Apply status filter if provided
+            if (status != null && !status.trim().isEmpty()) {
+                boolean isActive = "active".equalsIgnoreCase(status);
+                customers = customers.stream()
+                        .filter(c -> c.isActive() == isActive)
+                        .collect(java.util.stream.Collectors.toList());
+            }
+            
+            // Update total count after filtering
+            totalCustomers = customers.size();
             
             // Apply sorting
             if (sortBy != null && "id".equals(sortBy) && sortOrder != null) {
@@ -206,7 +190,7 @@ public class CustomerController extends HttpServlet {
             }
             
             // Apply pagination to results
-            int totalPages = (int) Math.ceil((double) totalCustomers / pageSize);
+        int totalPages = (int) Math.ceil((double) totalCustomers / pageSize);
             if (totalPages < 1) totalPages = 1;
             if (page > totalPages) page = totalPages;
             
@@ -219,10 +203,10 @@ public class CustomerController extends HttpServlet {
             }
             
             // Set request attributes
-            request.setAttribute("listCustomer", customers);
+            request.setAttribute("customers", customers);
             request.setAttribute("currentPage", page);
             request.setAttribute("pageSize", pageSize);
-            request.setAttribute("totalPages", totalPages);
+            request.setAttribute("totalpages", totalPages);
             request.setAttribute("totalCustomers", totalCustomers);
             request.setAttribute("status", status);
             request.setAttribute("sortBy", sortBy);
@@ -294,12 +278,12 @@ public class CustomerController extends HttpServlet {
             if (totalPages < 1) totalPages = 1;
             
             // Set request attributes
-            request.setAttribute("listCustomer", customers);
+            request.setAttribute("customers", customers);
             request.setAttribute("searchType", searchType);
             request.setAttribute("searchValue", searchValue);
             request.setAttribute("currentPage", page);
             request.setAttribute("pageSize", pageSize);
-            request.setAttribute("totalPages", totalPages);
+            request.setAttribute("totalpages", totalPages);
             request.setAttribute("totalCustomers", totalCustomers);
             
             logger.info(String.format("Customer search completed - Type: %s, Value: %s, Found: %d",
@@ -384,79 +368,79 @@ public class CustomerController extends HttpServlet {
     /**
      * Handle create customer
      */
-    private void handleCreateCustomer(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        
-        try {
-            // Validate required fields
-            String name = getStringParameter(request, "name");
-            String email = getStringParameter(request, "email");
-            String password = getStringParameter(request, "password");
-            
-            if (name == null || email == null || password == null) {
-                throw new IllegalArgumentException("Name, email, and password are required");
-            }
-            
-            // Validate email format
-            if (!isValidEmail(email)) {
-                throw new IllegalArgumentException("Invalid email format");
-            }
-            
-            // Get optional fields
-            String phone = request.getParameter("phone");
-            String gender = request.getParameter("gender");
-            String birthdayStr = request.getParameter("birthday");
-            String address = request.getParameter("address");
-            boolean isActive = "on".equals(request.getParameter("isActive"));
-            
-            // Validate phone if provided
-            if (phone != null && !phone.trim().isEmpty() && !isValidPhone(phone)) {
-                throw new IllegalArgumentException("Invalid phone number format");
-            }
-            
-            // Create customer object
-            Customer customer = new Customer();
-            customer.setFullName(name);
-            customer.setEmail(email.toLowerCase());
-            customer.setHashPassword(password); // Will be hashed in DAO
-            customer.setPhoneNumber(phone);
-            customer.setGender(gender);
-            customer.setAddress(address);
-            customer.setIsActive(isActive);
-            customer.setRoleId(1); // Default customer role
-            customer.setLoyaltyPoints(0);
-            customer.setIsVerified(false);
-            
-            // Parse birthday if provided
-            if (birthdayStr != null && !birthdayStr.trim().isEmpty()) {
-                try {
-                    customer.setBirthday(Date.valueOf(birthdayStr));
-                } catch (IllegalArgumentException e) {
-                    throw new IllegalArgumentException("Invalid birthday format");
-                }
-            }
-            
-            // Save customer
-            customerDAO.save(customer);
-            
-            logger.info("Customer created successfully: " + customer.getCustomerId());
-            
-            // Return success response for AJAX
-            response.setStatus(200);
-            response.getWriter().write("Customer created successfully");
-            
-        } catch (IllegalArgumentException e) {
-            logger.warning("Validation error creating customer: " + e.getMessage());
-            request.setAttribute("error", e.getMessage());
-            request.getRequestDispatcher("/WEB-INF/view/customer/form.jsp")
-                    .forward(request, response);
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error creating customer", e);
-            request.setAttribute("error", "Error creating customer: " + e.getMessage());
-            request.getRequestDispatcher("/WEB-INF/view/customer/form.jsp")
-                    .forward(request, response);
-        }
-    }
+//    private void handleCreateCustomer(HttpServletRequest request, HttpServletResponse response)
+//            throws ServletException, IOException {
+//        
+//        try {
+//            // Validate required fields
+//            String name = getStringParameter(request, "name");
+//            String email = getStringParameter(request, "email");
+//            String password = getStringParameter(request, "password");
+//            
+//            if (name == null || email == null || password == null) {
+//                throw new IllegalArgumentException("Name, email, and password are required");
+//            }
+//            
+//            // Validate email format
+//            if (!isValidEmail(email)) {
+//                throw new IllegalArgumentException("Invalid email format");
+//            }
+//            
+//            // Get optional fields
+//            String phone = request.getParameter("phone");
+//            String gender = request.getParameter("gender");
+//            String birthdayStr = request.getParameter("birthday");
+//            String address = request.getParameter("address");
+//            boolean isActive = "on".equals(request.getParameter("isActive"));
+//            
+//            // Validate phone if provided
+//            if (phone != null && !phone.trim().isEmpty() && !isValidPhone(phone)) {
+//                throw new IllegalArgumentException("Invalid phone number format");
+//            }
+//            
+//            // Create customer object
+//            Customer customer = new Customer();
+//            customer.setFullName(name);
+//            customer.setEmail(email.toLowerCase());
+//            customer.setHashPassword(password); // Will be hashed in DAO
+//            customer.setPhoneNumber(phone);
+//            customer.setGender(gender);
+//            customer.setAddress(address);
+//            customer.setIsActive(isActive);
+//            customer.setRoleId(1); // Default customer role
+//            customer.setLoyaltyPoints(0);
+//            customer.setIsVerified(false);
+//            
+//            // Parse birthday if provided
+//            if (birthdayStr != null && !birthdayStr.trim().isEmpty()) {
+//                try {
+//                    customer.setBirthday(Date.valueOf(birthdayStr));
+//                } catch (IllegalArgumentException e) {
+//                    throw new IllegalArgumentException("Invalid birthday format");
+//                }
+//            }
+//            
+//            // Save customer
+//            customerDAO.save(customer);
+//            
+//            logger.info("Customer created successfully: " + customer.getCustomerId());
+//            
+//            // Return success response for AJAX
+//            response.setStatus(200);
+//            response.getWriter().write("Customer created successfully");
+//            
+//        } catch (IllegalArgumentException e) {
+//            logger.warning("Validation error creating customer: " + e.getMessage());
+//            request.setAttribute("error", e.getMessage());
+//            request.getRequestDispatcher("/WEB-INF/view/customer/form.jsp")
+//                    .forward(request, response);
+//        } catch (Exception e) {
+//            logger.log(Level.SEVERE, "Error creating customer", e);
+//            request.setAttribute("error", "Error creating customer: " + e.getMessage());
+//            request.getRequestDispatcher("/WEB-INF/view/customer/form.jsp")
+//                    .forward(request, response);
+//        }
+//    }
 
     /**
      * Handle update customer
@@ -565,7 +549,7 @@ public class CustomerController extends HttpServlet {
                 response.getWriter().write("Invalid customer ID");
                 return;
             }
-            
+
             // Delete customer directly - DAO will handle checks
             customerDAO.deleteById(customerId);
             logger.info("Customer deleted successfully: " + customerId);
@@ -660,10 +644,10 @@ public class CustomerController extends HttpServlet {
         switch (apiAction) {
             case "refresh":
                 handleRefreshCustomer(request, response);
-                break;
-            default:
+                    break;
+                default:
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "Unknown API endpoint");
-                break;
+                    break;
         }
     }
 

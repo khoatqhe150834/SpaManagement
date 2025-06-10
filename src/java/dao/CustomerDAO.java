@@ -508,6 +508,9 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
             return false;
         }
     }
+    
+    
+    
 
     // Deprecated - kept for backward compatibility, but recommend using more
     // specific methods above
