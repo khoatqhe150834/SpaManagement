@@ -108,14 +108,28 @@
                                             <td class="text-center">
                                                 <div class="d-flex align-items-center gap-10 justify-content-center">
                                                     <!-- View button -->
-                                                    <a href="${pageContext.request.contextPath}/customer/view/${customer.customerId}" class="bg-info-focus text-info-600 bg-hover-info-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
+                                                    <a href="${pageContext.request.contextPath}/customer?action=view&id=${customer.customerId}" class="bg-info-focus text-info-600 bg-hover-info-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
+                                                       
+                                                          onclick="if (confirm('Are you sure you want to view this customer?')) { window.location.href='${pageContext.request.contextPath}/customer/view?id=${customer.customerId}'; } return false;">
+
+                                                       
                                                         <iconify-icon icon="majesticons:eye-line" class="menu-icon"></iconify-icon>
+                                                        
                                                     </a>
 
                                                     <!-- Edit button -->
-                                                    <a href="${pageContext.request.contextPath}/customer?action=pre-update&id=${customer.customerId}" class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
+                                                    <a href="${pageContext.request.contextPath}/customer?action=edit&id=${customer.customerId}" class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
+                                                       
+                                                          onclick="if (confirm('Are you sure you want to update this customer?')) { window.location.href='${pageContext.request.contextPath}/customer/edit?id=${customer.customerId}'; } return false;">
+
+                                                       
+                                                       
                                                         <iconify-icon icon="lucide:edit" class="menu-icon"></iconify-icon>
                                                     </a>
+                                                        
+                                                    
+                                                        
+                                                        
 
                                                     <!-- Delete button -->
                                                     <a href="${pageContext.request.contextPath}/customer?action=deactivate&id=${customer.customerId}" 

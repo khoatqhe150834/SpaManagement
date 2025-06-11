@@ -14,14 +14,14 @@ import model.Customer;
 import java.util.Optional;
 
 /**
- * Complete CustomerController with proper error handling and validation
- * URL Pattern: /customer/*
- * Actions: list, view, create, edit, delete, search
+ * Complete CustomerController with proper error handling and validation URL
+ * Pattern: /customer/* Actions: list, view, create, edit, delete, search
+ *
  * @author Admin
  */
 @WebServlet(urlPatterns = {"/customer/*"})
 public class CustomerController extends HttpServlet {
-    
+
     private CustomerDAO customerDAO;
     private static final Logger logger = Logger.getLogger(CustomerController.class.getName());
     private static final int DEFAULT_PAGE_SIZE = 10;
@@ -35,10 +35,10 @@ public class CustomerController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         String pathInfo = request.getPathInfo();
         logger.info("CustomerController GET request - PathInfo: " + pathInfo);
-        
+
         try {
             // Handle root path or null path - show customer list
             if (pathInfo == null || pathInfo.equals("/") || pathInfo.equals("/list")) {
@@ -86,7 +86,7 @@ public class CustomerController extends HttpServlet {
                     response.sendError(HttpServletResponse.SC_NOT_FOUND, "Unknown action: " + action);
                     break;
             }
-            
+
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error in CustomerController GET", e);
             handleError(request, response, "An error occurred: " + e.getMessage());
@@ -96,16 +96,15 @@ public class CustomerController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         String action = request.getParameter("action");
-        
-        
+
         try {
             if (action == null || action.trim().isEmpty()) {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing action parameter");
                 return;
             }
-            
+
             switch (action.toLowerCase()) {
                 case "create":
 //                    handleCreateCustomer(request, response);
@@ -117,7 +116,7 @@ public class CustomerController extends HttpServlet {
                     response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid action: " + action);
                     break;
             }
-            
+
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error in CustomerController POST", e);
             handleError(request, response, "An error occurred: " + e.getMessage());
@@ -129,49 +128,54 @@ public class CustomerController extends HttpServlet {
      */
     private void handleListCustomers(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         try {
             // Get pagination parameters
             int page = getIntParameter(request, "page", 1);
             int pageSize = getIntParameter(request, "pageSize", DEFAULT_PAGE_SIZE);
             String status = request.getParameter("status");
-            
+
             // Get sorting parameters
             String sortBy = request.getParameter("sortBy");
             String sortOrder = request.getParameter("sortOrder");
-            
+
             // Get search parameters
             String searchType = request.getParameter("searchType");
             String searchValue = request.getParameter("search"); // Changed from "searchValue" to "search"
             if (searchValue == null) {
                 searchValue = request.getParameter("searchValue"); // Fallback for backward compatibility
             }
-            
+
             // Validate pagination parameters
-            if (page < 1) page = 1;
-            if (pageSize < 1) pageSize = DEFAULT_PAGE_SIZE;
-            if (pageSize > 999999) pageSize = 999999; // Allow "all" option
-            
+            if (page < 1) {
+                page = 1;
+            }
+            if (pageSize < 1) {
+                pageSize = DEFAULT_PAGE_SIZE;
+            }
+            if (pageSize > 999999) {
+                pageSize = 999999; // Allow "all" option
+            }
             List<Customer> customers;
             int totalCustomers;
-            
+
             // Get all customers first, then filter
             customers = customerDAO.findAll(1, Integer.MAX_VALUE);
             totalCustomers = customers.size();
-            
+
             // Apply search filter if provided
             if (searchValue != null && !searchValue.trim().isEmpty()) {
                 String searchTerm = searchValue.trim().toLowerCase();
                 customers = customers.stream()
-                    .filter(c -> 
-                        (c.getFullName() != null && c.getFullName().toLowerCase().contains(searchTerm)) ||
-                        (c.getEmail() != null && c.getEmail().toLowerCase().contains(searchTerm)) ||
-                        (c.getPhoneNumber() != null && c.getPhoneNumber().contains(searchTerm)) ||
-                        String.valueOf(c.getCustomerId()).contains(searchTerm)
-                    )
-                    .collect(java.util.stream.Collectors.toList());
+                        .filter(c
+                                -> (c.getFullName() != null && c.getFullName().toLowerCase().contains(searchTerm))
+                        || (c.getEmail() != null && c.getEmail().toLowerCase().contains(searchTerm))
+                        || (c.getPhoneNumber() != null && c.getPhoneNumber().contains(searchTerm))
+                        || String.valueOf(c.getCustomerId()).contains(searchTerm)
+                        )
+                        .collect(java.util.stream.Collectors.toList());
             }
-            
+
             // Apply status filter if provided
             if (status != null && !status.trim().isEmpty()) {
                 boolean isActive = "active".equalsIgnoreCase(status);
@@ -179,10 +183,10 @@ public class CustomerController extends HttpServlet {
                         .filter(c -> c.isActive() == isActive)
                         .collect(java.util.stream.Collectors.toList());
             }
-            
+
             // Update total count after filtering
             totalCustomers = customers.size();
-            
+
             // Apply sorting
             if (sortBy != null && "id".equals(sortBy) && sortOrder != null) {
                 if ("asc".equals(sortOrder)) {
@@ -191,12 +195,16 @@ public class CustomerController extends HttpServlet {
                     customers.sort(java.util.Comparator.comparing(Customer::getCustomerId).reversed());
                 }
             }
-            
+
             // Apply pagination to results
-        int totalPages = (int) Math.ceil((double) totalCustomers / pageSize);
-            if (totalPages < 1) totalPages = 1;
-            if (page > totalPages) page = totalPages;
-            
+            int totalPages = (int) Math.ceil((double) totalCustomers / pageSize);
+            if (totalPages < 1) {
+                totalPages = 1;
+            }
+            if (page > totalPages) {
+                page = totalPages;
+            }
+
             int startIndex = (page - 1) * pageSize;
             int endIndex = Math.min(startIndex + pageSize, customers.size());
             if (startIndex < customers.size()) {
@@ -204,7 +212,7 @@ public class CustomerController extends HttpServlet {
             } else {
                 customers = new java.util.ArrayList<>();
             }
-            
+
             // Set request attributes
             request.setAttribute("customers", customers);
             request.setAttribute("currentPage", page);
@@ -216,14 +224,14 @@ public class CustomerController extends HttpServlet {
             request.setAttribute("sortOrder", sortOrder);
             request.setAttribute("searchType", searchType);
             request.setAttribute("searchValue", searchValue);
-            
+
             logger.info(String.format("Customer list loaded - Page: %d, Size: %d, Total: %d, Found: %d, Sort: %s %s",
                     page, pageSize, totalCustomers, customers.size(), sortBy, sortOrder));
-            
+
             // Forward to JSP
             request.getRequestDispatcher("/WEB-INF/view/admin_pages/customer_list.jsp")
                     .forward(request, response);
-            
+
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error loading customer list", e);
             handleError(request, response, "Error loading customer list: " + e.getMessage());
@@ -235,16 +243,16 @@ public class CustomerController extends HttpServlet {
      */
     private void handleSearchCustomers(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         try {
             String searchType = request.getParameter("searchType");
             String searchValue = request.getParameter("searchValue");
             int page = getIntParameter(request, "page", 1);
             int pageSize = getIntParameter(request, "pageSize", DEFAULT_PAGE_SIZE);
-            
+
             List<Customer> customers;
             int totalCustomers;
-            
+
             if (searchValue == null || searchValue.trim().isEmpty()) {
                 // No search value, show all customers
                 customers = customerDAO.findAll(page, pageSize);
@@ -263,9 +271,9 @@ public class CustomerController extends HttpServlet {
                         customers = customerDAO.findByNameContain(searchValue.trim());
                         break;
                 }
-                
+
                 totalCustomers = customers.size();
-                
+
                 // Apply pagination to search results
                 int startIndex = (page - 1) * pageSize;
                 int endIndex = Math.min(startIndex + pageSize, customers.size());
@@ -275,11 +283,13 @@ public class CustomerController extends HttpServlet {
                     customers.clear();
                 }
             }
-            
+
             // Calculate pagination
             int totalPages = (int) Math.ceil((double) totalCustomers / pageSize);
-            if (totalPages < 1) totalPages = 1;
-            
+            if (totalPages < 1) {
+                totalPages = 1;
+            }
+
             // Set request attributes
             request.setAttribute("customers", customers);
             request.setAttribute("searchType", searchType);
@@ -288,14 +298,14 @@ public class CustomerController extends HttpServlet {
             request.setAttribute("pageSize", pageSize);
             request.setAttribute("totalpages", totalPages);
             request.setAttribute("totalCustomers", totalCustomers);
-            
+
             logger.info(String.format("Customer search completed - Type: %s, Value: %s, Found: %d",
                     searchType, searchValue, totalCustomers));
-            
+
             // Forward to JSP
             request.getRequestDispatcher("/WEB-INF/view/admin_pages/customer_list.jsp")
                     .forward(request, response);
-            
+
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error searching customers", e);
             handleError(request, response, "Error searching customers: " + e.getMessage());
@@ -309,34 +319,40 @@ public class CustomerController extends HttpServlet {
             throws ServletException, IOException {
         
        
-                
-        
+
         try {
             String customerIdStr = request.getParameter("id");
-            
+
             int customerId = Integer.parseInt(customerIdStr);
+            
+            request.setAttribute("customerId", customerId);
 //            
             if (customerId <= 0) {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid customer ID");
                 return;
             }
             
+//            request.setAttribute("here", "Doan nay chua loi");
+           
+            
+
             Optional<Customer> customerOpt = customerDAO.findById(customerId);
+            
+            
             if (customerOpt.isPresent()) {
                 
-                                request.setAttribute("customerId", customerId);
+                Customer customer =  customerOpt.get();
 
-               
+                request.setAttribute("customer", customer);
+
+//                  request.setAttribute("here", "Doan nay chua loi");
+                
                 request.getRequestDispatcher("/WEB-INF/view/admin_pages/customer_details.jsp")
-                        .forward(request, response);
-                
-                
-               
-                
+                                    .forward(request, response);
             } else {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "Customer not found");
             }
-            
+
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error viewing customer", e);
             handleError(request, response, "Error viewing customer: " + e.getMessage());
@@ -348,7 +364,7 @@ public class CustomerController extends HttpServlet {
      */
     private void handleShowCreateForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         request.getRequestDispatcher("/WEB-INF/view/customer/form.jsp")
                 .forward(request, response);
     }
@@ -358,14 +374,14 @@ public class CustomerController extends HttpServlet {
      */
     private void handleShowEditForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         try {
             int customerId = getIntParameter(request, "id", 0);
             if (customerId <= 0) {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid customer ID");
                 return;
             }
-            
+
             Optional<Customer> customerOpt = customerDAO.findById(customerId);
             if (customerOpt.isPresent()) {
                 request.setAttribute("customer", customerOpt.get());
@@ -374,7 +390,7 @@ public class CustomerController extends HttpServlet {
             } else {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "Customer not found");
             }
-            
+
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error showing edit form", e);
             handleError(request, response, "Error loading customer for edit: " + e.getMessage());
@@ -457,7 +473,6 @@ public class CustomerController extends HttpServlet {
 //                    .forward(request, response);
 //        }
 //    }
-
     /**
      * Handle update customer
      */
@@ -551,31 +566,27 @@ public class CustomerController extends HttpServlet {
 //                    .forward(request, response);
 //        }
 //    }
-
     /**
      * Handle delete customer
      */
-    
-    
     private void handleDeactivateCustomer(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         try {
             String customerIdStr = request.getParameter("id");
-            
+
             int customerId = Integer.parseInt(customerIdStr);
 //            
 //            request.setAttribute("customerId", customerId);
 //            request.getRequestDispatcher("/test.jsp").forward(request, response);
-            
-            
+
             if (customerId <= 0) {
                 handleError(request, response, "Invalid customer ID provided.");
                 return;
             }
 
             boolean success = customerDAO.deactivateCustomer(customerId);
-            
+
             if (success) {
                 logger.info("Customer deactivated successfully: " + customerId);
                 request.getSession().setAttribute("successMessage", "Customer has been deactivated successfully.");
@@ -583,47 +594,20 @@ public class CustomerController extends HttpServlet {
                 logger.warning("Failed to deactivate customer: " + customerId);
                 request.getSession().setAttribute("errorMessage", "Failed to deactivate the customer.");
             }
-            
+
             response.sendRedirect(request.getContextPath() + "/customer/list");
-            
+
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error deactivating customer", e);
             handleError(request, response, "Error deactivating customer: " + e.getMessage());
         }
     }
+
+   
     
-    private void handleDeleteCustomer(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        
-        try {
-            int customerId = getIntParameter(request, "id", 0);
-            if (customerId <= 0) {
-                response.setStatus(400);
-                response.getWriter().write("Invalid customer ID");
-                return;
-            }
-
-            // Delete customer directly - DAO will handle checks
-            customerDAO.deactivateCustomer(customerId);
-            logger.info("Customer deleted successfully: " + customerId);
-            
-            // Return success for AJAX
-            response.setStatus(200);
-            response.getWriter().write("Customer deleted successfully");
-            
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error deleting customer", e);
-            response.setStatus(500);
-            response.getWriter().write("Error deleting customer: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Handle error by forwarding to error page
-     */
     private void handleError(HttpServletRequest request, HttpServletResponse response, String errorMessage)
             throws ServletException, IOException {
-        
+
         request.setAttribute("error", errorMessage);
         request.getRequestDispatcher("/WEB-INF/view/admin_pages/customer_list.jsp")
                 .forward(request, response);
@@ -685,22 +669,22 @@ public class CustomerController extends HttpServlet {
      */
     private void handleApiRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         String pathInfo = request.getPathInfo();
         if (pathInfo == null || pathInfo.length() <= 5) { // "/api/" length is 5
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing API endpoint");
             return;
         }
-        
+
         String apiAction = pathInfo.substring(5); // Remove "/api/"
-        
+
         switch (apiAction) {
             case "refresh":
                 handleRefreshCustomer(request, response);
-                    break;
-                default:
+                break;
+            default:
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "Unknown API endpoint");
-                    break;
+                break;
         }
     }
 
@@ -709,10 +693,10 @@ public class CustomerController extends HttpServlet {
      */
     private void handleRefreshCustomer(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-        
+
         try {
             int customerId = getIntParameter(request, "id", 0);
             if (customerId <= 0) {
@@ -720,7 +704,7 @@ public class CustomerController extends HttpServlet {
                 response.getWriter().write("{\"success\": false, \"message\": \"Invalid customer ID\"}");
                 return;
             }
-            
+
             // Fetch latest customer data from database
             Optional<Customer> customerOpt = customerDAO.findById(customerId);
             if (!customerOpt.isPresent()) {
@@ -728,9 +712,9 @@ public class CustomerController extends HttpServlet {
                 response.getWriter().write("{\"success\": false, \"message\": \"Customer not found\"}");
                 return;
             }
-            
+
             Customer customer = customerOpt.get();
-            
+
             // Build JSON response
             StringBuilder json = new StringBuilder();
             json.append("{\n");
@@ -749,10 +733,10 @@ public class CustomerController extends HttpServlet {
             json.append("    \"updatedAt\": \"").append(customer.getUpdatedAt() != null ? customer.getUpdatedAt().toString() : "").append("\"\n");
             json.append("  }\n");
             json.append("}");
-            
+
             response.getWriter().write(json.toString());
             logger.info("Customer data refreshed for ID: " + customerId);
-            
+
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error refreshing customer data", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -764,29 +748,29 @@ public class CustomerController extends HttpServlet {
      * Escape JSON string values
      */
     private String escapeJson(String str) {
-        if (str == null) return "";
+        if (str == null) {
+            return "";
+        }
         return str.replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t");
     }
 
     private void handleActivateCustomer(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        
-        
-         try {
+
+        try {
             String customerIdStr = request.getParameter("id");
-            
+
             int customerId = Integer.parseInt(customerIdStr);
 //            
 //            request.setAttribute("customerId", customerId);
 //            request.getRequestDispatcher("/test.jsp").forward(request, response);
-            
-            
+
             if (customerId <= 0) {
                 handleError(request, response, "Invalid customer ID provided.");
                 return;
             }
 
             boolean success = customerDAO.activateCustomer(customerId);
-            
+
             if (success) {
                 logger.info("Customer deactivated successfully: " + customerId);
                 request.getSession().setAttribute("successMessage", "Customer has been activated successfully.");
@@ -794,9 +778,9 @@ public class CustomerController extends HttpServlet {
                 logger.warning("Failed to deactivate customer: " + customerId);
                 request.getSession().setAttribute("errorMessage", "Failed to activate the customer.");
             }
-            
+
             response.sendRedirect(request.getContextPath() + "/customer/list");
-            
+
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error activating customer", e);
             handleError(request, response, "Error activating customer: " + e.getMessage());

@@ -507,6 +507,11 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         
         customerDAO.deactivateCustomer(1);
         
+        Optional<Customer> customer = customerDAO.findById(2);
+        if (customer.isPresent()) {
+            System.out.println("Thong tin customer");
+            System.out.println(customer.get().toString());
+        }
     }
     
     
