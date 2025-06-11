@@ -15,6 +15,8 @@
         <link rel="icon" type="image/png" href="assets/images/favicon.png" sizes="16x16">
         <!-- CSS here -->
         <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp"></jsp:include>
+
+
         </head>
         <body>
             <!-- SIDEBAR here -->
@@ -28,10 +30,10 @@
                 .limit-description {
                     display: -webkit-box;
                     -webkit-box-orient: vertical;
-                    -webkit-line-clamp: 4;
+                    -webkit-line-clamp: 3;
                     overflow: hidden;
                     text-overflow: ellipsis;
-                    max-height: 6.4em; /* 4 dÃ²ng x 1.6em */
+                    max-height: 4.8em;
                     min-width: 0;
                     width: 100%;
                     line-height: 1.6em;
@@ -97,7 +99,6 @@
                                         <th scope="col" style="width: 10%;" class="text-center">Action</th>
                                     </tr>
                                 </thead>
-
                                 <tbody>
                                     <c:forEach var="stype" items="${serviceTypes}" varStatus="loop">
                                         <tr>
@@ -110,8 +111,12 @@
                                                 </div>
                                             </td>
                                             <td>${stype.name}</td>
-                                            <td class="limit-description" title="${stype.description}">
-                                                ${stype.description}
+                                            <td>
+                                                <div class="limit-description"
+                                                     data-bs-toggle="tooltip"
+                                                     data-bs-title="${stype.description}">
+                                                    ${stype.description}
+                                                </div>
                                             </td>
                                             <td><img src="${stype.imageUrl}" alt="Image" class="w-40-px h-40-px rounded" /></td>
                                             <td class="text-center">
@@ -260,6 +265,7 @@
                     right: 20px;
                 }
             </style>
+
         </c:if>
 
 
