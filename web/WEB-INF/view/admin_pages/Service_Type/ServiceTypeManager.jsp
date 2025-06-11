@@ -6,7 +6,6 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 
-    <!-- Mirrored from wowdash.wowtheme7.com/demo/users-list.html by HTTrack Website Copier/3.x [XR&CO'2014], Mon, 03 Feb 2025 04:44:16 GMT -->
     <head>
         <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
         <meta charset="UTF-8">
@@ -60,7 +59,6 @@
                     <div class="card-header border-bottom bg-base py-16 px-24 d-flex align-items-center flex-wrap gap-3 justify-content-between">
                         <div class="d-flex align-items-center flex-wrap gap-3">
                             <form class="navbar-search d-flex gap-2 align-items-center" method="get" action="servicetype">
-                                <input type="hidden" name="service" value="searchByKeywordAndStatus">
                                 <input type="text" class="bg-base h-40-px w-auto" name="keyword" placeholder="Search" value="${keyword}">
 
                             <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px" name="status">
@@ -68,7 +66,7 @@
                                 <option value="active" ${status == 'active' ? 'selected' : ''}>Active</option>
                                 <option value="inactive" ${status == 'inactive' ? 'selected' : ''}>Inactive</option>
                             </select>
-
+                            <input type="hidden" name="service" value="searchByKeywordAndStatus">
                             <button type="submit" class="btn btn-primary h-40-px radius-12">Search</button>
                         </form>
                     </div>
@@ -279,5 +277,4 @@
 
     </body>
 
-    <!-- Mirrored from wowdash.wowtheme7.com/demo/users-list.html by HTTrack Website Copier/3.x [XR&CO'2014], Mon, 03 Feb 2025 04:44:16 GMT -->
 </html>
