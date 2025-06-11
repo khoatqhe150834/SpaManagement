@@ -68,8 +68,11 @@ public class CustomerController extends HttpServlet {
                 case "edit":
                     handleShowEditForm(request, response);
                     break;
-                case "delete":
-                    handleDeleteCustomer(request, response);
+                case "deactivate":
+                    handleDeactivateCustomer(request, response);
+                    break;
+                case "activate":
+                    handleActivateCustomer(request, response);
                     break;
                 case "search":
                     // Search is now handled in list method
@@ -305,8 +308,14 @@ public class CustomerController extends HttpServlet {
     private void handleViewCustomer(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         
+       
+                
+        
         try {
-            int customerId = getIntParameter(request, "id", 0);
+            String customerIdStr = request.getParameter("id");
+            
+            int customerId = Integer.parseInt(customerIdStr);
+//            
             if (customerId <= 0) {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid customer ID");
                 return;
@@ -314,9 +323,16 @@ public class CustomerController extends HttpServlet {
             
             Optional<Customer> customerOpt = customerDAO.findById(customerId);
             if (customerOpt.isPresent()) {
-                request.setAttribute("customer", customerOpt.get());
-                request.getRequestDispatcher("/WEB-INF/view/customer/view.jsp")
+                
+                                request.setAttribute("customerId", customerId);
+
+               
+                request.getRequestDispatcher("/WEB-INF/view/admin_pages/customer_details.jsp")
                         .forward(request, response);
+                
+                
+               
+                
             } else {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "Customer not found");
             }
@@ -539,6 +555,43 @@ public class CustomerController extends HttpServlet {
     /**
      * Handle delete customer
      */
+    
+    
+    private void handleDeactivateCustomer(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        
+        try {
+            String customerIdStr = request.getParameter("id");
+            
+            int customerId = Integer.parseInt(customerIdStr);
+//            
+//            request.setAttribute("customerId", customerId);
+//            request.getRequestDispatcher("/test.jsp").forward(request, response);
+            
+            
+            if (customerId <= 0) {
+                handleError(request, response, "Invalid customer ID provided.");
+                return;
+            }
+
+            boolean success = customerDAO.deactivateCustomer(customerId);
+            
+            if (success) {
+                logger.info("Customer deactivated successfully: " + customerId);
+                request.getSession().setAttribute("successMessage", "Customer has been deactivated successfully.");
+            } else {
+                logger.warning("Failed to deactivate customer: " + customerId);
+                request.getSession().setAttribute("errorMessage", "Failed to deactivate the customer.");
+            }
+            
+            response.sendRedirect(request.getContextPath() + "/customer/list");
+            
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error deactivating customer", e);
+            handleError(request, response, "Error deactivating customer: " + e.getMessage());
+        }
+    }
+    
     private void handleDeleteCustomer(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         
@@ -551,7 +604,7 @@ public class CustomerController extends HttpServlet {
             }
 
             // Delete customer directly - DAO will handle checks
-            customerDAO.deleteById(customerId);
+            customerDAO.deactivateCustomer(customerId);
             logger.info("Customer deleted successfully: " + customerId);
             
             // Return success for AJAX
@@ -713,5 +766,40 @@ public class CustomerController extends HttpServlet {
     private String escapeJson(String str) {
         if (str == null) return "";
         return str.replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t");
+    }
+
+    private void handleActivateCustomer(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        
+        
+         try {
+            String customerIdStr = request.getParameter("id");
+            
+            int customerId = Integer.parseInt(customerIdStr);
+//            
+//            request.setAttribute("customerId", customerId);
+//            request.getRequestDispatcher("/test.jsp").forward(request, response);
+            
+            
+            if (customerId <= 0) {
+                handleError(request, response, "Invalid customer ID provided.");
+                return;
+            }
+
+            boolean success = customerDAO.activateCustomer(customerId);
+            
+            if (success) {
+                logger.info("Customer deactivated successfully: " + customerId);
+                request.getSession().setAttribute("successMessage", "Customer has been activated successfully.");
+            } else {
+                logger.warning("Failed to deactivate customer: " + customerId);
+                request.getSession().setAttribute("errorMessage", "Failed to activate the customer.");
+            }
+            
+            response.sendRedirect(request.getContextPath() + "/customer/list");
+            
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error activating customer", e);
+            handleError(request, response, "Error activating customer: " + e.getMessage());
+        }
     }
 }
