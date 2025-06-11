@@ -500,19 +500,52 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
     public static void main(String[] args) {
         CustomerDAO customerDAO = new CustomerDAO();
 
-        List<Customer> customers = customerDAO.findAll(1, 5);
+        // --- Test for update method ---
+        int customerIdToUpdate = 2; // Use an ID that exists in your test data
+        System.out.println("--- Starting update test for customer ID: " + customerIdToUpdate + " ---");
 
-        for (Customer customer : customers) {
-            System.out.println(customer.toString());
+        // 1. Fetch the customer's data before the update
+        Optional<Customer> beforeUpdateOpt = customerDAO.findById(customerIdToUpdate);
+        if (!beforeUpdateOpt.isPresent()) {
+            System.out.println("TEST FAILED: Cannot find customer with ID " + customerIdToUpdate + " to update.");
+            return;
+        }
+        Customer customerToUpdate = beforeUpdateOpt.get();
+        System.out.println("DATA BEFORE UPDATE:");
+        System.out.println(customerToUpdate);
+
+        // 2. Modify the customer's data
+        String newAddress = "123 Đường Cập Nhật, Quận Hoàn Kiếm, Hà Nội";
+        int newLoyaltyPoints = customerToUpdate.getLoyaltyPoints() + 100;
+        customerToUpdate.setAddress(newAddress);
+        customerToUpdate.setLoyaltyPoints(newLoyaltyPoints);
+
+        System.out.println("\n... Attempting to update address to '" + newAddress + "' and loyalty points to " + newLoyaltyPoints + " ...");
+
+        // 3. Call the update method to save changes
+        customerDAO.update(customerToUpdate);
+        System.out.println("... Update method executed ...");
+
+        // 4. Fetch the data again to verify the changes
+        Optional<Customer> afterUpdateOpt = customerDAO.findById(customerIdToUpdate);
+        if (afterUpdateOpt.isPresent()) {
+            System.out.println("\nDATA AFTER UPDATE:");
+            System.out.println(afterUpdateOpt.get());
+        } else {
+            System.out.println("TEST FAILED: Could not retrieve customer after update.");
         }
         
+        // --- Other tests from user request ---
+        System.out.println("\n--- Running other tests ---");
+        List<Customer> customers = customerDAO.findAll(1, 5);
+        System.out.println("\nListing first 5 customers:");
+        for (Customer c : customers) {
+            System.out.println(c);
+        }
+        
+        System.out.println("\nDeactivating customer with ID 1...");
         customerDAO.deactivateCustomer(1);
-        
-        Optional<Customer> customer = customerDAO.findById(2);
-        if (customer.isPresent()) {
-            System.out.println("Thong tin customer");
-            System.out.println(customer.get().toString());
-        }
+        System.out.println("Deactivation call finished.");
     }
     
     
