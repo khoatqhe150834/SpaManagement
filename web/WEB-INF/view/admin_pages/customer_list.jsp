@@ -260,10 +260,6 @@
             </style>
         </c:if>
 
-        <script>
-            function confirmDelete(id) {
-                return confirm("Are you sure you want to delete customer with ID = " + id + " ?\n\nThis action cannot be undone.");
-            }
-        </script>
+       
     </body>
 </html>

@@ -82,6 +82,9 @@ public class CustomerController extends HttpServlet {
                 case "api":
                     handleApiRequest(request, response);
                     break;
+             
+                     
+                    
                 default:
                     logger.warning("Unknown action: " + action);
                     response.sendError(HttpServletResponse.SC_NOT_FOUND, "Unknown action: " + action);
@@ -92,6 +95,11 @@ public class CustomerController extends HttpServlet {
             logger.log(Level.SEVERE, "Error in CustomerController GET", e);
             handleError(request, response, "An error occurred: " + e.getMessage());
         }
+         if (request.getMethod().equalsIgnoreCase("GET")) {
+        // Show empty form
+        request.getRequestDispatcher("/WEB-INF/view/customer/customer_add.jsp").forward(request, response);
+        return;
+    }
     }
 
      @Override
@@ -372,12 +380,57 @@ public class CustomerController extends HttpServlet {
     /**
      * Handle show create form
      */
-    private void handleShowCreateForm(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+  private void handleShowCreateForm(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException {
 
-        request.getRequestDispatcher("/WEB-INF/view/customer/form.jsp")
+   
+
+    // Nếu là POST, xử lý lưu khách hàng mới
+    request.setCharacterEncoding("UTF-8");
+    String name = request.getParameter("fullName");
+    String email = request.getParameter("email");
+    String password = request.getParameter("password");
+    String phone = request.getParameter("phoneNumber");
+    String gender = request.getParameter("gender");
+    String address = request.getParameter("address");
+    String birthdayStr = request.getParameter("birthday");
+
+    // Validate dữ liệu cơ bản
+    if (name == null || email == null || password == null ||
+        name.trim().isEmpty() || email.trim().isEmpty() || password.trim().isEmpty()) {
+        request.setAttribute("error", "Vui lòng nhập đầy đủ thông tin bắt buộc.");
+        request.getRequestDispatcher("/WEB-INF/view/customer/customer_add.jsp")
+                .forward(request, response);
+        return;
+    }
+
+    try {
+        Customer customer = new Customer();
+        customer.setFullName(name);
+        customer.setEmail(email.toLowerCase());
+        customer.setHashPassword(password); // Lưu ý: nên hash password trước khi lưu
+        customer.setPhoneNumber(phone);
+        customer.setGender(gender);
+        customer.setAddress(address);
+
+        if (birthdayStr != null && !birthdayStr.trim().isEmpty()) {
+            customer.setBirthday(Date.valueOf(birthdayStr));
+        }
+        customer.setIsActive(true);      // Mặc định là active
+        customer.setIsVerified(false);   // Mặc định là chưa xác thực
+        customer.setLoyaltyPoints(0);    // Điểm thưởng mặc định
+
+        customerDAO.save(customer);
+
+        request.getSession().setAttribute("successMessage", "Đã thêm khách hàng mới thành công!");
+        response.sendRedirect(request.getContextPath() + "/customer/list");
+    } catch (Exception e) {
+        request.setAttribute("error", "Có lỗi xảy ra: " + e.getMessage());
+        request.getRequestDispatcher("/WEB-INF/view/customer/customer_add.jsp")
                 .forward(request, response);
     }
+}
+
 
     /**
      * Handle show edit form

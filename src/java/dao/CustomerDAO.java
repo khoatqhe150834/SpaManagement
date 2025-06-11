@@ -636,6 +636,7 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
             System.out.println( "Error updating customer with ID: " + customer.getCustomerId());
         }
     }
+     
     
     
     
