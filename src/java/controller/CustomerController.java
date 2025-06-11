@@ -12,6 +12,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import model.Customer;
 import java.util.Optional;
+import java.sql.Date;
 
 /**
  * Complete CustomerController with proper error handling and validation URL
@@ -796,9 +797,48 @@ public class CustomerController extends HttpServlet {
         }
     }
 
-    private void handleUpdateCustomer(HttpServletRequest request, HttpServletResponse response) {
-        
-        
-        
+    private void handleUpdateCustomer(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        try {
+            int customerId = Integer.parseInt(request.getParameter("customerId"));
+
+            Optional<Customer> customerOpt = customerDAO.findById(customerId);
+            if (!customerOpt.isPresent()) {
+                handleError(request, response, "Không tìm thấy khách hàng để cập nhật.");
+                return;
+            }
+
+            Customer customer = customerOpt.get();
+            customer.setFullName(request.getParameter("fullName"));
+            customer.setEmail(request.getParameter("email"));
+            customer.setPhoneNumber(request.getParameter("phoneNumber"));
+            customer.setGender(request.getParameter("gender"));
+            customer.setAddress(request.getParameter("address"));
+
+            String birthdayStr = request.getParameter("birthday");
+            if (birthdayStr != null && !birthdayStr.isEmpty()) {
+                customer.setBirthday(Date.valueOf(birthdayStr));
+            } else {
+                customer.setBirthday(null);
+            }
+
+            customer.setLoyaltyPoints(Integer.parseInt(request.getParameter("loyaltyPoints")));
+            
+            // Checkboxes only send a value if they are checked.
+            customer.setIsActive(request.getParameter("active") != null);
+            customer.setIsVerified(request.getParameter("verified") != null);
+
+            customerDAO.update(customer);
+
+            request.getSession().setAttribute("successMessage", "Thông tin khách hàng đã được cập nhật thành công.");
+            response.sendRedirect(request.getContextPath() + "/customer/list");
+
+        } catch (NumberFormatException e) {
+            logger.log(Level.WARNING, "Invalid number format while updating customer.", e);
+            handleError(request, response, "Lỗi định dạng số. Vui lòng kiểm tra lại điểm thân thiết.");
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error updating customer", e);
+            handleError(request, response, "Lỗi khi cập nhật thông tin khách hàng: " + e.getMessage());
+        }
     }
 }
