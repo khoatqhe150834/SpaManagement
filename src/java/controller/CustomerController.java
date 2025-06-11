@@ -93,35 +93,44 @@ public class CustomerController extends HttpServlet {
         }
     }
 
-    @Override
+     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
+        request.setCharacterEncoding("UTF-8"); // Ensure correct character encoding for Vietnamese
         String action = request.getParameter("action");
+        String pathInfo = request.getPathInfo(); // e.g. /update
+
+        // Determine action from path if not present in parameters
+        if (action == null && pathInfo != null && pathInfo.startsWith("/")) {
+            String[] pathParts = pathInfo.split("/");
+            if (pathParts.length > 1) {
+                action = pathParts[1];
+            }
+        }
 
         try {
             if (action == null || action.trim().isEmpty()) {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing action parameter");
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing action");
                 return;
             }
 
             switch (action.toLowerCase()) {
                 case "create":
-//                    handleCreateCustomer(request, response);
+                    // handleCreateCustomer(request, response);
                     break;
                 case "update":
-//                    handleUpdateCustomer(request, response);
+                    handleUpdateCustomer(request, response);
                     break;
                 default:
                     response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid action: " + action);
                     break;
             }
-
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error in CustomerController POST", e);
             handleError(request, response, "An error occurred: " + e.getMessage());
         }
     }
+
 
     /**
      * Handle list customers with pagination and filtering
@@ -385,8 +394,8 @@ public class CustomerController extends HttpServlet {
             Optional<Customer> customerOpt = customerDAO.findById(customerId);
             if (customerOpt.isPresent()) {
                 request.setAttribute("customer", customerOpt.get());
-                request.getRequestDispatcher("/WEB-INF/view/customer/form.jsp")
-                        .forward(request, response);
+               request.getRequestDispatcher("/WEB-INF/view/admin_pages/customer_edit.jsp")
+                .forward(request, response);
             } else {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "Customer not found");
             }
@@ -785,5 +794,11 @@ public class CustomerController extends HttpServlet {
             logger.log(Level.SEVERE, "Error activating customer", e);
             handleError(request, response, "Error activating customer: " + e.getMessage());
         }
+    }
+
+    private void handleUpdateCustomer(HttpServletRequest request, HttpServletResponse response) {
+        
+        
+        
     }
 }
