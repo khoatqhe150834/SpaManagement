@@ -9,7 +9,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import model.Customer;
 import org.mindrot.jbcrypt.BCrypt;
-
+import java.util.logging.Level;
+import java.util.logging.Logger;
 /**
  * @author quang
  */
@@ -549,6 +550,60 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
             return false;
         }
     }
+    
+     public void updateCustomer(Customer customer) {
+        // SQL statement to update all editable fields for a customer.
+        // The updated_at field is set to the current timestamp automatically.
+        String sql = "UPDATE customers SET " +
+                     "full_name = ?, " +
+                     "email = ?, " +
+                     "phone_number = ?, " +
+                     "gender = ?, " +
+                     "birthday = ?, " +
+                     "address = ?, " +
+                     "is_active = ?, " +
+                     "is_verified = ?, " +
+                     "loyalty_points = ?, " +
+                     "updated_at = ? " +
+                     "WHERE customer_id = ?";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            // Set parameters for the prepared statement from the customer object.
+            ps.setString(1, customer.getFullName());
+            ps.setString(2, customer.getEmail());
+            ps.setString(3, customer.getPhoneNumber());
+            ps.setString(4, customer.getGender());
+            
+            // Handle nullable birthday field
+            if (customer.getBirthday() != null) {
+                ps.setDate(5, new java.sql.Date(customer.getBirthday().getTime()));
+            } else {
+                ps.setNull(5, java.sql.Types.DATE);
+            }
+            
+            ps.setString(6, customer.getAddress());
+            ps.setBoolean(7, customer.isActive());
+            ps.setBoolean(8, customer.isVerified());
+            ps.setInt(9, customer.getLoyaltyPoints());
+            ps.setTimestamp(10, new Timestamp(System.currentTimeMillis())); // Set updated_at to the current time
+            ps.setInt(11, customer.getCustomerId());
+
+            // Execute the update and log the result.
+            int rowsAffected = ps.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Successfully updated customer with ID: " + customer.getCustomerId());
+            } else {
+                System.out.println("Failed to update customer with ID: " + customer.getCustomerId() + ". Customer may not exist.");
+            }
+
+        } catch (SQLException e) {
+            // Log any errors that occur during the database operation.
+            System.out.println( "Error updating customer with ID: " + customer.getCustomerId());
+        }
+    }
+    
     
     
     
