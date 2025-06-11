@@ -108,7 +108,7 @@
                                             <td class="text-center">
                                                 <div class="d-flex align-items-center gap-10 justify-content-center">
                                                     <!-- View button -->
-                                                    <a href="${pageContext.request.contextPath}/customer?action=view&id=${customer.customerId}" class="bg-info-focus text-info-600 bg-hover-info-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
+                                                    <a href="${pageContext.request.contextPath}/customer/view/${customer.customerId}" class="bg-info-focus text-info-600 bg-hover-info-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
                                                         <iconify-icon icon="majesticons:eye-line" class="menu-icon"></iconify-icon>
                                                     </a>
 
@@ -118,9 +118,16 @@
                                                     </a>
 
                                                     <!-- Delete button -->
-                                                    <a href="${pageContext.request.contextPath}/customer?action=delete&id=${customer.customerId}" 
+                                                    <a href="${pageContext.request.contextPath}/customer?action=deactivate&id=${customer.customerId}" 
                                                        class="bg-danger-focus bg-hover-danger-200 text-danger-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
-                                                       onclick="return confirmDelete(${customer.customerId})">
+   onclick="if (confirm('Are you sure you want to deactivate this customer?')) { window.location.href='${pageContext.request.contextPath}/customer/deactivate?id=${customer.customerId}'; } return false;">
+                                                        <iconify-icon icon="mingcute:delete-2-line" class="menu-icon"></iconify-icon>
+                                                    </a>
+                                                        
+                                                        
+                                                        <a href="${pageContext.request.contextPath}/customer?action=activate&id=${customer.customerId}" 
+                                                       class="bg-danger-focus bg-hover-danger-200 text-danger-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
+   onclick="if (confirm('Are you sure you want to activate this customer?')) { window.location.href='${pageContext.request.contextPath}/customer/activate?id=${customer.customerId}'; } return false;">
                                                         <iconify-icon icon="mingcute:delete-2-line" class="menu-icon"></iconify-icon>
                                                     </a>
                                                 </div>
