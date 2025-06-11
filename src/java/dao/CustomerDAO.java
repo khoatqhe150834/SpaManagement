@@ -276,6 +276,37 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
             throw new RuntimeException("Error deleting customer: " + e.getMessage(), e);
         }
     }
+    
+    
+    
+    public boolean deactivateCustomer(int customerId) {
+        String sql = "UPDATE customers SET is_active = 0, updated_at = ? WHERE customer_id = ?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
+            ps.setInt(2, customerId);
+            int rowsAffected = ps.executeUpdate();
+           
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+    
+    
+     public boolean activateCustomer(int customerId) {
+        String sql = "UPDATE customers SET is_active = 1, updated_at = ? WHERE customer_id = ?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
+            ps.setInt(2, customerId);
+            int rowsAffected = ps.executeUpdate();
+           
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            return false;
+        }
+    }
 
     @Override
     public <S extends Customer> S update(S customer) {
@@ -305,6 +336,8 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         deleteById(entity.getCustomerId());
     }
 
+    
+    
   
 
    
@@ -471,6 +504,9 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         for (Customer customer : customers) {
             System.out.println(customer.toString());
         }
+        
+        customerDAO.deactivateCustomer(1);
+        
     }
     
     
