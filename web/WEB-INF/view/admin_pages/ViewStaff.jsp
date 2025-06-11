@@ -1,7 +1,7 @@
 <%@ page contentType="text/html" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<!DOCTYPE html>
-<!--<html lang="en" data-theme="light">
+<!--<!DOCTYPE html>
+<html lang="en" data-theme="light">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -72,7 +72,7 @@
         <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
     </body>
 </html>-->
-
+<!--
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
     <head>
@@ -109,11 +109,11 @@
                                 <div class="card-body">
                                     <div class="staff-details">
                                         <div class="row">
-                                            <!-- Staff Profile Image -->
+                                             Staff Profile Image 
                                             <div class="col-md-3 text-center">
                                                 <img src="<c:if test="${not empty staff.user.avatarUrl}">${staff.user.avatarUrl}</c:if><c:if test="${empty staff.user.avatarUrl}">/path/to/default-avatar.png</c:if>" alt="Staff Avatar" class="img-fluid rounded-circle w-150px h-150px">
                                             </div>
-                                            <!-- Staff Information -->
+                                             Staff Information 
                                             <div class="col-md-9">
                                                 <h5 class="text-primary-600">${staff.user.fullName}</h5>
                                                 <p><strong>Email:</strong> ${staff.user.email}</p>
@@ -144,4 +144,4 @@
 </html>
 
         
-        
+        -->
