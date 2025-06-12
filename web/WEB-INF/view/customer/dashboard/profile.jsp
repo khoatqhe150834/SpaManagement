@@ -24,7 +24,7 @@
             <h6 class="fw-semibold mb-0">Thông Tin Cá Nhân</h6>
             <ul class="d-flex align-items-center gap-2">
                 <li class="fw-medium">
-                    <a href="${pageContext.request.contextPath}/dashboard/customer" class="d-flex align-items-center gap-1 hover-text-primary">
+                    <a href="${pageContext.request.contextPath}/customer-dashboard" class="d-flex align-items-center gap-1 hover-text-primary">
                         <iconify-icon icon="solar:home-smile-angle-outline" class="icon text-lg"></iconify-icon>
                         Bảng Điều Khiển
                     </a>
