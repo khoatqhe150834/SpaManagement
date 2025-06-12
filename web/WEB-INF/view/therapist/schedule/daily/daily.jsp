@@ -1,4 +1,4 @@
-<%-- 
+﻿<%-- 
     Document   : daily.jsp
     Created on : Therapist Daily Schedule
     Author     : G1_SpaManagement Team
@@ -13,6 +13,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lịch Hàng Ngày - Therapist Dashboard</title>
+    <link rel="icon" type="image/png" href="${pageContext.request.contextPath}/assets/admin/images/favicon.png" sizes="16x16">
+    <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp" />
     <link rel="icon" type="image/png" href="${pageContext.request.contextPath}/assets/admin/images/favicon.png" sizes="16x16">
     <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp" />
 </head>
@@ -49,3 +51,5 @@
     <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
 </body>
 </html> 
+
+
