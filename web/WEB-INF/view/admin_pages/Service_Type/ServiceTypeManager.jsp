@@ -15,63 +15,63 @@
         <!-- CSS here -->
         <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp"></jsp:include>
 
-        <style>
-            .limit-description {
-                display: -webkit-box;
-                -webkit-box-orient: vertical;
-                -webkit-line-clamp: 3;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                max-height: 4.8em;
-                min-width: 0;
-                width: 100%;
-                line-height: 1.6em;
-                word-break: break-word;
-                white-space: normal;
-            }
-
-            .service-type-img-wrapper {
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                height: 70px; /* hoặc 80px nếu muốn cao hơn */
-            }
-
-            .service-type-img {
-                width: 64px;   /* hoặc 72px nếu muốn to hơn nữa */
-                height: 64px;
-                object-fit: cover;
-                border-radius: 12px;
-                border: 1px solid #e0e0e0;
-                background: #fafafa;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            }
-
-            @media (min-width: 1024px) {
-                .dashboard-main-body,
-                .card-body,
-                .table-responsive {
-                    overflow-x: visible !important;
-                    max-width: 100% !important;
+            <style>
+                .limit-description {
+                    display: -webkit-box;
+                    -webkit-box-orient: vertical;
+                    -webkit-line-clamp: 3;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    max-height: 4.8em;
+                    min-width: 0;
+                    width: 100%;
+                    line-height: 1.6em;
+                    word-break: break-word;
+                    white-space: normal;
                 }
-                .table {
-                    width: 100% !important;
-                    min-width: 900px; /* hoặc lớn hơn nếu cần */
-                    table-layout: auto !important;
-                }
-            }
 
-            .table td, .table th {
-                white-space: nowrap;
-                text-overflow: ellipsis;
-                overflow: hidden;
-                max-width: 220px; /* hoặc giá trị phù hợp */
-            }
-            .table td.limit-description {
-                white-space: normal;
-                max-width: 350px;
-            }
-        </style>
+                .service-type-img-wrapper {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    height: 70px; /* hoặc 80px nếu muốn cao hơn */
+                }
+
+                .service-type-img {
+                    width: 64px;   /* hoặc 72px nếu muốn to hơn nữa */
+                    height: 64px;
+                    object-fit: cover;
+                    border-radius: 12px;
+                    border: 1px solid #e0e0e0;
+                    background: #fafafa;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+                }
+
+                @media (min-width: 1024px) {
+                    .dashboard-main-body,
+                    .card-body,
+                    .table-responsive {
+                        overflow-x: visible !important;
+                        max-width: 100% !important;
+                    }
+                    .table {
+                        width: 100% !important;
+                        min-width: 900px; /* hoặc lớn hơn nếu cần */
+                        table-layout: auto !important;
+                    }
+                }
+
+                .table td, .table th {
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
+                    overflow: hidden;
+                    max-width: 220px; /* hoặc giá trị phù hợp */
+                }
+                .table td.limit-description {
+                    white-space: normal;
+                    max-width: 350px;
+                }
+            </style>
 
         </head>
         <body>
@@ -279,65 +279,67 @@
 
 
                         </table>
+
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-24">
+                            <c:set var="start" value="${(currentPage - 1) * limit + 1}" />
+                            <c:set var="end" value="${currentPage * limit > totalEntries ? totalEntries : currentPage * limit}" />
+                            <span>
+                                Showing ${start} to ${end} of ${totalEntries} entries
+                            </span>
+
+                            <ul class="pagination d-flex flex-wrap align-items-center gap-2 justify-content-center">
+                                <!-- Previous -->
+                                <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
+                                    <c:choose>
+                                        <c:when test="${currentPage == 1}">
+                                            <a class="page-link disabled">
+                                                <iconify-icon icon="ep:d-arrow-left"></iconify-icon>
+                                            </a>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <a class="page-link" href="servicetype?service=list-all&page=${currentPage - 1}&limit=${limit}">
+                                                <iconify-icon icon="ep:d-arrow-left"></iconify-icon>
+                                            </a>
+
+                                        </c:otherwise>
+                                    </c:choose>
+                                </li>
+
+                                <!-- Page numbers -->
+                                <c:forEach var="i" begin="1" end="${totalPages}">
+                                    <li class="page-item ${i == currentPage ? 'active' : ''}">
+                                        <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px
+                                           ${i == currentPage ? 'bg-primary-600 text-white' : 'bg-neutral-200 text-secondary-light'}"
+                                           href="servicetype?service=list-all&page=${i}&limit=${limit}">
+                                            ${i}
+                                        </a>
+                                    </li>
+                                </c:forEach>
+
+                                <!-- Next -->
+                                <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
+                                    <c:choose>
+                                        <c:when test="${currentPage == totalPages}">
+                                            <a class="page-link disabled">
+                                                <iconify-icon icon="ep:d-arrow-right"></iconify-icon>
+                                            </a>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <a class="page-link" href="servicetype?service=list-all&page=${currentPage + 1}&limit=${limit}">
+                                                <iconify-icon icon="ep:d-arrow-right"></iconify-icon>
+                                            </a>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </li>
+
+                            </ul>
+
+                        </div>
                     </div>
 
 
                 </c:if>
-                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-24">
-                    <c:set var="start" value="${(currentPage - 1) * limit + 1}" />
-                    <c:set var="end" value="${currentPage * limit > totalEntries ? totalEntries : currentPage * limit}" />
-                    <span>
-                        Showing ${start} to ${end} of ${totalEntries} entries
-                    </span>
 
-                    <ul class="pagination d-flex flex-wrap align-items-center gap-2 justify-content-center">
-                        <!-- Previous -->
-                        <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
-                            <c:choose>
-                                <c:when test="${currentPage == 1}">
-                                    <a class="page-link disabled">
-                                        <iconify-icon icon="ep:d-arrow-left"></iconify-icon>
-                                    </a>
-                                </c:when>
-                                <c:otherwise>
-                                    <a class="page-link" href="servicetype?service=list-all&page=${currentPage - 1}&limit=${limit}">
-                                        <iconify-icon icon="ep:d-arrow-left"></iconify-icon>
-                                    </a>
-
-                                </c:otherwise>
-                            </c:choose>
-                        </li>
-
-                        <!-- Page numbers -->
-                        <c:forEach var="i" begin="1" end="${totalPages}">
-                            <li class="page-item ${i == currentPage ? 'active' : ''}">
-                                <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px
-                                   ${i == currentPage ? 'bg-primary-600 text-white' : 'bg-neutral-200 text-secondary-light'}"
-                                   href="servicetype?service=list-all&page=${i}&limit=${limit}">
-                                    ${i}
-                                </a>
-                            </li>
-                        </c:forEach>
-
-                        <!-- Next -->
-                        <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
-                            <c:choose>
-                                <c:when test="${currentPage == totalPages}">
-                                    <a class="page-link disabled">
-                                        <iconify-icon icon="ep:d-arrow-right"></iconify-icon>
-                                    </a>
-                                </c:when>
-                                <c:otherwise>
-                                    <a class="page-link" href="servicetype?service=list-all&page=${currentPage + 1}&limit=${limit}">
-                                        <iconify-icon icon="ep:d-arrow-right"></iconify-icon>
-                                    </a>
-                                </c:otherwise>
-                            </c:choose>
-                        </li>
-
-                    </ul>
-
-                </div>
 
             </div>
         </div>
@@ -405,7 +407,7 @@
         <!-- Thêm script cho tooltip và xác nhận -->
         <script>
             // Khởi tạo tooltips
-            document.addEventListener('DOMContentLoaded', function() {
+            document.addEventListener('DOMContentLoaded', function () {
                 var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
                 var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
                     return new bootstrap.Tooltip(tooltipTriggerEl, {
@@ -420,9 +422,9 @@
             }
 
             // Xác nhận khi chọn tất cả
-            document.getElementById('selectAll').addEventListener('change', function() {
-                if(this.checked) {
-                    if(!confirm('Bạn có chắc chắn muốn chọn tất cả các loại dịch vụ?')) {
+            document.getElementById('selectAll').addEventListener('change', function () {
+                if (this.checked) {
+                    if (!confirm('Bạn có chắc chắn muốn chọn tất cả các loại dịch vụ?')) {
                         this.checked = false;
                     }
                 }
@@ -434,7 +436,7 @@
             .tooltip {
                 font-size: 0.875rem;
             }
-            
+
             .tooltip-inner {
                 max-width: 200px;
                 padding: 0.5rem 1rem;
