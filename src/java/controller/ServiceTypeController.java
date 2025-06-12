@@ -3,17 +3,25 @@ package controller;
 import dao.ServiceDAO;
 import dao.ServiceTypeDAO;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Part;
 import model.ServiceType;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import model.Service;
 
 @WebServlet(name = "ServiceTypeController", urlPatterns = {"/servicetype"})
+@MultipartConfig(
+    fileSizeThreshold = 0,
+    maxFileSize = 2097152, // 2MB
+    maxRequestSize = 2097152
+)
 public class ServiceTypeController extends HttpServlet {
 
     private final String SERVICE_TYPE_URL = "WEB-INF/view/admin_pages/Service_Type/ServiceTypeManager.jsp";
@@ -149,42 +157,65 @@ public class ServiceTypeController extends HttpServlet {
             throws ServletException, IOException {
 
         String service = request.getParameter("service");
-
-        if (service.equals("insert")) {
-            String name = request.getParameter("name");
-            String description = request.getParameter("description");
-            String imageUrl = request.getParameter("image_url");
-            boolean isActive = request.getParameter("is_active") != null;
-
-            ServiceType st = new ServiceType();
-            st.setName(name);
-            st.setDescription(description);
-            st.setImageUrl(imageUrl);
-            st.setActive(isActive);
-
-            new ServiceTypeDAO().save(st);
+        
+        if (service.equals("insert") || service.equals("update")) {
+            // Xử lý upload file
+            Part filePart = request.getPart("image");
+            String fileName = getSubmittedFileName(filePart);
+            
+            if (fileName != null && !fileName.isEmpty()) {
+                // Tạo tên file duy nhất
+                String uniqueFileName = System.currentTimeMillis() + "_" + fileName;
+                
+                // Đường dẫn lưu file
+                String uploadPath = getServletContext().getRealPath("/assets/uploads/service-types/");
+                File uploadDir = new File(uploadPath);
+                if (!uploadDir.exists()) {
+                    uploadDir.mkdirs();
+                }
+                
+                // Lưu file
+                filePart.write(uploadPath + File.separator + uniqueFileName);
+                
+                // Tạo URL để lưu vào database
+                String imageUrl = request.getContextPath() + "/assets/uploads/service-types/" + uniqueFileName;
+                
+                // Lưu thông tin service type
+                String name = request.getParameter("name");
+                String description = request.getParameter("description");
+                boolean isActive = request.getParameter("is_active") != null;
+                
+                ServiceType st = new ServiceType();
+                if (service.equals("update")) {
+                    st.setServiceTypeId(Integer.parseInt(request.getParameter("id")));
+                }
+                st.setName(name);
+                st.setDescription(description);
+                st.setImageUrl(imageUrl);
+                st.setActive(isActive);
+                
+                if (service.equals("insert")) {
+                    new ServiceTypeDAO().save(st);
+                } else {
+                    new ServiceTypeDAO().update(st);
+                }
+            }
+            
             response.sendRedirect("servicetype");
-
-        } else if (service.equals("update")) {
-            int id = Integer.parseInt(request.getParameter("id"));
-            String name = request.getParameter("name");
-            String description = request.getParameter("description");
-            String imageUrl = request.getParameter("image_url");
-            boolean isActive = request.getParameter("is_active") != null;
-
-            ServiceType st = new ServiceType();
-            st.setServiceTypeId(id);
-            st.setName(name);
-            st.setDescription(description);
-            st.setImageUrl(imageUrl);
-            st.setActive(isActive);
-
-            new ServiceTypeDAO().update(st);
-            response.sendRedirect("servicetype");
-
         } else {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid action in POST");
         }
+    }
+
+    private String getSubmittedFileName(Part part) {
+        String contentDisp = part.getHeader("content-disposition");
+        String[] tokens = contentDisp.split(";");
+        for (String token : tokens) {
+            if (token.trim().startsWith("filename")) {
+                return token.substring(token.indexOf("=") + 2, token.length() - 1);
+            }
+        }
+        return "";
     }
 
     @Override

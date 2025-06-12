@@ -35,7 +35,7 @@
                         <div class="col-xxl-6 col-xl-8 col-lg-10">
                             <div class="card border">
                                 <div class="card-body">
-                                    <form action="servicetype" method="post">
+                                    <form action="servicetype" method="post" enctype="multipart/form-data">
                                         <input type="hidden" name="service" value="insert" />
 
                                         <!-- Name -->
@@ -52,10 +52,19 @@
                                             <textarea name="description" id="description" class="form-control radius-8" placeholder="Write description..."></textarea>
                                         </div>
 
-                                        <!-- Image URL -->
+                                        <!-- Image -->
                                         <div class="mb-20">
-                                            <label for="image_url" class="form-label fw-semibold text-primary-light text-sm mb-8">Image URL</label>
-                                            <input type="text" name="image_url" class="form-control radius-8" id="image_url" placeholder="https://example.com/image.jpg">
+                                            <label for="image" class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                                Hình Ảnh <span class="text-danger-600">*</span>
+                                            </label>
+                                            <div class="d-flex gap-3 align-items-center">
+                                                <input type="file" name="image" class="form-control radius-8" id="image" 
+                                                       accept="image/*" onchange="previewImage(this);" required>
+                                                <div id="imagePreview" class="d-none">
+                                                    <img src="" alt="Preview" class="w-100-px h-100-px rounded" id="previewImg">
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">Chấp nhận: JPG, PNG, GIF. Kích thước tối đa: 2MB</small>
                                         </div>
 
                                         <!-- Status -->
@@ -77,6 +86,26 @@
                 </div>
             </div>
         </div>
+
+        <script>
+        function previewImage(input) {
+            const preview = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('previewImg');
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    preview.classList.remove('d-none');
+                }
+                
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                preview.classList.add('d-none');
+            }
+        }
+        </script>
 
         <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
     </body>

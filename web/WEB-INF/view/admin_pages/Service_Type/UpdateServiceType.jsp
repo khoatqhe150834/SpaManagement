@@ -35,7 +35,7 @@
                         <div class="col-xxl-6 col-xl-8 col-lg-10">
                             <div class="card border">
                                 <div class="card-body">
-                                    <form action="servicetype" method="post">
+                                    <form action="servicetype" method="post" enctype="multipart/form-data">
                                         <input type="hidden" name="service" value="update" />
                                         <input type="hidden" name="id" value="${stype.serviceTypeId}" />
 
@@ -55,11 +55,19 @@
                                                       placeholder="Write description...">${stype.description}</textarea>
                                         </div>
 
-                                        <!-- Image URL -->
+                                        <!-- Image -->
                                         <div class="mb-20">
-                                            <label for="image_url" class="form-label fw-semibold text-primary-light text-sm mb-8">Image URL</label>
-                                            <input type="text" name="image_url" class="form-control radius-8" id="image_url"
-                                                   value="${stype.imageUrl}" placeholder="https://example.com/image.jpg" />
+                                            <label for="image" class="form-label fw-semibold text-primary-light text-sm mb-8">Hình Ảnh</label>
+                                            <div class="d-flex gap-3 align-items-center">
+                                                <input type="file" name="image" class="form-control radius-8" id="image"
+                                                       accept="image/*" onchange="previewImage(this);">
+                                                <div id="imagePreview" class="${empty stype.imageUrl ? 'd-none' : ''}">
+                                                    <img src="${stype.imageUrl}" alt="Preview" class="w-100-px h-100-px rounded" id="previewImg">
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">Chọn ảnh mới nếu muốn thay đổi. Nếu không chọn, sẽ giữ ảnh cũ.</small>
+                                            <input type="text" name="image_url" class="form-control radius-8 mt-2" id="image_url"
+                                                   value="${stype.imageUrl}" placeholder="Hoặc nhập đường dẫn ảnh (nếu có)" />
                                         </div>
 
                                         <!-- Status -->
@@ -82,6 +90,23 @@
                 </div>
             </div>
         </div>
+
+        <script>
+        function previewImage(input) {
+            const preview = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('previewImg');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    preview.classList.remove('d-none');
+                }
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                preview.classList.add('d-none');
+            }
+        }
+        </script>
 
         <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
     </body>
