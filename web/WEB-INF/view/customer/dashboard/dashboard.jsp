@@ -263,7 +263,7 @@
                     <p class="text-light-100">Đặt bất kỳ liệu pháp massage 90 phút và nhận miễn phí dịch vụ chăm sóc da mặt</p>
                     <div class="promotion-actions">
                         <span class="promotion-badge bg-light-100 bg-opacity-20 text-white radius-50">Có hiệu lực đến 31 tháng 3</span>
-                        <a href="${pageContext.request.contextPath}/dashboard/customer/appointments/booking" class="promotion-button btn btn-light-100 text-danger-600 radius-8">Đặt Ngay</a>
+                        <a href="${pageContext.request.contextPath}/customer-dashboard/appointments/booking" class="promotion-button btn btn-light-100 text-danger-600 radius-8">Đặt Ngay</a>
                     </div>
                 </div>
                 <div class="promotion-discount">
@@ -303,7 +303,7 @@
                         </div>
                     </div>
                 </div>
-                <a href="${pageContext.request.contextPath}/dashboard/customer/appointments/booking" class="btn btn-primary-600 text-white btn-full radius-8">Đặt Lịch Hẹn Mới</a>
+                <a href="${pageContext.request.contextPath}/customer-dashboard/appointments/booking" class="btn btn-primary-600 text-white btn-full radius-8">Đặt Lịch Hẹn Mới</a>
             </div>
 
             <!-- Available Rewards -->
@@ -328,7 +328,7 @@
                         <button class="btn btn-danger-600 text-white radius-8">Đổi Thưởng</button>
                     </div>
                 </div>
-                <a href="${pageContext.request.contextPath}/dashboard/customer/rewards/rewards-list" class="btn btn-danger-600 text-white btn-full radius-8">Xem Tất Cả Phần Thưởng</a>
+                <a href="${pageContext.request.contextPath}/customer-dashboard/rewards/rewards-list" class="btn btn-danger-600 text-white btn-full radius-8">Xem Tất Cả Phần Thưởng</a>
             </div>
 
             <!-- Quick Book Favorites -->
@@ -406,7 +406,7 @@
                         </div>
                     </div>
                 </div>
-                <a href="${pageContext.request.contextPath}/dashboard/customer/treatments/history" class="btn btn-text text-primary-600 btn-full">Xem Lịch Sử Đầy Đủ</a>
+                <a href="${pageContext.request.contextPath}/customer-dashboard/treatments/history" class="btn btn-text text-primary-600 btn-full">Xem Lịch Sử Đầy Đủ</a>
             </div>
 
             <!-- Product Recommendations -->
@@ -437,7 +437,7 @@
                         </div>
                     </div>
                 </div>
-                <a href="${pageContext.request.contextPath}/dashboard/customer/recommendations/services" class="btn btn-primary-600 text-white btn-full radius-8">Xem Tất Cả Đề Xuất</a>
+                <a href="${pageContext.request.contextPath}/customer-dashboard/recommendations/services" class="btn btn-primary-600 text-white btn-full radius-8">Xem Tất Cả Đề Xuất</a>
             </div>
         </div>
 
@@ -470,7 +470,7 @@
                     </div>
                 </div>
             </div>
-            <a href="${pageContext.request.contextPath}/dashboard/customer/dashboard/notifications" class="btn btn-text text-primary-600 btn-full">Xem Tất Cả Thông Báo</a>
+            <a href="${pageContext.request.contextPath}/customer-dashboard/dashboard/notifications" class="btn btn-text text-primary-600 btn-full">Xem Tất Cả Thông Báo</a>
         </div>
         </div>
     </div>
