@@ -8,59 +8,100 @@
     <style>
         .container { max-width: 500px; margin-top: 40px; }
         .form-label { font-weight: 500; }
-        .error-message { color: #dc3545; }
+        
+        /* CSS để hiển thị lỗi */
+        .error-text { 
+            width: 100%;
+            margin-top: .25rem;
+            font-size: 80%;
+            color: #dc3545; /* Màu đỏ của Bootstrap */
+        }
+        /* Bootstrap class để thêm viền đỏ cho input lỗi */
+        .is-invalid {
+             border-color: #dc3545 !important;
+        }
     </style>
 </head>
 <body>
 <div class="container">
     <h3 class="mb-4 text-center text-primary">Add New Customer</h3>
+    
+    <%-- Hiển thị lỗi chung từ server nếu có --%>
     <c:if test="${not empty error}">
-        <div class="alert alert-danger error-message">${error}</div>
+        <div class="alert alert-danger">${error}</div>
     </c:if>
 
-    <form action="${pageContext.request.contextPath}/customer/create" method="post" autocomplete="off">
+    <%-- Thêm 'novalidate' để tắt thông báo mặc định của trình duyệt --%>
+    <form action="${pageContext.request.contextPath}/customer/create" method="post" novalidate>
+        
         <!-- Full Name -->
         <div class="form-group">
             <label class="form-label" for="fullName">Full Name <span class="text-danger">*</span></label>
-            <input type="text" class="form-control" id="fullName" name="fullName" required value="${param.fullName}">
+            <%-- Thêm class 'is-invalid' nếu có lỗi. Giữ lại giá trị đã nhập. --%>
+            <input type="text" class="form-control ${not empty errors.fullName ? 'is-invalid' : ''}" 
+                   id="fullName" name="fullName" required maxlength="100" 
+                   value="${not empty customerInput.fullName ? customerInput.fullName : ''}">
+            <%-- Hiển thị thông báo lỗi cụ thể cho trường này --%>
+            <div class="error-text">${errors.fullName}</div>
         </div>
+        
         <!-- Email -->
         <div class="form-group">
             <label class="form-label" for="email">Email <span class="text-danger">*</span></label>
-            <input type="email" class="form-control" id="email" name="email" required value="${param.email}">
+            <input type="email" class="form-control ${not empty errors.email ? 'is-invalid' : ''}" 
+                   id="email" name="email" required
+                   value="${not empty customerInput.email ? customerInput.email : ''}">
+             <div class="error-text">${errors.email}</div>
         </div>
+        
         <!-- Password -->
         <div class="form-group">
             <label class="form-label" for="password">Password <span class="text-danger">*</span></label>
-            <input type="password" class="form-control" id="password" name="password" required>
+            <%-- Không điền lại mật khẩu vì lý do bảo mật --%>
+            <input type="password" class="form-control ${not empty errors.password ? 'is-invalid' : ''}" 
+                   id="password" name="password" required minlength="8">
+             <div class="error-text">${errors.password}</div>
         </div>
+        
         <!-- Phone Number -->
         <div class="form-group">
             <label class="form-label" for="phoneNumber">Phone Number</label>
-            <input type="text" class="form-control" id="phoneNumber" name="phoneNumber" value="${param.phoneNumber}">
+            <input type="tel" class="form-control ${not empty errors.phoneNumber ? 'is-invalid' : ''}" 
+                   id="phoneNumber" name="phoneNumber" pattern="^0\d{9}$"
+                   title="Phone number must be 10 digits starting with 0."
+                   value="${not empty customerInput.phoneNumber ? customerInput.phoneNumber : ''}">
+             <div class="error-text">${errors.phoneNumber}</div>
         </div>
+        
         <!-- Gender -->
         <div class="form-group">
             <label class="form-label">Gender</label>
             <select class="form-control" name="gender">
                 <option value="">-- Select --</option>
-                <option value="Male" ${param.gender == 'Male' ? 'selected' : ''}>Male</option>
-                <option value="Female" ${param.gender == 'Female' ? 'selected' : ''}>Female</option>
-                <option value="Other" ${param.gender == 'Other' ? 'selected' : ''}>Other</option>
+                <option value="Male" ${customerInput.gender == 'Male' ? 'selected' : ''}>Male</option>
+                <option value="Female" ${customerInput.gender == 'Female' ? 'selected' : ''}>Female</option>
+                <option value="Other" ${customerInput.gender == 'Other' ? 'selected' : ''}>Other</option>
             </select>
         </div>
+        
         <!-- Birthday -->
         <div class="form-group">
             <label class="form-label" for="birthday">Birthday</label>
-            <input type="date" class="form-control" id="birthday" name="birthday" value="${param.birthday}">
+            <input type="date" class="form-control ${not empty errors.birthday ? 'is-invalid' : ''}" 
+                   id="birthday" name="birthday" 
+                   value="${customerInput.birthday}">
+             <div class="error-text">${errors.birthday}</div>
         </div>
+        
         <!-- Address -->
         <div class="form-group">
             <label class="form-label" for="address">Address</label>
-            <input type="text" class="form-control" id="address" name="address" value="${param.address}">
+            <input type="text" class="form-control" id="address" name="address"
+                   value="${not empty customerInput.address ? customerInput.address : ''}">
         </div>
+        
         <button type="submit" class="btn btn-primary btn-block">Add Customer</button>
-        <a href="${pageContext.request.contextPath}/customer/list" class="btn btn-secondary btn-block">Back to Customer List</a>
+        <a href="${pageContext.request.contextPath}/customer/list" class="btn btn-secondary btn-block mt-2">Back to Customer List</a>
     </form>
 </div>
 </body>
