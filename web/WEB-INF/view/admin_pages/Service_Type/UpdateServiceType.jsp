@@ -8,6 +8,39 @@
         <title>Update Service Type</title>
         <link rel="icon" type="image/png" href="assets/images/favicon.png" sizes="16x16">
         <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp" />
+        <style>
+        .switch {
+          position: relative;
+          display: inline-block;
+          width: 48px;
+          height: 24px;
+          vertical-align: middle;
+        }
+        .switch input {display:none;}
+        .slider {
+          position: absolute;
+          cursor: pointer;
+          top: 0; left: 0; right: 0; bottom: 0;
+          background-color: #ccc;
+          transition: .4s;
+          border-radius: 24px;
+        }
+        .slider:before {
+          position: absolute;
+          content: "";
+          height: 18px; width: 18px;
+          left: 3px; bottom: 3px;
+          background-color: white;
+          transition: .4s;
+          border-radius: 50%;
+        }
+        input:checked + .slider {
+          background-color: #2196F3;
+        }
+        input:checked + .slider:before {
+          transform: translateX(24px);
+        }
+        </style>
     </head>
     <body>
 
@@ -71,10 +104,13 @@
                                         </div>
 
                                         <!-- Status -->
-                                        <div class="mb-20 form-check">
-                                            <input type="checkbox" class="form-check-input" name="is_active" id="is_active"
-                                                   ${stype.active ? "checked" : ""} />
-                                            <label for="is_active" class="form-check-label text-sm">Active</label>
+                                        <div class="mb-20">
+                                            <label class="form-label fw-semibold text-primary-light text-sm mb-8 d-block">Trạng thái</label>
+                                            <label class="switch">
+                                                <input type="checkbox" name="is_active" id="is_active" ${stype.active ? "checked" : ""}>
+                                                <span class="slider"></span>
+                                            </label>
+                                            <span class="ms-2">Đang hoạt động</span>
                                         </div>
 
                                         <!-- Action Buttons -->
