@@ -10,10 +10,51 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <title>My Profile - BeautyZone Spa</title>
+    <title>Thông Tin Cá Nhân - BeautyZone Spa</title>
+    
+    <!-- Include Admin Framework Styles -->
+    <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp" />
 </head>
 <body>
-    <h1>My Profile</h1>
-    <%-- Customer profile content will be implemented here --%>
+    <jsp:include page="/WEB-INF/view/customer/shared/sidebar.jsp" />
+    <jsp:include page="/WEB-INF/view/common/admin/header.jsp" />
+    
+    <div class="dashboard-main-body">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
+            <h6 class="fw-semibold mb-0">Thông Tin Cá Nhân</h6>
+            <ul class="d-flex align-items-center gap-2">
+                <li class="fw-medium">
+                    <a href="${pageContext.request.contextPath}/dashboard/customer" class="d-flex align-items-center gap-1 hover-text-primary">
+                        <iconify-icon icon="solar:home-smile-angle-outline" class="icon text-lg"></iconify-icon>
+                        Bảng Điều Khiển
+                    </a>
+                </li>
+                <li>-</li>
+                <li class="fw-medium">Thông Tin Cá Nhân</li>
+            </ul>
+        </div>
+        
+        <div class="card h-100 p-0 radius-12">
+            <div class="card-body p-24">
+                <h5 class="card-title mb-20">Quản Lý Thông Tin Cá Nhân</h5>
+                <div class="text-center py-48">
+                    <iconify-icon icon="solar:user-outline" class="text-primary-600" style="font-size: 64px;"></iconify-icon>
+                    <h6 class="text-neutral-600 mb-8 mt-3">Thông Tin Cá Nhân</h6>
+                    <p class="text-neutral-400 text-sm mb-24">Xem và cập nhật thông tin cá nhân của bạn.</p>
+                    <div class="row justify-content-center">
+                        <div class="col-md-6">
+                            <button class="btn btn-primary btn-sm px-20 py-11 radius-8 w-100 mb-12">
+                                <iconify-icon icon="solar:pen-outline" class="icon text-lg me-8"></iconify-icon>
+                                Chỉnh Sửa Thông Tin
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Include Admin Framework JavaScript -->
+    <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
 </body>
 </html> 

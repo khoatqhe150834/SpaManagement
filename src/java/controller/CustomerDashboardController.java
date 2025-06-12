@@ -28,8 +28,14 @@ public class CustomerDashboardController extends HttpServlet {
     }
 
     // Get customer from session
+    Customer customer = (Customer) session.getAttribute("customer");
+    if (customer == null) {
+      response.sendRedirect(request.getContextPath() + "/login");
+      return;
+    }
 
     // Set customer attribute for JSP access
+    request.setAttribute("customer", customer);
 
     // Get the path info to determine which page to show
     String path = request.getPathInfo();
