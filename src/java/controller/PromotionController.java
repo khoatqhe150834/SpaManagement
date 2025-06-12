@@ -17,13 +17,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Controller handling promotion-related requests
- * URL Pattern: /promotion/*
+ * Controller handling promotion-related requests URL Pattern: /promotion/*
  * Supports actions: list, view, create, edit, delete, search
  */
 @WebServlet(urlPatterns = {"/promotion/*"})
 public class PromotionController extends HttpServlet {
-    
+
     private PromotionDAO promotionDAO;
     private static final Logger logger = Logger.getLogger(PromotionController.class.getName());
     private static final int DEFAULT_PAGE_SIZE = 10;
@@ -37,24 +36,24 @@ public class PromotionController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         String pathInfo = request.getPathInfo();
         logger.info("GET request - PathInfo: " + pathInfo);
-        
+
         try {
             if (pathInfo == null || pathInfo.equals("/") || pathInfo.equals("/list")) {
                 handleListPromotions(request, response);
                 return;
             }
-            
+
             String[] pathParts = pathInfo.split("/");
             if (pathParts.length < 2) {
                 handleListPromotions(request, response);
                 return;
             }
-            
+
             String action = pathParts[1].toLowerCase();
-            
+
             switch (action) {
                 case "list":
                     handleListPromotions(request, response);
@@ -79,7 +78,7 @@ public class PromotionController extends HttpServlet {
                     response.sendError(HttpServletResponse.SC_NOT_FOUND, "Action not found: " + action);
                     break;
             }
-            
+
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error in GET request", e);
             handleError(request, response, "An error occurred: " + e.getMessage(), "error");
@@ -89,16 +88,16 @@ public class PromotionController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         String action = request.getParameter("action");
         logger.info("POST request - Action: " + action);
-        
+
         try {
             if (action == null || action.trim().isEmpty()) {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Action parameter is missing");
                 return;
             }
-            
+
             switch (action.toLowerCase()) {
                 case "create":
                     handleCreatePromotion(request, response);
@@ -110,7 +109,7 @@ public class PromotionController extends HttpServlet {
                     response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid action: " + action);
                     break;
             }
-            
+
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error in POST request", e);
             handleError(request, response, "An error occurred: " + e.getMessage(), "error");
@@ -122,32 +121,38 @@ public class PromotionController extends HttpServlet {
      */
     private void handleListPromotions(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         try {
             // Get pagination parameters
             int page = getIntParameter(request, "page", 1);
             int pageSize = getIntParameter(request, "pageSize", DEFAULT_PAGE_SIZE);
             String status = getStringParameter(request, "status");
-            
+
             // Get sorting parameters
             String sortBy = getStringParameter(request, "sortBy");
             String sortOrder = getStringParameter(request, "sortOrder");
-            
+
             // Get search parameters
             String searchType = getStringParameter(request, "searchType");
             String searchValue = getStringParameter(request, "searchValue");
-            
+
             // Validate parameters
-            if (page < 1) page = 1;
-            if (pageSize < 1) pageSize = DEFAULT_PAGE_SIZE;
-            if (pageSize > 100) pageSize = 100;
-            
+            if (page < 1) {
+                page = 1;
+            }
+            if (pageSize < 1) {
+                pageSize = DEFAULT_PAGE_SIZE;
+            }
+            if (pageSize > 100) {
+                pageSize = 100;
+            }
+
             List<Promotion> promotions;
             int totalPromotions;
-            
+
             // Handle search
             if (searchValue != null && !searchValue.isEmpty()) {
-                promotions = promotionDAO.searchPromotions(searchValue, page, pageSize, 
+                promotions = promotionDAO.searchPromotions(searchValue, page, pageSize,
                         sortBy != null ? sortBy : "created_at", sortOrder != null ? sortOrder : "desc");
                 totalPromotions = promotionDAO.getTotalSearchResults(searchValue);
             } else if (status != null && !status.isEmpty()) {
@@ -157,12 +162,16 @@ public class PromotionController extends HttpServlet {
                 promotions = promotionDAO.findAll(page, pageSize, sortBy, sortOrder);
                 totalPromotions = promotionDAO.getTotalPromotions();
             }
-            
+
             // Calculate total pages
             int totalPages = (int) Math.ceil((double) totalPromotions / pageSize);
-            if (totalPages < 1) totalPages = 1;
-            if (page > totalPages) page = totalPages;
-            
+            if (totalPages < 1) {
+                totalPages = 1;
+            }
+            if (page > totalPages) {
+                page = totalPages;
+            }
+
             // Set request attributes
             request.setAttribute("listPromotion", promotions);
             request.setAttribute("currentPage", page);
@@ -174,13 +183,13 @@ public class PromotionController extends HttpServlet {
             request.setAttribute("sortOrder", sortOrder);
             request.setAttribute("searchType", searchType);
             request.setAttribute("searchValue", searchValue);
-            
+
             logger.info(String.format("Loaded promotion list - Page: %d, Size: %d, Total: %d, Found: %d",
                     page, pageSize, totalPromotions, promotions.size()));
-            
+
             request.getRequestDispatcher("/WEB-INF/view/admin_pages/promotion_list.jsp")
                     .forward(request, response);
-            
+
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error loading promotion list", e);
             handleError(request, response, "Error loading promotion list: " + e.getMessage(), "error");
@@ -192,25 +201,35 @@ public class PromotionController extends HttpServlet {
      */
     private void handleViewPromotion(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
         try {
-            int promotionId = getIntParameter(request, "id", 0);
+            // Giả sử bạn có một PromotionDAO tương tự CustomerDAO
+            PromotionDAO promotionDAO = new PromotionDAO();
+
+            // Lấy ID từ parameter
+            int promotionId = Integer.parseInt(request.getParameter("id"));
+
             if (promotionId <= 0) {
-                throw new IllegalArgumentException("Invalid promotion ID");
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid promotion ID");
+                return;
             }
-            
+
+            // Tìm khuyến mãi bằng ID
             Optional<Promotion> promotionOpt = promotionDAO.findById(promotionId);
+
             if (promotionOpt.isPresent()) {
+                // Nếu tìm thấy, đặt attribute và forward đến trang jsp
                 request.setAttribute("promotion", promotionOpt.get());
-                request.getRequestDispatcher("/WEB-INF/view/promotion/view.jsp")
-                        .forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/view/admin_pages/promotion_details.jsp").forward(request, response);
             } else {
-                throw new IllegalArgumentException("Promotion not found with ID: " + promotionId);
+                // Nếu không tìm thấy, báo lỗi 404
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Promotion not found");
             }
-            
+        } catch (NumberFormatException e) {
+            // Bắt lỗi nếu ID không phải là số
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid promotion ID format");
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error viewing promotion", e);
-            handleError(request, response, "Error viewing promotion: " + e.getMessage(), "error");
+
         }
     }
 
@@ -219,7 +238,7 @@ public class PromotionController extends HttpServlet {
      */
     private void handleShowCreateForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         request.setAttribute("isEdit", false);
         request.getRequestDispatcher("/WEB-INF/view/promotion/form.jsp")
                 .forward(request, response);
@@ -230,13 +249,13 @@ public class PromotionController extends HttpServlet {
      */
     private void handleShowEditForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         try {
             int promotionId = getIntParameter(request, "id", 0);
             if (promotionId <= 0) {
                 throw new IllegalArgumentException("Invalid promotion ID");
             }
-            
+
             Optional<Promotion> promotionOpt = promotionDAO.findById(promotionId);
             if (promotionOpt.isPresent()) {
                 request.setAttribute("promotion", promotionOpt.get());
@@ -246,7 +265,7 @@ public class PromotionController extends HttpServlet {
             } else {
                 throw new IllegalArgumentException("Promotion not found with ID: " + promotionId);
             }
-            
+
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error displaying edit form", e);
             handleError(request, response, "Error displaying edit form: " + e.getMessage(), "error");
@@ -258,7 +277,7 @@ public class PromotionController extends HttpServlet {
      */
     private void handleCreatePromotion(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         try {
             // Get and validate data
             String title = getStringParameter(request, "title");
@@ -267,9 +286,9 @@ public class PromotionController extends HttpServlet {
             String discountValueStr = getStringParameter(request, "discountValue");
             String description = getStringParameter(request, "description");
             String status = getStringParameter(request, "status", "SCHEDULED");
-            
+
             validatePromotionData(title, promotionCode, discountType, discountValueStr);
-            
+
             // Create promotion object
             Promotion promotion = new Promotion();
             promotion.setTitle(title);
@@ -284,16 +303,16 @@ public class PromotionController extends HttpServlet {
             promotion.setIsAutoApply(false);
             promotion.setMinimumAppointmentValue(BigDecimal.ZERO);
             promotion.setApplicableScope("ENTIRE_APPOINTMENT");
-            
+
             // Save promotion
             promotionDAO.save(promotion);
-            
+
             logger.info("Promotion created successfully: " + promotion.getPromotionId());
-            
+
             request.setAttribute("toastMessage", "Promotion created successfully");
             request.setAttribute("toastType", "success");
             handleListPromotions(request, response);
-            
+
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error creating promotion", e);
             request.setAttribute("error", "Error creating promotion: " + e.getMessage());
@@ -308,21 +327,21 @@ public class PromotionController extends HttpServlet {
      */
     private void handleUpdatePromotion(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         try {
             // Get and validate ID
             int promotionId = getIntParameter(request, "id", 0);
             if (promotionId <= 0) {
                 throw new IllegalArgumentException("Invalid promotion ID");
             }
-            
+
             Optional<Promotion> promotionOpt = promotionDAO.findById(promotionId);
             if (!promotionOpt.isPresent()) {
                 throw new IllegalArgumentException("Promotion not found with ID: " + promotionId);
             }
-            
+
             Promotion promotion = promotionOpt.get();
-            
+
             // Get and validate data
             String title = getStringParameter(request, "title");
             String promotionCode = getStringParameter(request, "promotionCode");
@@ -330,9 +349,9 @@ public class PromotionController extends HttpServlet {
             String discountValueStr = getStringParameter(request, "discountValue");
             String description = getStringParameter(request, "description");
             String status = getStringParameter(request, "status", promotion.getStatus());
-            
+
             validatePromotionData(title, promotionCode, discountType, discountValueStr);
-            
+
             // Update data
             promotion.setTitle(title);
             promotion.setPromotionCode(promotionCode != null ? promotionCode.toUpperCase() : null);
@@ -340,16 +359,16 @@ public class PromotionController extends HttpServlet {
             promotion.setDiscountValue(new BigDecimal(discountValueStr));
             promotion.setDescription(description);
             promotion.setStatus(status);
-            
+
             // Update promotion
             promotionDAO.update(promotion);
-            
+
             logger.info("Promotion updated successfully: " + promotionId);
-            
+
             request.setAttribute("toastMessage", "Promotion updated successfully");
             request.setAttribute("toastType", "success");
             handleListPromotions(request, response);
-            
+
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error updating promotion", e);
             request.setAttribute("error", "Error updating promotion: " + e.getMessage());
@@ -364,20 +383,20 @@ public class PromotionController extends HttpServlet {
      */
     private void handleDeletePromotion(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         try {
             int promotionId = getIntParameter(request, "id", 0);
             if (promotionId <= 0) {
                 throw new IllegalArgumentException("Invalid promotion ID");
             }
-            
+
             promotionDAO.deleteById(promotionId);
             logger.info("Promotion deleted successfully: " + promotionId);
-            
+
             request.setAttribute("toastMessage", "Promotion deleted successfully");
             request.setAttribute("toastType", "success");
             handleListPromotions(request, response);
-            
+
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error deleting promotion", e);
             handleError(request, response, "Error deleting promotion: " + e.getMessage(), "error");
@@ -389,7 +408,7 @@ public class PromotionController extends HttpServlet {
      */
     private void handleError(HttpServletRequest request, HttpServletResponse response, String errorMessage, String toastType)
             throws ServletException, IOException {
-        
+
         request.setAttribute("toastMessage", errorMessage);
         request.setAttribute("toastType", toastType);
         request.getRequestDispatcher("/WEB-INF/view/admin_pages/promotion_list.jsp")
@@ -428,7 +447,7 @@ public class PromotionController extends HttpServlet {
      */
     private void validatePromotionData(String title, String promotionCode, String discountType, String discountValueStr)
             throws IllegalArgumentException {
-        
+
         if (title == null || title.trim().length() < 3) {
             throw new IllegalArgumentException("Title must be at least 3 characters long");
         }

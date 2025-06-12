@@ -218,4 +218,120 @@ public class PromotionDAO {
         }
         return 0;
     }
+    
+        public boolean deactivatePromotion(int  promotionId) {
+        String sql = "UPDATE promotions SET is_active = 0, updated_at = ? WHERE promotion_id = ?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
+            ps.setInt(2,  promotionId);
+            int rowsAffected = ps.executeUpdate();
+           
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+    
+    
+     public boolean activatePromotion(int  promotionId) {
+        String sql = "UPDATE promotions SET is_active = 1, updated_at = ? WHERE promotion_id = ?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
+            ps.setInt(2,  promotionId);
+            int rowsAffected = ps.executeUpdate();
+           
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+      public boolean scheduledPromotion(int  promotionId) {
+        String sql = "UPDATE promotions SET is_active = 1, updated_at = ? WHERE promotion_id = ?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
+            ps.setInt(2,  promotionId);
+            int rowsAffected = ps.executeUpdate();
+           
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
+  public Optional<Promotion> findByCode(String promotionCode) {
+        String sql = "SELECT * FROM Promotions WHERE PromotionCode = ?";
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, promotionCode);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    // Nếu tìm thấy, map dữ liệu từ ResultSet sang đối tượng Promotion
+                    Promotion promotion = mapRowToPromotion(rs);
+                    return Optional.of(promotion);
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Database error finding promotion by code: " + promotionCode, e);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "An unexpected error occurred finding promotion by code: " + promotionCode, e);
+        }
+        
+        // Trả về Optional rỗng nếu không tìm thấy hoặc có lỗi xảy ra
+        return Optional.empty();
+    }
+
+    /**
+     * Helper method to map a ResultSet row to a Promotion object.
+     * This avoids code duplication.
+     * * @param rs The ResultSet to map from.
+     * @return A populated Promotion object.
+     * @throws SQLException if a database access error occurs.
+     */
+    private Promotion mapRowToPromotion(ResultSet rs) throws SQLException {
+        Promotion promotion = new Promotion();
+        promotion.setPromotionId(rs.getInt("PromotionID"));
+        promotion.setTitle(rs.getString("Title"));
+        promotion.setDescription(rs.getString("Description"));
+        promotion.setPromotionCode(rs.getString("PromotionCode"));
+        promotion.setDiscountType(rs.getString("DiscountType"));
+        promotion.setDiscountValue(rs.getBigDecimal("DiscountValue"));
+        
+        // Dùng getObject để tránh lỗi nếu giá trị trong CSDL là NULL
+        promotion.setAppliesToServiceId((Integer) rs.getObject("AppliesToServiceID"));
+        promotion.setMinimumAppointmentValue(rs.getBigDecimal("MinimumAppointmentValue"));
+        
+        // Chuyển đổi Timestamp từ SQL sang LocalDateTime
+        if (rs.getTimestamp("StartDate") != null) {
+            promotion.setStartDate(rs.getTimestamp("StartDate").toLocalDateTime());
+        }
+        if (rs.getTimestamp("EndDate") != null) {
+            promotion.setEndDate(rs.getTimestamp("EndDate").toLocalDateTime());
+        }
+        
+        promotion.setStatus(rs.getString("Status"));
+        promotion.setUsageLimitPerCustomer((Integer) rs.getObject("UsageLimitPerCustomer"));
+        promotion.setTotalUsageLimit((Integer) rs.getObject("TotalUsageLimit"));
+        promotion.setCurrentUsageCount(rs.getInt("CurrentUsageCount"));
+        promotion.setApplicableScope(rs.getString("ApplicableScope"));
+        promotion.setApplicableServiceIdsJson(rs.getString("ApplicableServiceIDsJson"));
+        promotion.setImageUrl(rs.getString("ImageURL"));
+        promotion.setTermsAndConditions(rs.getString("TermsAndConditions"));
+        promotion.setCreatedByUserId((Integer) rs.getObject("CreatedByUserID"));
+        promotion.setIsAutoApply(rs.getBoolean("IsAutoApply"));
+        
+        if (rs.getTimestamp("CreatedAt") != null) {
+            promotion.setCreatedAt(rs.getTimestamp("CreatedAt").toLocalDateTime());
+        }
+        if (rs.getTimestamp("UpdatedAt") != null) {
+            promotion.setUpdatedAt(rs.getTimestamp("UpdatedAt").toLocalDateTime());
+        }
+
+        return promotion;
+    }
+     
 }
