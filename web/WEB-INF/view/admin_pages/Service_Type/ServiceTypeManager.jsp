@@ -87,14 +87,14 @@
                                         <th scope="col" style="width: 8%;">
                                             <div class="form-check d-flex align-items-center gap-2">
                                                 <input class="form-check-input" type="checkbox" id="selectAll">
-                                                <label class="form-check-label mb-0" for="selectAll">ID</label>
+                                                <label class="form-check-label mb-0" for="selectAll">Mã</label>
                                             </div>
                                         </th>
-                                        <th scope="col" style="width: 15%;">Name</th>
-                                        <th scope="col" style="width: 37%;" class="d-none d-md-table-cell">Description</th>
-                                        <th scope="col" style="width: 15%;" class="text-center">Image</th>
-                                        <th scope="col" style="width: 10%;" class="text-center">Status</th>
-                                        <th scope="col" style="width: 10%;" class="text-center">Action</th>
+                                        <th scope="col" style="width: 15%;">Tên Loại Dịch Vụ</th>
+                                        <th scope="col" style="width: 37%;" class="d-none d-md-table-cell">Mô Tả</th>
+                                        <th scope="col" style="width: 15%;" class="text-center">Hình Ảnh</th>
+                                        <th scope="col" style="width: 10%;" class="text-center">Trạng Thái</th>
+                                        <th scope="col" style="width: 10%;" class="text-center">Thao Tác</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -116,14 +116,14 @@
                                                     ${stype.description}
                                                 </div>
                                             </td>
-                                            <td><img src="${stype.imageUrl}" alt="Image" class="w-40-px h-40-px rounded" /></td>
+                                            <td><img src="${stype.imageUrl}" alt="Hình ảnh loại dịch vụ" class="w-40-px h-40-px rounded" /></td>
                                             <td class="text-center">
                                                 <c:choose>
                                                     <c:when test="${stype.active}">
-                                                        <span class="bg-success-focus text-success-600 border border-success-main px-24 py-4 radius-4 fw-medium text-sm">Active</span>
+                                                        <span class="bg-success-focus text-success-600 border border-success-main px-24 py-4 radius-4 fw-medium text-sm">Đang Hoạt Động</span>
                                                     </c:when>
                                                     <c:otherwise>
-                                                        <span class="bg-neutral-200 text-neutral-600 border border-neutral-400 px-24 py-4 radius-4 fw-medium text-sm">Inactive</span>
+                                                        <span class="bg-neutral-200 text-neutral-600 border border-neutral-400 px-24 py-4 radius-4 fw-medium text-sm">Không Hoạt Động</span>
                                                     </c:otherwise>
                                                 </c:choose>
                                             </td>
@@ -131,14 +131,19 @@
                                                 <div class="d-flex align-items-center gap-10 justify-content-center">
 
                                                     <!-- Edit button -->
-                                                    <a href="servicetype?service=pre-update&id=${stype.serviceTypeId}" class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
+                                                    <a href="servicetype?service=pre-update&id=${stype.serviceTypeId}" 
+                                                       class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
+                                                       data-bs-toggle="tooltip"
+                                                       data-bs-title="Chỉnh sửa loại dịch vụ">
                                                         <iconify-icon icon="lucide:edit" class="menu-icon"></iconify-icon>
                                                     </a>
 
-                                                    <!-- Deactivate button (soft delete) -->
+                                                    <!-- Deactivate button -->
                                                     <a href="servicetype?service=deactiveById&id=${stype.serviceTypeId}" 
-                                                       class=" bg-danger-focus bg-hover-danger-200 text-danger-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
-                                                       onclick="return confirmDelete(${stype.serviceTypeId})">
+                                                       class="bg-danger-focus bg-hover-danger-200 text-danger-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
+                                                       data-bs-toggle="tooltip"
+                                                       data-bs-title="Vô hiệu hóa loại dịch vụ"
+                                                       onclick="return confirmAction('Bạn có chắc chắn muốn vô hiệu hóa loại dịch vụ này?')">
                                                         <iconify-icon icon="mdi:block-helper" class="menu-icon"></iconify-icon>
                                                     </a>
                                                 </div>
@@ -273,6 +278,47 @@
                 return confirm("Are you sure you want to deactive this Service Type (ID = " + id + ") ?");
             }
         </script>
+
+        <!-- Thêm script cho tooltip và xác nhận -->
+        <script>
+            // Khởi tạo tooltips
+            document.addEventListener('DOMContentLoaded', function() {
+                var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl, {
+                        trigger: 'hover'
+                    });
+                });
+            });
+
+            // Hàm xác nhận thao tác
+            function confirmAction(message) {
+                return confirm(message);
+            }
+
+            // Xác nhận khi chọn tất cả
+            document.getElementById('selectAll').addEventListener('change', function() {
+                if(this.checked) {
+                    if(!confirm('Bạn có chắc chắn muốn chọn tất cả các loại dịch vụ?')) {
+                        this.checked = false;
+                    }
+                }
+            });
+        </script>
+
+        <!-- Thêm style cho tooltip -->
+        <style>
+            .tooltip {
+                font-size: 0.875rem;
+            }
+            
+            .tooltip-inner {
+                max-width: 200px;
+                padding: 0.5rem 1rem;
+                background-color: #333;
+                border-radius: 4px;
+            }
+        </style>
 
 
     </body>
