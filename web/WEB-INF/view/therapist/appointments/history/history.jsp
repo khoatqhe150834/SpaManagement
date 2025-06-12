@@ -1,4 +1,4 @@
-<%-- 
+﻿<%-- 
     Document   : history.jsp
     Created on : Therapist Appointment History Page
     Author     : G1_SpaManagement Team
@@ -138,3 +138,5 @@
     <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
 </body>
 </html> 
+
+
