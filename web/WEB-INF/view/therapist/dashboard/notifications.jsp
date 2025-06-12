@@ -1,4 +1,4 @@
-<%-- 
+﻿<%-- 
     Document   : notifications.jsp
     Created on : Therapist Notifications Page
     Author     : G1_SpaManagement Team
@@ -223,3 +223,5 @@
     <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
 </body>
 </html> 
+
+
