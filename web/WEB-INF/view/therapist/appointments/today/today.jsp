@@ -1,4 +1,4 @@
-<%-- 
+﻿<%-- 
     Document   : today.jsp
     Created on : Therapist Today's Appointments
     Author     : G1_SpaManagement Team
@@ -11,9 +11,12 @@
 <html lang="en" data-theme="light">
 <head>
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lịch Hôm Nay - Therapist Dashboard</title>
+    <link rel="icon" type="image/png" href="${pageContext.request.contextPath}/assets/admin/images/favicon.png" sizes="16x16">
+    <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp" />
     <link rel="icon" type="image/png" href="${pageContext.request.contextPath}/assets/admin/images/favicon.png" sizes="16x16">
     <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp" />
 </head>
@@ -116,3 +119,5 @@
     <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
 </body>
 </html> 
+
+
