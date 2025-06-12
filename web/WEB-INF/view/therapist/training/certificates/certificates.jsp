@@ -1,4 +1,4 @@
-<%-- 
+﻿<%-- 
     Document   : certificates.jsp
     Created on : Therapist Training Certificates Page
     Author     : G1_SpaManagement Team
@@ -10,17 +10,18 @@
 <!DOCTYPE html>
 <html lang="vi" data-theme="light">
 <head>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chứng Chỉ - Therapist Dashboard</title>
-    
-    <%@ include file="../../shared/head.jsp" %>
+    <link rel="icon" type="image/png" href="${pageContext.request.contextPath}/assets/admin/images/favicon.png" sizes="16x16">
+    <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp" />
+
 </head>
 <body>
-    <%@ include file="../../shared/sidebar.jsp" %>
+    <jsp:include page="/WEB-INF/view/therapist/shared/sidebar.jsp" />
 
-    <main class="dashboard-main">
-        <%@ include file="../../shared/header.jsp" %>
+        <jsp:include page="/WEB-INF/view/common/admin/header.jsp" />
 
         <div class="dashboard-main-body">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
@@ -191,9 +192,8 @@
             </div>
         </div>
 
-        <%@ include file="../../shared/footer.jsp" %>
-    </main>
-
-    <%@ include file="../../shared/js.jsp" %>
+    <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
 </body>
 </html> 
+
+
