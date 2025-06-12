@@ -13,7 +13,7 @@
         <iconify-icon icon="radix-icons:cross-2"></iconify-icon>
     </button>
     <div>
-        <a href="${pageContext.request.contextPath}/dashboard/customer" class="sidebar-logo">
+        <a href="${pageContext.request.contextPath}/customer-dashboard" class="sidebar-logo">
             <img src="${pageContext.request.contextPath}/assets/admin/images/logo.png" alt="BeautyZone Spa" class="light-logo">
             <img src="${pageContext.request.contextPath}/assets/admin/images/logo-light.png" alt="BeautyZone Spa" class="dark-logo">
             <img src="${pageContext.request.contextPath}/assets/admin/images/logo-icon.png" alt="BeautyZone Spa" class="logo-icon">

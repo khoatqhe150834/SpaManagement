@@ -13,7 +13,7 @@ import model.Customer;
  * Customer Dashboard Controller
  * Handles all customer dashboard related routes and pages
  */
-@WebServlet(name = "CustomerDashboardController", urlPatterns = { "/dashboard/customer/*" })
+@WebServlet(name = "CustomerDashboardController", urlPatterns = { "/customer-dashboard/*" })
 public class CustomerDashboardController extends HttpServlet {
 
   @Override
