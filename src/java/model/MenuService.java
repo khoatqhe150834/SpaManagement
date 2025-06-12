@@ -102,7 +102,7 @@ public class MenuService {
   public static List<MenuItem> getManagerMenuItems(String contextPath) {
     List<MenuItem> menuItems = new ArrayList<>();
 
-    menuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/profile", "fa fa-user"));
+    menuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/manager-dashboard", "fa fa-user"));
     menuItems.add(new MenuItem("Bảng điều khiển", contextPath + "/admin/dashboard", "fa fa-tachometer"));
     menuItems.add(new MenuItem("Quản lý nhân viên", contextPath + "/staff", "fa fa-users"));
     menuItems.add(new MenuItem("Quản lý lịch hẹn", contextPath + "/appointment", "fa fa-calendar"));
