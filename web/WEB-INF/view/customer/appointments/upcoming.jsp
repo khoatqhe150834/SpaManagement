@@ -41,7 +41,7 @@
                     <iconify-icon icon="solar:calendar-outline" class="text-primary-600" style="font-size: 64px;"></iconify-icon>
                     <h6 class="text-neutral-600 mb-8 mt-3">Lịch Hẹn Sắp Tới</h6>
                     <p class="text-neutral-400 text-sm mb-24">Xem và quản lý các lịch hẹn sắp tới của bạn tại đây.</p>
-                    <a href="${pageContext.request.contextPath}/dashboard/customer/appointments/booking" 
+                    <a href="${pageContext.request.contextPath}/customer-dashboard/appointments/booking" 
                        class="btn btn-primary btn-sm px-20 py-11 radius-8">
                         <iconify-icon icon="solar:calendar-add-outline" class="icon text-lg me-8"></iconify-icon>
                         Đặt Lịch Hẹn Mới
