@@ -22,7 +22,7 @@
     <div class="sidebar-menu-area">
         <ul class="sidebar-menu" id="sidebar-menu">
             <li>
-                <a href="${pageContext.request.contextPath}/dashboard/customer" class="active-page">
+                <a href="${pageContext.request.contextPath}/customer-dashboard" class="active-page">
                     <iconify-icon icon="solar:home-smile-angle-outline" class="menu-icon"></iconify-icon>
                     <span>Bảng Điều Khiển</span>
                 </a>
@@ -35,17 +35,17 @@
                 </a>
                 <ul class="sidebar-submenu">
                     <li>
-                        <a href="${pageContext.request.contextPath}/dashboard/customer/appointments/booking">
+                        <a href="${pageContext.request.contextPath}/customer-dashboard/appointments/booking">
                             <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Đặt Lịch Hẹn
                         </a>
                     </li>
                     <li>
-                        <a href="${pageContext.request.contextPath}/dashboard/customer/appointments/upcoming">
+                        <a href="${pageContext.request.contextPath}/customer-dashboard/appointments/upcoming">
                             <i class="ri-circle-fill circle-icon text-warning-main w-auto"></i> Lịch Hẹn Sắp Tới
                         </a>
                     </li>
                     <li>
-                        <a href="${pageContext.request.contextPath}/dashboard/customer/appointments/history">
+                        <a href="${pageContext.request.contextPath}/customer-dashboard/appointments/history">
                             <i class="ri-circle-fill circle-icon text-info-main w-auto"></i> Lịch Sử Lịch Hẹn
                         </a>
                     </li>
@@ -53,7 +53,7 @@
             </li>
             
             <li>
-                <a href="${pageContext.request.contextPath}/dashboard/customer/treatments/history">
+                <a href="${pageContext.request.contextPath}/customer-dashboard/treatments/history">
                     <iconify-icon icon="solar:file-text-outline" class="menu-icon"></iconify-icon>
                     <span>Lịch Sử Liệu Pháp</span>
                 </a>
@@ -66,12 +66,12 @@
                 </a>
                 <ul class="sidebar-submenu">
                     <li>
-                        <a href="${pageContext.request.contextPath}/dashboard/customer/rewards/points">
+                        <a href="${pageContext.request.contextPath}/customer-dashboard/rewards/points">
                             <i class="ri-circle-fill circle-icon text-success-main w-auto"></i> Điểm Thưởng
                         </a>
                     </li>
                     <li>
-                        <a href="${pageContext.request.contextPath}/dashboard/customer/rewards/rewards-list">
+                        <a href="${pageContext.request.contextPath}/customer-dashboard/rewards/rewards-list">
                             <i class="ri-circle-fill circle-icon text-danger-main w-auto"></i> Đổi Thưởng
                         </a>
                     </li>
@@ -79,14 +79,14 @@
             </li>
             
             <li>
-                <a href="${pageContext.request.contextPath}/dashboard/customer/recommendations/services">
+                <a href="${pageContext.request.contextPath}/customer-dashboard/recommendations/services">
                     <iconify-icon icon="solar:bag-smile-outline" class="menu-icon"></iconify-icon>
                     <span>Đề Xuất Dành Cho Bạn</span>
                 </a>
             </li>
             
             <li>
-                <a href="${pageContext.request.contextPath}/dashboard/customer/reviews/my-reviews">
+                <a href="${pageContext.request.contextPath}/customer-dashboard/reviews/my-reviews">
                     <iconify-icon icon="solar:star-outline" class="menu-icon"></iconify-icon>
                     <span>Đánh Giá Của Tôi</span>
                 </a>
@@ -99,12 +99,12 @@
                 </a>
                 <ul class="sidebar-submenu">
                     <li>
-                        <a href="${pageContext.request.contextPath}/dashboard/customer/billing/payments">
+                        <a href="${pageContext.request.contextPath}/customer-dashboard/billing/payments">
                             <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Lịch Sử Thanh Toán
                         </a>
                     </li>
                     <li>
-                        <a href="${pageContext.request.contextPath}/dashboard/customer/billing/invoices">
+                        <a href="${pageContext.request.contextPath}/customer-dashboard/billing/invoices">
                             <i class="ri-circle-fill circle-icon text-warning-main w-auto"></i> Hóa Đơn
                         </a>
                     </li>
@@ -114,14 +114,14 @@
             <li class="sidebar-menu-group-title">Tài Khoản</li>
             
             <li>
-                <a href="${pageContext.request.contextPath}/dashboard/customer/dashboard/profile">
+                <a href="${pageContext.request.contextPath}/customer-dashboard/dashboard/profile">
                     <iconify-icon icon="solar:user-outline" class="menu-icon"></iconify-icon>
                     <span>Thông Tin Cá Nhân</span>
                 </a>
             </li>
             
             <li>
-                <a href="${pageContext.request.contextPath}/dashboard/customer/dashboard/notifications">
+                <a href="${pageContext.request.contextPath}/customer-dashboard/dashboard/notifications">
                     <iconify-icon icon="solar:bell-outline" class="menu-icon"></iconify-icon>
                     <span>Thông Báo</span>
                 </a>
