@@ -67,7 +67,7 @@ public class MenuService {
   public static List<MenuItem> getCustomerMenuItems(String contextPath) {
     List<MenuItem> menuItems = new ArrayList<>();
 
-    menuItems.add(new MenuItem("Hồ sơ của bạn", contextPath + "/profile", "fa fa-user"));
+    menuItems.add(new MenuItem("Hồ sơ của bạn", contextPath + "/customer-dashboard", "fa fa-user"));
     menuItems.add(new MenuItem("Lịch hẹn đã đặt", contextPath + "/appointment", "fa fa-calendar"));
     menuItems.add(new MenuItem("Lịch sử dịch vụ", contextPath + "/customer/service-history", "fa fa-history"));
     menuItems.add(new MenuItem("Đánh giá của tôi", contextPath + "/customer/reviews", "fa fa-star"));
