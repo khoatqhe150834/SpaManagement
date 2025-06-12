@@ -39,6 +39,23 @@
                     word-break: break-word;
                     white-space: normal;
                 }
+
+                .service-type-img-wrapper {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    height: 70px; /* hoặc 80px nếu muốn cao hơn */
+                }
+
+                .service-type-img {
+                    width: 64px;   /* hoặc 72px nếu muốn to hơn nữa */
+                    height: 64px;
+                    object-fit: cover;
+                    border-radius: 12px;
+                    border: 1px solid #e0e0e0;
+                    background: #fafafa;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+                }
             </style>
             <div class="dashboard-main-body">
                 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
@@ -92,7 +109,7 @@
                                         </th>
                                         <th scope="col" style="width: 15%;">Tên Loại Dịch Vụ</th>
                                         <th scope="col" style="width: 37%;" class="d-none d-md-table-cell">Mô Tả</th>
-                                        <th scope="col" style="width: 15%;" class="text-center">Hình Ảnh</th>
+                                        <th scope="col" style="width: 15%;" class="text-center align-middle">Hình Ảnh</th>
                                         <th scope="col" style="width: 10%;" class="text-center">Trạng Thái</th>
                                         <th scope="col" style="width: 10%;" class="text-center">Thao Tác</th>
                                     </tr>
@@ -116,7 +133,11 @@
                                                     ${stype.description}
                                                 </div>
                                             </td>
-                                            <td><img src="${stype.imageUrl}" alt="Hình ảnh loại dịch vụ" class="w-40-px h-40-px rounded" /></td>
+                                            <td class="text-center align-middle">
+                                                <div class="service-type-img-wrapper">
+                                                    <img src="${stype.imageUrl}" alt="Hình ảnh loại dịch vụ" class="service-type-img" />
+                                                </div>
+                                            </td>
                                             <td class="text-center">
                                                 <c:choose>
                                                     <c:when test="${stype.active}">
