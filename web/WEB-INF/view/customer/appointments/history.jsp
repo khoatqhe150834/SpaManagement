@@ -24,7 +24,7 @@
             <h6 class="fw-semibold mb-0">Lịch Sử Lịch Hẹn</h6>
             <ul class="d-flex align-items-center gap-2">
                 <li class="fw-medium">
-                    <a href="${pageContext.request.contextPath}/dashboard/customer" class="d-flex align-items-center gap-1 hover-text-primary">
+                    <a href="${pageContext.request.contextPath}/customer-dashboard" class="d-flex align-items-center gap-1 hover-text-primary">
                         <iconify-icon icon="solar:home-smile-angle-outline" class="icon text-lg"></iconify-icon>
                         Bảng Điều Khiển
                     </a>
@@ -41,7 +41,7 @@
                     <iconify-icon icon="solar:history-outline" class="text-primary-600" style="font-size: 64px;"></iconify-icon>
                     <h6 class="text-neutral-600 mb-8 mt-3">Lịch Sử Lịch Hẹn</h6>
                     <p class="text-neutral-400 text-sm mb-24">Xem lại tất cả các lịch hẹn đã hoàn thành của bạn.</p>
-                    <a href="${pageContext.request.contextPath}/dashboard/customer/appointments/booking" 
+                    <a href="${pageContext.request.contextPath}/customer-dashboard/appointments/booking" 
                        class="btn btn-primary btn-sm px-20 py-11 radius-8">
                         <iconify-icon icon="solar:calendar-add-outline" class="icon text-lg me-8"></iconify-icon>
                         Đặt Lịch Hẹn Mới
