@@ -8,6 +8,39 @@
         <title>Add Service Type</title>
         <link rel="icon" type="image/png" href="assets/images/favicon.png" sizes="16x16">
         <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp" />
+        <style>
+            .switch {
+                position: relative;
+                display: inline-block;
+                width: 48px;
+                height: 24px;
+                vertical-align: middle;
+            }
+            .switch input {display:none;}
+            .slider {
+                position: absolute;
+                cursor: pointer;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background-color: #ccc;
+                transition: .4s;
+                border-radius: 24px;
+            }
+            .slider:before {
+                position: absolute;
+                content: "";
+                height: 18px; width: 18px;
+                left: 3px; bottom: 3px;
+                background-color: white;
+                transition: .4s;
+                border-radius: 50%;
+            }
+            input:checked + .slider {
+                background-color: #2196F3;
+            }
+            input:checked + .slider:before {
+                transform: translateX(24px);
+            }
+        </style>
     </head>
     <body>
 
@@ -35,7 +68,7 @@
                         <div class="col-xxl-6 col-xl-8 col-lg-10">
                             <div class="card border">
                                 <div class="card-body">
-                                    <form action="servicetype" method="post">
+                                    <form action="servicetype" method="post" enctype="multipart/form-data">
                                         <input type="hidden" name="service" value="insert" />
 
                                         <!-- Name -->
@@ -52,16 +85,29 @@
                                             <textarea name="description" id="description" class="form-control radius-8" placeholder="Write description..."></textarea>
                                         </div>
 
-                                        <!-- Image URL -->
+                                        <!-- Image -->
                                         <div class="mb-20">
-                                            <label for="image_url" class="form-label fw-semibold text-primary-light text-sm mb-8">Image URL</label>
-                                            <input type="text" name="image_url" class="form-control radius-8" id="image_url" placeholder="https://example.com/image.jpg">
+                                            <label for="image" class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                                Hình Ảnh <span class="text-danger-600">*</span>
+                                            </label>
+                                            <div class="d-flex gap-3 align-items-center">
+                                                <input type="file" name="image" class="form-control radius-8" id="image" 
+                                                       accept="image/*" onchange="previewImage(this);" required>
+                                                <div id="imagePreview" class="d-none">
+                                                    <img src="" alt="Preview" class="w-100-px h-100-px rounded" id="previewImg">
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">Chấp nhận: JPG, PNG, GIF. Kích thước tối đa: 2MB</small>
                                         </div>
 
                                         <!-- Status -->
-                                        <div class="mb-20 form-check">
-                                            <input type="checkbox" class="form-check-input" name="is_active" id="is_active" checked>
-                                            <label for="is_active" class="form-check-label text-sm">Active</label>
+                                        <div class="mb-20">
+                                            <label class="form-label fw-semibold text-primary-light text-sm mb-8 d-block">Trạng thái</label>
+                                            <label class="switch">
+                                                <input type="checkbox" name="is_active" id="is_active" checked>
+                                                <span class="slider"></span>
+                                            </label>
+                                            <span class="ms-2">Đang hoạt động</span>
                                         </div>
 
                                         <!-- Action Buttons -->
@@ -77,6 +123,26 @@
                 </div>
             </div>
         </div>
+
+        <script>
+        function previewImage(input) {
+            const preview = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('previewImg');
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    preview.classList.remove('d-none');
+                }
+                
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                preview.classList.add('d-none');
+            }
+        }
+        </script>
 
         <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
     </body>
