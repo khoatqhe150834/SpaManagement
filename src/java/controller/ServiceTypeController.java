@@ -157,50 +157,44 @@ public class ServiceTypeController extends HttpServlet {
             throws ServletException, IOException {
 
         String service = request.getParameter("service");
-        
+
         if (service.equals("insert") || service.equals("update")) {
             // Xử lý upload file
             Part filePart = request.getPart("image");
             String fileName = getSubmittedFileName(filePart);
-            
-            if (fileName != null && !fileName.isEmpty()) {
-                // Tạo tên file duy nhất
+
+            String imageUrl = request.getParameter("image_url"); // Giá trị mặc định là ảnh cũ hoặc nhập tay
+            if (fileName != null && !fileName.isEmpty() && filePart.getSize() > 0) {
+                // Nếu có upload file mới thì lưu file và lấy đường dẫn mới
                 String uniqueFileName = System.currentTimeMillis() + "_" + fileName;
-                
-                // Đường dẫn lưu file
                 String uploadPath = getServletContext().getRealPath("/assets/uploads/service-types/");
                 File uploadDir = new File(uploadPath);
                 if (!uploadDir.exists()) {
                     uploadDir.mkdirs();
                 }
-                
-                // Lưu file
                 filePart.write(uploadPath + File.separator + uniqueFileName);
-                
-                // Tạo URL để lưu vào database
-                String imageUrl = request.getContextPath() + "/assets/uploads/service-types/" + uniqueFileName;
-                
-                // Lưu thông tin service type
-                String name = request.getParameter("name");
-                String description = request.getParameter("description");
-                boolean isActive = request.getParameter("is_active") != null;
-                
-                ServiceType st = new ServiceType();
-                if (service.equals("update")) {
-                    st.setServiceTypeId(Integer.parseInt(request.getParameter("id")));
-                }
-                st.setName(name);
-                st.setDescription(description);
-                st.setImageUrl(imageUrl);
-                st.setActive(isActive);
-                
-                if (service.equals("insert")) {
-                    new ServiceTypeDAO().save(st);
-                } else {
-                    new ServiceTypeDAO().update(st);
-                }
+                imageUrl = request.getContextPath() + "/assets/uploads/service-types/" + uniqueFileName;
             }
-            
+
+            String name = request.getParameter("name");
+            String description = request.getParameter("description");
+            boolean isActive = request.getParameter("is_active") != null;
+
+            ServiceType st = new ServiceType();
+            if (service.equals("update")) {
+                st.setServiceTypeId(Integer.parseInt(request.getParameter("id")));
+            }
+            st.setName(name);
+            st.setDescription(description);
+            st.setImageUrl(imageUrl);
+            st.setActive(isActive);
+
+            if (service.equals("insert")) {
+                new ServiceTypeDAO().save(st);
+            } else {
+                new ServiceTypeDAO().update(st);
+            }
+
             response.sendRedirect("servicetype");
         } else {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid action in POST");
