@@ -17,7 +17,7 @@ import java.util.List;
 @WebServlet(name = "ServiceController", urlPatterns = { "/service" })
 public class ServiceController extends HttpServlet {
 
-    private final String SERVICE_MANAGER_URL = "WEB-INF/view/admin_pages/ServiceManager.jsp";
+    private final String SERVICE_MANAGER_URL = "WEB-INF/view/admin_pages/Service/ServiceManager.jsp";
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -54,7 +54,7 @@ public class ServiceController extends HttpServlet {
             case "pre-insert": {
                 List<ServiceType> types = typeDAO.findAll();
                 request.setAttribute("serviceTypes", types);
-                request.getRequestDispatcher("WEB-INF/view/admin_pages/AddService.jsp").forward(request, response);
+                request.getRequestDispatcher("WEB-INF/view/admin_pages/Service/AddService.jsp").forward(request, response);
                 return;
             }
             case "pre-update": {
@@ -63,7 +63,7 @@ public class ServiceController extends HttpServlet {
                 List<ServiceType> types = typeDAO.findAll();
                 request.setAttribute("serviceTypes", types);
                 request.setAttribute("service", s);
-                request.getRequestDispatcher("WEB-INF/view/admin_pages/UpdateService.jsp").forward(request, response);
+                request.getRequestDispatcher("WEB-INF/view/admin_pages/Service/UpdateService.jsp").forward(request, response);
                 return;
             }
             case "delete": {
