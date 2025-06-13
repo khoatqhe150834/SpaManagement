@@ -15,7 +15,8 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
     public <S extends Service> S save(S entity) {
         String sql = "INSERT INTO services (service_type_id, name, description, price, duration_minutes, buffer_time_after_minutes, image_url, is_active, average_rating, bookable_online, requires_consultation) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (Connection conn = DBContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             stmt.setInt(1, entity.getServiceTypeId().getServiceTypeId());
             stmt.setString(2, entity.getName());
@@ -78,7 +79,9 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
             typeMap.put(type.getServiceTypeId(), type);
         }
 
-        try (Connection conn = DBContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql);
+                ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 services.add(mapResultSet(rs, typeMap));
             }
@@ -216,6 +219,51 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
         } catch (SQLException ex) {
             Logger.getLogger(ServiceDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    public List<Service> searchByKeywordAndStatus(String keyword, String status) {
+        List<Service> services = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT * FROM services WHERE 1=1");
+
+        // Tìm theo từ khóa trong name hoặc description
+        boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
+        if (hasKeyword) {
+            sql.append(" AND (LOWER(name) LIKE ? OR LOWER(description) LIKE ?)");
+        }
+
+        // Tìm theo trạng thái
+        if ("active".equalsIgnoreCase(status)) {
+            sql.append(" AND is_active = 1");
+        } else if ("inactive".equalsIgnoreCase(status)) {
+            sql.append(" AND is_active = 0");
+        }
+
+        ServiceTypeDAO typeDAO = new ServiceTypeDAO();
+        Map<Integer, ServiceType> typeMap = new HashMap<>();
+        for (ServiceType type : typeDAO.findAll()) {
+            typeMap.put(type.getServiceTypeId(), type);
+        }
+
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement stm = conn.prepareStatement(sql.toString())) {
+
+            int paramIndex = 1;
+            if (hasKeyword) {
+                String queryParam = "%" + keyword.toLowerCase() + "%";
+                stm.setString(paramIndex++, queryParam);
+                stm.setString(paramIndex++, queryParam);
+            }
+
+            try (ResultSet rs = stm.executeQuery()) {
+                while (rs.next()) {
+                    services.add(mapResultSet(rs, typeMap));
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ServiceDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return services;
     }
 
     // Reusable mapper with type cache

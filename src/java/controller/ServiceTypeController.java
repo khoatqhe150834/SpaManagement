@@ -36,120 +36,111 @@ public class ServiceTypeController extends HttpServlet {
             service = "list-all";
         }
 
-        if (service.equals("list-all")) {
-            int page = 1;
-            int limit = 5;
+        ServiceTypeDAO dao = new ServiceTypeDAO();
 
-            if (request.getParameter("page") != null) {
-                try {
-                    page = Integer.parseInt(request.getParameter("page"));
-                } catch (NumberFormatException ignored) {
+        switch (service) {
+            case "list-all": {
+                int page = 1;
+                int limit = 5;
+
+                if (request.getParameter("page") != null) {
+                    try {
+                        page = Integer.parseInt(request.getParameter("page"));
+                    } catch (NumberFormatException ignored) {
+                    }
                 }
+
+                int offset = (page - 1) * limit;
+
+                List<ServiceType> serviceTypes = dao.findPaginated(offset, limit);
+                int totalRecords = dao.countAll();
+                int totalPages = (int) Math.ceil((double) totalRecords / limit);
+
+                request.setAttribute("limit", limit);
+                request.setAttribute("serviceTypes", serviceTypes);
+                request.setAttribute("currentPage", page);
+                request.setAttribute("totalPages", totalPages);
+                request.setAttribute("totalEntries", totalRecords);
+
+                request.getRequestDispatcher(SERVICE_TYPE_URL).forward(request, response);
+                break;
             }
 
-            int offset = (page - 1) * limit;
-
-            ServiceTypeDAO dao = new ServiceTypeDAO();
-            List<ServiceType> serviceTypes = dao.findPaginated(offset, limit);
-            int totalRecords = dao.countAll();
-            int totalPages = (int) Math.ceil((double) totalRecords / limit);
-
-            request.setAttribute("limit", limit);
-            request.setAttribute("serviceTypes", serviceTypes);
-            request.setAttribute("currentPage", page);
-            request.setAttribute("totalPages", totalPages);
-            request.setAttribute("totalEntries", totalRecords); // optional: show "x of y entries"
-
-            request.getRequestDispatcher(SERVICE_TYPE_URL).forward(request, response);
-        }
-
-        if (service.equals("pre-insert")) {
-            request.getRequestDispatcher("WEB-INF/view/admin_pages/Service_Type/AddServiceType.jsp").forward(request, response);
-        }
-
-        if (service.equals("pre-update")) {
-            int id = Integer.parseInt(request.getParameter("id"));
-            ServiceTypeDAO dao = new ServiceTypeDAO();
-            ServiceType st = dao.findById(id).orElse(null);
-            request.setAttribute("stype", st);
-            request.getRequestDispatcher("WEB-INF/view/admin_pages/Service_Type/UpdateServiceType.jsp").forward(request, response);
-        }
-
-        if (service.equals("delete")) {
-            int id = Integer.parseInt(request.getParameter("id"));
-            ServiceTypeDAO dao = new ServiceTypeDAO();
-            dao.deleteById(id);
-            response.sendRedirect("servicetype");
-        }
-
-        if (service.equals("searchByKeyword")) {
-            String keyword = request.getParameter("keyword");
-            List<ServiceType> serviceTypes = new ServiceTypeDAO().findByKeyword(keyword);
-
-            if (serviceTypes == null || serviceTypes.isEmpty()) {
-                request.setAttribute("notFoundServiceType", "Your keywords do not match with any Service Type");
-                serviceTypes = (new ServiceTypeDAO()).findAll();
+            case "pre-insert": {
+                request.getRequestDispatcher("WEB-INF/view/admin_pages/Service_Type/AddServiceType.jsp").forward(request, response);
+                break;
             }
 
-            request.setAttribute("keyword", keyword);
-            request.setAttribute("serviceTypes", serviceTypes);
-            request.getRequestDispatcher(SERVICE_TYPE_URL).forward(request, response);
-        }
-
-        if (service.equals("searchByKeywordAndStatus")) {
-            String keyword = request.getParameter("keyword");
-            String status = request.getParameter("status"); // "active", "inactive", ""
-
-            ServiceTypeDAO dao = new ServiceTypeDAO();
-            List<ServiceType> serviceTypes = dao.searchByKeywordAndStatus(keyword, status);
-
-            if (serviceTypes == null || serviceTypes.isEmpty()) {
-                request.setAttribute("notFoundServiceType", "No matching service types found.");
-                serviceTypes = dao.findAll(); // fallback
+            case "pre-update": {
+                int id = Integer.parseInt(request.getParameter("id"));
+                ServiceType st = dao.findById(id).orElse(null);
+                request.setAttribute("stype", st);
+                request.getRequestDispatcher("WEB-INF/view/admin_pages/Service_Type/UpdateServiceType.jsp").forward(request, response);
+                break;
             }
 
-            request.setAttribute("keyword", keyword);
-            request.setAttribute("status", status);
-            request.setAttribute("serviceTypes", serviceTypes);
-            request.setAttribute("limit", serviceTypes.size()); // optional
-            request.setAttribute("currentPage", 1);
-            request.setAttribute("totalPages", 1);
-            request.setAttribute("totalEntries", serviceTypes.size());
-
-            request.getRequestDispatcher(SERVICE_TYPE_URL).forward(request, response);
-        }
-
-        if (service.equals("deactiveById")) {
-            int id = Integer.parseInt(request.getParameter("id"));
-            ServiceTypeDAO dao = new ServiceTypeDAO();
-            int n = dao.deactiveById(id);
-
-            if (n == 1) {
-                request.setAttribute("toastType", "success");
-                request.setAttribute("toastMessage", "Deactivate Service Type (Id = " + id + ") done!");
-            } else {
-                request.setAttribute("toastType", "error");
-                request.setAttribute("toastMessage", "Failed to deactivate Service Type (Id = " + id + ") because it is associated with an order.");
+            case "delete": {
+                int id = Integer.parseInt(request.getParameter("id"));
+                dao.deleteById(id);
+                response.sendRedirect("servicetype");
+                break;
             }
 
-            // 👇 Gọi lại logic phân trang y như "list-all"
-            int page = 1;
-            int limit = 5;
-            int offset = (page - 1) * limit;
+            case "searchByKeyword":
+            case "searchByKeywordAndStatus": {
+                String keyword = request.getParameter("keyword");
+                String status = request.getParameter("status"); // Có thể null nếu là searchByKeyword
 
-            List<ServiceType> serviceTypes = dao.findPaginated(offset, limit);
-            int totalRecords = dao.countAll();
-            int totalPages = (int) Math.ceil((double) totalRecords / limit);
+                List<ServiceType> serviceTypes = dao.searchByKeywordAndStatus(keyword, status);
 
-            request.setAttribute("limit", limit);
-            request.setAttribute("serviceTypes", serviceTypes);
-            request.setAttribute("currentPage", page);
-            request.setAttribute("totalPages", totalPages);
-            request.setAttribute("totalEntries", totalRecords);
+                if (serviceTypes == null || serviceTypes.isEmpty()) {
+                    request.setAttribute("notFoundServiceType", "No matching service types found.");
+                    serviceTypes = dao.findAll(); // fallback
+                }
 
-            request.getRequestDispatcher(SERVICE_TYPE_URL).forward(request, response);
+                request.setAttribute("keyword", keyword);
+                request.setAttribute("status", status);
+                request.setAttribute("serviceTypes", serviceTypes);
+                request.setAttribute("limit", serviceTypes.size());
+                request.setAttribute("currentPage", 1);
+                request.setAttribute("totalPages", 1);
+                request.setAttribute("totalEntries", serviceTypes.size());
+
+                request.getRequestDispatcher(SERVICE_TYPE_URL).forward(request, response);
+                break;
+            }
+
+            case "deactiveById": {
+                int id = Integer.parseInt(request.getParameter("id"));
+                int n = dao.deactiveById(id);
+
+                if (n == 1) {
+                    request.setAttribute("toastType", "success");
+                    request.setAttribute("toastMessage", "Deactivate Service Type (Id = " + id + ") done!");
+                } else {
+                    request.setAttribute("toastType", "error");
+                    request.setAttribute("toastMessage", "Failed to deactivate Service Type (Id = " + id + ") because it is associated with an order.");
+                }
+
+                // Gọi lại logic phân trang
+                int page = 1;
+                int limit = 5;
+                int offset = (page - 1) * limit;
+
+                List<ServiceType> serviceTypes = dao.findPaginated(offset, limit);
+                int totalRecords = dao.countAll();
+                int totalPages = (int) Math.ceil((double) totalRecords / limit);
+
+                request.setAttribute("limit", limit);
+                request.setAttribute("serviceTypes", serviceTypes);
+                request.setAttribute("currentPage", page);
+                request.setAttribute("totalPages", totalPages);
+                request.setAttribute("totalEntries", totalRecords);
+
+                request.getRequestDispatcher(SERVICE_TYPE_URL).forward(request, response);
+                break;
+            }
         }
-
     }
 
     @Override

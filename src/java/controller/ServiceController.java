@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 
-@WebServlet(name = "ServiceController", urlPatterns = {"/service"})
+@WebServlet(name = "ServiceController", urlPatterns = { "/service" })
 public class ServiceController extends HttpServlet {
 
     private final String SERVICE_MANAGER_URL = "WEB-INF/view/admin_pages/ServiceManager.jsp";
@@ -81,14 +81,23 @@ public class ServiceController extends HttpServlet {
             }
             case "searchByKeyword": {
                 String keyword = request.getParameter("keyword");
-                List<Service> services = serviceDAO.findByKeyword(keyword);
+                String status = request.getParameter("status");
+
+                // Sử dụng searchByKeywordAndStatus nếu có status
+                List<Service> services;
+                if (status != null && !status.isEmpty()) {
+                    services = serviceDAO.searchByKeywordAndStatus(keyword, status);
+                } else {
+                    services = serviceDAO.findByKeyword(keyword);
+                }
 
                 if (services == null || services.isEmpty()) {
-                    request.setAttribute("notFoundMessage", "No services matched your keyword.");
+                    request.setAttribute("notFoundMessage", "No services matched your criteria.");
                     services = serviceDAO.findAll();
                 }
                 request.setAttribute("services", services);
                 request.setAttribute("keyword", keyword);
+                request.setAttribute("status", status);
                 break;
             }
             case "viewByServiceType": {
