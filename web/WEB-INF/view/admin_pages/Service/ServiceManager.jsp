@@ -11,6 +11,72 @@
         <title>Services - Admin Dashboard</title>
         <link rel="icon" type="image/png" href="assets/images/favicon.png" sizes="16x16">
         <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp" />
+
+        <style>
+            .limit-description {
+                display: -webkit-box;
+                -webkit-box-orient: vertical;
+                -webkit-line-clamp: 3;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-height: 4.8em;
+                min-width: 0;
+                width: 100%;
+                line-height: 1.6em;
+                word-break: break-word;
+                white-space: normal;
+            }
+
+            .service-img-wrapper {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 70px;
+            }
+
+            .service-img {
+                width: 64px;
+                height: 64px;
+                object-fit: cover;
+                border-radius: 12px;
+                border: 1px solid #e0e0e0;
+                background: #fafafa;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            }
+
+            .rating-stars {
+                color: #ffc107;
+            }
+
+            .rating-stars .far {
+                color: #e0e0e0;
+            }
+
+            @media (min-width: 1024px) {
+                .dashboard-main-body,
+                .card-body,
+                .table-responsive {
+                    overflow-x: visible !important;
+                    max-width: 100% !important;
+                }
+                .table {
+                    width: 100% !important;
+                    min-width: 900px;
+                    table-layout: auto !important;
+                }
+            }
+
+            .table td, .table th {
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                overflow: hidden;
+                max-width: 220px;
+            }
+            .table td.limit-description {
+                white-space: normal;
+                max-width: 350px;
+            }
+        </style>
     </head>
     <body>
         <jsp:include page="/WEB-INF/view/common/admin/sidebar.jsp" />
@@ -18,16 +84,16 @@
 
         <div class="dashboard-main-body">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
-                <h6 class="fw-semibold mb-0">Service List</h6>
+                <h6 class="fw-semibold mb-0">Danh Sách Dịch Vụ</h6>
                 <ul class="d-flex align-items-center gap-2">
                     <li class="fw-medium">
                         <a href="index.html" class="d-flex align-items-center gap-1 hover-text-primary">
                             <iconify-icon icon="solar:home-smile-angle-outline" class="icon text-lg"></iconify-icon>
-                            Dashboard
+                            Trang Chủ
                         </a>
                     </li>
                     <li>-</li>
-                    <li class="fw-medium">Service List</li>
+                    <li class="fw-medium">Danh Sách Dịch Vụ</li>
                 </ul>
             </div>
 
@@ -35,62 +101,94 @@
                 <div class="card-header border-bottom bg-base py-16 px-24 d-flex align-items-center flex-wrap gap-3 justify-content-between">
                     <div class="d-flex align-items-center flex-wrap gap-3">
                         <form class="navbar-search d-flex gap-2 align-items-center" method="get" action="service">
-                            <input type="hidden" name="service" value="searchByKeyword">
-                            <input type="text" class="bg-base h-40-px w-auto" name="keyword" placeholder="Search" value="${keyword}" />
-                            <button type="submit" class="btn btn-primary h-40-px radius-12">Search</button>
+                            <input type="text" class="bg-base h-40-px w-auto" name="keyword" placeholder="Tìm kiếm" value="${keyword}">
+                            <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px" name="status">
+                                <option value="">Trạng Thái</option>
+                                <option value="active" ${status == 'active' ? 'selected' : ''}>Đang Hoạt Động</option>
+                                <option value="inactive" ${status == 'inactive' ? 'selected' : ''}>Không Hoạt Động</option>
+                            </select>
+                            <input type="hidden" name="service" value="searchByKeywordAndStatus">
+                            <button type="submit" class="btn btn-primary h-40-px radius-12">Tìm Kiếm</button>
                         </form>
                     </div>
                     <a href="service?service=pre-insert" class="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2"> 
                         <iconify-icon icon="ic:baseline-plus" class="icon text-xl line-height-1"></iconify-icon>
-                        Add New Service
+                        Thêm Dịch Vụ Mới
                     </a>
                 </div>
 
                 <c:if test="${not empty services}">
                     <div class="card-body p-24">
-                        <div class="table-responsive scroll-sm">
+                        <div class="table-responsive">
                             <table class="table bordered-table sm-table mb-0">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
-                                        <th>Name</th>
-                                        <th>Type</th>
-                                        <th>Price</th>
-                                        <th>Duration</th>
-                                        <th>Status</th>
-                                        <th>Created At</th>
-                                        <th>Updated At</th>
-                                        <th class="text-center">Action</th>
+                                        <th scope="col" style="width: 5%;">Mã</th>
+                                        <th scope="col" style="width: 10%;">Hình Ảnh</th>
+                                        <th scope="col" style="width: 15%;">Tên Dịch Vụ</th>
+                                        <th scope="col" style="width: 10%;">Loại Dịch Vụ</th>
+                                        <th scope="col" style="width: 10%;">Giá</th>
+                                        <th scope="col" style="width: 10%;">Thời Gian</th>
+                                        <th scope="col" style="width: 10%;">Đánh Giá</th>
+                                        <th scope="col" style="width: 10%;">Trạng Thái</th>
+                                        <th scope="col" style="width: 10%;">Thao Tác</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <c:forEach var="service" items="${services}">
                                         <tr>
                                             <td>${service.serviceId}</td>
+                                            <td class="text-center">
+                                                <div class="service-img-wrapper">
+                                                    <img src="${service.imageUrl}" alt="${service.name}" class="service-img" />
+                                                </div>
+                                            </td>
                                             <td>${service.name}</td>
                                             <td>${service.serviceTypeId.name}</td>
-                                            <td><fmt:formatNumber value="${service.price}" type="currency" /></td>
-                                            <td>${service.durationMinutes} min</td>
+                                            <td>
+                                                <fmt:formatNumber value="${service.price}" 
+                                                                type="currency" 
+                                                                currencySymbol="VND"/>
+                                            </td>
+                                            <td>${service.durationMinutes} phút</td>
+                                            <td>
+                                                <div class="rating-stars">
+                                                    <c:forEach begin="1" end="5" var="i">
+                                                        <i class="fas fa-star ${i <= service.averageRating ? 'fas' : 'far'}"></i>
+                                                    </c:forEach>
+                                                    <span class="ms-1">(${service.averageRating})</span>
+                                                </div>
+                                            </td>
                                             <td class="text-center">
                                                 <c:choose>
                                                     <c:when test="${service.isActive}">
-                                                        <span class="bg-success-focus text-success-600 border border-success-main px-24 py-4 radius-4 fw-medium text-sm">Active</span>
+                                                        <span class="bg-success-focus text-success-600 border border-success-main px-24 py-4 radius-4 fw-medium text-sm">Đang Hoạt Động</span>
                                                     </c:when>
                                                     <c:otherwise>
-                                                        <span class="bg-neutral-200 text-neutral-600 border border-neutral-400 px-24 py-4 radius-4 fw-medium text-sm">Inactive</span>
+                                                        <span class="bg-neutral-200 text-neutral-600 border border-neutral-400 px-24 py-4 radius-4 fw-medium text-sm">Không Hoạt Động</span>
                                                     </c:otherwise>
                                                 </c:choose>
                                             </td>
-                                            <td><fmt:formatDate value="${service.createdAt}" pattern="dd MMM yyyy" /></td>
-                                            <td><fmt:formatDate value="${service.updatedAt}" pattern="dd MMM yyyy" /></td>
                                             <td class="text-center">
                                                 <div class="d-flex align-items-center gap-10 justify-content-center">
-                                                    <a href="service?service=pre-update&id=${service.serviceId}" class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
-                                                        <iconify-icon icon="lucide:edit"></iconify-icon>
+                                                    <!-- Edit button -->
+                                                    <a href="service?service=pre-update&id=${service.serviceId}" 
+                                                       class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
+                                                       data-bs-toggle="tooltip"
+                                                       data-bs-title="Chỉnh sửa dịch vụ">
+                                                        <iconify-icon icon="lucide:edit" class="menu-icon"></iconify-icon>
                                                     </a>
-                                                    <a href="service?service=deactivate&id=${service.serviceId}" class="bg-danger-focus text-danger-600 bg-hover-danger-200 w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle" onclick="return confirmDelete(${service.serviceId})">
-                                                        <iconify-icon icon="mdi:block-helper"></iconify-icon>
-                                                    </a>
+
+                                                    <!-- Deactivate button -->
+                                                    <c:if test="${service.isActive}">
+                                                        <a href="service?service=deactivate&id=${service.serviceId}" 
+                                                           class="bg-danger-focus bg-hover-danger-200 text-danger-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
+                                                           data-bs-toggle="tooltip"
+                                                           data-bs-title="Vô hiệu hóa dịch vụ"
+                                                           onclick="return confirmAction('Bạn có chắc chắn muốn vô hiệu hóa dịch vụ này?')">
+                                                            <iconify-icon icon="mdi:block-helper" class="menu-icon"></iconify-icon>
+                                                        </a>
+                                                    </c:if>
                                                 </div>
                                             </td>
                                         </tr>
@@ -99,30 +197,36 @@
                             </table>
                         </div>
 
-                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-24">
-                            <c:set var="start" value="${(currentPage - 1) * limit + 1}" />
-                            <c:set var="end" value="${currentPage * limit > totalEntries ? totalEntries : currentPage * limit}" />
-                            <span>
-                                Showing ${start} to ${end} of ${totalEntries} entries
-                            </span>
-
-                            <ul class="pagination d-flex flex-wrap align-items-center gap-2 justify-content-center">
-                                <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
-                                    <a class="page-link" href="service?service=list-all&page=${currentPage - 1}&limit=${limit}">
-                                        <iconify-icon icon="ep:d-arrow-left"></iconify-icon>
-                                    </a>
-                                </li>
-                                <c:forEach var="i" begin="1" end="${totalPages}">
-                                    <li class="page-item ${i == currentPage ? 'active' : ''}">
-                                        <a class="page-link" href="service?service=list-all&page=${i}&limit=${limit}">${i}</a>
-                                    </li>
-                                </c:forEach>
-                                <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
-                                    <a class="page-link" href="service?service=list-all&page=${currentPage + 1}&limit=${limit}">
-                                        <iconify-icon icon="ep:d-arrow-right"></iconify-icon>
-                                    </a>
-                                </li>
-                            </ul>
+                        <!-- Pagination -->
+                        <div class="d-flex justify-content-between align-items-center mt-24">
+                            <div class="text-sm text-neutral-600">
+                                Hiển thị ${(currentPage-1)*limit + 1} đến ${currentPage*limit > totalEntries ? totalEntries : currentPage*limit} của ${totalEntries} mục
+                            </div>
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination mb-0">
+                                    <c:if test="${currentPage > 1}">
+                                        <li class="page-item">
+                                            <a class="page-link" href="service?page=${currentPage-1}" aria-label="Previous">
+                                                <span aria-hidden="true">&laquo;</span>
+                                            </a>
+                                        </li>
+                                    </c:if>
+                                    
+                                    <c:forEach begin="1" end="${totalPages}" var="i">
+                                        <li class="page-item ${currentPage == i ? 'active' : ''}">
+                                            <a class="page-link" href="service?page=${i}">${i}</a>
+                                        </li>
+                                    </c:forEach>
+                                    
+                                    <c:if test="${currentPage < totalPages}">
+                                        <li class="page-item">
+                                            <a class="page-link" href="service?page=${currentPage+1}" aria-label="Next">
+                                                <span aria-hidden="true">&raquo;</span>
+                                            </a>
+                                        </li>
+                                    </c:if>
+                                </ul>
+                            </nav>
                         </div>
                     </div>
                 </c:if>
@@ -180,8 +284,8 @@
         </c:if>
 
         <script>
-            function confirmDelete(id) {
-                return confirm("Are you sure you want to deactivate this Service (ID = " + id + ")?");
+            function confirmAction(message) {
+                return confirm(message);
             }
         </script>
     </body>

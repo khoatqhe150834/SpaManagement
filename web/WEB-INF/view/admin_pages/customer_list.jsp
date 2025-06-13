@@ -1,4 +1,4 @@
-<%-- 
+<%--
     Document   : customer_list
     Created on : Jun 4, 2025
     Author     : Admin
@@ -15,8 +15,27 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Customers - Admin Dashboard</title>
-        <link rel="icon" type="image/png" href="assets/images/favicon.png" sizes="16x16">
+        <link rel="icon" type="image/png" href="${pageContext.request.contextPath}/assets/images/favicon.png" sizes="16x16">
         <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp" />
+        <style>
+            /* CSS cho các nút phân trang */
+            .pagination .page-item a {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            .pagination .page-item.active a {
+                background-color: #007bff;
+                color: white;
+                border-color: #007bff;
+            }
+             .pagination .page-item.disabled a {
+                color: #6c757d;
+                pointer-events: none;
+                background-color: #fff;
+                border-color: #dee2e6;
+            }
+        </style>
     </head>
 
     <body>
@@ -28,7 +47,7 @@
                 <h6 class="fw-semibold mb-0">Customer List</h6>
                 <ul class="d-flex align-items-center gap-2">
                     <li class="fw-medium">
-                        <a href="index.html" class="d-flex align-items-center gap-1 hover-text-primary">
+                        <a href="${pageContext.request.contextPath}/admin/dashboard" class="d-flex align-items-center gap-1 hover-text-primary">
                             <iconify-icon icon="solar:home-smile-angle-outline" class="icon text-lg"></iconify-icon>
                             Dashboard
                         </a>
@@ -37,24 +56,38 @@
                     <li class="fw-medium">Customer List</li>
                 </ul>
             </div>
+            
+            <%-- Hiển thị thông báo thành công --%>
+            <c:if test="${not empty sessionScope.successMessage}">
+                <div class="alert alert-success mb-24" role="alert">
+                    ${sessionScope.successMessage}
+                </div>
+                <c:remove var="successMessage" scope="session"/>
+            </c:if>
+
+            <%-- Hiển thị thông báo lỗi --%>
+            <c:if test="${not empty sessionScope.errorMessage}">
+                <div class="alert alert-danger mb-24" role="alert">
+                    ${sessionScope.errorMessage}
+                </div>
+                <c:remove var="errorMessage" scope="session"/>
+            </c:if>
 
             <div class="card h-100 p-0 radius-12">
                 <div class="card-header border-bottom bg-base py-16 px-24 d-flex align-items-center flex-wrap gap-3 justify-content-between">
                     <div class="d-flex align-items-center flex-wrap gap-3">
-                        <form class="navbar-search d-flex gap-2 align-items-center" method="get" action="${pageContext.request.contextPath}/customer">
-                            <input type="hidden" name="action" value="list">
-                            <input type="text" class="bg-base h-40-px w-auto" name="search" placeholder="Search by name, email, phone" value="${param.search}">
-
+                        <%-- Form tìm kiếm và lọc --%>
+                        <form class="navbar-search d-flex gap-2 align-items-center" method="get" action="${pageContext.request.contextPath}/customer/list">
+                            <input type="text" class="bg-base h-40-px w-auto" name="search" placeholder="Search..." value="${searchValue}">
                             <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px" name="status">
                                 <option value="">All Status</option>
-                                <option value="active" ${param.status == 'active' ? 'selected' : ''}>Active</option>
-                                <option value="inactive" ${param.status == 'inactive' ? 'selected' : ''}>Inactive</option>
+                                <option value="active" ${status == 'active' ? 'selected' : ''}>Active</option>
+                                <option value="inactive" ${status == 'inactive' ? 'selected' : ''}>Inactive</option>
                             </select>
-
                             <button type="submit" class="btn btn-primary h-40-px radius-12">Search</button>
                         </form>
                     </div>
-                    <a href="${pageContext.request.contextPath}/customer?action=pre-insert" class="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2"> 
+                    <a href="${pageContext.request.contextPath}/customer/create" class="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2"> 
                         <iconify-icon icon="ic:baseline-plus" class="icon text-xl line-height-1"></iconify-icon>
                         Add New Customer
                     </a>
@@ -66,14 +99,7 @@
                             <table class="table bordered-table sm-table mb-0">
                                 <thead>
                                     <tr>
-                                        <th scope="col">
-                                            <div class="d-flex align-items-center gap-10">
-                                                <div class="form-check style-check d-flex align-items-center">
-                                                    <input class="form-check-input radius-4 border input-form-dark" type="checkbox" name="checkbox" id="selectAll">
-                                                </div>
-                                                ID
-                                            </div>
-                                        </th>
+                                        <th scope="col">ID</th>
                                         <th scope="col">Full Name</th>
                                         <th scope="col">Email</th>
                                         <th scope="col">Phone</th>
@@ -82,16 +108,9 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <c:forEach var="customer" items="${customers}" varStatus="loop">
+                                    <c:forEach var="customer" items="${customers}">
                                         <tr>
-                                            <td>
-                                                <div class="d-flex align-items-center gap-10">
-                                                    <div class="form-check style-check d-flex align-items-center">
-                                                        <input class="form-check-input radius-4 border border-neutral-400" type="checkbox">
-                                                    </div>
-                                                    ${customer.customerId}
-                                                </div>
-                                            </td>
+                                            <td>${customer.customerId}</td>
                                             <td>${customer.fullName}</td>
                                             <td>${customer.email}</td>
                                             <td>${customer.phoneNumber}</td>
@@ -105,45 +124,37 @@
                                                     </c:otherwise>
                                                 </c:choose>
                                             </td>
+                                            
                                             <td class="text-center">
                                                 <div class="d-flex align-items-center gap-10 justify-content-center">
-                                                    <!-- View button -->
-                                                    <a href="${pageContext.request.contextPath}/customer?action=view&id=${customer.customerId}" class="bg-info-focus text-info-600 bg-hover-info-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
-                                                       
-                                                          onclick="if (confirm('Are you sure you want to view this customer?')) { window.location.href='${pageContext.request.contextPath}/customer/view?id=${customer.customerId}'; } return false;">
-
-                                                       
+                                                    <a href="${pageContext.request.contextPath}/customer/view?id=${customer.customerId}" class="bg-info-focus text-info-600 bg-hover-info-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
                                                         <iconify-icon icon="majesticons:eye-line" class="menu-icon"></iconify-icon>
-                                                        
                                                     </a>
-
-                                                    <!-- Edit button -->
-                                                    <a href="${pageContext.request.contextPath}/customer?action=edit&id=${customer.customerId}" class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
-                                                       
-                                                          onclick="if (confirm('Are you sure you want to update this customer?')) { window.location.href='${pageContext.request.contextPath}/customer/edit?id=${customer.customerId}'; } return false;">
-
-                                                       
-                                                       
+                                                    <a href="${pageContext.request.contextPath}/customer/edit?id=${customer.customerId}" class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
                                                         <iconify-icon icon="lucide:edit" class="menu-icon"></iconify-icon>
                                                     </a>
-                                                        
-                                                    
-                                                        
-                                                        
-
-                                                    <!-- Delete button -->
-                                                    <a href="${pageContext.request.contextPath}/customer?action=deactivate&id=${customer.customerId}" 
-                                                       class="bg-danger-focus bg-hover-danger-200 text-danger-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
-   onclick="if (confirm('Are you sure you want to deactivate this customer?')) { window.location.href='${pageContext.request.contextPath}/customer/deactivate?id=${customer.customerId}'; } return false;">
-                                                        <iconify-icon icon="mingcute:delete-2-line" class="menu-icon"></iconify-icon>
-                                                    </a>
-                                                        
-                                                        
-                                                        <a href="${pageContext.request.contextPath}/customer?action=activate&id=${customer.customerId}" 
-                                                       class="bg-danger-focus bg-hover-danger-200 text-danger-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
-   onclick="if (confirm('Are you sure you want to activate this customer?')) { window.location.href='${pageContext.request.contextPath}/customer/activate?id=${customer.customerId}'; } return false;">
-                                                        <iconify-icon icon="mingcute:delete-2-line" class="menu-icon"></iconify-icon>
-                                                    </a>
+                                                    <c:if test="${customer.isActive}">
+                                                        <c:url var="deactivateUrl" value="/customer/deactivate">
+                                                            <c:param name="id" value="${customer.customerId}" />
+                                                            <c:param name="page" value="${currentPage}" />
+                                                            <c:param name="search" value="${searchValue}" />
+                                                            <c:param name="status" value="${status}" />
+                                                        </c:url>
+                                                        <a href="#" onclick="return confirmAction('${deactivateUrl}', 'Are you sure you want to deactivate this customer?');" class="bg-warning-focus bg-hover-warning-200 text-warning-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
+                                                          <iconify-icon icon="fluent:presence-available-24-filled" class="menu-icon"></iconify-icon>
+                                                        </a>
+                                                    </c:if>
+                                                    <c:if test="${not customer.isActive}">
+                                                        <c:url var="activateUrl" value="/customer/activate">
+                                                            <c:param name="id" value="${customer.customerId}" />
+                                                            <c:param name="page" value="${currentPage}" />
+                                                            <c:param name="search" value="${searchValue}" />
+                                                            <c:param name="status" value="${status}" />
+                                                        </c:url>
+                                                        <a href="#" onclick="return confirmAction('${activateUrl}', 'Are you sure you want to activate this customer?');" class="bg-success-focus bg-hover-success-200 text-success-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
+                                                          <iconify-icon icon="fluent:presence-blocked-20-regular" class="menu-icon"></iconify-icon>
+                                                        </a>
+                                                    </c:if>
                                                 </div>
                                             </td>
                                         </tr>
@@ -153,57 +164,31 @@
                         </div>
                     </div>
                 </c:if>
+                <c:if test="${empty customers}">
+                    <div class="p-24 text-center">No customers found matching your criteria.</div>
+                </c:if>
 
-                <!-- Pagination Section -->
-                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-24">
-                    <c:set var="start" value="${(currentPage - 1) * pageSize + 1}" />
-                    <c:set var="end" value="${currentPage * pageSize > totalCustomers ? totalCustomers : currentPage * pageSize}" />
-                    <span>
-                        Showing ${start} to ${end} of ${totalCustomers} entries
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-24 p-24">
+                     <c:set var="start" value="${(currentPage - 1) * pageSize + 1}" />
+                     <c:set var="end" value="${start + fn:length(customers) - 1}" />
+                     <span>
+                        <c:if test="${totalCustomers > 0}">Showing ${start} to ${end} of ${totalCustomers} entries</c:if>
+                        <c:if test="${totalCustomers == 0}">No entries found</c:if>
                     </span>
-
                     <ul class="pagination d-flex flex-wrap align-items-center gap-2 justify-content-center">
-                        <!-- Previous -->
                         <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
-                            <c:choose>
-                                <c:when test="${currentPage == 1}">
-                                    <a class="page-link disabled">
-                                        <iconify-icon icon="ep:d-arrow-left"></iconify-icon>
-                                    </a>
-                                </c:when>
-                                <c:otherwise>
-                                    <a class="page-link" href="${pageContext.request.contextPath}/customer?action=list&page=${currentPage - 1}&pageSize=${pageSize}">
-                                        <iconify-icon icon="ep:d-arrow-left"></iconify-icon>
-                                    </a>
-                                </c:otherwise>
-                            </c:choose>
+                           <c:url var="prevUrl" value="/customer/list"><c:param name="page" value="${currentPage - 1}"/><c:param name="search" value="${searchValue}"/><c:param name="status" value="${status}"/></c:url>
+                           <a class="page-link" href="${currentPage > 1 ? prevUrl : '#'}"><iconify-icon icon="ep:d-arrow-left"></iconify-icon></a>
                         </li>
-
-                        <!-- Page numbers -->
                         <c:forEach var="i" begin="1" end="${totalpages}">
+                            <c:url var="pageUrl" value="/customer/list"><c:param name="page" value="${i}"/><c:param name="search" value="${searchValue}"/><c:param name="status" value="${status}"/></c:url>
                             <li class="page-item ${i == currentPage ? 'active' : ''}">
-                                <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px
-                                   ${i == currentPage ? 'bg-primary-600 text-white' : 'bg-neutral-200 text-secondary-light'}"
-                                   href="${pageContext.request.contextPath}/customer?action=list&page=${i}&pageSize=${pageSize}">
-                                    ${i}
-                                </a>
+                                <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px" href="${pageUrl}">${i}</a>
                             </li>
                         </c:forEach>
-
-                        <!-- Next -->
                         <li class="page-item ${currentPage == totalpages ? 'disabled' : ''}">
-                            <c:choose>
-                                <c:when test="${currentPage == totalpages}">
-                                    <a class="page-link disabled">
-                                        <iconify-icon icon="ep:d-arrow-right"></iconify-icon>
-                                    </a>
-                                </c:when>
-                                <c:otherwise>
-                                    <a class="page-link" href="${pageContext.request.contextPath}/customer?action=list&page=${currentPage + 1}&pageSize=${pageSize}">
-                                        <iconify-icon icon="ep:d-arrow-right"></iconify-icon>
-                                    </a>
-                                </c:otherwise>
-                            </c:choose>
+                           <c:url var="nextUrl" value="/customer/list"><c:param name="page" value="${currentPage + 1}"/><c:param name="search" value="${searchValue}"/><c:param name="status" value="${status}"/></c:url>
+                           <a class="page-link" href="${currentPage < totalpages ? nextUrl : '#'}"><iconify-icon icon="ep:d-arrow-right"></iconify-icon></a>
                         </li>
                     </ul>
                 </div>
@@ -212,54 +197,14 @@
 
         <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
         
-        <c:if test="${not empty toastMessage}">
-            <script>
-                document.addEventListener("DOMContentLoaded", function () {
-                    const toast = document.createElement("div");
-                    toast.textContent = "${toastMessage}";
-                    toast.className = "toast-message ${toastType eq 'success' ? 'toast-success' : 'toast-error'}";
-
-                    document.body.appendChild(toast);
-
-                    setTimeout(() => {
-                        toast.classList.add("show");
-                    }, 100); // Show after small delay
-
-                    setTimeout(() => {
-                        toast.classList.remove("show");
-                        setTimeout(() => toast.remove(), 300); // remove after transition
-                    }, 4000); // auto hide after 4s
-                });
-            </script>
-            <style>
-                .toast-message {
-                    position: fixed;
-                    top: 20px;
-                    right: -300px;
-                    z-index: 9999;
-                    padding: 12px 20px;
-                    border-radius: 8px;
-                    font-weight: 500;
-                    color: white;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-                    transition: right 0.3s ease;
-                    max-width: 300px;
+        <script>
+            function confirmAction(url, message) {
+                if (confirm(message)) {
+                    window.location.href = url;
                 }
-
-                .toast-success {
-                    background-color: #4CAF50;
-                }
-
-                .toast-error {
-                    background-color: #f44336;
-                }
-
-                .toast-message.show {
-                    right: 20px;
-                }
-            </style>
-        </c:if>
-
-       
+                return false;
+            }
+        </script>
+        
     </body>
 </html>

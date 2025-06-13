@@ -14,10 +14,10 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 
-@WebServlet(name = "ServiceController", urlPatterns = {"/service"})
+@WebServlet(name = "ServiceController", urlPatterns = { "/service" })
 public class ServiceController extends HttpServlet {
 
-    private final String SERVICE_MANAGER_URL = "WEB-INF/view/admin_pages/ServiceManager.jsp";
+    private final String SERVICE_MANAGER_URL = "WEB-INF/view/admin_pages/Service/ServiceManager.jsp";
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -54,7 +54,7 @@ public class ServiceController extends HttpServlet {
             case "pre-insert": {
                 List<ServiceType> types = typeDAO.findAll();
                 request.setAttribute("serviceTypes", types);
-                request.getRequestDispatcher("WEB-INF/view/admin_pages/AddService.jsp").forward(request, response);
+                request.getRequestDispatcher("WEB-INF/view/admin_pages/Service/AddService.jsp").forward(request, response);
                 return;
             }
             case "pre-update": {
@@ -63,7 +63,7 @@ public class ServiceController extends HttpServlet {
                 List<ServiceType> types = typeDAO.findAll();
                 request.setAttribute("serviceTypes", types);
                 request.setAttribute("service", s);
-                request.getRequestDispatcher("WEB-INF/view/admin_pages/UpdateService.jsp").forward(request, response);
+                request.getRequestDispatcher("WEB-INF/view/admin_pages/Service/UpdateService.jsp").forward(request, response);
                 return;
             }
             case "delete": {
@@ -81,14 +81,23 @@ public class ServiceController extends HttpServlet {
             }
             case "searchByKeyword": {
                 String keyword = request.getParameter("keyword");
-                List<Service> services = serviceDAO.findByKeyword(keyword);
+                String status = request.getParameter("status");
+
+                // Sử dụng searchByKeywordAndStatus nếu có status
+                List<Service> services;
+                if (status != null && !status.isEmpty()) {
+                    services = serviceDAO.searchByKeywordAndStatus(keyword, status);
+                } else {
+                    services = serviceDAO.findByKeyword(keyword);
+                }
 
                 if (services == null || services.isEmpty()) {
-                    request.setAttribute("notFoundMessage", "No services matched your keyword.");
+                    request.setAttribute("notFoundMessage", "No services matched your criteria.");
                     services = serviceDAO.findAll();
                 }
                 request.setAttribute("services", services);
                 request.setAttribute("keyword", keyword);
+                request.setAttribute("status", status);
                 break;
             }
             case "viewByServiceType": {
