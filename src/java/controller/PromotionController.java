@@ -199,39 +199,44 @@ public class PromotionController extends HttpServlet {
     /**
      * Handle viewing promotion details
      */
-    private void handleViewPromotion(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        try {
-            // Giả sử bạn có một PromotionDAO tương tự CustomerDAO
-            PromotionDAO promotionDAO = new PromotionDAO();
+private void handleViewPromotion(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException {
+    try {
+       
+        String promotionIdStr = request.getParameter("id");
 
-            // Lấy ID từ parameter
-            int promotionId = Integer.parseInt(request.getParameter("id"));
-
-            if (promotionId <= 0) {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid promotion ID");
-                return;
-            }
-
-            // Tìm khuyến mãi bằng ID
-            Optional<Promotion> promotionOpt = promotionDAO.findById(promotionId);
-
-            if (promotionOpt.isPresent()) {
-                // Nếu tìm thấy, đặt attribute và forward đến trang jsp
-                request.setAttribute("promotion", promotionOpt.get());
-                request.getRequestDispatcher("/WEB-INF/view/admin_pages/promotion_details.jsp").forward(request, response);
-            } else {
-                // Nếu không tìm thấy, báo lỗi 404
-                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Promotion not found");
-            }
-        } catch (NumberFormatException e) {
-            // Bắt lỗi nếu ID không phải là số
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid promotion ID format");
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error viewing promotion", e);
-
+        // Kiểm tra xem parameter 'id' có tồn tại và không rỗng hay không
+        if (promotionIdStr == null || promotionIdStr.trim().isEmpty()) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Promotion ID is missing in the URL. Please provide an 'id' parameter.");
+            return;
         }
+        // --- ĐẾN ĐÂY ---
+
+        // Phần còn lại của phương thức giữ nguyên
+        int promotionId = Integer.parseInt(promotionIdStr);
+
+        if (promotionId <= 0) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid promotion ID.");
+            return;
+        }
+
+        Optional<Promotion> promotionOpt = this.promotionDAO.findById(promotionId);
+
+        if (promotionOpt.isPresent()) {
+            request.setAttribute("promotion", promotionOpt.get());
+            
+            request.getRequestDispatcher("/WEB-INF/view/admin_pages/promotion_details.jsp").forward(request, response);
+        } else {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Promotion not found with ID: " + promotionId);
+        }
+    } catch (NumberFormatException e) {
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid promotion ID format. ID must be a number.");
+    } catch (Exception e) {
+        logger.log(Level.SEVERE, "Error viewing promotion", e);
+        // Giả sử bạn có phương thức handleError
+        handleError(request, response, "An error occurred while retrieving promotion details.", "error");
     }
+}
 
     /**
      * Display create promotion form
@@ -466,4 +471,7 @@ public class PromotionController extends HttpServlet {
             throw new IllegalArgumentException("Invalid discount value");
         }
     }
+    
+    
+   
 }

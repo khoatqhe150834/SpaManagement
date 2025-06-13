@@ -22,5 +22,9 @@
     <body>
         <h1>${customerId}</h1>
         <h1>Hello world</h1>
+        
+        <c:if test="${not empty promotion}">
+            Promotion is not empty
+        </c:if>
     </body>
 </html>

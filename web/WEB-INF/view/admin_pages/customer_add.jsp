@@ -57,9 +57,9 @@
         <!-- Password -->
         <div class="form-group">
             <label class="form-label" for="password">Password <span class="text-danger">*</span></label>
-            <%-- Không điền lại mật khẩu vì lý do bảo mật --%>
+           
             <input type="password" class="form-control ${not empty errors.password ? 'is-invalid' : ''}" 
-                   id="password" name="password" required minlength="8">
+                   id="password" name="password" required minlength="7">
              <div class="error-text">${errors.password}</div>
         </div>
         
@@ -104,5 +104,6 @@
         <a href="${pageContext.request.contextPath}/customer/list" class="btn btn-secondary btn-block mt-2">Back to Customer List</a>
     </form>
 </div>
+     <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
 </body>
 </html>

@@ -78,5 +78,13 @@ public class Promotion {
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    @Override
+    public String toString() {
+        return "Promotion{" + "promotionId=" + promotionId + ", title=" + title + ", description=" + description + ", promotionCode=" + promotionCode + ", discountType=" + discountType + ", discountValue=" + discountValue + ", appliesToServiceId=" + appliesToServiceId + ", minimumAppointmentValue=" + minimumAppointmentValue + ", startDate=" + startDate + ", endDate=" + endDate + ", status=" + status + ", usageLimitPerCustomer=" + usageLimitPerCustomer + ", totalUsageLimit=" + totalUsageLimit + ", currentUsageCount=" + currentUsageCount + ", applicableScope=" + applicableScope + ", applicableServiceIdsJson=" + applicableServiceIdsJson + ", imageUrl=" + imageUrl + ", termsAndConditions=" + termsAndConditions + ", createdByUserId=" + createdByUserId + ", isAutoApply=" + isAutoApply + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + '}';
+    }
+    
+    
+    
 }
 

@@ -1,5 +1,6 @@
 package controller;
 
+import dao.AccountDAO;
 import dao.CustomerDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -254,111 +255,152 @@ public class CustomerController extends HttpServlet {
     
 
 // ...
-    /**
-     * Processes the submission of the new customer form with validation.
-     * (Handles POST requests)
-     */
-    private void handleProcessCreateForm(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+   // ... (các phương thức khác giữ nguyên)
 
-        String formJspPath = "/WEB-INF/view/admin_pages/customer_add.jsp";
+/**
+ * Processes the submission of the new customer form with validation.
+ * (Handles POST requests)
+ */
+private void handleProcessCreateForm(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException {
 
-        String name = request.getParameter("fullName");
-        String email = request.getParameter("email");
-        String password = request.getParameter("password");
-        String phone = request.getParameter("phoneNumber");
-        String gender = request.getParameter("gender");
-        String address = request.getParameter("address");
-        String birthdayStr = request.getParameter("birthday");
+    AccountDAO accountDao = new AccountDAO();
+    
+    String formJspPath = "/WEB-INF/view/admin_pages/customer_add.jsp";
 
-        // Map để lưu trữ các lỗi
-        Map<String, String> errors = new HashMap<>();
+    String name = request.getParameter("fullName");
+    String email = request.getParameter("email");
+    String password = request.getParameter("password");
+    String phone = request.getParameter("phoneNumber");
+    String gender = request.getParameter("gender");
+    String address = request.getParameter("address");
+    String birthdayStr = request.getParameter("birthday");
 
-        // --- BẮT ĐẦU VALIDATE ---
-        // 1. Full Name
-        if (name == null || name.trim().isEmpty()) {
-            errors.put("fullName", "Full name is required.");
-        } else if (name.trim().length() > 100) {
-            errors.put("fullName", "Full name must not exceed 50 characters.");
-        }
+    Map<String, String> errors = new HashMap<>();
 
-        if (email == null || email.trim().isEmpty()) {
-            errors.put("email", "Email is required.");
-        } else if (!email.matches("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
-            errors.put("email", "Invalid email format.");
-        } else if (!customerDAO.findByEmailContain(email.trim()).isEmpty()) {
-            errors.put("email", "This email is already registered.");
+    // --- VALIDATION ---
+    // 1. Full Name
+    if (name == null || name.trim().isEmpty()) {
+        errors.put("fullName", "Full name is required.");
+    } else if (name.trim().length() > 100) {
+        // FIXED: Sửa thông báo lỗi để khớp với logic (100 ký tự)
+        errors.put("fullName", "Full name must not exceed 100 characters.");
+    }
 
-        }
-
-        // 3. Password
-        if (password == null || password.isEmpty()) {
-            errors.put("password", "Password is required.");
-        } else if (password.length() > 5 ) {
-            errors.put("password", "Password must be at least 6 characters long.");
-        }
-
-        if (phone != null && !phone.trim().isEmpty() && !phone.matches("^0\\d{9}$")) {
-            errors.put("phoneNumber", "Phone number must be 10 digits starting with 0.");
-        }
-
-        Date birthday = null;
-        if (birthdayStr != null && !birthdayStr.trim().isEmpty()) {
-            try {
-                birthday = Date.valueOf(birthdayStr);
-                if (birthday.after(new java.util.Date())) {
-                    errors.put("birthday", "Birthday cannot be in the future.");
-                }
-            } catch (IllegalArgumentException e) {
-                errors.put("birthday", "Invalid date format.");
-            }
-        }
-
-        Customer customerInput = new Customer();
-        customerInput.setFullName(name);
-        customerInput.setEmail(email);
-        customerInput.setPhoneNumber(phone);
-        customerInput.setGender(gender);
-        customerInput.setAddress(address);
-        if (birthday != null) {
-            customerInput.setBirthday(birthday);
-        }
-
-        // Nếu có lỗi, gửi lại form với các lỗi và dữ liệu đã nhập
-        if (!errors.isEmpty()) {
-            request.setAttribute("errors", errors);
-            request.setAttribute("customerInput", customerInput); // Gửi lại dữ liệu đã nhập
-            request.getRequestDispatcher(formJspPath).forward(request, response);
-            return;
-        }
-
-        // Nếu không có lỗi, tiến hành lưu vào DB
+    // 2. Email
+    if (email == null || email.trim().isEmpty()) {
+        errors.put("email", "Email is required.");
+    } else if (!email.matches("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
+        errors.put("email", "Invalid email format.");
+    } else {
+        // IMPROVEMENT: Đặt kiểm tra email tồn tại trong try-catch để xử lý lỗi DB
         try {
-            Customer newCustomer = new Customer();
-            newCustomer.setFullName(name.trim());
-            newCustomer.setEmail(email.trim().toLowerCase());
-            newCustomer.setHashPassword(password); // Nên hash password trước khi lưu
-            newCustomer.setPhoneNumber(phone.trim());
-            newCustomer.setGender(gender);
-            newCustomer.setAddress(address.trim());
-            newCustomer.setBirthday(birthday);
-            newCustomer.setIsActive(true);
-            newCustomer.setIsVerified(false);
-            newCustomer.setLoyaltyPoints(0);
-            newCustomer.setRoleId(1); // Vai trò khách hàng
-
-            customerDAO.save(newCustomer);
-
-            request.getSession().setAttribute("successMessage", "Đã thêm khách hàng mới thành công!");
-            response.sendRedirect(request.getContextPath() + "/customer/list");
+            if (!customerDAO.findByEmailContain(email.trim()).isEmpty()) {
+                errors.put("email", "This email is already registered.");
+            }
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error saving new customer", e);
-            request.setAttribute("error", "An unexpected error occurred while saving the customer.");
-            request.setAttribute("errors", errors);
-            request.setAttribute("customerInput", customerInput);
-            request.getRequestDispatcher(formJspPath).forward(request, response);
+            logger.log(Level.SEVERE, "Database error checking email uniqueness", e);
+            errors.put("email", "Could not verify email. Please try again.");
         }
     }
+
+    // 3. Password
+    if (password == null || password.isEmpty()) {
+        errors.put("password", "Password is required.");
+    } else if (password.length() < 6) {
+        // FIXED: Sửa thông báo lỗi để khớp với logic và HTML (minlength="7")
+        errors.put("password", "Password must be at least 6 characters long.");
+    }
+
+    // 4. Phone Number
+     if (phone != null && !phone.trim().isEmpty()) {
+        if (!phone.matches("^0\\d{9}$")) {
+            errors.put("phoneNumber", "Phone number must be 10 digits starting with 0.");
+        } else {
+            // --- THÊM LOGIC KIỂM TRA TỒN TẠI VÀO ĐÂY ---
+            try {
+                if (accountDao.isPhoneTakenInSystem(phone.trim())) {
+                    errors.put("phoneNumber", "This phone number is already registered.");
+                }
+            } catch (Exception e) {
+                logger.log(Level.SEVERE, "Database error checking phone number uniqueness", e);
+                errors.put("phoneNumber", "Could not verify phone number. Please try again.");
+            }
+        }
+    }
+
+    // 5. Birthday
+    Date birthday = null;
+    if (birthdayStr != null && !birthdayStr.trim().isEmpty()) {
+        try {
+            birthday = Date.valueOf(birthdayStr);
+            if (birthday.after(new java.util.Date())) {
+                errors.put("birthday", "Birthday cannot be in the future.");
+            }
+        } catch (IllegalArgumentException e) {
+            errors.put("birthday", "Invalid date format. Please use YYYY-MM-DD.");
+        }
+    }
+
+    // Tạo đối tượng customerInput để giữ lại dữ liệu đã nhập trên form
+    Customer customerInput = new Customer();
+    customerInput.setFullName(name);
+    customerInput.setEmail(email);
+    customerInput.setPhoneNumber(phone);
+    customerInput.setGender(gender);
+    customerInput.setAddress(address);
+    if (birthday != null) {
+        customerInput.setBirthday(birthday);
+    }
+    // Không set password vào customerInput để gửi lại view vì lý do bảo mật
+
+    // Nếu có lỗi validation, gửi lại form với các lỗi và dữ liệu đã nhập
+    if (!errors.isEmpty()) {
+        request.setAttribute("errors", errors);
+        request.setAttribute("customerInput", customerInput);
+        request.getRequestDispatcher(formJspPath).forward(request, response);
+        return;
+    }
+
+    
+    try {
+        Customer newCustomer = new Customer();
+        newCustomer.setFullName(name.trim());
+        newCustomer.setEmail(email.trim().toLowerCase());
+        // SECURITY NOTE: Luôn mã hóa mật khẩu trước khi lưu.
+        // Ví dụ: newCustomer.setHashPassword(PasswordUtil.hash(password));
+        newCustomer.setHashPassword(password);
+        newCustomer.setPhoneNumber(phone != null ? phone.trim() : null);
+        newCustomer.setGender(gender);
+        newCustomer.setAddress(address != null ? address.trim() : null);
+        newCustomer.setBirthday(birthday);
+        newCustomer.setIsActive(true);
+        newCustomer.setIsVerified(false); // Mặc định là chưa xác thực
+        newCustomer.setLoyaltyPoints(0);
+        newCustomer.setRoleId(1); // Giả sử 1 là vai trò khách hàng
+
+        customerDAO.save(newCustomer);
+
+        request.getSession().setAttribute("successMessage", "Đã thêm khách hàng mới thành công!");
+        response.sendRedirect(request.getContextPath() + "/customer/list");
+
+    } catch (Exception e) {
+        // --- IMPROVED ERROR HANDLING ---
+        // Ghi lại lỗi đầy đủ để debug
+        logger.log(Level.SEVERE, "Error saving new customer to database", e);
+
+        // Đặt một thông báo lỗi cụ thể hơn để hiển thị cho người dùng
+        // Hiển thị e.getMessage() sẽ giúp bạn tìm ra lỗi nhanh hơn trong quá trình phát triển
+        String userErrorMessage = "An unexpected error occurred while saving the customer. Please check the server logs for details. Error: " + e.getMessage();
+        request.setAttribute("error", userErrorMessage);
+        
+        // Gửi lại dữ liệu đã nhập để người dùng không phải nhập lại
+        request.setAttribute("customerInput", customerInput);
+        
+        // Chuyển tiếp lại trang thêm mới
+        request.getRequestDispatcher(formJspPath).forward(request, response);
+    }
+}
 
     /**
      * Handle show edit form

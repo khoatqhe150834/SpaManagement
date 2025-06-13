@@ -292,46 +292,103 @@ public class PromotionDAO {
      * @return A populated Promotion object.
      * @throws SQLException if a database access error occurs.
      */
-    private Promotion mapRowToPromotion(ResultSet rs) throws SQLException {
-        Promotion promotion = new Promotion();
-        promotion.setPromotionId(rs.getInt("PromotionID"));
-        promotion.setTitle(rs.getString("Title"));
-        promotion.setDescription(rs.getString("Description"));
-        promotion.setPromotionCode(rs.getString("PromotionCode"));
-        promotion.setDiscountType(rs.getString("DiscountType"));
-        promotion.setDiscountValue(rs.getBigDecimal("DiscountValue"));
-        
-        // Dùng getObject để tránh lỗi nếu giá trị trong CSDL là NULL
-        promotion.setAppliesToServiceId((Integer) rs.getObject("AppliesToServiceID"));
-        promotion.setMinimumAppointmentValue(rs.getBigDecimal("MinimumAppointmentValue"));
-        
-        // Chuyển đổi Timestamp từ SQL sang LocalDateTime
-        if (rs.getTimestamp("StartDate") != null) {
-            promotion.setStartDate(rs.getTimestamp("StartDate").toLocalDateTime());
-        }
-        if (rs.getTimestamp("EndDate") != null) {
-            promotion.setEndDate(rs.getTimestamp("EndDate").toLocalDateTime());
-        }
-        
-        promotion.setStatus(rs.getString("Status"));
-        promotion.setUsageLimitPerCustomer((Integer) rs.getObject("UsageLimitPerCustomer"));
-        promotion.setTotalUsageLimit((Integer) rs.getObject("TotalUsageLimit"));
-        promotion.setCurrentUsageCount(rs.getInt("CurrentUsageCount"));
-        promotion.setApplicableScope(rs.getString("ApplicableScope"));
-        promotion.setApplicableServiceIdsJson(rs.getString("ApplicableServiceIDsJson"));
-        promotion.setImageUrl(rs.getString("ImageURL"));
-        promotion.setTermsAndConditions(rs.getString("TermsAndConditions"));
-        promotion.setCreatedByUserId((Integer) rs.getObject("CreatedByUserID"));
-        promotion.setIsAutoApply(rs.getBoolean("IsAutoApply"));
-        
-        if (rs.getTimestamp("CreatedAt") != null) {
-            promotion.setCreatedAt(rs.getTimestamp("CreatedAt").toLocalDateTime());
-        }
-        if (rs.getTimestamp("UpdatedAt") != null) {
-            promotion.setUpdatedAt(rs.getTimestamp("UpdatedAt").toLocalDateTime());
-        }
+//    private Promotion mapRowToPromotion(ResultSet rs) throws SQLException {
+//        Promotion promotion = new Promotion();
+//        promotion.setPromotionId(rs.getInt("PromotionID"));
+//        promotion.setTitle(rs.getString("Title"));
+//        promotion.setDescription(rs.getString("Description"));
+//        promotion.setPromotionCode(rs.getString("PromotionCode"));
+//        promotion.setDiscountType(rs.getString("DiscountType"));
+//        promotion.setDiscountValue(rs.getBigDecimal("DiscountValue"));
+//        
+//        // Dùng getObject để tránh lỗi nếu giá trị trong CSDL là NULL
+//        promotion.setAppliesToServiceId((Integer) rs.getObject("AppliesToServiceID"));
+//        promotion.setMinimumAppointmentValue(rs.getBigDecimal("MinimumAppointmentValue"));
+//        
+//        // Chuyển đổi Timestamp từ SQL sang LocalDateTime
+//        if (rs.getTimestamp("StartDate") != null) {
+//            promotion.setStartDate(rs.getTimestamp("StartDate").toLocalDateTime());
+//        }
+//        if (rs.getTimestamp("EndDate") != null) {
+//            promotion.setEndDate(rs.getTimestamp("EndDate").toLocalDateTime());
+//        }
+//        
+//        promotion.setStatus(rs.getString("Status"));
+//        promotion.setUsageLimitPerCustomer((Integer) rs.getObject("UsageLimitPerCustomer"));
+//        promotion.setTotalUsageLimit((Integer) rs.getObject("TotalUsageLimit"));
+//        promotion.setCurrentUsageCount(rs.getInt("CurrentUsageCount"));
+//        promotion.setApplicableScope(rs.getString("ApplicableScope"));
+//        promotion.setApplicableServiceIdsJson(rs.getString("ApplicableServiceIDsJson"));
+//        promotion.setImageUrl(rs.getString("ImageURL"));
+//        promotion.setTermsAndConditions(rs.getString("TermsAndConditions"));
+//        promotion.setCreatedByUserId((Integer) rs.getObject("CreatedByUserID"));
+//        promotion.setIsAutoApply(rs.getBoolean("IsAutoApply"));
+//        
+//        if (rs.getTimestamp("CreatedAt") != null) {
+//            promotion.setCreatedAt(rs.getTimestamp("CreatedAt").toLocalDateTime());
+//        }
+//        if (rs.getTimestamp("UpdatedAt") != null) {
+//            promotion.setUpdatedAt(rs.getTimestamp("UpdatedAt").toLocalDateTime());
+//        }
+//
+//        return promotion;
+//    }
+  
+  
+  private Promotion mapRowToPromotion(ResultSet rs) throws SQLException {
+    Promotion promotion = new Promotion();
+    // Đã sửa lại thành snake_case để khớp với database
+    promotion.setPromotionId(rs.getInt("promotion_id"));
+    promotion.setTitle(rs.getString("title"));
+    promotion.setDescription(rs.getString("description"));
+    promotion.setPromotionCode(rs.getString("promotion_code"));
+    promotion.setDiscountType(rs.getString("discount_type"));
+    promotion.setDiscountValue(rs.getBigDecimal("discount_value"));
 
-        return promotion;
+    promotion.setAppliesToServiceId((Integer) rs.getObject("applies_to_service_id"));
+    promotion.setMinimumAppointmentValue(rs.getBigDecimal("minimum_appointment_value"));
+
+    if (rs.getTimestamp("start_date") != null) {
+        promotion.setStartDate(rs.getTimestamp("start_date").toLocalDateTime());
+    }
+    if (rs.getTimestamp("end_date") != null) {
+        promotion.setEndDate(rs.getTimestamp("end_date").toLocalDateTime());
+    }
+
+    promotion.setStatus(rs.getString("status"));
+    promotion.setUsageLimitPerCustomer((Integer) rs.getObject("usage_limit_per_customer"));
+    promotion.setTotalUsageLimit((Integer) rs.getObject("total_usage_limit"));
+    promotion.setCurrentUsageCount(rs.getInt("current_usage_count"));
+    promotion.setApplicableScope(rs.getString("applicable_scope"));
+    promotion.setApplicableServiceIdsJson(rs.getString("applicable_service_ids_json"));
+    promotion.setImageUrl(rs.getString("image_url"));
+    promotion.setTermsAndConditions(rs.getString("terms_and_conditions"));
+    promotion.setCreatedByUserId((Integer) rs.getObject("created_by_user_id"));
+    promotion.setIsAutoApply(rs.getBoolean("is_auto_apply"));
+
+    if (rs.getTimestamp("created_at") != null) {
+        promotion.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+    }
+    if (rs.getTimestamp("updated_at") != null) {
+        promotion.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
+    }
+
+    return promotion;
+}
+    
+    
+     public static void main(String[] args) {
+        PromotionDAO promotionDAO = new PromotionDAO();
+        
+        
+        Optional<Promotion> p = promotionDAO.findById(2);
+        
+        if (p.isPresent()) {
+            System.out.println(p.get().toString());
+        } else {
+            System.out.println("Promotion is null");
+        }
+               
     }
      
 }
