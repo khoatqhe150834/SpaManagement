@@ -120,7 +120,7 @@
                 <c:if test="${not empty services}">
                     <div class="card-body p-24">
                         <div class="table-responsive">
-                            <table class="table bordered-table sm-table mb-0">
+                            <table class="table bordered-table sm-table mb-0" style="table-layout: fixed;">
                                 <thead>
                                     <tr>
                                         <th scope="col" style="width: 5%;">Mã</th>
@@ -143,12 +143,22 @@
                                                     <img src="${service.imageUrl}" alt="${service.name}" class="service-img" />
                                                 </div>
                                             </td>
-                                            <td>${service.name}</td>
-                                            <td>${service.serviceTypeId.name}</td>
                                             <td>
-                                                <fmt:formatNumber value="${service.price}" 
-                                                                type="currency" 
-                                                                currencySymbol="VND"/>
+                                                <div class="limit-description"
+                                                     data-bs-toggle="tooltip"
+                                                     data-bs-title="${service.name}">
+                                                    ${service.name}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="limit-description"
+                                                     data-bs-toggle="tooltip"
+                                                     data-bs-title="${service.serviceTypeId.name}">
+                                                    ${service.serviceTypeId.name}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <fmt:formatNumber value="${service.price}" type="number" maxFractionDigits="0"/> VND
                                             </td>
                                             <td>${service.durationMinutes} phút</td>
                                             <td>
@@ -171,6 +181,15 @@
                                             </td>
                                             <td class="text-center">
                                                 <div class="d-flex align-items-center gap-10 justify-content-center">
+
+                                                    <!-- View detail button -->
+                                                    <a href="service?service=view-detail&id=${service.serviceId}" 
+                                                       class="bg-info-focus bg-hover-info-200 text-info-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
+                                                       data-bs-toggle="tooltip"
+                                                       data-bs-title="Xem chi tiết dịch vụ">
+                                                        <iconify-icon icon="majesticons:eye-line" class="icon text-xl"></iconify-icon>
+                                                    </a>
+
                                                     <!-- Edit button -->
                                                     <a href="service?service=pre-update&id=${service.serviceId}" 
                                                        class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
@@ -211,13 +230,13 @@
                                             </a>
                                         </li>
                                     </c:if>
-                                    
+
                                     <c:forEach begin="1" end="${totalPages}" var="i">
                                         <li class="page-item ${currentPage == i ? 'active' : ''}">
                                             <a class="page-link" href="service?page=${i}">${i}</a>
                                         </li>
                                     </c:forEach>
-                                    
+
                                     <c:if test="${currentPage < totalPages}">
                                         <li class="page-item">
                                             <a class="page-link" href="service?page=${currentPage+1}" aria-label="Next">
