@@ -207,7 +207,7 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        System.out.println("Services found: " + services.size());
+        
         return services;
     }
 

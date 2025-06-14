@@ -273,13 +273,49 @@
 
                                         <!-- Page numbers -->
                                         <c:forEach var="i" begin="1" end="${totalPages}">
-                                            <li class="page-item ${i == currentPage ? 'active' : ''}">
-                                                <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px
-                                           ${i == currentPage ? 'bg-primary-600 text-white' : 'bg-neutral-200 text-secondary-light'}"
-                                                    href="service?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${i}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}">
-                                                    ${i}
-                                                </a>
-                                            </li>
+                                            <c:choose>
+                                                <%-- Hiển thị trang đầu tiên --%>
+                                                <c:when test="${i == 1}">
+                                                    <li class="page-item ${i == currentPage ? 'active' : ''}">
+                                                        <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px
+                                                            ${i == currentPage ? 'bg-primary-600 text-white' : 'bg-neutral-200 text-secondary-light'}"
+                                                            href="service?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${i}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}">
+                                                            ${i}
+                                                        </a>
+                                                    </li>
+                                                </c:when>
+                                                
+                                                <%-- Hiển thị trang cuối cùng --%>
+                                                <c:when test="${i == totalPages}">
+                                                    <li class="page-item ${i == currentPage ? 'active' : ''}">
+                                                        <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px
+                                                            ${i == currentPage ? 'bg-primary-600 text-white' : 'bg-neutral-200 text-secondary-light'}"
+                                                            href="service?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${i}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}">
+                                                            ${i}
+                                                        </a>
+                                                    </li>
+                                                </c:when>
+                                                
+                                                <%-- Hiển thị các trang xung quanh trang hiện tại --%>
+                                                <c:when test="${i >= currentPage - 2 && i <= currentPage + 2}">
+                                                    <li class="page-item ${i == currentPage ? 'active' : ''}">
+                                                        <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px
+                                                            ${i == currentPage ? 'bg-primary-600 text-white' : 'bg-neutral-200 text-secondary-light'}"
+                                                            href="service?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${i}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}">
+                                                            ${i}
+                                                        </a>
+                                                    </li>
+                                                </c:when>
+                                                
+                                                <%-- Hiển thị dấu ... khi cần --%>
+                                                <c:when test="${i == currentPage - 3 || i == currentPage + 3}">
+                                                    <li class="page-item disabled">
+                                                        <span class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px bg-neutral-200 text-secondary-light">
+                                                            ...
+                                                        </span>
+                                                    </li>
+                                                </c:when>
+                                            </c:choose>
                                         </c:forEach>
 
                                         <!-- Next -->
