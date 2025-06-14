@@ -133,6 +133,18 @@
                         <div
                             class="card-header border-bottom bg-base py-16 px-24 d-flex align-items-center flex-wrap gap-3 justify-content-between">
                             <div class="d-flex align-items-center flex-wrap gap-3">
+                                
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="text-md fw-medium text-secondary-light mb-0">Show</span>
+                                    <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px" id="limitSelect" onchange="changeLimit(this.value)">
+                                        <option value="5" ${limit == 5 ? 'selected' : ''}>5</option>
+                                        <option value="10" ${limit == 10 ? 'selected' : ''}>10</option>
+                                        <option value="25" ${limit == 25 ? 'selected' : ''}>25</option>
+                                        <option value="50" ${limit == 50 ? 'selected' : ''}>50</option>
+                                        <option value="100" ${limit == 100 ? 'selected' : ''}>100</option>
+                                    </select>
+                                    <span class="text-md fw-medium text-secondary-light mb-0">entries</span>
+                                </div>
                                 <form class="navbar-search d-flex gap-2 align-items-center" method="get"
                                     action="servicetype">
                                     <input type="text" class="bg-base h-40-px w-auto" name="keyword"
@@ -259,10 +271,9 @@
                                                 </c:when>
                                                 <c:otherwise>
                                                     <a class="page-link"
-                                                        href="servicetype?service=list-all&page=${currentPage - 1}&limit=${limit}">
+                                                       href="servicetype?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${currentPage - 1}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}">
                                                         <iconify-icon icon="ep:d-arrow-left"></iconify-icon>
                                                     </a>
-
                                                 </c:otherwise>
                                             </c:choose>
                                         </li>
@@ -272,7 +283,7 @@
                                             <li class="page-item ${i == currentPage ? 'active' : ''}">
                                                 <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px
                                            ${i == currentPage ? 'bg-primary-600 text-white' : 'bg-neutral-200 text-secondary-light'}"
-                                                    href="servicetype?service=list-all&page=${i}&limit=${limit}">
+                                                   href="servicetype?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${i}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}">
                                                     ${i}
                                                 </a>
                                             </li>
@@ -288,7 +299,7 @@
                                                 </c:when>
                                                 <c:otherwise>
                                                     <a class="page-link"
-                                                        href="servicetype?service=list-all&page=${currentPage + 1}&limit=${limit}">
+                                                       href="servicetype?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${currentPage + 1}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}">
                                                         <iconify-icon icon="ep:d-arrow-right"></iconify-icon>
                                                     </a>
                                                 </c:otherwise>
@@ -378,6 +389,23 @@
                     // Hàm xác nhận thao tác
                     function confirmAction(message) {
                         return confirm(message);
+                    }
+
+                    function changeLimit(newLimit) {
+                        let currentUrl = new URL(window.location.href);
+                        let searchParams = currentUrl.searchParams;
+                        
+                        // Giữ lại các tham số tìm kiếm nếu có
+                        if (searchParams.has('keyword')) {
+                            searchParams.set('service', 'searchByKeywordAndStatus');
+                        } else {
+                            searchParams.set('service', 'list-all');
+                        }
+                        
+                        searchParams.set('limit', newLimit);
+                        searchParams.set('page', '1'); // Reset về trang 1
+                        
+                        window.location.href = currentUrl.pathname + '?' + searchParams.toString();
                     }
                 </script>
 

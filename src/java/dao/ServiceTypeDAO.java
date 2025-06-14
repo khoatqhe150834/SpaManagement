@@ -235,32 +235,23 @@ public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
         return 0;
     }
 
-    public List<ServiceType> searchByKeywordAndStatus(String keyword, String status) {
+    public List<ServiceType> searchByKeywordAndStatus(String keyword, String status, int offset, int limit) {
         List<ServiceType> serviceTypes = new ArrayList<>();
-
-        StringBuilder sql = new StringBuilder("SELECT * FROM Service_Types WHERE 1=1");
-
-        // Tìm theo từ khóa trong name hoặc description
-        boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
-        if (hasKeyword) {
-            sql.append(" AND (LOWER(name) LIKE ? OR LOWER(description) LIKE ?)");
+        String sql = "SELECT * FROM Service_Types WHERE (name LIKE ? OR description LIKE ?)";
+        if (status != null && !status.isEmpty()) {
+            sql += " AND is_active = ?";
         }
+        sql += " LIMIT ? OFFSET ?";
 
-        // Tìm theo trạng thái
-        if ("active".equalsIgnoreCase(status)) {
-            sql.append(" AND is_active = TRUE");
-        } else if ("inactive".equalsIgnoreCase(status)) {
-            sql.append(" AND is_active = FALSE");
-        }
-
-        try (Connection conn = DBContext.getConnection(); PreparedStatement stm = conn.prepareStatement(sql.toString())) {
-
-            int index = 1;
-            if (hasKeyword) {
-                String kw = "%" + keyword.toLowerCase() + "%";
-                stm.setString(index++, kw);
-                stm.setString(index++, kw);
+        try (Connection connection = DBContext.getConnection(); PreparedStatement stm = connection.prepareStatement(sql)) {
+            stm.setString(1, "%" + keyword + "%");
+            stm.setString(2, "%" + keyword + "%");
+            int paramIndex = 3;
+            if (status != null && !status.isEmpty()) {
+                stm.setBoolean(paramIndex++, status.equalsIgnoreCase("active"));
             }
+            stm.setInt(paramIndex++, limit);
+            stm.setInt(paramIndex, offset);
 
             try (ResultSet rs = stm.executeQuery()) {
                 while (rs.next()) {
@@ -275,12 +266,33 @@ public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
                     serviceTypes.add(st);
                 }
             }
-
         } catch (SQLException ex) {
-            Logger.getLogger(ServiceTypeDAO.class.getName()).log(Level.SEVERE, null, ex);
+            ex.printStackTrace();
         }
-
         return serviceTypes;
+    }
+
+    public int countSearchResult(String keyword, String status) {
+        int count = 0;
+        String sql = "SELECT COUNT(*) FROM Service_Types WHERE (name LIKE ? OR description LIKE ?)";
+        if (status != null && !status.isEmpty()) {
+            sql += " AND is_active = ?";
+        }
+        try (Connection connection = DBContext.getConnection(); PreparedStatement stm = connection.prepareStatement(sql)) {
+            stm.setString(1, "%" + keyword + "%");
+            stm.setString(2, "%" + keyword + "%");
+            if (status != null && !status.isEmpty()) {
+                stm.setBoolean(3, status.equalsIgnoreCase("active"));
+            }
+            try (ResultSet rs = stm.executeQuery()) {
+                if (rs.next()) {
+                    count = rs.getInt(1);
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return count;
     }
 
     //    public static void main(String[] args) {

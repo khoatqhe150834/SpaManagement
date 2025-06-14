@@ -32,24 +32,28 @@ public class ServiceTypeController extends HttpServlet {
 
         String service = request.getParameter("service");
 
-        if (service == null) {
+        if (service == null || service.isEmpty()) {
             service = "list-all";
         }
 
         ServiceTypeDAO dao = new ServiceTypeDAO();
 
+        int limit = 5; // Giá trị mặc định
+        if (request.getParameter("limit") != null) {
+            try {
+                limit = Integer.parseInt(request.getParameter("limit"));
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
         switch (service) {
             case "list-all": {
                 int page = 1;
-                int limit = 5;
-
                 if (request.getParameter("page") != null) {
                     try {
                         page = Integer.parseInt(request.getParameter("page"));
-                    } catch (NumberFormatException ignored) {
-                    }
+                    } catch (NumberFormatException ignored) {}
                 }
-
                 int offset = (page - 1) * limit;
 
                 List<ServiceType> serviceTypes = dao.findPaginated(offset, limit);
@@ -89,22 +93,29 @@ public class ServiceTypeController extends HttpServlet {
             case "searchByKeyword":
             case "searchByKeywordAndStatus": {
                 String keyword = request.getParameter("keyword");
-                String status = request.getParameter("status"); // Có thể null nếu là searchByKeyword
-
-                List<ServiceType> serviceTypes = dao.searchByKeywordAndStatus(keyword, status);
-
-                if (serviceTypes == null || serviceTypes.isEmpty()) {
-                    request.setAttribute("notFoundServiceType", "No matching service types found.");
-                    serviceTypes = dao.findAll(); // fallback
+                String status = request.getParameter("status");
+                
+                // Thêm phân trang cho kết quả tìm kiếm
+                int page = 1;
+                if (request.getParameter("page") != null) {
+                    try {
+                        page = Integer.parseInt(request.getParameter("page"));
+                    } catch (NumberFormatException ignored) {
+                    }
                 }
+                int offset = (page - 1) * limit;
+                
+                List<ServiceType> serviceTypes = dao.searchByKeywordAndStatus(keyword, status, offset, limit);
+                int totalRecords = dao.countSearchResult(keyword, status);
+                int totalPages = (int) Math.ceil((double) totalRecords / limit);
 
                 request.setAttribute("keyword", keyword);
                 request.setAttribute("status", status);
                 request.setAttribute("serviceTypes", serviceTypes);
-                request.setAttribute("limit", serviceTypes.size());
-                request.setAttribute("currentPage", 1);
-                request.setAttribute("totalPages", 1);
-                request.setAttribute("totalEntries", serviceTypes.size());
+                request.setAttribute("limit", limit);
+                request.setAttribute("currentPage", page);
+                request.setAttribute("totalPages", totalPages);
+                request.setAttribute("totalEntries", totalRecords);
 
                 request.getRequestDispatcher(SERVICE_TYPE_URL).forward(request, response);
                 break;
@@ -124,7 +135,6 @@ public class ServiceTypeController extends HttpServlet {
 
                 // Gọi lại logic phân trang
                 int page = 1;
-                int limit = 5;
                 int offset = (page - 1) * limit;
 
                 List<ServiceType> serviceTypes = dao.findPaginated(offset, limit);
