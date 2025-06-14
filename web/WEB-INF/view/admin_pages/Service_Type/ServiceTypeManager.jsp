@@ -156,6 +156,7 @@
                                         </option>
                                     </select>
                                     <input type="hidden" name="service" value="searchByKeywordAndStatus">
+                                    <input type="hidden" name="limit" value="${limit}" />
                                     <button type="submit" class="btn btn-primary h-40-px radius-12">Search</button>
                                 </form>
                             </div>
