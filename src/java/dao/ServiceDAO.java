@@ -221,22 +221,19 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
         }
     }
 
-    public List<Service> searchByKeywordAndStatus(String keyword, String status) {
+    public List<Service> searchByKeywordAndStatus(String keyword, String status, int offset, int limit) {
         List<Service> services = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT * FROM services WHERE 1=1");
-
-        // Tìm theo từ khóa trong name hoặc description
         boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
         if (hasKeyword) {
             sql.append(" AND (LOWER(name) LIKE ? OR LOWER(description) LIKE ?)");
         }
-
-        // Tìm theo trạng thái
         if ("active".equalsIgnoreCase(status)) {
             sql.append(" AND is_active = 1");
         } else if ("inactive".equalsIgnoreCase(status)) {
             sql.append(" AND is_active = 0");
         }
+        sql.append(" ORDER BY service_id LIMIT ? OFFSET ?");
 
         ServiceTypeDAO typeDAO = new ServiceTypeDAO();
         Map<Integer, ServiceType> typeMap = new HashMap<>();
@@ -244,15 +241,15 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
             typeMap.put(type.getServiceTypeId(), type);
         }
 
-        try (Connection conn = DBContext.getConnection();
-                PreparedStatement stm = conn.prepareStatement(sql.toString())) {
-
+        try (Connection conn = DBContext.getConnection(); PreparedStatement stm = conn.prepareStatement(sql.toString())) {
             int paramIndex = 1;
             if (hasKeyword) {
-                String queryParam = "%" + keyword.toLowerCase() + "%";
-                stm.setString(paramIndex++, queryParam);
-                stm.setString(paramIndex++, queryParam);
+                String query = "%" + keyword.toLowerCase() + "%";
+                stm.setString(paramIndex++, query);
+                stm.setString(paramIndex++, query);
             }
+            stm.setInt(paramIndex++, limit);
+            stm.setInt(paramIndex, offset);
 
             try (ResultSet rs = stm.executeQuery()) {
                 while (rs.next()) {
@@ -262,8 +259,72 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
         } catch (SQLException ex) {
             Logger.getLogger(ServiceDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
-
         return services;
+    }
+
+    public int countSearchResult(String keyword, String status) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM services WHERE 1=1");
+        boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
+        if (hasKeyword) {
+            sql.append(" AND (LOWER(name) LIKE ? OR LOWER(description) LIKE ?)");
+        }
+        if ("active".equalsIgnoreCase(status)) {
+            sql.append(" AND is_active = 1");
+        } else if ("inactive".equalsIgnoreCase(status)) {
+            sql.append(" AND is_active = 0");
+        }
+        try (Connection conn = DBContext.getConnection(); PreparedStatement stm = conn.prepareStatement(sql.toString())) {
+            int paramIndex = 1;
+            if (hasKeyword) {
+                String query = "%" + keyword.toLowerCase() + "%";
+                stm.setString(paramIndex++, query);
+                stm.setString(paramIndex++, query);
+            }
+            try (ResultSet rs = stm.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ServiceDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return 0;
+    }
+
+    public List<Service> findPaginated(int offset, int limit) {
+        List<Service> services = new ArrayList<>();
+        String sql = "SELECT * FROM services ORDER BY service_id LIMIT ? OFFSET ?";
+
+        ServiceTypeDAO typeDAO = new ServiceTypeDAO();
+        Map<Integer, ServiceType> typeMap = new HashMap<>();
+        for (ServiceType type : typeDAO.findAll()) {
+            typeMap.put(type.getServiceTypeId(), type);
+        }
+
+        try (Connection conn = DBContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, limit);
+            stmt.setInt(2, offset);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    services.add(mapResultSet(rs, typeMap));
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ServiceDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return services;
+    }
+
+    public int countAll() {
+        String sql = "SELECT COUNT(*) FROM services";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ServiceDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return 0;
     }
 
     // Reusable mapper with type cache

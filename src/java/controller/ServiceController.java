@@ -24,24 +24,31 @@ public class ServiceController extends HttpServlet {
             throws ServletException, IOException {
 
         String service = request.getParameter("service");
-        if (service == null) {
+        if (service == null || service.isEmpty()) {
             service = "list-all";
         }
 
         ServiceDAO serviceDAO = new ServiceDAO();
         ServiceTypeDAO typeDAO = new ServiceTypeDAO();
 
+        int limit = 5;
+        if (request.getParameter("limit") != null) {
+            try {
+                limit = Integer.parseInt(request.getParameter("limit"));
+            } catch (Exception ignored) {}
+        }
+        int page = 1;
+        if (request.getParameter("page") != null) {
+            try {
+                page = Integer.parseInt(request.getParameter("page"));
+            } catch (Exception ignored) {}
+        }
+        int offset = (page - 1) * limit;
+
         switch (service) {
             case "list-all": {
-                int page = 1, limit = 5;
-                try {
-                    page = Integer.parseInt(request.getParameter("page"));
-                } catch (Exception ignored) {
-                }
-                int offset = (page - 1) * limit;
-
-                List<Service> services = serviceDAO.findAll(); // Consider adding pagination support
-                int totalRecords = services.size();
+                List<Service> services = serviceDAO.findPaginated(offset, limit);
+                int totalRecords = serviceDAO.countAll();
                 int totalPages = (int) Math.ceil((double) totalRecords / limit);
 
                 request.setAttribute("services", services);
@@ -79,25 +86,22 @@ public class ServiceController extends HttpServlet {
                 request.setAttribute("toastMessage", "Deactivated Service (ID = " + id + ") successfully.");
                 break;
             }
-            case "searchByKeyword": {
+            case "searchByKeyword":
+            case "searchByKeywordAndStatus": {
                 String keyword = request.getParameter("keyword");
                 String status = request.getParameter("status");
 
-                // Sử dụng searchByKeywordAndStatus nếu có status
-                List<Service> services;
-                if (status != null && !status.isEmpty()) {
-                    services = serviceDAO.searchByKeywordAndStatus(keyword, status);
-                } else {
-                    services = serviceDAO.findByKeyword(keyword);
-                }
+                List<Service> services = serviceDAO.searchByKeywordAndStatus(keyword, status, offset, limit);
+                int totalRecords = serviceDAO.countSearchResult(keyword, status);
+                int totalPages = (int) Math.ceil((double) totalRecords / limit);
 
-                if (services == null || services.isEmpty()) {
-                    request.setAttribute("notFoundMessage", "No services matched your criteria.");
-                    services = serviceDAO.findAll();
-                }
                 request.setAttribute("services", services);
                 request.setAttribute("keyword", keyword);
                 request.setAttribute("status", status);
+                request.setAttribute("currentPage", page);
+                request.setAttribute("totalPages", totalPages);
+                request.setAttribute("totalEntries", totalRecords);
+                request.setAttribute("limit", limit);
                 break;
             }
             case "viewByServiceType": {

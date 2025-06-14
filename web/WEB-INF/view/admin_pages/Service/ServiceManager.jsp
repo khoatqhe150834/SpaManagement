@@ -100,6 +100,15 @@
             <div class="card h-100 p-0 radius-12">
                 <div class="card-header border-bottom bg-base py-16 px-24 d-flex align-items-center flex-wrap gap-3 justify-content-between">
                     <div class="d-flex align-items-center flex-wrap gap-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-md fw-medium text-secondary-light mb-0">Show</span>
+                            <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px" id="limitSelect" onchange="changeLimit(this.value)">
+                                <c:forEach var="i" begin="1" end="10">
+                                    <option value="${i}" ${limit == i ? 'selected' : ''}>${i}</option>
+                                </c:forEach>
+                            </select>
+                            <span class="text-md fw-medium text-secondary-light mb-0">entries</span>
+                        </div>
                         <form class="navbar-search d-flex gap-2 align-items-center" method="get" action="service">
                             <input type="text" class="bg-base h-40-px w-auto" name="keyword" placeholder="Tìm kiếm" value="${keyword}">
                             <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px" name="status">
@@ -108,6 +117,7 @@
                                 <option value="inactive" ${status == 'inactive' ? 'selected' : ''}>Không Hoạt Động</option>
                             </select>
                             <input type="hidden" name="service" value="searchByKeywordAndStatus">
+                            <input type="hidden" name="limit" value="${limit}" />
                             <button type="submit" class="btn btn-primary h-40-px radius-12">Tìm Kiếm</button>
                         </form>
                     </div>
@@ -223,27 +233,26 @@
                             </div>
                             <nav aria-label="Page navigation">
                                 <ul class="pagination mb-0">
-                                    <c:if test="${currentPage > 1}">
-                                        <li class="page-item">
-                                            <a class="page-link" href="service?page=${currentPage-1}" aria-label="Previous">
-                                                <span aria-hidden="true">&laquo;</span>
-                                            </a>
-                                        </li>
-                                    </c:if>
-
+                                    <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
+                                        <a class="page-link"
+                                           href="service?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${currentPage - 1}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}">
+                                            &laquo;
+                                        </a>
+                                    </li>
                                     <c:forEach begin="1" end="${totalPages}" var="i">
                                         <li class="page-item ${currentPage == i ? 'active' : ''}">
-                                            <a class="page-link" href="service?page=${i}">${i}</a>
-                                        </li>
-                                    </c:forEach>
-
-                                    <c:if test="${currentPage < totalPages}">
-                                        <li class="page-item">
-                                            <a class="page-link" href="service?page=${currentPage+1}" aria-label="Next">
-                                                <span aria-hidden="true">&raquo;</span>
+                                            <a class="page-link"
+                                               href="service?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${i}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}">
+                                                ${i}
                                             </a>
                                         </li>
-                                    </c:if>
+                                    </c:forEach>
+                                    <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
+                                        <a class="page-link"
+                                           href="service?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${currentPage + 1}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}">
+                                            &raquo;
+                                        </a>
+                                    </li>
                                 </ul>
                             </nav>
                         </div>
@@ -305,6 +314,23 @@
         <script>
             function confirmAction(message) {
                 return confirm(message);
+            }
+
+            function changeLimit(newLimit) {
+                let currentUrl = new URL(window.location.href);
+                let searchParams = currentUrl.searchParams;
+
+                // Giữ lại các tham số tìm kiếm nếu có
+                if (searchParams.has('keyword')) {
+                    searchParams.set('service', 'searchByKeywordAndStatus');
+                } else {
+                    searchParams.set('service', 'list-all');
+                }
+
+                searchParams.set('limit', newLimit);
+                searchParams.set('page', '1'); // Reset về trang 1
+
+                window.location.href = currentUrl.pathname + '?' + searchParams.toString();
             }
         </script>
     </body>
