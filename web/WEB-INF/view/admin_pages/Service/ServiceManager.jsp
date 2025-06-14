@@ -101,13 +101,13 @@
                 <div class="card-header border-bottom bg-base py-16 px-24 d-flex align-items-center flex-wrap gap-3 justify-content-between">
                     <div class="d-flex align-items-center flex-wrap gap-3">
                         <div class="d-flex align-items-center gap-2">
-                            <span class="text-md fw-medium text-secondary-light mb-0">Show</span>
+                            <span class="text-md fw-medium text-secondary-light mb-0">Hiển thị</span>
                             <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px" id="limitSelect" onchange="changeLimit(this.value)">
                                 <c:forEach var="i" begin="1" end="10">
                                     <option value="${i}" ${limit == i ? 'selected' : ''}>${i}</option>
                                 </c:forEach>
                             </select>
-                            <span class="text-md fw-medium text-secondary-light mb-0">entries</span>
+                            <span class="text-md fw-medium text-secondary-light mb-0">mục</span>
                         </div>
                         <form class="navbar-search d-flex gap-2 align-items-center" method="get" action="service">
                             <input type="text" class="bg-base h-40-px w-auto" name="keyword" placeholder="Tìm kiếm" value="${keyword}">
@@ -182,10 +182,10 @@
                                             <td class="text-center">
                                                 <c:choose>
                                                     <c:when test="${service.isActive}">
-                                                        <span class="bg-success-focus text-success-600 border border-success-main px-24 py-4 radius-4 fw-medium text-sm">Đang Hoạt Động</span>
+                                                        <span class="bg-success-focus text-success-600 border border-success-main px-24 py-4 radius-4 fw-medium text-sm">Active</span>
                                                     </c:when>
                                                     <c:otherwise>
-                                                        <span class="bg-neutral-200 text-neutral-600 border border-neutral-400 px-24 py-4 radius-4 fw-medium text-sm">Không Hoạt Động</span>
+                                                        <span class="bg-neutral-200 text-neutral-600 border border-neutral-400 px-24 py-4 radius-4 fw-medium text-sm">Inactive</span>
                                                     </c:otherwise>
                                                 </c:choose>
                                             </td>
@@ -231,30 +231,52 @@
                             <div class="text-sm text-neutral-600">
                                 Hiển thị ${(currentPage-1)*limit + 1} đến ${currentPage*limit > totalEntries ? totalEntries : currentPage*limit} của ${totalEntries} mục
                             </div>
-                            <nav aria-label="Page navigation">
-                                <ul class="pagination mb-0">
-                                    <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
-                                        <a class="page-link"
-                                           href="service?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${currentPage - 1}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}">
-                                            &laquo;
-                                        </a>
-                                    </li>
-                                    <c:forEach begin="1" end="${totalPages}" var="i">
-                                        <li class="page-item ${currentPage == i ? 'active' : ''}">
-                                            <a class="page-link"
-                                               href="service?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${i}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}">
-                                                ${i}
+                            <ul class="pagination d-flex flex-wrap align-items-center gap-2 justify-content-center">
+                                <!-- Previous -->
+                                <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
+                                    <c:choose>
+                                        <c:when test="${currentPage == 1}">
+                                            <a class="page-link disabled">
+                                                <iconify-icon icon="ep:d-arrow-left"></iconify-icon>
                                             </a>
-                                        </li>
-                                    </c:forEach>
-                                    <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
-                                        <a class="page-link"
-                                           href="service?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${currentPage + 1}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}">
-                                            &raquo;
+                                        </c:when>
+                                        <c:otherwise>
+                                            <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px"
+                                               href="service?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${currentPage - 1}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}">
+                                                <iconify-icon icon="ep:d-arrow-left"></iconify-icon>
+                                            </a>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </li>
+
+                                <!-- Page numbers -->
+                                <c:forEach var="i" begin="1" end="${totalPages}">
+                                    <li class="page-item ${i == currentPage ? 'active' : ''}">
+                                        <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px
+                                           ${i == currentPage ? 'bg-primary-600 text-white' : 'bg-neutral-200 text-secondary-light'}"
+                                           href="service?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${i}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}">
+                                            ${i}
                                         </a>
                                     </li>
-                                </ul>
-                            </nav>
+                                </c:forEach>
+
+                                <!-- Next -->
+                                <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
+                                    <c:choose>
+                                        <c:when test="${currentPage == totalPages}">
+                                            <a class="page-link disabled">
+                                                <iconify-icon icon="ep:d-arrow-right"></iconify-icon>
+                                            </a>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px"
+                                               href="service?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${currentPage + 1}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}">
+                                                <iconify-icon icon="ep:d-arrow-right"></iconify-icon>
+                                            </a>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </li>
+                            </ul>
                         </div>
                     </div>
                 </c:if>
