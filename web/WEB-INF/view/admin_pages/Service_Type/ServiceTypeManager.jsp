@@ -255,7 +255,7 @@
                                     <c:set var="end"
                                         value="${currentPage * limit > totalEntries ? totalEntries : currentPage * limit}" />
                                     <span>
-                                        Showing ${start} to ${end} of ${totalEntries} entries
+                                        Hiển thị ${start} đến ${end} của ${totalEntries} mục
                                     </span>
 
                                     <ul
@@ -264,12 +264,12 @@
                                         <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
                                             <c:choose>
                                                 <c:when test="${currentPage == 1}">
-                                                    <a class="page-link disabled">
+                                                    <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px disabled">
                                                         <iconify-icon icon="ep:d-arrow-left"></iconify-icon>
                                                     </a>
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <a class="page-link"
+                                                    <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px"
                                                        href="servicetype?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${currentPage - 1}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}">
                                                         <iconify-icon icon="ep:d-arrow-left"></iconify-icon>
                                                     </a>
@@ -292,12 +292,12 @@
                                         <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
                                             <c:choose>
                                                 <c:when test="${currentPage == totalPages}">
-                                                    <a class="page-link disabled">
+                                                    <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px disabled">
                                                         <iconify-icon icon="ep:d-arrow-right"></iconify-icon>
                                                     </a>
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <a class="page-link"
+                                                    <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px"
                                                        href="servicetype?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${currentPage + 1}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}">
                                                         <iconify-icon icon="ep:d-arrow-right"></iconify-icon>
                                                     </a>

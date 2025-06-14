@@ -245,18 +245,20 @@
                                 </div>
 
                                 <!-- Pagination -->
-                                <div class="d-flex justify-content-between align-items-center mt-24">
-                                    <div class="text-sm text-neutral-600">
-                                        Hiển thị ${(currentPage-1)*limit + 1} đến ${currentPage*limit > totalEntries ?
-                                        totalEntries : currentPage*limit} của ${totalEntries} mục
-                                    </div>
+                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-24">
+                                    <c:set var="start" value="${(currentPage - 1) * limit + 1}" />
+                                    <c:set var="end"
+                                        value="${currentPage * limit > totalEntries ? totalEntries : currentPage * limit}" />
+                                    <span>
+                                        Hiển thị ${start} đến ${end} của ${totalEntries} mục
+                                    </span>
                                     <ul
                                         class="pagination d-flex flex-wrap align-items-center gap-2 justify-content-center">
                                         <!-- Previous -->
                                         <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
                                             <c:choose>
                                                 <c:when test="${currentPage == 1}">
-                                                    <a class="page-link disabled">
+                                                    <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px disabled">
                                                         <iconify-icon icon="ep:d-arrow-left"></iconify-icon>
                                                     </a>
                                                 </c:when>
@@ -284,7 +286,7 @@
                                         <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
                                             <c:choose>
                                                 <c:when test="${currentPage == totalPages}">
-                                                    <a class="page-link disabled">
+                                                    <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px disabled">
                                                         <iconify-icon icon="ep:d-arrow-right"></iconify-icon>
                                                     </a>
                                                 </c:when>
