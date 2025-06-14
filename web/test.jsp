@@ -20,11 +20,6 @@
         </style>
     </head>
     <body>
-        <h1>${customerId}</h1>
-        <h1>Hello world</h1>
-        
-        <c:if test="${not empty promotion}">
-            Promotion is not empty
-        </c:if>
+        <h1>${sessionScope.userType}</h1>
     </body>
 </html>

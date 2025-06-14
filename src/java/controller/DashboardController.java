@@ -38,24 +38,21 @@ public class DashboardController extends HttpServlet {
             return;
         }
 
-        // Determine user type and role
+        // Get user type from session (already set during login)
+        String userType = (String) session.getAttribute("userType");
         User user = (User) session.getAttribute("user");
         Customer customer = (Customer) session.getAttribute("customer");
 
-        String userRole = null;
-        Integer roleId = null;
-        String basePath = null;
+        if (userType == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
 
+        // Set user display information
         if (user != null) {
-            roleId = user.getRoleId();
-            userRole = getUserRoleFromId(roleId);
-            basePath = userRole.toLowerCase();
             request.setAttribute("user", user);
             request.setAttribute("userDisplayName", user.getFullName());
         } else if (customer != null) {
-            roleId = RoleConstants.CUSTOMER_ID;
-            userRole = "CUSTOMER";
-            basePath = "customer";
             request.setAttribute("customer", customer);
             request.setAttribute("userDisplayName", customer.getFullName());
         } else {
@@ -63,23 +60,19 @@ public class DashboardController extends HttpServlet {
             return;
         }
 
-        // Set common attributes
-        request.setAttribute("userRole", userRole);
-        request.setAttribute("roleId", roleId);
-
         // Get servlet path to determine which dashboard
         String servletPath = request.getServletPath();
         String pathInfo = request.getPathInfo();
 
         // Validate user has access to this dashboard
-        if (!isAuthorizedForDashboard(servletPath, userRole)) {
+        if (!isAuthorizedForDashboard(servletPath, userType)) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền truy cập trang này");
             return;
         }
 
         try {
-            // Route to appropriate handler based on role
-            switch (userRole) {
+            // Route to appropriate handler based on user type
+            switch (userType) {
                 case "ADMIN":
                     handleAdminDashboard(request, response, pathInfo);
                     break;
@@ -453,43 +446,20 @@ public class DashboardController extends HttpServlet {
     /**
      * Check if user is authorized to access specific dashboard
      */
-    private boolean isAuthorizedForDashboard(String servletPath, String userRole) {
+    private boolean isAuthorizedForDashboard(String servletPath, String userType) {
         switch (servletPath) {
             case "/admin-dashboard":
-                return "ADMIN".equals(userRole);
+                return "ADMIN".equals(userType);
             case "/manager-dashboard":
-                return "MANAGER".equals(userRole);
+                return "MANAGER".equals(userType);
             case "/therapist-dashboard":
-                return "THERAPIST".equals(userRole);
+                return "THERAPIST".equals(userType);
             case "/receptionist-dashboard":
-                return "RECEPTIONIST".equals(userRole);
+                return "RECEPTIONIST".equals(userType);
             case "/customer-dashboard":
-                return "CUSTOMER".equals(userRole);
+                return "CUSTOMER".equals(userType);
             default:
                 return false;
-        }
-    }
-
-    /**
-     * Get user role string from role ID
-     */
-    private String getUserRoleFromId(Integer roleId) {
-        if (roleId == null)
-            return "GUEST";
-
-        switch (roleId) {
-            case RoleConstants.ADMIN_ID:
-                return "ADMIN";
-            case RoleConstants.MANAGER_ID:
-                return "MANAGER";
-            case RoleConstants.THERAPIST_ID:
-                return "THERAPIST";
-            case RoleConstants.RECEPTIONIST_ID:
-                return "RECEPTIONIST";
-            case RoleConstants.CUSTOMER_ID:
-                return "CUSTOMER";
-            default:
-                return "GUEST";
         }
     }
 
