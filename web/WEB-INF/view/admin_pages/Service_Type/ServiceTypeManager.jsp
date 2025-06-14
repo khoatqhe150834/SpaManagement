@@ -137,11 +137,9 @@
                                 <div class="d-flex align-items-center gap-2">
                                     <span class="text-md fw-medium text-secondary-light mb-0">Show</span>
                                     <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px" id="limitSelect" onchange="changeLimit(this.value)">
-                                        <option value="5" ${limit == 5 ? 'selected' : ''}>5</option>
-                                        <option value="10" ${limit == 10 ? 'selected' : ''}>10</option>
-                                        <option value="25" ${limit == 25 ? 'selected' : ''}>25</option>
-                                        <option value="50" ${limit == 50 ? 'selected' : ''}>50</option>
-                                        <option value="100" ${limit == 100 ? 'selected' : ''}>100</option>
+                                        <c:forEach var="i" begin="1" end="10">
+                                            <option value="${i}" ${limit == i ? 'selected' : ''}>${i}</option>
+                                        </c:forEach>
                                     </select>
                                     <span class="text-md fw-medium text-secondary-light mb-0">entries</span>
                                 </div>
