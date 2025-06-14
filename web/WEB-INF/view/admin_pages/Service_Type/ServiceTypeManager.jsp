@@ -164,12 +164,7 @@
                                     <table class="table bordered-table sm-table mb-0 responsive-table">
                                         <thead>
                                             <tr>
-                                                <th scope="col" style="width: 8%;">
-                                                    <div class="form-check d-flex align-items-center gap-2">
-                                                        <input class="form-check-input" type="checkbox" id="selectAll">
-                                                        <label class="form-check-label mb-0" for="selectAll">Mã</label>
-                                                    </div>
-                                                </th>
+                                                <th scope="col" style="width: 8%;">ID</th>
                                                 <th scope="col" style="width: 15%;">Tên Loại Dịch Vụ</th>
                                                 <th scope="col" style="width: 37%;" class="d-none d-md-table-cell">Mô Tả
                                                 </th>
@@ -182,17 +177,7 @@
                                         <tbody>
                                             <c:forEach var="stype" items="${serviceTypes}" varStatus="loop">
                                                 <tr>
-                                                    <td>
-                                                        <div class="d-flex align-items-center gap-10">
-                                                            <div
-                                                                class="form-check style-check d-flex align-items-center">
-                                                                <input
-                                                                    class="form-check-input radius-4 border border-neutral-400"
-                                                                    type="checkbox">
-                                                            </div>
-                                                            ${stype.serviceTypeId}
-                                                        </div>
-                                                    </td>
+                                                    <td>${stype.serviceTypeId}</td>
                                                     <td>${stype.name}</td>
                                                     <td>
                                                         <div class="limit-description" data-bs-toggle="tooltip"
@@ -376,11 +361,7 @@
 
 
 
-                <script>
-                    function confirmDelete(id) {
-                        return confirm("Are you sure you want to deactive this Service Type (ID = " + id + ") ?");
-                    }
-                </script>
+
 
                 <!-- Thêm script cho tooltip và xác nhận -->
                 <script>
@@ -398,15 +379,6 @@
                     function confirmAction(message) {
                         return confirm(message);
                     }
-
-                    // Xác nhận khi chọn tất cả
-                    document.getElementById('selectAll').addEventListener('change', function () {
-                        if (this.checked) {
-                            if (!confirm('Bạn có chắc chắn muốn chọn tất cả các loại dịch vụ?')) {
-                                this.checked = false;
-                            }
-                        }
-                    });
                 </script>
 
                 <!-- Thêm style cho tooltip -->
