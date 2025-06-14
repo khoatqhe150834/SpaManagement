@@ -71,7 +71,14 @@ public class DashboardController extends HttpServlet {
         }
 
         try {
-            // Route to appropriate handler based on user type
+            // For main dashboard routes, use the common dashboard JSP
+            if (pathInfo == null || pathInfo.equals("/") || pathInfo.equals("/dashboard")) {
+                // Forward to common dashboard that uses conditional rendering based on userType
+                request.getRequestDispatcher("/WEB-INF/view/common/dashboard.jsp").forward(request, response);
+                return;
+            }
+
+            // For sub-routes, route to appropriate handler based on user type
             switch (userType) {
                 case "ADMIN":
                     handleAdminDashboard(request, response, pathInfo);
@@ -99,14 +106,13 @@ public class DashboardController extends HttpServlet {
     }
 
     /**
-     * Handle Admin Dashboard routes
+     * Handle Admin Dashboard routes (sub-routes only, main dashboard handled by
+     * common JSP)
      */
     private void handleAdminDashboard(HttpServletRequest request, HttpServletResponse response, String path)
             throws ServletException, IOException {
 
-        if (path == null || path.equals("/") || path.equals("/dashboard")) {
-            request.getRequestDispatcher("/WEB-INF/view/admin/dashboard/dashboard.jsp").forward(request, response);
-        } else if (path.startsWith("/users")) {
+        if (path.startsWith("/users")) {
             handleAdminUsers(request, response, path);
         } else if (path.startsWith("/customers")) {
             handleAdminCustomers(request, response, path);
@@ -129,19 +135,19 @@ public class DashboardController extends HttpServlet {
         } else if (path.startsWith("/system")) {
             handleAdminSystem(request, response, path);
         } else {
-            request.getRequestDispatcher("/WEB-INF/view/admin/dashboard/dashboard.jsp").forward(request, response);
+            // For unknown admin routes, redirect to main dashboard
+            response.sendRedirect(request.getContextPath() + "/admin-dashboard");
         }
     }
 
     /**
-     * Handle Manager Dashboard routes
+     * Handle Manager Dashboard routes (sub-routes only, main dashboard handled by
+     * common JSP)
      */
     private void handleManagerDashboard(HttpServletRequest request, HttpServletResponse response, String path)
             throws ServletException, IOException {
 
-        if (path == null || path.equals("/") || path.equals("/dashboard")) {
-            request.getRequestDispatcher("/WEB-INF/view/manager/dashboard/dashboard.jsp").forward(request, response);
-        } else if (path.startsWith("/customers")) {
+        if (path.startsWith("/customers")) {
             handleManagerCustomers(request, response, path);
         } else if (path.startsWith("/services")) {
             handleManagerServices(request, response, path);
@@ -152,19 +158,19 @@ public class DashboardController extends HttpServlet {
         } else if (path.startsWith("/dashboard")) {
             handleManagerDashboardSubPages(request, response, path);
         } else {
-            request.getRequestDispatcher("/WEB-INF/view/manager/dashboard/dashboard.jsp").forward(request, response);
+            // For unknown manager routes, redirect to main dashboard
+            response.sendRedirect(request.getContextPath() + "/manager-dashboard");
         }
     }
 
     /**
-     * Handle Therapist Dashboard routes
+     * Handle Therapist Dashboard routes (sub-routes only, main dashboard handled by
+     * common JSP)
      */
     private void handleTherapistDashboard(HttpServletRequest request, HttpServletResponse response, String path)
             throws ServletException, IOException {
 
-        if (path == null || path.equals("/") || path.equals("/dashboard")) {
-            request.getRequestDispatcher("/WEB-INF/view/therapist/dashboard/dashboard.jsp").forward(request, response);
-        } else if (path.startsWith("/appointments")) {
+        if (path.startsWith("/appointments")) {
             handleTherapistAppointments(request, response, path);
         } else if (path.startsWith("/treatments")) {
             handleTherapistTreatments(request, response, path);
@@ -179,20 +185,19 @@ public class DashboardController extends HttpServlet {
         } else if (path.startsWith("/inventory")) {
             handleTherapistInventory(request, response, path);
         } else {
-            request.getRequestDispatcher("/WEB-INF/view/therapist/dashboard/dashboard.jsp").forward(request, response);
+            // For unknown therapist routes, redirect to main dashboard
+            response.sendRedirect(request.getContextPath() + "/therapist-dashboard");
         }
     }
 
     /**
-     * Handle Receptionist Dashboard routes
+     * Handle Receptionist Dashboard routes (sub-routes only, main dashboard handled
+     * by common JSP)
      */
     private void handleReceptionistDashboard(HttpServletRequest request, HttpServletResponse response, String path)
             throws ServletException, IOException {
 
-        if (path == null || path.equals("/") || path.equals("/dashboard")) {
-            request.getRequestDispatcher("/WEB-INF/view/receptionist/dashboard/dashboard.jsp").forward(request,
-                    response);
-        } else if (path.startsWith("/appointments")) {
+        if (path.startsWith("/appointments")) {
             handleReceptionistAppointments(request, response, path);
         } else if (path.startsWith("/customers")) {
             handleReceptionistCustomers(request, response, path);
@@ -203,20 +208,19 @@ public class DashboardController extends HttpServlet {
         } else if (path.startsWith("/payments")) {
             handleReceptionistPayments(request, response, path);
         } else {
-            request.getRequestDispatcher("/WEB-INF/view/receptionist/dashboard/dashboard.jsp").forward(request,
-                    response);
+            // For unknown receptionist routes, redirect to main dashboard
+            response.sendRedirect(request.getContextPath() + "/receptionist-dashboard");
         }
     }
 
     /**
-     * Handle Customer Dashboard routes
+     * Handle Customer Dashboard routes (sub-routes only, main dashboard handled by
+     * common JSP)
      */
     private void handleCustomerDashboard(HttpServletRequest request, HttpServletResponse response, String path)
             throws ServletException, IOException {
 
-        if (path == null || path.equals("/") || path.equals("/dashboard")) {
-            request.getRequestDispatcher("/WEB-INF/view/customer/dashboard/dashboard.jsp").forward(request, response);
-        } else if (path.startsWith("/appointments")) {
+        if (path.startsWith("/appointments")) {
             handleCustomerAppointments(request, response, path);
         } else if (path.startsWith("/treatments")) {
             handleCustomerTreatments(request, response, path);
@@ -229,7 +233,8 @@ public class DashboardController extends HttpServlet {
         } else if (path.startsWith("/billing")) {
             handleCustomerBilling(request, response, path);
         } else {
-            request.getRequestDispatcher("/WEB-INF/view/customer/dashboard/dashboard.jsp").forward(request, response);
+            // For unknown customer routes, redirect to main dashboard
+            response.sendRedirect(request.getContextPath() + "/customer-dashboard");
         }
     }
 

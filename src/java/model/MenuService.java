@@ -121,7 +121,7 @@ public class MenuService {
   public static List<MenuItem> getTherapistMenuItems(String contextPath) {
     List<MenuItem> menuItems = new ArrayList<>();
 
-    menuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/profile", "fa fa-user"));
+    menuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/therapist-dashboard", "fa fa-user"));
     menuItems.add(new MenuItem("Lịch làm việc", contextPath + "/therapist/schedule", "fa fa-calendar"));
     menuItems.add(new MenuItem("Khách hàng của tôi", contextPath + "/therapist/clients", "fa fa-users"));
     menuItems.add(new MenuItem("Dịch vụ thực hiện", contextPath + "/therapist/services", "fa fa-hand-o-up"));
