@@ -74,12 +74,12 @@ public class ProfileController extends HttpServlet {
 
   private void showProfile(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    request.getRequestDispatcher("/WEB-INF/view/profile/profile.jsp").forward(request, response);
+    request.getRequestDispatcher("/WEB-INF/view/common/profile.jsp").forward(request, response);
   }
 
   private void showEditProfile(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    request.getRequestDispatcher("/WEB-INF/view/profile/edit-profile.jsp").forward(request, response);
+    request.getRequestDispatcher("/WEB-INF/view/common/edit-profile.jsp").forward(request, response);
   }
 
   private void updateProfile(HttpServletRequest request, HttpServletResponse response)
@@ -103,7 +103,7 @@ public class ProfileController extends HttpServlet {
       e.printStackTrace();
     }
 
-    request.getRequestDispatcher("/WEB-INF/view/profile/edit-profile.jsp").forward(request, response);
+    request.getRequestDispatcher("/WEB-INF/view/common/edit-profile.jsp").forward(request, response);
   }
 
   private void updateUserProfile(User user, HttpServletRequest request, HttpSession session) throws SQLException {
