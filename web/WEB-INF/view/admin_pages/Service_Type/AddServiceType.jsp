@@ -94,7 +94,7 @@
                                                 <input type="file" name="image" class="form-control radius-8" id="image" 
                                                        accept="image/*" onchange="previewImage(this);" required>
                                                 <div id="imagePreview" class="d-none">
-                                                    <img src="" alt="Preview" class="w-100-px h-100-px rounded" id="previewImg">
+                                                    <img src="" alt="Preview" class="w-100-px h-100-px rounded" id="previewImg" onclick="showImageModal(this.src)" style="cursor: pointer;">
                                                 </div>
                                             </div>
                                             <small class="text-muted">Chấp nhận: JPG, PNG, GIF. Kích thước tối đa: 2MB</small>
@@ -124,6 +124,11 @@
             </div>
         </div>
 
+        <!-- Modal hiển thị ảnh lớn -->
+        <div id="imageModal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); align-items:center; justify-content:center;">
+            <img id="modalImg" src="" style="max-width:90vw; max-height:90vh; border:4px solid #fff; border-radius:8px;">
+        </div>
+
         <script>
         function previewImage(input) {
             const preview = document.getElementById('imagePreview');
@@ -140,6 +145,20 @@
                 reader.readAsDataURL(input.files[0]);
             } else {
                 preview.classList.add('d-none');
+            }
+        }
+
+        function showImageModal(src) {
+            var modal = document.getElementById('imageModal');
+            var modalImg = document.getElementById('modalImg');
+            modalImg.src = src;
+            modal.style.display = 'flex';
+            // Đóng modal khi click ra ngoài ảnh
+            modal.onclick = function(e) {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                    modalImg.src = '';
+                }
             }
         }
         </script>
