@@ -46,20 +46,32 @@
                         <button type="button" class="user-avatar-button" id="customerAvatarButton" aria-haspopup="true" aria-expanded="false">
                             <img src="https://placehold.co/40x40/7C3AED/FFFFFF?text=C" alt="Customer Avatar">
                         </button>
-                        <div class="avatar-dropdown" id="customerAvatarDropdown" aria-labelledby="customerAvatarButton">
+                        <div class="avatar-dropdown admin-style-dropdown" id="customerAvatarDropdown" aria-labelledby="customerAvatarButton">
                             <c:if test="${not empty sessionScope.customer.fullName}">
-                                <div class="dropdown-header">Chào, ${sessionScope.customer.fullName}</div>
+                                <div class="dropdown-header-admin">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="avatar-circle bg-success-100 text-success-600">
+                                            <iconify-icon icon="solar:user-outline" class="text-lg"></iconify-icon>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0 fw-semibold text-neutral-900">Chào, ${sessionScope.customer.fullName}</h6>
+                                            <span class="text-xs text-secondary-light">Khách hàng</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </c:if>
                             
                             <c:forEach var="menuItem" items="${menuItems}">
                                 <c:choose>
                                     <c:when test="${menuItem.divider}">
-                                        <div class="dropdown-divider"></div>
+                                        <div class="dropdown-divider-admin"></div>
                                     </c:when>
                                     <c:otherwise>
-                                        <a href="${menuItem.url}">
-                                            <i class="${menuItem.icon}"></i>
-                                            ${menuItem.label}
+                                        <a href="${menuItem.url}" class="dropdown-item-admin">
+                                            <div class="d-flex align-items-center gap-3">
+                                                <iconify-icon icon="${menuItem.icon}" class="text-lg text-secondary-light"></iconify-icon>
+                                                <span class="fw-medium text-neutral-900">${menuItem.label}</span>
+                                            </div>
                                         </a>
                                     </c:otherwise>
                                 </c:choose>
@@ -129,20 +141,32 @@
                         <button type="button" class="user-avatar-button" id="userAvatarButton" aria-haspopup="true" aria-expanded="false">
                             <img src="https://placehold.co/40x40/${avatarColor.substring(1)}/FFFFFF?text=${avatarText}" alt="User Avatar">
                         </button>
-                        <div class="avatar-dropdown" id="userAvatarDropdown" aria-labelledby="userAvatarButton">
+                        <div class="avatar-dropdown admin-style-dropdown" id="userAvatarDropdown" aria-labelledby="userAvatarButton">
                             <c:if test="${not empty sessionScope.user.fullName}">
-                                <div class="dropdown-header">Chào, ${sessionScope.user.fullName}</div>
+                                <div class="dropdown-header-admin">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="avatar-circle bg-primary-100 text-primary-600">
+                                            <iconify-icon icon="solar:shield-user-outline" class="text-lg"></iconify-icon>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0 fw-semibold text-neutral-900">Chào, ${sessionScope.user.fullName}</h6>
+                                            <span class="text-xs text-secondary-light">Nhân viên</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </c:if>
                             
                             <c:forEach var="menuItem" items="${userMenuItems}">
                                 <c:choose>
                                     <c:when test="${menuItem.divider}">
-                                        <div class="dropdown-divider"></div>
+                                        <div class="dropdown-divider-admin"></div>
                                     </c:when>
                                     <c:otherwise>
-                                        <a href="${menuItem.url}">
-                                            <i class="${menuItem.icon}"></i>
-                                            ${menuItem.label}
+                                        <a href="${menuItem.url}" class="dropdown-item-admin">
+                                            <div class="d-flex align-items-center gap-3">
+                                                <iconify-icon icon="${menuItem.icon}" class="text-lg text-secondary-light"></iconify-icon>
+                                                <span class="fw-medium text-neutral-900">${menuItem.label}</span>
+                                            </div>
                                         </a>
                                     </c:otherwise>
                                 </c:choose>

@@ -2,6 +2,9 @@
 --%> <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!-- STYLESHEETS -->
 
+<!-- Iconify Icons -->
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+
 <!-- Add this after other stylesheet links but before closing the stylesheet section -->
 
 <!-- Google Fonts - Playfair Display -->
@@ -145,4 +148,81 @@ p, span, div, a, li, td, th, label {
 .font-bold { font-weight: 700; }
 .font-extrabold { font-weight: 800; }
 .font-black { font-weight: 900; }
+
+/* Admin Style Dropdown Menu */
+.admin-style-dropdown {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    padding: 0;
+    min-width: 280px;
+    z-index: 1000;
+}
+
+.dropdown-header-admin {
+    padding: 16px 20px;
+    border-bottom: 1px solid #f3f4f6;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-radius: 12px 12px 0 0;
+}
+
+.avatar-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.dropdown-item-admin {
+    display: block;
+    padding: 12px 20px;
+    text-decoration: none;
+    color: #374151;
+    transition: all 0.2s ease;
+    border: none;
+    background: none;
+}
+
+.dropdown-item-admin:hover {
+    background: #f8fafc;
+    color: #1f2937;
+    text-decoration: none;
+}
+
+.dropdown-divider-admin {
+    height: 1px;
+    background: #e5e7eb;
+    margin: 8px 0;
+}
+
+/* Admin Framework Utility Classes */
+.d-flex { display: flex; }
+.align-items-center { align-items: center; }
+.gap-2 { gap: 8px; }
+.gap-3 { gap: 12px; }
+.mb-0 { margin-bottom: 0; }
+.fw-semibold { font-weight: 600; }
+.fw-medium { font-weight: 500; }
+.text-lg { font-size: 1.125rem; }
+.text-xs { font-size: 0.75rem; }
+
+/* Admin Framework Colors */
+.bg-success-100 { background-color: #dcfce7; }
+.text-success-600 { color: #16a34a; }
+.bg-primary-100 { background-color: #dbeafe; }
+.text-primary-600 { color: #2563eb; }
+.text-neutral-900 { color: #111827; }
+.text-secondary-light { color: #6b7280; }
+
+/* Icon alignment fixes */
+iconify-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+}
 </style>
