@@ -82,9 +82,8 @@ public class ServiceController extends HttpServlet {
             case "deactivate": {
                 int id = Integer.parseInt(request.getParameter("id"));
                 serviceDAO.deactivateById(id);
-                request.setAttribute("toastType", "success");
-                request.setAttribute("toastMessage", "Deactivated Service (ID = " + id + ") successfully.");
-                break;
+                response.sendRedirect("service");
+                return;
             }
             case "searchByKeyword":
             case "searchByKeywordAndStatus": {
