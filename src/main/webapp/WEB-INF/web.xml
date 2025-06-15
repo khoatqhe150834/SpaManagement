@@ -26,9 +26,12 @@
         </session-timeout>
     </session-config>
 
+    <!-- Welcome file temporarily disabled due to JSP compilation issues -->
+    <!-- 
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>
+    -->
 
     <!-- Static resource mapping -->
     <servlet-mapping>
