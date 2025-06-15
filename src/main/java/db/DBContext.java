@@ -64,8 +64,9 @@ public class DBContext {
             System.out.println("Database connection test failed: " + e.getMessage());
         }
     }
+
     public static void main(String[] args) {
         DBContext.testConnection();
     }
-    
+
 }
