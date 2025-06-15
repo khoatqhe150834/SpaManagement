@@ -150,7 +150,7 @@
 
                                     <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px"
                                         name="status">
-                                        <option value="">Status</option>
+                                        <option value="">Trạng thái</option>
                                         <option value="active" ${status=='active' ? 'selected' : '' }>Active</option>
                                         <option value="inactive" ${status=='inactive' ? 'selected' : '' }>Inactive
                                         </option>
