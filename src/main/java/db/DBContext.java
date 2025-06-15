@@ -1,13 +1,15 @@
 package db;
 
+import util.DatabaseConfig;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DBContext {
-    private static final String URL = "jdbc:mysql://localhost:3306/spamanagement";
-    private static final String USERNAME = "root";
-    private static final String PASSWORD = "root";
+    // Fallback values for local development
+    private static final String LOCAL_URL = "jdbc:mysql://localhost:3306/spamanagement";
+    private static final String LOCAL_USERNAME = "root";
+    private static final String LOCAL_PASSWORD = "root";
 
     private static Connection connection = null;
 
@@ -16,7 +18,7 @@ public class DBContext {
     }
 
     /**
-     * Get database connection
+     * Get database connection (automatically detects Heroku vs Local)
      * 
      * @return Connection object
      * @throws SQLException if connection fails
@@ -27,9 +29,22 @@ public class DBContext {
                 // Register JDBC driver
                 Class.forName("com.mysql.cj.jdbc.Driver");
 
-                // Open a connection
-                connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
-                System.out.println("Database connected successfully");
+                // Check if running on Heroku (JAWSDB_URL exists)
+                String jawsDbUrl = System.getenv("JAWSDB_URL");
+
+                if (jawsDbUrl != null) {
+                    // Heroku deployment - use DatabaseConfig
+                    connection = DriverManager.getConnection(
+                            DatabaseConfig.getJdbcUrl(),
+                            DatabaseConfig.getUsername(),
+                            DatabaseConfig.getPassword());
+                    System.out.println("Database connected successfully (Heroku JawsDB)");
+                    System.out.println("Using database: " + DatabaseConfig.getJdbcUrl());
+                } else {
+                    // Local development - use hardcoded values
+                    connection = DriverManager.getConnection(LOCAL_URL, LOCAL_USERNAME, LOCAL_PASSWORD);
+                    System.out.println("Database connected successfully (Local MySQL)");
+                }
             } catch (ClassNotFoundException e) {
                 throw new SQLException("MySQL JDBC Driver not found.", e);
             }
@@ -59,6 +74,12 @@ public class DBContext {
             Connection conn = getConnection();
             if (conn != null && !conn.isClosed()) {
                 System.out.println("Database connection test successful!");
+                String jawsDbUrl = System.getenv("JAWSDB_URL");
+                if (jawsDbUrl != null) {
+                    System.out.println("Running on Heroku with JawsDB");
+                } else {
+                    System.out.println("Running locally with MySQL");
+                }
             }
         } catch (SQLException e) {
             System.out.println("Database connection test failed: " + e.getMessage());
@@ -68,5 +89,4 @@ public class DBContext {
     public static void main(String[] args) {
         DBContext.testConnection();
     }
-
 }
