@@ -9,8 +9,19 @@ public class DatabaseConfig {
     String databaseUrl = System.getenv("JAWSDB_URL");
 
     if (databaseUrl != null) {
-      // Heroku JawsDB MySQL - URL already in correct format
-      return databaseUrl;
+      // Heroku JawsDB MySQL - Add performance optimizations
+      String optimizedUrl = databaseUrl +
+          "?useConnectionPooling=true" +
+          "&autoReconnect=true" +
+          "&useSSL=false" +
+          "&serverTimezone=UTC" +
+          "&cachePrepStmts=true" +
+          "&useServerPrepStmts=true" +
+          "&prepStmtCacheSize=250" +
+          "&prepStmtCacheSqlLimit=2048" +
+          "&useLocalSessionState=true" +
+          "&rewriteBatchedStatements=true";
+      return optimizedUrl;
     } else {
       // Local MySQL
       return "jdbc:mysql://localhost:3306/spamanagement?useSSL=false&serverTimezone=UTC";
