@@ -34,19 +34,31 @@ public class DBContext {
 
                 if (jawsDbUrl != null) {
                     // Heroku deployment - use DatabaseConfig
-                    connection = DriverManager.getConnection(
-                            DatabaseConfig.getJdbcUrl(),
-                            DatabaseConfig.getUsername(),
-                            DatabaseConfig.getPassword());
+                    String jdbcUrl = DatabaseConfig.getJdbcUrl();
+                    String username = DatabaseConfig.getUsername();
+                    String password = DatabaseConfig.getPassword();
+
+                    System.out.println("=== HEROKU DATABASE CONNECTION ===");
+                    System.out.println("Raw JAWSDB_URL: " + jawsDbUrl);
+                    System.out.println("Converted JDBC URL: " + jdbcUrl);
+                    System.out.println("Username: " + username);
+                    System.out.println("Password: " + (password != null ? "[HIDDEN]" : "null"));
+
+                    connection = DriverManager.getConnection(jdbcUrl, username, password);
                     System.out.println("Database connected successfully (Heroku JawsDB)");
-                    System.out.println("Using database: " + DatabaseConfig.getJdbcUrl());
                 } else {
                     // Local development - use hardcoded values
+                    System.out.println("=== LOCAL DATABASE CONNECTION ===");
+                    System.out.println("Using local MySQL: " + LOCAL_URL);
                     connection = DriverManager.getConnection(LOCAL_URL, LOCAL_USERNAME, LOCAL_PASSWORD);
                     System.out.println("Database connected successfully (Local MySQL)");
                 }
             } catch (ClassNotFoundException e) {
+                System.out.println("ERROR: MySQL JDBC Driver not found!");
                 throw new SQLException("MySQL JDBC Driver not found.", e);
+            } catch (SQLException e) {
+                System.out.println("ERROR: Database connection failed: " + e.getMessage());
+                throw e;
             }
         }
         return connection;

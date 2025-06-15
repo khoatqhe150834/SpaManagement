@@ -9,8 +9,14 @@ public class DatabaseConfig {
     String databaseUrl = System.getenv("JAWSDB_URL");
 
     if (databaseUrl != null) {
-      // Heroku JawsDB MySQL - Add performance optimizations
-      String optimizedUrl = databaseUrl +
+      // Convert JawsDB URL format (mysql://) to JDBC format (jdbc:mysql://)
+      String jdbcUrl = databaseUrl;
+      if (jdbcUrl.startsWith("mysql://")) {
+        jdbcUrl = "jdbc:" + jdbcUrl;
+      }
+
+      // Add performance optimizations
+      String optimizedUrl = jdbcUrl +
           "?useConnectionPooling=true" +
           "&autoReconnect=true" +
           "&useSSL=false" +
