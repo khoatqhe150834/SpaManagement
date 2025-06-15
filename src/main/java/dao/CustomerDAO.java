@@ -11,6 +11,7 @@ import model.Customer;
 import org.mindrot.jbcrypt.BCrypt;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 /**
  * @author quang
  */
@@ -39,47 +40,46 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
     public List<Customer> findByActiveStatus(boolean isActive, int page, int pageSize) {
         List<Customer> customers = new ArrayList<>();
         String sql = "SELECT * FROM customers WHERE is_active = ? ORDER BY created_at DESC LIMIT ? OFFSET ?";
-        
+
         try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+
             ps.setBoolean(1, isActive);
             ps.setInt(2, pageSize);
             ps.setInt(3, (page - 1) * pageSize);
-            
+
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     customers.add(buildCustomerFromResultSet(rs));
                 }
             }
-            
+
         } catch (SQLException e) {
             throw new RuntimeException("Error finding customers by status: " + e.getMessage(), e);
         }
-        
+
         return customers;
     }
-    
-    
+
     public int getTotalSearchResults(String keyword) {
         if (keyword == null || keyword.trim().isEmpty()) {
             return getTotalCustomers();
         }
-        
+
         String sql = "SELECT COUNT(*) FROM customers WHERE full_name LIKE ? OR email LIKE ? OR phone_number LIKE ?";
-        
+
         try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+
             String searchPattern = "%" + keyword.trim() + "%";
             ps.setString(1, searchPattern);
             ps.setString(2, searchPattern);
             ps.setString(3, searchPattern);
-            
+
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next() ? rs.getInt(1) : 0;
             }
-            
+
         } catch (SQLException e) {
             return 0;
         }
@@ -93,24 +93,24 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         if (name == null || name.trim().isEmpty()) {
             return customers;
         }
-        
+
         String sql = "SELECT * FROM customers WHERE full_name LIKE ? ORDER BY full_name";
-        
+
         try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+
             ps.setString(1, "%" + name.trim() + "%");
-            
+
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     customers.add(buildCustomerFromResultSet(rs));
                 }
             }
-            
+
         } catch (SQLException e) {
             throw new RuntimeException("Error finding customers by name: " + e.getMessage(), e);
         }
-        
+
         return customers;
     }
 
@@ -122,24 +122,24 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         if (email == null || email.trim().isEmpty()) {
             return customers;
         }
-        
+
         String sql = "SELECT * FROM customers WHERE email LIKE ? ORDER BY email";
-        
+
         try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+
             ps.setString(1, "%" + email.trim() + "%");
-            
+
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     customers.add(buildCustomerFromResultSet(rs));
                 }
             }
-            
+
         } catch (SQLException e) {
             throw new RuntimeException("Error finding customers by email: " + e.getMessage(), e);
         }
-        
+
         return customers;
     }
 
@@ -151,28 +151,27 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         if (phone == null || phone.trim().isEmpty()) {
             return customers;
         }
-        
+
         String sql = "SELECT * FROM customers WHERE phone_number LIKE ? ORDER BY phone_number";
-        
+
         try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+
             ps.setString(1, "%" + phone.trim() + "%");
-            
+
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     customers.add(buildCustomerFromResultSet(rs));
                 }
             }
-            
+
         } catch (SQLException e) {
             throw new RuntimeException("Error finding customers by phone: " + e.getMessage(), e);
         }
-        
+
         return customers;
     }
-    
-    
+
     @Override
     public <S extends Customer> S save(S customer) {
         AccountDAO accountDAO = new AccountDAO();
@@ -265,8 +264,6 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         return 0;
     }
 
-   
-
     @Override
     public void deleteById(Integer id) {
         String sql = "DELETE FROM customers WHERE customer_id = ?";
@@ -277,32 +274,29 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
             throw new RuntimeException("Error deleting customer: " + e.getMessage(), e);
         }
     }
-    
-    
-    
+
     public boolean deactivateCustomer(int customerId) {
         String sql = "UPDATE customers SET is_active = 0, updated_at = ? WHERE customer_id = ?";
         try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
             ps.setInt(2, customerId);
             int rowsAffected = ps.executeUpdate();
-           
+
             return rowsAffected > 0;
         } catch (SQLException e) {
             return false;
         }
     }
-    
-    
-     public boolean activateCustomer(int customerId) {
+
+    public boolean activateCustomer(int customerId) {
         String sql = "UPDATE customers SET is_active = 1, updated_at = ? WHERE customer_id = ?";
         try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
             ps.setInt(2, customerId);
             int rowsAffected = ps.executeUpdate();
-           
+
             return rowsAffected > 0;
         } catch (SQLException e) {
             return false;
@@ -336,13 +330,6 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
     public void delete(Customer entity) {
         deleteById(entity.getCustomerId());
     }
-
-    
-    
-  
-
-   
-   
 
     public boolean validateAccount(String email, String password) {
         if (email == null || password == null || email.trim().isEmpty() || password.trim().isEmpty()) {
@@ -497,6 +484,30 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         return false;
     }
 
+    /**
+     * Updates the verification status of a customer by email address.
+     * 
+     * @param email      The customer's email
+     * @param isVerified The new verification status
+     * @return true if the update was successful, false otherwise
+     */
+    public boolean updateCustomerVerificationStatus(String email, boolean isVerified) {
+        if (email == null || email.trim().isEmpty()) {
+            return false;
+        }
+        String sql = "UPDATE customers SET is_verified = ?, updated_at = ? WHERE email = ?";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setBoolean(1, isVerified);
+            ps.setTimestamp(2, Timestamp.valueOf(java.time.LocalDateTime.now()));
+            ps.setString(3, email);
+
+            int rowsAffected = ps.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException("Error updating customer verification status: " + e.getMessage(), e);
+        }
+    }
+
     public static void main(String[] args) {
         CustomerDAO customerDAO = new CustomerDAO();
 
@@ -520,7 +531,8 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         customerToUpdate.setAddress(newAddress);
         customerToUpdate.setLoyaltyPoints(newLoyaltyPoints);
 
-        System.out.println("\n... Attempting to update address to '" + newAddress + "' and loyalty points to " + newLoyaltyPoints + " ...");
+        System.out.println("\n... Attempting to update address to '" + newAddress + "' and loyalty points to "
+                + newLoyaltyPoints + " ...");
 
         // 3. Call the update method to save changes
         customerDAO.update(customerToUpdate);
@@ -534,7 +546,7 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         } else {
             System.out.println("TEST FAILED: Could not retrieve customer after update.");
         }
-        
+
         // --- Other tests from user request ---
         System.out.println("\n--- Running other tests ---");
         List<Customer> customers = customerDAO.findAll(1, 5);
@@ -542,23 +554,22 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         for (Customer c : customers) {
             System.out.println(c);
         }
-        
+
         System.out.println("\nDeactivating customer with ID 1...");
         customerDAO.deactivateCustomer(1);
         System.out.println("Deactivation call finished.");
     }
-    
-    
+
     public int getTotalCustomersByStatus(boolean isActive) {
         String sql = "SELECT COUNT(*) FROM customers WHERE is_active = ?";
         try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+
             ps.setBoolean(1, isActive);
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next() ? rs.getInt(1) : 0;
             }
-            
+
         } catch (SQLException e) {
             return 0;
         }
@@ -569,53 +580,53 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         if (id == null || id <= 0) {
             return false;
         }
-        
+
         String sql = "SELECT COUNT(*) FROM customers WHERE customer_id = ?";
         try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next() && rs.getInt(1) > 0;
             }
-            
+
         } catch (SQLException e) {
             return false;
         }
     }
-    
-     public void updateCustomer(Customer customer) {
+
+    public void updateCustomer(Customer customer) {
         // SQL statement to update all editable fields for a customer.
         // The updated_at field is set to the current timestamp automatically.
         String sql = "UPDATE customers SET " +
-                     "full_name = ?, " +
-                     "email = ?, " +
-                     "phone_number = ?, " +
-                     "gender = ?, " +
-                     "birthday = ?, " +
-                     "address = ?, " +
-                     "is_active = ?, " +
-                     "is_verified = ?, " +
-                     "loyalty_points = ?, " +
-                     "updated_at = ? " +
-                     "WHERE customer_id = ?";
+                "full_name = ?, " +
+                "email = ?, " +
+                "phone_number = ?, " +
+                "gender = ?, " +
+                "birthday = ?, " +
+                "address = ?, " +
+                "is_active = ?, " +
+                "is_verified = ?, " +
+                "loyalty_points = ?, " +
+                "updated_at = ? " +
+                "WHERE customer_id = ?";
 
         try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             // Set parameters for the prepared statement from the customer object.
             ps.setString(1, customer.getFullName());
             ps.setString(2, customer.getEmail());
             ps.setString(3, customer.getPhoneNumber());
             ps.setString(4, customer.getGender());
-            
+
             // Handle nullable birthday field
             if (customer.getBirthday() != null) {
                 ps.setDate(5, new java.sql.Date(customer.getBirthday().getTime()));
             } else {
                 ps.setNull(5, java.sql.Types.DATE);
             }
-            
+
             ps.setString(6, customer.getAddress());
             ps.setBoolean(7, customer.isActive());
             ps.setBoolean(8, customer.isVerified());
@@ -628,19 +639,15 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
             if (rowsAffected > 0) {
                 System.out.println("Successfully updated customer with ID: " + customer.getCustomerId());
             } else {
-                System.out.println("Failed to update customer with ID: " + customer.getCustomerId() + ". Customer may not exist.");
+                System.out.println(
+                        "Failed to update customer with ID: " + customer.getCustomerId() + ". Customer may not exist.");
             }
 
         } catch (SQLException e) {
             // Log any errors that occur during the database operation.
-            System.out.println( "Error updating customer with ID: " + customer.getCustomerId());
+            System.out.println("Error updating customer with ID: " + customer.getCustomerId());
         }
     }
-     
-    
-    
-    
-    
 
     // Deprecated - kept for backward compatibility, but recommend using more
     // specific methods above

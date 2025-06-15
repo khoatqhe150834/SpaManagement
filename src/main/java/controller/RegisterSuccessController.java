@@ -42,11 +42,19 @@ public class RegisterSuccessController extends HttpServlet {
       // Get registration data from session
       email = (String) session.getAttribute("registrationEmail");
       fullName = (String) session.getAttribute("registrationFullName");
+      String password = (String) session.getAttribute("registrationPassword");
+
+      // Store for email verification login flow
+      if (email != null && password != null) {
+        session.setAttribute("verificationLoginEmail", email);
+        session.setAttribute("verificationLoginPassword", password);
+      }
 
       // Clear registration data from session to prevent reuse
       session.removeAttribute("registrationSuccess");
       session.removeAttribute("registrationEmail");
       session.removeAttribute("registrationFullName");
+      session.removeAttribute("registrationPassword");
     }
 
     // Set attributes for JSP

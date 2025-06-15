@@ -154,16 +154,9 @@
                                             <p class="mb-0">Email: <span class="email-highlight"><%= request.getAttribute("email") %></span></p>
                                         <% } %>
                                     </div>
-                                    <% if (request.getAttribute("canLogin") != null) { %>
                                         <div class="button-group">
-                                            <a href="${pageContext.request.contextPath}/login?email=<%= java.net.URLEncoder.encode((String)request.getAttribute("email"), "UTF-8") %>" class="site-button radius-no">Đăng nhập ngay</a>
-                                            <a href="${pageContext.request.contextPath}/" class="site-button radius-no">Về trang chủ</a>
+                                        <a href="${pageContext.request.contextPath}/login?email=<%=java.net.URLEncoder.encode((String)request.getAttribute("email"), "UTF-8")%>&verified=true" class="site-button radius-no">Đăng nhập ngay</a>
                                         </div>
-                                    <% } else { %>
-                                        <div class="button-group">
-                                            <a href="${pageContext.request.contextPath}/" class="site-button radius-no">Về trang chủ</a>
-                                        </div>
-                                    <% } %>
                                 <% } else if (request.getAttribute("error") != null) { %>
                                     <div class="error-icon">
                                         ✗

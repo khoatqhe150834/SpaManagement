@@ -184,10 +184,18 @@ public class LoginController extends HttpServlet {
         // success page)
         // BUT NOT if coming from password change (which has higher priority)
         String emailParam = request.getParameter("email");
+        String verifiedParam = request.getParameter("verified");
+
         if (emailParam != null && !emailParam.trim().isEmpty() && !isPasswordChange) {
             // Only set prefillEmail if not already set by password change
             if (request.getAttribute("prefillEmail") == null) {
                 request.setAttribute("prefillEmail", emailParam);
+            }
+
+            // If coming from successful verification, show success message
+            if ("true".equals(verifiedParam)) {
+                request.setAttribute("success",
+                        "Tài khoản của bạn đã được xác thực thành công! Vui lòng đăng nhập để tiếp tục.");
             }
 
             // Check if there's verification login data in session

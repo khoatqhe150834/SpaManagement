@@ -29,7 +29,7 @@ public class EmailService {
   private static final String FROM_NAME = "Spa Online";
 
   // Application URL for password reset links
-  private static final String APP_BASE_URL = "http://localhost:8080/spa"; // Configure this
+  private static final String APP_BASE_URL = "http://localhost:8080"; // Updated for localhost
 
   /**
    * Sends a password reset email to the specified user
@@ -41,12 +41,17 @@ public class EmailService {
    */
   public boolean sendPasswordResetEmail(String userEmail, String resetToken, String userName) {
     try {
+      LOGGER.info("Attempting to send password reset email to: " + userEmail);
+      LOGGER.info("Using SMTP server: " + SMTP_HOST + ":" + SMTP_PORT);
+      LOGGER.info("From email: " + EMAIL_USERNAME);
+
       // Create email session
       Session session = createEmailSession();
+      LOGGER.info("Email session created successfully");
 
       // Create the email message
       Message message = new MimeMessage(session);
-      message.setFrom(new InternetAddress(FROM_EMAIL, FROM_NAME));
+      message.setFrom(new InternetAddress(EMAIL_USERNAME, FROM_NAME)); // Use actual email as from
       message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(userEmail));
       message.setSubject("Password Reset Request - Spa Management System");
 
@@ -54,12 +59,21 @@ public class EmailService {
       String emailContent = createPasswordResetEmailContent(resetToken, userName);
       message.setContent(emailContent, "text/html; charset=utf-8");
 
+      LOGGER.info("Email message prepared, attempting to send...");
+
       // Send the email
       Transport.send(message);
 
       LOGGER.info("Password reset email sent successfully to: " + userEmail);
       return true;
 
+    } catch (AuthenticationFailedException e) {
+      LOGGER.log(Level.SEVERE,
+          "Gmail authentication failed. Check email credentials and app password: " + e.getMessage(), e);
+      return false;
+    } catch (MessagingException e) {
+      LOGGER.log(Level.SEVERE, "Email messaging error for: " + userEmail + ". Error: " + e.getMessage(), e);
+      return false;
     } catch (Exception e) {
       LOGGER.log(Level.SEVERE, "Failed to send password reset email to: " + userEmail, e);
       return false;
@@ -73,15 +87,27 @@ public class EmailService {
    */
   private Session createEmailSession() {
     Properties props = new Properties();
+
+    // Basic SMTP settings
     props.put("mail.smtp.auth", "true");
     props.put("mail.smtp.starttls.enable", "true");
     props.put("mail.smtp.host", SMTP_HOST);
     props.put("mail.smtp.port", SMTP_PORT);
     props.put("mail.smtp.ssl.protocols", "TLSv1.2");
 
+    // Additional settings for better compatibility
+    props.put("mail.smtp.ssl.trust", SMTP_HOST);
+    props.put("mail.debug", "false"); // Disable debug mode for production
+    props.put("mail.smtp.connectiontimeout", "10000"); // 10 seconds
+    props.put("mail.smtp.timeout", "10000"); // 10 seconds
+    props.put("mail.smtp.writetimeout", "10000"); // 10 seconds
+
+    LOGGER.info("SMTP Properties configured for production");
+
     return Session.getInstance(props, new Authenticator() {
       @Override
       protected PasswordAuthentication getPasswordAuthentication() {
+        LOGGER.info("Authenticating with Gmail SMTP");
         return new PasswordAuthentication(EMAIL_USERNAME, EMAIL_PASSWORD);
       }
     });
