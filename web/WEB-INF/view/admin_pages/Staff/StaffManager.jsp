@@ -12,6 +12,17 @@
         <link rel="icon" type="image/png" href="assets/images/favicon.png" sizes="16x16">
         <!-- CSS here -->
         <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp"></jsp:include>
+        <style>
+            .bio-wrap {
+                white-space: pre-line;
+                word-break: break-word;
+                max-width: 260px;
+                min-width: 120px;
+            }
+            .table td, .table th {
+                white-space: normal !important;
+            }
+        </style>
     </head>
     <body>
         <!-- SIDEBAR here -->
@@ -111,7 +122,9 @@
                                             </c:if>
                                         </td>
 
-                                        <td>${therapist.bio}</td> <!-- Tiểu Sử -->
+                                        <td>
+                                            <div class="bio-wrap">${therapist.bio}</div>
+                                        </td>
 
                                         <td class="text-center">
                                             <c:choose>
