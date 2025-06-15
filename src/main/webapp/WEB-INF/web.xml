@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
-    version="4.0">
-    <!-- AuthorizationFilter temporarily removed due to servlet API version conflict -->
-    <!-- TODO: Fix javax.servlet vs jakarta.servlet compatibility issue -->
-    <!--
+    xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_5_0.xsd"
+    version="5.0">
+    <!-- AuthorizationFilter re-enabled with Tomcat 10 (Jakarta EE support) -->
     <filter>
         <filter-name>AuthorizationFilter</filter-name>
         <filter-class>filter.AuthorizationFilter</filter-class>
@@ -18,7 +16,6 @@
         <url-pattern>/therapist/*</url-pattern>
         <url-pattern>/receptionist/*</url-pattern>
     </filter-mapping>
-    -->
 
     <session-config>
         <session-timeout>
@@ -26,12 +23,9 @@
         </session-timeout>
     </session-config>
 
-    <!-- Welcome file temporarily disabled due to JSP compilation issues -->
-    <!-- 
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>
-    -->
 
     <!-- Static resource mapping -->
     <servlet-mapping>
