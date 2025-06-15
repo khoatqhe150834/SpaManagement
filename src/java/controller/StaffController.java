@@ -17,9 +17,9 @@ import java.util.Optional;
 @WebServlet(name = "StaffController", urlPatterns = {"/staff"})
 public class StaffController extends HttpServlet {
 
-    private final String STAFF_MANAGER_VIEW = "WEB-INF/view/admin_pages/StaffManager.jsp";
-    private final String STAFF_UPDATE_VIEW = "WEB-INF/view/admin_pages/UpdateStaff.jsp";
-    private final String STAFF_INSERT_VIEW = "WEB-INF/view/admin_pages/AddStaff.jsp";
+    private final String STAFF_MANAGER_VIEW = "WEB-INF/view/admin_pages/Staff/StaffManager.jsp";
+    private final String STAFF_UPDATE_VIEW = "WEB-INF/view/admin_pages/Staff/UpdateStaff.jsp";
+    private final String STAFF_INSERT_VIEW = "WEB-INF/view/admin_pages/Staff/AddStaff.jsp";
 
     @Override
 protected void doGet(HttpServletRequest request, HttpServletResponse response)
