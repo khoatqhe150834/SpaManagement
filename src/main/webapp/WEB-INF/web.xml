@@ -3,6 +3,9 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
     version="4.0">
+    <!-- AuthorizationFilter temporarily removed due to servlet API version conflict -->
+    <!-- TODO: Fix javax.servlet vs jakarta.servlet compatibility issue -->
+    <!--
     <filter>
         <filter-name>AuthorizationFilter</filter-name>
         <filter-class>filter.AuthorizationFilter</filter-class>
@@ -15,6 +18,7 @@
         <url-pattern>/therapist/*</url-pattern>
         <url-pattern>/receptionist/*</url-pattern>
     </filter-mapping>
+    -->
 
     <session-config>
         <session-timeout>
