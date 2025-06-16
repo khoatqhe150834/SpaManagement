@@ -150,6 +150,16 @@ public class ServiceTypeController extends HttpServlet {
                 request.getRequestDispatcher(SERVICE_TYPE_URL).forward(request, response);
                 break;
             }
+
+            case "check-duplicate-name": {
+                String name = request.getParameter("name");
+                response.setContentType("application/json");
+                response.setCharacterEncoding("UTF-8");
+                boolean isDuplicate = dao.existsByName(name);
+                String message = isDuplicate ? "Tên này đã tồn tại trong hệ thống." : "Tên có thể sử dụng.";
+                response.getWriter().write("{\"valid\": " + !isDuplicate + ", \"message\": \"" + message + "\"}");
+                break;
+            }
         }
     }
 

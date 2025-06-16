@@ -295,6 +295,20 @@ public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
         return count;
     }
 
+    public boolean existsByName(String name) {
+        String sql = "SELECT 1 FROM Service_Types WHERE LOWER(name) = LOWER(?)";
+        try (Connection connection = DBContext.getConnection();
+             PreparedStatement stm = connection.prepareStatement(sql)) {
+            stm.setString(1, name.trim());
+            try (ResultSet rs = stm.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ServiceTypeDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
     //    public static void main(String[] args) {
 //        ServiceTypeDAO dao = new ServiceTypeDAO();
 //
