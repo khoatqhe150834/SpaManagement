@@ -169,25 +169,6 @@
             <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
             <script>
                 // Validation functions
-                function validateName(input) {
-                    const nameError = document.getElementById('nameError');
-                    const value = input.value.trim();
-
-                    if (value.length < 2) {
-                        nameError.textContent = 'Tên phải có ít nhất 2 ký tự';
-                        input.setCustomValidity('Tên phải có ít nhất 2 ký tự');
-                    } else if (value.length > 100) {
-                        nameError.textContent = 'Tên không được vượt quá 100 ký tự';
-                        input.setCustomValidity('Tên không được vượt quá 100 ký tự');
-                    } else if (!vietnameseNamePattern.test(value)) {
-                        nameError.textContent = 'Tên không được chứa ký tự đặc biệt, chỉ cho phép chữ cái, số, dấu cách và tiếng Việt có dấu';
-                        input.setCustomValidity('Tên không được chứa ký tự đặc biệt, chỉ cho phép chữ cái, số, dấu cách và tiếng Việt có dấu');
-                    } else {
-                        nameError.textContent = '';
-                        input.setCustomValidity('');
-                    }
-                }
-
                 function validateDescription(input) {
                     const descriptionError = document.getElementById('descriptionError');
                     const value = input.value.trim();
@@ -259,7 +240,6 @@
                     const description = document.getElementById('description');
                     const image = document.getElementById('image');
 
-                    validateName(name);
                     validateDescription(description);
                     validateImage(image);
 
@@ -307,14 +287,20 @@
                 }
 
                 $(document).ready(function() {
-                    const vietnameseNamePattern = /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂẾưăạảấầẩẫậắằẳẵặẹẻẽềềểếỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\\s]+$/;
+                    const vietnameseNamePattern = /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂẾưăạảấầẩẫậắằẳẵặẹẻẽềềểếỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s]+$/;
 
-                    // Khi nhập, chỉ validate, không tự động xóa khoảng trắng
                     $('#name').on('input', function() {
-                        const value = $(this).val();
+                        let value = $(this).val();
+                        // Không chuẩn hóa khoảng trắng khi đang nhập
+                        $(this).val(value);
+
                         const errorDiv = $('#nameError');
-                        if (value.trim() === '') {
+                        if (value === '') {
                             setInvalid('Tên không được để trống');
+                            return;
+                        }
+                        if (value.length < 2) {
+                            setInvalid('Tên phải có ít nhất 2 ký tự');
                             return;
                         }
                         if (value.length > 200) {
@@ -326,8 +312,7 @@
                             return;
                         }
                         setValid('Tên hợp lệ');
-                        // AJAX kiểm tra trùng tên...
-                        checkNameDuplicate(value.trim(), function(isDuplicate, msg) {
+                        checkNameDuplicate(value, function(isDuplicate, msg) {
                             if (isDuplicate) {
                                 setInvalid(msg || 'Tên này đã tồn tại trong hệ thống');
                             } else {
@@ -345,16 +330,21 @@
                         }
                     });
 
-                    // Khi blur, tự động chuẩn hóa khoảng trắng
+                    // Khi blur (rời khỏi input), chuẩn hóa khoảng trắng
                     $('#name').on('blur', function() {
                         let value = $(this).val();
-                        value = normalizeSpaces(value);
-                        $(this).val(value).trigger('input'); // Gọi lại validate sau khi chuẩn hóa
+                        // Chuẩn hóa: xóa khoảng trắng đầu/cuối và chuyển nhiều khoảng trắng liên tiếp thành 1 khoảng trắng
+                        value = value.replace(/\s+/g, ' ').trim();
+                        $(this).val(value).trigger('input');
                     });
 
-                    function normalizeSpaces(str) {
-                        return str.replace(/\s+/g, ' ').trim();
-                    }
+                    // Khi submit form, chuẩn hóa khoảng trắng
+                    $('#serviceTypeForm').on('submit', function(e) {
+                        let nameValue = $('#name').val();
+                        // Chuẩn hóa: xóa khoảng trắng đầu/cuối và chuyển nhiều khoảng trắng liên tiếp thành 1 khoảng trắng
+                        nameValue = nameValue.replace(/\s+/g, ' ').trim();
+                        $('#name').val(nameValue);
+                    });
 
                     // Description
                     $('#description').on('input', function() {
