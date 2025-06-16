@@ -156,13 +156,25 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
 
     private Staff mapResultSetToStaff(ResultSet rs) throws SQLException {
         Staff staff = new Staff();
-        staff.setUser(new User());
-        staff.getUser().setUserId(rs.getInt("user_id"));
+        
+        // Set User information
+        User user = new User();
+        user.setUserId(rs.getInt("user_id"));
+        user.setFullName(rs.getString("full_name"));
+        staff.setUser(user);
+        
+        // Set ServiceType information
+        ServiceType serviceType = new ServiceType();
+        serviceType.setName(rs.getString("service_type_name"));
+        staff.setServiceType(serviceType);
+        
+        // Set other staff information
         staff.setBio(rs.getString("bio"));
         staff.setAvailabilityStatus(Staff.AvailabilityStatus.valueOf(rs.getString("availability_status")));
         staff.setYearsOfExperience(rs.getInt("years_of_experience"));
         staff.setCreatedAt(rs.getTimestamp("created_at"));
         staff.setUpdatedAt(rs.getTimestamp("updated_at"));
+        
         return staff;
     }
 
