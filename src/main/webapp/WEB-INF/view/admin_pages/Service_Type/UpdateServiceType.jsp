@@ -235,12 +235,10 @@
             if (file) {
                 // Check file size (2MB = 2 * 1024 * 1024 bytes)
                 if (file.size > 2 * 1024 * 1024) {
-                    imageError.textContent = 'Kích thước file không được vượt quá 2MB';
-                    imageSizeHint.style.display = 'block';
-                    input.setCustomValidity('Kích thước file không được vượt quá 2MB');
-                    input.classList.remove('is-valid');
+                    imageError.textContent = 'Không được upload ảnh quá 2MB.';
+                    imageError.style.display = 'block';
+                    imageError.style.color = 'red';
                     input.classList.add('is-invalid');
-                    $('#imagePreview').addClass('d-none');
                     return false;
                 } else {
                     imageSizeHint.style.display = 'none';
@@ -249,51 +247,35 @@
                 // Check file type
                 const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
                 if (!validTypes.includes(file.type)) {
-                    imageError.textContent = 'Chỉ chấp nhận file JPG, PNG hoặc GIF';
-                    input.setCustomValidity('Chỉ chấp nhận file JPG, PNG hoặc GIF');
-                    input.classList.remove('is-valid');
+                    imageError.textContent = 'Chỉ chấp nhận file JPG, PNG hoặc GIF.';
+                    imageError.style.display = 'block';
+                    imageError.style.color = 'red';
                     input.classList.add('is-invalid');
-                    $('#imagePreview').addClass('d-none');
                     return false;
                 }
 
                 // Check image dimensions
                 const img = new Image();
-                img.onload = function () {
+                img.onload = function() {
                     if (this.width < 200 || this.height < 200) {
-                        imageError.textContent = 'Kích thước ảnh tối thiểu phải là 200x200px';
-                        input.setCustomValidity('Kích thước ảnh tối thiểu phải là 200x200px');
-                        input.classList.remove('is-valid');
+                        imageError.textContent = 'Kích thước ảnh phải tối thiểu 200x200px. Ảnh bạn chọn là ' + this.width + 'x' + this.height + 'px.';
+                        imageError.style.display = 'block';
+                        imageError.style.color = 'red';
                         input.classList.add('is-invalid');
-                        $('#imagePreview').addClass('d-none');
                         return false;
                     }
-
-                    // Check aspect ratio (not too long or too wide)
-                    const ratio = this.width / this.height;
-                    if (ratio < 0.5 || ratio > 2) {
-                        imageError.textContent = 'Tỷ lệ khung hình không phù hợp';
-                        input.setCustomValidity('Tỷ lệ khung hình không phù hợp');
-                        input.classList.remove('is-valid');
-                        input.classList.add('is-invalid');
-                        $('#imagePreview').addClass('d-none');
-                        return false;
-                    }
-
+                    // Nếu hợp lệ
                     imageError.textContent = '';
-                    input.setCustomValidity('');
+                    imageError.style.display = 'none';
                     input.classList.remove('is-invalid');
                     input.classList.add('is-valid');
                     previewImage(input);
-                    return true;
                 };
                 img.src = URL.createObjectURL(file);
             } else {
                 imageError.textContent = '';
-                imageSizeHint.style.display = 'none';
-                input.setCustomValidity('');
-                input.classList.remove('is-valid', 'is-invalid');
-                $('#imagePreview').addClass('d-none');
+                imageError.style.display = 'none';
+                input.classList.remove('is-invalid', 'is-valid');
             }
         }
 
