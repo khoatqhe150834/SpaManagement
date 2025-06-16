@@ -25,7 +25,7 @@ import model.RoleConstants;
  * - Appointment pages (/appointment/*)
  * - Booking pages (/booking/*)
  * 
- * Unverified customers will be redirected to /verification-pending
+ * Unverified customers will be redirected to /email-verification-required
  */
 @WebFilter(filterName = "AuthorizationFilter", urlPatterns = { "/admin/*", "/manager/*", "/therapist/*",
         "/receptionist/*", "/customer/*", "/profile", "/profile/*", "/appointment", "/appointment/*", "/booking",

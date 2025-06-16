@@ -98,16 +98,18 @@ public class LoginController extends HttpServlet {
                 Customer customer = (Customer) session.getAttribute("customer");
                 try {
                     if (!customerDAO.isCustomerVerified(customer.getEmail())) {
-                        // Email not verified, redirect to verification pending page
-                        response.sendRedirect(request.getContextPath() + "/verification-pending");
+                        // Email not verified, redirect to email verification required page
+                        response.sendRedirect(request.getContextPath() + "/email-verification-required?email=" +
+                                java.net.URLEncoder.encode(customer.getEmail(), "UTF-8"));
                         return;
                     }
                 } catch (RuntimeException ex) {
                     Logger.getLogger(LoginController.class.getName()).log(Level.SEVERE,
                             "Error checking customer verification status", ex);
-                    // If verification check fails, redirect to verification pending as safety
-                    // measure
-                    response.sendRedirect(request.getContextPath() + "/verification-pending");
+                    // If verification check fails, redirect to email verification required as
+                    // safety measure
+                    response.sendRedirect(request.getContextPath() + "/email-verification-required?email=" +
+                            java.net.URLEncoder.encode(customer.getEmail(), "UTF-8"));
                     return;
                 }
                 // Customer is verified, redirect to homepage
