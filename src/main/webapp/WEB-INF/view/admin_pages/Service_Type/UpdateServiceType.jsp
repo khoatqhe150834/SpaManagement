@@ -219,22 +219,27 @@
             return true;
         }
 
-        // Validate Image
-        function validateImage(input) {
-            const imageError = document.getElementById('imageError');
-            const imageSizeHint = document.getElementById('imageSizeHint');
-            const file = input.files[0];
+        // Thay thế bằng validateImageAsync
+        async function validateImageAsync(input) {
+            return new Promise((resolve) => {
+                const imageError = document.getElementById('imageError');
+                const imageSizeHint = document.getElementById('imageSizeHint');
+                const file = input.files[0];
 
-            if (file) {
-                // Check file size (2MB = 2 * 1024 * 1024 bytes)
+                if (!file) {
+                    // Nếu không có file mới, coi như hợp lệ
+                    resolve(true);
+                    return;
+                }
+
+                // Check file size
                 if (file.size > 2 * 1024 * 1024) {
                     imageError.textContent = 'Không được upload ảnh quá 2MB.';
                     imageError.style.display = 'block';
                     imageError.style.color = 'red';
                     input.classList.add('is-invalid');
-                    return false;
-                } else {
-                    imageSizeHint.style.display = 'none';
+                    resolve(false);
+                    return;
                 }
 
                 // Check file type
@@ -244,7 +249,8 @@
                     imageError.style.display = 'block';
                     imageError.style.color = 'red';
                     input.classList.add('is-invalid');
-                    return false;
+                    resolve(false);
+                    return;
                 }
 
                 // Check image dimensions
@@ -255,7 +261,8 @@
                         imageError.style.display = 'block';
                         imageError.style.color = 'red';
                         input.classList.add('is-invalid');
-                        return false;
+                        resolve(false);
+                        return;
                     }
                     // Nếu hợp lệ
                     imageError.textContent = '';
@@ -263,13 +270,17 @@
                     input.classList.remove('is-invalid');
                     input.classList.add('is-valid');
                     previewImage(input);
+                    resolve(true);
+                };
+                img.onerror = () => {
+                    imageError.textContent = 'Ảnh không hợp lệ hoặc bị lỗi';
+                    imageError.style.color = 'red';
+                    imageError.style.display = 'block';
+                    input.classList.add('is-invalid');
+                    resolve(false);
                 };
                 img.src = URL.createObjectURL(file);
-            } else {
-                imageError.textContent = '';
-                imageError.style.display = 'none';
-                input.classList.remove('is-invalid', 'is-valid');
-            }
+            });
         }
 
         // Gắn validate realtime cho name
@@ -294,24 +305,30 @@
             validateDescription(this);
         });
 
-        // Validate image khi chọn file
-        $('#image').on('change', function() {
-            validateImage(this);
-        });
-
-        // Khi submit form, chuẩn hóa khoảng trắng
-        $('form').on('submit', function(e) {
+        // Sửa lại form submit
+        $('form').on('submit', async function(e) {
+            e.preventDefault();
+            
+            // Chuẩn hóa khoảng trắng
             let nameValue = $('#name').val();
             nameValue = nameValue.replace(/\s+/g, ' ').trim();
             $('#name').val(nameValue);
-            validateName(document.getElementById('name'));
-            validateDescription(document.getElementById('description'));
-            validateImage(document.getElementById('image'));
-            if (!this.checkValidity()) {
-                e.preventDefault();
-                e.stopPropagation();
+            
+            // Validate các trường
+            const nameValid = validateName(document.getElementById('name'));
+            const descValid = validateDescription(document.getElementById('description'));
+            const imageValid = await validateImageAsync(document.getElementById('image'));
+            
+            if (nameValid && descValid && imageValid) {
+                this.submit();
+            } else {
                 this.classList.add('was-validated');
             }
+        });
+
+        // Sửa lại event handler cho input image
+        $('#image').on('change', async function() {
+            await validateImageAsync(this);
         });
         </script>
 

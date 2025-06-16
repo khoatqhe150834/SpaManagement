@@ -195,57 +195,6 @@
                     return true;
                 }
 
-                function validateImage(input) {
-                    const imageError = document.getElementById('imageError');
-                    const imageSizeHint = document.getElementById('imageSizeHint');
-                    const file = input.files[0];
-
-                    if (file) {
-                        // Check file size (2MB = 2 * 1024 * 1024 bytes)
-                        if (file.size > 2 * 1024 * 1024) {
-                            imageError.textContent = 'Không được upload ảnh quá 2MB.';
-                            imageError.style.display = 'block';
-                            imageError.style.color = 'red';
-                            input.classList.add('is-invalid');
-                            return false;
-                        } else {
-                            imageSizeHint.style.display = 'none';
-                        }
-
-                        // Check file type
-                        const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
-                        if (!validTypes.includes(file.type)) {
-                            imageError.textContent = 'Chỉ chấp nhận file JPG, PNG hoặc GIF.';
-                            imageError.style.display = 'block';
-                            imageError.style.color = 'red';
-                            input.classList.add('is-invalid');
-                            return false;
-                        }
-
-                        // Check image dimensions
-                        const img = new Image();
-                        img.onload = function() {
-                            if (this.width < 200 || this.height < 200) {
-                                imageError.textContent = 'Kích thước ảnh phải tối thiểu 200x200px. Ảnh bạn chọn là ' + this.width + 'x' + this.height + 'px.';
-                                imageError.style.display = 'block';
-                                imageError.style.color = 'red';
-                                input.classList.add('is-invalid');
-                                return false;
-                            }
-                            // Nếu hợp lệ
-                            imageError.textContent = '';
-                            imageError.style.display = 'none';
-                            input.classList.remove('is-invalid');
-                            input.classList.add('is-valid');
-                        };
-                        img.src = URL.createObjectURL(file);
-                    } else {
-                        imageError.textContent = '';
-                        imageError.style.display = 'none';
-                        input.classList.remove('is-invalid', 'is-valid');
-                    }
-                }
-
                 function previewImage(input) {
                     const preview = document.getElementById('imagePreview');
                     const previewImg = document.getElementById('previewImg');
@@ -273,26 +222,89 @@
                     this.style.display = 'none';
                 };
 
-                // Form submission validation
-                document.getElementById('serviceTypeForm').addEventListener('submit', function (e) {
+                // Thêm hàm validateImageAsync
+                async function validateImageAsync(input) {
+                    return new Promise((resolve) => {
+                        const imageError = document.getElementById('imageError');
+                        const imageSizeHint = document.getElementById('imageSizeHint');
+                        const file = input.files[0];
+
+                        if (!file) {
+                            // Nếu không có file mới, coi như hợp lệ
+                            resolve(true);
+                            return;
+                        }
+
+                        // Check file size
+                        if (file.size > 2 * 1024 * 1024) {
+                            imageError.textContent = 'Không được upload ảnh quá 2MB.';
+                            imageError.style.display = 'block';
+                            imageError.style.color = 'red';
+                            input.classList.add('is-invalid');
+                            resolve(false);
+                            return;
+                        }
+
+                        // Check file type
+                        const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+                        if (!validTypes.includes(file.type)) {
+                            imageError.textContent = 'Chỉ chấp nhận file JPG, PNG hoặc GIF.';
+                            imageError.style.display = 'block';
+                            imageError.style.color = 'red';
+                            input.classList.add('is-invalid');
+                            resolve(false);
+                            return;
+                        }
+
+                        // Check image dimensions
+                        const img = new Image();
+                        img.onload = function() {
+                            if (this.width < 200 || this.height < 200) {
+                                imageError.textContent = 'Kích thước ảnh phải tối thiểu 200x200px. Ảnh bạn chọn là ' + this.width + 'x' + this.height + 'px.';
+                                imageError.style.display = 'block';
+                                imageError.style.color = 'red';
+                                input.classList.add('is-invalid');
+                                resolve(false);
+                                return;
+                            }
+                            // Nếu hợp lệ
+                            imageError.textContent = '';
+                            imageError.style.display = 'none';
+                            input.classList.remove('is-invalid');
+                            input.classList.add('is-valid');
+                            previewImage(input);
+                            resolve(true);
+                        };
+                        img.onerror = () => {
+                            imageError.textContent = 'Ảnh không hợp lệ hoặc bị lỗi';
+                            imageError.style.color = 'red';
+                            imageError.style.display = 'block';
+                            input.classList.add('is-invalid');
+                            resolve(false);
+                        };
+                        img.src = URL.createObjectURL(file);
+                    });
+                }
+
+                // Sửa lại form submit để đợi validate ảnh
+                $('form').on('submit', async function(e) {
                     e.preventDefault();
-
-                    // Validate all fields
-                    const name = document.getElementById('name');
-                    const description = document.getElementById('description');
-                    const image = document.getElementById('image');
-
-                    validateDescription(description);
-                    validateImage(image);
-
-                    // Check if form is valid
-                    if (this.checkValidity()) {
+                    
+                    // Chuẩn hóa khoảng trắng
+                    let nameValue = $('#name').val();
+                    nameValue = nameValue.replace(/\s+/g, ' ').trim();
+                    $('#name').val(nameValue);
+                    
+                    // Validate các trường
+                    const nameValid = validateName(document.getElementById('name'));
+                    const descValid = validateDescription(document.getElementById('description'));
+                    const imageValid = await validateImageAsync(document.getElementById('image'));
+                    
+                    if (nameValid && descValid && imageValid) {
                         this.submit();
                     } else {
-                        e.stopPropagation();
+                        this.classList.add('was-validated');
                     }
-
-                    this.classList.add('was-validated');
                 });
 
                 $(document).ready(function() {
@@ -365,36 +377,8 @@
                     });
 
                     // Image
-                    $('#image').on('change', function() {
-                        const file = this.files[0];
-                        const errorDiv = $('#imageError');
-                        if (!file) {
-                            $(this).removeClass('is-valid').addClass('is-invalid');
-                            errorDiv.text('Vui lòng chọn hình ảnh').css('color', 'red');
-                            return;
-                        }
-                        if (file.size > 2 * 1024 * 1024) {
-                            $(this).removeClass('is-valid').addClass('is-invalid');
-                            errorDiv.text('Kích thước file không được vượt quá 2MB').css('color', 'red');
-                            return;
-                        }
-                        const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
-                        if (!validTypes.includes(file.type)) {
-                            $(this).removeClass('is-valid').addClass('is-invalid');
-                            errorDiv.text('Chỉ chấp nhận file JPG, PNG hoặc GIF').css('color', 'red');
-                            return;
-                        }
-                        const img = new Image();
-                        img.onload = () => {
-                            if (img.width < 200 || img.height < 200) {
-                                $('#image').removeClass('is-valid').addClass('is-invalid');
-                                errorDiv.text('Kích thước ảnh tối thiểu phải là 200x200px').css('color', 'red');
-                            } else {
-                                $('#image').removeClass('is-invalid').addClass('is-valid');
-                                errorDiv.text('Hình ảnh hợp lệ').css('color', 'green');
-                            }
-                        };
-                        img.src = URL.createObjectURL(file);
+                    $('#image').on('change', async function() {
+                        await validateImageAsync(this);
                     });
                 });
 
