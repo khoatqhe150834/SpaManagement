@@ -152,10 +152,10 @@ contentType="text/html" pageEncoding="UTF-8"%>
                           class="form-control"
                           placeholder="0909090909"
                           type="text"
-                          pattern="[0-9]{10,11}"
-                          title="Số điện thoại phải là 10 hoặc 11 chữ số."
+                          pattern="[0-9]{10}"
+                          title="Số điện thoại phải là đúng 10 chữ số."
                           minlength="10"
-                          maxlength="11"
+                          maxlength="10"
                         />
                       </div>
                       <div class="form-group">
@@ -253,5 +253,57 @@ contentType="text/html" pageEncoding="UTF-8"%>
     
     <!-- REGISTRATION VALIDATION SCRIPT -->
     <script src="${pageContext.request.contextPath}/assets/home/js/auth/register-validation.js"></script>
+    
+    <!-- Auto-focus on full name field -->
+    <script>
+        // Focus on full name field when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            const fullNameField = document.getElementById('fullName');
+            if (fullNameField) {
+                fullNameField.focus();
+            }
+            
+            // Phone number input restriction - only allow numbers
+            const phoneField = document.getElementById('phone');
+            if (phoneField) {
+                // Prevent non-numeric characters on keydown
+                phoneField.addEventListener('keydown', function(e) {
+                    // Allow: backspace, delete, tab, escape, enter, home, end, left, right
+                    if ([8, 9, 27, 13, 46, 35, 36, 37, 39].indexOf(e.keyCode) !== -1 ||
+                        // Allow Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+                        (e.keyCode === 65 && e.ctrlKey === true) || 
+                        (e.keyCode === 67 && e.ctrlKey === true) || 
+                        (e.keyCode === 86 && e.ctrlKey === true) || 
+                        (e.keyCode === 88 && e.ctrlKey === true)) {
+                        return;
+                    }
+                    // Ensure that it is a number and stop the keypress
+                    if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+                        e.preventDefault();
+                    }
+                });
+                
+                // Clean pasted content - remove non-numeric characters
+                phoneField.addEventListener('paste', function(e) {
+                    setTimeout(() => {
+                        let value = this.value.replace(/[^0-9]/g, '');
+                        if (value.length > 10) {
+                            value = value.substring(0, 10);
+                        }
+                        this.value = value;
+                    }, 0);
+                });
+                
+                // Also prevent non-numeric input on input event (backup)
+                phoneField.addEventListener('input', function(e) {
+                    let value = this.value.replace(/[^0-9]/g, '');
+                    if (value.length > 10) {
+                        value = value.substring(0, 10);
+                    }
+                    this.value = value;
+                });
+            }
+        });
+    </script>
   </body>
 </html>
