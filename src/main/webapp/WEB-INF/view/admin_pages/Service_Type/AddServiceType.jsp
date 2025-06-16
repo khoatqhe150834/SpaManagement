@@ -173,33 +173,25 @@
                 // Validation functions
                 function validateDescription(input) {
                     const descriptionError = document.getElementById('descriptionError');
-                    let value = input.value;
-
+                    let value = input.value.trim();
                     if (value.length < 20) {
-                        input.classList.remove('is-valid');
-                        input.classList.add('is-invalid');
                         descriptionError.textContent = 'Mô tả phải có ít nhất 20 ký tự';
-                        input.setCustomValidity('Mô tả phải có ít nhất 20 ký tự');
+                        descriptionError.style.color = 'red';
+                        input.classList.add('is-invalid');
+                        input.classList.remove('is-valid');
                         return false;
                     }
                     if (value.length > 500) {
-                        input.classList.remove('is-valid');
-                        input.classList.add('is-invalid');
                         descriptionError.textContent = 'Mô tả không được vượt quá 500 ký tự';
-                        input.setCustomValidity('Mô tả không được vượt quá 500 ký tự');
-                        return false;
-                    }
-                    if (!vietnameseDescPattern.test(value)) {
-                        input.classList.remove('is-valid');
+                        descriptionError.style.color = 'red';
                         input.classList.add('is-invalid');
-                        descriptionError.textContent = 'Mô tả không được chứa ký tự đặc biệt';
-                        input.setCustomValidity('Mô tả không được chứa ký tự đặc biệt');
+                        input.classList.remove('is-valid');
                         return false;
                     }
+                    descriptionError.textContent = 'Mô tả hợp lệ';
+                    descriptionError.style.color = 'green';
                     input.classList.remove('is-invalid');
                     input.classList.add('is-valid');
-                    descriptionError.textContent = 'Mô tả hợp lệ';
-                    input.setCustomValidity('');
                     return true;
                 }
 
