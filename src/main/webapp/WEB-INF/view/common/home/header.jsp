@@ -50,9 +50,6 @@
                             <c:if test="${not empty sessionScope.customer.fullName}">
                                 <div class="dropdown-header-admin">
                                     <div class="d-flex align-items-center gap-2">
-                                        <div class="avatar-circle bg-success-100 text-success-600">
-                                            <iconify-icon icon="solar:user-outline" class="text-lg"></iconify-icon>
-                                        </div>
                                         <div>
                                             <h6 class="mb-0 fw-semibold text-neutral-900">Chào, ${sessionScope.customer.fullName}</h6>
                                             <span class="text-xs text-secondary-light">Khách hàng</span>
@@ -145,9 +142,6 @@
                             <c:if test="${not empty sessionScope.user.fullName}">
                                 <div class="dropdown-header-admin">
                                     <div class="d-flex align-items-center gap-2">
-                                        <div class="avatar-circle bg-primary-100 text-primary-600">
-                                            <iconify-icon icon="solar:shield-user-outline" class="text-lg"></iconify-icon>
-                                        </div>
                                         <div>
                                             <h6 class="mb-0 fw-semibold text-neutral-900">Chào, ${sessionScope.user.fullName}</h6>
                                             <span class="text-xs text-secondary-light">Nhân viên</span>

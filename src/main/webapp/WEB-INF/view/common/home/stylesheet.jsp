@@ -156,7 +156,8 @@ p, span, div, a, li, td, th, label {
     border-radius: 12px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
     padding: 0;
-    min-width: 280px;
+    min-width: max-content;
+    width: max-content;
     z-index: 1000;
 }
 

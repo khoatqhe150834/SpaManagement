@@ -107,7 +107,7 @@ public class MenuService {
     menuItems.add(new MenuItem("Bảng điều khiển", contextPath + "/admin/dashboard", "solar:widget-outline"));
     menuItems.add(new MenuItem("Quản lý nhân viên", contextPath + "/staff", "solar:users-group-rounded-outline"));
     menuItems.add(new MenuItem("Quản lý lịch hẹn", contextPath + "/appointment", "solar:calendar-outline"));
-    menuItems.add(new MenuItem("Quản lý dịch vụ", contextPath + "/servicetype", "solar:spa-outline"));
+    menuItems.add(new MenuItem("Quản lý dịch vụ", contextPath + "/servicetype", "solar:list-check-outline"));
     menuItems.add(new MenuItem("Báo cáo doanh thu", contextPath + "/admin/revenue-reports", "solar:chart-outline"));
     menuItems.add(new MenuItem("Cài đặt", contextPath + "/profile/settings", "solar:settings-outline"));
     menuItems.add(new MenuItem()); // Divider
