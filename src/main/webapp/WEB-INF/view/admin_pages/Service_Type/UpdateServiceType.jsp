@@ -296,6 +296,46 @@
                     });
                 }
 
+                function validateName(input) {
+                    const vietnameseNamePattern = /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂẾưăạảấầẩẫậắằẳẵặẹẻẽềềểếỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s]+$/;
+                    const value = input.value.trim();
+                    const errorDiv = document.getElementById('nameError');
+
+                    if (value === '') {
+                        input.classList.remove('is-valid');
+                        input.classList.add('is-invalid');
+                        errorDiv.textContent = 'Tên không được để trống';
+                        errorDiv.style.color = 'red';
+                        return false;
+                    }
+                    if (value.length < 2) {
+                        input.classList.remove('is-valid');
+                        input.classList.add('is-invalid');
+                        errorDiv.textContent = 'Tên phải có ít nhất 2 ký tự';
+                        errorDiv.style.color = 'red';
+                        return false;
+                    }
+                    if (value.length > 200) {
+                        input.classList.remove('is-valid');
+                        input.classList.add('is-invalid');
+                        errorDiv.textContent = 'Tên không được vượt quá 200 ký tự';
+                        errorDiv.style.color = 'red';
+                        return false;
+                    }
+                    if (!vietnameseNamePattern.test(value)) {
+                        input.classList.remove('is-valid');
+                        input.classList.add('is-invalid');
+                        errorDiv.textContent = 'Tên chỉ được chứa chữ cái và khoảng trắng (cho phép tiếng Việt có dấu)';
+                        errorDiv.style.color = 'red';
+                        return false;
+                    }
+                    input.classList.remove('is-invalid');
+                    input.classList.add('is-valid');
+                    errorDiv.textContent = 'Tên hợp lệ';
+                    errorDiv.style.color = 'green';
+                    return true;
+                }
+
                 // Sửa lại form submit để đợi validate ảnh
                 $('form').on('submit', async function (e) {
                     e.preventDefault();
@@ -401,7 +441,7 @@
 
                 function checkNameDuplicate(name, callback) {
                     $.ajax({
-                        url: '/spa/servicetype',
+                        url: '/servicetype',
                         type: 'GET',
                         data: { service: 'check-duplicate-name', name: name },
                         dataType: 'json',
