@@ -45,6 +45,12 @@
                     fullNameInput.value = '';
                 }
             }
+
+            document.getElementById('userSelect').addEventListener('change', function() {
+                var selectedOption = this.options[this.selectedIndex];
+                var fullName = selectedOption.getAttribute('data-fullname');
+                document.getElementById('fullNameInput').value = fullName || '';
+            });
         </script>
     </head>
     <body>
@@ -78,9 +84,10 @@
                                         <!-- User ID -->
                                         <div class="mb-20">
                                             <label for="userId" class="form-label fw-semibold text-primary-light text-sm mb-8">User <span class="text-danger-600">*</span></label>
-                                            <select name="userId" class="form-control radius-8" id="userId" required onchange="fetchUserFullName()">
-                                                <c:forEach var="user" items="${users}">
-                                                    <option value="${user.userId}">${user.userId}</option>
+                                            <select id="userSelect" name="userId" class="form-select" required>
+                                                <option value="">-- Select UserID --</option>
+                                                <c:forEach var="user" items="${userList}">
+                                                    <option value="${user.userId}" data-fullname="${user.fullName}">${user.userId}</option>
                                                 </c:forEach>
                                             </select>
                                         </div>
@@ -88,7 +95,7 @@
                                         <!-- Full Name (Readonly) -->
                                         <div class="mb-20">
                                             <label for="fullName" class="form-label fw-semibold text-primary-light text-sm mb-8">Full Name <span class="text-danger-600">*</span></label>
-                                            <input type="text" name="fullName" class="form-control radius-8" id="fullName" placeholder="Enter full name" required readonly />
+                                            <input type="text" id="fullNameInput" name="fullName" class="form-control" readonly />
                                         </div>
 
                                         <!-- Bio -->

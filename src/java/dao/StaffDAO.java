@@ -296,4 +296,53 @@ public int countByKeywordAndStatus(String keyword, String status) {
     return 0;
 }
 
+public List<Staff> findPaginated(int offset, int limit) {
+    List<Staff> staffList = new ArrayList<>();
+    String sql = "SELECT t.*, u.full_name, st.name AS service_type_name " +
+                 "FROM therapists t " +
+                 "JOIN users u ON t.user_id = u.user_id " +
+                 "LEFT JOIN service_types st ON t.service_type_id = st.service_type_id " +
+                 "ORDER BY t.user_id LIMIT ? OFFSET ?";
+    try (Connection conn = DBContext.getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql)) {
+        ps.setInt(1, limit);
+        ps.setInt(2, offset);
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Staff staff = mapResultSetToStaff(rs);
+                staffList.add(staff);
+            }
+        }
+    } catch (SQLException e) {
+        LOGGER.log(Level.SEVERE, "Error in findPaginated", e);
+    }
+    return staffList;
+}
+
+public int countAll() {
+    String sql = "SELECT COUNT(*) FROM therapists";
+    try (Connection conn = DBContext.getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql);
+         ResultSet rs = ps.executeQuery()) {
+        if (rs.next()) {
+            return rs.getInt(1);
+        }
+    } catch (SQLException e) {
+        LOGGER.log(Level.SEVERE, "Error in countAll", e);
+    }
+    return 0;
+}
+
+public int deactiveById(int id) {
+    String sql = "UPDATE therapists SET availability_status = 'OFFLINE' WHERE user_id = ?";
+    try (Connection conn = DBContext.getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql)) {
+        ps.setInt(1, id);
+        return ps.executeUpdate();
+    } catch (SQLException e) {
+        LOGGER.log(Level.SEVERE, "Error in deactiveById", e);
+    }
+    return 0;
+}
+
 }
