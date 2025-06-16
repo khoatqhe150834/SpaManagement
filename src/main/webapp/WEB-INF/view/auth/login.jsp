@@ -132,23 +132,27 @@ contentType="text/html" pageEncoding="UTF-8"%>
                         <label class="font-weight-700">E-MAIL *</label>
                         <input
                           name="email"
+                          id="emailInput"
                           required="true"
                           class="form-control"
                           placeholder="example@gmail.com"
                           type="email"
                           value="${attemptedEmail != null ? attemptedEmail : (prefillEmail != null ? prefillEmail : (rememberedEmail != null ? rememberedEmail : ''))}"
                         />
+                        <div id="emailError" class="field-error-message" style="display: none;"></div>
                       </div>
                       <div class="form-group">
                         <label class="font-weight-700">MẬT KHẨU *</label>
                         <input
                           name="password"
+                          id="passwordInput"
                           required="true"
                           class="form-control"
                           placeholder="******"
                           type="password"
                           value="${attemptedPassword != null ? attemptedPassword : (prefillPassword != null ? prefillPassword : (rememberedPassword != null ? rememberedPassword : ''))}"
                         />
+                        <div id="passwordError" class="field-error-message" style="display: none;"></div>
                       </div>
 
 <!-- Remember Me Checkbox -->
@@ -227,29 +231,112 @@ contentType="text/html" pageEncoding="UTF-8"%>
     <!-- JAVASCRIPT FILES ========================================= -->
     <jsp:include page="/WEB-INF/view/common/home/js.jsp"></jsp:include>
     
-    <!-- Handle password change success prefill -->
+    <!-- Common Email Validation Utility -->
+    <script src="${pageContext.request.contextPath}/assets/home/js/common/email-validation.js"></script>
+    
+    <!-- Login Form Validation -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Check if coming from password change
+            // Initialize common email validator
+            const emailValidator = EmailValidator.init('#emailInput', '#emailError');
+            
+            const passwordInput = document.getElementById('passwordInput');
+            const passwordError = document.getElementById('passwordError');
+            const loginForm = document.getElementById('loginForm');
+            
+            // Password validation function
+            function validatePassword(password) {
+                if (!password || password.trim() === '') {
+                    return 'Vui lòng nhập mật khẩu';
+                }
+                
+                if (password.length < 6) {
+                    return 'Mật khẩu phải có ít nhất 6 ký tự';
+                }
+                
+                return null;
+            }
+            
+            function showPasswordError(message) {
+                passwordError.textContent = message;
+                passwordError.style.display = 'block';
+                passwordInput.classList.add('field-error');
+                passwordInput.classList.remove('field-valid');
+            }
+            
+            function hidePasswordError() {
+                passwordError.style.display = 'none';
+                passwordError.textContent = '';
+                passwordInput.classList.remove('field-error');
+                passwordInput.classList.add('field-valid');
+            }
+            
+            function clearPasswordValidation() {
+                passwordError.style.display = 'none';
+                passwordError.textContent = '';
+                passwordInput.classList.remove('field-error', 'field-valid');
+            }
+            
+            // Real-time password validation
+            passwordInput.addEventListener('input', function() {
+                const password = this.value;
+                const error = validatePassword(password);
+                
+                if (error) {
+                    showPasswordError(error);
+                } else if (password) {
+                    hidePasswordError();
+                } else {
+                    clearPasswordValidation();
+                }
+            });
+            
+            // Form submission validation
+            loginForm.addEventListener('submit', function(e) {
+                const emailResult = emailValidator.validate();
+                const passwordValidation = validatePassword(passwordInput.value);
+                
+                let hasErrors = false;
+                
+                if (!emailResult.isValid) {
+                    hasErrors = true;
+                }
+                
+                if (passwordValidation) {
+                    showPasswordError(passwordValidation);
+                    hasErrors = true;
+                } else {
+                    hidePasswordError();
+                }
+                
+                if (hasErrors) {
+                    e.preventDefault();
+                    
+                    // Focus on first error field
+                    if (!emailResult.isValid) {
+                        emailValidator.focus();
+                    } else if (passwordValidation) {
+                        passwordInput.focus();
+                    }
+                }
+            });
+            
+            // Handle password change success prefill
             const urlParams = new URLSearchParams(window.location.search);
             const isPasswordChanged = urlParams.get('passwordChanged') === 'true';
             
             if (isPasswordChanged) {
                 // Highlight the pre-filled email field
-                const emailInput = document.querySelector('input[name="email"]');
-                if (emailInput && emailInput.value) {
+                if (emailInput.value) {
                     emailInput.classList.add('password-change-prefill');
                     
                     // Add a gentle pulse effect to draw attention
                     emailInput.style.animation = 'pulse 3s ease-in-out 2';
                     
                     // Focus on password field since email is already filled
-                    const passwordInput = document.querySelector('input[name="password"]');
-                    if (passwordInput) {
-                        setTimeout(function() {
-                            passwordInput.focus();
-                        }, 1000);
-                    }
+                    setTimeout(function() {
+                        passwordInput.focus();
+                    }, 1000);
                 }
                 
                 // Make success message more prominent
@@ -266,9 +353,6 @@ contentType="text/html" pageEncoding="UTF-8"%>
             
             if (passwordJustChanged === 'true' && loginEmail && loginPassword) {
                 // Prefill the form
-                const emailInput = document.querySelector('input[name="email"]');
-                const passwordInput = document.querySelector('input[name="password"]');
-                
                 if (emailInput && passwordInput) {
                     emailInput.value = loginEmail;
                     passwordInput.value = loginPassword;
@@ -336,6 +420,41 @@ contentType="text/html" pageEncoding="UTF-8"%>
             background-color: #f8fff8 !important;
             border-color: #28a745 !important;
             box-shadow: 0 0 8px rgba(40, 167, 69, 0.3) !important;
+        }
+        
+        /* Inline error messages without background */
+        .field-error-message {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            font-weight: 500;
+            line-height: 1.4;
+            padding: 0;
+            background: none;
+            border: none;
+            animation: fadeInError 0.3s ease-in;
+        }
+        
+        @keyframes fadeInError {
+            from {
+                opacity: 0;
+                transform: translateY(-5px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Field validation states */
+        .form-control.field-error {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+        }
+        
+        .form-control.field-valid {
+            border-color: #28a745;
+            box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
         }
     </style>
     

@@ -191,7 +191,7 @@
     <!-- JAVASCRIPT FILES ========================================= -->
     <jsp:include page="/WEB-INF/view/common/home/js.jsp"></jsp:include>
     
-    <!-- Reset Password Validation Script -->
-    <script src="${pageContext.request.contextPath}/assets/home/js/password/reset-password-validation.js"></script>
+    <!-- Unified Email Validation Utility (includes reset password functionality) -->
+    <script src="${pageContext.request.contextPath}/assets/home/js/common/email-validation.js"></script>
     </body>
 </html>
