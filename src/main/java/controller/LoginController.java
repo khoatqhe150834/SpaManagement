@@ -242,12 +242,23 @@ public class LoginController extends HttpServlet {
         // get email and password
         String email = request.getParameter("email");
         String password = request.getParameter("password");
+        String gRecaptchaResponse = request.getParameter("g-recaptcha-response");
 
         if (email == null || email.isEmpty() || password == null || password.isEmpty()) {
             request.setAttribute("error", "Các trường không được để trống.");
             // Preserve attempted values
             request.setAttribute("attemptedEmail", email != null ? email : "");
             request.setAttribute("attemptedPassword", password != null ? password : "");
+            request.getRequestDispatcher("/WEB-INF/view/auth/login.jsp").forward(request, response);
+            return;
+        }
+
+        // Verify reCAPTCHA first
+        if (!util.RecaptchaVerifier.verify(gRecaptchaResponse)) {
+            request.setAttribute("error", "Vui lòng xác thực reCAPTCHA để tiếp tục.");
+            // Preserve attempted values
+            request.setAttribute("attemptedEmail", email);
+            request.setAttribute("attemptedPassword", password);
             request.getRequestDispatcher("/WEB-INF/view/auth/login.jsp").forward(request, response);
             return;
         }
