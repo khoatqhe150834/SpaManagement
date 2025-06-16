@@ -206,13 +206,13 @@
                                                         <c:choose>
                                                             <c:when test="${stype.active}">
                                                                 <span
-                                                                    class="bg-success-focus text-success-600 border border-success-main px-24 py-4 radius-4 fw-medium text-sm">Đang
-                                                                    Hoạt Động</span>
+                                                                    class="bg-success-focus text-success-600 border border-success-main px-24 py-4 radius-4 fw-medium text-sm">Active
+                                                                    </span>
                                                             </c:when>
                                                             <c:otherwise>
                                                                 <span
-                                                                    class="bg-neutral-200 text-neutral-600 border border-neutral-400 px-24 py-4 radius-4 fw-medium text-sm">Không
-                                                                    Hoạt Động</span>
+                                                                    class="bg-neutral-200 text-neutral-600 border border-neutral-400 px-24 py-4 radius-4 fw-medium text-sm">Inactive
+                                                                    </span>
                                                             </c:otherwise>
                                                         </c:choose>
                                                     </td>

@@ -68,7 +68,7 @@
                         <div class="col-xxl-6 col-xl-8 col-lg-10">
                             <div class="card border">
                                 <div class="card-body">
-                                    <form action="servicetype" method="post" enctype="multipart/form-data">
+                                    <form action="servicetype" method="post" enctype="multipart/form-data" id="serviceTypeForm" novalidate>
                                         <input type="hidden" name="service" value="insert" />
 
                                         <!-- Name -->
@@ -76,13 +76,22 @@
                                             <label for="name" class="form-label fw-semibold text-primary-light text-sm mb-8">
                                                 Service Type Name <span class="text-danger-600">*</span>
                                             </label>
-                                            <input type="text" name="name" class="form-control radius-8" id="name" placeholder="Enter service type name" required>
+                                            <input type="text" name="name" class="form-control radius-8" id="name" 
+                                                   placeholder="Enter service type name" required
+                                                   minlength="2" maxlength="100"
+                                                   pattern="[a-zA-Z0-9\s\-]+"
+                                                   oninput="validateName(this)">
+                                            <div class="invalid-feedback" id="nameError"></div>
                                         </div>
 
                                         <!-- Description -->
                                         <div class="mb-20">
                                             <label for="description" class="form-label fw-semibold text-primary-light text-sm mb-8">Description</label>
-                                            <textarea name="description" id="description" class="form-control radius-8" placeholder="Write description..."></textarea>
+                                            <textarea name="description" id="description" class="form-control radius-8" 
+                                                      placeholder="Write description..." maxlength="500"
+                                                      oninput="validateDescription(this)"></textarea>
+                                            <div class="invalid-feedback" id="descriptionError"></div>
+                                            <small class="text-muted">Maximum 500 characters</small>
                                         </div>
 
                                         <!-- Image -->
@@ -92,12 +101,14 @@
                                             </label>
                                             <div class="d-flex gap-3 align-items-center">
                                                 <input type="file" name="image" class="form-control radius-8" id="image" 
-                                                       accept="image/*" onchange="previewImage(this);" required>
+                                                       accept="image/jpeg,image/png,image/gif" 
+                                                       onchange="validateImage(this);" required>
                                                 <div id="imagePreview" class="d-none">
                                                     <img src="" alt="Preview" class="w-100-px h-100-px rounded" id="previewImg" onclick="showImageModal(this.src)" style="cursor: pointer;">
                                                 </div>
                                             </div>
-                                            <small class="text-muted">Chấp nhận: JPG, PNG, GIF. Kích thước tối đa: 2MB</small>
+                                            <div class="invalid-feedback" id="imageError"></div>
+                                            <small class="text-muted">Chấp nhận: JPG, PNG, GIF. Kích thước tối đa: 2MB. Kích thước tối thiểu: 200x200px</small>
                                         </div>
 
                                         <!-- Status -->
@@ -130,6 +141,112 @@
         </div>
 
         <script>
+        // Validation functions
+        function validateName(input) {
+            const nameError = document.getElementById('nameError');
+            const value = input.value.trim();
+            
+            if (value.length < 2) {
+                nameError.textContent = 'Tên phải có ít nhất 2 ký tự';
+                input.setCustomValidity('Tên phải có ít nhất 2 ký tự');
+            } else if (value.length > 100) {
+                nameError.textContent = 'Tên không được vượt quá 100 ký tự';
+                input.setCustomValidity('Tên không được vượt quá 100 ký tự');
+            } else if (!/^[a-zA-Z0-9\s\-]+$/.test(value)) {
+                nameError.textContent = 'Tên không được chứa ký tự đặc biệt';
+                input.setCustomValidity('Tên không được chứa ký tự đặc biệt');
+            } else {
+                nameError.textContent = '';
+                input.setCustomValidity('');
+            }
+        }
+
+        function validateDescription(input) {
+            const descriptionError = document.getElementById('descriptionError');
+            const value = input.value.trim();
+            
+            if (value.length > 500) {
+                descriptionError.textContent = 'Mô tả không được vượt quá 500 ký tự';
+                input.setCustomValidity('Mô tả không được vượt quá 500 ký tự');
+            } else {
+                descriptionError.textContent = '';
+                input.setCustomValidity('');
+            }
+        }
+
+        function validateImage(input) {
+            const imageError = document.getElementById('imageError');
+            const file = input.files[0];
+            
+            if (file) {
+                // Check file size (2MB = 2 * 1024 * 1024 bytes)
+                if (file.size > 2 * 1024 * 1024) {
+                    imageError.textContent = 'Kích thước file không được vượt quá 2MB';
+                    input.setCustomValidity('Kích thước file không được vượt quá 2MB');
+                    input.value = '';
+                    return;
+                }
+
+                // Check file type
+                const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+                if (!validTypes.includes(file.type)) {
+                    imageError.textContent = 'Chỉ chấp nhận file JPG, PNG hoặc GIF';
+                    input.setCustomValidity('Chỉ chấp nhận file JPG, PNG hoặc GIF');
+                    input.value = '';
+                    return;
+                }
+
+                // Check image dimensions
+                const img = new Image();
+                img.onload = function() {
+                    if (this.width < 200 || this.height < 200) {
+                        imageError.textContent = 'Kích thước ảnh tối thiểu phải là 200x200px';
+                        input.setCustomValidity('Kích thước ảnh tối thiểu phải là 200x200px');
+                        input.value = '';
+                        return;
+                    }
+                    
+                    // Check aspect ratio (not too long or too wide)
+                    const ratio = this.width / this.height;
+                    if (ratio < 0.5 || ratio > 2) {
+                        imageError.textContent = 'Tỷ lệ khung hình không phù hợp';
+                        input.setCustomValidity('Tỷ lệ khung hình không phù hợp');
+                        input.value = '';
+                        return;
+                    }
+
+                    imageError.textContent = '';
+                    input.setCustomValidity('');
+                    previewImage(input);
+                };
+                img.src = URL.createObjectURL(file);
+            }
+        }
+
+        // Form submission validation
+        document.getElementById('serviceTypeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Validate all fields
+            const name = document.getElementById('name');
+            const description = document.getElementById('description');
+            const image = document.getElementById('image');
+            
+            validateName(name);
+            validateDescription(description);
+            validateImage(image);
+            
+            // Check if form is valid
+            if (this.checkValidity()) {
+                this.submit();
+            } else {
+                e.stopPropagation();
+            }
+            
+            this.classList.add('was-validated');
+        });
+
+        // Existing functions
         function previewImage(input) {
             const preview = document.getElementById('imagePreview');
             const previewImg = document.getElementById('previewImg');
