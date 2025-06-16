@@ -88,9 +88,10 @@ public class MenuService {
     menuItems.add(new MenuItem("Bảng điều khiển", contextPath + "/admin/dashboard", "solar:widget-outline"));
     menuItems
         .add(new MenuItem("Quản lý người dùng", contextPath + "/customer/list", "solar:users-group-rounded-outline"));
-    menuItems.add(new MenuItem("Quản lý dịch vụ", contextPath + "/admin/services", "solar:spa-outline"));
+    // menuItems.add(new MenuItem("Quản lý dịch vụ", contextPath + "/admin/services", "solar:settings-outline"));
     menuItems.add(new MenuItem("Báo cáo hệ thống", contextPath + "/admin/reports", "solar:chart-2-outline"));
     menuItems.add(new MenuItem("Cài đặt hệ thống", contextPath + "/admin/settings", "solar:settings-outline"));
+    menuItems.add(new MenuItem("Quản lý khuyến mãi", contextPath + "/promotion/list", "solar:settings-outline"));
     menuItems.add(new MenuItem()); // Divider
     menuItems.add(new MenuItem("Đăng xuất", contextPath + "/logout", "solar:logout-outline"));
 
