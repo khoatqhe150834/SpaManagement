@@ -54,7 +54,10 @@
                     transform: translateX(24px);
                 }
 
-                .invalid-feedback { color: red; display: block; }
+                .invalid-feedback {
+                    color: red;
+                    display: block;
+                }
             </style>
         </head>
 
@@ -104,11 +107,10 @@
                                             <!-- Description -->
                                             <div class="mb-20">
                                                 <label for="description"
-                                                    class="form-label fw-semibold text-primary-light text-sm mb-8">Mô tả <span class="text-danger-600">*</span></label>
+                                                    class="form-label fw-semibold text-primary-light text-sm mb-8">Mô tả
+                                                    <span class="text-danger-600">*</span></label>
                                                 <textarea name="description" id="description"
-                                                    class="form-control radius-8"
-                                                    placeholder="Nhập mô tả..."
-                                                    rows="7"
+                                                    class="form-control radius-8" placeholder="Nhập mô tả..." rows="7"
                                                     oninput="validateDescription(this)"></textarea>
                                                 <div class="invalid-feedback" id="descriptionError"></div>
                                                 <small class="text-muted">Tối thiểu 20 ký tự, tối đa 500 ký tự</small>
@@ -116,18 +118,25 @@
 
                                             <!-- Image -->
                                             <div class="mb-20">
-                                                <label for="image" class="form-label fw-semibold text-primary-light text-sm mb-8">Hình Ảnh</label>
+                                                <label for="image"
+                                                    class="form-label fw-semibold text-primary-light text-sm mb-8">Hình
+                                                    Ảnh</label>
                                                 <div class="d-flex gap-3 align-items-center">
-                                                    <input type="file" name="image" class="form-control radius-8" id="image"
-                                                           accept="image/jpeg,image/png,image/gif" onchange="validateImage(this);">
+                                                    <input type="file" name="image" class="form-control radius-8"
+                                                        id="image" accept="image/jpeg,image/png,image/gif"
+                                                        onchange="validateImage(this);">
                                                     <div id="imagePreview" class="d-none">
-                                                        <img src="" alt="Preview" class="w-100-px h-100-px rounded" id="previewImg" onclick="showImageModal(this.src)" style="cursor: pointer;">
+                                                        <img src="" alt="Preview" class="w-100-px h-100-px rounded"
+                                                            id="previewImg" onclick="showImageModal(this.src)"
+                                                            style="cursor: pointer;">
                                                     </div>
                                                 </div>
                                                 <div class="invalid-feedback" id="imageError"></div>
-                                                <small class="text-danger" id="imageSizeHint" style="display:none;">Không được upload ảnh quá 2MB.</small>
+                                                <small class="text-danger" id="imageSizeHint"
+                                                    style="display:none;">Không được upload ảnh quá 2MB.</small>
                                                 <small class="text-muted">
-                                                    Chấp nhận: JPG, PNG, GIF. Kích thước tối đa: 2MB. Kích thước tối thiểu: 200x200px
+                                                    Chấp nhận: JPG, PNG, GIF. Kích thước tối đa: 2MB. Kích thước tối
+                                                    thiểu: 200x200px
                                                 </small>
                                             </div>
 
@@ -200,7 +209,7 @@
                     const previewImg = document.getElementById('previewImg');
                     if (input.files && input.files[0]) {
                         const reader = new FileReader();
-                        reader.onload = function(e) {
+                        reader.onload = function (e) {
                             previewImg.src = e.target.result;
                             preview.classList.remove('d-none');
                         }
@@ -218,7 +227,7 @@
                 }
 
                 // Close modal when clicking outside the image
-                document.getElementById('imageModal').onclick = function() {
+                document.getElementById('imageModal').onclick = function () {
                     this.style.display = 'none';
                 };
 
@@ -258,7 +267,7 @@
 
                         // Check image dimensions
                         const img = new Image();
-                        img.onload = function() {
+                        img.onload = function () {
                             if (this.width < 200 || this.height < 200) {
                                 imageError.textContent = 'Kích thước ảnh phải tối thiểu 200x200px. Ảnh bạn chọn là ' + this.width + 'x' + this.height + 'px.';
                                 imageError.style.display = 'block';
@@ -287,19 +296,19 @@
                 }
 
                 // Sửa lại form submit để đợi validate ảnh
-                $('form').on('submit', async function(e) {
+                $('form').on('submit', async function (e) {
                     e.preventDefault();
-                    
+
                     // Chuẩn hóa khoảng trắng
                     let nameValue = $('#name').val();
                     nameValue = nameValue.replace(/\s+/g, ' ').trim();
                     $('#name').val(nameValue);
-                    
+
                     // Validate các trường
                     const nameValid = validateName(document.getElementById('name'));
                     const descValid = validateDescription(document.getElementById('description'));
                     const imageValid = await validateImageAsync(document.getElementById('image'));
-                    
+
                     if (nameValid && descValid && imageValid) {
                         this.submit();
                     } else {
@@ -307,15 +316,16 @@
                     }
                 });
 
-                $(document).ready(function() {
+                $(document).ready(function () {
                     const vietnameseNamePattern = /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂẾưăạảấầẩẫậắằẳẵặẹẻẽềềểếỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s]+$/;
 
-                    $('#name').on('input', function() {
-                        let value = $(this).val();
-                        // Không chuẩn hóa khoảng trắng khi đang nhập
-                        $(this).val(value);
+                    let nameCheckTimeout;
 
+                    $('#name').on('input', function () {
+                        clearTimeout(nameCheckTimeout); // reset nếu đang gõ liên tục
+                        let value = $(this).val();
                         const errorDiv = $('#nameError');
+
                         if (value === '') {
                             setInvalid('Tên không được để trống');
                             return;
@@ -332,27 +342,33 @@
                             setInvalid('Tên chỉ được chứa chữ cái và khoảng trắng (cho phép tiếng Việt có dấu)');
                             return;
                         }
+
+                        // ✅ Nếu không lỗi cơ bản → debounce kiểm tra trùng tên
                         setValid('Tên hợp lệ');
-                        checkNameDuplicate(value, function(isDuplicate, msg) {
-                            if (isDuplicate) {
-                                setInvalid(msg || 'Tên này đã tồn tại trong hệ thống');
-                            } else {
-                                setValid('Tên hợp lệ');
-                            }
-                        });
+                        nameCheckTimeout = setTimeout(() => {
+                            checkNameDuplicate(value, function (isDuplicate, msg) {
+                                if (isDuplicate) {
+                                    setInvalid(msg || 'Tên này đã tồn tại trong hệ thống');
+                                } else {
+                                    setValid('Tên hợp lệ');
+                                }
+                            });
+                        }, 400); // ⏱ chờ 400ms sau khi ngừng gõ
 
                         function setInvalid(msg) {
                             $('#name').removeClass('is-valid').addClass('is-invalid');
                             errorDiv.text(msg).css('color', 'red');
                         }
+
                         function setValid(msg) {
                             $('#name').removeClass('is-invalid').addClass('is-valid');
                             errorDiv.text(msg).css('color', 'green');
                         }
                     });
 
+
                     // Khi blur (rời khỏi input), chuẩn hóa khoảng trắng
-                    $('#name').on('blur', function() {
+                    $('#name').on('blur', function () {
                         let value = $(this).val();
                         // Chuẩn hóa: xóa khoảng trắng đầu/cuối và chuyển nhiều khoảng trắng liên tiếp thành 1 khoảng trắng
                         value = value.replace(/\s+/g, ' ').trim();
@@ -360,7 +376,7 @@
                     });
 
                     // Khi submit form, chuẩn hóa khoảng trắng
-                    $('#serviceTypeForm').on('submit', function(e) {
+                    $('#serviceTypeForm').on('submit', function (e) {
                         let nameValue = $('#name').val();
                         // Chuẩn hóa: xóa khoảng trắng đầu/cuối và chuyển nhiều khoảng trắng liên tiếp thành 1 khoảng trắng
                         nameValue = nameValue.replace(/\s+/g, ' ').trim();
@@ -368,16 +384,16 @@
                     });
 
                     // Description
-                    $('#description').on('input', function() {
+                    $('#description').on('input', function () {
                         validateDescription(this);
                     });
-                    $('#description').on('blur', function() {
+                    $('#description').on('blur', function () {
                         this.value = this.value.replace(/\s+/g, ' ').trim();
                         validateDescription(this);
                     });
 
                     // Image
-                    $('#image').on('change', async function() {
+                    $('#image').on('change', async function () {
                         await validateImageAsync(this);
                     });
                 });
@@ -388,10 +404,10 @@
                         type: 'GET',
                         data: { service: 'check-duplicate-name', name: name },
                         dataType: 'json',
-                        success: function(response) {
+                        success: function (response) {
                             callback(!response.valid, response.message);
                         },
-                        error: function() {
+                        error: function () {
                             callback(false, 'Không thể kiểm tra tên. Vui lòng thử lại.');
                         }
                     });
