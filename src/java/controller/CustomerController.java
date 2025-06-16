@@ -174,11 +174,19 @@ public class CustomerController extends HttpServlet {
 
             int totalCustomers = customers.size();
 
-            if (sortBy != null && "id".equals(sortBy) && sortOrder != null) {
-                if ("asc".equals(sortOrder)) {
-                    customers.sort(java.util.Comparator.comparing(Customer::getCustomerId));
-                } else if ("desc".equals(sortOrder)) {
-                    customers.sort(java.util.Comparator.comparing(Customer::getCustomerId).reversed());
+            if (sortBy != null && sortOrder != null) {
+                if ("id".equals(sortBy)) {
+                    if ("asc".equals(sortOrder)) {
+                        customers.sort(java.util.Comparator.comparing(Customer::getCustomerId));
+                    } else if ("desc".equals(sortOrder)) {
+                        customers.sort(java.util.Comparator.comparing(Customer::getCustomerId).reversed());
+                    }
+                } else if ("name".equals(sortBy)) {
+                    if ("asc".equals(sortOrder)) {
+                        customers.sort(java.util.Comparator.comparing(Customer::getFullName, String.CASE_INSENSITIVE_ORDER));
+                    } else if ("desc".equals(sortOrder)) {
+                        customers.sort(java.util.Comparator.comparing(Customer::getFullName, String.CASE_INSENSITIVE_ORDER).reversed());
+                    }
                 }
             }
 

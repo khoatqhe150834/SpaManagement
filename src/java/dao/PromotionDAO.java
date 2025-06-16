@@ -1,14 +1,12 @@
 package dao;
 
 import db.DBContext;
-import model.Promotion;
-
 import java.math.BigDecimal;
 import java.sql.*;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import model.Promotion;
 
 public class PromotionDAO {
     private static final Logger logger = Logger.getLogger(PromotionDAO.class.getName());
@@ -219,23 +217,22 @@ public class PromotionDAO {
         return 0;
     }
     
-        public boolean deactivatePromotion(int  promotionId) {
-        String sql = "UPDATE promotions SET is_active = 0, updated_at = ? WHERE promotion_id = ?";
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
-            ps.setInt(2,  promotionId);
-            int rowsAffected = ps.executeUpdate();
-           
-            return rowsAffected > 0;
-        } catch (SQLException e) {
-            return false;
-        }
+  public boolean deactivatePromotion(int promotionId) {
+    String sql = "UPDATE promotions SET status = 'INACTIVE', updated_at = ? WHERE promotion_id = ?";
+    try (Connection conn = DBContext.getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql)) {
+        ps.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
+        ps.setInt(2, promotionId);
+        int rowsAffected = ps.executeUpdate();
+        return rowsAffected > 0;
+    } catch (SQLException e) {
+        e.printStackTrace();
+        return false;
     }
-    
+}
     
      public boolean activatePromotion(int  promotionId) {
-        String sql = "UPDATE promotions SET is_active = 1, updated_at = ? WHERE promotion_id = ?";
+        String sql = "UPDATE promotions SET status = 'ACTIVE', updated_at = ? WHERE promotion_id = ?";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
@@ -248,7 +245,7 @@ public class PromotionDAO {
         }
     }
       public boolean scheduledPromotion(int  promotionId) {
-        String sql = "UPDATE promotions SET is_active = 1, updated_at = ? WHERE promotion_id = ?";
+        String sql = "UPDATE promotions SET SET status = 'SCHEDULED', updated_at = ? WHERE promotion_id = ?";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setTimestamp(1, new Timestamp(System.currentTimeMillis()));

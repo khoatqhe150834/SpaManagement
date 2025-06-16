@@ -99,8 +99,16 @@
                             <table class="table bordered-table sm-table mb-0">
                                 <thead>
                                     <tr>
-                                        <th scope="col">ID</th>
-                                        <th scope="col">Full Name</th>
+                                        <th scope="col">
+                                            ID
+                                            <a href="?sortBy=id&sortOrder=asc&search=${searchValue}&status=${status}&page=${currentPage}" title="Sort Ascending">&#9650;</a>
+                                            <a href="?sortBy=id&sortOrder=desc&search=${searchValue}&status=${status}&page=${currentPage}" title="Sort Descending">&#9660;</a>
+                                        </th>
+                                        <th scope="col">
+                                            Full Name
+                                            <a href="?sortBy=name&sortOrder=asc&search=${searchValue}&status=${status}&page=${currentPage}" title="Sort Name Ascending">&#9650;</a>
+                                            <a href="?sortBy=name&sortOrder=desc&search=${searchValue}&status=${status}&page=${currentPage}" title="Sort Name Descending">&#9660;</a>
+                                        </th>
                                         <th scope="col">Email</th>
                                         <th scope="col">Phone</th>
                                         <th scope="col" class="text-center">Status</th>
