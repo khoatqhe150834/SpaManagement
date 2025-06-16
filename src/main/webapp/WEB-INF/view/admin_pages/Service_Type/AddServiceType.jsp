@@ -349,10 +349,20 @@
                     const descValid = validateDescription(document.getElementById('description'));
                     const imageValid = await validateImageAsync(document.getElementById('image'));
 
+                    // Nếu có lỗi, giữ nguyên border đỏ, không set xanh
                     if (nameValid && descValid && imageValid) {
                         this.submit();
                     } else {
-                        this.classList.add('was-validated');
+                        // Đảm bảo các trường lỗi giữ class is-invalid, không set is-valid
+                        if (!nameValid) {
+                            $('#name').removeClass('is-valid').addClass('is-invalid');
+                        }
+                        if (!descValid) {
+                            $('#description').removeClass('is-valid').addClass('is-invalid');
+                        }
+                        if (!imageValid) {
+                            $('#image').removeClass('is-valid').addClass('is-invalid');
+                        }
                     }
                 });
 
