@@ -114,23 +114,19 @@
 
                                             <!-- Image -->
                                             <div class="mb-20">
-                                                <label for="image"
-                                                    class="form-label fw-semibold text-primary-light text-sm mb-8">
-                                                    Hình Ảnh <span class="text-danger-600">*</span>
-                                                </label>
+                                                <label for="image" class="form-label fw-semibold text-primary-light text-sm mb-8">Hình Ảnh</label>
                                                 <div class="d-flex gap-3 align-items-center">
-                                                    <input type="file" name="image" class="form-control radius-8"
-                                                        id="image" accept="image/jpeg,image/png,image/gif"
-                                                        onchange="validateImage(this);" required>
+                                                    <input type="file" name="image" class="form-control radius-8" id="image"
+                                                           accept="image/jpeg,image/png,image/gif" onchange="validateImage(this);">
                                                     <div id="imagePreview" class="d-none">
-                                                        <img src="" alt="Preview" class="w-100-px h-100-px rounded"
-                                                            id="previewImg" onclick="showImageModal(this.src)"
-                                                            style="cursor: pointer;">
+                                                        <img src="" alt="Preview" class="w-100-px h-100-px rounded" id="previewImg" onclick="showImageModal(this.src)" style="cursor: pointer;">
                                                     </div>
                                                 </div>
                                                 <div class="invalid-feedback" id="imageError"></div>
-                                                <small class="text-muted">Chấp nhận: JPG, PNG, GIF. Kích thước tối đa:
-                                                    2MB. Kích thước tối thiểu: 200x200px</small>
+                                                <small class="text-danger" id="imageSizeHint" style="display:none;">Không được upload ảnh quá 2MB.</small>
+                                                <small class="text-muted">
+                                                    Chấp nhận: JPG, PNG, GIF. Kích thước tối đa: 2MB. Kích thước tối thiểu: 200x200px
+                                                </small>
                                             </div>
 
                                             <!-- Status -->
@@ -207,15 +203,21 @@
 
                 function validateImage(input) {
                     const imageError = document.getElementById('imageError');
+                    const imageSizeHint = document.getElementById('imageSizeHint');
                     const file = input.files[0];
 
                     if (file) {
                         // Check file size (2MB = 2 * 1024 * 1024 bytes)
                         if (file.size > 2 * 1024 * 1024) {
                             imageError.textContent = 'Kích thước file không được vượt quá 2MB';
+                            imageSizeHint.style.display = 'block';
                             input.setCustomValidity('Kích thước file không được vượt quá 2MB');
-                            input.value = '';
-                            return;
+                            input.classList.remove('is-valid');
+                            input.classList.add('is-invalid');
+                            $('#imagePreview').addClass('d-none');
+                            return false;
+                        } else {
+                            imageSizeHint.style.display = 'none';
                         }
 
                         // Check file type
@@ -223,18 +225,22 @@
                         if (!validTypes.includes(file.type)) {
                             imageError.textContent = 'Chỉ chấp nhận file JPG, PNG hoặc GIF';
                             input.setCustomValidity('Chỉ chấp nhận file JPG, PNG hoặc GIF');
-                            input.value = '';
-                            return;
+                            input.classList.remove('is-valid');
+                            input.classList.add('is-invalid');
+                            $('#imagePreview').addClass('d-none');
+                            return false;
                         }
 
                         // Check image dimensions
                         const img = new Image();
-                        img.onload = function () {
+                        img.onload = function() {
                             if (this.width < 200 || this.height < 200) {
                                 imageError.textContent = 'Kích thước ảnh tối thiểu phải là 200x200px';
                                 input.setCustomValidity('Kích thước ảnh tối thiểu phải là 200x200px');
-                                input.value = '';
-                                return;
+                                input.classList.remove('is-valid');
+                                input.classList.add('is-invalid');
+                                $('#imagePreview').addClass('d-none');
+                                return false;
                             }
 
                             // Check aspect ratio (not too long or too wide)
@@ -242,17 +248,49 @@
                             if (ratio < 0.5 || ratio > 2) {
                                 imageError.textContent = 'Tỷ lệ khung hình không phù hợp';
                                 input.setCustomValidity('Tỷ lệ khung hình không phù hợp');
-                                input.value = '';
-                                return;
+                                input.classList.remove('is-valid');
+                                input.classList.add('is-invalid');
+                                $('#imagePreview').addClass('d-none');
+                                return false;
                             }
 
+                            // If all validations pass
                             imageError.textContent = '';
                             input.setCustomValidity('');
+                            input.classList.remove('is-invalid');
+                            input.classList.add('is-valid');
                             previewImage(input);
                         };
                         img.src = URL.createObjectURL(file);
                     }
                 }
+
+                function previewImage(input) {
+                    const preview = document.getElementById('imagePreview');
+                    const previewImg = document.getElementById('previewImg');
+                    if (input.files && input.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            previewImg.src = e.target.result;
+                            preview.classList.remove('d-none');
+                        }
+                        reader.readAsDataURL(input.files[0]);
+                    } else {
+                        preview.classList.add('d-none');
+                    }
+                }
+
+                function showImageModal(src) {
+                    const modal = document.getElementById('imageModal');
+                    const modalImg = document.getElementById('modalImg');
+                    modal.style.display = 'flex';
+                    modalImg.src = src;
+                }
+
+                // Close modal when clicking outside the image
+                document.getElementById('imageModal').onclick = function() {
+                    this.style.display = 'none';
+                };
 
                 // Form submission validation
                 document.getElementById('serviceTypeForm').addEventListener('submit', function (e) {
@@ -275,39 +313,6 @@
 
                     this.classList.add('was-validated');
                 });
-
-                // Existing functions
-                function previewImage(input) {
-                    const preview = document.getElementById('imagePreview');
-                    const previewImg = document.getElementById('previewImg');
-
-                    if (input.files && input.files[0]) {
-                        const reader = new FileReader();
-
-                        reader.onload = function (e) {
-                            previewImg.src = e.target.result;
-                            preview.classList.remove('d-none');
-                        }
-
-                        reader.readAsDataURL(input.files[0]);
-                    } else {
-                        preview.classList.add('d-none');
-                    }
-                }
-
-                function showImageModal(src) {
-                    var modal = document.getElementById('imageModal');
-                    var modalImg = document.getElementById('modalImg');
-                    modalImg.src = src;
-                    modal.style.display = 'flex';
-                    // Đóng modal khi click ra ngoài ảnh
-                    modal.onclick = function (e) {
-                        if (e.target === modal) {
-                            modal.style.display = 'none';
-                            modalImg.src = '';
-                        }
-                    }
-                }
 
                 $(document).ready(function() {
                     const vietnameseNamePattern = /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂẾưăạảấầẩẫậắằẳẵặẹẻẽềềểếỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s]+$/;
