@@ -49,30 +49,28 @@
             <div class="card h-100 p-0 radius-12">
                 <div class="card-header border-bottom bg-base py-16 px-24 d-flex align-items-center flex-wrap gap-3 justify-content-between">
                     <div class="d-flex align-items-center flex-wrap gap-3">
-                        <span class="text-md fw-medium text-secondary-light mb-0">Hiển thị</span>
-                        <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px">
-                            <option>1</option>
-                            <option>2</option>
-                            <option>3</option>
-                            <option>4</option>
-                            <option>5</option>
-                            <option>6</option>
-                            <option>7</option>
-                            <option>8</option>
-                            <option>9</option>
-                            <option>10</option>
-                        </select>
-                        <form class="navbar-search" method="get" action="staff">
-                            <input type="text" class="bg-base h-40-px w-auto" name="search" value="${param.search}" placeholder="Tìm kiếm">
-                            <iconify-icon icon="ion:search-outline" class="icon"></iconify-icon>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-md fw-medium text-secondary-light mb-0">Hiển thị</span>
+                            <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px" id="limitSelect" onchange="changeLimit(this.value)">
+                                <c:forEach var="i" begin="1" end="10">
+                                    <option value="${i}" ${limit == i ? 'selected' : ''}>${i}</option>
+                                </c:forEach>
+                            </select>
+                            <span class="text-md fw-medium text-secondary-light mb-0">mục</span>
+                        </div>
+                        <form class="navbar-search d-flex gap-2 align-items-center" method="get" action="staff">
+                            <input type="text" class="bg-base h-40-px w-auto" name="keyword" placeholder="Tìm kiếm theo tên hoặc loại dịch vụ" value="${keyword}">
+                            <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px" name="status">
+                                <option value="">Trạng thái</option>
+                                <option value="available" ${status=='available' ? 'selected' : '' }>Available</option>
+                                <option value="busy" ${status=='busy' ? 'selected' : '' }>Busy</option>
+                                <option value="offline" ${status=='offline' ? 'selected' : '' }>Offline</option>
+                                <option value="on_leave" ${status=='on_leave' ? 'selected' : '' }>On Leave</option>
+                            </select>
+                            <input type="hidden" name="service" value="search" />
+                            <input type="hidden" name="limit" value="${limit}" />
+                            <button type="submit" class="btn btn-primary h-40-px radius-12">Tìm kiếm</button>
                         </form>
-                        <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px" name="availabilityStatus">
-                            <option>Status</option>
-                            <option value="Available" ${availabilityStatus == 'Available' ? 'selected' : ''}>Available</option>
-                            <option value="Busy" ${availabilityStatus == 'Busy' ? 'selected' : ''}>Busy</option>
-                            <option value="OffLine" ${availabilityStatus == 'OffLine' ? 'selected' : ''}>Offline</option>
-                            <option value="On Leave" ${availabilityStatus == 'On Leave' ? 'selected' : ''}>On Leave</option>
-                        </select>
                     </div>
                     <a href="staff?service=pre-insert" class="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2">
                         <iconify-icon icon="ic:baseline-plus" class="icon text-xl line-height-1"></iconify-icon>
@@ -81,80 +79,47 @@
                 </div>
 
                 <div class="card-body p-24">
-                    <div class="table-responsive scroll-sm">
-                        <table class="table bordered-table sm-table mb-0">
+                    <div class="table-responsive">
+                        <table class="table bordered-table sm-table mb-0 responsive-table">
                             <thead>
                                 <tr>
-                                    <th scope="col">
-                                        <div class="d-flex align-items-center gap-10">
-                                            <div class="form-check style-check d-flex align-items-center">
-                                                <input class="form-check-input radius-4 border input-form-dark" type="checkbox" name="checkbox" id="selectAll">
-                                            </div>
-                                            ID
-                                        </div>
-                                    </th>
-                                    <th scope="col">Tên</th>
-                                    <th scope="col">Loại Dịch Vụ</th>
-                                    <th scope="col">Tiểu Sử</th>
-                                    <th scope="col" class="text-center">Trạng Thái</th>
-                                    <th scope="col">Kinh Nghiệm (Năm)</th>
-                                    <th scope="col" class="text-center">Hành Động</th>
+                                    <th>ID</th>
+                                    <th>Tên</th>
+                                    <th>Loại Dịch Vụ</th>
+                                    <th>Tiểu Sử</th>
+                                    <th>Trạng Thái</th>
+                                    <th>Kinh Nghiệm (Năm)</th>
+                                    <th>Hành Động</th>
                                 </tr>
                             </thead>
-
                             <tbody>
-                                <c:forEach var="therapist" items="${staffList}" varStatus="status">
+                                <c:forEach var="staff" items="${staffList}">
                                     <tr>
+                                        <td>${staff.user.userId}</td>
+                                        <td>${staff.user.fullName}</td>
+                                        <td>${staff.serviceType.name}</td>
                                         <td>
-                                            <div class="d-flex align-items-center gap-10">
-                                                <div class="form-check style-check d-flex align-items-center">
-                                                    <input class="form-check-input radius-4 border input-form-dark" type="checkbox" name="checkbox" value="${therapist.user.userId}">
-                                                </div>
-                                                ${status.index + 1} <!-- Hiển thị số thứ tự -->
+                                            <div class="limit-description" data-bs-toggle="tooltip" data-bs-title="${staff.bio}">
+                                                ${staff.bio}
                                             </div>
                                         </td>
-
-                                        <td>${therapist.user.fullName}</td> <!-- Tên Nhân Viên -->
-
-                                        <td>
-                                            <c:if test="${not empty therapist.serviceType}">
-                                                ${therapist.serviceType.name} <!-- Loại Dịch Vụ -->
-                                            </c:if>
-                                        </td>
-
-                                        <td>
-                                            <div class="bio-wrap">${therapist.bio}</div>
-                                        </td>
-
                                         <td class="text-center">
-                                            <c:choose>
-                                                <c:when test="${therapist.availabilityStatus == 'AVAILABLE'}">
-                                                    <span class="bg-success-focus text-success-600 border border-success-main px-24 py-4 radius-4 fw-medium text-sm">Available</span>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <span class="bg-neutral-200 text-neutral-600 border border-neutral-400 px-24 py-4 radius-4 fw-medium text-sm">${therapist.availabilityStatus}</span>
-                                                </c:otherwise>
-                                            </c:choose>
+                                            <span class="bg-${staff.availabilityStatus == 'AVAILABLE' ? 'success-focus text-success-600 border border-success-main' : staff.availabilityStatus == 'BUSY' ? 'warning-focus text-warning-600 border border-warning-main' : staff.availabilityStatus == 'OFFLINE' ? 'neutral-200 text-neutral-600 border border-neutral-400' : 'danger-focus text-danger-600 border border-danger-main'} px-24 py-4 radius-4 fw-medium text-sm">
+                                                ${staff.availabilityStatus}
+                                            </span>
                                         </td>
-
-                                        <td>${therapist.yearsOfExperience}</td> <!-- Kinh Nghiệm -->
-
+                                        <td class="text-center">${staff.yearsOfExperience}</td>
                                         <td class="text-center">
                                             <div class="d-flex align-items-center gap-10 justify-content-center">
-                                                <!-- View button -->
-                                                <a href="staff?service=viewById&id=${therapist.user.userId}" class="bg-info-focus text-info-600 w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
-                                                    <iconify-icon icon="majesticons:eye-line" class="icon text-xl"></iconify-icon>
+                                                <a href="staff?service=view&id=${staff.user.userId}" class="bg-info-focus text-info-600 bg-hover-info-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle" data-bs-toggle="tooltip" data-bs-title="Xem chi tiết">
+                                                    <iconify-icon icon="solar:eye-bold"></iconify-icon>
                                                 </a>
-
-                                                <!-- Edit button -->
-                                                <a href="staff?service=pre-update&id=${therapist.user.userId}" class="bg-success-focus text-success-600 w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
-                                                    <iconify-icon icon="lucide:edit" class="menu-icon"></iconify-icon>
+                                                <a href="staff?service=pre-update&id=${staff.user.userId}" class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle" data-bs-toggle="tooltip" data-bs-title="Chỉnh sửa">
+                                                    <iconify-icon icon="lucide:edit"></iconify-icon>
                                                 </a>
-
-                                                <!-- Deactivate button -->
-                                                <a href="staff?service=deactiveById&id=${therapist.user.userId}" class="remove-item-btn bg-warning-focus bg-hover-warning-200 text-warning-600 w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle" onclick="return confirm('Bạn có chắc chắn muốn vô hiệu hóa nhân viên này?');">
-                                                    <iconify-icon icon="uil:calendar" class="menu-icon"></iconify-icon> <!-- Calendar icon -->
-                                                </a>
+                                                <button onclick="deleteStaff(${staff.user.userId})" class="bg-danger-focus bg-hover-danger-200 text-danger-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle" data-bs-toggle="tooltip" data-bs-title="Xóa">
+                                                    <iconify-icon icon="solar:trash-bin-trash-bold"></iconify-icon>
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -164,27 +129,53 @@
                     </div>
 
                     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-24">
-                        <span>Hiển thị từ ${start} đến ${end} của ${totalEntries} mục</span>
+                        <c:set var="start" value="${(currentPage - 1) * limit + 1}" />
+                        <c:set var="end" value="${currentPage * limit > totalEntries ? totalEntries : currentPage * limit}" />
+                        <span>
+                            Hiển thị ${start} đến ${end} của ${totalEntries} mục
+                        </span>
                         <ul class="pagination d-flex flex-wrap align-items-center gap-2 justify-content-center">
-                            <!-- Previous button -->
+                            <!-- Previous -->
                             <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
-                                <a class="page-link" href="staff?service=list-all&page=${currentPage - 1}&limit=${limit}">
-                                    <iconify-icon icon="ep:d-arrow-left"></iconify-icon>
-                                </a>
+                                <c:choose>
+                                    <c:when test="${currentPage == 1}">
+                                        <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px disabled">
+                                            <iconify-icon icon="ep:d-arrow-left"></iconify-icon>
+                                        </a>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px"
+                                           href="staff?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${currentPage - 1}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}">
+                                            <iconify-icon icon="ep:d-arrow-left"></iconify-icon>
+                                        </a>
+                                    </c:otherwise>
+                                </c:choose>
                             </li>
-
                             <!-- Page numbers -->
                             <c:forEach var="i" begin="1" end="${totalPages}">
                                 <li class="page-item ${i == currentPage ? 'active' : ''}">
-                                    <a class="page-link" href="staff?service=list-all&page=${i}&limit=${limit}">${i}</a>
+                                    <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px
+                                        ${i == currentPage ? 'bg-primary-600 text-white' : 'bg-neutral-200 text-secondary-light'}"
+                                       href="staff?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${i}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}">
+                                        ${i}
+                                    </a>
                                 </li>
                             </c:forEach>
-
-                            <!-- Next button -->
+                            <!-- Next -->
                             <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
-                                <a class="page-link" href="staff?service=list-all&page=${currentPage + 1}&limit=${limit}">
-                                    <iconify-icon icon="ep:d-arrow-right"></iconify-icon>
-                                </a>
+                                <c:choose>
+                                    <c:when test="${currentPage == totalPages}">
+                                        <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px disabled">
+                                            <iconify-icon icon="ep:d-arrow-right"></iconify-icon>
+                                        </a>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px"
+                                           href="staff?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${currentPage + 1}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}">
+                                            <iconify-icon icon="ep:d-arrow-right"></iconify-icon>
+                                        </a>
+                                    </c:otherwise>
+                                </c:choose>
                             </li>
                         </ul>
                     </div>

@@ -22,70 +22,56 @@ public class StaffController extends HttpServlet {
     private final String STAFF_INSERT_VIEW = "WEB-INF/view/admin_pages/Staff/AddStaff.jsp";
 
     @Override
-protected void doGet(HttpServletRequest request, HttpServletResponse response)
-        throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String service = request.getParameter("service");
+        if (service == null || service.isEmpty()) {
+            service = "list-all";
+        }
 
-    String service = request.getParameter("service");
-    String searchQuery = request.getParameter("search"); // Lấy giá trị search từ query string
+        StaffDAO staffDAO = new StaffDAO();
 
-    if (service == null) {
-        service = "list-all";
-    }
+        // Lấy các tham số phân trang, tìm kiếm, lọc
+        int limit = 5;
+        if (request.getParameter("limit") != null) {
+            try {
+                limit = Integer.parseInt(request.getParameter("limit"));
+            } catch (Exception ignored) {}
+        }
+        int page = 1;
+        if (request.getParameter("page") != null) {
+            try {
+                page = Integer.parseInt(request.getParameter("page"));
+            } catch (Exception ignored) {}
+        }
+        int offset = (page - 1) * limit;
+        String keyword = request.getParameter("keyword");
+        String status = request.getParameter("status");
 
-    // Tìm kiếm nhân viên theo name hoặc serviceType
-    if ("list-all".equals(service)) {
         List<Staff> staffList;
-        if (searchQuery != null && !searchQuery.trim().isEmpty()) {
-            staffList = new StaffDAO().searchByNameOrServiceType(searchQuery);
+        int totalEntries;
+        int totalPages;
+
+        // Xử lý search/filter/list-all
+        if ("search".equals(service)) {
+            staffList = staffDAO.searchByKeywordAndStatus(keyword, status, offset, limit);
+            totalEntries = staffDAO.countByKeywordAndStatus(keyword, status);
         } else {
-            staffList = new StaffDAO().findAll();
+            staffList = staffDAO.searchByKeywordAndStatus(null, null, offset, limit);
+            totalEntries = staffDAO.countByKeywordAndStatus(null, null);
         }
+        totalPages = (int) Math.ceil((double) totalEntries / limit);
+
+        // Truyền dữ liệu sang JSP
         request.setAttribute("staffList", staffList);
+        request.setAttribute("currentPage", page);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("totalEntries", totalEntries);
+        request.setAttribute("limit", limit);
+        request.setAttribute("keyword", keyword);
+        request.setAttribute("status", status);
+
         request.getRequestDispatcher(STAFF_MANAGER_VIEW).forward(request, response);
-    } else if ("pre-insert".equals(service)) {
-            // Truyền dữ liệu ServiceType và User vào AddStaff.jsp
-            List<ServiceType> serviceTypes = new ServiceTypeDAO().findAll();
-            List<User> users = new UserDAO().findAll();  // Lấy danh sách người dùng
-            request.setAttribute("serviceTypes", serviceTypes);
-            request.setAttribute("users", users);  // Truyền danh sách user vào JSP
-            request.getRequestDispatcher(STAFF_INSERT_VIEW).forward(request, response);
-        } else if ("pre-update".equals(service)) {
-            String idParam = request.getParameter("id");
-            if (idParam == null || idParam.isEmpty()) {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "ID is missing or empty.");
-                return;
-            }
-
-            try {
-                int userId = Integer.parseInt(idParam);
-                Optional<Staff> staff = new StaffDAO().findById(userId);
-                if (staff.isPresent()) {
-                    // Lấy thông tin service types để hiển thị trên giao diện
-                    List<ServiceType> serviceTypes = new ServiceTypeDAO().findAll();
-                    request.setAttribute("staff", staff.get());
-                    request.setAttribute("serviceTypes", serviceTypes);
-                    request.getRequestDispatcher(STAFF_UPDATE_VIEW).forward(request, response);
-                } else {
-                    response.sendError(HttpServletResponse.SC_NOT_FOUND, "Staff not found");
-                }
-            } catch (NumberFormatException e) {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid ID format.");
-            }
-        } else if ("delete".equals(service)) {
-            String idParam = request.getParameter("id");
-            if (idParam == null || idParam.isEmpty()) {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "ID is missing or empty.");
-                return;
-            }
-
-            try {
-                int userId = Integer.parseInt(idParam);
-                new StaffDAO().deleteById(userId);
-                response.sendRedirect("staff");
-            } catch (NumberFormatException e) {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid ID format.");
-            }
-        }
     }
 
     @Override
