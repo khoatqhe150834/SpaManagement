@@ -168,18 +168,26 @@
 
             <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
             <script>
+                const vietnameseDescPattern = /^[a-zA-Z0-9ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂẾưăạảấầẩẫậắằẳẵặẹẻẽềềểếỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s.,\-()!?:;"'\n\r]+$/;
+
                 // Validation functions
                 function validateDescription(input) {
                     const descriptionError = document.getElementById('descriptionError');
-                    const value = input.value.trim();
+                    let value = input.value;
 
+                    // Không chuẩn hóa khi đang nhập
                     if (value.length > 500) {
                         descriptionError.textContent = 'Mô tả không được vượt quá 500 ký tự';
                         input.setCustomValidity('Mô tả không được vượt quá 500 ký tự');
-                    } else {
-                        descriptionError.textContent = '';
-                        input.setCustomValidity('');
+                        return;
                     }
+                    if (!vietnameseDescPattern.test(value)) {
+                        descriptionError.textContent = 'Mô tả không được chứa ký tự đặc biệt';
+                        input.setCustomValidity('Mô tả không được chứa ký tự đặc biệt');
+                        return;
+                    }
+                    descriptionError.textContent = '';
+                    input.setCustomValidity('');
                 }
 
                 function validateImage(input) {
@@ -411,6 +419,21 @@
                 var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
                 tooltipTriggerList.map(function (tooltipTriggerEl) {
                     return new bootstrap.Tooltip(tooltipTriggerEl);
+                });
+
+                // Khi blur, chuẩn hóa khoảng trắng liên tiếp thành 1 dấu cách
+                $('#description').on('blur', function() {
+                    let value = $(this).val();
+                    value = value.replace(/\s+/g, ' ').trim();
+                    $(this).val(value);
+                    validateDescription(this);
+                });
+
+                // Khi submit form, chuẩn hóa description
+                $('#serviceTypeForm').on('submit', function(e) {
+                    let descValue = $('#description').val();
+                    descValue = descValue.replace(/\s+/g, ' ').trim();
+                    $('#description').val(descValue);
                 });
             </script>
         </body>
