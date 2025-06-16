@@ -102,12 +102,14 @@
                                             <!-- Description -->
                                             <div class="mb-20">
                                                 <label for="description"
-                                                    class="form-label fw-semibold text-primary-light text-sm mb-8">Description</label>
+                                                    class="form-label fw-semibold text-primary-light text-sm mb-8">Mô tả <span class="text-danger-600">*</span></label>
                                                 <textarea name="description" id="description"
-                                                    class="form-control radius-8" placeholder="Write description..."
-                                                    maxlength="500" oninput="validateDescription(this)"></textarea>
+                                                    class="form-control radius-8"
+                                                    placeholder="Nhập mô tả..."
+                                                    rows="7"
+                                                    oninput="validateDescription(this)"></textarea>
                                                 <div class="invalid-feedback" id="descriptionError"></div>
-                                                <small class="text-muted">Maximum 500 characters</small>
+                                                <small class="text-muted">Tối thiểu 20 ký tự, tối đa 500 ký tự</small>
                                             </div>
 
                                             <!-- Image -->
@@ -175,19 +177,32 @@
                     const descriptionError = document.getElementById('descriptionError');
                     let value = input.value;
 
-                    // Không chuẩn hóa khi đang nhập
+                    if (value.length < 20) {
+                        input.classList.remove('is-valid');
+                        input.classList.add('is-invalid');
+                        descriptionError.textContent = 'Mô tả phải có ít nhất 20 ký tự';
+                        input.setCustomValidity('Mô tả phải có ít nhất 20 ký tự');
+                        return false;
+                    }
                     if (value.length > 500) {
+                        input.classList.remove('is-valid');
+                        input.classList.add('is-invalid');
                         descriptionError.textContent = 'Mô tả không được vượt quá 500 ký tự';
                         input.setCustomValidity('Mô tả không được vượt quá 500 ký tự');
-                        return;
+                        return false;
                     }
                     if (!vietnameseDescPattern.test(value)) {
+                        input.classList.remove('is-valid');
+                        input.classList.add('is-invalid');
                         descriptionError.textContent = 'Mô tả không được chứa ký tự đặc biệt';
                         input.setCustomValidity('Mô tả không được chứa ký tự đặc biệt');
-                        return;
+                        return false;
                     }
-                    descriptionError.textContent = '';
+                    input.classList.remove('is-invalid');
+                    input.classList.add('is-valid');
+                    descriptionError.textContent = 'Mô tả hợp lệ';
                     input.setCustomValidity('');
+                    return true;
                 }
 
                 function validateImage(input) {
@@ -356,15 +371,11 @@
 
                     // Description
                     $('#description').on('input', function() {
-                        const value = $(this).val().trim();
-                        const errorDiv = $('#descriptionError');
-                        if (value.length > 500) {
-                            $(this).removeClass('is-valid').addClass('is-invalid');
-                            errorDiv.text('Mô tả không được vượt quá 500 ký tự').css('color', 'red');
-                        } else {
-                            $(this).removeClass('is-invalid').addClass('is-valid');
-                            errorDiv.text('Mô tả hợp lệ').css('color', 'green');
-                        }
+                        validateDescription(this);
+                    });
+                    $('#description').on('blur', function() {
+                        this.value = this.value.replace(/\s+/g, ' ').trim();
+                        validateDescription(this);
                     });
 
                     // Image
@@ -419,21 +430,6 @@
                 var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
                 tooltipTriggerList.map(function (tooltipTriggerEl) {
                     return new bootstrap.Tooltip(tooltipTriggerEl);
-                });
-
-                // Khi blur, chuẩn hóa khoảng trắng liên tiếp thành 1 dấu cách
-                $('#description').on('blur', function() {
-                    let value = $(this).val();
-                    value = value.replace(/\s+/g, ' ').trim();
-                    $(this).val(value);
-                    validateDescription(this);
-                });
-
-                // Khi submit form, chuẩn hóa description
-                $('#serviceTypeForm').on('submit', function(e) {
-                    let descValue = $('#description').val();
-                    descValue = descValue.replace(/\s+/g, ' ').trim();
-                    $('#description').val(descValue);
                 });
             </script>
         </body>
