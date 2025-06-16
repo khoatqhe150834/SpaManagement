@@ -21,6 +21,7 @@ import java.util.logging.Logger;
 import service.email.EmailService;
 import service.email.AsyncEmailService;
 import model.PasswordResetToken;
+import org.mindrot.jbcrypt.BCrypt;
 
 /**
  * Extended ResetPasswordController that handles both Customer and User account
@@ -286,12 +287,32 @@ public class ResetPasswordController extends HttpServlet {
         }
 
         try {
+            // Validate that new password is different from current password
+            String currentPasswordHash = null;
+            boolean isCustomer = false;
+
+            if (accountDAO.isCustomerEmailExists(email)) {
+                currentPasswordHash = accountDAO.getCustomerPasswordHash(email);
+                isCustomer = true;
+            } else if (accountDAO.isUserEmailExists(email)) {
+                currentPasswordHash = accountDAO.getUserPasswordHash(email);
+                isCustomer = false;
+            }
+
+            // Check if new password is the same as current password
+            if (currentPasswordHash != null && BCrypt.checkpw(newPassword, currentPasswordHash)) {
+                request.setAttribute("error",
+                        "Mật khẩu mới phải khác với mật khẩu hiện tại. Vui lòng chọn mật khẩu khác.");
+                request.getRequestDispatcher("/WEB-INF/view/password/change-password.jsp").forward(request, response);
+                return;
+            }
+
             boolean updated = false;
 
             // Update password based on account type
-            if (accountDAO.isCustomerEmailExists(email)) {
+            if (isCustomer) {
                 updated = accountDAO.updateCustomerPassword(email, newPassword);
-            } else if (accountDAO.isUserEmailExists(email)) {
+            } else {
                 updated = accountDAO.updateUserPassword(email, newPassword);
             }
 

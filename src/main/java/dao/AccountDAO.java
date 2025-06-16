@@ -15,7 +15,7 @@ import org.mindrot.jbcrypt.BCrypt;
 public class AccountDAO {
 
   // Account type constants
- 
+
   /**
    * Checks if an email exists in either customers or users table
    * 
@@ -68,7 +68,6 @@ public class AccountDAO {
    * @param email The email to check
    * @return ACCOUNT_TYPE_CUSTOMER, ACCOUNT_TYPE_USER, or null if not found
    */
- 
 
   /**
    * Determines which table (customer or user) contains the given phone number
@@ -76,7 +75,6 @@ public class AccountDAO {
    * @param phone The phone number to check
    * @return ACCOUNT_TYPE_CUSTOMER, ACCOUNT_TYPE_USER, or null if not found
    */
- 
 
   /**
    * Checks if an email exists in the customers table specifically
@@ -202,6 +200,54 @@ public class AccountDAO {
     } catch (SQLException e) {
       throw new RuntimeException("Error updating password: " + e.getMessage(), e);
     }
+  }
+
+  /**
+   * Gets the current password hash for a customer
+   * 
+   * @param email The customer's email
+   * @return The current password hash, or null if customer not found
+   * @throws SQLException if database error occurs
+   */
+  public String getCustomerPasswordHash(String email) throws SQLException {
+    if (email == null || email.trim().isEmpty()) {
+      return null;
+    }
+    String sql = "SELECT hash_password FROM customers WHERE email = ?";
+    try (Connection conn = DBContext.getConnection();
+        PreparedStatement ps = conn.prepareStatement(sql)) {
+      ps.setString(1, email);
+      try (ResultSet rs = ps.executeQuery()) {
+        if (rs.next()) {
+          return rs.getString("hash_password");
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Gets the current password hash for a user
+   * 
+   * @param email The user's email
+   * @return The current password hash, or null if user not found
+   * @throws SQLException if database error occurs
+   */
+  public String getUserPasswordHash(String email) throws SQLException {
+    if (email == null || email.trim().isEmpty()) {
+      return null;
+    }
+    String sql = "SELECT hash_password FROM users WHERE email = ?";
+    try (Connection conn = DBContext.getConnection();
+        PreparedStatement ps = conn.prepareStatement(sql)) {
+      ps.setString(1, email);
+      try (ResultSet rs = ps.executeQuery()) {
+        if (rs.next()) {
+          return rs.getString("hash_password");
+        }
+      }
+    }
+    return null;
   }
 
 }
