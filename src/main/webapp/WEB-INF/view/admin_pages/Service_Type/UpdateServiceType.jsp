@@ -110,8 +110,6 @@
                                                 Chọn ảnh mới nếu muốn thay đổi. Nếu không chọn, sẽ giữ ảnh cũ.<br>
                                                 Chấp nhận: JPG, PNG, GIF. Kích thước tối đa: 2MB. Kích thước tối thiểu: 200x200px
                                             </small>
-                                            <input type="text" name="image_url" class="form-control radius-8 mt-2" id="image_url"
-                                                   value="${stype.imageUrl}" placeholder="Hoặc nhập đường dẫn ảnh (nếu có)" />
                                         </div>
 
                                         <!-- Status -->
