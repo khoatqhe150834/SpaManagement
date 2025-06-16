@@ -156,13 +156,25 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
 
     private Staff mapResultSetToStaff(ResultSet rs) throws SQLException {
         Staff staff = new Staff();
-        staff.setUser(new User());
-        staff.getUser().setUserId(rs.getInt("user_id"));
+        
+        // Set User information
+        User user = new User();
+        user.setUserId(rs.getInt("user_id"));
+        user.setFullName(rs.getString("full_name"));
+        staff.setUser(user);
+        
+        // Set ServiceType information
+        ServiceType serviceType = new ServiceType();
+        serviceType.setName(rs.getString("service_type_name"));
+        staff.setServiceType(serviceType);
+        
+        // Set other staff information
         staff.setBio(rs.getString("bio"));
         staff.setAvailabilityStatus(Staff.AvailabilityStatus.valueOf(rs.getString("availability_status")));
         staff.setYearsOfExperience(rs.getInt("years_of_experience"));
         staff.setCreatedAt(rs.getTimestamp("created_at"));
         staff.setUpdatedAt(rs.getTimestamp("updated_at"));
+        
         return staff;
     }
 
@@ -211,5 +223,77 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
     return staffList;
 }
 
+// Lấy danh sách staff phân trang, có thể lọc theo keyword và status
+public List<Staff> searchByKeywordAndStatus(String keyword, String status, int offset, int limit) {
+    List<Staff> staffList = new ArrayList<>();
+    StringBuilder sql = new StringBuilder(
+        "SELECT t.*, u.full_name, st.name AS service_type_name " +
+        "FROM therapists t " +
+        "JOIN users u ON t.user_id = u.user_id " +
+        "LEFT JOIN service_types st ON t.service_type_id = st.service_type_id WHERE 1=1"
+    );
+    List<Object> params = new ArrayList<>();
+    if (keyword != null && !keyword.trim().isEmpty()) {
+        sql.append(" AND (LOWER(u.full_name) LIKE ? OR LOWER(st.name) LIKE ?)");
+        params.add("%" + keyword.toLowerCase() + "%");
+        params.add("%" + keyword.toLowerCase() + "%");
+    }
+    if (status != null && !status.isEmpty()) {
+        sql.append(" AND t.availability_status = ?");
+        params.add(status.toUpperCase());
+    }
+    sql.append(" ORDER BY t.user_id LIMIT ? OFFSET ?");
+    params.add(limit);
+    params.add(offset);
+
+    try (Connection conn = DBContext.getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+        for (int i = 0; i < params.size(); i++) {
+            ps.setObject(i + 1, params.get(i));
+        }
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Staff staff = mapResultSetToStaff(rs);
+                staffList.add(staff);
+            }
+        }
+    } catch (SQLException e) {
+        LOGGER.log(Level.SEVERE, "Error in searchByKeywordAndStatus", e);
+    }
+    return staffList;
+}
+
+// Đếm tổng số staff theo filter
+public int countByKeywordAndStatus(String keyword, String status) {
+    StringBuilder sql = new StringBuilder(
+        "SELECT COUNT(*) FROM therapists t " +
+        "JOIN users u ON t.user_id = u.user_id " +
+        "LEFT JOIN service_types st ON t.service_type_id = st.service_type_id WHERE 1=1"
+    );
+    List<Object> params = new ArrayList<>();
+    if (keyword != null && !keyword.trim().isEmpty()) {
+        sql.append(" AND (LOWER(u.full_name) LIKE ? OR LOWER(st.name) LIKE ?)");
+        params.add("%" + keyword.toLowerCase() + "%");
+        params.add("%" + keyword.toLowerCase() + "%");
+    }
+    if (status != null && !status.isEmpty()) {
+        sql.append(" AND t.availability_status = ?");
+        params.add(status.toUpperCase());
+    }
+    try (Connection conn = DBContext.getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+        for (int i = 0; i < params.size(); i++) {
+            ps.setObject(i + 1, params.get(i));
+        }
+        try (ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        }
+    } catch (SQLException e) {
+        LOGGER.log(Level.SEVERE, "Error in countByKeywordAndStatus", e);
+    }
+    return 0;
+}
 
 }
