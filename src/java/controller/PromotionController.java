@@ -245,7 +245,7 @@ private void handleViewPromotion(HttpServletRequest request, HttpServletResponse
             throws ServletException, IOException {
 
         request.setAttribute("isEdit", false);
-        request.getRequestDispatcher("/WEB-INF/view/promotion/form.jsp")
+        request.getRequestDispatcher("/WEB-INF/view/admin_pages/promotion_edit.jsp")
                 .forward(request, response);
     }
 
@@ -265,7 +265,7 @@ private void handleViewPromotion(HttpServletRequest request, HttpServletResponse
             if (promotionOpt.isPresent()) {
                 request.setAttribute("promotion", promotionOpt.get());
                 request.setAttribute("isEdit", true);
-                request.getRequestDispatcher("/WEB-INF/view/promotion/form.jsp")
+                request.getRequestDispatcher("/WEB-INF/view/admin_pages/promotion_edit.jsp")
                         .forward(request, response);
             } else {
                 throw new IllegalArgumentException("Promotion not found with ID: " + promotionId);
@@ -273,7 +273,10 @@ private void handleViewPromotion(HttpServletRequest request, HttpServletResponse
 
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error displaying edit form", e);
-            handleError(request, response, "Error displaying edit form: " + e.getMessage(), "error");
+            request.setAttribute("error", "Error displaying edit form: " + e.getMessage());
+            request.setAttribute("isEdit", true);
+            request.getRequestDispatcher("/WEB-INF/view/admin_pages/promotion_edit.jsp")
+                    .forward(request, response);
         }
     }
 
@@ -322,7 +325,7 @@ private void handleViewPromotion(HttpServletRequest request, HttpServletResponse
             logger.log(Level.SEVERE, "Error creating promotion", e);
             request.setAttribute("error", "Error creating promotion: " + e.getMessage());
             request.setAttribute("isEdit", false);
-            request.getRequestDispatcher("/WEB-INF/view/promotion/form.jsp")
+            request.getRequestDispatcher("/WEB-INF/view/admin_pages/promotion_form.jsp")
                     .forward(request, response);
         }
     }
@@ -378,7 +381,7 @@ private void handleViewPromotion(HttpServletRequest request, HttpServletResponse
             logger.log(Level.SEVERE, "Error updating promotion", e);
             request.setAttribute("error", "Error updating promotion: " + e.getMessage());
             request.setAttribute("isEdit", true);
-            request.getRequestDispatcher("/WEB-INF/view/promotion/form.jsp")
+            request.getRequestDispatcher("/WEB-INF/view/admin_pages/promotion_form.jsp")
                     .forward(request, response);
         }
     }
