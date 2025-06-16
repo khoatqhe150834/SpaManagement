@@ -1,0 +1,1 @@
+web: java $JAVA_OPTS -jar target/dependency/webapp-runner.jar --port $PORT --enable-compression --max-threads 50 --session-timeout 30 target/*.war 
