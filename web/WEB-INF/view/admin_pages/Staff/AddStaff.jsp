@@ -46,10 +46,19 @@
                 }
             }
 
-            document.getElementById('userSelect').addEventListener('change', function() {
-                var selectedOption = this.options[this.selectedIndex];
-                var fullName = selectedOption.getAttribute('data-fullname');
-                document.getElementById('fullNameInput').value = fullName || '';
+            document.addEventListener('DOMContentLoaded', function() {
+                document.getElementById('userSelect').addEventListener('change', function() {
+                    var userId = this.value;
+                    if (userId) {
+                        fetch('<c:url value="/ajax/user-fullname"/>?userId=' + userId)
+                            .then(response => response.json())
+                            .then(data => {
+                                document.getElementById('fullNameInput').value = data.fullName || '';
+                            });
+                    } else {
+                        document.getElementById('fullNameInput').value = '';
+                    }
+                });
             });
         </script>
     </head>
@@ -87,7 +96,7 @@
                                             <select id="userSelect" name="userId" class="form-select" required>
                                                 <option value="">-- Select UserID --</option>
                                                 <c:forEach var="user" items="${userList}">
-                                                    <option value="${user.userId}" data-fullname="${user.fullName}">${user.userId}</option>
+                                                    <option value="${user.userId}">${user.userId}</option>
                                                 </c:forEach>
                                             </select>
                                         </div>
