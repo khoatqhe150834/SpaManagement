@@ -75,17 +75,23 @@
                                         <!-- Name -->
                                         <div class="mb-20">
                                             <label for="name" class="form-label fw-semibold text-primary-light text-sm mb-8">
-                                                Service Type Name <span class="text-danger-600">*</span>
+                                                Tên loại dịch vụ <span class="text-danger-600">*</span>
                                             </label>
                                             <input type="text" name="name" class="form-control radius-8" id="name"
-                                                   value="${stype.name}" required />
+                                                   value="${stype.name}" required placeholder="Nhập tên loại dịch vụ" />
+                                            <div class="invalid-feedback" id="nameError"></div>
                                         </div>
 
                                         <!-- Description -->
                                         <div class="mb-20">
-                                            <label for="description" class="form-label fw-semibold text-primary-light text-sm mb-8">Description</label>
+                                            <label for="description" class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                                Mô tả <span class="text-danger-600">*</span>
+                                            </label>
                                             <textarea name="description" id="description" class="form-control radius-8"
-                                                      placeholder="Write description...">${stype.description}</textarea>
+                                                      placeholder="Nhập mô tả..." rows="7"
+                                                      oninput="validateDescription(this)">${stype.description}</textarea>
+                                            <div class="invalid-feedback" id="descriptionError"></div>
+                                            <small class="text-muted">Tối thiểu 20 ký tự, tối đa 500 ký tự</small>
                                         </div>
 
                                         <!-- Image -->
@@ -93,12 +99,17 @@
                                             <label for="image" class="form-label fw-semibold text-primary-light text-sm mb-8">Hình Ảnh</label>
                                             <div class="d-flex gap-3 align-items-center">
                                                 <input type="file" name="image" class="form-control radius-8" id="image"
-                                                       accept="image/*" onchange="previewImage(this);">
+                                                       accept="image/jpeg,image/png,image/gif" onchange="validateImage(this);">
                                                 <div id="imagePreview" class="${empty stype.imageUrl ? 'd-none' : ''}">
                                                     <img src="${stype.imageUrl}" alt="Preview" class="w-100-px h-100-px rounded" id="previewImg" onclick="showImageModal(this.src)" style="cursor: pointer;">
                                                 </div>
                                             </div>
-                                            <small class="text-muted">Chọn ảnh mới nếu muốn thay đổi. Nếu không chọn, sẽ giữ ảnh cũ.</small>
+                                            <div class="invalid-feedback" id="imageError"></div>
+                                            <small class="text-danger" id="imageSizeHint" style="display:none;">Không được upload ảnh quá 2MB.</small>
+                                            <small class="text-muted">
+                                                Chọn ảnh mới nếu muốn thay đổi. Nếu không chọn, sẽ giữ ảnh cũ.<br>
+                                                Chấp nhận: JPG, PNG, GIF. Kích thước tối đa: 2MB. Kích thước tối thiểu: 200x200px
+                                            </small>
                                             <input type="text" name="image_url" class="form-control radius-8 mt-2" id="image_url"
                                                    value="${stype.imageUrl}" placeholder="Hoặc nhập đường dẫn ảnh (nếu có)" />
                                         </div>
@@ -127,6 +138,8 @@
             </div>
         </div>
 
+        <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
+
         <script>
         function previewImage(input) {
             const preview = document.getElementById('imagePreview');
@@ -142,6 +155,191 @@
                 preview.classList.add('d-none');
             }
         }
+
+        const vietnameseNamePattern = /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂẾưăạảấầẩẫậắằẳẵặẹẻẽềềểếỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s]+$/;
+        const vietnameseDescPattern = /^[a-zA-Z0-9ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂẾưăạảấầẩẫậắằẳẵặẹẻẽềềểếỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s.,\-()!?:;"'\n\r]+$/;
+
+        // Validate Name
+        function validateName(input) {
+            const errorDiv = $('#nameError');
+            let value = $(input).val();
+
+            if (value.trim() === '') {
+                setInvalid('Tên không được để trống');
+                return false;
+            }
+            if (value.length < 2) {
+                setInvalid('Tên phải có ít nhất 2 ký tự');
+                return false;
+            }
+            if (value.length > 200) {
+                setInvalid('Tên không được vượt quá 200 ký tự');
+                return false;
+            }
+            if (!vietnameseNamePattern.test(value)) {
+                setInvalid('Tên chỉ được chứa chữ cái và khoảng trắng (cho phép tiếng Việt có dấu)');
+                return false;
+            }
+            setValid('Tên hợp lệ');
+            return true;
+
+            function setInvalid(msg) {
+                $(input).removeClass('is-valid').addClass('is-invalid');
+                errorDiv.text(msg).css('color', 'red');
+                input.setCustomValidity(msg);
+            }
+            function setValid(msg) {
+                $(input).removeClass('is-invalid').addClass('is-valid');
+                errorDiv.text(msg).css('color', 'green');
+                input.setCustomValidity('');
+            }
+        }
+
+        // Validate Description
+        function validateDescription(input) {
+            const descriptionError = document.getElementById('descriptionError');
+            let value = input.value;
+
+            if (value.length < 20) {
+                input.classList.remove('is-valid');
+                input.classList.add('is-invalid');
+                descriptionError.textContent = 'Mô tả phải có ít nhất 20 ký tự';
+                input.setCustomValidity('Mô tả phải có ít nhất 20 ký tự');
+                return false;
+            }
+            if (value.length > 500) {
+                input.classList.remove('is-valid');
+                input.classList.add('is-invalid');
+                descriptionError.textContent = 'Mô tả không được vượt quá 500 ký tự';
+                input.setCustomValidity('Mô tả không được vượt quá 500 ký tự');
+                return false;
+            }
+            if (!vietnameseDescPattern.test(value)) {
+                input.classList.remove('is-valid');
+                input.classList.add('is-invalid');
+                descriptionError.textContent = 'Mô tả không được chứa ký tự đặc biệt';
+                input.setCustomValidity('Mô tả không được chứa ký tự đặc biệt');
+                return false;
+            }
+            input.classList.remove('is-invalid');
+            input.classList.add('is-valid');
+            descriptionError.textContent = 'Mô tả hợp lệ';
+            input.setCustomValidity('');
+            return true;
+        }
+
+        // Validate Image
+        function validateImage(input) {
+            const imageError = document.getElementById('imageError');
+            const imageSizeHint = document.getElementById('imageSizeHint');
+            const file = input.files[0];
+
+            if (file) {
+                // Check file size (2MB = 2 * 1024 * 1024 bytes)
+                if (file.size > 2 * 1024 * 1024) {
+                    imageError.textContent = 'Kích thước file không được vượt quá 2MB';
+                    imageSizeHint.style.display = 'block';
+                    input.setCustomValidity('Kích thước file không được vượt quá 2MB');
+                    input.classList.remove('is-valid');
+                    input.classList.add('is-invalid');
+                    $('#imagePreview').addClass('d-none');
+                    return false;
+                } else {
+                    imageSizeHint.style.display = 'none';
+                }
+
+                // Check file type
+                const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+                if (!validTypes.includes(file.type)) {
+                    imageError.textContent = 'Chỉ chấp nhận file JPG, PNG hoặc GIF';
+                    input.setCustomValidity('Chỉ chấp nhận file JPG, PNG hoặc GIF');
+                    input.classList.remove('is-valid');
+                    input.classList.add('is-invalid');
+                    $('#imagePreview').addClass('d-none');
+                    return false;
+                }
+
+                // Check image dimensions
+                const img = new Image();
+                img.onload = function () {
+                    if (this.width < 200 || this.height < 200) {
+                        imageError.textContent = 'Kích thước ảnh tối thiểu phải là 200x200px';
+                        input.setCustomValidity('Kích thước ảnh tối thiểu phải là 200x200px');
+                        input.classList.remove('is-valid');
+                        input.classList.add('is-invalid');
+                        $('#imagePreview').addClass('d-none');
+                        return false;
+                    }
+
+                    // Check aspect ratio (not too long or too wide)
+                    const ratio = this.width / this.height;
+                    if (ratio < 0.5 || ratio > 2) {
+                        imageError.textContent = 'Tỷ lệ khung hình không phù hợp';
+                        input.setCustomValidity('Tỷ lệ khung hình không phù hợp');
+                        input.classList.remove('is-valid');
+                        input.classList.add('is-invalid');
+                        $('#imagePreview').addClass('d-none');
+                        return false;
+                    }
+
+                    imageError.textContent = '';
+                    input.setCustomValidity('');
+                    input.classList.remove('is-invalid');
+                    input.classList.add('is-valid');
+                    previewImage(input);
+                    return true;
+                };
+                img.src = URL.createObjectURL(file);
+            } else {
+                imageError.textContent = '';
+                imageSizeHint.style.display = 'none';
+                input.setCustomValidity('');
+                input.classList.remove('is-valid', 'is-invalid');
+                $('#imagePreview').addClass('d-none');
+            }
+        }
+
+        // Gắn validate realtime cho name
+        $('#name').on('input', function() {
+            validateName(this);
+        });
+
+        // Khi blur (rời khỏi input), chuẩn hóa khoảng trắng và validate lại
+        $('#name').on('blur', function() {
+            let value = $(this).val();
+            value = value.replace(/\s+/g, ' ').trim();
+            $(this).val(value);
+            validateName(this);
+        });
+
+        // Gắn validate realtime cho description
+        $('#description').on('input', function() {
+            validateDescription(this);
+        });
+        $('#description').on('blur', function() {
+            this.value = this.value.replace(/\s+/g, ' ').trim();
+            validateDescription(this);
+        });
+
+        // Validate image khi chọn file
+        $('#image').on('change', function() {
+            validateImage(this);
+        });
+
+        // Khi submit form, chuẩn hóa khoảng trắng
+        $('form').on('submit', function(e) {
+            let nameValue = $('#name').val();
+            nameValue = nameValue.replace(/\s+/g, ' ').trim();
+            $('#name').val(nameValue);
+            validateName(document.getElementById('name'));
+            validateDescription(document.getElementById('description'));
+            validateImage(document.getElementById('image'));
+            if (!this.checkValidity()) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.classList.add('was-validated');
+            }
+        });
         </script>
 
         <!-- Modal hiển thị ảnh lớn -->
@@ -164,6 +362,6 @@
         }
         </script>
 
-        <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
+        
     </body>
 </html>

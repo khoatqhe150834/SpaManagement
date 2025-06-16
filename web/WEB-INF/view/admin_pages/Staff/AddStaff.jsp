@@ -45,6 +45,21 @@
                     fullNameInput.value = '';
                 }
             }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                document.getElementById('userSelect').addEventListener('change', function() {
+                    var userId = this.value;
+                    if (userId) {
+                        fetch('<c:url value="/ajax/user-fullname"/>?userId=' + userId)
+                            .then(response => response.json())
+                            .then(data => {
+                                document.getElementById('fullNameInput').value = data.fullName || '';
+                            });
+                    } else {
+                        document.getElementById('fullNameInput').value = '';
+                    }
+                });
+            });
         </script>
     </head>
     <body>
@@ -78,8 +93,9 @@
                                         <!-- User ID -->
                                         <div class="mb-20">
                                             <label for="userId" class="form-label fw-semibold text-primary-light text-sm mb-8">User <span class="text-danger-600">*</span></label>
-                                            <select name="userId" class="form-control radius-8" id="userId" required onchange="fetchUserFullName()">
-                                                <c:forEach var="user" items="${users}">
+                                            <select id="userSelect" name="userId" class="form-select" required>
+                                                <option value="">-- Select UserID --</option>
+                                                <c:forEach var="user" items="${userList}">
                                                     <option value="${user.userId}">${user.userId}</option>
                                                 </c:forEach>
                                             </select>
@@ -88,7 +104,7 @@
                                         <!-- Full Name (Readonly) -->
                                         <div class="mb-20">
                                             <label for="fullName" class="form-label fw-semibold text-primary-light text-sm mb-8">Full Name <span class="text-danger-600">*</span></label>
-                                            <input type="text" name="fullName" class="form-control radius-8" id="fullName" placeholder="Enter full name" required readonly />
+                                            <input type="text" id="fullNameInput" name="fullName" class="form-control" readonly />
                                         </div>
 
                                         <!-- Bio -->
