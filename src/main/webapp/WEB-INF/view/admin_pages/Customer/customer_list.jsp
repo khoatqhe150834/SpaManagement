@@ -55,6 +55,9 @@
                     <li>-</li>
                     <li class="fw-medium">Customer List</li>
                 </ul>
+                <a href="${pageContext.request.contextPath}/" class="btn btn-outline-primary ms-auto">
+                    <iconify-icon icon="mdi:arrow-left" class="me-1"></iconify-icon> Quay về trang chủ
+                </a>
             </div>
             
             <%-- Hiển thị thông báo thành công --%>

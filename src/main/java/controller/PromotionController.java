@@ -1,13 +1,5 @@
 package controller;
 
-import dao.PromotionDAO;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import model.Promotion;
-
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
@@ -18,6 +10,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import dao.PromotionDAO;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import model.Promotion;
 
 /**
  * Controller handling promotion-related requests URL Pattern: /promotion/*
@@ -213,7 +213,7 @@ public class PromotionController extends HttpServlet {
             logger.info(String.format("Loaded promotion list - Page: %d, Size: %d, Total: %d, Found: %d",
                     page, pageSize, totalPromotions, promotions.size()));
 
-            request.getRequestDispatcher("/WEB-INF/view/admin_pages/promotion_list.jsp")
+            request.getRequestDispatcher("/WEB-INF/view/admin_pages/Promotion/promotion_list.jsp")
                     .forward(request, response);
 
         } catch (Exception e) {
@@ -251,7 +251,7 @@ public class PromotionController extends HttpServlet {
             if (promotionOpt.isPresent()) {
                 request.setAttribute("promotion", promotionOpt.get());
 
-                request.getRequestDispatcher("/WEB-INF/view/admin_pages/promotion_details.jsp").forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/view/admin_pages/Promotion/promotion_details.jsp").forward(request, response);
             } else {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "Promotion not found with ID: " + promotionId);
             }
@@ -269,9 +269,8 @@ public class PromotionController extends HttpServlet {
      */
     private void handleShowCreateForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
-        request.setAttribute("isEdit", false);
-        request.getRequestDispatcher("/WEB-INF/view/admin_pages/promotion_edit.jsp")
+        request.setAttribute("promotionInput", new Promotion());
+        request.getRequestDispatcher("/WEB-INF/view/admin_pages/Promotion/promotion_add.jsp")
                 .forward(request, response);
     }
 
@@ -291,7 +290,7 @@ public class PromotionController extends HttpServlet {
             if (promotionOpt.isPresent()) {
                 request.setAttribute("promotion", promotionOpt.get());
                 request.setAttribute("isEdit", true);
-                request.getRequestDispatcher("/WEB-INF/view/admin_pages/promotion_edit.jsp")
+                request.getRequestDispatcher("/WEB-INF/view/admin_pages/Promotion/promotion_edit.jsp")
                         .forward(request, response);
             } else {
                 throw new IllegalArgumentException("Promotion not found with ID: " + promotionId);
@@ -301,7 +300,7 @@ public class PromotionController extends HttpServlet {
             logger.log(Level.SEVERE, "Error displaying edit form", e);
             request.setAttribute("error", "Error displaying edit form: " + e.getMessage());
             request.setAttribute("isEdit", true);
-            request.getRequestDispatcher("/WEB-INF/view/admin_pages/promotion_edit.jsp")
+            request.getRequestDispatcher("/WEB-INF/view/admin_pages/Promotion/promotion_edit.jsp")
                     .forward(request, response);
         }
     }
@@ -311,19 +310,65 @@ public class PromotionController extends HttpServlet {
      */
     private void handleCreatePromotion(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
+        java.util.Map<String, String> errors = new java.util.HashMap<>();
+        Promotion promotionInput = new Promotion();
         try {
-            // Get and validate data
+            // Lấy và validate dữ liệu
             String title = getStringParameter(request, "title");
             String promotionCode = getStringParameter(request, "promotionCode");
             String discountType = getStringParameter(request, "discountType");
             String discountValueStr = getStringParameter(request, "discountValue");
             String description = getStringParameter(request, "description");
             String status = getStringParameter(request, "status", "SCHEDULED");
+            String startDateStr = getStringParameter(request, "startDate");
+            String endDateStr = getStringParameter(request, "endDate");
 
-            validatePromotionData(title, promotionCode, discountType, discountValueStr);
+            // Gán lại dữ liệu nhập cho promotionInput để giữ lại khi có lỗi
+            promotionInput.setTitle(title);
+            promotionInput.setPromotionCode(promotionCode);
+            promotionInput.setDiscountType(discountType);
+            promotionInput.setDescription(description);
+            promotionInput.setStatus(status);
+            promotionInput.setDiscountValue(discountValueStr != null && !discountValueStr.isEmpty() ? new BigDecimal(discountValueStr) : null);
+            promotionInput.setStartDate(startDateStr != null && !startDateStr.isEmpty() ? java.time.LocalDate.parse(startDateStr).atStartOfDay() : null);
+            promotionInput.setEndDate(endDateStr != null && !endDateStr.isEmpty() ? java.time.LocalDate.parse(endDateStr).atStartOfDay() : null);
 
-            // Create promotion object
+            // Validate từng trường
+            if (title == null || title.trim().length() < 3) {
+                errors.put("title", "Title must be at least 3 characters long");
+            }
+            if (promotionCode == null || !promotionCode.matches("^[A-Z0-9]{3,10}$")) {
+                errors.put("promotionCode", "Promotion code must be 3-10 characters, containing only uppercase letters and numbers");
+            }
+            if (!"PERCENTAGE".equalsIgnoreCase(discountType) && !"FIXED".equalsIgnoreCase(discountType)) {
+                errors.put("discountType", "Discount type must be 'PERCENTAGE' or 'FIXED'");
+            }
+            try {
+                BigDecimal discountValue = new BigDecimal(discountValueStr);
+                if (discountValue.compareTo(BigDecimal.ZERO) <= 0) {
+                    errors.put("discountValue", "Discount value must be greater than 0");
+                }
+            } catch (Exception e) {
+                errors.put("discountValue", "Invalid discount value");
+            }
+            if (description == null || description.trim().isEmpty()) {
+                errors.put("description", "Description is required");
+            }
+            if (startDateStr == null || startDateStr.isEmpty()) {
+                errors.put("startDate", "Start date is required");
+            }
+            if (endDateStr == null || endDateStr.isEmpty()) {
+                errors.put("endDate", "End date is required");
+            }
+            // Nếu có lỗi, forward lại form với dữ liệu và lỗi
+            if (!errors.isEmpty()) {
+                request.setAttribute("errors", errors);
+                request.setAttribute("promotionInput", promotionInput);
+                request.getRequestDispatcher("/WEB-INF/view/admin_pages/Promotion/promotion_add.jsp").forward(request, response);
+                return;
+            }
+
+            // Nếu hợp lệ, tạo promotion mới và lưu
             Promotion promotion = new Promotion();
             promotion.setTitle(title);
             promotion.setPromotionCode(promotionCode != null ? promotionCode.toUpperCase() : null);
@@ -331,28 +376,24 @@ public class PromotionController extends HttpServlet {
             promotion.setDiscountValue(new BigDecimal(discountValueStr));
             promotion.setDescription(description);
             promotion.setStatus(status);
-            promotion.setStartDate(LocalDateTime.now());
-            promotion.setEndDate(LocalDateTime.now().plusMonths(1));
+            promotion.setStartDate(startDateStr != null && !startDateStr.isEmpty() ? java.time.LocalDate.parse(startDateStr).atStartOfDay() : null);
+            promotion.setEndDate(endDateStr != null && !endDateStr.isEmpty() ? java.time.LocalDate.parse(endDateStr).atStartOfDay() : null);
             promotion.setCurrentUsageCount(0);
             promotion.setIsAutoApply(false);
             promotion.setMinimumAppointmentValue(BigDecimal.ZERO);
             promotion.setApplicableScope("ENTIRE_APPOINTMENT");
 
-            // Save promotion
             promotionDAO.save(promotion);
-
             logger.info("Promotion created successfully: " + promotion.getPromotionId());
-
             request.setAttribute("toastMessage", "Promotion created successfully");
             request.setAttribute("toastType", "success");
             handleListPromotions(request, response);
-
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error creating promotion", e);
             request.setAttribute("error", "Error creating promotion: " + e.getMessage());
-            request.setAttribute("isEdit", false);
-            request.getRequestDispatcher("/WEB-INF/view/admin_pages/promotion_form.jsp")
-                    .forward(request, response);
+            request.setAttribute("promotionInput", promotionInput);
+            request.setAttribute("errors", errors);
+            request.getRequestDispatcher("/WEB-INF/view/admin_pages/Promotion/promotion_add.jsp").forward(request, response);
         }
     }
 
@@ -419,7 +460,7 @@ public class PromotionController extends HttpServlet {
             logger.log(Level.SEVERE, "Error updating promotion", e);
             request.setAttribute("error", "Error updating promotion: " + e.getMessage());
             request.setAttribute("isEdit", true);
-            request.getRequestDispatcher("/WEB-INF/view/admin_pages/promotion_edit.jsp")
+            request.getRequestDispatcher("/WEB-INF/view/admin_pages/Promotion/promotion_edit.jsp")
                     .forward(request, response);
         }
     }
@@ -457,7 +498,7 @@ public class PromotionController extends HttpServlet {
 
         request.setAttribute("toastMessage", errorMessage);
         request.setAttribute("toastType", toastType);
-        request.getRequestDispatcher("/WEB-INF/view/admin_pages/promotion_list.jsp")
+        request.getRequestDispatcher("/WEB-INF/view/admin_pages/Promotion/promotion_list.jsp")
                 .forward(request, response);
     }
 

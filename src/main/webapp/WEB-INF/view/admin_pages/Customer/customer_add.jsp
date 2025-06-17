@@ -5,6 +5,8 @@
 <head>
     <title>Add New Customer</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/admin/css/style.css"/>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/admin/css/remixicon.css"/>
     <style>
         .container { max-width: 500px; margin-top: 40px; }
         .form-label { font-weight: 500; }
@@ -23,6 +25,9 @@
     </style>
 </head>
 <body>
+     <jsp:include page="/WEB-INF/view/common/admin/sidebar.jsp" />
+        <jsp:include page="/WEB-INF/view/common/admin/header.jsp" />
+
 <div class="container">
     <h3 class="mb-4 text-center text-primary">Add New Customer</h3>
     

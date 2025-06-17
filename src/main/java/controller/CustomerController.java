@@ -1,5 +1,18 @@
 package controller;
 
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.sql.Date;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+
 import dao.AccountDAO;
 import dao.CustomerDAO;
 import jakarta.servlet.ServletException;
@@ -7,19 +20,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import model.Customer;
-import java.util.Optional;
-import java.sql.Date;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Complete CustomerController with proper error handling and validation URL
@@ -212,7 +213,7 @@ public class CustomerController extends HttpServlet {
             request.setAttribute("sortOrder", sortOrder);
             request.setAttribute("searchValue", searchValue);
 
-            request.getRequestDispatcher("/WEB-INF/view/admin_pages/customer_list.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/view/admin_pages/Customer/customer_list.jsp").forward(request, response);
 
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error loading customer list", e);
@@ -235,7 +236,7 @@ public class CustomerController extends HttpServlet {
             Optional<Customer> customerOpt = customerDAO.findById(customerId);
             if (customerOpt.isPresent()) {
                 request.setAttribute("customer", customerOpt.get());
-                request.getRequestDispatcher("/WEB-INF/view/admin_pages/customer_details.jsp").forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/view/admin_pages/Customer/customer_details.jsp").forward(request, response);
             } else {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "Customer not found");
             }
@@ -250,8 +251,8 @@ public class CustomerController extends HttpServlet {
      */
     private void handleShowCreateForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // **QUAN TRỌNG**: Đảm bảo đường dẫn này là chính xác trong cấu trúc dự án của bạn.
-        String jspPath = "/WEB-INF/view/admin_pages/customer_add.jsp";
+       
+        String jspPath = "/WEB-INF/view/admin_pages/Customer/customer_add.jsp";
         request.getRequestDispatcher(jspPath).forward(request, response);
     }
 
@@ -274,7 +275,7 @@ private void handleProcessCreateForm(HttpServletRequest request, HttpServletResp
 
     AccountDAO accountDao = new AccountDAO();
     
-    String formJspPath = "/WEB-INF/view/admin_pages/customer_add.jsp";
+    String formJspPath = "/WEB-INF/view/admin_pages/Customer/customer_add.jsp";
 
     String name = request.getParameter("fullName");
     String email = request.getParameter("email");
@@ -425,7 +426,7 @@ private void handleProcessCreateForm(HttpServletRequest request, HttpServletResp
             Optional<Customer> customerOpt = customerDAO.findById(customerId);
             if (customerOpt.isPresent()) {
                 request.setAttribute("customer", customerOpt.get());
-                request.getRequestDispatcher("/WEB-INF/view/admin_pages/customer_edit.jsp").forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/view/admin_pages/Customer/customer_edit.jsp").forward(request, response);
             } else {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "Customer not found");
             }

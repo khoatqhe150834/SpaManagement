@@ -27,6 +27,8 @@
         </style>
     </head>
     <body>
+        <jsp:include page="/WEB-INF/view/common/admin/sidebar.jsp"></jsp:include>
+    <jsp:include page="/WEB-INF/view/common/admin/header.jsp"></jsp:include>
         <div class="container mt-5">
             <div class="card">
                 <div class="card-header">
@@ -133,5 +135,6 @@
                 </div>
             </div>
         </div>
+                 <jsp:include page="/WEB-INF/view/common/admin/js.jsp"></jsp:include>
     </body>
 </html>
