@@ -159,7 +159,7 @@ public class StaffController extends HttpServlet {
             if (staff == null) {
                 request.setAttribute("toastType", "error");
                 request.setAttribute("toastMessage", "Dữ liệu không hợp lệ!");
-                response.sendRedirect("staff");
+                request.getRequestDispatcher(STAFF_MANAGER_VIEW).forward(request, response);
                 return;
             }
 
@@ -167,15 +167,20 @@ public class StaffController extends HttpServlet {
             
             if (service.equals("insert")) {
                 staffDAO.save(staff);
+                request.setAttribute("toastType", "success");
+                request.setAttribute("toastMessage", "Thêm nhân viên thành công!");
             } else {
+                System.out.println("Update staff userId: " + staff.getUser().getUserId());
                 staff.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
                 Staff updatedStaff = staffDAO.update(staff);
                 if (updatedStaff == null) {
                     request.setAttribute("toastType", "error");
                     request.setAttribute("toastMessage", "Cập nhật thông tin nhân viên thất bại!");
-                    response.sendRedirect("staff");
+                    request.getRequestDispatcher(STAFF_MANAGER_VIEW).forward(request, response);
                     return;
                 }
+                request.setAttribute("toastType", "success");
+                request.setAttribute("toastMessage", "Cập nhật thông tin nhân viên thành công!");
             }
             
             // Load lại dữ liệu mới
@@ -192,9 +197,6 @@ public class StaffController extends HttpServlet {
             request.setAttribute("currentPage", page);
             request.setAttribute("totalPages", totalPages);
             request.setAttribute("totalEntries", totalRecords);
-            
-            request.setAttribute("toastType", "success");
-            request.setAttribute("toastMessage", "Cập nhật thông tin nhân viên thành công!");
 
             request.getRequestDispatcher(STAFF_MANAGER_VIEW).forward(request, response);
         } else {

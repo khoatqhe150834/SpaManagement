@@ -20,6 +20,38 @@
         .table td, .table th {
             white-space: normal !important;
         }
+        /* Toast Styles */
+        .toast {
+            min-width: 300px;
+            background-color: white;
+            border: none;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+
+        .toast-header {
+            border-bottom: none;
+        }
+
+        .toast-body {
+            padding: 1rem;
+            font-size: 0.9rem;
+        }
+
+        /* Animation for toast */
+        .toast.show {
+            animation: slideIn 0.5s ease-in-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 <body>
@@ -152,18 +184,22 @@
     </div>
 </div>
 <jsp:include page="/WEB-INF/view/common/admin/js.jsp"></jsp:include>
-<c:if test="${not empty toastMessage}">
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const toast = document.createElement("div");
-            toast.textContent = "${toastMessage}";
-            toast.className = "toast-message ${toastType eq 'success' ? 'toast-success' : 'toast-error'}";
-            document.body.appendChild(toast);
-            setTimeout(() => toast.classList.add("show"), 100);
-            setTimeout(() => toast.classList.remove("show"), 4000);
-        });
-    </script>
-</c:if>
+
+<!-- Add Toast Container -->
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 11">
+    <c:if test="${not empty toastMessage}">
+        <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header ${toastType eq 'success' ? 'bg-success' : 'bg-danger'} text-white">
+                <strong class="me-auto">${toastType eq 'success' ? 'Success' : 'Error'}</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                ${toastMessage}
+            </div>
+        </div>
+    </c:if>
+</div>
+
 <script>
     function changeLimit(newLimit) {
         let currentUrl = new URL(window.location.href);
@@ -177,6 +213,17 @@
         searchParams.set('page', '1');
         window.location.href = currentUrl.pathname + '?' + searchParams.toString();
     }
+
+    // Auto hide toast after 3 seconds
+    document.addEventListener("DOMContentLoaded", function() {
+        const toast = document.querySelector('.toast');
+        if (toast) {
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+    });
 </script>
 </body>
 </html>

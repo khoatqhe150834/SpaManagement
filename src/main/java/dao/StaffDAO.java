@@ -144,14 +144,17 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
             ps.setTimestamp(5, new Timestamp(System.currentTimeMillis()));
             ps.setInt(6, entity.getUser().getUserId());
 
+            LOGGER.info("Executing update query: " + sql);
+            LOGGER.info("Parameters: userId=" + entity.getUser().getUserId() + 
+                       ", serviceTypeId=" + (entity.getServiceType() != null ? entity.getServiceType().getServiceTypeId() : "null") +
+                       ", bio=" + entity.getBio() +
+                       ", availabilityStatus=" + entity.getAvailabilityStatus() +
+                       ", yearsOfExperience=" + entity.getYearsOfExperience());
+
             int rowsAffected = ps.executeUpdate();
-            if (rowsAffected > 0) {
-                System.out.println("Staff updated successfully.");
-                return entity;
-            } else {
-                System.out.println("No rows updated, check user_id.");
-                return null;
-            }
+            LOGGER.info("Update staff with userId: " + entity.getUser().getUserId() + ", rowsAffected: " + rowsAffected);
+            if (rowsAffected >= 0) return entity;
+            else return null;
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error updating staff", e);
             return null;
