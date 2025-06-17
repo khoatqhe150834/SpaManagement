@@ -19,12 +19,45 @@ public class AppointmentDAO extends DBContext implements BaseDAO<Appointment, In
 
     @Override
     public <S extends Appointment> S save(S entity) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from
+                                                                       // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
     public Optional<Appointment> findById(Integer id) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        String sql = "SELECT "
+                + "  a.appointment_id, a.customer_id, a.booking_group_id, a.therapist_user_id, "
+                + "  c.full_name   AS customer_name, "
+                + "  bg.group_name AS booking_group_name, "
+                + "  u.full_name   AS therapist_name, "
+                + "  a.start_time, a.end_time, "
+                + "  a.original_service_price AS total_original_price, "
+                + "  a.discount_amount_applied AS total_discount_amount, "
+                + "  a.points_redeemed_value, a.final_amount_payable AS total_final_price, "
+                + "  a.promotion_id, a.status, a.payment_status, a.cancel_reason, "
+                + "  a.created_at, a.updated_at "
+                + "FROM appointments a "
+                + "  JOIN customers c ON a.customer_id = c.customer_id "
+                + "  LEFT JOIN booking_groups bg ON a.booking_group_id = bg.booking_group_id "
+                + "  LEFT JOIN users u ON a.therapist_user_id = u.user_id AND u.role_id = 3 "
+                + "WHERE a.appointment_id = ?";
+
+        try {
+            Connection conn = DBContext.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, id);
+
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return Optional.of(getFromResultSet(rs));
+            }
+        } catch (SQLException e) {
+            System.out.println("Error finding appointment by ID: " + e.getMessage());
+        } finally {
+            closeConnection();
+        }
+
+        return Optional.empty();
     }
 
     public List<Appointment> findAppointmentsWithFilters(
@@ -38,21 +71,20 @@ public class AppointmentDAO extends DBContext implements BaseDAO<Appointment, In
 
         StringBuilder sql = new StringBuilder(
                 "SELECT "
-                + "  a.appointment_id, "
-                + "  c.full_name   AS customer_name, "
-                + "  bg.group_name AS booking_group_name, "
-                + "  u.full_name   AS therapist_name, "
-                + "  a.start_time, a.end_time, "
-                + "  a.total_original_price, a.total_discount_amount, "
-                + "  a.points_redeemed_value, a.total_final_price, a.promotion_id, "
-                + "  a.status, a.payment_status, a.cancel_reason, "
-                + "  a.created_at, a.updated_at "
-                + "FROM appointments a "
-                + "  JOIN customers c ON a.customer_id = c.customer_id "
-                + "  LEFT JOIN booking_groups bg ON a.booking_group_id = bg.booking_group_id "
-                + "  LEFT JOIN users u ON a.therapist_user_id = u.user_id AND u.role_id = 3 "
-                + "WHERE 1=1 "
-        );
+                        + "  a.appointment_id, "
+                        + "  c.full_name   AS customer_name, "
+                        + "  bg.group_name AS booking_group_name, "
+                        + "  u.full_name   AS therapist_name, "
+                        + "  a.start_time, a.end_time, "
+                        + "  a.total_original_price, a.total_discount_amount, "
+                        + "  a.points_redeemed_value, a.total_final_price, a.promotion_id, "
+                        + "  a.status, a.payment_status, a.cancel_reason, "
+                        + "  a.created_at, a.updated_at "
+                        + "FROM appointments a "
+                        + "  JOIN customers c ON a.customer_id = c.customer_id "
+                        + "  LEFT JOIN booking_groups bg ON a.booking_group_id = bg.booking_group_id "
+                        + "  LEFT JOIN users u ON a.therapist_user_id = u.user_id AND u.role_id = 3 "
+                        + "WHERE 1=1 ");
         List<Object> params = new ArrayList<>();
 
         if (statusFilter != null && !statusFilter.isEmpty()) {
@@ -102,12 +134,11 @@ public class AppointmentDAO extends DBContext implements BaseDAO<Appointment, In
     public int getTotalFilteredAppointments(String statusFilter, String paymentStatusFilter, String searchFilter) {
         StringBuilder sql = new StringBuilder(
                 "SELECT COUNT(*) "
-                + "FROM appointments a "
-                + "JOIN customers c ON a.customer_id = c.customer_id "
-                + "LEFT JOIN booking_groups bg ON a.booking_group_id = bg.booking_group_id "
-                + "LEFT JOIN users u ON a.therapist_user_id = u.user_id AND u.role_id = 3 "
-                + "WHERE 1=1 "
-        );
+                        + "FROM appointments a "
+                        + "JOIN customers c ON a.customer_id = c.customer_id "
+                        + "LEFT JOIN booking_groups bg ON a.booking_group_id = bg.booking_group_id "
+                        + "LEFT JOIN users u ON a.therapist_user_id = u.user_id AND u.role_id = 3 "
+                        + "WHERE 1=1 ");
 
         List<Object> params = new ArrayList<>();
 
@@ -156,22 +187,21 @@ public class AppointmentDAO extends DBContext implements BaseDAO<Appointment, In
 
         StringBuilder sql = new StringBuilder(
                 "SELECT "
-                + "  ad.detail_id, "
-                + "  ad.appointment_id, "
-                + "  ad.service_id, "
-                + "  s.name AS service_name, "
-                + "  ad.original_service_price, "
-                + "  ad.discount_amount_applied, "
-                + "  ad.final_price_after_discount, "
-                + "  ad.notes_by_customer, "
-                + "  ad.notes_by_staff, "
-                + "  a.status, "
-                + "  a.payment_status "
-                + "FROM appointment_details ad "
-                + "JOIN services s ON ad.service_id = s.service_id "
-                + "JOIN appointments a ON ad.appointment_id = a.appointment_id "
-                + "WHERE ad.appointment_id = ? "
-        );
+                        + "  ad.detail_id, "
+                        + "  ad.appointment_id, "
+                        + "  ad.service_id, "
+                        + "  s.name AS service_name, "
+                        + "  ad.original_service_price, "
+                        + "  ad.discount_amount_applied, "
+                        + "  ad.final_price_after_discount, "
+                        + "  ad.notes_by_customer, "
+                        + "  ad.notes_by_staff, "
+                        + "  a.status, "
+                        + "  a.payment_status "
+                        + "FROM appointment_details ad "
+                        + "JOIN services s ON ad.service_id = s.service_id "
+                        + "JOIN appointments a ON ad.appointment_id = a.appointment_id "
+                        + "WHERE ad.appointment_id = ? ");
 
         List<Object> params = new ArrayList<>();
         params.add(appointmentId);
@@ -218,8 +248,7 @@ public class AppointmentDAO extends DBContext implements BaseDAO<Appointment, In
     }
 
     public boolean updateStatusAndPayment(int appointmentId, String newStatus, String newPaymentStatus) {
-        String sql
-                = "UPDATE appointments "
+        String sql = "UPDATE appointments "
                 + "SET status = ?, payment_status = ? "
                 + "WHERE appointment_id = ?";
 
@@ -231,7 +260,7 @@ public class AppointmentDAO extends DBContext implements BaseDAO<Appointment, In
             stmt.setInt(3, appointmentId);
 
             int rowsAffected = stmt.executeUpdate();
-            return rowsAffected > 0;  // nếu >=1 dòng thay đổi thì trả về true
+            return rowsAffected > 0; // nếu >=1 dòng thay đổi thì trả về true
 
         } catch (SQLException ex) {
             System.out.println("Error updating status/payment: " + ex.getMessage());
@@ -241,28 +270,26 @@ public class AppointmentDAO extends DBContext implements BaseDAO<Appointment, In
         }
     }
 
-
     public List<Appointment> findUserAppointmentsBySearch(int userId, String searchFilter) {
         List<Appointment> appointments = new ArrayList<>();
 
         // Chỉ cần tìm theo customer_id, và (nếu có) searchFilter
         StringBuilder sql = new StringBuilder(
                 "SELECT "
-                + "  a.appointment_id, "
-                + "  c.full_name   AS customer_name, "
-                + "  bg.group_name AS booking_group_name, "
-                + "  u.full_name   AS therapist_name, "
-                + "  a.start_time, a.end_time, "
-                + "  a.total_original_price, a.total_discount_amount, "
-                + "  a.points_redeemed_value, a.total_final_price, a.promotion_id, "
-                + "  a.status, a.payment_status, a.cancel_reason, "
-                + "  a.created_at, a.updated_at "
-                + "FROM appointments a "
-                + "  JOIN customers c ON a.customer_id = c.customer_id "
-                + "  LEFT JOIN booking_groups bg ON a.booking_group_id = bg.booking_group_id "
-                + "  LEFT JOIN users u ON a.therapist_user_id = u.user_id AND u.role_id = 3 "
-                + "WHERE a.customer_id = ? "
-        );
+                        + "  a.appointment_id, "
+                        + "  c.full_name   AS customer_name, "
+                        + "  bg.group_name AS booking_group_name, "
+                        + "  u.full_name   AS therapist_name, "
+                        + "  a.start_time, a.end_time, "
+                        + "  a.total_original_price, a.total_discount_amount, "
+                        + "  a.points_redeemed_value, a.total_final_price, a.promotion_id, "
+                        + "  a.status, a.payment_status, a.cancel_reason, "
+                        + "  a.created_at, a.updated_at "
+                        + "FROM appointments a "
+                        + "  JOIN customers c ON a.customer_id = c.customer_id "
+                        + "  LEFT JOIN booking_groups bg ON a.booking_group_id = bg.booking_group_id "
+                        + "  LEFT JOIN users u ON a.therapist_user_id = u.user_id AND u.role_id = 3 "
+                        + "WHERE a.customer_id = ? ");
         List<Object> params = new ArrayList<>();
         params.add(userId);
 
@@ -302,45 +329,103 @@ public class AppointmentDAO extends DBContext implements BaseDAO<Appointment, In
 
     @Override
     public List<Appointment> findAll() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from
+                                                                       // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
     public boolean existsById(Integer id) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from
+                                                                       // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
     public void deleteById(Integer id) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from
+                                                                       // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
     public <S extends Appointment> S update(S entity) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from
+                                                                       // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
     public void delete(Appointment entity) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from
+                                                                       // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    public boolean updateStatus(Integer appointmentId, String newStatus) {
+        String sql = "UPDATE appointments SET status = ? WHERE appointment_id = ?";
+
+        try {
+            Connection conn = DBContext.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setString(1, newStatus);
+            stmt.setInt(2, appointmentId);
+
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            System.out.println("Error updating appointment status: " + e.getMessage());
+        } finally {
+            closeConnection();
+        }
+
+        return false;
     }
 
     public Appointment getFromResultSet(ResultSet rs) throws SQLException {
         Appointment ap = new Appointment();
         ap.setAppointmentId(rs.getInt("appointment_id"));
-        ap.setCustomerName(rs.getString("customer_name"));
-        ap.setBookingGroupName(rs.getString("booking_group_name"));
-        ap.setTherapistName(rs.getString("therapist_name"));
+
+        // Set IDs if available
+        try {
+            ap.setCustomerId(rs.getInt("customer_id"));
+        } catch (SQLException e) {
+        }
+        try {
+            ap.setBookingGroupId(rs.getInt("booking_group_id"));
+        } catch (SQLException e) {
+        }
+        try {
+            ap.setTherapistUserId(rs.getInt("therapist_user_id"));
+        } catch (SQLException e) {
+        }
+
+        // Set names if available
+        try {
+            ap.setCustomerName(rs.getString("customer_name"));
+        } catch (SQLException e) {
+        }
+        try {
+            ap.setBookingGroupName(rs.getString("booking_group_name"));
+        } catch (SQLException e) {
+        }
+        try {
+            ap.setTherapistName(rs.getString("therapist_name"));
+        } catch (SQLException e) {
+        }
+
         ap.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
         ap.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
         ap.setTotalOriginalPrice(rs.getBigDecimal("total_original_price"));
         ap.setTotalDiscountAmount(rs.getBigDecimal("total_discount_amount"));
         ap.setPointsRedeemedValue(rs.getBigDecimal("points_redeemed_value"));
         ap.setTotalFinalPrice(rs.getBigDecimal("total_final_price"));
-        ap.setPromotionId(rs.getInt("promotion_id"));
+
+        try {
+            ap.setPromotionId(rs.getInt("promotion_id"));
+        } catch (SQLException e) {
+        }
         ap.setStatus(rs.getString("status"));
         ap.setPaymentStatus(rs.getString("payment_status"));
-        ap.setCancelReason(rs.getString("cancel_reason"));
+        try {
+            ap.setCancelReason(rs.getString("cancel_reason"));
+        } catch (SQLException e) {
+        }
         ap.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
         ap.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
 

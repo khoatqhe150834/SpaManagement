@@ -12,7 +12,7 @@
 </head>
 <body>
     <jsp:include page="/WEB-INF/view/common/admin/sidebar.jsp" />
-        <jsp:include page="/WEB-INF/view/common/admin/header.jsp" />
+     <jsp:include page="/WEB-INF/view/common/admin/header.jsp" />
     <div class="container mt-5">
         <div class="card">
             <div class="card-header">

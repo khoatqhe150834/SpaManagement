@@ -259,6 +259,16 @@
                                     <span>
                                         Hiển thị ${start} đến ${end} của ${totalEntries} mục
                                     </span>
+                                    <c:set var="searchParams" value=""/>
+                                    <c:if test="${not empty keyword}">
+                                        <c:set var="searchParams" value="${searchParams}&keyword=${keyword}"/>
+                                    </c:if>
+                                    <c:if test="${not empty status}">
+                                        <c:set var="searchParams" value="${searchParams}&status=${status}"/>
+                                    </c:if>
+                                    <c:if test="${not empty serviceTypeId}">
+                                        <c:set var="searchParams" value="${searchParams}&serviceTypeId=${serviceTypeId}"/>
+                                    </c:if>
                                     <ul
                                         class="pagination d-flex flex-wrap align-items-center gap-2 justify-content-center">
                                         <!-- Previous -->
@@ -271,7 +281,7 @@
                                                 </c:when>
                                                 <c:otherwise>
                                                     <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px"
-                                                        href="service?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${currentPage - 1}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}">
+                                                        href="service?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${currentPage - 1}&limit=${limit}${searchParams}">
                                                         <iconify-icon icon="ep:d-arrow-left"></iconify-icon>
                                                     </a>
                                                 </c:otherwise>
@@ -286,7 +296,7 @@
                                                     <li class="page-item ${i == currentPage ? 'active' : ''}">
                                                         <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px
                                                             ${i == currentPage ? 'bg-primary-600 text-white' : 'bg-neutral-200 text-secondary-light'}"
-                                                            href="service?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${i}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}">
+                                                            href="service?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${i}&limit=${limit}${searchParams}">
                                                             ${i}
                                                         </a>
                                                     </li>
@@ -297,7 +307,7 @@
                                                     <li class="page-item ${i == currentPage ? 'active' : ''}">
                                                         <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px
                                                             ${i == currentPage ? 'bg-primary-600 text-white' : 'bg-neutral-200 text-secondary-light'}"
-                                                            href="service?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${i}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}">
+                                                            href="service?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${i}&limit=${limit}${searchParams}">
                                                             ${i}
                                                         </a>
                                                     </li>
@@ -308,7 +318,7 @@
                                                     <li class="page-item ${i == currentPage ? 'active' : ''}">
                                                         <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px
                                                             ${i == currentPage ? 'bg-primary-600 text-white' : 'bg-neutral-200 text-secondary-light'}"
-                                                            href="service?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${i}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}">
+                                                            href="service?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${i}&limit=${limit}${searchParams}">
                                                             ${i}
                                                         </a>
                                                     </li>
@@ -335,7 +345,7 @@
                                                 </c:when>
                                                 <c:otherwise>
                                                     <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px"
-                                                        href="service?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${currentPage + 1}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}">
+                                                        href="service?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${currentPage + 1}&limit=${limit}${searchParams}">
                                                         <iconify-icon icon="ep:d-arrow-right"></iconify-icon>
                                                     </a>
                                                 </c:otherwise>
@@ -408,8 +418,8 @@
                         let searchParams = currentUrl.searchParams;
 
                         // Giữ lại các tham số tìm kiếm nếu có
-                        if (searchParams.has('keyword')) {
-                            searchParams.set('service', 'searchByKeywordAndStatus');
+                        if (searchParams.has('keyword') || searchParams.has('status') || searchParams.has('serviceTypeId')) {
+                            searchParams.set('service', 'search');
                         } else {
                             searchParams.set('service', 'list-all');
                         }
