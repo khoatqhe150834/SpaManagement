@@ -32,7 +32,7 @@
 
         <div class="extra-nav">
           <div class="extra-cell">
-            <a href="booking.html" class="site-button radius-no">ĐẶT LỊCH NGAY</a>
+            <a href="${pageContext.request.contextPath}/book" class="site-button radius-no">ĐẶT LỊCH NGAY</a>
             
             <c:choose>
                 <%-- Customer is logged in --%>
