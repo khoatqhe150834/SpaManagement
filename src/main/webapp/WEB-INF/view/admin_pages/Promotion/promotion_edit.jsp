@@ -22,6 +22,8 @@
     </style>
 </head>
 <body>
+    <jsp:include page="/WEB-INF/view/common/admin/sidebar.jsp"></jsp:include>
+    <jsp:include page="/WEB-INF/view/common/admin/header.jsp"></jsp:include>
 <div class="form-container">
     <h2 class="text-center">
         <c:choose>
@@ -111,6 +113,7 @@
         <a href="${pageContext.request.contextPath}/promotion/list" class="btn btn-secondary btn-lg btn-block mt-2">Hủy bỏ</a>
     </form>
 </div>
+     <jsp:include page="/WEB-INF/view/common/admin/js.jsp"></jsp:include>
 
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
