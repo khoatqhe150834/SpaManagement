@@ -45,6 +45,15 @@ public class ServiceController extends HttpServlet {
         }
         int offset = (page - 1) * limit;
 
+        String serviceTypeIdParam = request.getParameter("serviceTypeId");
+        Integer serviceTypeId = null;
+        if (serviceTypeIdParam != null && !serviceTypeIdParam.isEmpty()) {
+            serviceTypeId = Integer.parseInt(serviceTypeIdParam);
+        }
+
+        List<ServiceType> serviceTypes = typeDAO.findAll();
+        request.setAttribute("serviceTypes", serviceTypes);
+
         switch (service) {
             case "list-all": {
                 List<Service> services = serviceDAO.findPaginated(offset, limit);
@@ -85,18 +94,18 @@ public class ServiceController extends HttpServlet {
                 response.sendRedirect("service");
                 return;
             }
-            case "searchByKeyword":
-            case "searchByKeywordAndStatus": {
+            case "search": {
                 String keyword = request.getParameter("keyword");
                 String status = request.getParameter("status");
 
-                List<Service> services = serviceDAO.searchByKeywordAndStatus(keyword, status, offset, limit);
-                int totalRecords = serviceDAO.countSearchResult(keyword, status);
+                List<Service> services = serviceDAO.searchServices(keyword, status, serviceTypeId, offset, limit);
+                int totalRecords = serviceDAO.countSearchResult(keyword, status, serviceTypeId);
                 int totalPages = (int) Math.ceil((double) totalRecords / limit);
 
                 request.setAttribute("services", services);
                 request.setAttribute("keyword", keyword);
                 request.setAttribute("status", status);
+                request.setAttribute("serviceTypeId", serviceTypeId);
                 request.setAttribute("currentPage", page);
                 request.setAttribute("totalPages", totalPages);
                 request.setAttribute("totalEntries", totalRecords);

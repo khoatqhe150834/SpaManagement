@@ -122,15 +122,22 @@
                                     action="service">
                                     <input type="text" class="bg-base h-40-px w-auto" name="keyword"
                                         placeholder="Tìm kiếm" value="${keyword}">
+                                    <select name="serviceTypeId" class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px">
+                                        <option value="">Tất cả loại dịch vụ</option>
+                                        <c:forEach var="stype" items="${serviceTypes}">
+                                            <option value="${stype.serviceTypeId}" <c:if test="${param.serviceTypeId == stype.serviceTypeId}">selected</c:if>>
+                                                ${stype.name}
+                                            </option>
+                                        </c:forEach>
+                                    </select>
                                     <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px"
                                         name="status">
-                                        <option value="">Trạng Thái</option>
-                                        <option value="active" ${status=='active' ? 'selected' : '' }>Đang Hoạt Động
+                                        <option value="">Tất cả trạng Thái</option>
+                                        <option value="active" ${status=='active' ? 'selected' : '' }>Active
                                         </option>
-                                        <option value="inactive" ${status=='inactive' ? 'selected' : '' }>Không Hoạt
-                                            Động</option>
+                                        <option value="inactive" ${status=='inactive' ? 'selected' : '' }>Inactive</option>
                                     </select>
-                                    <input type="hidden" name="service" value="searchByKeywordAndStatus">
+                                    <input type="hidden" name="service" value="search">
                                     <input type="hidden" name="limit" value="${limit}" />
                                     <button type="submit" class="btn btn-primary h-40-px radius-12">Tìm Kiếm</button>
                                 </form>

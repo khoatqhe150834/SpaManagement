@@ -221,12 +221,15 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
         }
     }
 
-    public List<Service> searchByKeywordAndStatus(String keyword, String status, int offset, int limit) {
+    public List<Service> searchServices(String keyword, String status, Integer serviceTypeId, int offset, int limit) {
         List<Service> services = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT * FROM services WHERE 1=1");
         boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
         if (hasKeyword) {
             sql.append(" AND (LOWER(name) LIKE ? OR LOWER(description) LIKE ?)");
+        }
+        if (serviceTypeId != null) {
+            sql.append(" AND service_type_id = ?");
         }
         if ("active".equalsIgnoreCase(status)) {
             sql.append(" AND is_active = 1");
@@ -248,6 +251,9 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
                 stm.setString(paramIndex++, query);
                 stm.setString(paramIndex++, query);
             }
+            if (serviceTypeId != null) {
+                stm.setInt(paramIndex++, serviceTypeId);
+            }
             stm.setInt(paramIndex++, limit);
             stm.setInt(paramIndex, offset);
 
@@ -262,11 +268,14 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
         return services;
     }
 
-    public int countSearchResult(String keyword, String status) {
+    public int countSearchResult(String keyword, String status, Integer serviceTypeId) {
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM services WHERE 1=1");
         boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
         if (hasKeyword) {
             sql.append(" AND (LOWER(name) LIKE ? OR LOWER(description) LIKE ?)");
+        }
+        if (serviceTypeId != null) {
+            sql.append(" AND service_type_id = ?");
         }
         if ("active".equalsIgnoreCase(status)) {
             sql.append(" AND is_active = 1");
@@ -279,6 +288,9 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
                 String query = "%" + keyword.toLowerCase() + "%";
                 stm.setString(paramIndex++, query);
                 stm.setString(paramIndex++, query);
+            }
+            if (serviceTypeId != null) {
+                stm.setInt(paramIndex++, serviceTypeId);
             }
             try (ResultSet rs = stm.executeQuery()) {
                 if (rs.next()) {
