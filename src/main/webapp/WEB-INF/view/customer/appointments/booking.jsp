@@ -43,10 +43,10 @@
                     <p class="text-neutral-400 text-sm mb-24">Chọn dịch vụ và thời gian phù hợp để đặt lịch hẹn của bạn.</p>
                     <div class="row justify-content-center">
                         <div class="col-md-6">
-                            <button class="btn btn-primary btn-sm px-20 py-11 radius-8 w-100 mb-12">
+                            <a href="${pageContext.request.contextPath}/customer-dashboard/appointments/booking-selection" class="btn btn-primary btn-sm px-20 py-11 radius-8 w-100 mb-12">
                                 <iconify-icon icon="solar:spa-outline" class="icon text-lg me-8"></iconify-icon>
                                 Chọn Dịch Vụ
-                            </button>
+                            </a>
                         </div>
                     </div>
                 </div>
