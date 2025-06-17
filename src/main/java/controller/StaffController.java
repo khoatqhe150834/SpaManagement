@@ -156,18 +156,56 @@ public class StaffController extends HttpServlet {
 
         if (service.equals("insert") || service.equals("update")) {
             Staff staff = createStaffFromRequest(request);
+            if (staff == null) {
+                request.setAttribute("toastType", "error");
+                request.setAttribute("toastMessage", "Dữ liệu không hợp lệ!");
+                response.sendRedirect("staff");
+                return;
+            }
+
+            StaffDAO staffDAO = new StaffDAO();
             
             if (service.equals("insert")) {
-                new StaffDAO().save(staff);
+                staffDAO.save(staff);
             } else {
                 staff.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
-                new StaffDAO().update(staff);
+                Staff updatedStaff = staffDAO.update(staff);
+                if (updatedStaff == null) {
+                    request.setAttribute("toastType", "error");
+                    request.setAttribute("toastMessage", "Cập nhật thông tin nhân viên thất bại!");
+                    response.sendRedirect("staff");
+                    return;
+                }
             }
             
-            response.sendRedirect("staff");
+            // Load lại dữ liệu mới
+            int limit = 5;
+            int page = 1;
+            int offset = (page - 1) * limit;
+
+            List<Staff> staffList = staffDAO.findPaginated(offset, limit);
+            int totalRecords = staffDAO.countAll();
+            int totalPages = (int) Math.ceil((double) totalRecords / limit);
+
+            request.setAttribute("limit", limit);
+            request.setAttribute("staffList", staffList);
+            request.setAttribute("currentPage", page);
+            request.setAttribute("totalPages", totalPages);
+            request.setAttribute("totalEntries", totalRecords);
+            
+            request.setAttribute("toastType", "success");
+            request.setAttribute("toastMessage", "Cập nhật thông tin nhân viên thành công!");
+
+            request.getRequestDispatcher(STAFF_MANAGER_VIEW).forward(request, response);
         } else {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid action in POST");
         }
+
+        System.out.println("Received userId: " + request.getParameter("userId"));
+        System.out.println("Received bio: " + request.getParameter("bio"));
+        System.out.println("Received serviceTypeId: " + request.getParameter("serviceTypeId"));
+        System.out.println("Received availabilityStatus: " + request.getParameter("availabilityStatus"));
+        System.out.println("Received yearsOfExperience: " + request.getParameter("yearsOfExperience"));
     }
 
     private Staff createStaffFromRequest(HttpServletRequest request) {
@@ -193,6 +231,20 @@ public class StaffController extends HttpServlet {
             }
 
             String bio = request.getParameter("bio");
+            // Xử lý bio: loại bỏ khoảng trắng thừa và validate độ dài
+            if (bio != null) {
+                bio = bio.trim().replaceAll("\\s{2,}", " "); // Thay thế nhiều khoảng trắng bằng 1 khoảng trắng
+                
+                // Validate độ dài
+                if (bio.length() < 20) {
+                    request.setAttribute("toastType", "error");
+                    request.setAttribute("toastMessage", "Bio must be at least 20 characters long!");
+                    return null;
+                }
+                if (bio.length() > 500) {
+                    bio = bio.substring(0, 500);
+                }
+            }
 
             User user = new User();
             user.setUserId(userId);
