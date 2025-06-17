@@ -12,6 +12,15 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import dao.ServiceDAO;
+import dao.ServiceTypeDAO;
+import model.Service;
+import model.ServiceType;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -25,7 +34,8 @@ import jakarta.servlet.http.HttpServletResponse;
         "/appointments/booking-group",
         "/membership/packages",
         "/giftcard/purchase",
-        "/products/shop"
+        "/products/shop",
+        "/api/services/search"
 })
 public class BookingController extends HttpServlet {
 
@@ -79,6 +89,8 @@ public class BookingController extends HttpServlet {
                 break;
 
             case "/appointments/booking-individual":
+                // Load service types and services for individual booking
+                loadServiceData(request);
                 jspPath = "/WEB-INF/view/customer/appointments/booking-individual.jsp";
                 break;
 
@@ -98,6 +110,10 @@ public class BookingController extends HttpServlet {
                 jspPath = "/WEB-INF/view/customer/products/shop.jsp";
                 break;
 
+            case "/api/services/search":
+                handleServiceSearch(request, response);
+                return;
+
             default:
                 // Default to booking selection
                 jspPath = "/WEB-INF/view/customer/appointments/booking-selection.jsp";
@@ -105,6 +121,135 @@ public class BookingController extends HttpServlet {
         }
 
         request.getRequestDispatcher(jspPath).forward(request, response);
+    }
+
+    /**
+     * Load service types and services data for booking pages
+     */
+    private void loadServiceData(HttpServletRequest request) {
+        try {
+            ServiceTypeDAO serviceTypeDAO = new ServiceTypeDAO();
+            ServiceDAO serviceDAO = new ServiceDAO();
+
+            // Get all active service types
+            List<ServiceType> serviceTypes = serviceTypeDAO.getActiveServiceTypes();
+
+            // Get top 3 hot service types
+            List<ServiceType> hotServiceTypes = serviceTypeDAO.getHotServiceTypes();
+
+            // Get all active services grouped by service type
+            Map<Integer, List<Service>> servicesByType = new HashMap<>();
+
+            for (ServiceType serviceType : serviceTypes) {
+                List<Service> services = serviceDAO.findByServiceTypeId(serviceType.getServiceTypeId())
+                        .stream()
+                        .filter(s -> s.isIsActive() && s.isBookableOnline())
+                        .collect(Collectors.toList());
+                servicesByType.put(serviceType.getServiceTypeId(), services);
+            }
+
+            // Set attributes for JSP
+            request.setAttribute("serviceTypes", serviceTypes);
+            request.setAttribute("hotServiceTypes", hotServiceTypes);
+            request.setAttribute("servicesByType", servicesByType);
+
+            // Create featured services list (first from each category)
+            List<Service> featuredServices = new ArrayList<>();
+            for (ServiceType serviceType : serviceTypes) {
+                List<Service> services = servicesByType.get(serviceType.getServiceTypeId());
+                if (!services.isEmpty()) {
+                    featuredServices.add(services.get(0)); // Add first service from each category
+                }
+            }
+            request.setAttribute("featuredServices", featuredServices);
+
+        } catch (Exception e) {
+            // Log error and set empty lists to prevent JSP errors
+            e.printStackTrace();
+            request.setAttribute("serviceTypes", new ArrayList<>());
+            request.setAttribute("hotServiceTypes", new ArrayList<>());
+            request.setAttribute("servicesByType", new HashMap<>());
+            request.setAttribute("featuredServices", new ArrayList<>());
+        }
+    }
+
+    /**
+     * Handle AJAX service search requests
+     */
+    private void handleServiceSearch(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType("application/json;charset=UTF-8");
+
+        String query = request.getParameter("q");
+        String categoryId = request.getParameter("category");
+
+        try {
+            ServiceDAO serviceDAO = new ServiceDAO();
+            ServiceTypeDAO serviceTypeDAO = new ServiceTypeDAO();
+
+            List<Service> services = new ArrayList<>();
+
+            if (query != null && !query.trim().isEmpty()) {
+                // Search services by name or description
+                services = serviceDAO.findAll().stream()
+                        .filter(s -> s.isIsActive() && s.isBookableOnline())
+                        .filter(s -> s.getName().toLowerCase().contains(query.toLowerCase()) ||
+                                (s.getDescription() != null
+                                        && s.getDescription().toLowerCase().contains(query.toLowerCase())))
+                        .collect(Collectors.toList());
+            } else if (categoryId != null && !categoryId.isEmpty()) {
+                if (categoryId.startsWith("type-")) {
+                    int typeId = Integer.parseInt(categoryId.substring(5));
+                    services = serviceDAO.findByServiceTypeId(typeId).stream()
+                            .filter(s -> s.isIsActive() && s.isBookableOnline())
+                            .collect(Collectors.toList());
+                }
+            }
+
+            // Build JSON response
+            StringBuilder json = new StringBuilder();
+            json.append("{\"services\":[");
+
+            for (int i = 0; i < services.size(); i++) {
+                Service service = services.get(i);
+                if (i > 0)
+                    json.append(",");
+                json.append("{")
+                        .append("\"id\":").append(service.getServiceId()).append(",")
+                        .append("\"name\":\"").append(escapeJson(service.getName())).append("\",")
+                        .append("\"description\":\"").append(escapeJson(service.getDescription())).append("\",")
+                        .append("\"price\":").append(service.getPrice()).append(",")
+                        .append("\"duration\":").append(service.getDurationMinutes()).append(",")
+                        .append("\"typeId\":").append(service.getServiceTypeId().getServiceTypeId()).append(",")
+                        .append("\"typeName\":\"").append(escapeJson(service.getServiceTypeId().getName())).append("\"")
+                        .append("}");
+            }
+
+            json.append("]}");
+
+            try (PrintWriter out = response.getWriter()) {
+                out.print(json.toString());
+            }
+
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            try (PrintWriter out = response.getWriter()) {
+                out.print("{\"error\":\"Internal server error\"}");
+            }
+        }
+    }
+
+    /**
+     * Escape JSON strings
+     */
+    private String escapeJson(String str) {
+        if (str == null)
+            return "";
+        return str.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
     }
 
     /**

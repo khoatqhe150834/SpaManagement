@@ -17,7 +17,9 @@ public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
         List<ServiceType> serviceTypes = new ArrayList<>();
         String sql = "SELECT * FROM Service_Types";
 
-        try (Connection connection = DBContext.getConnection(); PreparedStatement stm = connection.prepareStatement(sql); ResultSet rs = stm.executeQuery()) {
+        try (Connection connection = DBContext.getConnection();
+                PreparedStatement stm = connection.prepareStatement(sql);
+                ResultSet rs = stm.executeQuery()) {
 
             while (rs.next()) {
                 ServiceType serviceType = new ServiceType();
@@ -42,7 +44,8 @@ public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
     public Optional<ServiceType> findById(Integer id) {
         String sql = "SELECT * FROM Service_Types WHERE service_type_id = ?";
 
-        try (Connection connection = DBContext.getConnection(); PreparedStatement stm = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection();
+                PreparedStatement stm = connection.prepareStatement(sql)) {
 
             stm.setInt(1, id);
             try (ResultSet rs = stm.executeQuery()) {
@@ -70,7 +73,8 @@ public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
     public <S extends ServiceType> S save(S entity) {
         String sql = "INSERT INTO Service_Types (name, description, image_url, is_active) VALUES (?, ?, ?, ?)";
 
-        try (Connection connection = DBContext.getConnection(); PreparedStatement stm = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection connection = DBContext.getConnection();
+                PreparedStatement stm = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             stm.setString(1, entity.getName());
             stm.setString(2, entity.getDescription());
@@ -95,7 +99,8 @@ public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
     public <S extends ServiceType> S update(S entity) {
         String sql = "UPDATE Service_Types SET name = ?, description = ?, image_url = ?, is_active = ? WHERE service_type_id = ?";
 
-        try (Connection connection = DBContext.getConnection(); PreparedStatement stm = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection();
+                PreparedStatement stm = connection.prepareStatement(sql)) {
 
             stm.setString(1, entity.getName());
             stm.setString(2, entity.getDescription());
@@ -116,7 +121,8 @@ public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
     public void deleteById(Integer id) {
         String sql = "DELETE FROM Service_Types WHERE service_type_id = ?";
 
-        try (Connection connection = DBContext.getConnection(); PreparedStatement stm = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection();
+                PreparedStatement stm = connection.prepareStatement(sql)) {
 
             stm.setInt(1, id);
             stm.executeUpdate();
@@ -134,7 +140,8 @@ public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
     @Override
     public boolean existsById(Integer id) {
         String sql = "SELECT 1 FROM Service_Types WHERE service_type_id = ?";
-        try (Connection connection = DBContext.getConnection(); PreparedStatement stm = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection();
+                PreparedStatement stm = connection.prepareStatement(sql)) {
 
             stm.setInt(1, id);
             try (ResultSet rs = stm.executeQuery()) {
@@ -152,7 +159,8 @@ public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
         List<ServiceType> serviceTypes = new ArrayList<>();
         String sql = "SELECT * FROM Service_Types WHERE LOWER(name) LIKE ? OR LOWER(description) LIKE ?";
 
-        try (Connection connection = DBContext.getConnection(); PreparedStatement stm = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection();
+                PreparedStatement stm = connection.prepareStatement(sql)) {
 
             String queryParam = "%" + keyword.toLowerCase() + "%";
             stm.setString(1, queryParam);
@@ -223,7 +231,9 @@ public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
 
     public int countAll() {
         String sql = "SELECT COUNT(*) FROM Service_Types";
-        try (Connection conn = DBContext.getConnection(); PreparedStatement stm = conn.prepareStatement(sql); ResultSet rs = stm.executeQuery()) {
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement stm = conn.prepareStatement(sql);
+                ResultSet rs = stm.executeQuery()) {
 
             if (rs.next()) {
                 return rs.getInt(1);
@@ -243,7 +253,8 @@ public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
         }
         sql += " LIMIT ? OFFSET ?";
 
-        try (Connection connection = DBContext.getConnection(); PreparedStatement stm = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection();
+                PreparedStatement stm = connection.prepareStatement(sql)) {
             stm.setString(1, "%" + keyword + "%");
             stm.setString(2, "%" + keyword + "%");
             int paramIndex = 3;
@@ -278,7 +289,8 @@ public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
         if (status != null && !status.isEmpty()) {
             sql += " AND is_active = ?";
         }
-        try (Connection connection = DBContext.getConnection(); PreparedStatement stm = connection.prepareStatement(sql)) {
+        try (Connection connection = DBContext.getConnection();
+                PreparedStatement stm = connection.prepareStatement(sql)) {
             stm.setString(1, "%" + keyword + "%");
             stm.setString(2, "%" + keyword + "%");
             if (status != null && !status.isEmpty()) {
@@ -298,7 +310,7 @@ public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
     public boolean existsByName(String name) {
         String sql = "SELECT 1 FROM Service_Types WHERE LOWER(name) = LOWER(?)";
         try (Connection connection = DBContext.getConnection();
-             PreparedStatement stm = connection.prepareStatement(sql)) {
+                PreparedStatement stm = connection.prepareStatement(sql)) {
             stm.setString(1, name.trim());
             try (ResultSet rs = stm.executeQuery()) {
                 return rs.next();
@@ -312,7 +324,7 @@ public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
     public boolean existsByNameExceptId(String name, int excludeId) {
         String sql = "SELECT 1 FROM Service_Types WHERE LOWER(name) = LOWER(?) AND service_type_id <> ?";
         try (Connection connection = DBContext.getConnection();
-             PreparedStatement stm = connection.prepareStatement(sql)) {
+                PreparedStatement stm = connection.prepareStatement(sql)) {
             stm.setString(1, name.trim());
             stm.setInt(2, excludeId);
             try (ResultSet rs = stm.executeQuery()) {
@@ -324,19 +336,75 @@ public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
         return false;
     }
 
-    //    public static void main(String[] args) {
-//        ServiceTypeDAO dao = new ServiceTypeDAO();
-//
-//        // Thay đổi ID tùy theo dữ liệu có trong database
-//        int testId = 1;
-//
-//        Optional<ServiceType> optional = dao.findById(testId);
-//
-//        if (optional.isPresent()) {
-//            ServiceType st = optional.get();
-//            System.out.println(st);
-//        } else {
-//            System.out.println("ServiceType with ID " + testId + " not found.");
-//        }
-//    }
+    public List<ServiceType> getActiveServiceTypes() throws SQLException {
+        List<ServiceType> serviceTypes = new ArrayList<>();
+        String sql = "SELECT * FROM Service_Types WHERE is_active = 1";
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement stm = conn.prepareStatement(sql);
+                ResultSet rs = stm.executeQuery()) {
+            while (rs.next()) {
+                ServiceType serviceType = new ServiceType();
+                serviceType.setServiceTypeId(rs.getInt("service_type_id"));
+                serviceType.setName(rs.getString("name"));
+                serviceType.setDescription(rs.getString("description"));
+                serviceType.setImageUrl(rs.getString("image_url"));
+                serviceType.setActive(rs.getBoolean("is_active"));
+                serviceType.setCreatedAt(rs.getTimestamp("created_at"));
+                serviceType.setUpdatedAt(rs.getTimestamp("updated_at"));
+                serviceTypes.add(serviceType);
+            }
+        }
+        return serviceTypes;
+    }
+
+    public List<ServiceType> getHotServiceTypes() throws SQLException {
+        List<ServiceType> hotServiceTypes = new ArrayList<>();
+        String sql = "SELECT st.service_type_id, st.name, st.description, st.image_url, COUNT(a.appointment_id) AS booking_count "
+                + "FROM service_types st "
+                + "JOIN services s ON st.service_type_id = s.service_type_id "
+                + "JOIN appointments a ON s.service_id = a.service_id "
+                + "WHERE a.status IN ('CONFIRMED', 'IN_PROGRESS', 'COMPLETED') "
+                + "GROUP BY st.service_type_id, st.name, st.description, st.image_url "
+                + "ORDER BY booking_count DESC "
+                + "LIMIT 3";
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement stm = conn.prepareStatement(sql);
+                ResultSet rs = stm.executeQuery()) {
+            while (rs.next()) {
+                ServiceType st = new ServiceType();
+                st.setServiceTypeId(rs.getInt("service_type_id"));
+                st.setName(rs.getString("name"));
+                st.setDescription(rs.getString("description"));
+                st.setImageUrl(rs.getString("image_url"));
+                st.setActive(true); // is_active is assumed true for hot services
+                hotServiceTypes.add(st);
+            }
+        }
+        return hotServiceTypes;
+    }
+
+    private void closeConnections() {
+        try {
+            // ... existing code ...
+        } catch (Exception e) {
+            // Handle exceptions appropriately
+            e.printStackTrace();
+        }
+    }
+
+    // public static void main(String[] args) {
+    // ServiceTypeDAO dao = new ServiceTypeDAO();
+    //
+    // // Thay đổi ID tùy theo dữ liệu có trong database
+    // int testId = 1;
+    //
+    // Optional<ServiceType> optional = dao.findById(testId);
+    //
+    // if (optional.isPresent()) {
+    // ServiceType st = optional.get();
+    // System.out.println(st);
+    // } else {
+    // System.out.println("ServiceType with ID " + testId + " not found.");
+    // }
+    // }
 }

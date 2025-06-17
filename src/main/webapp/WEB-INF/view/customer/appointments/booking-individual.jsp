@@ -5,6 +5,7 @@
 --%>
 
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>
@@ -449,6 +450,124 @@
         
         .category-btn.active iconify-icon {
             color: white;
+        }
+        
+        /* Price Range Slider */
+        .price-filter {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .price-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+            color: #6b7280;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .price-label iconify-icon {
+            color: var(--spa-primary);
+            font-size: 16px;
+        }
+
+        .price-range-display {
+            font-weight: 600;
+            color: var(--spa-primary);
+            background: var(--spa-primary-light);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        
+        .price-slider-container {
+            position: relative;
+            height: 30px;
+            display: flex;
+            align-items: center;
+        }
+
+        .slider-track {
+            position: absolute;
+            height: 4px;
+            background: #e2e8f0;
+            width: 100%;
+            border-radius: 2px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1;
+        }
+
+        .slider-range {
+            position: absolute;
+            height: 4px;
+            background: linear-gradient(90deg, var(--spa-primary), var(--spa-secondary));
+            border-radius: 2px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 2;
+        }
+
+        .price-slider-container input[type="range"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 4px;
+            background: transparent;
+            pointer-events: none;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 3;
+            margin: 0;
+        }
+
+        .price-slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            pointer-events: auto;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid var(--spa-primary);
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .price-slider-container input[type="range"]::-moz-range-thumb {
+            -moz-appearance: none;
+            pointer-events: auto;
+            width: 14px; /* Slightly smaller for FF */
+            height: 14px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid var(--spa-primary);
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .price-slider-container input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(200, 148, 95, 0.2);
+        }
+        .price-slider-container input[type="range"]::-moz-range-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(200, 148, 95, 0.2);
+        }
+        
+        .price-slider-container input[type="range"]::-webkit-slider-thumb:active {
+            transform: scale(0.95);
+            background: var(--spa-primary-light);
+        }
+        .price-slider-container input[type="range"]::-moz-range-thumb:active {
+            transform: scale(0.95);
+            background: var(--spa-primary-light);
         }
         
         /* Search Results Dropdown */
@@ -1043,6 +1162,17 @@
         .notification iconify-icon {
             font-size: 1.1rem;
         }
+        
+        .search-result-subtitle {
+            padding: 10px 18px 5px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: #f8fafc;
+            border-bottom: 1px solid #f1f5f9;
+        }
     </style>
 </head>
 <body id="bg">
@@ -1150,26 +1280,37 @@
                                             <iconify-icon icon="material-symbols:star"></iconify-icon>
                                             <span>Nổi bật</span>
                                         </button>
-                                        <button class="category-btn" data-category="manicures">
-                                            <iconify-icon icon="material-symbols:hand-gesture"></iconify-icon>
-                                            <span>Manicures</span>
+                                        <c:forEach var="serviceType" items="${serviceTypes}" varStatus="status">
+                                            <button class="category-btn" data-category="type-${serviceType.serviceTypeId}">
+                                                <iconify-icon icon="${serviceType.name == 'Chăm Sóc Móng' ? 'material-symbols:hand-gesture' : 
+                                                                     serviceType.name == 'Tẩy Lông & Waxing' ? 'material-symbols:local-fire-department' :
+                                                                     serviceType.name == 'Chăm Sóc Lông Mi & Lông Mày' ? 'material-symbols:visibility' :
+                                                                     serviceType.name == 'Liệu Pháp Thơm' ? 'material-symbols:spa' :
+                                                                     serviceType.name == 'Massage Thư Giãn' ? 'material-symbols:self-care' :
+                                                                     serviceType.name == 'Chăm Sóc Da Mặt' ? 'material-symbols:face' :
+                                                                     'material-symbols:medical-services'}"></iconify-icon>
+                                                <span>${serviceType.name}</span>
                                         </button>
-                                        <button class="category-btn" data-category="pedicures">
-                                            <iconify-icon icon="material-symbols:footprint"></iconify-icon>
-                                            <span>Pedicures</span>
-                                        </button>
-                                        <button class="category-btn" data-category="brows">
-                                            <iconify-icon icon="material-symbols:visibility"></iconify-icon>
-                                            <span>Brows & Lashes</span>
-                                        </button>
-                                        <button class="category-btn" data-category="waxing">
-                                            <iconify-icon icon="material-symbols:local-fire-department"></iconify-icon>
-                                            <span>Waxing</span>
-                                        </button>
+                                        </c:forEach>
                                         <button class="category-btn" data-category="all">
                                             <iconify-icon icon="material-symbols:grid-view"></iconify-icon>
                                             <span>Tất cả</span>
                                         </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Price Range Filter -->
+                                <div class="price-filter">
+                                    <div class="price-label">
+                                        <iconify-icon icon="material-symbols:filter-list"></iconify-icon>
+                                        <span>Lọc theo giá:</span>
+                                        <span class="price-range-display" id="priceRangeDisplay">0 ₫ - 5,000,000 ₫</span>
+                                    </div>
+                                    <div class="price-slider-container">
+                                        <div class="slider-track"></div>
+                                        <div class="slider-range" id="sliderRange"></div>
+                                        <input type="range" id="minPriceSlider" min="0" max="5000000" value="0" step="50000">
+                                        <input type="range" id="maxPriceSlider" min="0" max="5000000" value="5000000" step="50000">
                                     </div>
                                 </div>
                                 
@@ -1204,96 +1345,57 @@
                                 <h2 class="section-title">Dịch Vụ Nổi Bật</h2>
                                 
                                 <!-- Featured Services -->
-                                <div class="service-card" data-service-id="1" data-price="3" data-category="featured">
-                                    <div class="service-title">Pedicure Treatments - (client to provide flip flops)</div>
+                                <c:forEach var="service" items="${featuredServices}" varStatus="status">
+                                    <div class="service-card" 
+                                         data-service-id="${service.serviceId}" 
+                                         data-price="${service.price}" 
+                                         data-category="featured"
+                                         data-type-id="${service.serviceTypeId.serviceTypeId}">
+                                        <div class="service-title">${service.name}</div>
                                     <div class="service-meta">
                                         <div class="service-duration">
                                             <iconify-icon icon="material-symbols:schedule"></iconify-icon>
-                                            <span>10 phút - 1 giờ, 40 phút</span>
+                                                <span>${service.durationMinutes} phút</span>
                                         </div>
                                         <div class="service-price">
                                             <iconify-icon icon="material-symbols:payments"></iconify-icon>
-                                            <span>từ 3 £</span>
+                                                <span><fmt:formatNumber value="${service.price}" type="currency" currencyCode="VND" pattern="#,##0 ₫"/></span>
                                         </div>
                                     </div>
-                                    <div class="service-description">IMPORTANT MESSAGE - Perfect You are proud to offer our clients 100% sterilized equipment and premium quality service for the ultimate pedicure experience...</div>
+                                        <div class="service-description">${service.description}</div>
                                     <div class="add-service-btn">
                                         <iconify-icon icon="material-symbols:add"></iconify-icon>
                                     </div>
                                 </div>
+                                </c:forEach>
                                 
-                                <div class="service-card" data-service-id="2" data-price="3" data-category="featured">
-                                    <div class="service-title">Manicure Treatments</div>
+                                <!-- Services by Category (hidden by default) -->
+                                <c:forEach var="serviceType" items="${serviceTypes}">
+                                    <c:forEach var="service" items="${servicesByType[serviceType.serviceTypeId]}" varStatus="serviceStatus">
+                                        <div class="service-card" 
+                                             data-service-id="${service.serviceId}" 
+                                             data-price="${service.price}" 
+                                             data-category="type-${serviceType.serviceTypeId}"
+                                             data-type-id="${serviceType.serviceTypeId}"
+                                             style="display: none;">
+                                            <div class="service-title">${service.name}</div>
                                     <div class="service-meta">
                                         <div class="service-duration">
                                             <iconify-icon icon="material-symbols:schedule"></iconify-icon>
-                                            <span>5 phút - 1 giờ, 30 phút</span>
+                                                    <span>${service.durationMinutes} phút</span>
                                         </div>
                                         <div class="service-price">
                                             <iconify-icon icon="material-symbols:payments"></iconify-icon>
-                                            <span>từ 3 £</span>
+                                                    <span><fmt:formatNumber value="${service.price}" type="currency" currencyCode="VND" pattern="#,##0 ₫"/></span>
                                         </div>
                                     </div>
-                                    <div class="service-description">IMPORTANT MESSAGE - Perfect You are proud to offer our clients 100% sterilized equipment and premium quality service for professional manicure treatments...</div>
+                                            <div class="service-description">${service.description}</div>
                                     <div class="add-service-btn">
                                         <iconify-icon icon="material-symbols:add"></iconify-icon>
                                     </div>
                                 </div>
-                                
-                                <div class="service-card" data-service-id="3" data-price="45" data-category="featured">
-                                    <div class="service-title">BIAB Overlay</div>
-                                    <div class="service-meta">
-                                        <div class="service-duration">
-                                            <iconify-icon icon="material-symbols:schedule"></iconify-icon>
-                                            <span>1 giờ, 50 phút</span>
-                                        </div>
-                                        <div class="service-price">
-                                            <iconify-icon icon="material-symbols:payments"></iconify-icon>
-                                            <span>45 £</span>
-                                        </div>
-                                    </div>
-                                    <div class="service-description">BIAB or in other words builder in the bottle. What is it? Gel like polish applied as a base coat to strengthen natural nails and provide a perfect foundation for nail art...</div>
-                                    <div class="add-service-btn">
-                                        <iconify-icon icon="material-symbols:add"></iconify-icon>
-                                    </div>
-                                </div>
-                                
-                                <!-- Additional Services for other categories (hidden by default) -->
-                                <div class="service-card" data-service-id="4" data-price="25" data-category="manicures" style="display: none;">
-                                    <div class="service-title">Classic Manicure</div>
-                                    <div class="service-meta">
-                                        <div class="service-duration">
-                                            <iconify-icon icon="material-symbols:schedule"></iconify-icon>
-                                            <span>45 phút</span>
-                                        </div>
-                                        <div class="service-price">
-                                            <iconify-icon icon="material-symbols:payments"></iconify-icon>
-                                            <span>25 £</span>
-                                        </div>
-                                    </div>
-                                    <div class="service-description">Traditional manicure with cuticle care, nail shaping, and polish application for perfectly groomed hands...</div>
-                                    <div class="add-service-btn">
-                                        <iconify-icon icon="material-symbols:add"></iconify-icon>
-                                    </div>
-                                </div>
-                                
-                                <div class="service-card" data-service-id="5" data-price="35" data-category="manicures" style="display: none;">
-                                    <div class="service-title">Gel Manicure</div>
-                                    <div class="service-meta">
-                                        <div class="service-duration">
-                                            <iconify-icon icon="material-symbols:schedule"></iconify-icon>
-                                            <span>1 giờ</span>
-                                        </div>
-                                        <div class="service-price">
-                                            <iconify-icon icon="material-symbols:payments"></iconify-icon>
-                                            <span>35 £</span>
-                                        </div>
-                                    </div>
-                                    <div class="service-description">Long-lasting gel polish manicure with UV curing for chip-resistant, glossy finish that lasts up to 2 weeks...</div>
-                                    <div class="add-service-btn">
-                                        <iconify-icon icon="material-symbols:add"></iconify-icon>
-                                    </div>
-                                </div>
+                                    </c:forEach>
+                                </c:forEach>
                             </div>
                         </div>
                         
@@ -1361,7 +1463,7 @@
                 const actualWidth = (targetWidth / 100) * (containerWidth - 50); // Subtract margins
                 
                 // Animate progress line width
-                progressLine.style.width = `${actualWidth}px`;
+                progressLine.style.width = actualWidth + 'px';
                 
                 // Update step states with enhanced animations
                 stepItems.forEach((step, index) => {
@@ -1413,7 +1515,7 @@
                     // Show progress notification
                     const stepNames = ['Chọn loại dịch vụ', 'Chọn dịch vụ', 'Chọn thời gian', 'Xác nhận đặt lịch'];
                     if (step > 0 && step < stepNames.length) {
-                        showNotification(`✅ Bước ${step + 1}: ${stepNames[step]}`, 'success');
+                        showNotification('✅ Bước ' + (step + 1) + ': ' + stepNames[step], 'success');
                     }
                 }
             }
@@ -1457,51 +1559,50 @@
                 new WOW().init();
             }
             
-            // Service categories data with better keywords
-            const serviceCategories = [
+            // Service categories data from server (dynamically generated)
+            const allServiceTypes = [
+                <c:forEach var="serviceType" items="${serviceTypes}" varStatus="status">
                 {
-                    id: 'featured',
-                    name: 'Dịch vụ nổi bật',
-                    description: 'Những dịch vụ được yêu thích nhất tại spa',
-                    icon: 'material-symbols:star',
-                    keywords: ['nổi bật', 'popular', 'featured', 'hot', 'trending', 'yêu thích', 'phổ biến']
-                },
-                {
-                    id: 'manicures',
-                    name: 'Dịch vụ Manicures',
-                    description: 'Chăm sóc và làm đẹp móng tay chuyên nghiệp',
-                    icon: 'material-symbols:hand-gesture',
-                    keywords: ['manicure', 'móng tay', 'nail', 'hand', 'tay', 'làm móng', 'chăm sóc tay']
-                },
-                {
-                    id: 'pedicures',
-                    name: 'Dịch vụ Pedicures',
-                    description: 'Chăm sóc và làm đẹp móng chân thư giãn',
-                    icon: 'material-symbols:footprint',
-                    keywords: ['pedicure', 'móng chân', 'foot', 'chân', 'feet', 'làm móng chân', 'chăm sóc chân']
-                },
-                {
-                    id: 'brows',
-                    name: 'Brows & Lashes',
-                    description: 'Chăm sóc và tạo dáng lông mày, lông mi',
-                    icon: 'material-symbols:visibility',
-                    keywords: ['brow', 'lash', 'mày', 'mi', 'eyebrow', 'eyelash', 'lông mày', 'lông mi', 'tạo dáng mày']
-                },
-                {
-                    id: 'threading',
-                    name: 'Eyebrow Threading',
-                    description: 'Tạo dáng lông mày bằng chỉ truyền thống',
-                    icon: 'material-symbols:spa',
-                    keywords: ['threading', 'chỉ', 'eyebrow', 'mày', 'tạo dáng', 'chỉ mày', 'làm mày']
-                },
-                {
-                    id: 'waxing',
-                    name: 'Dịch vụ Waxing',
-                    description: 'Tẩy lông bằng sáp an toàn và hiệu quả',
-                    icon: 'material-symbols:local-fire-department',
-                    keywords: ['waxing', 'sáp', 'tẩy lông', 'wax', 'hair removal', 'triệt lông', 'nhổ lông']
-                }
+                    id: 'type-${serviceType.serviceTypeId}',
+                    name: '${serviceType.name}',
+                    description: '${serviceType.description}',
+                    icon: getServiceTypeIcon('${serviceType.name}')
+                }<c:if test="${!status.last}">,</c:if>
+                </c:forEach>
             ];
+
+            const hotServiceTypes = [
+                <c:forEach var="serviceType" items="${hotServiceTypes}" varStatus="status">
+                {
+                    id: 'type-${serviceType.serviceTypeId}',
+                    name: '${serviceType.name}',
+                    description: '${serviceType.description}',
+                    icon: getServiceTypeIcon('${serviceType.name}')
+                }<c:if test="${!status.last}">,</c:if>
+                </c:forEach>
+            ];
+            
+            // Helper function to get icon for service type
+            function getServiceTypeIcon(serviceTypeName) {
+                const iconMap = {
+                    'Chăm Sóc Móng': 'material-symbols:hand-gesture',
+                    'Tẩy Lông & Waxing': 'material-symbols:local-fire-department',
+                    'Chăm Sóc Lông Mi & Lông Mày': 'material-symbols:visibility',
+                    'Liệu Pháp Thơm': 'material-symbols:spa',
+                    'Massage Thư Giãn': 'material-symbols:self-care',
+                    'Chăm Sóc Da Mặt': 'material-symbols:face',
+                    'Chăm Sóc Toàn Thân': 'material-symbols:body-system',
+                    'Dịch Vụ Gội Đầu Dưỡng Sinh': 'material-symbols:shower',
+                    'Liệu Pháp Nước': 'material-symbols:water-drop',
+                    'Y Học Cổ Truyền Việt Nam': 'material-symbols:healing',
+                    'Giảm Cân & Định Hình Cơ Thể': 'material-symbols:fitness-center',
+                    'Dịch Vụ Cặp Đôi': 'material-symbols:favorite',
+                    'Chống Lão Hóa': 'material-symbols:auto-awesome',
+                    'Thải Độc & Thanh Lọc': 'material-symbols:eco',
+                    'Massage Trị Liệu': 'material-symbols:medical-services'
+                };
+                return iconMap[serviceTypeName] || 'material-symbols:medical-services';
+            }
             
             // DOM elements
             const searchInput = document.getElementById('serviceSearch');
@@ -1511,13 +1612,21 @@
             const serviceCards = document.querySelectorAll('.service-card');
             const sectionTitle = document.querySelector('.section-title');
             
-            // Improved search with debouncing
+            // Price slider elements
+            const minPriceSlider = document.getElementById('minPriceSlider');
+            const maxPriceSlider = document.getElementById('maxPriceSlider');
+            const priceRangeDisplay = document.getElementById('priceRangeDisplay');
+            const sliderRange = document.getElementById('sliderRange');
+            let minPrice = parseInt(minPriceSlider.value);
+            let maxPrice = parseInt(maxPriceSlider.value);
+            
+            // Improved search with debouncing for services
             let searchTimeout;
             searchInput.addEventListener('input', function() {
                 clearTimeout(searchTimeout);
                 const query = this.value.trim().toLowerCase();
                 
-                if (query.length === 0) {
+                if (query.length < 2) { // Only search when 2 or more characters are entered
                     searchResults.classList.remove('show');
                     return;
                 }
@@ -1529,69 +1638,154 @@
             });
             
             function performSearch(query) {
-                // Smart search with fuzzy matching
-                const filteredCategories = serviceCategories.filter(category => {
-                    const nameMatch = category.name.toLowerCase().includes(query);
-                    const descMatch = category.description.toLowerCase().includes(query);
-                    const keywordMatch = category.keywords.some(keyword => 
-                        keyword.toLowerCase().includes(query) || query.includes(keyword.toLowerCase())
-                    );
-                    return nameMatch || descMatch || keywordMatch;
-                });
-                
-                displaySearchResults(filteredCategories, query);
+                const searchUrl = '${pageContext.request.contextPath}/api/services/search?q=' + encodeURIComponent(query);
+
+                fetch(searchUrl)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Lỗi mạng: ' + response.statusText);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data && data.services) {
+                            displayServiceSearchResults(data.services, query);
+                        } else {
+                            displayServiceSearchResults([], query);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Lỗi khi tìm kiếm dịch vụ:', error);
+                        const searchResults = document.getElementById('searchResults');
+                        searchResults.innerHTML = '<div class="no-results">Có lỗi xảy ra khi tìm kiếm.</div>';
+                        searchResults.classList.add('show');
+                    });
             }
             
-            // Enhanced search results display
-            function displaySearchResults(categories, query = '') {
-                if (categories.length === 0) {
-                    searchResults.innerHTML = `
-                        <div class="no-results">
-                            <iconify-icon icon="material-symbols:search-off"></iconify-icon>
-                            <div>Không tìm thấy loại dịch vụ cho "${query}"</div>
-                            <small>Thử tìm với từ khóa khác</small>
-                        </div>
-                    `;
+            // Display search results for SERVICES
+            function displayServiceSearchResults(services, query) {
+                const searchResults = document.getElementById('searchResults');
+                if (services.length === 0) {
+                    searchResults.innerHTML =
+                        '<div class="no-results">' +
+                        '<iconify-icon icon="material-symbols:search-off"></iconify-icon>' +
+                        '<div>Không tìm thấy dịch vụ nào cho "' + query + '"</div>' +
+                        '<small>Thử tìm với từ khóa khác</small>' +
+                        '</div>';
                 } else {
                     let resultsHtml = '';
-                    categories.forEach((category, index) => {
-                        // Highlight matching text
-                        let highlightedName = category.name;
-                        if (query) {
-                            const regex = new RegExp(`(${query})`, 'gi');
-                            highlightedName = category.name.replace(regex, '<mark style="background: rgba(200, 148, 95, 0.2); padding: 0;">$1</mark>');
-                        }
+                    services.forEach((service, index) => {
+                        const formattedPrice = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(service.price);
                         
-                        resultsHtml += `
-                            <div class="search-result-item" data-category="${category.id}" style="animation-delay: ${index * 0.05}s">
-                                <iconify-icon icon="${category.icon}"></iconify-icon>
-                                <div class="search-result-text">
-                                    <div class="search-result-name">${highlightedName}</div>
-                                    <div class="search-result-description">${category.description}</div>
-                                </div>
-                            </div>
-                        `;
+                        const regex = new RegExp('(' + query + ')', 'gi');
+                        const highlightedName = service.name.replace(regex, '<mark style="background: rgba(200, 148, 95, 0.2); padding: 0;">$1</mark>');
+
+                        resultsHtml +=
+                            '<div class="search-result-item" data-service-id="' + service.id + '" style="animation-delay: ' + (index * 0.05) + 's">' +
+                            '    <iconify-icon icon="material-symbols:medical-services-outline"></iconify-icon>' +
+                            '    <div class="search-result-text">' +
+                            '        <div class="search-result-name">' + highlightedName + '</div>' +
+                            '        <div class="search-result-description">' + service.duration + ' phút - ' + formattedPrice + '</div>' +
+                            '    </div>' +
+                            '</div>';
                     });
                     searchResults.innerHTML = resultsHtml;
+                }
+                
+                searchResults.classList.add('show');
+            }
+
+            // This function is for CATEGORIES, triggered when focusing on the search bar without typing much
+            function displayCategorySearchResults(categories, hotCount) {
+                const searchResults = document.getElementById('searchResults');
+                let resultsHtml = '';
+
+                const renderItem = (category, index) => {
+                    return '<div class="search-result-item" data-category="' + category.id + '" style="animation-delay: ' + (index * 0.05) + 's">' +
+                        '    <iconify-icon icon="' + category.icon + '"></iconify-icon>' +
+                        '    <div class="search-result-text">' +
+                        '        <div class="search-result-name">' + category.name + '</div>' +
+                        '        <div class="search-result-description">' + category.description + '</div>' +
+                        '    </div>' +
+                        '</div>';
+                };
+
+                if (hotCount > 0) {
+                    resultsHtml += '<div class="search-result-subtitle">Danh mục hot</div>';
+                    categories.slice(0, hotCount).forEach((category, index) => {
+                        resultsHtml += renderItem(category, index);
+                    });
+
+                    if (categories.length > hotCount) {
+                        resultsHtml += '<div class="search-result-subtitle">Danh mục khác</div>';
+                        categories.slice(hotCount).forEach((category, index) => {
+                            resultsHtml += renderItem(category, index + hotCount);
+                        });
+                    }
+                } else {
+                    categories.forEach((category, index) => {
+                        resultsHtml += renderItem(category, index);
+                    });
+                }
+
+                    searchResults.innerHTML = resultsHtml;
                     
-                    // Add click handlers with improved feedback
+                // Add click handlers to filter by category
                     searchResults.querySelectorAll('.search-result-item').forEach(item => {
                         item.addEventListener('click', function() {
                             const categoryId = this.getAttribute('data-category');
                             selectCategory(categoryId);
                             
-                            // Visual feedback
                             this.style.transform = 'scale(0.95)';
                             setTimeout(() => {
                                 this.style.transform = '';
                             }, 150);
                         });
                     });
-                }
-                
                 searchResults.classList.add('show');
             }
             
+            function selectCategory(categoryId) {
+                const categoryButton = document.querySelector('.category-btn[data-category="' + categoryId + '"]');
+                if (categoryButton) {
+                    categoryButton.click();
+                }
+                searchResults.classList.remove('show');
+                searchInput.value = '';
+            }
+
+            // Delegated event listener for all search results
+            searchResults.addEventListener('click', function(e) {
+                const item = e.target.closest('.search-result-item');
+                if (!item) return;
+
+                // Handle category selection
+                if (item.hasAttribute('data-category')) {
+                    const categoryId = item.getAttribute('data-category');
+                    selectCategory(categoryId);
+                }
+                // Handle service selection
+                else if (item.hasAttribute('data-service-id')) {
+                    const serviceId = item.getAttribute('data-service-id');
+                    const serviceCard = document.querySelector('.service-card[data-service-id="' + serviceId + '"]');
+
+                    if (serviceCard) {
+                        if (!serviceCard.classList.contains('selected')) {
+                            toggleServiceSelection(serviceCard);
+                        }
+                        serviceCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        serviceCard.style.transition = 'all 0.2s ease-in-out';
+                        serviceCard.style.transform = 'scale(1.03)';
+                        setTimeout(() => {
+                            serviceCard.style.transform = 'scale(1)';
+                        }, 400);
+                    }
+                    // Hide search results and clear input
+                    searchResults.classList.remove('show');
+                    searchInput.value = '';
+                }
+            });
+
             // Enhanced category and search handling
             const categoryButtons = document.querySelectorAll('.category-btn');
             
@@ -1615,13 +1809,13 @@
                     // Update section title
                     const categoryNames = {
                         'featured': 'Dịch Vụ Nổi Bật',
-                        'manicures': 'Dịch Vụ Manicures',
-                        'pedicures': 'Dịch Vụ Pedicures',
-                        'brows': 'Dịch Vụ Brows & Lashes',
-                        'threading': 'Dịch Vụ Eyebrow Threading',
-                        'waxing': 'Dịch Vụ Waxing',
                         'all': 'Tất Cả Dịch Vụ'
                     };
+                    
+                    // Add dynamic service type names
+                    <c:forEach var="serviceType" items="${serviceTypes}">
+                    categoryNames['type-${serviceType.serviceTypeId}'] = '${serviceType.name}';
+                    </c:forEach>
                     
                     sectionTitle.style.opacity = '0.5';
                     setTimeout(() => {
@@ -1630,12 +1824,7 @@
                     }, 200);
                     
                     // Filter services
-                    if (category === 'all') {
-                        // Show all services
-                        filterAllServices();
-                    } else {
-                        filterServices(category);
-                    }
+                    applyFilters();
                     
                     // Visual feedback
                     this.style.transform = 'scale(0.95)';
@@ -1643,145 +1832,52 @@
                         this.style.transform = '';
                     }, 150);
                     
-                    showNotification(`✨ Đã chọn: ${categoryNames[category]}`, 'success');
+                    showNotification('✨ Đã chọn: ' + categoryNames[category], 'success');
                 });
             });
             
-            // Function to show all services
-            function filterAllServices() {
+            // Master filter function
+            function applyFilters() {
                 const servicesSection = document.getElementById('servicesSection');
                 servicesSection.classList.add('loading-pulse');
                 
                 setTimeout(() => {
                     let visibleCount = 0;
-                    serviceCards.forEach((card, index) => {
-                        card.style.display = 'block';
-                        card.style.opacity = '0';
-                        card.style.transform = 'translateY(20px)';
-                        
-                        // Staggered animation
-                        setTimeout(() => {
-                            card.style.opacity = '1';
-                            card.style.transform = 'translateY(0)';
-                            card.classList.add('fade-in');
-                        }, visibleCount * 50);
-                        
-                        visibleCount++;
-                    });
-                    
-                    servicesSection.classList.remove('loading-pulse');
-                }, 300);
-            }
-            
-            // Enhanced search handling - only show search results when typing
-            function selectCategory(categoryId) {
-                const category = serviceCategories.find(cat => cat.id === categoryId);
-                if (!category) return;
-                
-                // This is for search results, not category buttons
-                currentCategory = categoryId;
-                
-                // Hide search results and clear input
-                searchResults.classList.remove('show');
-                searchInput.value = '';
-                searchInput.blur();
-                
-                // Reset category buttons to show we're in search mode
-                categoryButtons.forEach(btn => btn.classList.remove('active'));
-                
-                // Show selected category indicator
-                selectedCategory.style.display = 'flex';
-                selectedCategory.style.opacity = '0';
-                selectedCategory.style.transform = 'translateY(-10px)';
-                
-                setTimeout(() => {
-                    selectedCategory.querySelector('iconify-icon').setAttribute('icon', category.icon);
-                    selectedCategory.querySelector('.selected-category-name').textContent = category.name;
-                    
-                    selectedCategory.style.opacity = '1';
-                    selectedCategory.style.transform = 'translateY(0)';
-                }, 50);
-                
-                // Update section title
-                sectionTitle.style.opacity = '0.5';
-                setTimeout(() => {
-                    sectionTitle.textContent = category.name;
-                    sectionTitle.style.opacity = '1';
-                }, 200);
-                
-                // Filter services
-                filterServices(categoryId);
-                
-                showNotification(`🔍 Tìm thấy: ${category.name}`, 'success');
-            }
-            
-            // Enhanced clear selection for search results
-            clearSelection.addEventListener('click', function() {
-                // Hide search category indicator
-                selectedCategory.style.opacity = '0';
-                selectedCategory.style.transform = 'translateY(-10px)';
-                
-                setTimeout(() => {
-                    selectedCategory.style.display = 'none';
-                    selectedCategory.style.opacity = '1';
-                    selectedCategory.style.transform = 'translateY(0)';
-                }, 200);
-                
-                // Reset to featured category button
-                categoryButtons.forEach(btn => btn.classList.remove('active'));
-                const featuredBtn = document.querySelector('.category-btn[data-category="featured"]');
-                if (featuredBtn) {
-                    featuredBtn.classList.add('active');
-                }
-                
-                currentCategory = 'featured';
-                sectionTitle.textContent = 'Dịch Vụ Nổi Bật';
-                
-                // Show featured services
-                filterServices('featured');
-                
-                showNotification('🔄 Đã reset về dịch vụ nổi bật', 'success');
-            });
-            
-            // Enhanced service filtering
-            function filterServices(categoryId) {
-                const servicesSection = document.getElementById('servicesSection');
-                servicesSection.classList.add('loading-pulse');
-                
-                setTimeout(() => {
-                    let visibleCount = 0;
-                    serviceCards.forEach((card, index) => {
+                    serviceCards.forEach(card => {
                         const cardCategory = card.getAttribute('data-category');
-                        if (cardCategory === categoryId) {
+                        const cardPrice = parseFloat(card.getAttribute('data-price'));
+
+                        const isCategoryMatch = currentCategory === 'all' || cardCategory === currentCategory || (currentCategory === 'featured' && card.style.display !== 'none' && card.getAttribute('data-category') === 'featured');
+                        const isPriceMatch = cardPrice >= minPrice && cardPrice <= maxPrice;
+
+                        if ((currentCategory === 'featured' ? (card.getAttribute('data-category') === 'featured' && isPriceMatch) : (isCategoryMatch && isPriceMatch)) || (currentCategory === 'all' && isPriceMatch)) {
                             card.style.display = 'block';
                             card.style.opacity = '0';
                             card.style.transform = 'translateY(20px)';
                             
-                            // Staggered animation
                             setTimeout(() => {
                                 card.style.opacity = '1';
                                 card.style.transform = 'translateY(0)';
-                                card.classList.add('fade-in');
-                            }, visibleCount * 100);
-                            
+                            }, visibleCount * 50);
                             visibleCount++;
                         } else {
                             card.style.display = 'none';
-                            card.classList.remove('fade-in');
                         }
                     });
                     
                     servicesSection.classList.remove('loading-pulse');
                     
-                    // Show message if no services found
+                    // Remove previous no-services message if it exists
+                    const existingMsg = servicesSection.querySelector('.no-services-message');
+                    if(existingMsg) existingMsg.remove();
+                    
                     if (visibleCount === 0) {
                         const noServicesMsg = document.createElement('div');
                         noServicesMsg.className = 'no-services-message';
-                        noServicesMsg.innerHTML = `
-                            <iconify-icon icon="material-symbols:search-off"></iconify-icon>
-                            <div>Chưa có dịch vụ nào trong danh mục này</div>
-                            <small>Vui lòng chọn danh mục khác</small>
-                        `;
+                        noServicesMsg.innerHTML =
+                            '<iconify-icon icon="material-symbols:search-off"></iconify-icon>' +
+                            '<div>Không có dịch vụ nào phù hợp</div>' +
+                            '<small>Hãy thử thay đổi bộ lọc</small>';
                         servicesSection.appendChild(noServicesMsg);
                     }
                 }, 300);
@@ -1834,7 +1930,8 @@
                             id: card.getAttribute('data-service-id'),
                             name: card.querySelector('.service-title').textContent,
                             price: parseFloat(card.getAttribute('data-price')),
-                            duration: card.querySelector('.service-duration span').textContent
+                            duration: card.querySelector('.service-duration span').textContent,
+                            typeId: card.getAttribute('data-type-id')
                         };
                         selectedServices.push(serviceData);
                         
@@ -1872,15 +1969,22 @@
                     } else {
                         let servicesHtml = '';
                         selectedServices.forEach((service, index) => {
-                            servicesHtml += `
-                                <div class="selected-service slide-in" style="animation-delay: ${index * 0.1}s">
-                                    <div class="service-name">${service.name}</div>
-                                    <div class="service-price-summary">£${service.price}</div>
-                                </div>
-                            `;
+                            const formattedPrice = new Intl.NumberFormat('vi-VN', {
+                                style: 'currency',
+                                currency: 'VND'
+                            }).format(service.price);
+
+                            servicesHtml +=
+                                '<div class="selected-service slide-in" style="animation-delay: ' + (index * 0.1) + 's">' +
+                                '<div class="service-name">' + service.name + '</div>' +
+                                '<div class="service-price-summary">' + formattedPrice + '</div>' +
+                                '</div>';
                         });
                         servicesContainer.innerHTML = servicesHtml;
-                        totalAmountElement.textContent = `£${totalAmount}`;
+                        totalAmountElement.textContent = new Intl.NumberFormat('vi-VN', {
+                            style: 'currency',
+                            currency: 'VND'
+                        }).format(totalAmount);
                         continueBtn.disabled = false;
                     }
                     
@@ -1912,7 +2016,7 @@
                 
                 // Simulate processing with enhanced feedback
                 setTimeout(() => {
-                    showNotification(`✅ Đã chọn ${selectedServices.length} dịch vụ thành công!`, 'success');
+                    showNotification('✅ Đã chọn ' + selectedServices.length + ' dịch vụ thành công!', 'success');
                     
                     // Show progress completion for current step
                     setTimeout(() => {
@@ -1929,7 +2033,7 @@
             // Notification system
             function showNotification(message, type = 'success') {
                 const notification = document.createElement('div');
-                notification.className = `notification ${type}`;
+                notification.className = 'notification ' + type;
                 
                 const icon = type === 'success' ? 'material-symbols:check-circle' : 'material-symbols:error';
                 notification.innerHTML = `
@@ -1982,7 +2086,14 @@
             // Better focus handling for accessibility
             searchInput.addEventListener('focus', function() {
                 if (this.value.trim() === '') {
-                    displaySearchResults(serviceCategories);
+                    // When the search bar is focused and empty, show category suggestions
+                    const hotCategoryIds = hotServiceTypes.map(c => c.id);
+                    
+                    const otherCategories = allServiceTypes.filter(cat => !hotCategoryIds.includes(cat.id));
+
+                    const sortedCategories = [...hotServiceTypes, ...otherCategories];
+
+                    displayCategorySearchResults(sortedCategories, hotServiceTypes.length);
                 }
                 
                 // Add focus ring
@@ -2021,8 +2132,13 @@
                     case 'Enter':
                         e.preventDefault();
                         if (currentIndex >= 0) {
-                            const categoryId = items[currentIndex].getAttribute('data-category');
-                            selectCategory(categoryId);
+                            const item = items[currentIndex];
+                            if (item.hasAttribute('data-category')) {
+                                const categoryId = item.getAttribute('data-category');
+                                selectCategory(categoryId);
+                            } else if (item.hasAttribute('data-service-id')) {
+                                item.click(); // Trigger the delegated click handler
+                            }
                         }
                         break;
                     case 'Escape':
@@ -2031,6 +2147,42 @@
                         break;
                 }
             });
+
+            // Initialize price slider functionality
+            function formatCurrency(value) {
+                return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
+            }
+            
+            function updatePriceSlider() {
+                if (minPrice > maxPrice) {
+                    [minPrice, maxPrice] = [maxPrice, minPrice]; // Swap values
+                    [minPriceSlider.value, maxPriceSlider.value] = [maxPriceSlider.value, minPriceSlider.value];
+                }
+
+                priceRangeDisplay.textContent = formatCurrency(minPrice) + ' - ' + formatCurrency(maxPrice);
+                
+                const range = maxPriceSlider.max - minPriceSlider.min;
+                const leftPercent = ((minPrice - minPriceSlider.min) / range) * 100;
+                const rightPercent = ((maxPrice - minPriceSlider.min) / range) * 100;
+
+                sliderRange.style.left = leftPercent + '%';
+                sliderRange.style.width = (rightPercent - leftPercent) + '%';
+
+                applyFilters();
+            }
+
+            minPriceSlider.addEventListener('input', () => {
+                minPrice = parseInt(minPriceSlider.value);
+                updatePriceSlider();
+            });
+
+            maxPriceSlider.addEventListener('input', () => {
+                maxPrice = parseInt(maxPriceSlider.value);
+                updatePriceSlider();
+            });
+            
+            // Initial call to set up slider display
+            updatePriceSlider();
         });
     </script>
 </body>
