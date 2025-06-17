@@ -1,0 +1,6 @@
+---
+description: 
+globs: *.jsp
+alwaysApply: false
+---
+use colors from [color-palette.md](mdc:color-palette.md)
