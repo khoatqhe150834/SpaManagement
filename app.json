@@ -1,0 +1,28 @@
+{
+  "name": "G1 Spa Management System",
+  "description": "A comprehensive spa management system built with Java, JSP, and Maven",
+  "repository": "https://github.com/khoatqhe150834/G1_SpaManagement",
+  "logo": "https://small-sharp-tool.com/logo.svg",
+  "keywords": ["java", "jsp", "maven", "spa", "management"],
+  "image": "heroku/java",
+  "addons": [
+    {
+      "plan": "jawsdb:kitefin"
+    }
+  ],
+  "env": {
+    "JAVA_OPTS": {
+      "description": "Java runtime options",
+      "value": "-Xmx300m -Xss512k -XX:CICompilerCount=2 -Dfile.encoding=UTF-8"
+    },
+    "MAVEN_CUSTOM_OPTS": {
+      "description": "Maven custom options",
+      "value": "-Dskip.npm"
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/java"
+    }
+  ]
+} 
