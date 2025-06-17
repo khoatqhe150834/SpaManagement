@@ -242,7 +242,7 @@
                     <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
                         <c:url var="prevUrl" value="/promotion/list">
                             <c:param name="page" value="${currentPage - 1}"/>
-                            <c:param name="search" value="${searchValue}"/>
+                            <c:param name="searchValue" value="${searchValue}"/>
                             <c:param name="status" value="${status}"/>
                         </c:url>
                         <a class="page-link" href="${currentPage > 1 ? prevUrl : '#'}">
@@ -252,7 +252,7 @@
                     <c:forEach var="i" begin="1" end="${totalPages}">
                         <c:url var="pageUrl" value="/promotion/list">
                             <c:param name="page" value="${i}"/>
-                            <c:param name="search" value="${searchValue}"/>
+                            <c:param name="searchValue" value="${searchValue}"/>
                             <c:param name="status" value="${status}"/>
                         </c:url>
                         <li class="page-item ${i == currentPage ? 'active' : ''}">
@@ -262,7 +262,7 @@
                     <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
                         <c:url var="nextUrl" value="/promotion/list">
                             <c:param name="page" value="${currentPage + 1}"/>
-                            <c:param name="search" value="${searchValue}"/>
+                            <c:param name="searchValue" value="${searchValue}"/>
                             <c:param name="status" value="${status}"/>
                         </c:url>
                         <a class="page-link" href="${currentPage < totalPages ? nextUrl : '#'}">
