@@ -153,9 +153,16 @@ public class ServiceTypeController extends HttpServlet {
 
             case "check-duplicate-name": {
                 String name = request.getParameter("name");
+                String idParam = request.getParameter("id");
+                boolean isDuplicate;
+                if (idParam != null && !idParam.isEmpty()) {
+                    int id = Integer.parseInt(idParam);
+                    isDuplicate = dao.existsByNameExceptId(name, id);
+                } else {
+                    isDuplicate = dao.existsByName(name);
+                }
                 response.setContentType("application/json");
                 response.setCharacterEncoding("UTF-8");
-                boolean isDuplicate = dao.existsByName(name);
                 String message = isDuplicate ? "Tên này đã tồn tại trong hệ thống." : "Tên có thể sử dụng.";
                 response.getWriter().write("{\"valid\": " + !isDuplicate + ", \"message\": \"" + message + "\"}");
                 break;
