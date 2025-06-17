@@ -40,7 +40,7 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
 
     @Override
     public Optional<Staff> findById(Integer id) {
-        String sql = "SELECT t.*, u.full_name, st.name AS service_type_name "
+        String sql = "SELECT t.*, u.full_name, st.name AS service_type_name, st.service_type_id "
                 + "FROM therapists t "
                 + "JOIN users u ON t.user_id = u.user_id "
                 + "LEFT JOIN service_types st ON t.service_type_id = st.service_type_id "
@@ -51,10 +51,12 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
                 if (rs.next()) {
                     Staff staff = mapResultSetToStaff(rs);
                     User user = new User();
+                    user.setUserId(rs.getInt("user_id"));
                     user.setFullName(rs.getString("full_name"));
                     staff.setUser(user);
 
                     ServiceType serviceType = new ServiceType();
+                    serviceType.setServiceTypeId(rs.getInt("service_type_id"));
                     serviceType.setName(rs.getString("service_type_name"));
                     staff.setServiceType(serviceType);
 
@@ -126,28 +128,30 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
 
     @Override
     public <S extends Staff> S update(S entity) {
-        // Câu lệnh SQL chỉ cần 5 tham số (service_type_id, bio, availability_status, years_of_experience, user_id)
-        String sql = "UPDATE therapists SET service_type_id = ?, bio = ?, availability_status = ?, years_of_experience = ? WHERE user_id = ?";
+        String sql = "UPDATE therapists SET service_type_id = ?, bio = ?, availability_status = ?, years_of_experience = ?, updated_at = ? WHERE user_id = ?";
         try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            // Kiểm tra xem entity.getServiceType() có khác null không, nếu không sẽ set null cho service_type_id
-            ps.setObject(1, entity.getServiceType() != null ? entity.getServiceType().getServiceTypeId() : null, Types.INTEGER);
+            // Set service_type_id
+            if (entity.getServiceType() != null) {
+                ps.setInt(1, entity.getServiceType().getServiceTypeId());
+            } else {
+                ps.setNull(1, Types.INTEGER);
+            }
+            
+            // Set other fields
             ps.setString(2, entity.getBio());
             ps.setString(3, entity.getAvailabilityStatus().name());
             ps.setInt(4, entity.getYearsOfExperience());
-            // Dùng userId để cập nhật dòng tương ứng với userId trong bảng therapists
-            ps.setInt(5, entity.getUser().getUserId());
+            ps.setTimestamp(5, new Timestamp(System.currentTimeMillis()));
+            ps.setInt(6, entity.getUser().getUserId());
 
-            // Thực thi câu lệnh UPDATE và trả về số dòng ảnh hưởng
             int rowsAffected = ps.executeUpdate();
-
-            // Kiểm tra nếu không có dòng nào bị ảnh hưởng (tức là không cập nhật được)
             if (rowsAffected > 0) {
                 System.out.println("Staff updated successfully.");
+                return entity;
             } else {
                 System.out.println("No rows updated, check user_id.");
+                return null;
             }
-
-            return entity;
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error updating staff", e);
             return null;
@@ -165,6 +169,7 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
         
         // Set ServiceType information
         ServiceType serviceType = new ServiceType();
+        serviceType.setServiceTypeId(rs.getInt("service_type_id"));
         serviceType.setName(rs.getString("service_type_name"));
         staff.setServiceType(serviceType);
         

@@ -79,7 +79,7 @@
                             <th>Loại Dịch Vụ</th>
                             <th>Tiểu Sử</th>
                             <th class="text-center">Trạng Thái</th>
-                            <th>Kinh Nghiệm (Năm)</th>
+                            <th>EXP (Năm)</th>
                             <th class="text-center">Hành Động</th>
                         </tr>
                     </thead>
