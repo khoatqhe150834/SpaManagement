@@ -39,6 +39,20 @@
                    value="${not empty promotionInput.promotionCode ? promotionInput.promotionCode : ''}">
             <div class="error-text">${errors.promotionCode}</div>
         </div>
+        <!-- Image URL -->
+        <div class="form-group">
+            <label class="form-label" for="imageUrl">Promotion Image</label>
+            <input type="file" class="form-control ${not empty errors.imageUrl ? 'is-invalid' : ''}" 
+                   id="imageUrl" name="imageUrl" accept="image/*">
+            <small class="form-text text-muted">Select an image for the promotion (optional)</small>
+            <div class="error-text">${errors.imageUrl}</div>
+            <c:if test="${not empty promotionInput.imageUrl}">
+                <div class="mt-2">
+                    <img src="${promotionInput.imageUrl}" alt="Current Promotion Image" 
+                         class="img-thumbnail" style="max-width: 200px;">
+                </div>
+            </c:if>
+        </div>
         <!-- Discount Type -->
         <div class="form-group">
             <label class="form-label" for="discountType">Discount Type <span class="text-danger">*</span></label>
