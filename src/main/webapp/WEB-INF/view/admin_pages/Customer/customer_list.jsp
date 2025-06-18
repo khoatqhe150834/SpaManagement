@@ -81,13 +81,6 @@
                     <div class="d-flex align-items-center flex-wrap gap-3">
                         <%-- Form tìm kiếm và lọc --%>
                         <form class="navbar-search d-flex gap-2 align-items-center" method="get" action="${pageContext.request.contextPath}/customer/list">
-                            <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px" name="pageSize" onchange="this.form.submit()">
-                                <option value="5" ${pageSize == 5 ? 'selected' : ''}>5</option>
-                                <option value="10" ${pageSize == 10 ? 'selected' : ''}>10</option>
-                                <option value="20" ${pageSize == 20 ? 'selected' : ''}>20</option>
-                                <option value="50" ${pageSize == 50 ? 'selected' : ''}>50</option>
-                                <option value="9999" ${pageSize == 9999 ? 'selected' : ''}>All</option>
-                            </select>
                             <input type="text" class="bg-base h-40-px w-auto" name="search" placeholder="Search..." value="${searchValue}">
                             <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px" name="status">
                                 <option value="">All Status</option>
