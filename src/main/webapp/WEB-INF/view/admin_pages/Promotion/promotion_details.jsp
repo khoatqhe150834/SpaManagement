@@ -29,10 +29,16 @@
                             NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
                         %>
 
-                        <div class="row">
-                            <div class="col-md-6">
-                                <p><strong>Title:</strong> <c:out value="${promotion.title}"/></p>
-                                <p><strong>Promotion Code:</strong> <span class="badge bg-secondary"><c:out value="${promotion.promotionCode}"/></span></p>
+                        <div class="row mb-4">
+                            <div class="col-md-4 text-center">
+                                <img src="${not empty promotion.imageUrl ? promotion.imageUrl : 'https://placehold.co/300x300/7C3AED/FFFFFF?text=PROMO'}" 
+                                     alt="${promotion.title}"
+                                     class="img-fluid rounded shadow-sm"
+                                     style="max-width: 300px; height: auto;">
+                            </div>
+                            <div class="col-md-8">
+                                <h4 class="mb-3">${promotion.title}</h4>
+                                <p><strong>Promotion Code:</strong> <span class="badge bg-secondary">${promotion.promotionCode}</span></p>
                                 <p><strong>Status:</strong>
                                     <c:choose>
                                         <c:when test="${promotion.status eq 'ACTIVE'}">
@@ -46,10 +52,11 @@
                                         </c:otherwise>
                                     </c:choose>
                                 </p>
-                                <p><strong>Description:</strong> <c:out value="${promotion.description}"/></p>
-                                <p><strong>Image URL:</strong> <c:choose><c:when test="${empty promotion.imageUrl}">N/A</c:when><c:otherwise><a href="${promotion.imageUrl}" target="_blank"><c:out value="${promotion.imageUrl}"/></a></c:otherwise></c:choose></p>
+                                <p><strong>Description:</strong> ${promotion.description}</p>
                             </div>
-
+                        </div>
+                        <hr>
+                        <div class="row">
                             <div class="col-md-6">
                                 <p><strong>Discount Type:</strong> <c:out value="${promotion.discountType}"/></p>
                                 <p><strong>Discount Value:</strong> <c:out value="${promotion.discountValue}"/></p>

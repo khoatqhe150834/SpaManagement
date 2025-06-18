@@ -10,7 +10,7 @@
                 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Service Types - Admin Dashboard</title>
+                <title>Danh Sách Loại Dịch Vụ - Admin Dashboard</title>
                 <link rel="icon" type="image/png" href="assets/images/favicon.png" sizes="16x16">
                 <!-- CSS here -->
                 <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp"></jsp:include>
@@ -115,17 +115,17 @@
 
                 <div class="dashboard-main-body">
                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
-                        <h6 class="fw-semibold mb-0">Service Type List</h6>
+                        <h6 class="fw-semibold mb-0">Danh Sách Loại Dịch Vụ</h6>
                         <ul class="d-flex align-items-center gap-2">
                             <li class="fw-medium">
                                 <a href="index.html" class="d-flex align-items-center gap-1 hover-text-primary">
                                     <iconify-icon icon="solar:home-smile-angle-outline"
                                         class="icon text-lg"></iconify-icon>
-                                    Dashboard
+                                    Bảng Điều Khiển
                                 </a>
                             </li>
                             <li>-</li>
-                            <li class="fw-medium">Service Type List</li>
+                            <li class="fw-medium">Danh Sách Loại Dịch Vụ</li>
                         </ul>
                     </div>
 
@@ -135,18 +135,18 @@
                             <div class="d-flex align-items-center flex-wrap gap-3">
                                 
                                 <div class="d-flex align-items-center gap-2">
-                                    <span class="text-md fw-medium text-secondary-light mb-0">Show</span>
+                                    <span class="text-md fw-medium text-secondary-light mb-0">Hiển thị</span>
                                     <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px" id="limitSelect" onchange="changeLimit(this.value)">
                                         <c:forEach var="i" begin="1" end="10">
                                             <option value="${i}" ${limit == i ? 'selected' : ''}>${i}</option>
                                         </c:forEach>
                                     </select>
-                                    <span class="text-md fw-medium text-secondary-light mb-0">entries</span>
+                                    <span class="text-md fw-medium text-secondary-light mb-0">mục</span>
                                 </div>
                                 <form class="navbar-search d-flex gap-2 align-items-center" method="get"
                                     action="servicetype">
                                     <input type="text" class="bg-base h-40-px w-auto" name="keyword"
-                                        placeholder="Search" value="${keyword}">
+                                        placeholder="Tìm kiếm" value="${keyword}">
 
                                     <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px"
                                         name="status">
@@ -157,13 +157,13 @@
                                     </select>
                                     <input type="hidden" name="service" value="searchByKeywordAndStatus">
                                     <input type="hidden" name="limit" value="${limit}" />
-                                    <button type="submit" class="btn btn-primary h-40-px radius-12">Search</button>
+                                    <button type="submit" class="btn btn-primary h-40-px radius-12">Tìm kiếm</button>
                                 </form>
                             </div>
                             <a href="servicetype?service=pre-insert"
                                 class="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2">
                                 <iconify-icon icon="ic:baseline-plus" class="icon text-xl line-height-1"></iconify-icon>
-                                Add New Service Type
+                                Thêm Loại Dịch Vụ Mới
                             </a>
                         </div>
 

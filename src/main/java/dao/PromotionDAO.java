@@ -1,11 +1,19 @@
 package dao;
 
-import db.DBContext;
 import java.math.BigDecimal;
-import java.sql.*;
-import java.util.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import db.DBContext;
 import model.Promotion;
 
 public class PromotionDAO {
@@ -115,43 +123,91 @@ public class PromotionDAO {
     }
 
     // Lấy danh sách khuyến mãi (phân trang, sort)
-    public List<Promotion> findAll(int page, int pageSize, String sortBy, String sortOrder) {
-        List<Promotion> list = new ArrayList<>();
-        if (sortBy == null || sortBy.isBlank()) sortBy = "created_at";
-        if (sortOrder == null || !(sortOrder.equalsIgnoreCase("ASC") || sortOrder.equalsIgnoreCase("DESC"))) sortOrder = "DESC";
-        String sql = "SELECT * FROM promotions ORDER BY " + sortBy + " " + sortOrder + " LIMIT ? OFFSET ?";
+    public List<Promotion> findAll(String status, int page, int pageSize, String sortBy, String sortOrder) {
+        List<Promotion> promotions = new ArrayList<>();
+        String sql = "SELECT * FROM promotions WHERE 1=1";
+        
+        if (status != null && !status.isEmpty()) {
+            sql += " AND status = ?";
+        }
+        
+        // Add sorting
+        if (sortBy != null && !sortBy.isEmpty()) {
+            String sortColumn = switch (sortBy) {
+                case "id" -> "promotion_id";
+                case "title" -> "title";
+                default -> "promotion_id";
+            };
+            sql += " ORDER BY " + sortColumn + " " + (sortOrder != null && sortOrder.equalsIgnoreCase("desc") ? "DESC" : "ASC");
+        }
+        
+        sql += " LIMIT ? OFFSET ?";
+        
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, pageSize);
-            ps.setInt(2, (page - 1) * pageSize);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) list.add(mapResultSet(rs));
+            
+            int paramIndex = 1;
+            if (status != null && !status.isEmpty()) {
+                ps.setString(paramIndex++, status);
+            }
+            ps.setInt(paramIndex++, pageSize);
+            ps.setInt(paramIndex, (page - 1) * pageSize);
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    promotions.add(mapResultSet(rs));
+                }
+            }
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "FindAll Promotion Error", e);
+            logger.log(Level.SEVERE, "Error finding all promotions", e);
         }
-        return list;
+        return promotions;
     }
 
     // Tìm kiếm khuyến mãi (search)
-    public List<Promotion> searchPromotions(String keyword, int page, int pageSize, String sortBy, String sortOrder) {
-        List<Promotion> list = new ArrayList<>();
-        if (sortBy == null || sortBy.isBlank()) sortBy = "created_at";
-        if (sortOrder == null || !(sortOrder.equalsIgnoreCase("ASC") || sortOrder.equalsIgnoreCase("DESC"))) sortOrder = "DESC";
-        String sql = "SELECT * FROM promotions WHERE title LIKE ? OR description LIKE ? OR promotion_code LIKE ? ORDER BY " + sortBy + " " + sortOrder + " LIMIT ? OFFSET ?";
+    public List<Promotion> search(String searchValue, String status, int page, int pageSize, String sortBy, String sortOrder) {
+        List<Promotion> promotions = new ArrayList<>();
+        String sql = "SELECT * FROM promotions WHERE (title LIKE ? OR promotion_code LIKE ?)";
+        
+        if (status != null && !status.isEmpty()) {
+            sql += " AND status = ?";
+        }
+        
+        // Add sorting
+        if (sortBy != null && !sortBy.isEmpty()) {
+            String sortColumn = switch (sortBy) {
+                case "id" -> "promotion_id";
+                case "title" -> "title";
+                default -> "promotion_id";
+            };
+            sql += " ORDER BY " + sortColumn + " " + (sortOrder != null && sortOrder.equalsIgnoreCase("desc") ? "DESC" : "ASC");
+        }
+        
+        sql += " LIMIT ? OFFSET ?";
+        
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            String kw = "%" + keyword + "%";
-            ps.setString(1, kw);
-            ps.setString(2, kw);
-            ps.setString(3, kw);
-            ps.setInt(4, pageSize);
-            ps.setInt(5, (page - 1) * pageSize);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) list.add(mapResultSet(rs));
+            
+            String searchPattern = "%" + searchValue + "%";
+            ps.setString(1, searchPattern);
+            ps.setString(2, searchPattern);
+            
+            int paramIndex = 3;
+            if (status != null && !status.isEmpty()) {
+                ps.setString(paramIndex++, status);
+            }
+            ps.setInt(paramIndex++, pageSize);
+            ps.setInt(paramIndex, (page - 1) * pageSize);
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    promotions.add(mapResultSet(rs));
+                }
+            }
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Search Promotion Error", e);
+            logger.log(Level.SEVERE, "Error searching promotions", e);
         }
-        return list;
+        return promotions;
     }
 
     // Lọc theo trạng thái (status)
@@ -388,4 +444,59 @@ public class PromotionDAO {
                
     }
      
+    public int countAll(String status) {
+        int count = 0;
+        String sql = "SELECT COUNT(*) FROM promotions WHERE 1=1";
+        
+        if (status != null && !status.isEmpty()) {
+            sql += " AND status = ?";
+        }
+        
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            if (status != null && !status.isEmpty()) {
+                ps.setString(1, status);
+            }
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    count = rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error counting promotions", e);
+        }
+        return count;
+    }
+
+    public int countSearchResults(String searchValue, String status) {
+        int count = 0;
+        String sql = "SELECT COUNT(*) FROM promotions WHERE (title LIKE ? OR promotion_code LIKE ?)";
+        
+        if (status != null && !status.isEmpty()) {
+            sql += " AND status = ?";
+        }
+        
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            String searchPattern = "%" + searchValue + "%";
+            ps.setString(1, searchPattern);
+            ps.setString(2, searchPattern);
+            
+            if (status != null && !status.isEmpty()) {
+                ps.setString(3, status);
+            }
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    count = rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error counting search results", e);
+        }
+        return count;
+    }
 }

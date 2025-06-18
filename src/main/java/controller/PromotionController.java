@@ -130,88 +130,46 @@ public class PromotionController extends HttpServlet {
      */
     private void handleListPromotions(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
         try {
-            // Get pagination parameters
             int page = getIntParameter(request, "page", 1);
             int pageSize = getIntParameter(request, "pageSize", DEFAULT_PAGE_SIZE);
-            String status = getStringParameter(request, "status");
+            String searchValue = request.getParameter("searchValue");
+            String status = request.getParameter("status");
+            String sortBy = request.getParameter("sortBy");
+            String sortOrder = request.getParameter("sortOrder");
 
-            // Get sorting parameters
-            String sortBy = getStringParameter(request, "sortBy");
-            String sortOrder = getStringParameter(request, "sortOrder");
-
-            // Get search parameters
-            String searchType = getStringParameter(request, "searchType");
-            String searchValue = getStringParameter(request, "searchValue");
-
-            // Validate parameters
-            if (page < 1) {
-                page = 1;
+            // Validate sort parameters
+            if (sortBy != null && !sortBy.matches("^(id|title)$")) {
+                sortBy = "id"; // Default sort by ID
             }
-            if (pageSize < 1) {
-                pageSize = DEFAULT_PAGE_SIZE;
-            }
-            if (pageSize > 100) {
-                pageSize = 100;
+            if (sortOrder == null || !sortOrder.matches("^(asc|desc)$")) {
+                sortOrder = "asc"; // Default ascending order
             }
 
             List<Promotion> promotions;
             int totalPromotions;
 
-            // Map sortBy sang tên cột SQL
-            String sortColumn = sortBy;
-            if ("id".equals(sortBy)) {
-                sortColumn = "promotion_id";
-            } else if ("name".equals(sortBy)) {
-                sortColumn = "title";
-            }
-
-            // Handle search
-            if (searchValue != null && !searchValue.isEmpty()) {
-                promotions = promotionDAO.searchPromotions(searchValue, page, pageSize,
-                        sortColumn != null ? sortColumn : "created_at", sortOrder != null ? sortOrder : "desc");
-                totalPromotions = promotionDAO.getTotalSearchResults(searchValue);
-            } else if (status != null && !status.isEmpty()) {
-                promotions = promotionDAO.findByStatus(status, page, pageSize, sortColumn, sortOrder);
-                totalPromotions = promotionDAO.getTotalPromotionsByStatus(status);
+            if (searchValue != null && !searchValue.trim().isEmpty()) {
+                promotions = promotionDAO.search(searchValue, status, page, pageSize, sortBy, sortOrder);
+                totalPromotions = promotionDAO.countSearchResults(searchValue, status);
             } else {
-                promotions = promotionDAO.findAll(page, pageSize, sortColumn, sortOrder);
-                totalPromotions = promotionDAO.getTotalPromotions();
+                promotions = promotionDAO.findAll(status, page, pageSize, sortBy, sortOrder);
+                totalPromotions = promotionDAO.countAll(status);
             }
 
-            // Sau khi lấy promotions (dưới đoạn set promotions = ...)
-            if (sortBy != null && sortOrder != null) {
-                if ("id".equals(sortBy)) {
-                    promotions.sort(java.util.Comparator.comparing(Promotion::getPromotionId));
-                } else if ("desc".equals(sortOrder)) {
-                    promotions.sort(java.util.Comparator.comparing(Promotion::getPromotionId).reversed());
-                }
-            }
-
-            // Calculate total pages
             int totalPages = (int) Math.ceil((double) totalPromotions / pageSize);
-            if (totalPages < 1) {
-                totalPages = 1;
-            }
-            if (page > totalPages) {
-                page = totalPages;
-            }
 
-            // Set request attributes
             request.setAttribute("listPromotion", promotions);
             request.setAttribute("currentPage", page);
-            request.setAttribute("pageSize", pageSize);
             request.setAttribute("totalPages", totalPages);
-            request.setAttribute("totalPromotions", totalPromotions);
+            request.setAttribute("pageSize", pageSize);
             request.setAttribute("status", status);
             request.setAttribute("sortBy", sortBy);
             request.setAttribute("sortOrder", sortOrder);
-            request.setAttribute("searchType", searchType);
             request.setAttribute("searchValue", searchValue);
 
-            logger.info(String.format("Loaded promotion list - Page: %d, Size: %d, Total: %d, Found: %d",
-                    page, pageSize, totalPromotions, promotions.size()));
+            logger.info(String.format("Loaded promotion list - Page: %d, Size: %d, Total: %d, Found: %d, Sort: %s %s",
+                    page, pageSize, totalPromotions, promotions.size(), sortBy, sortOrder));
 
             request.getRequestDispatcher("/WEB-INF/view/admin_pages/Promotion/promotion_list.jsp")
                     .forward(request, response);
@@ -385,12 +343,13 @@ public class PromotionController extends HttpServlet {
 
             promotionDAO.save(promotion);
             logger.info("Promotion created successfully: " + promotion.getPromotionId());
-            request.setAttribute("toastMessage", "Promotion created successfully");
+            request.setAttribute("toastMessage", "Promotion created successfully!");
             request.setAttribute("toastType", "success");
             handleListPromotions(request, response);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error creating promotion", e);
-            request.setAttribute("error", "Error creating promotion: " + e.getMessage());
+            request.setAttribute("toastMessage", "Error creating promotion: " + e.getMessage());
+            request.setAttribute("toastType", "error");
             request.setAttribute("promotionInput", promotionInput);
             request.setAttribute("errors", errors);
             request.getRequestDispatcher("/WEB-INF/view/admin_pages/Promotion/promotion_add.jsp").forward(request, response);
@@ -450,7 +409,7 @@ public class PromotionController extends HttpServlet {
 
             logger.info("Promotion updated successfully: " + promotionId);
 
-            request.setAttribute("toastMessage", "Promotion updated successfully");
+            request.setAttribute("toastMessage", "Promotion updated successfully!");
             request.setAttribute("toastType", "success");
 
             // Redirect to list with parameters
@@ -458,7 +417,8 @@ public class PromotionController extends HttpServlet {
 
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error updating promotion", e);
-            request.setAttribute("error", "Error updating promotion: " + e.getMessage());
+            request.setAttribute("toastMessage", "Error updating promotion: " + e.getMessage());
+            request.setAttribute("toastType", "error");
             request.setAttribute("isEdit", true);
             request.getRequestDispatcher("/WEB-INF/view/admin_pages/Promotion/promotion_edit.jsp")
                     .forward(request, response);
@@ -480,13 +440,15 @@ public class PromotionController extends HttpServlet {
             promotionDAO.deleteById(promotionId);
             logger.info("Promotion deleted successfully: " + promotionId);
 
-            request.setAttribute("toastMessage", "Promotion deleted successfully");
+            request.setAttribute("toastMessage", "Promotion deleted successfully!");
             request.setAttribute("toastType", "success");
             handleListPromotions(request, response);
 
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error deleting promotion", e);
-            handleError(request, response, "Error deleting promotion: " + e.getMessage(), "error");
+            request.setAttribute("toastMessage", "Error deleting promotion: " + e.getMessage());
+            request.setAttribute("toastType", "error");
+            response.sendRedirect(request.getContextPath() + "/promotion/list");
         }
     }
 
