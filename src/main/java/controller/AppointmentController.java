@@ -113,7 +113,7 @@ public class AppointmentController extends HttpServlet {
         request.setAttribute("currentPage", page);
         request.setAttribute("totalpages", totalPages);
 
-        request.getRequestDispatcher("/WEB-INF/view/admin_pages/appointment_list.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/view/admin_pages/Appointment/appointment_list.jsp").forward(request, response);
     }
 
     public void viewDetails(HttpServletRequest request, HttpServletResponse response)
@@ -149,7 +149,7 @@ public class AppointmentController extends HttpServlet {
         request.setAttribute("currentPaymentStatus", currentPaymentStatus);
         request.setAttribute("serviceSearch", serviceSearch == null ? "" : serviceSearch);
 
-        request.getRequestDispatcher("/WEB-INF/view/admin_pages/appointment_details.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/view/admin_pages/Appointment/appointment_details.jsp").forward(request, response);
     }
     
     public void updateStatusAndPayment(HttpServletRequest request, HttpServletResponse response)
