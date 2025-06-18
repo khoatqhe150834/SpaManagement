@@ -34,6 +34,7 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         customer.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
         customer.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
         customer.setIsVerified(rs.getObject("is_verified") != null ? rs.getBoolean("is_verified") : false);
+        customer.setAvatarUrl(rs.getString("avatar_url"));
         return customer;
     }
 
