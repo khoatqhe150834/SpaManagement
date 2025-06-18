@@ -474,7 +474,8 @@ private void handleProcessCreateForm(HttpServletRequest request, HttpServletResp
 
             customerDAO.update(customer);
 
-            request.getSession().setAttribute("successMessage", "Thông tin khách hàng đã được cập nhật thành công.");
+            request.setAttribute("toastMessage", "Customer updated successfully!");
+            request.setAttribute("toastType", "success");
             response.sendRedirect(request.getContextPath() + "/customer/list");
 
         } catch (NumberFormatException e) {
