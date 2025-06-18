@@ -463,7 +463,7 @@
 
                 function checkNameDuplicate(name, callback) {
                     $.ajax({
-                        url: '/servicetype',
+                        url: '/spa/servicetype',
                         type: 'GET',
                         data: { service: 'check-duplicate-name', name: name },
                         dataType: 'json',

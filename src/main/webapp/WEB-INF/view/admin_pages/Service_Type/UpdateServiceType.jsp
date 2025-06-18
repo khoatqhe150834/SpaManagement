@@ -467,7 +467,7 @@
                     var data = { service: 'check-duplicate-name', name: name };
                     if (id) data.id = id;
                     $.ajax({
-                        url: '/servicetype',
+                        url: '/spa/servicetype',
                         type: 'GET',
                         data: data,
                         dataType: 'json',
