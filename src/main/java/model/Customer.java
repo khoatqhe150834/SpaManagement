@@ -2,6 +2,7 @@ package model;
 
 import java.time.LocalDateTime;
 import java.util.Date;
+
 import lombok.ToString;
 
 @ToString
@@ -20,6 +21,7 @@ public class Customer {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Boolean isVerified; // TRUE = Email verified, FALSE = Not verified
+    private String avatarUrl;
 
     public Customer() {
     }
@@ -142,6 +144,14 @@ public class Customer {
 
     public void setIsVerified(Boolean isVerified) {
         this.isVerified = isVerified;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
     }
     
     // Convenience methods for better readability
