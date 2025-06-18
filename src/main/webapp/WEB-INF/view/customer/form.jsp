@@ -135,6 +135,17 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
+                                        <label for="avatar" class="form-label">Profile Picture</label>
+                                        <input type="file" class="form-control" id="avatar" name="avatar" accept="image/*">
+                                        <c:if test="${not empty customer.avatarUrl}">
+                                            <div class="mt-2">
+                                                <img src="${customer.avatarUrl}" alt="Current Avatar" class="rounded-circle" width="100" height="100">
+                                            </div>
+                                        </c:if>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
                                         <label for="password" class="form-label">
                                             Password ${empty customer ? '<span class="text-danger">*</span>' : '(leave blank to keep current)'}
                                         </label>
@@ -150,7 +161,9 @@
                                         </div>
                                     </div>
                                 </div>
+                            </div>
 
+                            <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <div class="form-check form-switch mt-4">
