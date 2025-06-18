@@ -1,50 +1,61 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
-
 package controller;
 
+import dao.BlogDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.*;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.util.List;
+import model.Blog;
 
-@WebServlet(name="BlogController", urlPatterns={"/blog"})
+@WebServlet(name = "BlogController", urlPatterns = {"/blog"})
 public class BlogController extends HttpServlet {
-   
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
-        request.getRequestDispatcher("/WEB-INF/view/customer/blog/blog_details.jsp").forward(request, response);
-    } 
 
+    private BlogDAO blogDAO;
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
-        processRequest(request, response);
+    public void init() {
+        blogDAO = new BlogDAO();
     }
 
-   
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet BlogController</title>");  
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet BlogController at " + request.getContextPath () + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
-        }
-    } 
+    /*========= GET =========*/
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
 
+        String search = req.getParameter("search");
+        int page = 1;
+        int pageSize = 6;
+
+        try {
+            if (req.getParameter("page") != null) {
+                page = Math.max(1, Integer.parseInt(req.getParameter("page")));
+            }
+        } catch (NumberFormatException ignored) {
+        }
+
+        List<Blog> blogs = blogDAO.findPublishedBlogs(search, page, pageSize);
+        int totalPages = (int) Math.ceil(
+                (double) blogDAO.countPublishedBlogs(search) / pageSize);
+
+        req.setAttribute("blogs", blogs);
+        req.setAttribute("currentPage", page);
+        req.setAttribute("totalPages", totalPages);
+        req.setAttribute("search", search == null ? "" : search);
+
+        req.getRequestDispatcher("/WEB-INF/view/customer/blog/blog_list.jsp")
+                .forward(req, resp);
+    }
+
+    /*========= POST (search form) =========*/
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+        String kw = req.getParameter("text");
+        String url = req.getContextPath() + "/blog";
+        if (kw != null && !kw.trim().isEmpty()) {
+            url += "?search=" + java.net.URLEncoder.encode(kw.trim(), "UTF-8");
+        }
+        resp.sendRedirect(url);
+    }
 }
