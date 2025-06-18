@@ -143,7 +143,8 @@
                                     </td>
                                     <td>
                                         <div class="d-flex align-items-center">
-                                            <img src="${pageContext.request.contextPath}/assets/images/avatar.png" alt="Avatar" class="rounded-circle me-2" width="32" height="32">
+                                            <img src="${not empty customer.avatarUrl ? customer.avatarUrl : pageContext.request.contextPath + '/assets/images/avatar.png'}" 
+                                                 alt="Avatar" class="rounded-circle me-2" width="32" height="32">
                                             <span class="fw-medium"><c:out value="${customer.fullName}"/></span>
                                         </div>
                                     </td>
