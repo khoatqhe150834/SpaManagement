@@ -67,6 +67,7 @@
 <body>
     <jsp:include page="/WEB-INF/view/common/admin/sidebar.jsp"></jsp:include>
     <jsp:include page="/WEB-INF/view/common/admin/header.jsp"></jsp:include>
+    <jsp:include page="/WEB-INF/view/common/admin/toast.jsp"></jsp:include>
 
     <div class="dashboard-main-body">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
@@ -141,10 +142,11 @@
                                         <a href="?sortBy=id&sortOrder=asc<c:if test='${not empty searchValue}'>&searchValue=${searchValue}</c:if><c:if test='${not empty status}'>&status=${status}</c:if>&page=${currentPage}" title="Sort Ascending">&#9650;</a>
                                         <a href="?sortBy=id&sortOrder=desc<c:if test='${not empty searchValue}'>&searchValue=${searchValue}</c:if><c:if test='${not empty status}'>&status=${status}</c:if>&page=${currentPage}" title="Sort Descending">&#9660;</a>
                                     </th>
+                                    <th scope="col">Image</th>
                                     <th scope="col">
                                         Title
-                                        <a href="?sortBy=name&sortOrder=asc<c:if test='${not empty searchValue}'>&searchValue=${searchValue}</c:if><c:if test='${not empty status}'>&status=${status}</c:if>&page=${currentPage}" title="Sort Name Ascending">&#9650;</a>
-                                        <a href="?sortBy=name&sortOrder=desc<c:if test='${not empty searchValue}'>&searchValue=${searchValue}</c:if><c:if test='${not empty status}'>&status=${status}</c:if>&page=${currentPage}" title="Sort Name Descending">&#9660;</a>
+                                        <a href="?sortBy=title&sortOrder=asc<c:if test='${not empty searchValue}'>&searchValue=${searchValue}</c:if><c:if test='${not empty status}'>&status=${status}</c:if>&page=${currentPage}" title="Sort Ascending">&#9650;</a>
+                                        <a href="?sortBy=title&sortOrder=desc<c:if test='${not empty searchValue}'>&searchValue=${searchValue}</c:if><c:if test='${not empty status}'>&status=${status}</c:if>&page=${currentPage}" title="Sort Descending">&#9660;</a>
                                     </th>
                                     <th scope="col">Code</th>
                                     <th scope="col">Value</th>
@@ -156,6 +158,12 @@
                                 <c:forEach var="promotion" items="${listPromotion}">
                                     <tr>
                                         <td>${promotion.promotionId}</td>
+                                        <td>
+                                            <img src="${not empty promotion.imageUrl ? promotion.imageUrl : 'https://placehold.co/100x100/7C3AED/FFFFFF?text=PROMO'}" 
+                                                 alt="${promotion.title}"
+                                                 class="rounded"
+                                                 style="width: 50px; height: 50px; object-fit: cover;">
+                                        </td>
                                         <td>${promotion.title}</td>
                                         <td>${promotion.promotionCode}</td>
                                         <td>
