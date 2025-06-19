@@ -149,7 +149,7 @@
                                 Vui lòng chọn loại dịch vụ mà bạn muốn đặt.
                             </p>
                 
-                <form id="bookingSelectionForm" action="${pageContext.request.contextPath}/booking/process" method="post">
+                <form id="bookingSelectionForm" action="${pageContext.request.contextPath}/process-booking" method="post">
                     <!-- Booking Section -->
                     <div class="booking-section-title">Đặt</div>
                     

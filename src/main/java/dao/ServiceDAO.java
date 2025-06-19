@@ -207,7 +207,7 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        
+
         return services;
     }
 
@@ -244,7 +244,8 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
             typeMap.put(type.getServiceTypeId(), type);
         }
 
-        try (Connection conn = DBContext.getConnection(); PreparedStatement stm = conn.prepareStatement(sql.toString())) {
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement stm = conn.prepareStatement(sql.toString())) {
             int paramIndex = 1;
             if (hasKeyword) {
                 String query = "%" + keyword.toLowerCase() + "%";
@@ -282,7 +283,8 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
         } else if ("inactive".equalsIgnoreCase(status)) {
             sql.append(" AND is_active = 0");
         }
-        try (Connection conn = DBContext.getConnection(); PreparedStatement stm = conn.prepareStatement(sql.toString())) {
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement stm = conn.prepareStatement(sql.toString())) {
             int paramIndex = 1;
             if (hasKeyword) {
                 String query = "%" + keyword.toLowerCase() + "%";
@@ -329,7 +331,9 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
 
     public int countAll() {
         String sql = "SELECT COUNT(*) FROM services";
-        try (Connection conn = DBContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql);
+                ResultSet rs = stmt.executeQuery()) {
             if (rs.next()) {
                 return rs.getInt(1);
             }
@@ -386,4 +390,92 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
         }
     }
 
+    // method to find min price of services
+    public double findMinPrice() {
+
+        return 0;
+    }
+
+    // method to find max price of services
+    public double findMaxPrice() {
+        double maxPrice = 0;
+        String sql = "SELECT MAX(price) FROM services";
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement stm = conn.prepareStatement(sql);
+                ResultSet rs = stm.executeQuery()) {
+            if (rs.next()) {
+                maxPrice = rs.getDouble(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return maxPrice;
+    }
+
+    /**
+     * Fetches a list of services based on a combination of optional filters.
+     *
+     * @param typeId      Optional service type ID to filter by.
+     * @param searchQuery Optional search term to filter by name.
+     * @param minPrice    Optional minimum price.
+     * @param maxPrice    Optional maximum price.
+     * @return A list of services matching the filter criteria.
+     */
+    public List<Service> getFilteredServices(String category, String searchQuery, Integer minPrice, Integer maxPrice) {
+        List<Service> services = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT * FROM services WHERE is_active = 1");
+        List<Object> params = new ArrayList<>();
+
+        if (category != null) {
+            if (category.equals("all")) {
+                // do nothing
+            } else if (category.equals("featured")) {
+                sql.append(" AND average_rating >= 4.5");
+            } else if (category.equals("new")) {
+                sql.append(" AND created_at >= NOW() - INTERVAL 1 MONTH");
+            } else if (category.startsWith("type-")) {
+                sql.append(" AND service_type_id = ?");
+                params.add(Integer.parseInt(category.substring(5)));
+            }
+        }
+
+        if (searchQuery != null) {
+            sql.append(" AND (LOWER(name) LIKE ? OR LOWER(description) LIKE ?)");
+            params.add("%" + searchQuery.toLowerCase() + "%");
+            params.add("%" + searchQuery.toLowerCase() + "%");
+        }
+
+        if (minPrice != null) {
+            sql.append(" AND price >= ?");
+            params.add(minPrice);
+        }
+
+        if (maxPrice != null) {
+            sql.append(" AND price <= ?");
+            params.add(maxPrice);
+        }
+
+        ServiceTypeDAO typeDAO = new ServiceTypeDAO();
+        Map<Integer, ServiceType> typeMap = new HashMap<>();
+        for (ServiceType type : typeDAO.findAll()) {
+            typeMap.put(type.getServiceTypeId(), type);
+        }
+
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement stm = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                stm.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = stm.executeQuery()) {
+                while (rs.next()) {
+                    services.add(mapResultSet(rs, typeMap));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return services;
+    }
+
+    // method to find all services types
 }
