@@ -172,8 +172,7 @@
                                                     <td class="text-center">${service.serviceId}</td>
                                                     <td class="text-center">
                                                         <div class="service-img-wrapper">
-                                                            <img src="${service.imageUrl}" alt="${service.name}"
-                                                                class="service-img" />
+                                                            <img src="${pageContext.request.contextPath}${serviceThumbnails[service.serviceId]}" alt="Service Image" style="width: 60px; height: 60px; object-fit: cover;">
                                                         </div>
                                                     </td>
                                                     <td>
