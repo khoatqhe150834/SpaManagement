@@ -189,13 +189,31 @@ public class ServiceController extends HttpServlet {
         List<String> imageUrls = new ArrayList<>();
         for (Part part : request.getParts()) {
             if (part.getName().equals("images") && part.getSize() > 0) {
-                String fileName = getSubmittedFileName(part);
+                String originalFileName = getSubmittedFileName(part);
+                String fileName = System.currentTimeMillis() + "_" + originalFileName;
                 String uploadPath = getServletContext().getRealPath("/assets/uploads/services/");
                 File uploadDir = new File(uploadPath);
                 if (!uploadDir.exists()) uploadDir.mkdirs();
-                part.write(uploadPath + File.separator + fileName);
-                String imageUrl = "/assets/uploads/services/" + fileName;
-                imageUrls.add(imageUrl);
+                try {
+                    part.write(uploadPath + File.separator + fileName);
+                    System.out.println("Saved file: " + uploadPath + File.separator + fileName);
+                    String imageUrl = "/assets/uploads/services/" + fileName;
+                    imageUrls.add(imageUrl);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    System.out.println("Error saving file: " + fileName);
+                }
+            }
+        }
+
+        String[] deleteImageIds = request.getParameterValues("delete_image_ids");
+        if (deleteImageIds != null) {
+            ServiceImageDAO serviceImageDAO = new ServiceImageDAO();
+            for (String imgIdStr : deleteImageIds) {
+                try {
+                    int imgId = Integer.parseInt(imgIdStr);
+                    serviceImageDAO.deleteById(imgId);
+                } catch (NumberFormatException ignored) {}
             }
         }
 
@@ -212,22 +230,10 @@ public class ServiceController extends HttpServlet {
             serviceDAO.update(s);
 
             ServiceImageDAO serviceImageDAO = new ServiceImageDAO();
-            // Xóa từng ảnh theo id nếu có yêu cầu xóa
-            String[] deleteImageIds = request.getParameterValues("delete_image_ids");
-            if (deleteImageIds != null) {
-                for (String imgIdStr : deleteImageIds) {
-                    try {
-                        int imgId = Integer.parseInt(imgIdStr);
-                        serviceImageDAO.deleteById(imgId);
-                    } catch (NumberFormatException ignored) {}
-                }
-            }
-            // Nếu có upload ảnh mới thì xóa toàn bộ ảnh cũ và thêm mới
-            if (!imageUrls.isEmpty()) {
-                serviceImageDAO.deleteByServiceId(id);
-                for (String url : imageUrls) {
-                    serviceImageDAO.save(new ServiceImage(id, url));
-                }
+            // Xóa ảnh cũ trước khi thêm mới
+            serviceImageDAO.deleteByServiceId(id);
+            for (String url : imageUrls) {
+                serviceImageDAO.save(new ServiceImage(id, url));
             }
         }
 
