@@ -3,10 +3,14 @@ package controller;
 import dao.BlogDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.*;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import model.Blog;
+import model.Category;
+
 import java.io.IOException;
 import java.util.List;
-import model.Blog;
 
 @WebServlet(name = "BlogController", urlPatterns = {"/blog"})
 public class BlogController extends HttpServlet {
@@ -14,48 +18,78 @@ public class BlogController extends HttpServlet {
     private BlogDAO blogDAO;
 
     @Override
-    public void init() {
+    public void init() throws ServletException {
         blogDAO = new BlogDAO();
     }
 
-    /*========= GET =========*/
+    /*=============================  GET  =============================*/
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String search = req.getParameter("search");
+        String action = request.getParameter("action");
+
+        if (action == null || action.equals("list")) {
+            listWithFilters(request, response);
+        }
+
+    }
+
+    /*=============================  POST  ============================*/
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        // Hiện tại trang Blog chỉ GET; nếu có comment/search POST thì xử lý tại đây.
+        doGet(request, response);
+    }
+
+    private void listWithFilters(HttpServletRequest request,
+            HttpServletResponse response)
+            throws ServletException, IOException {
+
+        String searchFilter = request.getParameter("search");
+        String categoryIdStr = request.getParameter("category");
+        Integer categoryId = null;
+        if (categoryIdStr != null && !categoryIdStr.isEmpty()) {
+            try { categoryId = Integer.parseInt(categoryIdStr); } catch (NumberFormatException ignore) {}
+        }
         int page = 1;
         int pageSize = 6;
 
-        try {
-            if (req.getParameter("page") != null) {
-                page = Math.max(1, Integer.parseInt(req.getParameter("page")));
+        String pageStr = request.getParameter("page");
+        if (pageStr != null && !pageStr.isEmpty()) {
+            try {
+                page = Integer.parseInt(pageStr);
+                if (page < 1) {
+                    page = 1;
+                }
+            } catch (NumberFormatException ignored) {
             }
-        } catch (NumberFormatException ignored) {
         }
 
-        List<Blog> blogs = blogDAO.findPublishedBlogs(search, page, pageSize);
-        int totalPages = (int) Math.ceil(
-                (double) blogDAO.countPublishedBlogs(search) / pageSize);
-
-        req.setAttribute("blogs", blogs);
-        req.setAttribute("currentPage", page);
-        req.setAttribute("totalPages", totalPages);
-        req.setAttribute("search", search == null ? "" : search);
-
-        req.getRequestDispatcher("/WEB-INF/view/customer/blog/blog_list.jsp")
-                .forward(req, resp);
-    }
-
-    /*========= POST (search form) =========*/
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
-            throws IOException {
-        String kw = req.getParameter("text");
-        String url = req.getContextPath() + "/blog";
-        if (kw != null && !kw.trim().isEmpty()) {
-            url += "?search=" + java.net.URLEncoder.encode(kw.trim(), "UTF-8");
+        int totalRows;
+        List<Blog> blogs;
+        if (categoryId != null) {
+            totalRows = blogDAO.countBlogsByCategory(categoryId, searchFilter);
+            blogs = blogDAO.findBlogsByCategory(categoryId, searchFilter, page, pageSize);
+        } else {
+            totalRows = blogDAO.countBlogs(searchFilter);
+            blogs = blogDAO.findBlogsWithFilters(searchFilter, page, pageSize);
         }
-        resp.sendRedirect(url);
+        int totalPages = (int) Math.ceil(totalRows / (double) pageSize);
+
+        List<Blog> recent = blogDAO.findRecent(3);          // sidebar
+        List<Category> categories = blogDAO.findCategoriesHavingBlogs();
+        request.setAttribute("categories", categories);
+
+        request.setAttribute("blogs", blogs);
+        request.setAttribute("recentBlogs", recent);
+        request.setAttribute("currentPage", page);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("search", searchFilter == null ? "" : searchFilter);
+        request.setAttribute("selectedCategory", categoryId);
+
+        request.getRequestDispatcher("/WEB-INF/view/customer/blog/blog_list.jsp")
+                .forward(request, response);
     }
 }
