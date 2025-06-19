@@ -119,25 +119,25 @@
                                                 <div
                                                     class="form-switch switch-primary d-flex align-items-center gap-3 mb-2">
                                                     <input class="form-check-input" type="checkbox" role="switch"
-                                                        name="isActive" id="isActive" checked>
+                                                        name="is_active" id="is_active" checked>
                                                     <label
                                                         class="form-check-label line-height-1 fw-medium text-secondary-light"
-                                                        for="isActive">Active</label>
+                                                        for="is_active">Active</label>
                                                 </div>
                                                 <div
                                                     class="form-switch switch-primary d-flex align-items-center gap-3 mb-2">
                                                     <input class="form-check-input" type="checkbox" role="switch"
-                                                        name="bookableOnline" id="bookableOnline" checked>
+                                                        name="bookable_online" id="bookable_online" checked>
                                                     <label
                                                         class="form-check-label line-height-1 fw-medium text-secondary-light"
-                                                        for="bookableOnline">Bookable Online</label>
+                                                        for="bookable_online">Bookable Online</label>
                                                 </div>
                                                 <div class="form-switch switch-primary d-flex align-items-center gap-3">
                                                     <input class="form-check-input" type="checkbox" role="switch"
-                                                        name="requiresConsultation" id="requiresConsultation">
+                                                        name="requires_consultation" id="requires_consultation">
                                                     <label
                                                         class="form-check-label line-height-1 fw-medium text-secondary-light"
-                                                        for="requiresConsultation">Requires Consultation</label>
+                                                        for="requires_consultation">Requires Consultation</label>
                                                 </div>
                                             </div>
 
