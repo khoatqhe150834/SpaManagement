@@ -164,11 +164,26 @@
                 // ================================================ Upload Multiple image js Start here ================================================
                 const fileInputMultiple = document.getElementById("upload-file-multiple");
                 const uploadedImgsContainer = document.querySelector(".uploaded-imgs-container");
+                let selectedFiles = new DataTransfer(); // To manage FileList object
 
                 fileInputMultiple.addEventListener("change", (e) => {
                     const files = e.target.files;
-
+                    
+                    // Add new files to our DataTransfer object
                     Array.from(files).forEach(file => {
+                        // Validate file type
+                        if (!file.type.startsWith('image/')) {
+                            alert('Please upload only image files.');
+                            return;
+                        }
+                        
+                        // Validate file size (2MB = 2 * 1024 * 1024 bytes)
+                        if (file.size > 2 * 1024 * 1024) {
+                            alert('File size should not exceed 2MB.');
+                            return;
+                        }
+
+                        selectedFiles.items.add(file);
                         const src = URL.createObjectURL(file);
 
                         const imgContainer = document.createElement('div');
@@ -182,19 +197,43 @@
                         const imagePreview = document.createElement('img');
                         imagePreview.classList.add('w-100', 'h-100', 'object-fit-cover');
                         imagePreview.src = src;
+                        
+                        // Store file name as data attribute for removal
+                        imgContainer.dataset.fileName = file.name;
 
                         imgContainer.appendChild(removeButton);
                         imgContainer.appendChild(imagePreview);
                         uploadedImgsContainer.appendChild(imgContainer);
 
                         removeButton.addEventListener('click', () => {
+                            // Remove file from DataTransfer object
+                            const newFiles = new DataTransfer();
+                            const fileName = imgContainer.dataset.fileName;
+                            
+                            Array.from(selectedFiles.files).forEach(file => {
+                                if (file.name !== fileName) {
+                                    newFiles.items.add(file);
+                                }
+                            });
+                            
+                            selectedFiles = newFiles;
+                            fileInputMultiple.files = selectedFiles.files;
+                            
+                            // Remove preview
                             URL.revokeObjectURL(src);
                             imgContainer.remove();
                         });
                     });
 
-                    // Clear the file input so the same file(s) can be uploaded again if needed
-                    fileInputMultiple.value = '';
+                    // Update the file input with all selected files
+                    fileInputMultiple.files = selectedFiles.files;
+                });
+
+                // Clear selected files when form is reset
+                document.querySelector('form').addEventListener('reset', () => {
+                    selectedFiles = new DataTransfer();
+                    fileInputMultiple.files = selectedFiles.files;
+                    uploadedImgsContainer.innerHTML = '';
                 });
                 // ================================================ Upload Multiple image js End here  ================================================
             </script>
