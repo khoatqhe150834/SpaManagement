@@ -109,6 +109,10 @@
                                                     <c:forEach var="img" items="${serviceImages}">
                                                         <div class="position-relative h-120-px w-120-px border input-form-light radius-8 overflow-hidden border-dashed bg-neutral-50">
                                                             <img src="${img.imageUrl}" class="w-100 h-100 object-fit-cover" />
+                                                            <label class="position-absolute top-0 end-0 z-1 m-2 bg-white px-2 py-1 radius-8" style="cursor:pointer;">
+                                                                <input type="checkbox" name="delete_image_ids" value="${img.id}" />
+                                                                <span class="text-danger-600">Xóa</span>
+                                                            </label>
                                                         </div>
                                                     </c:forEach>
                                                     <label

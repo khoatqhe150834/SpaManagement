@@ -212,10 +212,22 @@ public class ServiceController extends HttpServlet {
             serviceDAO.update(s);
 
             ServiceImageDAO serviceImageDAO = new ServiceImageDAO();
-            // Xóa ảnh cũ trước khi thêm mới
-            serviceImageDAO.deleteByServiceId(id);
-            for (String url : imageUrls) {
-                serviceImageDAO.save(new ServiceImage(id, url));
+            // Xóa từng ảnh theo id nếu có yêu cầu xóa
+            String[] deleteImageIds = request.getParameterValues("delete_image_ids");
+            if (deleteImageIds != null) {
+                for (String imgIdStr : deleteImageIds) {
+                    try {
+                        int imgId = Integer.parseInt(imgIdStr);
+                        serviceImageDAO.deleteById(imgId);
+                    } catch (NumberFormatException ignored) {}
+                }
+            }
+            // Nếu có upload ảnh mới thì xóa toàn bộ ảnh cũ và thêm mới
+            if (!imageUrls.isEmpty()) {
+                serviceImageDAO.deleteByServiceId(id);
+                for (String url : imageUrls) {
+                    serviceImageDAO.save(new ServiceImage(id, url));
+                }
             }
         }
 
