@@ -198,7 +198,7 @@
                                                     </td>
                                                     <td class="text-center align-middle">
                                                         <div class="service-type-img-wrapper">
-                                                            <img src="${stype.imageUrl}" alt="Hình ảnh loại dịch vụ"
+                                                            <img src="${pageContext.request.contextPath}${stype.imageUrl}" alt="Hình ảnh loại dịch vụ"
                                                                 class="service-type-img" />
                                                         </div>
                                                     </td>

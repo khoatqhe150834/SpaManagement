@@ -191,7 +191,7 @@ public class ServiceTypeController extends HttpServlet {
                     uploadDir.mkdirs();
                 }
                 filePart.write(uploadPath + File.separator + uniqueFileName);
-                imageUrl = request.getContextPath() + "/assets/uploads/service-types/" + uniqueFileName;
+                imageUrl = "/assets/uploads/service-types/" + uniqueFileName;
             }
 
             String name = request.getParameter("name");
