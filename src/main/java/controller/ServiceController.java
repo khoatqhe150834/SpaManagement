@@ -197,7 +197,7 @@ public class ServiceController extends HttpServlet {
                 try {
                     part.write(uploadPath + File.separator + fileName);
                     System.out.println("Saved file: " + uploadPath + File.separator + fileName);
-                    String imageUrl = "/assets/uploads/services/" + fileName;
+                    String imageUrl = request.getContextPath() + "/assets/uploads/services/" + fileName;
                     imageUrls.add(imageUrl);
                 } catch (Exception ex) {
                     ex.printStackTrace();
