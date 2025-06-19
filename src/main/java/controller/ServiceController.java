@@ -155,7 +155,7 @@ public class ServiceController extends HttpServlet {
         Part filePart = request.getPart("image");
         String fileName = getSubmittedFileName(filePart);
         String imageUrl = request.getParameter("image_url");
-        if (fileName != null && !fileName.isEmpty() && filePart.getSize() > 0) {
+        if (fileName != null && !fileName.isEmpty() && filePart != null && filePart.getSize() > 0) {
             String uniqueFileName = System.currentTimeMillis() + "_" + fileName;
             String uploadPath = getServletContext().getRealPath("/assets/uploads/services/");
             java.io.File uploadDir = new java.io.File(uploadPath);
@@ -194,7 +194,9 @@ public class ServiceController extends HttpServlet {
     }
 
     private String getSubmittedFileName(Part part) {
+        if (part == null) return "";
         String contentDisp = part.getHeader("content-disposition");
+        if (contentDisp == null) return "";
         String[] tokens = contentDisp.split(";");
         for (String token : tokens) {
             if (token.trim().startsWith("filename")) {

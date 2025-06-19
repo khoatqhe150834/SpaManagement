@@ -37,11 +37,20 @@
                             <div class="col-xxl-6 col-xl-8 col-lg-10">
                                 <div class="card border">
                                     <div class="card-body">
-                                        <form action="service" method="post">
+                                        <form action="service" method="post" enctype="multipart/form-data">
                                             <input type="hidden" name="service" value="update" />
                                             <input type="hidden" name="id" value="${service.serviceId}" />
                                             <input type="hidden" name="stypeId"
                                                 value="${service.serviceTypeId.serviceTypeId}" />
+
+                                            <!-- Hiển thị loại dịch vụ (không cho sửa) -->
+                                            <div class="mb-20">
+                                                <label class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                                    Service Type
+                                                </label>
+                                                <input type="text" class="form-control radius-8" value="${service.serviceTypeId.name}" readonly>
+                                                <input type="hidden" name="service_type_id" value="${service.serviceTypeId.serviceTypeId}" />
+                                            </div>
 
                                             <!-- Name -->
                                             <div class="mb-20">
@@ -72,21 +81,21 @@
 
                                             <!-- Duration -->
                                             <div class="mb-20">
-                                                <label for="durationMinutes"
+                                                <label for="duration_minutes"
                                                     class="form-label fw-semibold text-primary-light text-sm mb-8">Duration
                                                     (minutes)</label>
-                                                <input type="number" name="durationMinutes"
-                                                    class="form-control radius-8" id="durationMinutes"
+                                                <input type="number" name="duration_minutes"
+                                                    class="form-control radius-8" id="duration_minutes"
                                                     value="${service.durationMinutes}">
                                             </div>
 
                                             <!-- Buffer -->
                                             <div class="mb-20">
-                                                <label for="bufferTimeAfterMinutes"
+                                                <label for="buffer_time_after_minutes"
                                                     class="form-label fw-semibold text-primary-light text-sm mb-8">Buffer
                                                     Time (minutes)</label>
-                                                <input type="number" name="bufferTimeAfterMinutes"
-                                                    class="form-control radius-8" id="bufferTimeAfterMinutes"
+                                                <input type="number" name="buffer_time_after_minutes"
+                                                    class="form-control radius-8" id="buffer_time_after_minutes"
                                                     value="${service.bufferTimeAfterMinutes}">
                                             </div>
 
@@ -108,25 +117,23 @@
 
                                             <!-- Checkboxes -->
                                             <div class="mb-20">
-                                                <div class="form-check">
-                                                    <input type="checkbox" class="form-check-input" name="isActive"
-                                                        id="isActive" ${service.isActive ? "checked" : "" }>
-                                                    <label for="isActive"
-                                                        class="form-check-label text-sm">Active</label>
+                                                <div class="form-switch switch-primary d-flex align-items-center gap-3 mb-2">
+                                                    <input class="form-check-input" type="checkbox" role="switch"
+                                                        name="is_active" id="is_active" ${service.isActive ? "checked" : "" }>
+                                                    <label class="form-check-label line-height-1 fw-medium text-secondary-light"
+                                                        for="is_active">Active</label>
                                                 </div>
-                                                <div class="form-check">
-                                                    <input type="checkbox" class="form-check-input"
-                                                        name="bookableOnline" id="bookableOnline"
-                                                        ${service.bookableOnline ? "checked" : "" }>
-                                                    <label for="bookableOnline"
-                                                        class="form-check-label text-sm">Bookable Online</label>
+                                                <div class="form-switch switch-primary d-flex align-items-center gap-3 mb-2">
+                                                    <input class="form-check-input" type="checkbox" role="switch"
+                                                        name="bookable_online" id="bookable_online" ${service.bookableOnline ? "checked" : "" }>
+                                                    <label class="form-check-label line-height-1 fw-medium text-secondary-light"
+                                                        for="bookable_online">Bookable Online</label>
                                                 </div>
-                                                <div class="form-check">
-                                                    <input type="checkbox" class="form-check-input"
-                                                        name="requiresConsultation" id="requiresConsultation"
-                                                        ${service.requiresConsultation ? "checked" : "" }>
-                                                    <label for="requiresConsultation"
-                                                        class="form-check-label text-sm">Requires Consultation</label>
+                                                <div class="form-switch switch-primary d-flex align-items-center gap-3">
+                                                    <input class="form-check-input" type="checkbox" role="switch"
+                                                        name="requires_consultation" id="requires_consultation" ${service.requiresConsultation ? "checked" : "" }>
+                                                    <label class="form-check-label line-height-1 fw-medium text-secondary-light"
+                                                        for="requires_consultation">Requires Consultation</label>
                                                 </div>
                                             </div>
 
