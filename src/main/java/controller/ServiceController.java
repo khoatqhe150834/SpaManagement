@@ -3,10 +3,12 @@ package controller;
 import dao.ServiceDAO;
 import dao.ServiceTypeDAO;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Part;
 import model.Service;
 import model.ServiceType;
 
@@ -15,6 +17,11 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @WebServlet(name = "ServiceController", urlPatterns = { "/service" })
+@MultipartConfig(
+    fileSizeThreshold = 0,
+    maxFileSize = 2097152, // 2MB
+    maxRequestSize = 2097152
+)
 public class ServiceController extends HttpServlet {
 
     private final String SERVICE_MANAGER_URL = "WEB-INF/view/admin_pages/Service/ServiceManager.jsp";
@@ -131,7 +138,13 @@ public class ServiceController extends HttpServlet {
         ServiceDAO serviceDAO = new ServiceDAO();
         ServiceTypeDAO typeDAO = new ServiceTypeDAO();
 
-        int serviceTypeId = Integer.parseInt(request.getParameter("service_type_id"));
+        String serviceTypeIdStr = request.getParameter("service_type_id");
+        if (serviceTypeIdStr == null || serviceTypeIdStr.isEmpty()) {
+            request.setAttribute("error", "Vui lòng chọn loại dịch vụ.");
+            request.getRequestDispatcher("WEB-INF/view/admin_pages/Service/AddService.jsp").forward(request, response);
+            return;
+        }
+        int serviceTypeId = Integer.parseInt(serviceTypeIdStr);
         ServiceType serviceType = typeDAO.findById(serviceTypeId).orElse(null);
 
         String name = request.getParameter("name");
@@ -139,9 +152,20 @@ public class ServiceController extends HttpServlet {
         BigDecimal price = new BigDecimal(request.getParameter("price"));
         int duration = Integer.parseInt(request.getParameter("duration_minutes"));
         int buffer = Integer.parseInt(request.getParameter("buffer_time_after_minutes"));
-        String image = request.getParameter("image_url");
+        Part filePart = request.getPart("image");
+        String fileName = getSubmittedFileName(filePart);
+        String imageUrl = request.getParameter("image_url");
+        if (fileName != null && !fileName.isEmpty() && filePart.getSize() > 0) {
+            String uniqueFileName = System.currentTimeMillis() + "_" + fileName;
+            String uploadPath = getServletContext().getRealPath("/assets/uploads/services/");
+            java.io.File uploadDir = new java.io.File(uploadPath);
+            if (!uploadDir.exists()) {
+                uploadDir.mkdirs();
+            }
+            filePart.write(uploadPath + java.io.File.separator + uniqueFileName);
+            imageUrl = request.getContextPath() + "/assets/uploads/services/" + uniqueFileName;
+        }
         boolean isActive = request.getParameter("is_active") != null;
-        BigDecimal rating = new BigDecimal(request.getParameter("average_rating"));
         boolean bookable = request.getParameter("bookable_online") != null;
         boolean requiresConsultation = request.getParameter("requires_consultation") != null;
 
@@ -152,11 +176,11 @@ public class ServiceController extends HttpServlet {
         s.setPrice(price);
         s.setDurationMinutes(duration);
         s.setBufferTimeAfterMinutes(buffer);
-        s.setImageUrl(image);
+        s.setImageUrl(imageUrl);
         s.setIsActive(isActive);
-        s.setAverageRating(rating);
         s.setBookableOnline(bookable);
         s.setRequiresConsultation(requiresConsultation);
+        s.setAverageRating(BigDecimal.ZERO);
 
         if (service.equals("insert")) {
             serviceDAO.save(s);
@@ -167,6 +191,17 @@ public class ServiceController extends HttpServlet {
         }
 
         response.sendRedirect("service");
+    }
+
+    private String getSubmittedFileName(Part part) {
+        String contentDisp = part.getHeader("content-disposition");
+        String[] tokens = contentDisp.split(";");
+        for (String token : tokens) {
+            if (token.trim().startsWith("filename")) {
+                return token.substring(token.indexOf("=") + 2, token.length() - 1);
+            }
+        }
+        return "";
     }
 
     @Override

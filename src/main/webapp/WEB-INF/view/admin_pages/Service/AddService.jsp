@@ -36,9 +36,18 @@
                             <div class="col-xxl-6 col-xl-8 col-lg-10">
                                 <div class="card border">
                                     <div class="card-body">
-                                        <form action="service" method="post">
+                                        <form action="service" method="post" enctype="multipart/form-data">
                                             <input type="hidden" name="service" value="insert" />
-                                            <input type="hidden" name="stypeId" value="${stype.serviceTypeId}" />
+                                            <div class="mb-20">
+                                                <label for="service_type_id" class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                                    Service Type <span class="text-danger-600">*</span>
+                                                </label>
+                                                <select name="service_type_id" id="service_type_id" class="form-control radius-8" required>
+                                                    <c:forEach var="type" items="${serviceTypes}">
+                                                        <option value="${type.serviceTypeId}">${type.name}</option>
+                                                    </c:forEach>
+                                                </select>
+                                            </div>
 
                                             <!-- Name -->
                                             <div class="mb-20">
@@ -71,22 +80,22 @@
 
                                             <!-- Duration -->
                                             <div class="mb-20">
-                                                <label for="durationMinutes"
+                                                <label for="duration_minutes"
                                                     class="form-label fw-semibold text-primary-light text-sm mb-8">
                                                     Duration (minutes) <span class="text-danger-600">*</span>
                                                 </label>
-                                                <input type="number" name="durationMinutes"
-                                                    class="form-control radius-8" id="durationMinutes" required>
+                                                <input type="number" name="duration_minutes"
+                                                    class="form-control radius-8" id="duration_minutes" required>
                                             </div>
 
                                             <!-- Buffer Time -->
                                             <div class="mb-20">
-                                                <label for="bufferTimeAfterMinutes"
+                                                <label for="buffer_time_after_minutes"
                                                     class="form-label fw-semibold text-primary-light text-sm mb-8">
                                                     Buffer Time After (minutes)
                                                 </label>
-                                                <input type="number" name="bufferTimeAfterMinutes"
-                                                    class="form-control radius-8" id="bufferTimeAfterMinutes" value="0">
+                                                <input type="number" name="buffer_time_after_minutes"
+                                                    class="form-control radius-8" id="buffer_time_after_minutes" value="0">
                                             </div>
 
                                             <!-- Image URL -->
@@ -100,7 +109,7 @@
                                                         <iconify-icon icon="solar:camera-outline"
                                                             class="text-xl text-secondary-light"></iconify-icon>
                                                         <span class="fw-semibold text-secondary-light">Upload</span>
-                                                        <input id="upload-file-multiple" type="file" hidden multiple>
+                                                        <input id="upload-file-multiple" type="file" name="image" hidden>
                                                     </label>
                                                 </div>
                                             </div>
