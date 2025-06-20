@@ -113,7 +113,7 @@ public class ServiceController extends HttpServlet {
                 return;
             }
             case "pre-update": {
-                int id = Integer.parseInt(request.getParameter("id"));
+                int id = Integer.parseInt(request.getParameter("id").trim());
                 Service s = serviceDAO.findById(id).orElse(null);
                 List<ServiceType> types = typeDAO.findAll();
                 request.setAttribute("serviceTypes", types);
@@ -136,15 +136,43 @@ public class ServiceController extends HttpServlet {
                 return;
             }
             case "delete": {
-                int id = Integer.parseInt(request.getParameter("id"));
+                int id = Integer.parseInt(request.getParameter("id").trim());
                 serviceDAO.deleteById(id);
                 response.sendRedirect("service");
                 return;
             }
             case "deactivate": {
-                int id = Integer.parseInt(request.getParameter("id"));
+                int id = Integer.parseInt(request.getParameter("id").trim());
                 serviceDAO.deactivateById(id);
-                response.sendRedirect("service");
+                // Lấy tham số truy vấn để redirect giữ nguyên trang
+                String pageParam = request.getParameter("page");
+                String keyword = request.getParameter("keyword");
+                String status = request.getParameter("status");
+                String serviceTypeIdStr = request.getParameter("serviceTypeId");
+                StringBuilder redirectUrl = new StringBuilder("service?service=list-all");
+                if (pageParam != null) redirectUrl.append("&page=").append(pageParam);
+                if (limitParam != null) redirectUrl.append("&limit=").append(limitParam);
+                if (keyword != null && !keyword.isEmpty()) redirectUrl.append("&keyword=").append(keyword);
+                if (status != null && !status.isEmpty()) redirectUrl.append("&status=").append(status);
+                if (serviceTypeIdStr != null && !serviceTypeIdStr.isEmpty()) redirectUrl.append("&serviceTypeId=").append(serviceTypeIdStr);
+                response.sendRedirect(redirectUrl.toString());
+                return;
+            }
+            case "activate": {
+                int id = Integer.parseInt(request.getParameter("id").trim());
+                serviceDAO.activateById(id);
+                // Lấy tham số truy vấn để redirect giữ nguyên trang
+                String pageParam = request.getParameter("page");
+                String keyword = request.getParameter("keyword");
+                String status = request.getParameter("status");
+                String serviceTypeIdStr = request.getParameter("serviceTypeId");
+                StringBuilder redirectUrl = new StringBuilder("service?service=list-all");
+                if (pageParam != null) redirectUrl.append("&page=").append(pageParam);
+                if (limitParam != null) redirectUrl.append("&limit=").append(limitParam);
+                if (keyword != null && !keyword.isEmpty()) redirectUrl.append("&keyword=").append(keyword);
+                if (status != null && !status.isEmpty()) redirectUrl.append("&status=").append(status);
+                if (serviceTypeIdStr != null && !serviceTypeIdStr.isEmpty()) redirectUrl.append("&serviceTypeId=").append(serviceTypeIdStr);
+                response.sendRedirect(redirectUrl.toString());
                 return;
             }
             case "search": {
@@ -167,7 +195,7 @@ public class ServiceController extends HttpServlet {
             }
             case "view-detail": {
                 try {
-                    int id = Integer.parseInt(request.getParameter("id"));
+                    int id = Integer.parseInt(request.getParameter("id").trim());
                     Optional<Service> serviceOptional = serviceDAO.findById(id);
 
                     if (serviceOptional.isPresent()) {
@@ -261,7 +289,7 @@ public class ServiceController extends HttpServlet {
                 serviceImageDAO.save(new ServiceImage(serviceId, url));
             }
         } else if (service.equals("update")) {
-            int id = Integer.parseInt(request.getParameter("id"));
+            int id = Integer.parseInt(request.getParameter("id").trim());
             s.setServiceId(id);
             serviceDAO.update(s);
             
