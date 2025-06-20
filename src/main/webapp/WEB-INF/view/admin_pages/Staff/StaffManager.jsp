@@ -52,6 +52,35 @@
                         opacity: 1;
                     }
                 }
+
+                .pagination .page-item .page-link {
+                    border-radius: 8px !important;
+                    border: 1px solid #e0e0e0;
+                    color: #1976d2;
+                    background: #fff;
+                    min-width: 40px;
+                    min-height: 40px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: 500;
+                    transition: background 0.2s, color 0.2s;
+                }
+                .pagination .page-item.active .page-link {
+                    background: #1976d2;
+                    color: #fff;
+                    border-color: #1976d2;
+                }
+                .pagination .page-item.disabled .page-link {
+                    color: #bdbdbd;
+                    background: #f5f5f5;
+                    border-color: #e0e0e0;
+                    pointer-events: none;
+                }
+                .pagination .page-link:hover {
+                    background: #e3f2fd;
+                    color: #1976d2;
+                }
             </style>
         </head>
         <body>
@@ -92,12 +121,19 @@
                                     </option>
                                 </c:forEach>
                             </select>
-                            <select name="status" class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px" >
+                            <select name="status" class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px">
                                 <option value="">Trạng thái</option>
-                                <option value="available" ${status=='available' ? 'selected' : '' }>Available</option>
-                                <option value="busy" ${status=='busy' ? 'selected' : '' }>Busy</option>
-                                <option value="offline" ${status=='offline' ? 'selected' : '' }>Offline</option>
-                                <option value="on_leave" ${status=='on_leave' ? 'selected' : '' }>On Leave</option>
+                                <c:forEach var="s" items="${statusList}">
+                                    <option value="${s}" <c:if test="${status == s}">selected</c:if>>
+                                        <c:choose>
+                                            <c:when test="${s == 'AVAILABLE'}">Available</c:when>
+                                            <c:when test="${s == 'BUSY'}">Busy</c:when>
+                                            <c:when test="${s == 'OFFLINE'}">Offline</c:when>
+                                            <c:when test="${s == 'ON_LEAVE'}">On Leave</c:when>
+                                            <c:otherwise>${s}</c:otherwise>
+                                        </c:choose>
+                                    </option>
+                                </c:forEach>
                             </select>
                             <input type="hidden" name="service" value="search">
                             <input type="hidden" name="limit" value="${limit}" />
@@ -165,25 +201,33 @@
                         <span>Hiển thị từ ${start} đến ${end} của ${totalEntries} mục</span>
                         <ul class="pagination d-flex flex-wrap align-items-center gap-2 justify-content-center">
                             <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
+                                <a class="page-link" href="staff?service=list-all&page=1&limit=${limit}">
+                                    <iconify-icon icon="ic:round-keyboard-double-arrow-left"></iconify-icon>
+                                </a>
+                            </li>
+                            <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
                                 <a class="page-link" href="staff?service=list-all&page=${currentPage - 1}&limit=${limit}">
                                     <iconify-icon icon="ep:d-arrow-left"></iconify-icon>
                                 </a>
                             </li>
                             <c:forEach var="i" begin="1" end="${totalPages}">
-                                <c:choose>
-                                    <c:when test="${i == currentPage - 3 || i == currentPage + 3}">
-                                        <li class="page-item disabled"><span class="page-link">...</span></li>
-                                        </c:when>
-                                        <c:when test="${i == 1 || i == totalPages || (i >= currentPage - 2 && i <= currentPage + 2)}">
-                                        <li class="page-item ${i == currentPage ? 'active' : ''}">
-                                            <a class="page-link" href="staff?service=list-all&page=${i}&limit=${limit}">${i}</a>
-                                        </li>
-                                    </c:when>
-                                </c:choose>
+                                <c:if test="${i >= currentPage - 2 && i <= currentPage + 2}">
+                                    <li class="page-item ${i == currentPage ? 'active' : ''}">
+                                        <a class="page-link" href="staff?service=list-all&page=${i}&limit=${limit}">${i}</a>
+                                    </li>
+                                </c:if>
+                                <c:if test="${i == currentPage - 3 || i == currentPage + 3}">
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                </c:if>
                             </c:forEach>
                             <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
                                 <a class="page-link" href="staff?service=list-all&page=${currentPage + 1}&limit=${limit}">
                                     <iconify-icon icon="ep:d-arrow-right"></iconify-icon>
+                                </a>
+                            </li>
+                            <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
+                                <a class="page-link" href="staff?service=list-all&page=${totalPages}&limit=${limit}">
+                                    <iconify-icon icon="ic:round-keyboard-double-arrow-right"></iconify-icon>
                                 </a>
                             </li>
                         </ul>

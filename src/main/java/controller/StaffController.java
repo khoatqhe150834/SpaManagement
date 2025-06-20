@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 @WebServlet(name = "StaffController", urlPatterns = {"/staff"})
 public class StaffController extends HttpServlet {
@@ -59,6 +61,11 @@ public class StaffController extends HttpServlet {
 
                 List<ServiceType> serviceTypes = new ServiceTypeDAO().findAll();
                 request.setAttribute("serviceTypes", serviceTypes);
+
+                List<String> statusList = Arrays.stream(Staff.AvailabilityStatus.values())
+                                .map(Enum::name)
+                                .collect(Collectors.toList());
+                request.setAttribute("statusList", statusList);
 
                 request.getRequestDispatcher(STAFF_MANAGER_VIEW).forward(request, response);
                 break;
@@ -124,6 +131,11 @@ public class StaffController extends HttpServlet {
 
                 List<ServiceType> serviceTypes = new ServiceTypeDAO().findAll();
                 request.setAttribute("serviceTypes", serviceTypes);
+
+                List<String> statusList = Arrays.stream(Staff.AvailabilityStatus.values())
+                                .map(Enum::name)
+                                .collect(Collectors.toList());
+                request.setAttribute("statusList", statusList);
 
                 request.getRequestDispatcher(STAFF_MANAGER_VIEW).forward(request, response);
                 break;
