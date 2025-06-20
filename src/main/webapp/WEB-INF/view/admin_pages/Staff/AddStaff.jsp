@@ -96,7 +96,7 @@
                                             <select id="userSelect" name="userId" class="form-select" required>
                                                 <option value="">-- Select UserID --</option>
                                                 <c:forEach var="user" items="${userList}">
-                                                    <option value="${user.userId}">${user.userId}</option>
+                                                    <option value="${user.userId}">${user.userId} - ${user.fullName}</option>
                                                 </c:forEach>
                                             </select>
                                         </div>
