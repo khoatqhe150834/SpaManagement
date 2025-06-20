@@ -138,74 +138,32 @@ public class CustomerController extends HttpServlet {
             throws ServletException, IOException {
         try {
             int page = getIntParameter(request, "page", 1);
-            int pageSize = getIntParameter(request, "pageSize", DEFAULT_PAGE_SIZE);
+            String pageSizeParam = request.getParameter("pageSize");
+            int pageSize = (pageSizeParam == null || pageSizeParam.isEmpty()) ? DEFAULT_PAGE_SIZE : Integer.parseInt(pageSizeParam);
+
             String status = request.getParameter("status");
-            String sortBy = request.getParameter("sortBy");
-            String sortOrder = request.getParameter("sortOrder");
-            String searchValue = request.getParameter("search");
+            String sortBy = Optional.ofNullable(request.getParameter("sortBy")).orElse("id");
+            String sortOrder = Optional.ofNullable(request.getParameter("sortOrder")).orElse("asc");
+            String searchValue = request.getParameter("searchValue");
 
-            if (page < 1) {
-                page = 1;
+            if (page < 1) page = 1;
+            if (pageSize < 1 && pageSize != -1) pageSize = DEFAULT_PAGE_SIZE; // -1 for ALL
+
+            int actualPageSize = (pageSize == 9999) ? Integer.MAX_VALUE : pageSize;
+
+            List<Customer> customers = customerDAO.getPaginatedCustomers(page, actualPageSize, searchValue, status, sortBy, sortOrder);
+            int totalCustomers = customerDAO.getTotalCustomerCount(searchValue, status);
+
+            int totalPages = 0;
+            if (totalCustomers > 0) {
+                totalPages = (int) Math.ceil((double) totalCustomers / actualPageSize);
             }
-            if (pageSize < 1) {
-                pageSize = DEFAULT_PAGE_SIZE;
-            }
-            if (pageSize > 999999) {
-                pageSize = 999999;
-            }
+            if (totalPages < 1) totalPages = 1;
+            if (page > totalPages) page = totalPages;
 
-            List<Customer> customers = customerDAO.findAll(1, Integer.MAX_VALUE);
-
-            if (searchValue != null && !searchValue.trim().isEmpty()) {
-                String searchTerm = searchValue.trim().toLowerCase();
-                customers = customers.stream()
-                        .filter(c -> (c.getFullName() != null && c.getFullName().toLowerCase().contains(searchTerm))
-                        || (c.getEmail() != null && c.getEmail().toLowerCase().contains(searchTerm))
-                        || (c.getPhoneNumber() != null && c.getPhoneNumber().contains(searchTerm))
-                        || String.valueOf(c.getCustomerId()).contains(searchTerm))
-                        .collect(Collectors.toList());
-            }
-
-            if (status != null && !status.trim().isEmpty()) {
-                boolean isActive = "active".equalsIgnoreCase(status);
-                customers = customers.stream()
-                        .filter(c -> c.isActive() == isActive)
-                        .collect(Collectors.toList());
-            }
-
-            int totalCustomers = customers.size();
-
-            if (sortBy != null && sortOrder != null) {
-                if ("id".equals(sortBy)) {
-                    if ("asc".equals(sortOrder)) {
-                        customers.sort(java.util.Comparator.comparing(Customer::getCustomerId));
-                    } else if ("desc".equals(sortOrder)) {
-                        customers.sort(java.util.Comparator.comparing(Customer::getCustomerId).reversed());
-                    }
-                } else if ("name".equals(sortBy)) {
-                    if ("asc".equals(sortOrder)) {
-                        customers.sort(java.util.Comparator.comparing(Customer::getFullName, String.CASE_INSENSITIVE_ORDER));
-                    } else if ("desc".equals(sortOrder)) {
-                        customers.sort(java.util.Comparator.comparing(Customer::getFullName, String.CASE_INSENSITIVE_ORDER).reversed());
-                    }
-                }
-            }
-
-            int totalPages = (int) Math.ceil((double) totalCustomers / pageSize);
-            if (totalPages < 1) {
-                totalPages = 1;
-            }
-            if (page > totalPages) {
-                page = totalPages;
-            }
-
-            int startIndex = (page - 1) * pageSize;
-            int endIndex = Math.min(startIndex + pageSize, customers.size());
-            List<Customer> pagedCustomers = (startIndex < customers.size()) ? customers.subList(startIndex, endIndex) : new java.util.ArrayList<>();
-
-            request.setAttribute("customers", pagedCustomers);
+            request.setAttribute("customers", customers);
             request.setAttribute("currentPage", page);
-            request.setAttribute("pageSize", pageSize);
+            request.setAttribute("pageSize", pageSize); // Pass original pageSize (e.g., 9999) back to JSP
             request.setAttribute("totalpages", totalPages);
             request.setAttribute("totalCustomers", totalCustomers);
             request.setAttribute("status", status);
