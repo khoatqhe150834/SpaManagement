@@ -383,6 +383,17 @@ public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
         return hotServiceTypes;
     }
 
+    public int activateById(int id) {
+        String sql = "UPDATE service_types SET is_active = 1 WHERE service_type_id = ?";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            return stmt.executeUpdate();
+        } catch (SQLException ex) {
+            Logger.getLogger(ServiceTypeDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return 0;
+    }
+
     private void closeConnections() {
         try {
             // ... existing code ...

@@ -221,7 +221,7 @@
                                                             class="d-flex align-items-center gap-10 justify-content-center">
 
                                                             <!-- Edit button -->
-                                                            <a href="servicetype?service=pre-update&id=${stype.serviceTypeId}&page=${currentPage}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}"
+                                                            <a href="servicetype?service=pre-update&id=${stype.serviceTypeId}&page=${currentPage}&limit=${limit}${searchParams}"
                                                                 class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
                                                                 data-bs-toggle="tooltip"
                                                                 data-bs-title="Chỉnh sửa loại dịch vụ">
@@ -229,15 +229,28 @@
                                                                     class="menu-icon"></iconify-icon>
                                                             </a>
 
-                                                            <!-- Deactivate button -->
-                                                            <a href="servicetype?service=deactiveById&id=${stype.serviceTypeId}"
-                                                                class="bg-danger-focus bg-hover-danger-200 text-danger-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
-                                                                data-bs-toggle="tooltip"
-                                                                data-bs-title="Vô hiệu hóa loại dịch vụ"
-                                                                onclick="return confirmAction('Bạn có chắc chắn muốn vô hiệu hóa loại dịch vụ này?')">
-                                                                <iconify-icon icon="mdi:block-helper"
-                                                                    class="menu-icon"></iconify-icon>
-                                                            </a>
+                                                            <!-- Deactivate/Activate button -->
+                                                            <c:choose>
+                                                                <c:when test="${stype.active}">
+                                                                    <a href="servicetype?service=deactiveById&id=${stype.serviceTypeId}&page=${currentPage}&limit=${limit}${searchParams}"
+                                                                        class="bg-danger-focus bg-hover-danger-200 text-danger-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
+                                                                        data-bs-toggle="tooltip"
+                                                                        data-bs-title="Vô hiệu hóa loại dịch vụ"
+                                                                        onclick="return confirmAction('Bạn có chắc chắn muốn vô hiệu hóa loại dịch vụ này?')">
+                                                                        <iconify-icon icon="mdi:block-helper"
+                                                                            class="menu-icon"></iconify-icon>
+                                                                    </a>
+                                                                </c:when>
+                                                                <c:otherwise>
+                                                                    <a href="servicetype?service=activateById&id=${stype.serviceTypeId}&page=${currentPage}&limit=${limit}${searchParams}"
+                                                                        class="bg-success-focus bg-hover-success-200 text-success-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
+                                                                        data-bs-toggle="tooltip"
+                                                                        data-bs-title="Kích hoạt lại loại dịch vụ"
+                                                                        onclick="return confirmAction('Bạn có chắc chắn muốn kích hoạt lại loại dịch vụ này?')">
+                                                                        <iconify-icon icon="mdi:check-circle-outline" class="menu-icon"></iconify-icon>
+                                                                    </a>
+                                                                </c:otherwise>
+                                                            </c:choose>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -270,7 +283,7 @@
                                                 </c:when>
                                                 <c:otherwise>
                                                     <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px"
-                                                       href="servicetype?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${currentPage - 1}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}">
+                                                       href="servicetype?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${currentPage - 1}&limit=${limit}${searchParams}">
                                                         <iconify-icon icon="ep:d-arrow-left"></iconify-icon>
                                                     </a>
                                                 </c:otherwise>
@@ -285,7 +298,7 @@
                                                     <li class="page-item ${i == currentPage ? 'active' : ''}">
                                                         <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px
                                                             ${i == currentPage ? 'bg-primary-600 text-white' : 'bg-neutral-200 text-secondary-light'}"
-                                                           href="servicetype?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${i}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}">
+                                                           href="servicetype?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${i}&limit=${limit}${searchParams}">
                                                             ${i}
                                                         </a>
                                                     </li>
@@ -296,7 +309,7 @@
                                                     <li class="page-item ${i == currentPage ? 'active' : ''}">
                                                         <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px
                                                             ${i == currentPage ? 'bg-primary-600 text-white' : 'bg-neutral-200 text-secondary-light'}"
-                                                           href="servicetype?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${i}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}">
+                                                           href="servicetype?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${i}&limit=${limit}${searchParams}">
                                                             ${i}
                                                         </a>
                                                     </li>
@@ -307,7 +320,7 @@
                                                     <li class="page-item ${i == currentPage ? 'active' : ''}">
                                                         <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px
                                                             ${i == currentPage ? 'bg-primary-600 text-white' : 'bg-neutral-200 text-secondary-light'}"
-                                                           href="servicetype?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${i}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}">
+                                                           href="servicetype?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${i}&limit=${limit}${searchParams}">
                                                             ${i}
                                                         </a>
                                                     </li>
@@ -334,7 +347,7 @@
                                                 </c:when>
                                                 <c:otherwise>
                                                     <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px"
-                                                       href="servicetype?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${currentPage + 1}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}">
+                                                       href="servicetype?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${currentPage + 1}&limit=${limit}${searchParams}">
                                                         <iconify-icon icon="ep:d-arrow-right"></iconify-icon>
                                                     </a>
                                                 </c:otherwise>

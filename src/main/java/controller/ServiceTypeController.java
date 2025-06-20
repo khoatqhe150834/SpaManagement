@@ -147,21 +147,33 @@ public class ServiceTypeController extends HttpServlet {
                     request.setAttribute("toastMessage", "Failed to deactivate Service Type (Id = " + id + ") because it is associated with an order.");
                 }
 
-                // Gọi lại logic phân trang
-                int page = 1;
-                int offset = (page - 1) * limit;
+                // Lấy tham số truy vấn để redirect giữ nguyên trang
+                String page = request.getParameter("page");
+                String keyword = request.getParameter("keyword");
+                String status = request.getParameter("status");
+                StringBuilder redirectUrl = new StringBuilder("servicetype?service=list-all");
+                if (page != null) redirectUrl.append("&page=").append(page);
+                if (limitParam != null) redirectUrl.append("&limit=").append(limitParam);
+                if (keyword != null && !keyword.isEmpty()) redirectUrl.append("&keyword=").append(keyword);
+                if (status != null && !status.isEmpty()) redirectUrl.append("&status=").append(status);
+                response.sendRedirect(redirectUrl.toString());
+                break;
+            }
 
-                List<ServiceType> serviceTypes = dao.findPaginated(offset, limit);
-                int totalRecords = dao.countAll();
-                int totalPages = (int) Math.ceil((double) totalRecords / limit);
+            case "activateById": {
+                int id = Integer.parseInt(request.getParameter("id"));
+                dao.activateById(id);
 
-                request.setAttribute("limit", limit);
-                request.setAttribute("serviceTypes", serviceTypes);
-                request.setAttribute("currentPage", page);
-                request.setAttribute("totalPages", totalPages);
-                request.setAttribute("totalEntries", totalRecords);
-
-                request.getRequestDispatcher(SERVICE_TYPE_URL).forward(request, response);
+                // Lấy tham số truy vấn để redirect giữ nguyên trang
+                String page = request.getParameter("page");
+                String keyword = request.getParameter("keyword");
+                String status = request.getParameter("status");
+                StringBuilder redirectUrl = new StringBuilder("servicetype?service=list-all");
+                if (page != null) redirectUrl.append("&page=").append(page);
+                if (limitParam != null) redirectUrl.append("&limit=").append(limitParam);
+                if (keyword != null && !keyword.isEmpty()) redirectUrl.append("&keyword=").append(keyword);
+                if (status != null && !status.isEmpty()) redirectUrl.append("&status=").append(status);
+                response.sendRedirect(redirectUrl.toString());
                 break;
             }
 
