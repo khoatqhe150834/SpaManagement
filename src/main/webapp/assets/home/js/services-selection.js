@@ -178,29 +178,83 @@ function clearSearch() {
   fetchFilterServices(currentFilters);
 }
 
-// called by the price range slider
-function updatePriceRange() {
-  currentFilters.minPrice = document.getElementById('minPriceSlider').value;
-  currentFilters.maxPrice = document.getElementById('maxPriceSlider').value;
-  updatePriceRangeDisplay();
-  debouncedFetchFilterServices(currentFilters);
+/**
+ * Dual Range Slider - Based on W3Schools range slider tutorial
+ * Updates both sliders and ensures proper range selection
+ */
+function updateDualRange() {
+    const minSlider = document.getElementById('minPriceSlider');
+    const maxSlider = document.getElementById('maxPriceSlider');
+    const rangeTrack = document.getElementById('rangeTrack');
+    
+    if (!minSlider || !maxSlider || !rangeTrack) return;
+    
+    let minValue = parseInt(minSlider.value);
+    let maxValue = parseInt(maxSlider.value);
+    
+    // Prevent collision - ensure min doesn't exceed max
+    if (minValue > maxValue) {
+        if (document.activeElement === minSlider) {
+            maxValue = minValue;
+            maxSlider.value = maxValue;
+        } else {
+            minValue = maxValue;
+            minSlider.value = minValue;
+        }
+    }
+    
+    // Update current filters
+    currentFilters.minPrice = minValue;
+    currentFilters.maxPrice = maxValue;
+    
+    // Update visual display
+    updatePriceDisplayValues();
+    updateRangeVisualTrack();
+    
+    // Trigger service filtering with debounce
+    debouncedFetchFilterServices(currentFilters);
 }
 
 /**
- * Updates the price range display labels
+ * Updates the price display values based on W3Schools dynamic display approach
  */
-function updatePriceRangeDisplay() {
-  const minPriceValue = document.getElementById('minPriceValue');
-  const maxPriceValue = document.getElementById('maxPriceValue');
-  const minPriceSlider = document.getElementById('minPriceSlider');
-  const maxPriceSlider = document.getElementById('maxPriceSlider');
-  
-  if (minPriceValue && minPriceSlider) {
-    minPriceValue.textContent = formatPriceToVND(minPriceSlider.value);
-  }
-  if (maxPriceValue && maxPriceSlider) {
-    maxPriceValue.textContent = formatPriceToVND(maxPriceSlider.value);
-  }
+function updatePriceDisplayValues() {
+    const minSlider = document.getElementById('minPriceSlider');
+    const maxSlider = document.getElementById('maxPriceSlider');
+    const minDisplay = document.getElementById('minPriceValue');
+    const maxDisplay = document.getElementById('maxPriceValue');
+    
+    if (minDisplay && minSlider) {
+        minDisplay.textContent = formatPriceToVND(minSlider.value);
+    }
+    if (maxDisplay && maxSlider) {
+        maxDisplay.textContent = formatPriceToVND(maxSlider.value);
+    }
+}
+
+/**
+ * Updates the visual range track between slider thumbs
+ * Follows W3Schools approach for custom styling
+ */
+function updateRangeVisualTrack() {
+    const minSlider = document.getElementById('minPriceSlider');
+    const maxSlider = document.getElementById('maxPriceSlider');
+    const rangeTrack = document.getElementById('rangeTrack');
+    
+    if (!minSlider || !maxSlider || !rangeTrack) return;
+    
+    const min = parseInt(minSlider.min);
+    const max = parseInt(minSlider.max);
+    const minVal = parseInt(minSlider.value);
+    const maxVal = parseInt(maxSlider.value);
+    
+    // Calculate percentage positions
+    const leftPercent = ((minVal - min) / (max - min)) * 100;
+    const rightPercent = ((maxVal - min) / (max - min)) * 100;
+    
+    // Update the visual track
+    rangeTrack.style.left = leftPercent + '%';
+    rangeTrack.style.width = (rightPercent - leftPercent) + '%';
 }
 
 /**
@@ -421,6 +475,56 @@ function debounce(func, wait) {
 const debouncedFetchFilterServices = debounce(fetchFilterServices, 350); // 350ms delay
 
 /**
+ * Initialize dual range sliders based on W3Schools approach
+ */
+function initializeDualRangeSlider() {
+  const minSlider = document.getElementById('minPriceSlider');
+  const maxSlider = document.getElementById('maxPriceSlider');
+  const rangeTrack = document.getElementById('rangeTrack');
+  
+  if (!minSlider || !maxSlider || !rangeTrack) {
+    console.warn('Dual range slider elements not found');
+    return;
+  }
+  
+  console.log('Initializing dual range slider with values:', {
+    min: DEFAULT_MIN_PRICE,
+    max: DEFAULT_MAX_PRICE
+  });
+  
+  // Set attributes for min slider
+  minSlider.min = DEFAULT_MIN_PRICE;
+  minSlider.max = DEFAULT_MAX_PRICE;
+  minSlider.step = 100000;
+  minSlider.value = DEFAULT_MIN_PRICE;
+  
+  // Set attributes for max slider  
+  maxSlider.min = DEFAULT_MIN_PRICE;
+  maxSlider.max = DEFAULT_MAX_PRICE;
+  maxSlider.step = 100000;
+  maxSlider.value = DEFAULT_MAX_PRICE;
+  
+  // Update current filters
+  currentFilters.minPrice = DEFAULT_MIN_PRICE;
+  currentFilters.maxPrice = DEFAULT_MAX_PRICE;
+  
+  // Add event listeners using W3Schools approach
+  minSlider.oninput = function() {
+    updateDualRange();
+  };
+  
+  maxSlider.oninput = function() {
+    updateDualRange();
+  };
+  
+  // Initialize display and visual track
+  updatePriceDisplayValues();
+  updateRangeVisualTrack();
+  
+  console.log('Dual range slider initialized successfully');
+}
+
+/**
  * Initialize the page by loading all services when page loads
  */
 document.addEventListener('DOMContentLoaded', function() {
@@ -430,11 +534,11 @@ document.addEventListener('DOMContentLoaded', function() {
     allButton.classList.add('active');
   }
   
+  // Initialize dual range slider based on W3Schools approach
+  initializeDualRangeSlider();
+  
   // Initialize page by loading all service types
   loadAllServicesTypes();
-  
-  // Initialize price range display
-  updatePriceRangeDisplay();
   
   // Load initial services if not already displayed by server
   const servicesContainer = document.querySelector('.services-container');
