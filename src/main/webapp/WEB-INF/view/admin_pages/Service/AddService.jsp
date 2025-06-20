@@ -17,142 +17,166 @@
 
             <div class="dashboard-main-body">
                 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
-                    <h6 class="fw-semibold mb-0">Add New Service</h6>
+                    <h6 class="fw-semibold mb-0">Thêm mới dịch vụ</h6>
                     <ul class="d-flex align-items-center gap-2">
                         <li class="fw-medium">
-                            <a href="servicetype" class="d-flex align-items-center gap-1 hover-text-primary">
+                            <a href="service?service=list-all&page=${page}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}${not empty serviceTypeId ? '&serviceTypeId='.concat(serviceTypeId) : ''}" class="d-flex align-items-center gap-1 hover-text-primary">
                                 <iconify-icon icon="solar:home-smile-angle-outline" class="icon text-lg"></iconify-icon>
-                                Back to Service Types
+                                Trở lại danh sách dịch vụ
                             </a>
                         </li>
                         <li>-</li>
-                        <li class="fw-medium">Create New Service</li>
+                        <li class="fw-medium">Thêm mới dịch vụ</li>
                     </ul>
                 </div>
 
                 <div class="card h-100 p-0 radius-12">
                     <div class="card-body p-24">
                         <div class="row justify-content-center">
-                            <div class="col-xxl-6 col-xl-8 col-lg-10">
-                                <div class="card border">
-                                    <div class="card-body">
-                                        <form action="service" method="post" enctype="multipart/form-data">
-                                            <input type="hidden" name="service" value="insert" />
-                                            <div class="mb-20">
-                                                <label for="service_type_id" class="form-label fw-semibold text-primary-light text-sm mb-8">
-                                                    Service Type <span class="text-danger-600">*</span>
-                                                </label>
-                                                <select name="service_type_id" id="service_type_id" class="form-control radius-8" required>
-                                                    <c:forEach var="type" items="${serviceTypes}">
-                                                        <option value="${type.serviceTypeId}">${type.name}</option>
-                                                    </c:forEach>
-                                                </select>
-                                            </div>
+                            <div class="col-xxl-8 col-xl-10">
+                                <form action="service" method="post" enctype="multipart/form-data" class="border p-24 radius-12">
+                                    <input type="hidden" name="service" value="insert" />
 
-                                            <!-- Name -->
-                                            <div class="mb-20">
-                                                <label for="name"
-                                                    class="form-label fw-semibold text-primary-light text-sm mb-8">
-                                                    Service Name <span class="text-danger-600">*</span>
-                                                </label>
-                                                <input type="text" name="name" class="form-control radius-8" id="name"
-                                                    placeholder="Enter service name" required>
+                                    <!-- =================================== Thông tin cơ bản =================================== -->
+                                    <div class="mb-32">
+                                        <div class="d-flex align-items-center gap-3 mb-20">
+                                            <div class="bg-primary-50 d-flex align-items-center justify-content-center w-40-px h-40-px radius-12">
+                                                <iconify-icon icon="solar:document-text-outline" class="text-primary text-xl"></iconify-icon>
                                             </div>
-
-                                            <!-- Description -->
-                                            <div class="mb-20">
-                                                <label for="description"
-                                                    class="form-label fw-semibold text-primary-light text-sm mb-8">Description</label>
-                                                <textarea name="description" id="description"
-                                                    class="form-control radius-8"
-                                                    placeholder="Write description..."></textarea>
-                                            </div>
-
-                                            <!-- Price -->
-                                            <div class="mb-20">
-                                                <label for="price"
-                                                    class="form-label fw-semibold text-primary-light text-sm mb-8">
-                                                    Price (VND) <span class="text-danger-600">*</span>
-                                                </label>
-                                                <input type="number" name="price" class="form-control radius-8"
-                                                    id="price" required>
-                                            </div>
-
-                                            <!-- Duration -->
-                                            <div class="mb-20">
-                                                <label for="duration_minutes"
-                                                    class="form-label fw-semibold text-primary-light text-sm mb-8">
-                                                    Duration (minutes) <span class="text-danger-600">*</span>
-                                                </label>
-                                                <input type="number" name="duration_minutes"
-                                                    class="form-control radius-8" id="duration_minutes" required>
-                                            </div>
-
-                                            <!-- Buffer Time -->
-                                            <div class="mb-20">
-                                                <label for="buffer_time_after_minutes"
-                                                    class="form-label fw-semibold text-primary-light text-sm mb-8">
-                                                    Buffer Time After (minutes)
-                                                </label>
-                                                <input type="number" name="buffer_time_after_minutes"
-                                                    class="form-control radius-8" id="buffer_time_after_minutes" value="0">
-                                            </div>
-
-                                            <!-- Image URL -->
-                                            <div class="mb-20">
-                                                <label class="form-label fw-semibold text-primary-light text-sm mb-8">
-                                                    Upload Images
-                                                </label>
-                                                <div class="upload-image-wrapper d-flex align-items-center gap-3 flex-wrap">
-                                                    <div class="uploaded-imgs-container d-flex gap-3 flex-wrap"></div>
-                                                    <label
-                                                        class="upload-file-multiple h-120-px w-120-px border input-form-light radius-8 overflow-hidden border-dashed bg-neutral-50 bg-hover-neutral-200 d-flex align-items-center flex-column justify-content-center gap-1"
-                                                        for="upload-file-multiple">
-                                                        <iconify-icon icon="solar:camera-outline"
-                                                            class="text-xl text-secondary-light"></iconify-icon>
-                                                        <span class="fw-semibold text-secondary-light">Upload</span>
-                                                        <input id="upload-file-multiple" type="file" name="images" multiple hidden>
-                                                    </label>
-                                                </div>
-                                            </div>
-
-                                            <!-- Checkboxes -->
-                                            <div class="mb-20">
-                                                <div
-                                                    class="form-switch switch-primary d-flex align-items-center gap-3 mb-2">
-                                                    <input class="form-check-input" type="checkbox" role="switch"
-                                                        name="is_active" id="is_active" checked>
-                                                    <label
-                                                        class="form-check-label line-height-1 fw-medium text-secondary-light"
-                                                        for="is_active">Active</label>
-                                                </div>
-                                                <div
-                                                    class="form-switch switch-primary d-flex align-items-center gap-3 mb-2">
-                                                    <input class="form-check-input" type="checkbox" role="switch"
-                                                        name="bookable_online" id="bookable_online" checked>
-                                                    <label
-                                                        class="form-check-label line-height-1 fw-medium text-secondary-light"
-                                                        for="bookable_online">Bookable Online</label>
-                                                </div>
-                                                <div class="form-switch switch-primary d-flex align-items-center gap-3">
-                                                    <input class="form-check-input" type="checkbox" role="switch"
-                                                        name="requires_consultation" id="requires_consultation">
-                                                    <label
-                                                        class="form-check-label line-height-1 fw-medium text-secondary-light"
-                                                        for="requires_consultation">Requires Consultation</label>
-                                                </div>
-                                            </div>
-
-                                            <!-- Buttons -->
-                                            <div class="d-flex align-items-center justify-content-center gap-3">
-                                                <a href="service?service=list-all&page=${page}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}${not empty serviceTypeId ? '&serviceTypeId='.concat(serviceTypeId) : ''}"
-                                                    class="btn btn-outline-danger border border-danger-600 px-56 py-11 radius-8">Cancel</a>
-                                                <button type="submit"
-                                                    class="btn btn-primary border border-primary-600 text-md px-56 py-12 radius-8">Save</button>
-                                            </div>
-                                        </form>
+                                            <h6 class="fw-semibold text-primary-light mb-0">Thông tin cơ bản</h6>
+                                        </div>
+                                        <div class="mb-20">
+                                            <label for="service_type_id" class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                                Loại dịch vụ <span class="text-danger-600">*</span>
+                                            </label>
+                                            <select name="service_type_id" id="service_type_id" class="form-control radius-8" required>
+                                                <c:forEach var="type" items="${serviceTypes}">
+                                                    <option value="${type.serviceTypeId}">${type.name}</option>
+                                                </c:forEach>
+                                            </select>
+                                        </div>
+                                        <div class="mb-20">
+                                            <label for="name" class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                                Tên dịch vụ <span class="text-danger-600">*</span>
+                                            </label>
+                                            <input type="text" name="name" class="form-control radius-8" id="name" placeholder="Nhập tên dịch vụ" required>
+                                        </div>
+                                        <div class="mb-20">
+                                            <label for="description" class="form-label fw-semibold text-primary-light text-sm mb-8">Mô tả</label>
+                                            <textarea name="description" id="description" class="form-control radius-8" placeholder="Nhập mô tả..."></textarea>
+                                        </div>
                                     </div>
-                                </div>
+                                    
+                                    <!-- =================================== Giá & Thời gian =================================== -->
+                                    <div class="mb-32">
+                                        <div class="d-flex align-items-center gap-3 mb-20">
+                                            <div class="bg-success-50 d-flex align-items-center justify-content-center w-40-px h-40-px radius-12">
+                                                <iconify-icon icon="solar:wallet-money-outline" class="text-success text-xl"></iconify-icon>
+                                            </div>
+                                            <h6 class="fw-semibold text-primary-light mb-0">Giá & Thời gian</h6>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="mb-20">
+                                                    <label for="price" class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                                        Giá <span class="text-danger-600">*</span>
+                                                    </label>
+                                                    <div class="input-group">
+                                                        <input type="number" name="price" class="form-control radius-8-start" id="price" required>
+                                                        <span class="input-group-text">VND</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="mb-20">
+                                                    <label for="duration_minutes" class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                                        Thời lượng <span class="text-danger-600">*</span>
+                                                    </label>
+                                                    <div class="input-group">
+                                                        <input type="number" name="duration_minutes" class="form-control radius-8-start" id="duration_minutes" required>
+                                                        <span class="input-group-text">phút</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="mb-20">
+                                                    <label for="buffer_time_after_minutes" class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                                        Thời gian chờ sau
+                                                    </label>
+                                                    <div class="input-group">
+                                                        <input type="number" name="buffer_time_after_minutes" class="form-control radius-8-start" id="buffer_time_after_minutes" value="0">
+                                                        <span class="input-group-text">phút</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- =================================== Hình ảnh dịch vụ =================================== -->
+                                    <div class="mb-32">
+                                        <div class="d-flex align-items-center gap-3 mb-20">
+                                            <div class="bg-info-50 d-flex align-items-center justify-content-center w-40-px h-40-px radius-12">
+                                                <iconify-icon icon="solar:gallery-wide-outline" class="text-info text-xl"></iconify-icon>
+                                            </div>
+                                            <h6 class="fw-semibold text-primary-light mb-0">Hình ảnh dịch vụ</h6>
+                                        </div>
+                                        <div class="upload-image-wrapper d-flex align-items-center gap-3 flex-wrap">
+                                            <div class="uploaded-imgs-container d-flex gap-3 flex-wrap"></div>
+                                            <label class="upload-file-multiple h-120-px w-120-px border input-form-light radius-8 overflow-hidden border-dashed bg-neutral-50 bg-hover-neutral-200 d-flex align-items-center flex-column justify-content-center gap-1" for="upload-file-multiple">
+                                                <iconify-icon icon="solar:camera-outline" class="text-xl text-secondary-light"></iconify-icon>
+                                                <span class="fw-semibold text-secondary-light">Tải lên</span>
+                                                <input id="upload-file-multiple" type="file" name="images" multiple hidden>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- =================================== Cài đặt =================================== -->
+                                    <div class="mb-32">
+                                        <div class="d-flex align-items-center gap-3 mb-20">
+                                            <div class="bg-warning-50 d-flex align-items-center justify-content-center w-40-px h-40-px radius-12">
+                                                <iconify-icon icon="solar:settings-outline" class="text-warning text-xl"></iconify-icon>
+                                            </div>
+                                            <h6 class="fw-semibold text-primary-light mb-0">Cài đặt</h6>
+                                        </div>
+                                        <div class="list-group">
+                                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h6 class="mb-0">Active</h6>
+                                                    <small class="text-muted d-block mt-1">Dịch vụ sẽ hiển thị và có thể được đặt lịch.</small>
+                                                </div>
+                                                <div class="form-switch switch-primary">
+                                                    <input class="form-check-input" type="checkbox" role="switch" name="is_active" id="is_active" checked>
+                                                </div>
+                                            </div>
+                                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h6 class="mb-0">Cho phép đặt online</h6>
+                                                    <small class="text-muted d-block mt-1">Cho phép khách hàng tự đặt lịch cho dịch vụ này qua website.</small>
+                                                </div>
+                                                <div class="form-switch switch-primary">
+                                                    <input class="form-check-input" type="checkbox" role="switch" name="bookable_online" id="bookable_online" checked>
+                                                </div>
+                                            </div>
+                                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h6 class="mb-0">Yêu cầu tư vấn</h6>
+                                                    <small class="text-muted d-block mt-1">Yêu cầu khách hàng phải được tư vấn trước khi đặt dịch vụ.</small>
+                                                </div>
+                                                <div class="form-switch switch-primary">
+                                                    <input class="form-check-input" type="checkbox" role="switch" name="requires_consultation" id="requires_consultation">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- =================================== Nút bấm =================================== -->
+                                    <div class="d-flex align-items-center justify-content-end gap-3">
+                                        <a href="service?service=list-all&page=${page}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}${not empty serviceTypeId ? '&serviceTypeId='.concat(serviceTypeId) : ''}"
+                                            class="btn btn-outline-danger border border-danger-600 px-40 py-11 radius-8">Hủy</a>
+                                        <button type="submit"
+                                            class="btn btn-primary border border-primary-600 text-md px-40 py-12 radius-8">Lưu</button>
+                                    </div>
+                                </form>
                             </div>
                         </div>
                     </div>
