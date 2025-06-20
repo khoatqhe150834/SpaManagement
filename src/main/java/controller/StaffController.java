@@ -190,6 +190,12 @@ public class StaffController extends HttpServlet {
             StaffDAO staffDAO = new StaffDAO();
             
             if (service.equals("insert")) {
+                if (staff.getYearsOfExperience() < 0) {
+                    request.setAttribute("toastType", "error");
+                    request.setAttribute("toastMessage", "Years of experience must be non-negative!");
+                    request.getRequestDispatcher(STAFF_INSERT_VIEW).forward(request, response);
+                    return;
+                }
                 staffDAO.save(staff);
                 request.setAttribute("toastType", "success");
                 request.setAttribute("toastMessage", "Thêm nhân viên thành công!");

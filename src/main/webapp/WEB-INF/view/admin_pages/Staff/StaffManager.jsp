@@ -241,7 +241,13 @@
                             <c:forEach var="i" begin="1" end="${totalPages}">
                                 <c:if test="${i >= currentPage - 2 && i <= currentPage + 2}">
                                     <li class="page-item ${i == currentPage ? 'active' : ''}">
-                                        <a class="page-link" href="staff?service=list-all&page=${i}&limit=${limit}">${i}</a>
+                                        <a class="page-link"
+                                           href="staff?service=list-all&page=${i}&limit=${limit}
+                                           ${not empty keyword ? '&keyword='.concat(keyword) : ''}
+                                           ${not empty status ? '&status='.concat(status) : ''}
+                                           ${not empty serviceTypeId ? '&serviceTypeId='.concat(serviceTypeId) : ''}">
+                                            ${i}
+                                        </a>
                                     </li>
                                 </c:if>
                                 <c:if test="${i == currentPage - 3 || i == currentPage + 3}">
