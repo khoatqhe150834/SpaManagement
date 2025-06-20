@@ -206,17 +206,6 @@ public class ServiceController extends HttpServlet {
             }
         }
 
-        String[] deleteImageIds = request.getParameterValues("delete_image_ids");
-        if (deleteImageIds != null) {
-            ServiceImageDAO serviceImageDAO = new ServiceImageDAO();
-            for (String imgIdStr : deleteImageIds) {
-                try {
-                    int imgId = Integer.parseInt(imgIdStr);
-                    serviceImageDAO.deleteById(imgId);
-                } catch (NumberFormatException ignored) {}
-            }
-        }
-
         if (service.equals("insert")) {
             serviceDAO.save(s);
             int serviceId = s.getServiceId();
@@ -228,12 +217,25 @@ public class ServiceController extends HttpServlet {
             int id = Integer.parseInt(request.getParameter("id"));
             s.setServiceId(id);
             serviceDAO.update(s);
+            
+            // Xử lý xóa ảnh cũ
+            String[] deleteImageIds = request.getParameterValues("delete_image_ids");
+            if (deleteImageIds != null) {
+                ServiceImageDAO serviceImageDAO = new ServiceImageDAO();
+                for (String imgIdStr : deleteImageIds) {
+                    try {
+                        int imgId = Integer.parseInt(imgIdStr);
+                        serviceImageDAO.deleteById(imgId);
+                    } catch (NumberFormatException ignored) {}
+                }
+            }
 
-            ServiceImageDAO serviceImageDAO = new ServiceImageDAO();
-            // Xóa ảnh cũ trước khi thêm mới
-            serviceImageDAO.deleteByServiceId(id);
-            for (String url : imageUrls) {
-                serviceImageDAO.save(new ServiceImage(id, url));
+            // Thêm ảnh mới
+            if (!imageUrls.isEmpty()) {
+                ServiceImageDAO serviceImageDAO = new ServiceImageDAO();
+                for (String url : imageUrls) {
+                    serviceImageDAO.save(new ServiceImage(id, url));
+                }
             }
         }
 

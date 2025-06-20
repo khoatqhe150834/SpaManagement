@@ -107,14 +107,17 @@
                                                 <div class="upload-image-wrapper d-flex align-items-center gap-3 flex-wrap">
                                                     <!-- Hiển thị ảnh hiện tại của dịch vụ -->
                                                     <c:forEach var="img" items="${serviceImages}">
-                                                        <div class="position-relative h-120-px w-120-px border input-form-light radius-8 overflow-hidden border-dashed bg-neutral-50">
-                                                            <img src="${img.imageUrl}" class="w-100 h-100 object-fit-cover" />
-                                                            <label class="position-absolute top-0 end-0 z-1 m-2 bg-white px-2 py-1 radius-8" style="cursor:pointer;">
-                                                                <input type="checkbox" name="delete_image_ids" value="${img.id}" />
-                                                                <span class="text-danger-600">Xóa</span>
+                                                        <div class="existing-img-container position-relative h-120-px w-120-px border input-form-light radius-8 overflow-hidden border-dashed bg-neutral-50">
+                                                            <img src="${pageContext.request.contextPath}${img.imageUrl}" class="w-100 h-100 object-fit-cover" />
+                                                            <input type="checkbox" name="delete_image_ids" value="${img.id}" id="delete_img_${img.id}" class="delete-checkbox" hidden />
+                                                            <label for="delete_img_${img.id}" class="uploaded-img__remove position-absolute top-0 end-0 z-1 text-2xxl line-height-1 me-8 mt-8 d-flex" style="cursor: pointer;">
+                                                                <iconify-icon icon="radix-icons:cross-2" class="text-xl text-danger-600"></iconify-icon>
                                                             </label>
                                                         </div>
                                                     </c:forEach>
+                                                    
+                                                    <div class="uploaded-imgs-container d-flex gap-3 flex-wrap"></div>
+                                                    
                                                     <label
                                                         class="upload-file-multiple h-120-px w-120-px border input-form-light radius-8 overflow-hidden border-dashed bg-neutral-50 bg-hover-neutral-200 d-flex align-items-center flex-column justify-content-center gap-1"
                                                         for="upload-file-multiple">
@@ -168,14 +171,43 @@
             <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
 
             <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const deleteCheckboxes = document.querySelectorAll('.delete-checkbox');
+                    deleteCheckboxes.forEach(checkbox => {
+                        checkbox.addEventListener('change', function() {
+                            const container = this.closest('.existing-img-container');
+                            if (this.checked) {
+                                container.style.opacity = '0.5';
+                            } else {
+                                container.style.opacity = '1';
+                            }
+                        });
+                    });
+                });
+
                 // ================================================ Upload Multiple image js Start here ================================================
                 const fileInputMultiple = document.getElementById("upload-file-multiple");
                 const uploadedImgsContainer = document.querySelector(".uploaded-imgs-container");
+                let selectedFiles = new DataTransfer(); // To manage FileList object
 
                 fileInputMultiple.addEventListener("change", (e) => {
                     const files = e.target.files;
-
+                    
+                    // Add new files to our DataTransfer object
                     Array.from(files).forEach(file => {
+                        // Validate file type
+                        if (!file.type.startsWith('image/')) {
+                            alert('Please upload only image files.');
+                            return;
+                        }
+                        
+                        // Validate file size (2MB = 2 * 1024 * 1024 bytes)
+                        if (file.size > 2 * 1024 * 1024) {
+                            alert('File size should not exceed 2MB.');
+                            return;
+                        }
+
+                        selectedFiles.items.add(file);
                         const src = URL.createObjectURL(file);
 
                         const imgContainer = document.createElement('div');
@@ -189,19 +221,43 @@
                         const imagePreview = document.createElement('img');
                         imagePreview.classList.add('w-100', 'h-100', 'object-fit-cover');
                         imagePreview.src = src;
+                        
+                        // Store file name as data attribute for removal
+                        imgContainer.dataset.fileName = file.name;
 
                         imgContainer.appendChild(removeButton);
                         imgContainer.appendChild(imagePreview);
                         uploadedImgsContainer.appendChild(imgContainer);
 
                         removeButton.addEventListener('click', () => {
+                            // Remove file from DataTransfer object
+                            const newFiles = new DataTransfer();
+                            const fileName = imgContainer.dataset.fileName;
+                            
+                            Array.from(selectedFiles.files).forEach(file => {
+                                if (file.name !== fileName) {
+                                    newFiles.items.add(file);
+                                }
+                            });
+                            
+                            selectedFiles = newFiles;
+                            fileInputMultiple.files = selectedFiles.files;
+                            
+                            // Remove preview
                             URL.revokeObjectURL(src);
                             imgContainer.remove();
                         });
                     });
 
-                    // Clear the file input so the same file(s) can be uploaded again if needed
-                    fileInputMultiple.value = '';
+                    // Update the file input with all selected files
+                    fileInputMultiple.files = selectedFiles.files;
+                });
+
+                // Clear selected files when form is reset
+                document.querySelector('form').addEventListener('reset', () => {
+                    selectedFiles = new DataTransfer();
+                    fileInputMultiple.files = selectedFiles.files;
+                    uploadedImgsContainer.innerHTML = '';
                 });
                 // ================================================ Upload Multiple image js End here  ================================================
             </script>
