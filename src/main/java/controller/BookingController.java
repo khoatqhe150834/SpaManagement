@@ -40,6 +40,19 @@ public class BookingController extends HttpServlet {
       return;
     }
 
+    // Handle different booking paths
+    switch (pathInfo) {
+      case "/therapist-selection":
+        handleTherapistSelection(request, response);
+        break;
+      case "/time-selection":
+        handleTimeSelection(request, response);
+        break;
+      default:
+        request.getRequestDispatcher("/WEB-INF/view/customer/appointments/booking-selection.jsp").forward(request,
+            response);
+        break;
+    }
   }
 
   @Override
@@ -110,6 +123,27 @@ public class BookingController extends HttpServlet {
     String time = request.getParameter("time");
     String notes = request.getParameter("notes");
     request.getRequestDispatcher("/WEB-INF/view/customer/appointments/booking-giftcard.jsp").forward(request, response);
+  }
+
+  private void handleTherapistSelection(HttpServletRequest request, HttpServletResponse response)
+      throws ServletException, IOException {
+    // TODO: Load selected services from session or parameter
+    // TODO: Load available therapists based on selected services
+    // TODO: Load recent therapists for the customer (if logged in)
+
+    // For now, just forward to the therapist selection page
+    request.getRequestDispatcher("/WEB-INF/view/customer/appointments/therapist-selection.jsp").forward(request,
+        response);
+  }
+
+  private void handleTimeSelection(HttpServletRequest request, HttpServletResponse response)
+      throws ServletException, IOException {
+    // TODO: Load selected services from session or parameter
+    // TODO: Load available therapists/staff
+    // TODO: Load available time slots for selected date
+
+    // For now, just forward to the time selection page
+    request.getRequestDispatcher("/WEB-INF/view/customer/appointments/time-selection.jsp").forward(request, response);
   }
 
 }
