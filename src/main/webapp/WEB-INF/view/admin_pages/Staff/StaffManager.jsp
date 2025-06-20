@@ -1,6 +1,16 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<%
+    if (session.getAttribute("toastMessage") != null) {
+        request.setAttribute("toastMessage", session.getAttribute("toastMessage"));
+        session.removeAttribute("toastMessage");
+    }
+    if (session.getAttribute("toastType") != null) {
+        request.setAttribute("toastType", session.getAttribute("toastType"));
+        session.removeAttribute("toastType");
+    }
+%>
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
     <head>
@@ -21,6 +31,8 @@
                     max-width: 180px;
                     min-width: 120px;
                     position: relative;
+                    word-break: break-word;
+                    overflow-wrap: break-word;
                 }
                 .bio-wrap.expanded {
                     -webkit-line-clamp: unset;
@@ -122,6 +134,12 @@
                     white-space: normal;
                     max-width: 140px;
                 }
+                th.text-center, td.text-center {
+                    text-align: center !important;
+                }
+                th.text-start, td.text-start {
+                    text-align: left !important;
+                }
             </style>
         </head>
         <body>
@@ -153,7 +171,7 @@
                             </select>
                         </div>
                         <form class="navbar-search d-flex gap-2 align-items-center" method="get" action="staff">
-                            <input type="text" class="bg-base h-40-px w-auto" name="keyword" placeholder="Search" value="${keyword}">
+                            <input type="text" class="bg-base h-40-px w-auto" name="keyword" placeholder="Tìm Kiếm" value="${keyword}">
                             <select name="serviceTypeId" class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px">
                                 <option value="">Tất cả loại dịch vụ</option>
                                 <c:forEach var="stype" items="${serviceTypes}">
@@ -178,7 +196,7 @@
                             </select>
                             <input type="hidden" name="service" value="search">
                             <input type="hidden" name="limit" value="${limit}" />
-                            <button type="submit" class="btn btn-primary h-40-px radius-12">Search</button>
+                            <button type="submit" class="btn btn-primary h-40-px radius-12">Tìm Kiếm</button>
                         </form>
                     </div>
                     <a href="staff?service=pre-insert" class="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2">
@@ -191,12 +209,12 @@
                         <table class="table bordered-table sm-table mb-0" id="staffTable" style="table-layout: auto; width: 100%;">
                             <thead>
                                 <tr>
-                                    <th class="text-center">STT</th>
+                                    <th class="text-start">STT</th>
                                     <th class="text-center">Tên</th>
                                     <th class="text-center">Loại Dịch Vụ</th>
                                     <th class="text-center">Tiểu Sử</th>
                                     <th class="text-center" data-orderable="false">Trạng Thái</th>
-                                    <th class="text-center">EXP (Năm)</th>
+                                    <th class="text-start">EXP (Năm)</th>
                                     <th class="text-center" data-orderable="false">Hành Động</th>
                                 </tr>
                             </thead>
@@ -344,9 +362,14 @@
                 }
             }
 
-            // Chỉ hiện "Xem thêm" nếu thực sự bị cắt
-            document.addEventListener("DOMContentLoaded", function () {
-                document.querySelectorAll('.bio-wrap').forEach(function(bio, idx) {
+            function checkSeeMore() {
+                document.querySelectorAll('.bio-wrap').forEach(function(bio) {
+                    // Ẩn "Xem thêm" mặc định
+                    const seeMore = bio.nextElementSibling;
+                    if (seeMore && seeMore.classList.contains('see-more-link')) {
+                        seeMore.style.display = 'none';
+                    }
+
                     // Tạo clone để đo chiều cao thực tế
                     const clone = bio.cloneNode(true);
                     clone.style.visibility = 'hidden';
@@ -358,15 +381,23 @@
 
                     // So sánh chiều cao thực tế và chiều cao bị cắt
                     if (clone.offsetHeight > bio.offsetHeight) {
-                        // Hiện "Xem thêm"
-                        const seeMore = bio.nextElementSibling;
                         if (seeMore && seeMore.classList.contains('see-more-link')) {
                             seeMore.style.display = 'inline';
                         }
                     }
                     document.body.removeChild(clone);
                 });
+            }
+
+            document.addEventListener("DOMContentLoaded", function () {
+                checkSeeMore();
             });
+
+            if (window.jQuery && $.fn.dataTable) {
+                $('#staffTable').on('draw.dt', function () {
+                    checkSeeMore();
+                });
+            }
         </script>
         <script src="${pageContext.request.contextPath}/assets/admin/js/lib/jquery-3.7.1.min.js"></script>
         <script src="${pageContext.request.contextPath}/assets/admin/js/lib/dataTables.min.js"></script>
