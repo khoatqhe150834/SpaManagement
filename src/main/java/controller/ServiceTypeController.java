@@ -39,11 +39,11 @@ public class ServiceTypeController extends HttpServlet {
         ServiceTypeDAO dao = new ServiceTypeDAO();
 
         int limit = 5; // Giá trị mặc định
-        if (request.getParameter("limit") != null) {
+        String limitParam = request.getParameter("limit");
+        if (limitParam != null && !limitParam.isEmpty()) {
             try {
-                limit = Integer.parseInt(request.getParameter("limit"));
-            } catch (NumberFormatException ignored) {
-            }
+                limit = Integer.parseInt(limitParam);
+            } catch (NumberFormatException ignored) {}
         }
 
         switch (service) {
@@ -75,6 +75,7 @@ public class ServiceTypeController extends HttpServlet {
                 String keyword = request.getParameter("keyword");
                 String status = request.getParameter("status");
                 request.setAttribute("page", page);
+                request.setAttribute("limit", limit);
                 request.setAttribute("keyword", keyword);
                 request.setAttribute("status", status);
                 request.getRequestDispatcher("WEB-INF/view/admin_pages/Service_Type/AddServiceType.jsp").forward(request, response);
@@ -89,6 +90,7 @@ public class ServiceTypeController extends HttpServlet {
                 String status = request.getParameter("status");
                 request.setAttribute("stype", st);
                 request.setAttribute("page", page);
+                request.setAttribute("limit", limit);
                 request.setAttribute("keyword", keyword);
                 request.setAttribute("status", status);
                 request.getRequestDispatcher("WEB-INF/view/admin_pages/Service_Type/UpdateServiceType.jsp").forward(request, response);

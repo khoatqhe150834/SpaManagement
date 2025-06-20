@@ -160,7 +160,7 @@
                                     <button type="submit" class="btn btn-primary h-40-px radius-12">Tìm kiếm</button>
                                 </form>
                             </div>
-                            <a href="servicetype?service=pre-insert&page=${currentPage}&limit=${limit}<c:if test='${not empty keyword}'>&keyword=${keyword}</c:if><c:if test='${not empty status}'>&status=${status}</c:if>"
+                            <a href="servicetype?service=pre-insert&page=${currentPage}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}"
                                 class="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2">
                                 <iconify-icon icon="ic:baseline-plus" class="icon text-xl line-height-1"></iconify-icon>
                                 Thêm Loại Dịch Vụ Mới
