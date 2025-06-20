@@ -3,6 +3,7 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Category - Admin Dashboard</title>
@@ -15,13 +16,19 @@
     <jsp:include page="/WEB-INF/view/common/admin/toast.jsp" />
 
     <div class="dashboard-main-body">
-        <div class="card h-100 p-0 radius-12">
-            <div class="card-header border-bottom bg-base py-16 px-24 d-flex align-items-center flex-wrap gap-3 justify-content-between">
-                <h4 class="mb-0">Add New Category</h4>
-                <a href="${pageContext.request.contextPath}/category/list" class="btn btn-secondary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2">
-                    <iconify-icon icon="ep:back" class="icon text-xl line-height-1"></iconify-icon>
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
+            <div class="d-flex align-items-center gap-3">
+                <a href="${pageContext.request.contextPath}/category/list" class="btn btn-outline-primary btn-sm px-20 py-11 radius-8">
+                    <iconify-icon icon="solar:arrow-left-linear" class="icon text-lg me-8"></iconify-icon>
                     Back to List
                 </a>
+                <h4 class="fw-bold mb-0">Add New Category</h4>
+            </div>
+        </div>
+        
+        <div class="card h-100 p-0 radius-12">
+            <div class="card-header border-bottom bg-base py-16 px-24">
+                <h5 class="card-title mb-0">Category Information</h5>
             </div>
 
             <div class="card-body p-24">
@@ -86,9 +93,11 @@
                         </div>
                     </div>
 
-                    <div class="d-flex gap-3">
-                        <button type="submit" class="btn btn-primary">Create Category</button>
-                        <button type="reset" class="btn btn-secondary">Reset Form</button>
+                    <div class="d-flex gap-16 justify-content-end mt-24">
+                        <button type="submit" class="btn btn-primary btn-sm px-20 py-11 radius-8">
+                            <iconify-icon icon="solar:check-circle-bold" class="icon text-lg me-8"></iconify-icon>
+                            Create Category
+                        </button>
                     </div>
                 </form>
             </div>

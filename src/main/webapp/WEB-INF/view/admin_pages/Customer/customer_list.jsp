@@ -45,19 +45,14 @@
         <div class="dashboard-main-body">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
                 <h6 class="fw-semibold mb-0">Customer List</h6>
-                <ul class="d-flex align-items-center gap-2">
-                    <li class="fw-medium">
-                        <a href="${pageContext.request.contextPath}/admin/dashboard" class="d-flex align-items-center gap-1 hover-text-primary">
-                            <iconify-icon icon="solar:home-smile-angle-outline" class="icon text-lg"></iconify-icon>
-                            Dashboard
-                        </a>
-                    </li>
-                    <li>-</li>
-                    <li class="fw-medium">Customer List</li>
-                </ul>
-                <a href="${pageContext.request.contextPath}/" class="btn btn-outline-primary ms-auto">
-                    <iconify-icon icon="mdi:arrow-left" class="me-1"></iconify-icon> Quay về trang chủ
-                </a>
+                <div class="d-flex align-items-center gap-2">
+                    <a href="${pageContext.request.contextPath}/" class="btn btn-outline-primary">
+                        <iconify-icon icon="ic:round-home" class="me-1"></iconify-icon> Homepage
+                    </a>
+                    <a href="${pageContext.request.contextPath}/admin/dashboard" class="btn btn-primary">
+                        <iconify-icon icon="solar:home-smile-angle-outline" class="me-1"></iconify-icon> Dashboard
+                    </a>
+                </div>
             </div>
             
             <%-- Hiển thị thông báo thành công --%>
@@ -81,13 +76,21 @@
                     <div class="d-flex align-items-center flex-wrap gap-3">
                         <%-- Form tìm kiếm và lọc --%>
                         <form class="navbar-search d-flex gap-2 align-items-center" method="get" action="${pageContext.request.contextPath}/customer/list">
-                            <input type="text" class="bg-base h-40-px w-auto" name="search" placeholder="Search..." value="${searchValue}">
+                            <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px" name="pageSize" onchange="this.form.submit()">
+                                <option value="5" ${pageSize == 5 ? 'selected' : ''}>5</option>
+                                <option value="10" ${pageSize == 10 ? 'selected' : ''}>10</option>
+                                <option value="20" ${pageSize == 20 ? 'selected' : ''}>20</option>
+                                <option value="50" ${pageSize == 50 ? 'selected' : ''}>50</option>
+                                <option value="9999" ${pageSize == 9999 ? 'selected' : ''}>All</option>
+                            </select>
+                            <input type="text" class="bg-base h-40-px w-auto" name="searchValue" placeholder="Search by name, email..." value="${searchValue}">
                             <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px" name="status">
                                 <option value="">All Status</option>
                                 <option value="active" ${status == 'active' ? 'selected' : ''}>Active</option>
                                 <option value="inactive" ${status == 'inactive' ? 'selected' : ''}>Inactive</option>
                             </select>
                             <button type="submit" class="btn btn-primary h-40-px radius-12">Search</button>
+                            <input type="hidden" name="page" value="1">
                         </form>
                     </div>
                     <a href="${pageContext.request.contextPath}/customer/create" class="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2"> 
@@ -104,13 +107,13 @@
                                     <tr>
                                         <th scope="col">
                                             ID
-                                            <a href="?sortBy=id&sortOrder=asc&search=${searchValue}&status=${status}&page=${currentPage}" title="Sort Ascending">&#9650;</a>
-                                            <a href="?sortBy=id&sortOrder=desc&search=${searchValue}&status=${status}&page=${currentPage}" title="Sort Descending">&#9660;</a>
+                                            <a href="?sortBy=id&sortOrder=asc&pageSize=${pageSize}&searchValue=${searchValue}&status=${status}&page=${currentPage}" title="Sort Ascending">&#9650;</a>
+                                            <a href="?sortBy=id&sortOrder=desc&pageSize=${pageSize}&searchValue=${searchValue}&status=${status}&page=${currentPage}" title="Sort Descending">&#9660;</a>
                                         </th>
                                         <th scope="col">
                                             Full Name
-                                            <a href="?sortBy=name&sortOrder=asc&search=${searchValue}&status=${status}&page=${currentPage}" title="Sort Name Ascending">&#9650;</a>
-                                            <a href="?sortBy=name&sortOrder=desc&search=${searchValue}&status=${status}&page=${currentPage}" title="Sort Name Descending">&#9660;</a>
+                                            <a href="?sortBy=name&sortOrder=asc&pageSize=${pageSize}&searchValue=${searchValue}&status=${status}&page=${currentPage}" title="Sort Name Ascending">&#9650;</a>
+                                            <a href="?sortBy=name&sortOrder=desc&pageSize=${pageSize}&searchValue=${searchValue}&status=${status}&page=${currentPage}" title="Sort Name Descending">&#9660;</a>
                                         </th>
                                         <th scope="col">Email</th>
                                         <th scope="col">Phone</th>
@@ -148,7 +151,8 @@
                                                         <c:url var="deactivateUrl" value="/customer/deactivate">
                                                             <c:param name="id" value="${customer.customerId}" />
                                                             <c:param name="page" value="${currentPage}" />
-                                                            <c:param name="search" value="${searchValue}" />
+                                                            <c:param name="pageSize" value="${pageSize}" />
+                                                            <c:param name="searchValue" value="${searchValue}" />
                                                             <c:param name="status" value="${status}" />
                                                         </c:url>
                                                         <a href="#" onclick="return confirmAction('${deactivateUrl}', 'Are you sure you want to deactivate this customer?');" class="bg-warning-focus bg-hover-warning-200 text-warning-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
@@ -159,7 +163,8 @@
                                                         <c:url var="activateUrl" value="/customer/activate">
                                                             <c:param name="id" value="${customer.customerId}" />
                                                             <c:param name="page" value="${currentPage}" />
-                                                            <c:param name="search" value="${searchValue}" />
+                                                            <c:param name="pageSize" value="${pageSize}" />
+                                                            <c:param name="searchValue" value="${searchValue}" />
                                                             <c:param name="status" value="${status}" />
                                                         </c:url>
                                                         <a href="#" onclick="return confirmAction('${activateUrl}', 'Are you sure you want to activate this customer?');" class="bg-success-focus bg-hover-success-200 text-success-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
@@ -188,17 +193,17 @@
                     </span>
                     <ul class="pagination d-flex flex-wrap align-items-center gap-2 justify-content-center">
                         <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
-                           <c:url var="prevUrl" value="/customer/list"><c:param name="page" value="${currentPage - 1}"/><c:param name="search" value="${searchValue}"/><c:param name="status" value="${status}"/></c:url>
+                           <c:url var="prevUrl" value="/customer/list"><c:param name="page" value="${currentPage - 1}"/><c:param name="pageSize" value="${pageSize}"/><c:param name="searchValue" value="${searchValue}"/><c:param name="status" value="${status}"/></c:url>
                            <a class="page-link" href="${currentPage > 1 ? prevUrl : '#'}"><iconify-icon icon="ep:d-arrow-left"></iconify-icon></a>
                         </li>
                         <c:forEach var="i" begin="1" end="${totalpages}">
-                            <c:url var="pageUrl" value="/customer/list"><c:param name="page" value="${i}"/><c:param name="search" value="${searchValue}"/><c:param name="status" value="${status}"/></c:url>
+                            <c:url var="pageUrl" value="/customer/list"><c:param name="page" value="${i}"/><c:param name="pageSize" value="${pageSize}"/><c:param name="searchValue" value="${searchValue}"/><c:param name="status" value="${status}"/></c:url>
                             <li class="page-item ${i == currentPage ? 'active' : ''}">
                                 <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px" href="${pageUrl}">${i}</a>
                             </li>
                         </c:forEach>
                         <li class="page-item ${currentPage == totalpages ? 'disabled' : ''}">
-                           <c:url var="nextUrl" value="/customer/list"><c:param name="page" value="${currentPage + 1}"/><c:param name="search" value="${searchValue}"/><c:param name="status" value="${status}"/></c:url>
+                           <c:url var="nextUrl" value="/customer/list"><c:param name="page" value="${currentPage + 1}"/><c:param name="pageSize" value="${pageSize}"/><c:param name="searchValue" value="${searchValue}"/><c:param name="status" value="${status}"/></c:url>
                            <a class="page-link" href="${currentPage < totalpages ? nextUrl : '#'}"><iconify-icon icon="ep:d-arrow-right"></iconify-icon></a>
                         </li>
                     </ul>

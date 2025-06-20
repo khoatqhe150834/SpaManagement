@@ -1,16 +1,21 @@
 package dao;
 
-import db.DBContext;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import model.Customer;
+
 import org.mindrot.jbcrypt.BCrypt;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import db.DBContext;
+import model.Customer;
 
 /**
  * @author quang
@@ -277,29 +282,23 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
     }
 
     public boolean deactivateCustomer(int customerId) {
-        String sql = "UPDATE customers SET is_active = 0, updated_at = ? WHERE customer_id = ?";
-        try (Connection conn = DBContext.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
-            ps.setInt(2, customerId);
-            int rowsAffected = ps.executeUpdate();
-
-            return rowsAffected > 0;
+        String sql = "UPDATE customers SET is_active = false WHERE customer_id = ?";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, customerId);
+            return ps.executeUpdate() > 0;
         } catch (SQLException e) {
+            Logger.getLogger(CustomerDAO.class.getName()).log(Level.SEVERE, "Error deactivating customer", e);
             return false;
         }
     }
 
     public boolean activateCustomer(int customerId) {
-        String sql = "UPDATE customers SET is_active = 1, updated_at = ? WHERE customer_id = ?";
-        try (Connection conn = DBContext.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
-            ps.setInt(2, customerId);
-            int rowsAffected = ps.executeUpdate();
-
-            return rowsAffected > 0;
+        String sql = "UPDATE customers SET is_active = true WHERE customer_id = ?";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, customerId);
+            return ps.executeUpdate() > 0;
         } catch (SQLException e) {
+            Logger.getLogger(CustomerDAO.class.getName()).log(Level.SEVERE, "Error activating customer", e);
             return false;
         }
     }
@@ -648,6 +647,100 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
             // Log any errors that occur during the database operation.
             System.out.println("Error updating customer with ID: " + customer.getCustomerId());
         }
+    }
+
+    public List<Customer> getPaginatedCustomers(int page, int pageSize, String searchValue, String status, String sortBy, String sortOrder) {
+        List<Customer> customers = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT * FROM customers WHERE 1=1");
+        List<Object> params = new ArrayList<>();
+
+        if (searchValue != null && !searchValue.trim().isEmpty()) {
+            sql.append(" AND (full_name LIKE ? OR email LIKE ? OR phone_number LIKE ?)");
+            String searchPattern = "%" + searchValue.trim() + "%";
+            params.add(searchPattern);
+            params.add(searchPattern);
+            params.add(searchPattern);
+        }
+
+        if (status != null && !status.trim().isEmpty()) {
+            sql.append(" AND is_active = ?");
+            params.add("active".equalsIgnoreCase(status));
+        }
+
+        // Validate sortBy parameter to prevent SQL injection
+        String orderBy;
+        switch (sortBy.toLowerCase()) {
+            case "name":
+                orderBy = "full_name";
+                break;
+            case "id":
+            default:
+                orderBy = "customer_id";
+                break;
+        }
+        sql.append(" ORDER BY ").append(orderBy).append(" ").append("asc".equalsIgnoreCase(sortOrder) ? "ASC" : "DESC");
+
+        if (pageSize != Integer.MAX_VALUE) {
+            sql.append(" LIMIT ? OFFSET ?");
+            params.add(pageSize);
+            params.add((page - 1) * pageSize);
+        }
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    customers.add(buildCustomerFromResultSet(rs));
+                }
+            }
+        } catch (SQLException e) {
+            Logger.getLogger(CustomerDAO.class.getName()).log(Level.SEVERE, "Error in getPaginatedCustomers", e);
+            throw new RuntimeException("Error fetching paginated customers: " + e.getMessage(), e);
+        }
+
+        return customers;
+    }
+
+    public int getTotalCustomerCount(String searchValue, String status) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM customers WHERE 1=1");
+        List<Object> params = new ArrayList<>();
+
+        if (searchValue != null && !searchValue.trim().isEmpty()) {
+            sql.append(" AND (full_name LIKE ? OR email LIKE ? OR phone_number LIKE ?)");
+            String searchPattern = "%" + searchValue.trim() + "%";
+            params.add(searchPattern);
+            params.add(searchPattern);
+            params.add(searchPattern);
+        }
+
+        if (status != null && !status.trim().isEmpty()) {
+            sql.append(" AND is_active = ?");
+            params.add("active".equalsIgnoreCase(status));
+        }
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            Logger.getLogger(CustomerDAO.class.getName()).log(Level.SEVERE, "Error in getTotalCustomerCount", e);
+            throw new RuntimeException("Error counting customers: " + e.getMessage(), e);
+        }
+
+        return 0;
     }
 
     // Deprecated - kept for backward compatibility, but recommend using more
