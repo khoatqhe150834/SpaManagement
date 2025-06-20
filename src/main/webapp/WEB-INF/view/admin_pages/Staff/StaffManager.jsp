@@ -209,7 +209,7 @@
                             <tbody>
                                 <c:forEach var="therapist" items="${staffList}" varStatus="status">
                                     <tr>
-                                        <td class="text-start">${status.index + 1}</td>
+                                        <td class="text-center">${status.index + 1}</td>
                                         <td class="text-center"><div class="wrap-text">${therapist.user.fullName}</div></td>
                                         <td class="text-center">
                                             <c:if test="${not empty therapist.serviceType}">
@@ -232,7 +232,7 @@
                                                 </c:otherwise>
                                             </c:choose>
                                         </td>
-                                        <td class="text-start">${therapist.yearsOfExperience}</td>
+                                        <td class="text-center">${therapist.yearsOfExperience}</td>
                                         <td class="text-center">
                                             <div class="d-flex align-items-center gap-10 justify-content-center">
                                                 <a href="staff?service=viewById&id=${therapist.user.userId}" class="bg-info-focus text-info-600 w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle" title="Xem chi tiết">
