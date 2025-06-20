@@ -12,10 +12,27 @@
         <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp"></jsp:include>
             <style>
                 .bio-wrap {
-                    white-space: pre-line;
-                    word-break: break-word;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 3;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: normal;
                     max-width: 180px;
                     min-width: 120px;
+                    position: relative;
+                }
+                .bio-wrap.expanded {
+                    -webkit-line-clamp: unset;
+                    max-height: none;
+                    overflow: visible;
+                }
+                .see-more-link {
+                    color: #1976d2;
+                    cursor: pointer;
+                    font-weight: 500;
+                    margin-left: 4px;
+                    font-size: 0.95em;
                 }
                 .table td, .table th {
                     white-space: normal !important;
@@ -193,7 +210,12 @@
                                                 <div class="wrap-text">${therapist.serviceType.name}</div>
                                             </c:if>
                                         </td>
-                                        <td><div class="bio-wrap">${therapist.bio}</div></td>
+                                        <td class="text-center">
+                                            <div class="bio-wrap" id="bio-${status.index}">
+                                                ${therapist.bio}
+                                            </div>
+                                            <span class="see-more-link" onclick="toggleBio(${status.index}, this)" style="display:none">Xem thêm</span>
+                                        </td>
                                         <td class="text-center">
                                             <c:choose>
                                                 <c:when test="${therapist.availabilityStatus == 'AVAILABLE'}">
@@ -309,6 +331,41 @@
                         setTimeout(() => toast.remove(), 500);
                     }, 3000);
                 }
+            });
+
+            function toggleBio(index, link) {
+                const bioDiv = document.getElementById('bio-' + index);
+                if (bioDiv.classList.contains('expanded')) {
+                    bioDiv.classList.remove('expanded');
+                    link.textContent = 'Xem thêm';
+                } else {
+                    bioDiv.classList.add('expanded');
+                    link.textContent = 'Ẩn bớt';
+                }
+            }
+
+            // Chỉ hiện "Xem thêm" nếu thực sự bị cắt
+            document.addEventListener("DOMContentLoaded", function () {
+                document.querySelectorAll('.bio-wrap').forEach(function(bio, idx) {
+                    // Tạo clone để đo chiều cao thực tế
+                    const clone = bio.cloneNode(true);
+                    clone.style.visibility = 'hidden';
+                    clone.style.position = 'absolute';
+                    clone.style.height = 'auto';
+                    clone.style.webkitLineClamp = 'unset';
+                    clone.classList.add('expanded');
+                    document.body.appendChild(clone);
+
+                    // So sánh chiều cao thực tế và chiều cao bị cắt
+                    if (clone.offsetHeight > bio.offsetHeight) {
+                        // Hiện "Xem thêm"
+                        const seeMore = bio.nextElementSibling;
+                        if (seeMore && seeMore.classList.contains('see-more-link')) {
+                            seeMore.style.display = 'inline';
+                        }
+                    }
+                    document.body.removeChild(clone);
+                });
             });
         </script>
     </body>
