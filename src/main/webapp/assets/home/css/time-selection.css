@@ -1,0 +1,670 @@
+/* Time Selection Styles */
+
+:root {
+  --spa-primary: #c8945f;
+  --spa-primary-light: #dbb378;
+  --spa-primary-hover: #b8855a;
+  --white: #ffffff;
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+  --yellow-400: #fbbf24;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Base styles */
+body {
+  font-family: 'Inter', sans-serif, sans-serif;
+  line-height: 1.6;
+  color: var(--gray-800);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* Booking breadcrumbs */
+.booking-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--gray-500);
+  margin-bottom: 2rem;
+  padding: 1rem 0;
+}
+
+.booking-breadcrumbs .mx-2 {
+  margin: 0 0.5rem;
+}
+
+.booking-breadcrumbs .active {
+  font-weight: 600;
+  color: var(--gray-700);
+}
+
+/* Grid layout */
+.time-selection-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 1024px) {
+  .time-selection-grid {
+    grid-template-columns: 2fr 1fr;
+    gap: 3rem;
+  }
+}
+
+/* Page title */
+.page-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  color: var(--gray-900);
+}
+
+/* User selector */
+.user-selector {
+  margin-bottom: 2rem;
+}
+
+.user-selector-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid var(--gray-300);
+  border-radius: 9999px;
+  background-color: var(--white);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.user-selector-btn:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.user-avatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.user-name {
+  font-weight: 600;
+  color: var(--gray-800);
+}
+
+.user-selector-btn i {
+  color: var(--gray-500);
+  font-size: 1.25rem;
+}
+
+/* Calendar section */
+.calendar-section {
+  margin-bottom: 2rem;
+}
+
+/* FullCalendar Customization */
+#fullcalendar {
+  font-family: inherit;
+}
+
+/* FullCalendar Header */
+.fc-header-toolbar {
+  background: var(--gray-50);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  margin-bottom: 1rem !important;
+}
+
+.fc-toolbar-title {
+  color: var(--gray-900) !important;
+  font-weight: 600 !important;
+  font-size: 1.5rem !important;
+}
+
+.fc-button-primary {
+  background-color: var(--spa-primary) !important;
+  border-color: var(--spa-primary) !important;
+  color: white !important;
+  border-radius: 0.5rem !important;
+  font-weight: 500 !important;
+}
+
+.fc-button-primary:hover {
+  background-color: var(--spa-primary-hover) !important;
+  border-color: var(--spa-primary-hover) !important;
+}
+
+.fc-button-primary:focus {
+  box-shadow: 0 0 0 0.2rem rgba(200, 148, 95, 0.25) !important;
+}
+
+/* FullCalendar Day Cells */
+.fc-daygrid-day {
+  border-color: var(--gray-200) !important;
+  background: white !important;
+  cursor: pointer !important;
+}
+
+.fc-daygrid-day:hover {
+  background: var(--gray-50) !important;
+}
+
+.fc-daygrid-day.fc-day-today {
+  background: var(--spa-primary-light) !important;
+}
+
+.fc-daygrid-day-number {
+  color: var(--gray-800) !important;
+  font-weight: 500 !important;
+  padding: 0.5rem !important;
+  border-radius: 0.375rem !important;
+  transition: all 0.2s ease !important;
+}
+
+.fc-daygrid-day-number:hover {
+  background: var(--spa-primary) !important;
+  color: white !important;
+}
+
+/* Selected date styling */
+.fc-daygrid-day.selected {
+  background: var(--spa-primary) !important;
+}
+
+.fc-daygrid-day.selected .fc-daygrid-day-number {
+  background: transparent !important;
+  color: white !important;
+  font-weight: 600 !important;
+}
+
+/* Disable past dates */
+.fc-daygrid-day.fc-day-past {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+.fc-daygrid-day.fc-day-past:hover {
+  background: white !important;
+}
+
+.fc-daygrid-day.fc-day-past .fc-daygrid-day-number:hover {
+  background: transparent !important;
+  color: var(--gray-800) !important;
+}
+
+/* Time Slots Section */
+.time-slots-section {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--gray-200);
+}
+
+.time-slots-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--gray-900);
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.time-slots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.75rem;
+}
+
+.time-slot {
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--gray-200);
+  border-radius: 0.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: white;
+  font-weight: 500;
+  color: var(--gray-800);
+}
+
+.time-slot:hover {
+  border-color: var(--spa-primary);
+  background: var(--spa-primary-light);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.time-slot.selected {
+  border-color: var(--spa-primary);
+  background: var(--spa-primary);
+  color: white;
+}
+
+.time-slot.unavailable {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--gray-100);
+  color: var(--gray-400);
+}
+
+.time-slot.unavailable:hover {
+  border-color: var(--gray-200);
+  background: var(--gray-100);
+  transform: none;
+  box-shadow: none;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.calendar-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--gray-800);
+}
+
+.calendar-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.calendar-nav-btn {
+  padding: 0.25rem;
+  border: none;
+  border-radius: 50%;
+  background-color: transparent;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.calendar-nav-btn:hover {
+  background-color: var(--gray-100);
+}
+
+.calendar-nav-btn i {
+  color: var(--gray-400);
+  font-size: 1.5rem;
+}
+
+.calendar-picker-btn {
+  padding: 0.5rem;
+  border: 1px solid var(--gray-300);
+  border-radius: 0.5rem;
+  background-color: var(--white);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.calendar-picker-btn:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.calendar-picker-btn i {
+  color: var(--gray-600);
+  font-size: 1.25rem;
+}
+
+/* Calendar grid */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.date-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.date-item:hover .date-number:not(.selected) {
+  background-color: var(--gray-100);
+}
+
+.date-number {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--gray-800);
+  background-color: var(--gray-200);
+  background-opacity: 0.7;
+  border-radius: 50%;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.date-number.selected {
+  background-color: var(--spa-primary);
+  color: var(--white);
+}
+
+.date-day {
+  font-size: 0.75rem;
+  color: var(--gray-500);
+  margin-top: 0.25rem;
+}
+
+/* Availability message */
+.availability-message {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background-color: var(--gray-100);
+  border-radius: 0.5rem;
+  text-align: center;
+}
+
+.availability-avatar {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  margin: 0 auto 1rem;
+  object-fit: cover;
+}
+
+.availability-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--gray-800);
+}
+
+.availability-subtitle {
+  color: var(--gray-600);
+  margin-bottom: 1.5rem;
+}
+
+.availability-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .availability-actions {
+    flex-direction: row;
+    justify-content: center;
+  }
+}
+
+.btn-next-available {
+  padding: 0.75rem 1.5rem;
+  background-color: var(--white);
+  border: 1px solid var(--gray-300);
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-next-available:hover {
+  background-color: var(--gray-50);
+}
+
+.btn-waitlist {
+  padding: 0.75rem 1.5rem;
+  background-color: var(--gray-200);
+  color: var(--gray-800);
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-waitlist:hover {
+  background-color: var(--gray-300);
+}
+
+/* Order summary section */
+.order-summary-section {
+  align-self: start;
+}
+
+.order-summary-card {
+  background-color: var(--white);
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--gray-200);
+  position: sticky;
+  top: 2rem;
+}
+
+/* Business info */
+.business-info {
+  display: flex;
+  align-items: start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.business-logo {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 0.5rem;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.business-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.business-name {
+  font-weight: 700;
+  font-size: 1.125rem;
+  margin-bottom: 0.25rem;
+  color: var(--gray-900);
+}
+
+.business-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.rating-score {
+  font-weight: 600;
+  color: var(--gray-800);
+}
+
+.rating-star {
+  color: var(--yellow-400);
+  font-size: 1rem;
+}
+
+.rating-count {
+  color: var(--gray-500);
+}
+
+.business-address {
+  font-size: 0.875rem;
+  color: var(--gray-500);
+  line-height: 1.4;
+}
+
+/* Service details */
+.service-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-bottom: 1.5rem;
+}
+
+.service-info {
+  flex: 1;
+  min-width: 0;
+  padding-right: 1rem;
+}
+
+.service-name {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  line-height: 1.4;
+  color: var(--gray-900);
+}
+
+.service-meta {
+  font-size: 0.875rem;
+  color: var(--gray-500);
+  line-height: 1.4;
+}
+
+.therapist-name {
+  font-weight: 500;
+  color: var(--gray-700);
+}
+
+.service-price {
+  font-weight: 600;
+  color: var(--gray-900);
+  flex-shrink: 0;
+}
+
+/* Summary divider */
+.summary-divider {
+  border: none;
+  border-top: 1px solid var(--gray-200);
+  margin: 1.5rem 0;
+}
+
+/* Summary total */
+.summary-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.total-label {
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: var(--gray-900);
+}
+
+.total-amount {
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: var(--gray-900);
+}
+
+/* Continue button */
+.continue-btn {
+  width: 100%;
+  background-color: var(--gray-800);
+  color: var(--white);
+  font-weight: 700;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.continue-btn:hover {
+  background-color: var(--gray-700);
+}
+
+.continue-btn:disabled {
+  background-color: var(--gray-400);
+  cursor: not-allowed;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 0.5rem;
+  }
+  
+  .page-title {
+    font-size: 1.875rem;
+  }
+  
+  .booking-breadcrumbs {
+    font-size: 0.75rem;
+  }
+  
+  .calendar-grid {
+    gap: 0.25rem;
+  }
+  
+  .date-number {
+    width: 2rem;
+    height: 2rem;
+    font-size: 1rem;
+  }
+  
+  .availability-message {
+    padding: 1rem;
+  }
+  
+  .business-info {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .service-details {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .service-info {
+    padding-right: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .calendar-controls {
+    gap: 0.5rem;
+  }
+  
+  .calendar-nav-btn i {
+    font-size: 1.25rem;
+  }
+  
+  .calendar-picker-btn {
+    padding: 0.375rem;
+  }
+  
+  .availability-actions {
+    gap: 0.75rem;
+  }
+  
+  .btn-next-available,
+  .btn-waitlist {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+  }
+} 
