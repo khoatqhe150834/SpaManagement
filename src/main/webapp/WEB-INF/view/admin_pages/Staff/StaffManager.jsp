@@ -12,10 +12,27 @@
         <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp"></jsp:include>
             <style>
                 .bio-wrap {
-                    white-space: pre-line;
-                    word-break: break-word;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 3;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: normal;
                     max-width: 180px;
                     min-width: 120px;
+                    position: relative;
+                }
+                .bio-wrap.expanded {
+                    -webkit-line-clamp: unset;
+                    max-height: none;
+                    overflow: visible;
+                }
+                .see-more-link {
+                    color: #1976d2;
+                    cursor: pointer;
+                    font-weight: 500;
+                    margin-left: 4px;
+                    font-size: 0.95em;
                 }
                 .table td, .table th {
                     white-space: normal !important;
@@ -174,26 +191,31 @@
                         <table class="table bordered-table sm-table mb-0" style="table-layout: auto; width: 100%;">
                             <thead>
                                 <tr>
-                                    <th>STT</th>
-                                    <th>Tên</th>
-                                    <th>Loại Dịch Vụ</th>
-                                    <th>Tiểu Sử</th>
+                                    <th class="text-center">STT</th>
+                                    <th class="text-center">Tên</th>
+                                    <th class="text-center">Loại Dịch Vụ</th>
+                                    <th class="text-center">Tiểu Sử</th>
                                     <th class="text-center">Trạng Thái</th>
-                                    <th>EXP (Năm)</th>
+                                    <th class="text-center">EXP (Năm)</th>
                                     <th class="text-center">Hành Động</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <c:forEach var="therapist" items="${staffList}" varStatus="status">
                                     <tr>
-                                        <td>${status.index + 1}</td>
-                                        <td><div class="wrap-text">${therapist.user.fullName}</div></td>
-                                        <td>
+                                        <td class="text-center">${status.index + 1}</td>
+                                        <td class="text-center"><div class="wrap-text">${therapist.user.fullName}</div></td>
+                                        <td class="text-center">
                                             <c:if test="${not empty therapist.serviceType}">
                                                 <div class="wrap-text">${therapist.serviceType.name}</div>
                                             </c:if>
                                         </td>
-                                        <td><div class="bio-wrap">${therapist.bio}</div></td>
+                                        <td class="text-center">
+                                            <div class="bio-wrap" id="bio-${status.index}">
+                                                ${therapist.bio}
+                                            </div>
+                                            <span class="see-more-link" onclick="toggleBio(${status.index}, this)" style="display:none">Xem thêm</span>
+                                        </td>
                                         <td class="text-center">
                                             <c:choose>
                                                 <c:when test="${therapist.availabilityStatus == 'AVAILABLE'}">
@@ -204,7 +226,7 @@
                                                 </c:otherwise>
                                             </c:choose>
                                         </td>
-                                        <td>${therapist.yearsOfExperience}</td>
+                                        <td class="text-center">${therapist.yearsOfExperience}</td>
                                         <td class="text-center">
                                             <div class="d-flex align-items-center gap-10 justify-content-center">
                                                 <a href="staff?service=viewById&id=${therapist.user.userId}" class="bg-info-focus text-info-600 w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle" title="Xem chi tiết">
@@ -241,7 +263,13 @@
                             <c:forEach var="i" begin="1" end="${totalPages}">
                                 <c:if test="${i >= currentPage - 2 && i <= currentPage + 2}">
                                     <li class="page-item ${i == currentPage ? 'active' : ''}">
-                                        <a class="page-link" href="staff?service=list-all&page=${i}&limit=${limit}">${i}</a>
+                                        <a class="page-link"
+                                           href="staff?service=list-all&page=${i}&limit=${limit}
+                                           ${not empty keyword ? '&keyword='.concat(keyword) : ''}
+                                           ${not empty status ? '&status='.concat(status) : ''}
+                                           ${not empty serviceTypeId ? '&serviceTypeId='.concat(serviceTypeId) : ''}">
+                                            ${i}
+                                        </a>
                                     </li>
                                 </c:if>
                                 <c:if test="${i == currentPage - 3 || i == currentPage + 3}">
@@ -303,6 +331,41 @@
                         setTimeout(() => toast.remove(), 500);
                     }, 3000);
                 }
+            });
+
+            function toggleBio(index, link) {
+                const bioDiv = document.getElementById('bio-' + index);
+                if (bioDiv.classList.contains('expanded')) {
+                    bioDiv.classList.remove('expanded');
+                    link.textContent = 'Xem thêm';
+                } else {
+                    bioDiv.classList.add('expanded');
+                    link.textContent = 'Ẩn bớt';
+                }
+            }
+
+            // Chỉ hiện "Xem thêm" nếu thực sự bị cắt
+            document.addEventListener("DOMContentLoaded", function () {
+                document.querySelectorAll('.bio-wrap').forEach(function(bio, idx) {
+                    // Tạo clone để đo chiều cao thực tế
+                    const clone = bio.cloneNode(true);
+                    clone.style.visibility = 'hidden';
+                    clone.style.position = 'absolute';
+                    clone.style.height = 'auto';
+                    clone.style.webkitLineClamp = 'unset';
+                    clone.classList.add('expanded');
+                    document.body.appendChild(clone);
+
+                    // So sánh chiều cao thực tế và chiều cao bị cắt
+                    if (clone.offsetHeight > bio.offsetHeight) {
+                        // Hiện "Xem thêm"
+                        const seeMore = bio.nextElementSibling;
+                        if (seeMore && seeMore.classList.contains('see-more-link')) {
+                            seeMore.style.display = 'inline';
+                        }
+                    }
+                    document.body.removeChild(clone);
+                });
             });
         </script>
     </body>

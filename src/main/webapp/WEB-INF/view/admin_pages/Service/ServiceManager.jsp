@@ -241,17 +241,28 @@
                                                                     class="menu-icon"></iconify-icon>
                                                             </a>
 
-                                                            <!-- Deactivate button -->
-                                                            <c:if test="${service.isActive}">
-                                                                <a href="service?service=deactivate&id=${service.serviceId}"
-                                                                    class="bg-danger-focus bg-hover-danger-200 text-danger-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
-                                                                    data-bs-toggle="tooltip"
-                                                                    data-bs-title="Vô hiệu hóa dịch vụ"
-                                                                    onclick="return confirmAction('Bạn có chắc chắn muốn vô hiệu hóa dịch vụ này?')">
-                                                                    <iconify-icon icon="mdi:block-helper"
-                                                                        class="menu-icon"></iconify-icon>
-                                                                </a>
-                                                            </c:if>
+                                                            <!-- Deactivate/Activate button -->
+                                                            <c:choose>
+                                                                <c:when test="${service.isActive}">
+                                                                    <a href="service?service=deactivate&id=${service.serviceId}&page=${currentPage}&limit=${limit}${searchParams}"
+                                                                        class="bg-danger-focus bg-hover-danger-200 text-danger-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
+                                                                        data-bs-toggle="tooltip"
+                                                                        data-bs-title="Vô hiệu hóa dịch vụ"
+                                                                        onclick="return confirmAction('Bạn có chắc chắn muốn vô hiệu hóa dịch vụ này?')">
+                                                                        <iconify-icon icon="mdi:block-helper"
+                                                                            class="menu-icon"></iconify-icon>
+                                                                    </a>
+                                                                </c:when>
+                                                                <c:otherwise>
+                                                                    <a href="service?service=activate&id=${service.serviceId}&page=${currentPage}&limit=${limit}${searchParams}"
+                                                                        class="bg-success-focus bg-hover-success-200 text-success-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
+                                                                        data-bs-toggle="tooltip"
+                                                                        data-bs-title="Kích hoạt lại dịch vụ"
+                                                                        onclick="return confirmAction('Bạn có chắc chắn muốn kích hoạt lại dịch vụ này?')">
+                                                                        <iconify-icon icon="mdi:check-circle-outline" class="menu-icon"></iconify-icon>
+                                                                    </a>
+                                                                </c:otherwise>
+                                                            </c:choose>
                                                         </div>
                                                     </td>
                                                 </tr>

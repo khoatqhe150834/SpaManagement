@@ -478,4 +478,13 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
     }
 
     // method to find all services types
+    public void activateById(int id) {
+        String sql = "UPDATE services SET is_active = 1 WHERE service_id = ?";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            stmt.executeUpdate();
+        } catch (SQLException ex) {
+            Logger.getLogger(ServiceDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 }
