@@ -7,6 +7,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c"   uri="http://java.sun.com/jsp/jstl/core"%>
 <%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@taglib prefix="fn"  uri="http://java.sun.com/jsp/jstl/functions"%>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -100,140 +101,57 @@
                                 </div>
                                 <div class="clear" id="comment-list">
                                     <div class="comments-area" id="comments">
-                                        <h2 class="comments-title">8 Comments</h2>
+                                        <h2 class="comments-title">${fn:length(comments)} Bình luận</h2>
                                         <div class="clearfix m-b20">
-                                            <!-- comment list END -->
+                                            <!-- comment list START -->
                                             <ol class="comment-list">
-                                                <li class="comment">
-                                                    <div class="comment-body">
-                                                        <div class="comment-author vcard">
-                                                            <img  class="avatar photo" src="${pageContext.request.contextPath}/assets/home/images/testimonials/pic1.jpg" alt=""> 
-                                                            <cite class="fn">Stacy poe</cite> 
-                                                            <span class="says">says:</span>
-                                                        </div>
-                                                        <div class="comment-meta">
-                                                            <a href="javascript:void(0);">October 6, 2024 at 7:15 am</a>
-                                                        </div>
-                                                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam vitae neqnsectetur adipiscing elit. Nam viae neqnsectetur adipiscing elit. Nam vitae neque vitae sapien malesuada aliquet.</p>
-                                                        <div class="reply">
-                                                            <a href="javascript:void(0);" class="comment-reply-link">Reply</a>
-                                                        </div>
-                                                    </div>
-                                                    <ol class="children">
-                                                        <li class="comment odd parent">
-                                                            <div class="comment-body">
-                                                                <div class="comment-author vcard">
-                                                                    <img  class="avatar photo" src="${pageContext.request.contextPath}/assets/home/images/testimonials/pic2.jpg" alt="">
-                                                                    <cite class="fn">Stacy poe</cite>
-                                                                    <span class="says">says:</span>
-                                                                </div>
-                                                                <div class="comment-meta">
-                                                                    <a href="javascript:void(0);">October 6, 2024 at 7:15 am</a>
-                                                                </div>
-                                                                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam vitae neque vitae sapien malesuada aliquet. In viverra dictum justo in vehicula. Fusce et massa eu ante ornare molestie. Sed vestibulum sem felis, ac elementum ligula blandit ac.</p>
-                                                                <div class="reply">
-                                                                    <a href="javascript:void(0);" class="comment-reply-link">Reply</a>
-                                                                </div>
+                                                <c:forEach var="cmt" items="${comments}">
+                                                    <li class="comment">
+                                                        <div class="comment-body">
+                                                            <div class="comment-author vcard">
+                                                                <img class="avatar photo" src="${empty cmt.avatarUrl ? pageContext.request.contextPath.concat('/assets/home/images/testimonials/pic1.jpg') : cmt.avatarUrl}" alt="">
+                                                                <cite class="fn">${empty cmt.customerName ? cmt.guestName : cmt.customerName}</cite>
+                                                                <span class="says">says:</span>
                                                             </div>
-                                                            <ol class="children">
-                                                                <li class="comment odd parent">
-                                                                    <div class="comment-body">
-                                                                        <div class="comment-author vcard">
-                                                                            <img  class="avatar photo" src="${pageContext.request.contextPath}/assets/home/images/testimonials/pic3.jpg" alt="">
-                                                                            <cite class="fn">Stacy poe</cite>
-                                                                            <span class="says">says:</span>
-                                                                        </div>
-                                                                        <div class="comment-meta">
-                                                                            <a href="javascript:void(0);">October 6, 2024 at 7:15 am</a>
-                                                                        </div>
-                                                                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam vitae neque vitae sapien malesuada aliquet. In viverra dictum justo in vehicula. Fusce et massa eu ante ornare molestie. Sed vestibulum sem felis, ac elementum ligula blandit ac.</p>
-                                                                        <div class="reply">
-                                                                            <a href="javascript:void(0);" class="comment-reply-link">Reply</a>
-                                                                        </div>
-                                                                    </div>
-                                                                </li>
-                                                            </ol>
-                                                            <!-- list END -->
-                                                        </li>
-                                                    </ol>
-                                                    <!-- list END -->
-                                                </li>
-                                                <li class="comment">
-                                                    <div class="comment-body">
-                                                        <div class="comment-author vcard">
-                                                            <img  class="avatar photo" src="${pageContext.request.contextPath}/assets/home/images/testimonials/pic1.jpg" alt="">
-                                                            <cite class="fn">Stacy poe</cite>
-                                                            <span class="says">says:</span>
+                                                            <div class="comment-meta">
+                                                                <fmt:formatDate value="${cmt.createdAtDate}" pattern="MMMM dd, yyyy HH:mm"/>
+                                                            </div>
+                                                            <p>${cmt.commentText}</p>
                                                         </div>
-                                                        <div class="comment-meta">
-                                                            <a href="javascript:void(0);">October 6, 2024 at 7:15 am</a>
-                                                        </div>
-                                                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam vitae neque vitae sapien malesuada aliquet. In viverra dictum justo in vehicula. Fusce et massa eu ante ornare molestie. Sed vestibulum sem felis, ac elementum ligula blandit ac.</p>
-                                                        <div class="reply">
-                                                            <a href="javascript:void(0);" class="comment-reply-link">Reply</a>
-                                                        </div>
-                                                    </div>
-                                                </li>
-                                                <li class="comment">
-                                                    <div class="comment-body">
-                                                        <div class="comment-author vcard">
-                                                            <img  class="avatar photo" src="${pageContext.request.contextPath}/assets/home/images/testimonials/pic2.jpg" alt="">
-                                                            <cite class="fn">Stacy poe</cite>
-                                                            <span class="says">says:</span>
-                                                        </div>
-                                                        <div class="comment-meta">
-                                                            <a href="javascript:void(0);">October 6, 2024 at 7:15 am</a>
-                                                        </div>
-                                                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam vitae neque vitae sapien malesuada aliquet. In viverra dictum justo in vehicula. Fusce et massa eu ante ornare molestie. Sed vestibulum sem felis, ac elementum ligula blandit ac.</p>
-                                                        <div class="reply">
-                                                            <a href="javascript:void(0);" class="comment-reply-link">Reply</a>
-                                                        </div>
-                                                    </div>
-                                                </li>
-                                                <li class="comment">
-                                                    <div class="comment-body">
-                                                        <div class="comment-author vcard">
-                                                            <img  class="avatar photo" src="${pageContext.request.contextPath}/assets/home/images/testimonials/pic3.jpg" alt="">
-                                                            <cite class="fn">Stacy poe</cite>
-                                                            <span class="says">says:</span>
-                                                        </div>
-                                                        <div class="comment-meta">
-                                                            <a href="javascript:void(0);">October 6, 2024 at 7:15 am</a>
-                                                        </div>
-                                                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam vitae neque vitae sapien malesuada aliquet. In viverra dictum justo in vehicula. Fusce et massa eu ante ornare molestie. Sed vestibulum sem felis, ac elementum ligula blandit ac.</p>
-                                                        <div class="reply">
-                                                            <a href="javascript:void(0);" class="comment-reply-link">Reply</a>
-                                                        </div>
-                                                    </div>
-                                                </li>
+                                                    </li>
+                                                </c:forEach>
                                             </ol>
                                             <!-- comment list END -->
-                                            <!-- Form -->
-                                            <div class="comment-respond" id="respond">
-                                                <h4 class="comment-reply-title" id="reply-title">Leave a Reply <small> <a style="display:none;" href="javascript:void(0);" id="cancel-comment-reply-link" rel="nofollow">Cancel reply</a> </small> </h4>
-                                                <form class="comment-form" id="commentform" method="post">
-                                                    <p class="comment-form-author">
-                                                        <label for="author">Name <span class="required">*</span></label>
-                                                        <input type="text" value="Author" name="Author"  placeholder="Author" id="author">
-                                                    </p>
-                                                    <p class="comment-form-email">
-                                                        <label for="email">Email <span class="required">*</span></label>
-                                                        <input type="text" value="email" placeholder="Email" name="email" id="email">
-                                                    </p>
-                                                    <p class="comment-form-url">
-                                                        <label for="url">Website</label>
-                                                        <input type="text"  value="url"  placeholder="Website"  name="url" id="url">
-                                                    </p>
-                                                    <p class="comment-form-comment">
-                                                        <label for="comment">Comment</label>
-                                                        <textarea rows="8" name="comment" placeholder="Comment" id="comment"></textarea>
-                                                    </p>
-                                                    <p class="form-submit">
-                                                        <input type="submit" value="Post Comment" class="submit" id="submit" name="submit">
-                                                    </p>
-                                                </form>
-                                            </div>
-                                            <!-- Form -->
+                                        </div>
+                                        <!-- Form gửi comment -->
+                                        <div class="comment-respond" id="respond">
+                                            <h4 class="comment-reply-title" id="reply-title">Leave a Reply <small> <a style="display:none;" href="javascript:void(0);" id="cancel-comment-reply-link" rel="nofollow">Cancel reply</a> </small> </h4>
+                                            <form class="comment-form" id="commentform" method="post" action="${pageContext.request.contextPath}/blog-detail" novalidate>
+                                                <input type="hidden" name="slug" value="${blog.slug}"/>
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <div class="input-group">
+                                                            <span class="input-group-text"><iconify-icon icon="mdi:account-outline"></iconify-icon></span>
+                                                            <input type="text" name="guestName" placeholder="Author" id="author" class="form-control" required>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <div class="input-group">
+                                                            <span class="input-group-text"><iconify-icon icon="mdi:email-outline"></iconify-icon></span>
+                                                            <input type="email" name="guestEmail" placeholder="Email" id="email" class="form-control" required>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <div class="input-group">
+                                                        <span class="input-group-text"><iconify-icon icon="mdi:comment-outline"></iconify-icon></span>
+                                                        <textarea rows="5" name="commentText" placeholder="Comment" id="comment" class="form-control" required></textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="text-center">
+                                                    <input type="submit" value="Post Comment" class="submit btn btn-primary" id="submit" name="submit">
+                                                </div>
+                                            </form>
                                         </div>
                                     </div>
                                 </div>
@@ -243,19 +161,6 @@
                             <!-- Side bar start -->
                             <div class="col-lg-4 col-md-12 sticky-top">
                                 <aside  class="side-bar">
-                                    <div class="widget">
-                                        <h6 class="widget-title style-1">Search</h6>
-                                        <div class="search-bx style-1">
-                                            <form role="search" method="post">
-                                                <div class="input-group">
-                                                    <input name="text" class="form-control" placeholder="Enter your keywords..." type="text">
-                                                    <span class="input-group-btn">
-                                                        <button type="submit" class="fa fa-search text-primary"></button>
-                                                    </span> 
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
                                     <div class="widget recent-posts-entry">
                                         <h6 class="widget-title style-1">Blog Gần Đây</h6>
                                         <div class="widget-post-bx">
@@ -314,19 +219,6 @@
                                             </c:forEach>
                                         </ul>
                                     </div>
-                                    <div class="widget widget-newslatter">
-                                        <h6 class="widget-title style-1">Newsletter</h6>
-                                        <div class="news-box">
-                                            <p>Enter your e-mail and subscribe to our newsletter.</p>
-                                            <form class="dzSubscribe" action="https://www.beautyzone.dexignzone.com/xhtml/script/mailchamp.php" method="post">
-                                                <div class="dzSubscribeMsg"></div>
-                                                <div class="input-group">
-                                                    <input name="dzEmail" required="required" type="email" class="form-control" placeholder="Your Email">
-                                                    <button name="submit" value="Submit" type="submit" class="site-button btn-block radius-no">Subscribe Now</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
                                 </aside>
                             </div>
                             <!-- Side bar END -->
@@ -348,6 +240,149 @@
                 type: 'image',
                 gallery: { enabled: true }
             });
+        });
+        </script>
+        <script src="${pageContext.request.contextPath}/assets/admin/js/lib/iconify-icon.min.js"></script>
+        <!-- Toast notification container -->
+        <div id="toast-container" style="position: fixed; top: 90px; right: 30px; z-index: 9999;"></div>
+        <script>
+        // Validate client-side for comment form (toast notification)
+        const form = document.getElementById('commentform');
+        const author = document.getElementById('author');
+        const email = document.getElementById('email');
+        const comment = document.getElementById('comment');
+        const toastContainer = document.getElementById('toast-container');
+
+        function validateEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+        function validateName(name) {
+            return /^[A-Za-zÀ-ỹ\s]{2,}$/.test(name);
+        }
+        function validateComment(text) {
+            return text.length >= 10 && text.length <= 500;
+        }
+
+        function showToast(message) {
+            // Xóa toast cũ nếu có
+            toastContainer.innerHTML = '';
+            const toast = document.createElement('div');
+            toast.textContent = message;
+            toast.style.background = 'rgba(220,53,69,0.95)';
+            toast.style.color = '#fff';
+            toast.style.padding = '12px 24px';
+            toast.style.borderRadius = '6px';
+            toast.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+            toast.style.fontSize = '1rem';
+            toast.style.marginBottom = '10px';
+            toast.style.minWidth = '220px';
+            toast.style.textAlign = 'center';
+            toast.style.animation = 'fadeIn 0.3s';
+            toastContainer.appendChild(toast);
+            setTimeout(() => {
+                toastContainer.innerHTML = '';
+            }, 3000);
+        }
+
+        // Xóa class lỗi khi nhập lại
+        function clearInputError(input) {
+            input.classList.remove('is-invalid');
+        }
+
+        author.addEventListener('blur', function() {
+            const val = author.value.trim();
+            if (!val) {
+                showToast('Vui lòng nhập tên của bạn.');
+                author.classList.add('is-invalid');
+            } else if (val.length < 2) {
+                showToast('Tên phải có ít nhất 2 ký tự.');
+                author.classList.add('is-invalid');
+            } else if (!validateName(val)) {
+                showToast('Tên chỉ được chứa chữ cái và khoảng trắng.');
+                author.classList.add('is-invalid');
+            } else {
+                clearInputError(author);
+            }
+        });
+
+        email.addEventListener('blur', function() {
+            const val = email.value.trim();
+            if (!val) {
+                showToast('Vui lòng nhập email.');
+                email.classList.add('is-invalid');
+            } else if (!validateEmail(val)) {
+                showToast('Email không hợp lệ.');
+                email.classList.add('is-invalid');
+            } else {
+                clearInputError(email);
+            }
+        });
+
+        comment.addEventListener('blur', function() {
+            const val = comment.value.trim();
+            if (!val) {
+                showToast('Vui lòng nhập nội dung bình luận.');
+                comment.classList.add('is-invalid');
+            } else if (val.length < 10) {
+                showToast('Bình luận phải có ít nhất 10 ký tự.');
+                comment.classList.add('is-invalid');
+            } else if (val.length > 500) {
+                showToast('Bình luận không được vượt quá 500 ký tự.');
+                comment.classList.add('is-invalid');
+            } else {
+                clearInputError(comment);
+            }
+        });
+
+        form.addEventListener('submit', function(e) {
+            let valid = true;
+            const nameVal = author.value.trim();
+            const emailVal = email.value.trim();
+            const commentVal = comment.value.trim();
+            if (!nameVal) {
+                showToast('Vui lòng nhập tên của bạn.');
+                author.classList.add('is-invalid');
+                valid = false;
+            } else if (nameVal.length < 2) {
+                showToast('Tên phải có ít nhất 2 ký tự.');
+                author.classList.add('is-invalid');
+                valid = false;
+            } else if (!validateName(nameVal)) {
+                showToast('Tên chỉ được chứa chữ cái và khoảng trắng.');
+                author.classList.add('is-invalid');
+                valid = false;
+            } else {
+                clearInputError(author);
+            }
+            if (!emailVal) {
+                showToast('Vui lòng nhập email.');
+                email.classList.add('is-invalid');
+                valid = false;
+            } else if (!validateEmail(emailVal)) {
+                showToast('Email không hợp lệ.');
+                email.classList.add('is-invalid');
+                valid = false;
+            } else {
+                clearInputError(email);
+            }
+            if (!commentVal) {
+                showToast('Vui lòng nhập nội dung bình luận.');
+                comment.classList.add('is-invalid');
+                valid = false;
+            } else if (commentVal.length < 10) {
+                showToast('Bình luận phải có ít nhất 10 ký tự.');
+                comment.classList.add('is-invalid');
+                valid = false;
+            } else if (commentVal.length > 500) {
+                showToast('Bình luận không được vượt quá 500 ký tự.');
+                comment.classList.add('is-invalid');
+                valid = false;
+            } else {
+                clearInputError(comment);
+            }
+            if (!valid) {
+                e.preventDefault();
+            }
         });
         </script>
     </body>

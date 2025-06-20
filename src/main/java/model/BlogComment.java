@@ -6,6 +6,8 @@ package model;
 
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.Date;
+import java.sql.Timestamp;
 
 @ToString
 @Builder
@@ -17,7 +19,6 @@ import java.time.LocalDateTime;
 public class BlogComment {
     private Integer commentId;
     private Integer blogId;
-    private Integer parentCommentId;
     private Integer customerId;
 
     private String guestName;
@@ -30,5 +31,12 @@ public class BlogComment {
 
     private String customerName;
     private String avatarUrl;
+
+    public Date getCreatedAtDate() {
+        return createdAt == null ? null : Timestamp.valueOf(createdAt);
+    }
+    public Date getUpdatedAtDate() {
+        return updatedAt == null ? null : Timestamp.valueOf(updatedAt);
+    }
 }
 
