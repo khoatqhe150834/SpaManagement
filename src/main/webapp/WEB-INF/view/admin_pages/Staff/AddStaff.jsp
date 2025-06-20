@@ -92,7 +92,7 @@
 
                                         <!-- User ID -->
                                         <div class="mb-20">
-                                            <label for="userId" class="form-label fw-semibold text-primary-light text-sm mb-8">User <span class="text-danger-600">*</span></label>
+                                            <label for="userId" class="form-label fw-semibold text-primary-light text-sm mb-8">UserID <span class="text-danger-600">*</span></label>
                                             <select id="userSelect" name="userId" class="form-select" required>
                                                 <option value="">-- Select UserID --</option>
                                                 <c:forEach var="user" items="${userList}">
