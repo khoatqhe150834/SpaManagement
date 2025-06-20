@@ -232,10 +232,10 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
 }
 
 // Lấy danh sách staff phân trang, có thể lọc theo keyword và status
-public List<Staff> searchByKeywordAndStatus(String keyword, String status, int offset, int limit) {
+public List<Staff> searchByKeywordAndStatus(String keyword, String status, Integer serviceTypeId, int offset, int limit) {
     List<Staff> staffList = new ArrayList<>();
     StringBuilder sql = new StringBuilder(
-        "SELECT t.*, u.full_name, st.name AS service_type_name " +
+        "SELECT t.*, u.full_name, st.name AS service_type_name, st.service_type_id " +
         "FROM therapists t " +
         "JOIN users u ON t.user_id = u.user_id " +
         "LEFT JOIN service_types st ON t.service_type_id = st.service_type_id WHERE 1=1"
@@ -249,6 +249,10 @@ public List<Staff> searchByKeywordAndStatus(String keyword, String status, int o
     if (status != null && !status.isEmpty()) {
         sql.append(" AND t.availability_status = ?");
         params.add(status.toUpperCase());
+    }
+    if (serviceTypeId != null && serviceTypeId > 0) {
+        sql.append(" AND t.service_type_id = ?");
+        params.add(serviceTypeId);
     }
     sql.append(" ORDER BY t.user_id LIMIT ? OFFSET ?");
     params.add(limit);
@@ -272,7 +276,7 @@ public List<Staff> searchByKeywordAndStatus(String keyword, String status, int o
 }
 
 // Đếm tổng số staff theo filter
-public int countByKeywordAndStatus(String keyword, String status) {
+public int countByKeywordAndStatus(String keyword, String status, Integer serviceTypeId) {
     StringBuilder sql = new StringBuilder(
         "SELECT COUNT(*) FROM therapists t " +
         "JOIN users u ON t.user_id = u.user_id " +
@@ -287,6 +291,10 @@ public int countByKeywordAndStatus(String keyword, String status) {
     if (status != null && !status.isEmpty()) {
         sql.append(" AND t.availability_status = ?");
         params.add(status.toUpperCase());
+    }
+    if (serviceTypeId != null && serviceTypeId > 0) {
+        sql.append(" AND t.service_type_id = ?");
+        params.add(serviceTypeId);
     }
     try (Connection conn = DBContext.getConnection();
          PreparedStatement ps = conn.prepareStatement(sql.toString())) {

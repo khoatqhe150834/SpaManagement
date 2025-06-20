@@ -57,6 +57,9 @@ public class StaffController extends HttpServlet {
                 request.setAttribute("totalPages", totalPages);
                 request.setAttribute("totalEntries", totalRecords);
 
+                List<ServiceType> serviceTypes = new ServiceTypeDAO().findAll();
+                request.setAttribute("serviceTypes", serviceTypes);
+
                 request.getRequestDispatcher(STAFF_MANAGER_VIEW).forward(request, response);
                 break;
             }
@@ -92,7 +95,12 @@ public class StaffController extends HttpServlet {
             case "search": {
                 String keyword = request.getParameter("keyword");
                 String status = request.getParameter("status");
-                
+                String serviceTypeIdParam = request.getParameter("serviceTypeId");
+                Integer serviceTypeId = null;
+                if (serviceTypeIdParam != null && !serviceTypeIdParam.isEmpty()) {
+                    serviceTypeId = Integer.parseInt(serviceTypeIdParam);
+                }
+
                 int page = 1;
                 if (request.getParameter("page") != null) {
                     try {
@@ -100,18 +108,22 @@ public class StaffController extends HttpServlet {
                     } catch (NumberFormatException ignored) {}
                 }
                 int offset = (page - 1) * limit;
-                
-                List<Staff> staffList = staffDAO.searchByKeywordAndStatus(keyword, status, offset, limit);
-                int totalRecords = staffDAO.countByKeywordAndStatus(keyword, status);
+
+                List<Staff> staffList = staffDAO.searchByKeywordAndStatus(keyword, status, serviceTypeId, offset, limit);
+                int totalRecords = staffDAO.countByKeywordAndStatus(keyword, status, serviceTypeId);
                 int totalPages = (int) Math.ceil((double) totalRecords / limit);
 
                 request.setAttribute("keyword", keyword);
                 request.setAttribute("status", status);
+                request.setAttribute("serviceTypeId", serviceTypeId);
                 request.setAttribute("staffList", staffList);
                 request.setAttribute("limit", limit);
                 request.setAttribute("currentPage", page);
                 request.setAttribute("totalPages", totalPages);
                 request.setAttribute("totalEntries", totalRecords);
+
+                List<ServiceType> serviceTypes = new ServiceTypeDAO().findAll();
+                request.setAttribute("serviceTypes", serviceTypes);
 
                 request.getRequestDispatcher(STAFF_MANAGER_VIEW).forward(request, response);
                 break;

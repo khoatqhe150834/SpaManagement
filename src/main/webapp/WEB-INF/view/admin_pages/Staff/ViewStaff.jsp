@@ -97,88 +97,72 @@
 
                             <div class="tab-content" id="pills-tabContent">   
                                 <div class="tab-pane fade show active" id="pills-edit-profile" role="tabpanel" aria-labelledby="pills-edit-profile-tab" tabindex="0">
-                                    <h6 class="text-md text-primary-light mb-16">Profile Image</h6>
-                                    <!-- Upload Image Start -->
-                                    <div class="mb-24 mt-16">
-                                        <div class="avatar-upload">
-                                            <div class="avatar-edit position-absolute bottom-0 end-0 me-24 mt-16 z-1 cursor-pointer">
-                                                <input type='file' id="imageUpload" accept=".png, .jpg, .jpeg" hidden>
-                                                <label for="imageUpload" class="w-32-px h-32-px d-flex justify-content-center align-items-center bg-primary-50 text-primary-600 border border-primary-600 bg-hover-primary-100 text-lg rounded-circle">
-                                                    <iconify-icon icon="solar:camera-outline" class="icon"></iconify-icon>
-                                                </label>
-                                            </div>
-                                            <div class="avatar-preview">
-                                                <div id="imagePreview">
+                                    <form action="staff" method="post">
+                                        <input type="hidden" name="service" value="update" />
+                                        <input type="hidden" name="userId" value="${staff.user.userId}" />
+
+                                        <!-- Full Name (Readonly) -->
+                                        <div class="mb-20">
+                                            <label for="fullName" class="form-label fw-semibold text-primary-light text-sm mb-8">Full Name <span class="text-danger-600">*</span></label>
+                                            <input type="text" name="fullName" class="form-control radius-8" id="fullName" value="${staff.user.fullName}" required readonly />
+                                        </div>
+
+                                        <!-- Bio -->
+                                        <div class="mb-20">
+                                            <label for="bio" class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                                Bio
+                                                <span class="text-muted text-sm">(20-500 characters)</span>
+                                            </label>
+                                            <div class="position-relative">
+                                                <textarea 
+                                                    name="bio" 
+                                                    class="form-control radius-8" 
+                                                    id="bio" 
+                                                    placeholder="Write a brief description about the staff member (minimum 20 characters)..." 
+                                                    rows="4"
+                                                    style="resize: none;"
+                                                    minlength="20"
+                                                    maxlength="500"
+                                                    required
+                                                >${staff.bio}</textarea>
+                                                <div class="form-text text-end">
+                                                    <span id="bioCharCount">0</span>/500 characters
+                                                    <span id="bioValidationMessage" class="ms-2"></span>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <!-- Upload Image End -->
-                                    <form action="#">
-                                        <div class="row">
-                                            <div class="col-sm-6">
-                                                <div class="mb-20">
-                                                    <label for="name" class="form-label fw-semibold text-primary-light text-sm mb-8">Full Name <span class="text-danger-600">*</span></label>
-                                                    <input type="text" class="form-control radius-8" id="name" placeholder="Enter Full Name">
-                                                </div>
-                                            </div>
-                                            <div class="col-sm-6">
-                                                <div class="mb-20">
-                                                    <label for="email" class="form-label fw-semibold text-primary-light text-sm mb-8">Email <span class="text-danger-600">*</span></label>
-                                                    <input type="email" class="form-control radius-8" id="email" placeholder="Enter email address">
-                                                </div>
-                                            </div>
-                                            <div class="col-sm-6">
-                                                <div class="mb-20">
-                                                    <label for="number" class="form-label fw-semibold text-primary-light text-sm mb-8">Phone</label>
-                                                    <input type="email" class="form-control radius-8" id="number" placeholder="Enter phone number">
-                                                </div>
-                                            </div>
-                                            <div class="col-sm-6">
-                                                <div class="mb-20">
-                                                    <label for="depart" class="form-label fw-semibold text-primary-light text-sm mb-8">Department <span class="text-danger-600">*</span> </label>
-                                                    <select class="form-control radius-8 form-select" id="depart">
-                                                        <option>Enter Event Title </option>
-                                                        <option>Enter Event Title One </option>
-                                                        <option>Enter Event Title Two</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div class="col-sm-6">
-                                                <div class="mb-20">
-                                                    <label for="desig" class="form-label fw-semibold text-primary-light text-sm mb-8">Designation <span class="text-danger-600">*</span> </label>
-                                                    <select class="form-control radius-8 form-select" id="desig">
-                                                        <option>Enter Designation Title </option>
-                                                        <option>Enter Designation Title One </option>
-                                                        <option>Enter Designation Title Two</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div class="col-sm-6">
-                                                <div class="mb-20">
-                                                    <label for="Language" class="form-label fw-semibold text-primary-light text-sm mb-8">Language <span class="text-danger-600">*</span> </label>
-                                                    <select class="form-control radius-8 form-select" id="Language">
-                                                        <option> English</option>
-                                                        <option> Bangla </option>
-                                                        <option> Hindi</option>
-                                                        <option> Arabic</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div class="col-sm-12">
-                                                <div class="mb-20">
-                                                    <label for="desc" class="form-label fw-semibold text-primary-light text-sm mb-8">Description</label>
-                                                    <textarea name="#0" class="form-control radius-8" id="desc" placeholder="Write description..."></textarea>
-                                                </div>
-                                            </div>
+
+                                        <!-- Service Type -->
+                                        <div class="mb-20">
+                                            <label for="serviceTypeId" class="form-label fw-semibold text-primary-light text-sm mb-8">Service Type <span class="text-danger-600">*</span></label>
+                                            <select name="serviceTypeId" class="form-control radius-8" id="serviceTypeId" required>
+                                                <c:forEach var="serviceType" items="${serviceTypes}">
+                                                    <option value="${serviceType.serviceTypeId}" ${serviceType.serviceTypeId == staff.serviceType.serviceTypeId ? "selected" : ""}>${serviceType.name}</option>
+                                                </c:forEach>
+                                            </select>
                                         </div>
+
+                                        <!-- Availability Status -->
+                                        <div class="mb-20">
+                                            <label for="availabilityStatus" class="form-label fw-semibold text-primary-light text-sm mb-8">Availability Status <span class="text-danger-600">*</span></label>
+                                            <select name="availabilityStatus" class="form-control radius-8" id="availabilityStatus" required>
+                                                <option value="AVAILABLE" ${staff.availabilityStatus == 'AVAILABLE' ? "selected" : ""}>Available</option>
+                                                <option value="BUSY" ${staff.availabilityStatus == 'BUSY' ? "selected" : ""}>Busy</option>
+                                                <option value="OFFLINE" ${staff.availabilityStatus == 'OFFLINE' ? "selected" : ""}>Offline</option>
+                                                <option value="ON_LEAVE" ${staff.availabilityStatus == 'ON_LEAVE' ? "selected" : ""}>On Leave</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Years of Experience -->
+                                        <div class="mb-20">
+                                            <label for="yearsOfExperience" class="form-label fw-semibold text-primary-light text-sm mb-8">Years of Experience <span class="text-danger-600">*</span></label>
+                                            <input type="number" name="yearsOfExperience" class="form-control radius-8" id="yearsOfExperience" value="${staff.yearsOfExperience}" required />
+                                        </div>
+
+                                        <!-- Action Buttons -->
                                         <div class="d-flex align-items-center justify-content-center gap-3">
-                                            <button type="button" class="border border-danger-600 bg-hover-danger-200 text-danger-600 text-md px-56 py-11 radius-8"> 
-                                                Cancel
-                                            </button>
-                                            <button type="button" class="btn btn-primary border border-primary-600 text-md px-56 py-12 radius-8"> 
-                                                Save
-                                            </button>
+                                            <a href="staff" class="btn btn-outline-danger border border-danger-600 px-56 py-11 radius-8">Cancel</a>
+                                            <button type="submit" class="btn btn-primary border border-primary-600 text-md px-56 py-12 radius-8">Update</button>
                                         </div>
                                     </form>
                                 </div>
