@@ -203,4 +203,23 @@ public class BlogDAO extends DBContext {
         return list;
     }
 
+    // Lấy blog theo slug
+    public Blog findBySlug(String slug) {
+        String sql = "SELECT b.*, u.full_name AS author_name " +
+                "FROM blogs b " +
+                "JOIN users u ON b.author_user_id = u.user_id " +
+                "WHERE b.status='PUBLISHED' AND b.slug = ? LIMIT 1";
+        try (Connection con = getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, slug);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return getFromResultSet(rs);
+            }
+        } catch (SQLException e) {
+            System.out.println("findBySlug: " + e.getMessage());
+        }
+        return null;
+    }
+
 }
