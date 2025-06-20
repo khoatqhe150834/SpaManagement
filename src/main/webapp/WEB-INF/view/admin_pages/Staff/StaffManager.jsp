@@ -31,6 +31,8 @@
                     max-width: 180px;
                     min-width: 120px;
                     position: relative;
+                    word-break: break-word;
+                    overflow-wrap: break-word;
                 }
                 .bio-wrap.expanded {
                     -webkit-line-clamp: unset;
@@ -360,9 +362,14 @@
                 }
             }
 
-            // Chỉ hiện "Xem thêm" nếu thực sự bị cắt
-            document.addEventListener("DOMContentLoaded", function () {
-                document.querySelectorAll('.bio-wrap').forEach(function(bio, idx) {
+            function checkSeeMore() {
+                document.querySelectorAll('.bio-wrap').forEach(function(bio) {
+                    // Ẩn "Xem thêm" mặc định
+                    const seeMore = bio.nextElementSibling;
+                    if (seeMore && seeMore.classList.contains('see-more-link')) {
+                        seeMore.style.display = 'none';
+                    }
+
                     // Tạo clone để đo chiều cao thực tế
                     const clone = bio.cloneNode(true);
                     clone.style.visibility = 'hidden';
@@ -374,15 +381,23 @@
 
                     // So sánh chiều cao thực tế và chiều cao bị cắt
                     if (clone.offsetHeight > bio.offsetHeight) {
-                        // Hiện "Xem thêm"
-                        const seeMore = bio.nextElementSibling;
                         if (seeMore && seeMore.classList.contains('see-more-link')) {
                             seeMore.style.display = 'inline';
                         }
                     }
                     document.body.removeChild(clone);
                 });
+            }
+
+            document.addEventListener("DOMContentLoaded", function () {
+                checkSeeMore();
             });
+
+            if (window.jQuery && $.fn.dataTable) {
+                $('#staffTable').on('draw.dt', function () {
+                    checkSeeMore();
+                });
+            }
         </script>
         <script src="${pageContext.request.contextPath}/assets/admin/js/lib/jquery-3.7.1.min.js"></script>
         <script src="${pageContext.request.contextPath}/assets/admin/js/lib/dataTables.min.js"></script>
