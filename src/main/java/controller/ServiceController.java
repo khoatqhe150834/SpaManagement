@@ -97,6 +97,17 @@ public class ServiceController extends HttpServlet {
             case "pre-insert": {
                 List<ServiceType> types = typeDAO.findAll();
                 request.setAttribute("serviceTypes", types);
+                // Lấy tham số page, limit, keyword, status, serviceTypeId nếu có
+                String pageParam = request.getParameter("page");
+                String limitParam = request.getParameter("limit");
+                String keyword = request.getParameter("keyword");
+                String status = request.getParameter("status");
+                // Biến serviceTypeIdParam đã có ở đầu hàm
+                request.setAttribute("page", pageParam);
+                request.setAttribute("limit", limitParam);
+                request.setAttribute("keyword", keyword);
+                request.setAttribute("status", status);
+                request.setAttribute("serviceTypeId", serviceTypeIdParam);
                 request.getRequestDispatcher("WEB-INF/view/admin_pages/Service/AddService.jsp").forward(request, response);
                 return;
             }
@@ -108,6 +119,19 @@ public class ServiceController extends HttpServlet {
                 request.setAttribute("service", s);
                 List<ServiceImage> serviceImages = serviceImageDAO.findByServiceId(id);
                 request.setAttribute("serviceImages", serviceImages);
+
+                // Lấy tham số page, limit, searchParams nếu có
+                String pageParam = request.getParameter("page");
+                String limitParam = request.getParameter("limit");
+                String keyword = request.getParameter("keyword");
+                String status = request.getParameter("status");
+
+                request.setAttribute("page", pageParam);
+                request.setAttribute("limit", limitParam);
+                request.setAttribute("keyword", keyword);
+                request.setAttribute("status", status);
+                request.setAttribute("serviceTypeId", serviceTypeIdParam);
+
                 request.getRequestDispatcher("WEB-INF/view/admin_pages/Service/UpdateService.jsp").forward(request, response);
                 return;
             }

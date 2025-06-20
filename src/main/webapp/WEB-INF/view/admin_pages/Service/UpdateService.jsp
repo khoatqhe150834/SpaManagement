@@ -154,7 +154,7 @@
 
                                             <!-- Buttons -->
                                             <div class="d-flex align-items-center justify-content-center gap-3">
-                                                <a href="service?service=viewByServiceType&id=${service.serviceTypeId.serviceTypeId}"
+                                                <a href="service?service=list-all&page=${page}&limit=${limit}<c:if test='${not empty keyword}'>&keyword=${keyword}</c:if><c:if test='${not empty status}'>&status=${status}</c:if><c:if test='${not empty serviceTypeId}'>&serviceTypeId=${serviceTypeId}</c:if>"
                                                     class="btn btn-outline-danger border border-danger-600 px-56 py-11 radius-8">Cancel</a>
                                                 <button type="submit"
                                                     class="btn btn-primary border border-primary-600 text-md px-56 py-12 radius-8">Update</button>
