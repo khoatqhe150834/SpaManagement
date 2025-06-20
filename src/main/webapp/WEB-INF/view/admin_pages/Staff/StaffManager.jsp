@@ -122,6 +122,12 @@
                     white-space: normal;
                     max-width: 140px;
                 }
+                th.text-center, td.text-center {
+                    text-align: center !important;
+                }
+                th.text-start, td.text-start {
+                    text-align: left !important;
+                }
             </style>
         </head>
         <body>
@@ -153,7 +159,7 @@
                             </select>
                         </div>
                         <form class="navbar-search d-flex gap-2 align-items-center" method="get" action="staff">
-                            <input type="text" class="bg-base h-40-px w-auto" name="keyword" placeholder="Search" value="${keyword}">
+                            <input type="text" class="bg-base h-40-px w-auto" name="keyword" placeholder="Tìm Kiếm" value="${keyword}">
                             <select name="serviceTypeId" class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px">
                                 <option value="">Tất cả loại dịch vụ</option>
                                 <c:forEach var="stype" items="${serviceTypes}">
@@ -178,7 +184,7 @@
                             </select>
                             <input type="hidden" name="service" value="search">
                             <input type="hidden" name="limit" value="${limit}" />
-                            <button type="submit" class="btn btn-primary h-40-px radius-12">Search</button>
+                            <button type="submit" class="btn btn-primary h-40-px radius-12">Tìm Kiếm</button>
                         </form>
                     </div>
                     <a href="staff?service=pre-insert" class="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2">
@@ -191,19 +197,19 @@
                         <table class="table bordered-table sm-table mb-0" id="staffTable" style="table-layout: auto; width: 100%;">
                             <thead>
                                 <tr>
-                                    <th class="text-center">STT</th>
+                                    <th class="text-start">STT</th>
                                     <th class="text-center">Tên</th>
                                     <th class="text-center">Loại Dịch Vụ</th>
                                     <th class="text-center">Tiểu Sử</th>
                                     <th class="text-center" data-orderable="false">Trạng Thái</th>
-                                    <th class="text-center">EXP (Năm)</th>
+                                    <th class="text-start">EXP (Năm)</th>
                                     <th class="text-center" data-orderable="false">Hành Động</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <c:forEach var="therapist" items="${staffList}" varStatus="status">
                                     <tr>
-                                        <td class="text-center">${status.index + 1}</td>
+                                        <td class="text-start">${status.index + 1}</td>
                                         <td class="text-center"><div class="wrap-text">${therapist.user.fullName}</div></td>
                                         <td class="text-center">
                                             <c:if test="${not empty therapist.serviceType}">
@@ -226,7 +232,7 @@
                                                 </c:otherwise>
                                             </c:choose>
                                         </td>
-                                        <td class="text-center">${therapist.yearsOfExperience}</td>
+                                        <td class="text-start">${therapist.yearsOfExperience}</td>
                                         <td class="text-center">
                                             <div class="d-flex align-items-center gap-10 justify-content-center">
                                                 <a href="staff?service=viewById&id=${therapist.user.userId}" class="bg-info-focus text-info-600 w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle" title="Xem chi tiết">
