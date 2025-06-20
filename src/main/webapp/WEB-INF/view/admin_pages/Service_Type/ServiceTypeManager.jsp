@@ -160,7 +160,7 @@
                                     <button type="submit" class="btn btn-primary h-40-px radius-12">Tìm kiếm</button>
                                 </form>
                             </div>
-                            <a href="servicetype?service=pre-insert"
+                            <a href="servicetype?service=pre-insert&page=${currentPage}&limit=${limit}<c:if test='${not empty keyword}'>&keyword=${keyword}</c:if><c:if test='${not empty status}'>&status=${status}</c:if>"
                                 class="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2">
                                 <iconify-icon icon="ic:baseline-plus" class="icon text-xl line-height-1"></iconify-icon>
                                 Thêm Loại Dịch Vụ Mới
@@ -198,7 +198,7 @@
                                                     </td>
                                                     <td class="text-center align-middle">
                                                         <div class="service-type-img-wrapper">
-                                                            <img src="${stype.imageUrl}" alt="Hình ảnh loại dịch vụ"
+                                                            <img src="${pageContext.request.contextPath}${stype.imageUrl}" alt="Hình ảnh loại dịch vụ"
                                                                 class="service-type-img" />
                                                         </div>
                                                     </td>
@@ -221,7 +221,7 @@
                                                             class="d-flex align-items-center gap-10 justify-content-center">
 
                                                             <!-- Edit button -->
-                                                            <a href="servicetype?service=pre-update&id=${stype.serviceTypeId}"
+                                                            <a href="servicetype?service=pre-update&id=${stype.serviceTypeId}&page=${currentPage}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}"
                                                                 class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
                                                                 data-bs-toggle="tooltip"
                                                                 data-bs-title="Chỉnh sửa loại dịch vụ">

@@ -3,18 +3,32 @@ package controller;
 import dao.ServiceDAO;
 import dao.ServiceTypeDAO;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Part;
 import model.Service;
 import model.ServiceType;
+import model.ServiceImage;
+import dao.ServiceImageDAO;
 
+import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 @WebServlet(name = "ServiceController", urlPatterns = { "/service" })
+@MultipartConfig(
+    fileSizeThreshold = 0,
+    maxFileSize = 2097152, // 2MB
+    maxRequestSize = 2097152
+)
 public class ServiceController extends HttpServlet {
 
     private final String SERVICE_MANAGER_URL = "WEB-INF/view/admin_pages/Service/ServiceManager.jsp";
@@ -22,6 +36,8 @@ public class ServiceController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
+        ServiceImageDAO serviceImageDAO = new ServiceImageDAO();
 
         String service = request.getParameter("service");
         if (service == null || service.isEmpty()) {
@@ -60,6 +76,17 @@ public class ServiceController extends HttpServlet {
                 int totalRecords = serviceDAO.countAll();
                 int totalPages = (int) Math.ceil((double) totalRecords / limit);
 
+                Map<Integer, String> serviceThumbnails = new HashMap<>();
+                for (Service s : services) {
+                    List<ServiceImage> images = serviceImageDAO.findByServiceId(s.getServiceId());
+                    if (!images.isEmpty()) {
+                        serviceThumbnails.put(s.getServiceId(), images.get(0).getImageUrl());
+                    } else {
+                        serviceThumbnails.put(s.getServiceId(), "/assets/images/no-image.png");
+                    }
+                }
+                request.setAttribute("serviceThumbnails", serviceThumbnails);
+
                 request.setAttribute("services", services);
                 request.setAttribute("currentPage", page);
                 request.setAttribute("totalPages", totalPages);
@@ -70,6 +97,17 @@ public class ServiceController extends HttpServlet {
             case "pre-insert": {
                 List<ServiceType> types = typeDAO.findAll();
                 request.setAttribute("serviceTypes", types);
+                // Lấy tham số page, limit, keyword, status, serviceTypeId nếu có
+                String pageParam = request.getParameter("page");
+                String limitParam = request.getParameter("limit");
+                String keyword = request.getParameter("keyword");
+                String status = request.getParameter("status");
+                // Biến serviceTypeIdParam đã có ở đầu hàm
+                request.setAttribute("page", pageParam);
+                request.setAttribute("limit", limitParam);
+                request.setAttribute("keyword", keyword);
+                request.setAttribute("status", status);
+                request.setAttribute("serviceTypeId", serviceTypeIdParam);
                 request.getRequestDispatcher("WEB-INF/view/admin_pages/Service/AddService.jsp").forward(request, response);
                 return;
             }
@@ -79,6 +117,21 @@ public class ServiceController extends HttpServlet {
                 List<ServiceType> types = typeDAO.findAll();
                 request.setAttribute("serviceTypes", types);
                 request.setAttribute("service", s);
+                List<ServiceImage> serviceImages = serviceImageDAO.findByServiceId(id);
+                request.setAttribute("serviceImages", serviceImages);
+
+                // Lấy tham số page, limit, searchParams nếu có
+                String pageParam = request.getParameter("page");
+                String limitParam = request.getParameter("limit");
+                String keyword = request.getParameter("keyword");
+                String status = request.getParameter("status");
+
+                request.setAttribute("page", pageParam);
+                request.setAttribute("limit", limitParam);
+                request.setAttribute("keyword", keyword);
+                request.setAttribute("status", status);
+                request.setAttribute("serviceTypeId", serviceTypeIdParam);
+
                 request.getRequestDispatcher("WEB-INF/view/admin_pages/Service/UpdateService.jsp").forward(request, response);
                 return;
             }
@@ -131,7 +184,8 @@ public class ServiceController extends HttpServlet {
         ServiceDAO serviceDAO = new ServiceDAO();
         ServiceTypeDAO typeDAO = new ServiceTypeDAO();
 
-        int serviceTypeId = Integer.parseInt(request.getParameter("service_type_id"));
+        String serviceTypeIdStr = request.getParameter("service_type_id");
+        int serviceTypeId = Integer.parseInt(serviceTypeIdStr);
         ServiceType serviceType = typeDAO.findById(serviceTypeId).orElse(null);
 
         String name = request.getParameter("name");
@@ -139,9 +193,7 @@ public class ServiceController extends HttpServlet {
         BigDecimal price = new BigDecimal(request.getParameter("price"));
         int duration = Integer.parseInt(request.getParameter("duration_minutes"));
         int buffer = Integer.parseInt(request.getParameter("buffer_time_after_minutes"));
-        String image = request.getParameter("image_url");
         boolean isActive = request.getParameter("is_active") != null;
-        BigDecimal rating = new BigDecimal(request.getParameter("average_rating"));
         boolean bookable = request.getParameter("bookable_online") != null;
         boolean requiresConsultation = request.getParameter("requires_consultation") != null;
 
@@ -152,21 +204,79 @@ public class ServiceController extends HttpServlet {
         s.setPrice(price);
         s.setDurationMinutes(duration);
         s.setBufferTimeAfterMinutes(buffer);
-        s.setImageUrl(image);
         s.setIsActive(isActive);
-        s.setAverageRating(rating);
         s.setBookableOnline(bookable);
         s.setRequiresConsultation(requiresConsultation);
+        s.setAverageRating(BigDecimal.ZERO);
+
+        // Xử lý upload nhiều ảnh
+        List<String> imageUrls = new ArrayList<>();
+        for (Part part : request.getParts()) {
+            if (part.getName().equals("images") && part.getSize() > 0) {
+                String originalFileName = getSubmittedFileName(part);
+                String fileName = System.currentTimeMillis() + "_" + originalFileName;
+                String uploadPath = getServletContext().getRealPath("/assets/uploads/services/");
+                File uploadDir = new File(uploadPath);
+                if (!uploadDir.exists()) uploadDir.mkdirs();
+                try {
+                    part.write(uploadPath + File.separator + fileName);
+                    System.out.println("Saved file: " + uploadPath + File.separator + fileName);
+                    String imageUrl = "/assets/uploads/services/" + fileName;
+                    imageUrls.add(imageUrl);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    System.out.println("Error saving file: " + fileName);
+                }
+            }
+        }
 
         if (service.equals("insert")) {
             serviceDAO.save(s);
+            int serviceId = s.getServiceId();
+            ServiceImageDAO serviceImageDAO = new ServiceImageDAO();
+            for (String url : imageUrls) {
+                serviceImageDAO.save(new ServiceImage(serviceId, url));
+            }
         } else if (service.equals("update")) {
             int id = Integer.parseInt(request.getParameter("id"));
             s.setServiceId(id);
             serviceDAO.update(s);
+            
+            // Xử lý xóa ảnh cũ
+            String[] deleteImageIds = request.getParameterValues("delete_image_ids");
+            if (deleteImageIds != null) {
+                ServiceImageDAO serviceImageDAO = new ServiceImageDAO();
+                for (String imgIdStr : deleteImageIds) {
+                    try {
+                        int imgId = Integer.parseInt(imgIdStr);
+                        serviceImageDAO.deleteById(imgId);
+                    } catch (NumberFormatException ignored) {}
+                }
+            }
+
+            // Thêm ảnh mới
+            if (!imageUrls.isEmpty()) {
+                ServiceImageDAO serviceImageDAO = new ServiceImageDAO();
+                for (String url : imageUrls) {
+                    serviceImageDAO.save(new ServiceImage(id, url));
+                }
+            }
         }
 
         response.sendRedirect("service");
+    }
+
+    private String getSubmittedFileName(Part part) {
+        if (part == null) return "";
+        String contentDisp = part.getHeader("content-disposition");
+        if (contentDisp == null) return "";
+        String[] tokens = contentDisp.split(";");
+        for (String token : tokens) {
+            if (token.trim().startsWith("filename")) {
+                return token.substring(token.indexOf("=") + 2, token.length() - 1);
+            }
+        }
+        return "";
     }
 
     @Override

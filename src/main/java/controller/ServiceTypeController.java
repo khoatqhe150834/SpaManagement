@@ -71,6 +71,12 @@ public class ServiceTypeController extends HttpServlet {
             }
 
             case "pre-insert": {
+                String page = request.getParameter("page");
+                String keyword = request.getParameter("keyword");
+                String status = request.getParameter("status");
+                request.setAttribute("page", page);
+                request.setAttribute("keyword", keyword);
+                request.setAttribute("status", status);
                 request.getRequestDispatcher("WEB-INF/view/admin_pages/Service_Type/AddServiceType.jsp").forward(request, response);
                 break;
             }
@@ -78,7 +84,13 @@ public class ServiceTypeController extends HttpServlet {
             case "pre-update": {
                 int id = Integer.parseInt(request.getParameter("id"));
                 ServiceType st = dao.findById(id).orElse(null);
+                String page = request.getParameter("page");
+                String keyword = request.getParameter("keyword");
+                String status = request.getParameter("status");
                 request.setAttribute("stype", st);
+                request.setAttribute("page", page);
+                request.setAttribute("keyword", keyword);
+                request.setAttribute("status", status);
                 request.getRequestDispatcher("WEB-INF/view/admin_pages/Service_Type/UpdateServiceType.jsp").forward(request, response);
                 break;
             }
@@ -191,7 +203,7 @@ public class ServiceTypeController extends HttpServlet {
                     uploadDir.mkdirs();
                 }
                 filePart.write(uploadPath + File.separator + uniqueFileName);
-                imageUrl = request.getContextPath() + "/assets/uploads/service-types/" + uniqueFileName;
+                imageUrl = "/assets/uploads/service-types/" + uniqueFileName;
             }
 
             String name = request.getParameter("name");
