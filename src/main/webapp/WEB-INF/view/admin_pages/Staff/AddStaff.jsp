@@ -5,7 +5,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Add New Staff</title>
+        <title>Thêm nhân viên mới</title>
         <link rel="icon" type="image/png" href="assets/images/favicon.png" sizes="16x16">
         <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp" />
 
@@ -68,16 +68,16 @@
 
         <div class="dashboard-main-body">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
-                <h6 class="fw-semibold mb-0">Add New Staff</h6>
+                <h6 class="fw-semibold mb-0">Thêm nhân viên mới</h6>
                 <ul class="d-flex align-items-center gap-2">
                     <li class="fw-medium">
                         <a href="staff" class="d-flex align-items-center gap-1 hover-text-primary">
                             <iconify-icon icon="solar:home-smile-angle-outline" class="icon text-lg"></iconify-icon>
-                            Back to Staff List
+                            Quay lại danh sách nhân viên
                         </a>
                     </li>
                     <li>-</li>
-                    <li class="fw-medium">Create New Staff</li>
+                    <li class="fw-medium">Tạo nhân viên mới</li>
                 </ul>
             </div>
 
@@ -92,9 +92,9 @@
 
                                         <!-- User ID -->
                                         <div class="mb-20">
-                                            <label for="userId" class="form-label fw-semibold text-primary-light text-sm mb-8">UserID <span class="text-danger-600">*</span></label>
+                                            <label for="userId" class="form-label fw-semibold text-primary-light text-sm mb-8">Mã người dùng <span class="text-danger-600">*</span></label>
                                             <select id="userSelect" name="userId" class="form-select" required>
-                                                <option value="">-- Select UserID --</option>
+                                                <option value="">-- Chọn mã người dùng --</option>
                                                 <c:forEach var="user" items="${userList}">
                                                     <option value="${user.userId}">${user.userId} - ${user.fullName}</option>
                                                 </c:forEach>
@@ -103,15 +103,15 @@
 
                                         <!-- Full Name (Readonly) -->
                                         <div class="mb-20">
-                                            <label for="fullName" class="form-label fw-semibold text-primary-light text-sm mb-8">Full Name </label>
+                                            <label for="fullName" class="form-label fw-semibold text-primary-light text-sm mb-8">Họ và tên <span class="text-danger-600">*</span></label>
                                             <input type="text" id="fullNameInput" name="fullName" class="form-control" readonly />
                                         </div>
 
                                         <!-- Bio -->
                                         <div class="mb-20">
                                             <label for="bio" class="form-label fw-semibold text-primary-light text-sm mb-8">
-                                                Bio
-                                                <span class="text-muted text-sm">(20-500 characters)</span>
+                                                Giới thiệu
+                                                <span class="text-muted text-sm">(20-500 ký tự)</span>
                                                 <span class="text-danger-600">*</span>
                                             </label>
                                             <div class="position-relative">
@@ -119,7 +119,7 @@
                                                     name="bio" 
                                                     class="form-control radius-8" 
                                                     id="bio" 
-                                                    placeholder="Write a brief description about the staff member (minimum 20 characters)..." 
+                                                    placeholder="Viết mô tả ngắn về nhân viên (tối thiểu 20 ký tự)..." 
                                                     rows="4"
                                                     style="resize: none;"
                                                     minlength="20"
@@ -127,7 +127,7 @@
                                                     required
                                                 ></textarea>
                                                 <div class="form-text text-end">
-                                                    <span id="bioCharCount">0</span>/500 characters
+                                                    <span id="bioCharCount">0</span>/500 ký tự
                                                     <span id="bioValidationMessage" class="ms-2"></span>
                                                 </div>
                                             </div>
@@ -135,7 +135,7 @@
 
                                         <!-- Service Type -->
                                         <div class="mb-20">
-                                            <label for="serviceTypeId" class="form-label fw-semibold text-primary-light text-sm mb-8">Service Type <span class="text-danger-600">*</span></label>
+                                            <label for="serviceTypeId" class="form-label fw-semibold text-primary-light text-sm mb-8">Loại dịch vụ <span class="text-danger-600">*</span></label>
                                             <select name="serviceTypeId" class="form-control radius-8" id="serviceTypeId" required>
                                                 <c:forEach var="serviceType" items="${serviceTypes}">
                                                     <option value="${serviceType.serviceTypeId}">${serviceType.name}</option>
@@ -145,18 +145,18 @@
 
                                         <!-- Availability Status -->
                                         <div class="mb-20">
-                                            <label for="availabilityStatus" class="form-label fw-semibold text-primary-light text-sm mb-8">Availability Status <span class="text-danger-600">*</span></label>
+                                            <label for="availabilityStatus" class="form-label fw-semibold text-primary-light text-sm mb-8">Trạng thái làm việc <span class="text-danger-600">*</span></label>
                                             <select name="availabilityStatus" class="form-control radius-8" id="availabilityStatus" required>
-                                                <option value="AVAILABLE">Available</option>
-                                                <option value="BUSY">Busy</option>
-                                                <option value="OFFLINE">Offline</option>
-                                                <option value="ON_LEAVE">On Leave</option>
+                                                <option value="AVAILABLE">Sẵn sàng</option>
+                                                <option value="BUSY">Đang bận</option>
+                                                <option value="OFFLINE">Ngoại tuyến</option>
+                                                <option value="ON_LEAVE">Nghỉ phép</option>
                                             </select>
                                         </div>
 
                                         <!-- Experience -->
                                         <div class="mb-20">
-                                            <label for="yearsOfExperience" class="form-label fw-semibold text-primary-light text-sm mb-8">Years of Experience <span class="text-danger-600">*</span></label>
+                                            <label for="yearsOfExperience" class="form-label fw-semibold text-primary-light text-sm mb-8">Số năm kinh nghiệm <span class="text-danger-600">*</span></label>
                                             <input type="number" name="yearsOfExperience" class="form-control radius-8" id="yearsOfExperience" required min="0" max="100" />
                                             <div class="invalid-feedback" id="yearsOfExperienceError"></div>
                                             <small class="text-muted">Nhập số năm kinh nghiệm (0 - 100)</small>
@@ -164,8 +164,8 @@
 
                                         <!-- Action Buttons -->
                                         <div class="d-flex align-items-center justify-content-center gap-3">
-                                            <a href="staff" class="btn btn-outline-danger border border-danger-600 px-56 py-11 radius-8">Cancel</a>
-                                            <button type="submit" class="btn btn-primary border border-primary-600 text-md px-56 py-12 radius-8">Save</button>
+                                            <a href="staff" class="btn btn-outline-danger border border-danger-600 px-56 py-11 radius-8">Hủy</a>
+                                            <button type="submit" class="btn btn-primary border border-primary-600 text-md px-56 py-12 radius-8">Lưu</button>
                                         </div>
                                     </form>
                                 </div>
@@ -198,11 +198,11 @@
                 const length = formattedText.length;
                 
                 if (length < minLength) {
-                    bioValidationMessage.textContent = `Please enter at least ${minLength} characters`;
+                    bioValidationMessage.textContent = `Vui lòng nhập ít nhất ${minLength} ký tự`;
                     bioValidationMessage.className = 'ms-2 text-danger';
                     return false;
                 } else if (length > maxLength) {
-                    bioValidationMessage.textContent = `Maximum ${maxLength} characters allowed`;
+                    bioValidationMessage.textContent = `Tối đa ${maxLength} ký tự`;
                     bioValidationMessage.className = 'ms-2 text-danger';
                     return false;
                 } else {
@@ -278,8 +278,23 @@
                     return false;
                 }
                 const num = Number(value);
-                if (!Number.isInteger(num) || num < 0 || num > 100) {
-                    yearsError.textContent = "Số năm kinh nghiệm phải là số nguyên từ 0 đến 100";
+                if (!Number.isInteger(num) || num < 0) {
+                    yearsError.textContent = "Số năm kinh nghiệm phải là số nguyên không âm";
+                    yearsInput.classList.add('is-invalid');
+                    yearsInput.classList.remove('is-valid');
+                    return false;
+                }
+                const dob = window.selectedUserDob;
+                const age = getAgeFromDob(dob);
+                if (age === null) {
+                    yearsError.textContent = "Vui lòng chọn nhân viên để kiểm tra số năm kinh nghiệm hợp lệ";
+                    yearsInput.classList.add('is-invalid');
+                    yearsInput.classList.remove('is-valid');
+                    return false;
+                }
+                const maxExp = age - 15;
+                if (num > maxExp) {
+                    yearsError.textContent = `Số năm kinh nghiệm tối đa cho phép là ${maxExp} (Tuổi hiện tại trừ 15)`;
                     yearsInput.classList.add('is-invalid');
                     yearsInput.classList.remove('is-valid');
                     return false;
