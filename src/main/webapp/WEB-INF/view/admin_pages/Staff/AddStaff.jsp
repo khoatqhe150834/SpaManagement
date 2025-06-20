@@ -103,7 +103,7 @@
 
                                         <!-- Full Name (Readonly) -->
                                         <div class="mb-20">
-                                            <label for="fullName" class="form-label fw-semibold text-primary-light text-sm mb-8">Full Name <span class="text-danger-600">*</span></label>
+                                            <label for="fullName" class="form-label fw-semibold text-primary-light text-sm mb-8">Full Name </label>
                                             <input type="text" id="fullNameInput" name="fullName" class="form-control" readonly />
                                         </div>
 
@@ -112,6 +112,7 @@
                                             <label for="bio" class="form-label fw-semibold text-primary-light text-sm mb-8">
                                                 Bio
                                                 <span class="text-muted text-sm">(20-500 characters)</span>
+                                                <span class="text-danger-600">*</span>
                                             </label>
                                             <div class="position-relative">
                                                 <textarea 
@@ -156,7 +157,9 @@
                                         <!-- Experience -->
                                         <div class="mb-20">
                                             <label for="yearsOfExperience" class="form-label fw-semibold text-primary-light text-sm mb-8">Years of Experience <span class="text-danger-600">*</span></label>
-                                            <input type="number" name="yearsOfExperience" class="form-control radius-8" id="yearsOfExperience" required />
+                                            <input type="number" name="yearsOfExperience" class="form-control radius-8" id="yearsOfExperience" required min="0" max="100" />
+                                            <div class="invalid-feedback" id="yearsOfExperienceError"></div>
+                                            <small class="text-muted">Nhập số năm kinh nghiệm (0 - 100)</small>
                                         </div>
 
                                         <!-- Action Buttons -->
@@ -262,6 +265,40 @@
 
             // Khởi tạo khi trang load
             updateCharCount();
+
+            const yearsInput = document.getElementById('yearsOfExperience');
+            const yearsError = document.getElementById('yearsOfExperienceError');
+
+            function validateYearsOfExperience() {
+                const value = yearsInput.value.trim();
+                if (value === "") {
+                    yearsError.textContent = "Vui lòng nhập số năm kinh nghiệm";
+                    yearsInput.classList.add('is-invalid');
+                    yearsInput.classList.remove('is-valid');
+                    return false;
+                }
+                const num = Number(value);
+                if (!Number.isInteger(num) || num < 0 || num > 100) {
+                    yearsError.textContent = "Số năm kinh nghiệm phải là số nguyên từ 0 đến 100";
+                    yearsInput.classList.add('is-invalid');
+                    yearsInput.classList.remove('is-valid');
+                    return false;
+                }
+                yearsError.textContent = "";
+                yearsInput.classList.remove('is-invalid');
+                yearsInput.classList.add('is-valid');
+                return true;
+            }
+
+            yearsInput.addEventListener('input', validateYearsOfExperience);
+            yearsInput.addEventListener('blur', validateYearsOfExperience);
+
+            document.querySelector('form').addEventListener('submit', function(e) {
+                if (!validateYearsOfExperience()) {
+                    e.preventDefault();
+                    yearsInput.focus();
+                }
+            });
         </script>
 
         <style>
