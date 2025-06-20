@@ -145,7 +145,7 @@
 
                                             <!-- Buttons -->
                                             <div class="d-flex align-items-center justify-content-center gap-3">
-                                                <a href="servicetype"
+                                                <a href="service?service=list-all&page=${page}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}${not empty serviceTypeId ? '&serviceTypeId='.concat(serviceTypeId) : ''}"
                                                     class="btn btn-outline-danger border border-danger-600 px-56 py-11 radius-8">Cancel</a>
                                                 <button type="submit"
                                                     class="btn btn-primary border border-primary-600 text-md px-56 py-12 radius-8">Save</button>

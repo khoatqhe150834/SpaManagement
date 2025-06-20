@@ -48,9 +48,10 @@ public class ServiceController extends HttpServlet {
         ServiceTypeDAO typeDAO = new ServiceTypeDAO();
 
         int limit = 5;
-        if (request.getParameter("limit") != null) {
+        String limitParam = request.getParameter("limit");
+        if (limitParam != null && !limitParam.isEmpty()) {
             try {
-                limit = Integer.parseInt(request.getParameter("limit"));
+                limit = Integer.parseInt(limitParam);
             } catch (Exception ignored) {}
         }
         int page = 1;
@@ -97,6 +98,16 @@ public class ServiceController extends HttpServlet {
             case "pre-insert": {
                 List<ServiceType> types = typeDAO.findAll();
                 request.setAttribute("serviceTypes", types);
+                // Lấy tham số page, limit, keyword, status, serviceTypeId nếu có
+                String pageParam = request.getParameter("page");
+                String keyword = request.getParameter("keyword");
+                String status = request.getParameter("status");
+                // Biến serviceTypeIdParam đã có ở đầu hàm
+                request.setAttribute("page", pageParam);
+                request.setAttribute("keyword", keyword);
+                request.setAttribute("status", status);
+                request.setAttribute("serviceTypeId", serviceTypeIdParam);
+                request.setAttribute("limit", limit);
                 request.getRequestDispatcher("WEB-INF/view/admin_pages/Service/AddService.jsp").forward(request, response);
                 return;
             }
@@ -108,6 +119,18 @@ public class ServiceController extends HttpServlet {
                 request.setAttribute("service", s);
                 List<ServiceImage> serviceImages = serviceImageDAO.findByServiceId(id);
                 request.setAttribute("serviceImages", serviceImages);
+
+                // Lấy tham số page, limit, searchParams nếu có
+                String pageParam = request.getParameter("page");
+                String keyword = request.getParameter("keyword");
+                String status = request.getParameter("status");
+
+                request.setAttribute("page", pageParam);
+                request.setAttribute("keyword", keyword);
+                request.setAttribute("status", status);
+                request.setAttribute("serviceTypeId", serviceTypeIdParam);
+                request.setAttribute("limit", limit);
+
                 request.getRequestDispatcher("WEB-INF/view/admin_pages/Service/UpdateService.jsp").forward(request, response);
                 return;
             }

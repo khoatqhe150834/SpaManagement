@@ -142,7 +142,7 @@
                                     <button type="submit" class="btn btn-primary h-40-px radius-12">Tìm Kiếm</button>
                                 </form>
                             </div>
-                            <a href="service?service=pre-insert"
+                            <a href="service?service=pre-insert&page=${currentPage}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}${not empty serviceTypeId ? '&serviceTypeId='.concat(serviceTypeId) : ''}"
                                 class="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2">
                                 <iconify-icon icon="ic:baseline-plus" class="icon text-xl line-height-1"></iconify-icon>
                                 Thêm Dịch Vụ Mới
@@ -223,7 +223,7 @@
                                                             </a>
 
                                                             <!-- Edit button -->
-                                                            <a href="service?service=pre-update&id=${service.serviceId}"
+                                                            <a href="service?service=pre-update&id=${service.serviceId}&page=${currentPage}&limit=${limit}${searchParams}"
                                                                 class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
                                                                 data-bs-toggle="tooltip"
                                                                 data-bs-title="Chỉnh sửa dịch vụ">
