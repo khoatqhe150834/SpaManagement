@@ -486,22 +486,31 @@ function renderServices() {
       const isSelected = selectedServices.includes(service.id);
       const isDisabled = !isSelected && isLimitReached;
       
-      return `
+            return `
           <div class="service-card ${isDisabled ? 'disabled' : ''}">
           <div class="service-content">
               <div class="service-info">
-                  <h3 class="service-name">${service.name}</h3>
-                  <p class="service-duration">${service.duration}</p>
+                      <h3 class="service-name">
+                          <i class="fas fa-spa service-name-icon"></i>
+                          ${service.name}
+                      </h3>
+                      <p class="service-duration">
+                          <i class="fas fa-clock service-duration-icon"></i>
+                          ${service.duration}
+                      </p>
                   <p class="service-description">${service.description}</p>
-                  <p class="service-price">${service.price}</p>
-              </div>
+                      <p class="service-price">
+                          <i class="fas fa-tag service-price-icon"></i>
+                          ${service.price}
+                      </p>
+                  </div>
                   <button class="service-add-btn ${isSelected ? 'selected' : ''} ${isDisabled ? 'disabled' : ''}" 
                           onclick="toggleService('${service.id}')"
                           ${isDisabled ? 'disabled' : ''}>
                       <i class="fas ${isSelected ? 'fa-check' : 'fa-plus'}"></i>
-              </button>
+                  </button>
+              </div>
           </div>
-      </div>
       `;
   }).join('');
   
