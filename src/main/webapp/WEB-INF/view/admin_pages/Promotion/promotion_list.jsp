@@ -72,19 +72,14 @@
     <div class="dashboard-main-body">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
             <h6 class="fw-semibold mb-0">Promotion List</h6>
-            <ul class="d-flex align-items-center gap-2">
-                <li class="fw-medium">
-                    <a href="${pageContext.request.contextPath}/admin/dashboard" class="d-flex align-items-center gap-1 hover-text-primary">
-                        <iconify-icon icon="solar:home-smile-angle-outline" class="icon text-lg"></iconify-icon>
-                        Dashboard
-                    </a>
-                </li>
-                <li>-</li>
-                <li class="fw-medium">Promotion List</li>
-            </ul>
-            <a href="${pageContext.request.contextPath}/" class="btn btn-outline-primary ms-auto">
-                <iconify-icon icon="mdi:arrow-left" class="me-1"></iconify-icon> Quay về trang chủ
-            </a>
+            <div class="d-flex align-items-center gap-2">
+                <a href="${pageContext.request.contextPath}/" class="btn btn-outline-primary">
+                    <iconify-icon icon="ic:round-home" class="me-1"></iconify-icon> Homepage
+                </a>
+                <a href="${pageContext.request.contextPath}/admin/dashboard" class="btn btn-primary">
+                    <iconify-icon icon="solar:home-smile-angle-outline" class="me-1"></iconify-icon> Dashboard
+                </a>
+            </div>
         </div>
 
         <%-- Hiển thị thông báo thành công --%>
