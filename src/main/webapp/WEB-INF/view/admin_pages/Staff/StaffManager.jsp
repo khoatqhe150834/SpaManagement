@@ -188,16 +188,16 @@
                 </div>
                 <div class="card-body p-24">
                     <div class="table-responsive scroll-sm">
-                        <table class="table bordered-table sm-table mb-0" style="table-layout: auto; width: 100%;">
+                        <table class="table bordered-table sm-table mb-0" id="staffTable" style="table-layout: auto; width: 100%;">
                             <thead>
                                 <tr>
                                     <th class="text-center">STT</th>
                                     <th class="text-center">Tên</th>
                                     <th class="text-center">Loại Dịch Vụ</th>
                                     <th class="text-center">Tiểu Sử</th>
-                                    <th class="text-center">Trạng Thái</th>
+                                    <th class="text-center" data-orderable="false">Trạng Thái</th>
                                     <th class="text-center">EXP (Năm)</th>
-                                    <th class="text-center">Hành Động</th>
+                                    <th class="text-center" data-orderable="false">Hành Động</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -367,6 +367,49 @@
                     document.body.removeChild(clone);
                 });
             });
+        </script>
+        <script src="${pageContext.request.contextPath}/assets/admin/js/lib/jquery-3.7.1.min.js"></script>
+        <script src="${pageContext.request.contextPath}/assets/admin/js/lib/dataTables.min.js"></script>
+        <script>
+        // Hàm lấy chữ cái đầu tiên (bỏ qua khoảng trắng)
+        function getFirstLetter(data) {
+            if (!data) return '';
+            // Nếu có thẻ HTML thì lấy text
+            var div = document.createElement("div");
+            div.innerHTML = data;
+            var text = div.textContent || div.innerText || "";
+            text = text.trim();
+            return text.charAt(0).toUpperCase();
+        }
+
+        // Đăng ký sort custom cho DataTables
+        jQuery.extend(jQuery.fn.dataTable.ext.type.order, {
+            "first-letter-asc": function(a, b) {
+                return getFirstLetter(a).localeCompare(getFirstLetter(b), 'vi', {sensitivity: 'base'});
+            },
+            "first-letter-desc": function(a, b) {
+                return getFirstLetter(b).localeCompare(getFirstLetter(a), 'vi', {sensitivity: 'base'});
+            }
+        });
+
+        $(document).ready(function() {
+            $('#staffTable').DataTable({
+                "paging": false,
+                "info": false,
+                "searching": false,
+                "ordering": true,
+                "order": [],
+                "columnDefs": [
+                    { "orderable": false, "targets": [4, 6] }, // Trạng Thái, Hành Động
+                    { "type": "num", "targets": [0, 5] },      // STT, EXP
+                    // Custom sort theo chữ cái đầu cho 3 cột: Tên (1), Loại dịch vụ (2), Tiểu sử (3)
+                    { "type": "first-letter", "targets": [1, 2, 3] }
+                ],
+                "language": {
+                    "emptyTable": "Không có dữ liệu"
+                }
+            });
+        });
         </script>
     </body>
 </html>
