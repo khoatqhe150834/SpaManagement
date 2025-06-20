@@ -17,17 +17,17 @@
 
             <div class="dashboard-main-body">
                 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
-                    <h6 class="fw-semibold mb-0">Update Service</h6>
+                    <h6 class="fw-semibold mb-0">Cập nhật dịch vụ</h6>
                     <ul class="d-flex align-items-center gap-2">
                         <li class="fw-medium">
-                            <a href="service?service=viewByServiceType&id=${service.serviceTypeId.serviceTypeId}"
+                            <a href="service?service=list-all&page=${page}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}${not empty serviceTypeId ? '&serviceTypeId='.concat(serviceTypeId) : ''}"
                                 class="d-flex align-items-center gap-1 hover-text-primary">
                                 <iconify-icon icon="solar:home-smile-angle-outline" class="icon text-lg"></iconify-icon>
-                                Back to Service Type
+                                Trở lại danh sách dịch vụ
                             </a>
                         </li>
                         <li>-</li>
-                        <li class="fw-medium">Edit Service</li>
+                        <li class="fw-medium">Cập nhật dịch vụ</li>
                     </ul>
                 </div>
 
@@ -46,7 +46,7 @@
                                             <!-- Hiển thị loại dịch vụ (không cho sửa) -->
                                             <div class="mb-20">
                                                 <label class="form-label fw-semibold text-primary-light text-sm mb-8">
-                                                    Service Type
+                                                    Loại dịch vụ
                                                 </label>
                                                 <input type="text" class="form-control radius-8" value="${service.serviceTypeId.name}" readonly>
                                                 <input type="hidden" name="service_type_id" value="${service.serviceTypeId.serviceTypeId}" />
@@ -56,7 +56,7 @@
                                             <div class="mb-20">
                                                 <label for="name"
                                                     class="form-label fw-semibold text-primary-light text-sm mb-8">
-                                                    Service Name <span class="text-danger-600">*</span>
+                                                    Tên dịch vụ <span class="text-danger-600">*</span>
                                                 </label>
                                                 <input type="text" name="name" class="form-control radius-8" id="name"
                                                     value="${service.name}" required>
@@ -65,7 +65,7 @@
                                             <!-- Description -->
                                             <div class="mb-20">
                                                 <label for="description"
-                                                    class="form-label fw-semibold text-primary-light text-sm mb-8">Description</label>
+                                                    class="form-label fw-semibold text-primary-light text-sm mb-8">Mô tả</label>
                                                 <textarea name="description" id="description"
                                                     class="form-control radius-8">${service.description}</textarea>
                                             </div>
@@ -73,7 +73,7 @@
                                             <!-- Price -->
                                             <div class="mb-20">
                                                 <label for="price"
-                                                    class="form-label fw-semibold text-primary-light text-sm mb-8">Price
+                                                    class="form-label fw-semibold text-primary-light text-sm mb-8">Giá
                                                     (VND)</label>
                                                 <input type="number" name="price" class="form-control radius-8"
                                                     id="price" value="${service.price}" required>
@@ -82,8 +82,8 @@
                                             <!-- Duration -->
                                             <div class="mb-20">
                                                 <label for="duration_minutes"
-                                                    class="form-label fw-semibold text-primary-light text-sm mb-8">Duration
-                                                    (minutes)</label>
+                                                    class="form-label fw-semibold text-primary-light text-sm mb-8">Thời lượng
+                                                    (phút)</label>
                                                 <input type="number" name="duration_minutes"
                                                     class="form-control radius-8" id="duration_minutes"
                                                     value="${service.durationMinutes}">
@@ -92,8 +92,7 @@
                                             <!-- Buffer -->
                                             <div class="mb-20">
                                                 <label for="buffer_time_after_minutes"
-                                                    class="form-label fw-semibold text-primary-light text-sm mb-8">Buffer
-                                                    Time (minutes)</label>
+                                                    class="form-label fw-semibold text-primary-light text-sm mb-8">Thời gian chờ (phút)</label>
                                                 <input type="number" name="buffer_time_after_minutes"
                                                     class="form-control radius-8" id="buffer_time_after_minutes"
                                                     value="${service.bufferTimeAfterMinutes}">
@@ -102,7 +101,7 @@
                                             <!-- Image URL -->
                                             <div class="mb-20">
                                                 <label class="form-label fw-semibold text-primary-light text-sm mb-8">
-                                                    Upload Images
+                                                    Tải lên hình ảnh
                                                 </label>
                                                 <div class="upload-image-wrapper d-flex align-items-center gap-3 flex-wrap">
                                                     <!-- Hiển thị ảnh hiện tại của dịch vụ -->
@@ -123,7 +122,7 @@
                                                         for="upload-file-multiple">
                                                         <iconify-icon icon="solar:camera-outline"
                                                             class="text-xl text-secondary-light"></iconify-icon>
-                                                        <span class="fw-semibold text-secondary-light">Upload</span>
+                                                        <span class="fw-semibold text-secondary-light">Tải lên</span>
                                                         <!-- Lưu ý: name=\"images\" và có multiple -->
                                                         <input id="upload-file-multiple" type="file" name="images" multiple hidden>
                                                     </label>
@@ -142,22 +141,22 @@
                                                     <input class="form-check-input" type="checkbox" role="switch"
                                                         name="bookable_online" id="bookable_online" ${service.bookableOnline ? "checked" : "" }>
                                                     <label class="form-check-label line-height-1 fw-medium text-secondary-light"
-                                                        for="bookable_online">Bookable Online</label>
+                                                        for="bookable_online">Cho phép đặt online</label>
                                                 </div>
                                                 <div class="form-switch switch-primary d-flex align-items-center gap-3">
                                                     <input class="form-check-input" type="checkbox" role="switch"
                                                         name="requires_consultation" id="requires_consultation" ${service.requiresConsultation ? "checked" : "" }>
                                                     <label class="form-check-label line-height-1 fw-medium text-secondary-light"
-                                                        for="requires_consultation">Requires Consultation</label>
+                                                        for="requires_consultation">Yêu cầu tư vấn</label>
                                                 </div>
                                             </div>
 
                                             <!-- Buttons -->
                                             <div class="d-flex align-items-center justify-content-center gap-3">
                                                 <a href="service?service=list-all&page=${page}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}${not empty serviceTypeId ? '&serviceTypeId='.concat(serviceTypeId) : ''}"
-                                                    class="btn btn-outline-danger border border-danger-600 px-56 py-11 radius-8">Cancel</a>
+                                                    class="btn btn-outline-danger border border-danger-600 px-56 py-11 radius-8">Hủy</a>
                                                 <button type="submit"
-                                                    class="btn btn-primary border border-primary-600 text-md px-56 py-12 radius-8">Update</button>
+                                                    class="btn btn-primary border border-primary-600 text-md px-56 py-12 radius-8">Cập nhật</button>
                                             </div>
                                         </form>
                                     </div>
