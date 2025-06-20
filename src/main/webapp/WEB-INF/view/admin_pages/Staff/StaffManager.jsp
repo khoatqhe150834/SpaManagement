@@ -81,6 +81,30 @@
                     background: #e3f2fd;
                     color: #1976d2;
                 }
+
+                @media (min-width: 1024px) {
+                    .dashboard-main-body,
+                    .card-body,
+                    .table-responsive {
+                        overflow-x: visible !important;
+                        max-width: 100% !important;
+                    }
+                    .table {
+                        width: 100% !important;
+                        min-width: 900px;
+                        table-layout: auto !important;
+                    }
+                }
+                .table td, .table th {
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
+                    overflow: hidden;
+                    max-width: 180px;
+                }
+                .table td.bio-wrap, .table td.wrap-text {
+                    white-space: normal;
+                    max-width: 140px;
+                }
             </style>
         </head>
         <body>
@@ -147,7 +171,7 @@
                 </div>
                 <div class="card-body p-24">
                     <div class="table-responsive scroll-sm">
-                        <table class="table bordered-table sm-table mb-0">
+                        <table class="table bordered-table sm-table mb-0" style="table-layout: auto; width: 100%;">
                             <thead>
                                 <tr>
                                     <th>STT</th>
@@ -163,8 +187,12 @@
                                 <c:forEach var="therapist" items="${staffList}" varStatus="status">
                                     <tr>
                                         <td>${status.index + 1}</td>
-                                        <td>${therapist.user.fullName}</td>
-                                        <td><c:if test="${not empty therapist.serviceType}">${therapist.serviceType.name}</c:if></td>
+                                        <td><div class="wrap-text">${therapist.user.fullName}</div></td>
+                                        <td>
+                                            <c:if test="${not empty therapist.serviceType}">
+                                                <div class="wrap-text">${therapist.serviceType.name}</div>
+                                            </c:if>
+                                        </td>
                                         <td><div class="bio-wrap">${therapist.bio}</div></td>
                                         <td class="text-center">
                                             <c:choose>
