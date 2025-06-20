@@ -150,6 +150,16 @@
                         </div>
 
                         <c:if test="${not empty services}">
+                            <c:set var="searchParams" value=""/>
+                            <c:if test="${not empty keyword}">
+                                <c:set var="searchParams" value="${searchParams}&keyword=${keyword}"/>
+                            </c:if>
+                            <c:if test="${not empty status}">
+                                <c:set var="searchParams" value="${searchParams}&status=${status}"/>
+                            </c:if>
+                            <c:if test="${not empty serviceTypeId}">
+                                <c:set var="searchParams" value="${searchParams}&serviceTypeId=${serviceTypeId}"/>
+                            </c:if>
                             <div class="card-body p-24">
                                 <div class="table-responsive">
                                     <table class="table bordered-table sm-table mb-0" style="table-layout: fixed;">
@@ -214,7 +224,7 @@
                                                             class="d-flex align-items-center gap-10 justify-content-center">
 
                                                             <!-- View detail button -->
-                                                            <a href="service?service=view-detail&id=${service.serviceId}"
+                                                            <a href="service?service=view-detail&id=${service.serviceId}&page=${currentPage}&limit=${limit}${searchParams}"
                                                                 class="bg-info-focus bg-hover-info-200 text-info-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
                                                                 data-bs-toggle="tooltip"
                                                                 data-bs-title="Xem chi tiết dịch vụ">
@@ -258,16 +268,6 @@
                                     <span>
                                         Hiển thị ${start} đến ${end} của ${totalEntries} mục
                                     </span>
-                                    <c:set var="searchParams" value=""/>
-                                    <c:if test="${not empty keyword}">
-                                        <c:set var="searchParams" value="${searchParams}&keyword=${keyword}"/>
-                                    </c:if>
-                                    <c:if test="${not empty status}">
-                                        <c:set var="searchParams" value="${searchParams}&status=${status}"/>
-                                    </c:if>
-                                    <c:if test="${not empty serviceTypeId}">
-                                        <c:set var="searchParams" value="${searchParams}&serviceTypeId=${serviceTypeId}"/>
-                                    </c:if>
                                     <ul
                                         class="pagination d-flex flex-wrap align-items-center gap-2 justify-content-center">
                                         <!-- Previous -->

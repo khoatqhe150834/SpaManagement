@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Optional;
 
 @WebServlet(name = "ServiceController", urlPatterns = { "/service" })
 @MultipartConfig(
@@ -164,11 +165,34 @@ public class ServiceController extends HttpServlet {
                 request.setAttribute("limit", limit);
                 break;
             }
-            case "viewByServiceType": {
-                int id = Integer.parseInt(request.getParameter("id"));
-                List<Service> services = serviceDAO.findByServiceTypeId(id);
-                request.setAttribute("services", services);
-                break;
+            case "view-detail": {
+                try {
+                    int id = Integer.parseInt(request.getParameter("id"));
+                    Optional<Service> serviceOptional = serviceDAO.findById(id);
+
+                    if (serviceOptional.isPresent()) {
+                        Service serviceDetail = serviceOptional.get();
+                        List<ServiceImage> serviceImages = serviceImageDAO.findByServiceId(id);
+
+                        request.setAttribute("page", request.getParameter("page"));
+                        request.setAttribute("limit", request.getParameter("limit"));
+                        request.setAttribute("keyword", request.getParameter("keyword"));
+                        request.setAttribute("status", request.getParameter("status"));
+                        request.setAttribute("serviceTypeId", request.getParameter("serviceTypeId"));
+
+                        request.setAttribute("service", serviceDetail);
+                        request.setAttribute("serviceImages", serviceImages);
+                        request.getRequestDispatcher("/WEB-INF/view/admin_pages/Service/ViewDetailService.jsp").forward(request, response);
+                    } else {
+                        response.sendRedirect("service?service=list-all&toastType=error&toastMessage=Service+not+found");
+                    }
+                } catch (NumberFormatException e) {
+                    response.sendRedirect("service?service=list-all&toastType=error&toastMessage=Invalid+service+ID");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    response.sendRedirect("service?service=list-all&toastType=error&toastMessage=An+unexpected+error+occurred");
+                }
+                return;
             }
         }
 
