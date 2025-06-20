@@ -5,6 +5,8 @@
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@taglib prefix="c"   uri="http://java.sun.com/jsp/jstl/core"%>
+<%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -26,7 +28,7 @@
         <link rel="shortcut icon" type="image/x-icon" href="${pageContext.request.contextPath}/assets/home/images/favicon.png">
 
         <!-- PAGE TITLE HERE -->
-        <title>BeautyZone : Beauty Spa Salon HTML Template </title>
+        <title>${blog.title} - Blog Details</title>
 
         <!-- MOBILE SPECIFIC -->
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -53,12 +55,13 @@
                     <div class="dlab-bnr-inr dlab-bnr-inr overlay-primary bg-pt" style="background-image:url(${pageContext.request.contextPath}/assets/home/images/banner/bnr1.jpg);">
                         <div class="container">
                             <div class="dlab-bnr-inr-entry">
-                                <h1 class="text-white">Blog List Right Sidebar</h1>
+                                <h1 class="text-white">${blog.title}</h1>
                                 <!-- Breadcrumb row -->
                                 <div class="breadcrumb-row">
                                     <ul class="list-inline">
-                                        <li><a href="index.html">Home</a></li>
-                                        <li>Blog List Right Sidebar</li>
+                                        <li><a href="${pageContext.request.contextPath}/">Home</a></li>
+                                        <li><a href="${pageContext.request.contextPath}/blog">Blog</a></li>
+                                        <li>${blog.title}</li>
                                     </ul>
                                 </div>
                                 <!-- Breadcrumb row END -->
@@ -75,48 +78,24 @@
                                 <div class="blog-post blog-single blog-style-1">
                                     <div class="dlab-post-meta">
                                         <ul class="d-flex align-items-center">
-                                            <li class="post-date">September 18, 2024</li>
-                                            <li class="post-author">By <a href="error-404.html">demongo</a> </li>
-                                            <li class="post-comment"><a href="error-404.html">5k</a> </li>
+                                            <li class="post-date">
+                                                <fmt:formatDate value="${blog.publishedAtDate != null ? blog.publishedAtDate : blog.createdAtDate}" pattern="MMMM dd, yyyy"/>
+                                            </li>
+                                            <li class="post-author">By <a href="javascript:void(0);">${blog.authorName}</a></li>
+                                            <li class="post-comment">${blog.viewCount} views</li>
                                         </ul>
                                     </div>
                                     <div class="dlab-post-title">
-                                        <h1 class="post-title m-t0">The Correct Order to Apply Your Skincare Products</h1>
+                                        <h1 class="post-title m-t0">${blog.title}</h1>
                                     </div>
                                     <div class="dlab-post-media dlab-img-effect zoom-slow m-t20">
-                                        <img src="${pageContext.request.contextPath}/assets/home/images/blog/default/thum1.jpg" alt="">
+                                        <img src="${pageContext.request.contextPath}/${empty blog.featureImageUrl ? 'assets/home/images/blog/default/thum1.jpg' : blog.featureImageUrl}" alt="">
                                     </div>
                                     <div class="dlab-post-text">
-                                        <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.Lorem Ipsum is simply dummy text of the printing and typesetting  printer a galley Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen  It has urvived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.</p>
-                                        <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen It has urvived not only five centuries, but also the leap into electronic typesetting.</p>
-                                        <blockquote>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Has been the industry's standard text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimencenturies.</blockquote>
-                                        <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen It has urvived not only five centuries, but also the leap into electronic typesetting.</p>
-                                        <h5>Completely Responsive</h5>
-                                        <img class="alignleft wow fadeIn blog-side-img" data-wow-delay="0.2s" src="${pageContext.request.contextPath}/assets/home/images/blog/grid/pic4.jpg" alt="">
-                                        <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the releasefive centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release</p>
-                                        <div class="dlab-divider bg-gray-dark"></div>
-                                        <img class="alignright wow fadeIn blog-side-img" data-wow-delay="0.2s" src="${pageContext.request.contextPath}/assets/home/images/blog/grid/pic1.jpg" alt="">
-                                        <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release</p>
-                                    </div>
-                                    <div class="dlab-post-tags clear">
-                                        <div class="post-tags">
-                                            <a href="javascript:void(0);">Child </a>
-                                            <a href="javascript:void(0);">Eduction </a>
-                                            <a href="javascript:void(0);">Money </a>
-                                            <a href="javascript:void(0);">Resturent </a>
-                                        </div>
-                                    </div>
-                                    <div class="dlab-divider bg-gray-dark op4"><i class="icon-dot c-square"></i></div>
-                                    <div class="share-details-btn">
-                                        <ul>
-                                            <li><h5 class="m-a0">Share Post</h5></li>
-                                            <li><a target="_blank" href="https://www.facebook.com/" class="site-button facebook button-sm"><i class="fa fa-facebook"></i> Facebook</a></li>
-                                            <li><a target="_blank" href="https://www.google.com/" class="site-button google-plus button-sm"><i class="fa fa-google-plus"></i> Google Plus</a></li>
-                                            <li><a target="_blank" href="https://www.linkedin.com/" class="site-button linkedin button-sm"><i class="fa fa-linkedin"></i> Linkedin</a></li>
-                                            <li><a target="_blank" href="https://www.instagram.com/" class="site-button instagram button-sm"><i class="fa fa-instagram"></i> Instagram</a></li>
-                                            <li><a target="_blank" href="https://twitter.com/" class="site-button twitter button-sm"><i class="fa fa-twitter"></i> Twitter</a></li>
-                                            <li><a target="_blank" href="https://www.youtube.com/" class="site-button youtube button-sm"><i class="fa fa-youtube-play"></i> Youtube</a></li>
-                                        </ul>
+                                        <c:if test="${not empty blog.summary}">
+                                            <p><b>${blog.summary}</b></p>
+                                        </c:if>
+                                        <c:out value="${blog.content}" escapeXml="false"/>
                                     </div>
                                 </div>
                                 <div class="clear" id="comment-list">
@@ -278,71 +257,61 @@
                                         </div>
                                     </div>
                                     <div class="widget recent-posts-entry">
-                                        <h6 class="widget-title style-1">Recent Posts</h6>
+                                        <h6 class="widget-title style-1">Blog Gần Đây</h6>
                                         <div class="widget-post-bx">
-                                            <div class="widget-post clearfix">
-                                                <div class="dlab-post-media"> <img src="${pageContext.request.contextPath}/assets/home/images/blog/recent-blog/pic1.jpg" width="200" height="143" alt=""> </div>
-                                                <div class="dlab-post-info">
-                                                    <div class="dlab-post-header">
-                                                        <h6 class="post-title"><a href="error-404.html">The Correct Order to Apply Your Skincare Products</a></h6>
+                                            <c:forEach var="rb" items="${recentBlogs}">
+                                                <div class="widget-post clearfix">
+                                                    <div class="dlab-post-media">
+                                                        <img src="${pageContext.request.contextPath}/${empty rb.featureImageUrl ? 'assets/home/images/blog/default/thum1.jpg' : rb.featureImageUrl}" width="200" height="143" alt="">
                                                     </div>
-                                                    <div class="dlab-post-meta">
-                                                        <ul class="d-flex align-items-center">
-                                                            <li class="post-date">Sep 18, 2024</li>
-                                                            <li class="post-comment"><a href="error-404.html">5k</a> </li>
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="widget-post clearfix">
-                                                <div class="dlab-post-media"> <img src="${pageContext.request.contextPath}/assets/home/images/blog/recent-blog/pic2.jpg" width="200" height="160" alt=""> </div>
-                                                <div class="dlab-post-info">
-                                                    <div class="dlab-post-header">
-                                                        <h6 class="post-title"><a href="error-404.html">Introducing Clare’s Newest Spa Hotel: The Killaloe...</a></h6>
-                                                    </div>
-                                                    <div class="dlab-post-meta">
-                                                        <ul class="d-flex align-items-center">
-                                                            <li class="post-date">Sep 18, 2024</li>
-                                                            <li class="post-comment"><a href="error-404.html">5k</a> </li>
-                                                        </ul>
+                                                    <div class="dlab-post-info">
+                                                        <div class="dlab-post-header">
+                                                            <h6 class="post-title">
+                                                                <a href="${pageContext.request.contextPath}/blog-detail?slug=${rb.slug}">${rb.title}</a>
+                                                            </h6>
+                                                        </div>
+                                                        <div class="dlab-post-meta">
+                                                            <ul class="d-flex align-items-center">
+                                                                <li class="post-date">
+                                                                    <fmt:formatDate value="${rb.publishedAtDate != null ? rb.publishedAtDate : rb.createdAtDate}" pattern="MMM dd, yyyy"/>
+                                                                </li>
+                                                                <li class="post-comment">${rb.viewCount} views</li>
+                                                            </ul>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                            <div class="widget-post clearfix">
-                                                <div class="dlab-post-media"> <img src="${pageContext.request.contextPath}/assets/home/images/blog/recent-blog/pic3.jpg" width="200" height="160" alt=""> </div>
-                                                <div class="dlab-post-info">
-                                                    <div class="dlab-post-header">
-                                                        <h6 class="post-title"><a href="error-404.html">The Well Spa in Waterford Debuts Outdoor Summer Spa</a></h6>
-                                                    </div>
-                                                    <div class="dlab-post-meta">
-                                                        <ul class="d-flex align-items-center">
-                                                            <li class="post-date">Sep 18, 2024</li>
-                                                            <li class="post-comment"><a href="error-404.html">5k</a> </li>
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            </c:forEach>
                                         </div>
                                     </div>
                                     <div class="widget widget_gallery gallery-grid-3">
-                                        <h6 class="widget-title style-1">Our Gallery</h6>
+                                        <h6 class="widget-title style-1">Bộ Sưu Tập</h6>
                                         <ul>
-                                            <li><div class="dlab-post-thum"><a href="javascript:void(0);" class="dlab-img-overlay1 dlab-img-effect zoom-slow"><img src="${pageContext.request.contextPath}/assets/home/images/gallery/pic2.jpg" alt=""></a></div></li>
-                                            <li><div class="dlab-post-thum"><a href="javascript:void(0);" class="dlab-img-overlay1 dlab-img-effect zoom-slow"><img src="${pageContext.request.contextPath}/assets/home/images/gallery/pic1.jpg" alt=""></a></div></li>
-                                            <li><div class="dlab-post-thum"><a href="javascript:void(0);" class="dlab-img-overlay1 dlab-img-effect zoom-slow"><img src="${pageContext.request.contextPath}/assets/home/images/gallery/pic5.jpg" alt=""></a></div></li>
-                                            <li><div class="dlab-post-thum"><a href="javascript:void(0);" class="dlab-img-overlay1 dlab-img-effect zoom-slow"><img src="${pageContext.request.contextPath}/assets/home/images/gallery/pic7.jpg" alt=""></a></div></li>
-                                            <li><div class="dlab-post-thum"><a href="javascript:void(0);" class="dlab-img-overlay1 dlab-img-effect zoom-slow"><img src="${pageContext.request.contextPath}/assets/home/images/gallery/pic8.jpg" alt=""></a></div></li>
-                                            <li><div class="dlab-post-thum"><a href="javascript:void(0);" class="dlab-img-overlay1 dlab-img-effect zoom-slow"><img src="${pageContext.request.contextPath}/assets/home/images/gallery/pic9.jpg" alt=""></a></div></li>
+                                            <c:forEach begin="1" end="6" var="i">
+                                                <li>
+                                                    <div class="dlab-post-thum">
+                                                        <a href="${pageContext.request.contextPath}/assets/home/images/gallery/pic${i}.jpg" class="gallery-lightbox" title="Ảnh ${i}">
+                                                            <img src="${pageContext.request.contextPath}/assets/home/images/gallery/pic${i}.jpg" alt="">
+                                                        </a>
+                                                    </div>
+                                                </li>
+                                            </c:forEach>
                                         </ul>
                                     </div>
                                     <div class="widget widget_archive">
-                                        <h6 class="widget-title style-1">Categories List</h6>
+                                        <h6 class="widget-title style-1">Danh Mục Blog</h6>
                                         <ul>
-                                            <li><a href="javascript:void(0);">aciform</a></li>
-                                            <li><a href="javascript:void(0);">championship</a></li>
-                                            <li><a href="javascript:void(0);">chastening</a></li>
-                                            <li><a href="javascript:void(0);">clerkship</a></li>
-                                            <li><a href="javascript:void(0);">disinclination</a></li>
+                                            <li>
+                                                <a href="${pageContext.request.contextPath}/blog">
+                                                    Tất cả danh mục
+                                                </a>
+                                            </li>
+                                            <c:forEach var="cat" items="${categories}">
+                                                <li>
+                                                    <a href="${pageContext.request.contextPath}/blog?category=${cat.categoryId}">
+                                                        ${cat.name}
+                                                    </a>
+                                                </li>
+                                            </c:forEach>
                                         </ul>
                                     </div>
                                     <div class="widget widget-newslatter">
@@ -373,6 +342,14 @@
         </div>
         <!-- JAVASCRIPT FILES ========================================= -->
         <jsp:include page="/WEB-INF/view/common/home/js.jsp" />
+        <script>
+        $(document).ready(function() {
+            $('.gallery-lightbox').magnificPopup({
+                type: 'image',
+                gallery: { enabled: true }
+            });
+        });
+        </script>
     </body>
 
     <!-- Mirrored from www.beautyzone.dexignzone.com/xhtml/post-right-sidebar.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 24 May 2025 16:40:33 GMT -->

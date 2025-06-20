@@ -12,7 +12,7 @@ import model.Category;
 import java.io.IOException;
 import java.util.List;
 
-@WebServlet(name = "BlogController", urlPatterns = {"/blog"})
+@WebServlet(name = "BlogController", urlPatterns = {"/blog", "/blog-detail"})
 public class BlogController extends HttpServlet {
 
     private BlogDAO blogDAO;
@@ -28,11 +28,16 @@ public class BlogController extends HttpServlet {
             throws ServletException, IOException {
 
         String action = request.getParameter("action");
+        String slug = request.getParameter("slug");
+
+        if (slug != null && !slug.isEmpty()) {
+            viewDetail(request, response);
+            return;
+        }
 
         if (action == null || action.equals("list")) {
             listWithFilters(request, response);
         }
-
     }
 
     /*=============================  POST  ============================*/
@@ -91,5 +96,26 @@ public class BlogController extends HttpServlet {
 
         request.getRequestDispatcher("/WEB-INF/view/customer/blog/blog_list.jsp")
                 .forward(request, response);
+    }
+
+    // Xem chi tiết blog
+    private void viewDetail(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String slug = request.getParameter("slug");
+        if (slug == null || slug.trim().isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/blog");
+            return;
+        }
+        Blog blog = blogDAO.findBySlug(slug);
+        if (blog == null) {
+            response.sendRedirect(request.getContextPath() + "/blog");
+            return;
+        }
+        List<Blog> recentBlogs = blogDAO.findRecent(3);
+        List<Category> categories = blogDAO.findCategoriesHavingBlogs();
+        request.setAttribute("blog", blog);
+        request.setAttribute("recentBlogs", recentBlogs);
+        request.setAttribute("categories", categories);
+        request.getRequestDispatcher("/WEB-INF/view/customer/blog/blog_details.jsp").forward(request, response);
     }
 }
