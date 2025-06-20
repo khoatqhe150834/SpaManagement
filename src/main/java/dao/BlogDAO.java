@@ -3,6 +3,7 @@ package dao;
 import db.DBContext;
 import model.Blog;
 import model.Category;
+import model.BlogComment;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -220,6 +221,71 @@ public class BlogDAO extends DBContext {
             System.out.println("findBySlug: " + e.getMessage());
         }
         return null;
+    }
+
+    // Lấy tất cả comment đã duyệt cho 1 blog (bỏ parentCommentId, chỉ lấy comment cha là null)
+    public List<BlogComment> findCommentsByBlogId(int blogId) {
+        List<BlogComment> list = new ArrayList<>();
+        String sql = "SELECT c.*, cu.full_name AS customerName, cu.avatar_url AS avatarUrl " +
+                "FROM blog_comments c " +
+                "LEFT JOIN customers cu ON c.customer_id = cu.customer_id " +
+                "WHERE c.blog_id = ? AND c.status = 'APPROVED' " +
+                "ORDER BY c.created_at ASC";
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, blogId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                BlogComment c = new BlogComment();
+                c.setCommentId(rs.getInt("comment_id"));
+                c.setBlogId(rs.getInt("blog_id"));
+                c.setCustomerId(rs.getObject("customer_id") == null ? null : rs.getInt("customer_id"));
+                c.setGuestName(rs.getString("guest_name"));
+                c.setGuestEmail(rs.getString("guest_email"));
+                c.setCommentText(rs.getString("comment_text"));
+                c.setStatus(rs.getString("status"));
+                c.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                c.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
+                c.setCustomerName(rs.getString("customerName"));
+                c.setAvatarUrl(rs.getString("avatarUrl"));
+                list.add(c);
+            }
+        } catch (SQLException e) {
+            System.out.println("findCommentsByBlogId: " + e.getMessage());
+        }
+        return list;
+    }
+
+    // Thêm comment mới (bỏ parentCommentId, luôn lưu là null)
+    public void addComment(BlogComment comment) {
+        String sql = "INSERT INTO blog_comments (blog_id, customer_id, guest_name, guest_email, comment_text, status, created_at, updated_at) " +
+                "VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())";
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, comment.getBlogId());
+            // parent_comment_id luôn là NULL
+            if (comment.getCustomerId() != null) {
+                ps.setInt(2, comment.getCustomerId());
+            } else {
+                ps.setNull(2, java.sql.Types.INTEGER);
+            }
+            ps.setString(3, comment.getGuestName());
+            ps.setString(4, comment.getGuestEmail());
+            ps.setString(5, comment.getCommentText());
+            ps.setString(6, comment.getStatus() == null ? "APPROVED" : comment.getStatus());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("addComment: " + e.getMessage());
+        }
+    }
+
+    // Tăng view count cho blog
+    public void incrementViewCount(int blogId) {
+        String sql = "UPDATE blogs SET view_count = view_count + 1 WHERE blog_id = ?";
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, blogId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("incrementViewCount: " + e.getMessage());
+        }
     }
 
 }

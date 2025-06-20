@@ -44,7 +44,12 @@ public class BlogController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Hiện tại trang Blog chỉ GET; nếu có comment/search POST thì xử lý tại đây.
+        // Xử lý submit comment cho blog details
+        String slug = request.getParameter("slug");
+        if (slug != null && !slug.isEmpty()) {
+            submitComment(request, response);
+            return;
+        }
         doGet(request, response);
     }
 
@@ -111,11 +116,41 @@ public class BlogController extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/blog");
             return;
         }
+        // Tăng view count mỗi lần xem chi tiết
+        blogDAO.incrementViewCount(blog.getBlogId());
+        // Lấy lại blog để cập nhật view count mới nhất
+        blog = blogDAO.findBySlug(slug);
+        List<model.BlogComment> comments = blogDAO.findCommentsByBlogId(blog.getBlogId());
         List<Blog> recentBlogs = blogDAO.findRecent(3);
         List<Category> categories = blogDAO.findCategoriesHavingBlogs();
         request.setAttribute("blog", blog);
+        request.setAttribute("comments", comments);
         request.setAttribute("recentBlogs", recentBlogs);
         request.setAttribute("categories", categories);
         request.getRequestDispatcher("/WEB-INF/view/customer/blog/blog_details.jsp").forward(request, response);
+    }
+
+    // Xử lý submit comment cho blog details
+    private void submitComment(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String slug = request.getParameter("slug");
+        Blog blog = blogDAO.findBySlug(slug);
+        if (blog == null) {
+            response.sendRedirect(request.getContextPath() + "/blog");
+            return;
+        }
+        String commentText = request.getParameter("commentText");
+        String guestName = request.getParameter("guestName");
+        String guestEmail = request.getParameter("guestEmail");
+        Integer customerId = (Integer) request.getSession().getAttribute("customerId");
+        model.BlogComment comment = new model.BlogComment();
+        comment.setBlogId(blog.getBlogId());
+        comment.setCustomerId(customerId);
+        comment.setGuestName(guestName);
+        comment.setGuestEmail(guestEmail);
+        comment.setCommentText(commentText);
+        comment.setStatus("APPROVED"); // hoặc PENDING nếu muốn duyệt
+        blogDAO.addComment(comment);
+        response.sendRedirect(request.getContextPath() + "/blog-detail?slug=" + slug + "#comments");
     }
 }

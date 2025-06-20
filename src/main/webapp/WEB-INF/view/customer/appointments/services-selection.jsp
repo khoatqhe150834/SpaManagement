@@ -1,9 +1,8 @@
 <%--
-  Created by IntelliJ IDEA.
+  Services Selection Page
   User: quang
   Date: 18/06/2025
   Time: 6:56 CH
-  To change this template use File | Settings | File Templates.
 --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
@@ -11,39 +10,96 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Beauty Salon Booking Interface</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/home/css/sevices-selection.css">
-</head>
-<body>
-    <!-- Header -->
-    <header class="header">
-        <div class="container">
-            <div class="header-content">
-                <div class="header-left">
-                    <button class="icon-btn">
-                        <i class="fas fa-arrow-left"></i>
-                    </button>
-                    <nav class="breadcrumb">
-                        <span class="breadcrumb-item">Dịch vụ</span>
-                        <i class="fas fa-chevron-right"></i>
-                        <span class="breadcrumb-item">Chuyên nghiệp</span>
-                        <i class="fas fa-chevron-right"></i>
-                        <span class="breadcrumb-item">Thời gian</span>
-                        <i class="fas fa-chevron-right"></i>
-                        <span class="breadcrumb-item active">Xác nhận</span>
-                    </nav>
-                </div>
-                <button class="icon-btn">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        </div>
-    </header>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="keywords" content="" />
+    <meta name="author" content="" />
+    <meta name="robots" content="" />
+    <meta
+      name="description"
+      content="BeautyZone : Beauty Spa Salon HTML Template"
+    />
+    <meta
+      property="og:title"
+      content="BeautyZone : Beauty Spa Salon HTML Template"
+    />
+    <meta
+      property="og:description"
+      content="BeautyZone : Beauty Spa Salon HTML Template"
+    />
+    <meta
+      property="og:image"
+      content="../../beautyzone.dexignzone.com/xhtml/social-image.png"
+    />
+    <meta name="format-detection" content="telephone=no" />
 
-    <main class="main">
+    <!-- FAVICONS ICON -->
+    <link
+      rel="icon"
+      href="${pageContext.request.contextPath}/assets/home/images/favicon.ico"
+      type="image/x-icon"
+    />
+    <link
+      rel="shortcut icon"
+      type="image/x-icon"
+      href="${pageContext.request.contextPath}/assets/home/images/favicon.png"
+    />
+    <!-- PAGE TITLE HERE -->
+    <title>Chọn Dịch Vụ - BeautyZone Spa</title>
+
+    <!-- MOBILE SPECIFIC -->
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!--[if lt IE 9]>
+      <script src="js/html5shiv.min.js"></script>
+      <script src="js/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- STYLESHEETS -->
+    <jsp:include page="/WEB-INF/view/common/home/stylesheet.jsp"></jsp:include>
+    
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom service selection styles -->
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/home/css/services-selection.css">
+</head>
+  <body id="bg">
+    <div class="page-wraper">
+      <div id="loading-area"></div>
+      <!-- header -->
+      <jsp:include page="/WEB-INF/view/common/home/header.jsp"></jsp:include>
+      <!-- header END -->
+      
+      <!-- Content -->
+      <div class="page-content bg-white">
+        <!-- inner page banner -->
+        <div
+          class="dlab-bnr-inr overlay-primary bg-pt"
+           style="
+            background-image: url(${pageContext.request.contextPath}/assets/home/images/banner/bnr2.jpg);
+          "
+        >
+          <div class="container">
+            <div class="dlab-bnr-inr-entry">
+              <h1 class="text-white">Chọn Dịch Vụ</h1>
+              <!-- Breadcrumb row -->
+              <div class="breadcrumb-row">
+                <ul class="list-inline">
+                  <li><a href="${pageContext.request.contextPath}/">Trang chủ</a></li>
+                  <li><a href="${pageContext.request.contextPath}/appointments">Đặt lịch</a></li>
+                  <li>Chọn dịch vụ</li>
+                </ul>
+              </div>
+              <!-- Breadcrumb row END -->
+            </div>
+          </div>
+        </div>
+        <!-- inner page banner END -->
+        
+        <!-- Service selection content -->
+        <div class="section-full content-inner">
+          <main class="main">
         <div class="container">
             <div class="content-grid">
                 <!-- Main Content -->
@@ -63,15 +119,15 @@
                             <div class="price-input-group">
                                 <label class="price-label">Giá tối thiểu</label>
                                 <div class="price-input-wrapper">
-                                    <span class="currency">£</span>
-                                    <input type="number" id="minPriceInput" min="0" max="100" value="0" class="price-input">
+                                    <input type="number" id="minPriceInput" min="0" max="10000000" value="0" class="price-input" placeholder="0">
+                                    <span class="currency">VND</span>
                                 </div>
                             </div>
                             <div class="price-input-group">
                                 <label class="price-label">Giá tối đa</label>
                                 <div class="price-input-wrapper">
-                                    <span class="currency">£</span>
-                                    <input type="number" id="maxPriceInput" min="0" max="100" value="100" class="price-input">
+                                    <input type="number" id="maxPriceInput" min="0" max="10000000" value="10000000" class="price-input" placeholder="10,000,000">
+                                    <span class="currency">VND</span>
                                 </div>
                             </div>
                         </div>
@@ -79,35 +135,46 @@
                         <!-- Dual Range Slider -->
                         <div class="slider-container">
                             <div class="slider-labels">
-                                <span>£0</span>
-                                <span>£100</span>
+                                <span>0 VND</span>
+                                <span>10,000,000 VND</span>
+                            </div>
+                            <div class="slider-step-info">
+                                <small>Bước: 100,000 VND</small>
                             </div>
                             <div class="slider-wrapper">
                                 <div class="slider-track"></div>
                                 <div class="slider-range" id="sliderRange"></div>
-                                <input type="range" id="minSlider" min="0" max="100" value="0" class="slider slider-min">
-                                <input type="range" id="maxSlider" min="0" max="100" value="100" class="slider slider-max">
+                                <input type="range" id="minSlider" min="0" max="10000000" value="0" step="100000" class="slider slider-min">
+                                <input type="range" id="maxSlider" min="0" max="10000000" value="10000000" step="100000" class="slider slider-max">
                             </div>
                             <div class="slider-values">
-                                <span id="minValue">£0</span>
-                                <span id="maxValue">£100</span>
+                                <span id="minValue">0 VND</span>
+                                <span id="maxValue">10,000,000 VND</span>
                             </div>
                         </div>
                     </div>
                     
                     <!-- Category Navigation -->
                     <div class="category-nav">
-                        <button class="category-btn active" data-category="featured">Nổi bật</button>
-                        <button class="category-btn" data-category="manicures">Manicures</button>
-                        <button class="category-btn" data-category="pedicures">Pedicures</button>
-                        <button class="category-btn" data-category="brows">Brows & Lashes - Eye mak...</button>
-                        <button class="category-btn" data-category="eyebrows">Eyebrows</button>
+                        <div class="category-dropdown" id="categoryDropdown">
+                            <button class="category-dropdown-button" id="categoryDropdownButton">
+                                <span class="category-dropdown-text">Tất cả</span>
+                                <i class="fas fa-chevron-down category-dropdown-icon"></i>
+                            </button>
+                            <div class="category-dropdown-menu" id="categoryDropdownMenu">
+                                <button class="category-dropdown-item active" data-category="all">
+                                    <i class="fas fa-star"></i>
+                                    Tất cả
+                                </button>
+                                <!-- Service type items will be populated by JavaScript -->
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Services Section -->
                     <div class="services-section">
                         <div class="services-header">
-                            <h2 class="services-title" id="servicesTitle">Nổi bật</h2>
+                            <h2 class="services-title" id="servicesTitle">Tất cả</h2>
                             <button class="reset-filters" id="resetFilters" style="display: none;">Xóa bộ lọc</button>
                         </div>
                         
@@ -126,33 +193,12 @@
                 <!-- Sidebar -->
                 <div class="sidebar">
                     <div class="sidebar-card">
-                        <!-- Salon Info -->
-                        <div class="salon-info">
-                            <div class="salon-image">
-                                <img src="https://images.pexels.com/photos/3993449/pexels-photo-3993449.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Perfect You Salon">
-                            </div>
-                            <div class="salon-details">
-                                <h3 class="salon-name">Perfect You</h3>
-                                <div class="salon-rating">
-                                    <div class="stars">
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                    </div>
-                                    <span class="rating-score">4.9</span>
-                                    <span class="rating-count">(1,655)</span>
-                                </div>
-                                <div class="salon-address">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                    <span>101 Stanley Road, Teddington, England</span>
-                                </div>
-                            </div>
-                        </div>
-
                         <!-- Selected Services -->
                         <div class="selected-services">
+                            <div class="selected-services-header">
+                                <h3>Dịch vụ đã chọn</h3>
+                                <span class="service-counter" id="serviceCounter">0/6</span>
+                            </div>
                             <div class="selected-services-content" id="selectedServicesContent">
                                 <p class="no-services">Không có dịch vụ nào được chọn</p>
                             </div>
@@ -170,9 +216,23 @@
                 </div>
             </div>
         </div>
-    </main>
-
-
-    <script src="${pageContext.request.contextPath}/assets/home/js/service-selection.js"></script>
+          </main>
+        </div>
+        <!-- Service selection content END -->
+      </div>
+      <!-- Content END-->
+      
+      <!-- Footer -->
+      <jsp:include page="/WEB-INF/view/common/home/footer.jsp"></jsp:include>
+      <!-- Footer END -->
+      
+      <button class="scroltop fa fa-chevron-up"></button>
+    </div>
+    
+    <!-- JAVASCRIPT FILES ========================================= -->
+    <jsp:include page="/WEB-INF/view/common/home/js.jsp"></jsp:include>
+    
+    <!-- Custom service selection script -->
+    <script src="${pageContext.request.contextPath}/assets/home/js/service-selection.js?v=<%=System.currentTimeMillis()%>"></script>
 </body>
 </html>
