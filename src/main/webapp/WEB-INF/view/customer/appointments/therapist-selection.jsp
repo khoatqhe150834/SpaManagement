@@ -87,8 +87,7 @@
               <div class="breadcrumb-row">
                 <ul class="list-inline">
                   <li><a href="${pageContext.request.contextPath}/">Trang chủ</a></li>
-                  <li><a href="${pageContext.request.contextPath}/appointments">Đặt lịch</a></li>
-                  <li><a href="${pageContext.request.contextPath}/appointments/services">Chọn dịch vụ</a></li>
+                  <li><a href="${pageContext.request.contextPath}/process-booking">Đặt lịch</a></li>
                   <li>Chọn chuyên gia</li>
                 </ul>
               </div>
@@ -103,11 +102,13 @@
           <div class="container">
             <!-- Breadcrumbs -->
             <nav class="booking-breadcrumbs">
-                <span>Dịch vụ</span>
+                <span>✓ Dịch vụ</span>
                 <span class="mx-2">&gt;</span>
                 <span class="font-semibold active">Chuyên gia</span>
                 <span class="mx-2">&gt;</span>
                 <span>Thời gian</span>
+                <span class="mx-2">&gt;</span>
+                <span>Thanh toán</span>
                 <span class="mx-2">&gt;</span>
                 <span>Xác nhận</span>
             </nav>
@@ -127,42 +128,10 @@
                         
                         <div class="recent-therapists" id="recentTherapists">
                             <!-- Recent therapists will be loaded here -->
-                            <div class="recent-therapist-card" data-therapist-id="1">
-                                <div class="therapist-avatar">
-                                    <img src="https://placehold.co/80x80/E2E8F0/4A5568?text=AN" alt="An Nguyen">
-                                    <div class="therapist-rating">
-                                        <iconify-icon icon="mdi:star"></iconify-icon>
-                                        <span>4.9</span>
-                                    </div>
-                                </div>
-                                <div class="therapist-info">
-                                    <h3 class="therapist-name">An Nguyễn</h3>
-                                    <p class="therapist-specialty">Chuyên gia massage</p>
-                                    <p class="last-visit">Lần cuối: 15/05/2025</p>
-                                </div>
-                                <button class="quick-rebook-btn">
-                                    <iconify-icon icon="mdi:lightning-bolt"></iconify-icon>
-                                    Đặt lại
-                                </button>
-                            </div>
-                            
-                            <div class="recent-therapist-card" data-therapist-id="3">
-                                <div class="therapist-avatar">
-                                    <img src="https://placehold.co/80x80/E2E8F0/4A5568?text=DN" alt="Deni">
-                                    <div class="therapist-rating">
-                                        <iconify-icon icon="mdi:star"></iconify-icon>
-                                        <span>4.8</span>
-                                    </div>
-                                </div>
-                                <div class="therapist-info">
-                                    <h3 class="therapist-name">Deni</h3>
-                                    <p class="therapist-specialty">Chuyên gia da</p>
-                                    <p class="last-visit">Lần cuối: 10/05/2025</p>
-                                </div>
-                                <button class="quick-rebook-btn">
-                                    <iconify-icon icon="mdi:lightning-bolt"></iconify-icon>
-                                    Đặt lại
-                                </button>
+                            <div class="no-recent-message" style="text-align: center; color: #6b7280; padding: 2rem;">
+                                <iconify-icon icon="mdi:calendar-clock" style="font-size: 3rem; margin-bottom: 1rem;"></iconify-icon>
+                                <p>Chưa có lịch hẹn gần đây</p>
+                                <small>Lịch hẹn gần đây sẽ hiển thị ở đây để bạn đặt lại nhanh chóng</small>
                             </div>
                         </div>
                     </div>
@@ -173,95 +142,67 @@
                             <iconify-icon icon="mdi:account-group"></iconify-icon>
                             Chọn chuyên gia cho từng dịch vụ
                         </h2>
-                        <p class="section-subtitle">Bạn có thể chọn chuyên gia khác nhau cho mỗi dịch vụ</p>
+                        <p class="section-subtitle">Bạn có thể chọn chuyên gia khác nhau cho mỗi dịch vụ hoặc để hệ thống tự động chọn</p>
                         
                         <!-- Selected Services List -->
                         <div class="selected-services-list" id="selectedServicesList">
-                            <!-- Services will be loaded from previous step -->
-                            <!-- Sample service items -->
-                            <div class="service-therapist-item" data-service-id="1">
-                                <div class="service-info">
-                                    <h3 class="service-name">
-                                        <iconify-icon icon="mdi:spa"></iconify-icon>
-                                        Massage toàn thân thư giãn
-                                    </h3>
-                                    <div class="service-details">
-                                        <span class="service-duration">
-                                            <iconify-icon icon="mdi:clock-outline"></iconify-icon>
-                                            90 phút
-                                        </span>
-                                        <span class="service-price">
-                                            <iconify-icon icon="mdi:tag"></iconify-icon>
-                                            1,200,000 VND
-                                        </span>
-                                    </div>
-                                </div>
-                                
-                                <div class="therapist-selection">
-                                    <label class="selection-label">Chọn chuyên gia:</label>
-                                    <div class="therapist-options">
-                                        <button class="therapist-option auto-assign active" data-selection="auto">
-                                            <iconify-icon icon="mdi:auto-fix"></iconify-icon>
-                                            <span>Tự động chọn</span>
-                                            <small>Hệ thống sẽ chọn chuyên gia phù hợp nhất</small>
-                                        </button>
-                                        <button class="therapist-option manual-select" data-selection="manual">
-                                            <iconify-icon icon="mdi:account-search"></iconify-icon>
-                                            <span>Chọn thủ công</span>
-                                            <small>Tự chọn chuyên gia ưa thích</small>
-                                        </button>
+                            <!-- Services will be loaded from server data -->
+                            <c:forEach var="service" items="${selectedServices}" varStatus="status">
+                                <div class="service-therapist-item" data-service-id="${service.serviceId}">
+                                    <div class="service-info">
+                                        <h3 class="service-name">
+                                            <iconify-icon icon="mdi:spa"></iconify-icon>
+                                            ${service.name}
+                                        </h3>
+                                        <div class="service-details">
+                                            <span class="service-duration">
+                                                <iconify-icon icon="mdi:clock-outline"></iconify-icon>
+                                                ${service.durationMinutes} phút
+                                            </span>
+                                            <span class="service-price">
+                                                <iconify-icon icon="mdi:tag"></iconify-icon>
+                                                <fmt:formatNumber value="${service.price}" type="number" groupingUsed="true"/> VND
+                                            </span>
+                                        </div>
                                     </div>
                                     
-                                    <!-- Therapist Cards (hidden by default) -->
-                                    <div class="therapist-cards" style="display: none;">
-                                        <div class="therapist-grid" id="therapistGrid1">
-                                            <!-- Therapist cards will be loaded here -->
+                                    <div class="therapist-selection">
+                                        <label class="selection-label">Chọn chuyên gia:</label>
+                                        <div class="therapist-options">
+                                            <button class="therapist-option auto-assign active" 
+                                                    data-service-id="${service.serviceId}" data-selection="auto">
+                                                <iconify-icon icon="mdi:auto-fix"></iconify-icon>
+                                                <span>Tự động chọn</span>
+                                                <small>Hệ thống sẽ chọn chuyên gia phù hợp nhất</small>
+                                            </button>
+                                            <button class="therapist-option manual-select" 
+                                                    data-service-id="${service.serviceId}" data-selection="manual">
+                                                <iconify-icon icon="mdi:account-search"></iconify-icon>
+                                                <span>Chọn thủ công</span>
+                                                <small>Tự chọn chuyên gia ưa thích</small>
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- Therapist Cards (hidden by default) -->
+                                        <div class="therapist-cards" style="display: none;">
+                                            <div class="therapist-grid" id="therapistGrid${service.serviceId}">
+                                                <!-- Therapist cards will be loaded here -->
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </c:forEach>
                             
-                            <div class="service-therapist-item" data-service-id="2">
-                                <div class="service-info">
-                                    <h3 class="service-name">
-                                        <iconify-icon icon="mdi:leaf"></iconify-icon>
-                                        Chăm sóc da mặt cơ bản
-                                    </h3>
-                                    <div class="service-details">
-                                        <span class="service-duration">
-                                            <iconify-icon icon="mdi:clock-outline"></iconify-icon>
-                                            60 phút
-                                        </span>
-                                        <span class="service-price">
-                                            <iconify-icon icon="mdi:tag"></iconify-icon>
-                                            800,000 VND
-                                        </span>
-                                    </div>
+                            <!-- Fallback if no services (shouldn't happen in normal flow) -->
+                            <c:if test="${empty selectedServices}">
+                                <div class="no-services-message" style="text-align: center; color: #6b7280; padding: 2rem;">
+                                    <iconify-icon icon="mdi:alert-circle" style="font-size: 3rem; margin-bottom: 1rem;"></iconify-icon>
+                                    <p>Không có dịch vụ nào được chọn</p>
+                                    <a href="${pageContext.request.contextPath}/process-booking" class="btn btn-primary">
+                                        Quay lại chọn dịch vụ
+                                    </a>
                                 </div>
-                                
-                                <div class="therapist-selection">
-                                    <label class="selection-label">Chọn chuyên gia:</label>
-                                    <div class="therapist-options">
-                                        <button class="therapist-option auto-assign active" data-selection="auto">
-                                            <iconify-icon icon="mdi:auto-fix"></iconify-icon>
-                                            <span>Tự động chọn</span>
-                                            <small>Hệ thống sẽ chọn chuyên gia phù hợp nhất</small>
-                                        </button>
-                                        <button class="therapist-option manual-select" data-selection="manual">
-                                            <iconify-icon icon="mdi:account-search"></iconify-icon>
-                                            <span>Chọn thủ công</span>
-                                            <small>Tự chọn chuyên gia ưa thích</small>
-                                        </button>
-                                    </div>
-                                    
-                                    <!-- Therapist Cards (hidden by default) -->
-                                    <div class="therapist-cards" style="display: none;">
-                                        <div class="therapist-grid" id="therapistGrid2">
-                                            <!-- Therapist cards will be loaded here -->
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            </c:if>
                         </div>
                     </div>
 
@@ -323,31 +264,20 @@
 
                         <!-- Selected Services & Therapists -->
                         <div class="summary-services" id="summaryServices">
-                            <div class="summary-service-item">
-                                <div class="service-summary">
-                                    <h4 class="service-name">Massage toàn thân thư giãn</h4>
-                                    <p class="service-meta">90 phút • 1,200,000 VND</p>
-                                </div>
-                                <div class="therapist-summary">
-                                    <div class="therapist-selection-status auto">
-                                        <iconify-icon icon="mdi:auto-fix"></iconify-icon>
-                                        <span>Tự động chọn chuyên gia</span>
+                            <c:forEach var="service" items="${selectedServices}" varStatus="status">
+                                <div class="summary-service-item" data-service-id="${service.serviceId}">
+                                    <div class="service-summary">
+                                        <h4 class="service-name">${service.name}</h4>
+                                        <p class="service-meta">${service.durationMinutes} phút • <fmt:formatNumber value="${service.price}" type="number" groupingUsed="true"/> VND</p>
+                                    </div>
+                                    <div class="therapist-summary">
+                                        <div class="therapist-selection-status auto">
+                                            <iconify-icon icon="mdi:auto-fix"></iconify-icon>
+                                            <span>Tự động chọn chuyên gia</span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            
-                            <div class="summary-service-item">
-                                <div class="service-summary">
-                                    <h4 class="service-name">Chăm sóc da mặt cơ bản</h4>
-                                    <p class="service-meta">60 phút • 800,000 VND</p>
-                                </div>
-                                <div class="therapist-summary">
-                                    <div class="therapist-selection-status auto">
-                                        <iconify-icon icon="mdi:auto-fix"></iconify-icon>
-                                        <span>Tự động chọn chuyên gia</span>
-                                    </div>
-                                </div>
-                            </div>
+                            </c:forEach>
                         </div>
 
                         <hr class="summary-divider">
@@ -356,11 +286,17 @@
                         <div class="summary-total">
                             <div class="total-services">
                                 <span class="total-label">Tổng số dịch vụ:</span>
-                                <span class="total-count">2</span>
+                                <span class="total-count">${selectedServices.size()}</span>
                             </div>
                             <div class="total-amount">
                                 <span class="total-label">Tổng tiền:</span>
-                                <span class="total-price">2,000,000 VND</span>
+                                <span class="total-price" id="totalPrice">
+                                    <c:set var="total" value="0"/>
+                                    <c:forEach var="service" items="${selectedServices}">
+                                        <c:set var="total" value="${total + service.price}"/>
+                                    </c:forEach>
+                                    <fmt:formatNumber value="${total}" type="number" groupingUsed="true"/> VND
+                                </span>
                             </div>
                         </div>
                         
@@ -372,10 +308,10 @@
 
                         <!-- Additional Options -->
                         <div class="additional-options">
-                            <button class="option-btn" id="addMoreServices">
-                                <iconify-icon icon="mdi:plus"></iconify-icon>
-                                Thêm dịch vụ
-                            </button>
+                            <a href="${pageContext.request.contextPath}/process-booking" class="option-btn">
+                                <iconify-icon icon="mdi:arrow-left"></iconify-icon>
+                                Quay lại chọn dịch vụ
+                            </a>
                             <button class="option-btn" id="viewAllTherapists">
                                 <iconify-icon icon="mdi:account-multiple"></iconify-icon>
                                 Xem tất cả chuyên gia
@@ -399,6 +335,9 @@
     
     <!-- JAVASCRIPT FILES ========================================= -->
     <jsp:include page="/WEB-INF/view/common/home/js.jsp"></jsp:include>
+    
+    <!-- Booking storage script -->
+    <script src="${pageContext.request.contextPath}/assets/home/js/booking-storage.js"></script>
     
     <!-- Custom therapist selection script -->
     <script src="${pageContext.request.contextPath}/assets/home/js/therapist-selection.js"></script>

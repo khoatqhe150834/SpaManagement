@@ -80,7 +80,7 @@
             background-image: url(${pageContext.request.contextPath}/assets/home/images/banner/bnr2.jpg);
           "
         >
-          <div class="container">
+        <div class="container">
             <div class="dlab-bnr-inr-entry">
               <h1 class="text-white">Chọn Dịch Vụ</h1>
               <!-- Breadcrumb row -->
@@ -90,16 +90,16 @@
                   <li><a href="${pageContext.request.contextPath}/appointments">Đặt lịch</a></li>
                   <li>Chọn dịch vụ</li>
                 </ul>
-              </div>
+                </div>
               <!-- Breadcrumb row END -->
             </div>
-          </div>
+            </div>
         </div>
         <!-- inner page banner END -->
-        
+
         <!-- Service selection content -->
         <div class="section-full content-inner">
-          <main class="main">
+    <main class="main">
         <div class="container">
             <div class="content-grid">
                 <!-- Main Content -->
@@ -216,7 +216,7 @@
                 </div>
             </div>
         </div>
-          </main>
+    </main>
         </div>
         <!-- Service selection content END -->
       </div>
