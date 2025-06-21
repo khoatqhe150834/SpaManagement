@@ -14,6 +14,8 @@ import model.Service;
 import model.ServiceType;
 import model.Staff;
 import model.Appointment;
+import model.BookingAppointment;
+import model.BookingGroup;
 import model.Customer;
 import dao.ServiceDAO;
 import dao.ServiceTypeDAO;
@@ -24,6 +26,7 @@ import service.email.EmailService;
 import util.QRCodeGenerator;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -33,8 +36,9 @@ import com.google.gson.Gson;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 import model.BookingSession;
+import service.BookingSessionService;
 
-@WebServlet(name = "BookingController", urlPatterns = { "/process-booking/*" })
+@WebServlet(name = "BookingController", urlPatterns = { "/process-booking/*", "/booking/*" })
 public class BookingController extends HttpServlet {
 
   private static final Logger LOGGER = Logger.getLogger(BookingController.class.getName());
@@ -46,6 +50,7 @@ public class BookingController extends HttpServlet {
   private CustomerDAO customerDAO;
   private EmailService emailService;
   private QRCodeGenerator qrCodeGenerator;
+  private BookingSessionService bookingSessionService;
   private Gson gson;
 
   // Booking session keys
@@ -55,8 +60,8 @@ public class BookingController extends HttpServlet {
   // Booking steps
   public enum BookingStep {
     SERVICE_SELECTION,
-    THERAPIST_SELECTION,
     TIME_SELECTION,
+    THERAPIST_SELECTION,
     PAYMENT,
     CONFIRMATION
   }
@@ -72,6 +77,7 @@ public class BookingController extends HttpServlet {
     customerDAO = new CustomerDAO();
     emailService = new EmailService();
     qrCodeGenerator = new QRCodeGenerator();
+    bookingSessionService = new BookingSessionService();
     gson = new Gson();
   }
 
@@ -90,9 +96,11 @@ public class BookingController extends HttpServlet {
       case "/service-selection":
         handleServiceSelection(request, response);
         break;
+      case "/therapists":
       case "/therapist-selection":
         handleTherapistSelection(request, response);
         break;
+      case "/time":
       case "/time-selection":
         handleTimeSelection(request, response);
         break;
@@ -101,6 +109,9 @@ public class BookingController extends HttpServlet {
         break;
       case "/confirmation":
         handleConfirmation(request, response);
+        break;
+      case "/resume":
+        handleResumeSession(request, response);
         break;
       case "/booking-summary":
         handleBookingSummary(request, response);
@@ -129,18 +140,23 @@ public class BookingController extends HttpServlet {
     // Handle POST requests for different booking steps
     if (pathInfo != null) {
       switch (pathInfo) {
+        case "/services":
         case "/save-services":
           saveSelectedServices(request, response);
           break;
+        case "/therapists":
         case "/save-therapist":
           saveSelectedTherapist(request, response);
           break;
+        case "/time":
         case "/save-time":
           saveSelectedTime(request, response);
           break;
+        case "/payment":
         case "/process-payment":
           processPayment(request, response);
           break;
+        case "/complete":
         case "/confirm-booking":
           confirmBooking(request, response);
           break;
@@ -238,25 +254,27 @@ public class BookingController extends HttpServlet {
   // Handle service selection - create booking session if needed
   private void handleServiceSelection(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    HttpSession session = request.getSession(true);
 
-    // Create or retrieve booking session
-    BookingSession bookingSession = (BookingSession) session.getAttribute("bookingSession");
+    // Use BookingSessionService to get or create database-persisted session
+    BookingSession bookingSession = bookingSessionService.getOrCreateSession(request);
+
     if (bookingSession == null) {
-      bookingSession = new BookingSession();
-      session.setAttribute("bookingSession", bookingSession);
-      LOGGER.log(Level.INFO, "Created new booking session for service selection");
+      LOGGER.log(Level.SEVERE, "Failed to create booking session");
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to initialize booking session");
+      return;
     }
 
+    // Set persistent cookie if marked by service
+    setPersistentCookieIfNeeded(request, response);
+
     // Load selected services from session if available
-    List<Service> selectedServices = bookingSession.getSelectedServices();
-    if (selectedServices != null && !selectedServices.isEmpty()) {
-      request.setAttribute("selectedServices", selectedServices);
-      LOGGER.log(Level.INFO, "Loaded " + selectedServices.size() + " services from session");
+    if (bookingSession.hasServices()) {
+      request.setAttribute("selectedServices", bookingSession.getData().getSelectedServices());
+      LOGGER.log(Level.INFO,
+          "Loaded " + bookingSession.getData().getSelectedServices().size() + " services from database session");
     }
 
     // Get price range for filtering
-    ServiceDAO serviceDAO = new ServiceDAO();
     try {
       double minPrice = serviceDAO.findMinPrice();
       double maxPrice = serviceDAO.findMaxPrice();
@@ -268,6 +286,8 @@ public class BookingController extends HttpServlet {
       request.setAttribute("maxPrice", 10000000.0);
     }
 
+    request.setAttribute("bookingSession", bookingSession);
+    request.setAttribute("currentStep", "services");
     request.getRequestDispatcher("/WEB-INF/view/customer/appointments/services-selection.jsp").forward(request,
         response);
   }
@@ -275,24 +295,31 @@ public class BookingController extends HttpServlet {
   // Handle therapist selection - load selected services from session
   private void handleTherapistSelection(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    HttpSession session = request.getSession(false);
 
-    if (session == null) {
-      // No session, redirect to service selection
-      response.sendRedirect(request.getContextPath() + "/process-booking/services");
+    // Get booking session from database
+    BookingSession bookingSession = bookingSessionService.getSessionFromRequest(request);
+
+    if (bookingSession == null || !bookingSession.hasServices() || !bookingSession.hasTimeSlots()) {
+      // No booking session, no services selected, or no time slots, redirect
+      // appropriately
+      if (bookingSession == null || !bookingSession.hasServices()) {
+        response.sendRedirect(request.getContextPath() + "/process-booking/services");
+      } else {
+        response.sendRedirect(request.getContextPath() + "/process-booking/time");
+      }
       return;
     }
 
-    BookingSession bookingSession = (BookingSession) session.getAttribute("bookingSession");
-    if (bookingSession == null || bookingSession.getSelectedServices() == null
-        || bookingSession.getSelectedServices().isEmpty()) {
-      // No booking session or no services selected, redirect to service selection
+    // Validate step progression
+    if (!bookingSessionService.canProceedToStep(bookingSession, BookingSession.CurrentStep.THERAPISTS)) {
       response.sendRedirect(request.getContextPath() + "/process-booking/services");
       return;
     }
 
     // Pass selected services to JSP
-    request.setAttribute("selectedServices", bookingSession.getSelectedServices());
+    request.setAttribute("selectedServices", bookingSession.getData().getSelectedServices());
+    request.setAttribute("bookingSession", bookingSession);
+    request.setAttribute("currentStep", "therapists");
     request.getRequestDispatcher("/WEB-INF/view/customer/appointments/therapist-selection.jsp").forward(request,
         response);
   }
@@ -300,28 +327,26 @@ public class BookingController extends HttpServlet {
   // Handle time selection
   private void handleTimeSelection(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    HttpSession session = request.getSession(false);
 
-    if (session == null) {
+    // Get booking session from database
+    BookingSession bookingSession = bookingSessionService.getSessionFromRequest(request);
+
+    if (bookingSession == null || !bookingSession.hasServices()) {
+      // No booking session or no services selected, redirect to service selection
       response.sendRedirect(request.getContextPath() + "/process-booking/services");
       return;
     }
 
-    BookingSession bookingSession = (BookingSession) session.getAttribute("bookingSession");
-    if (bookingSession == null || bookingSession.getSelectedServices() == null
-        || bookingSession.getSelectedTherapist() == null) {
-      // Incomplete booking session, redirect appropriately
-      if (bookingSession == null || bookingSession.getSelectedServices() == null) {
-        response.sendRedirect(request.getContextPath() + "/process-booking/services");
-      } else {
-        response.sendRedirect(request.getContextPath() + "/process-booking/therapist-selection");
-      }
+    // Validate step progression
+    if (!bookingSessionService.canProceedToStep(bookingSession, BookingSession.CurrentStep.TIME)) {
+      response.sendRedirect(request.getContextPath() + "/process-booking/services");
       return;
     }
 
     // Pass booking data to JSP
-    request.setAttribute("selectedServices", bookingSession.getSelectedServices());
-    request.setAttribute("selectedTherapist", bookingSession.getSelectedTherapist());
+    request.setAttribute("selectedServices", bookingSession.getData().getSelectedServices());
+    request.setAttribute("bookingSession", bookingSession);
+    request.setAttribute("currentStep", "time");
     request.getRequestDispatcher("/WEB-INF/view/customer/appointments/time-selection.jsp").forward(request, response);
   }
 
@@ -336,13 +361,13 @@ public class BookingController extends HttpServlet {
     }
 
     BookingSession bookingSession = (BookingSession) session.getAttribute("bookingSession");
-    if (bookingSession == null || !bookingSession.isComplete()) {
+    if (bookingSession == null || !bookingSession.isReadyForPayment()) {
       // Incomplete booking session, redirect to appropriate step
-      if (bookingSession == null || bookingSession.getSelectedServices() == null) {
+      if (bookingSession == null || !bookingSession.hasServices()) {
         response.sendRedirect(request.getContextPath() + "/process-booking/services");
-      } else if (bookingSession.getSelectedTherapist() == null) {
+      } else if (!bookingSession.hasTherapistAssignments()) {
         response.sendRedirect(request.getContextPath() + "/process-booking/therapist-selection");
-      } else if (bookingSession.getSelectedDate() == null || bookingSession.getSelectedTime() == null) {
+      } else if (!bookingSession.hasTimeSlots()) {
         response.sendRedirect(request.getContextPath() + "/process-booking/time-selection");
       }
       return;
@@ -364,7 +389,7 @@ public class BookingController extends HttpServlet {
     }
 
     BookingSession bookingSession = (BookingSession) session.getAttribute("bookingSession");
-    if (bookingSession == null || !bookingSession.isComplete()) {
+    if (bookingSession == null || !bookingSession.isReadyForPayment()) {
       response.sendRedirect(request.getContextPath() + "/process-booking/payment");
       return;
     }
@@ -626,15 +651,18 @@ public class BookingController extends HttpServlet {
     LOGGER.log(Level.INFO, "Content type: " + request.getContentType());
     LOGGER.log(Level.INFO, "Request URI: " + request.getRequestURI());
 
-    HttpSession session = request.getSession(true);
-    BookingSession bookingSession = (BookingSession) session.getAttribute("bookingSession");
+    // Use BookingSessionService to get or create database-persisted session
+    BookingSession bookingSession = bookingSessionService.getOrCreateSession(request);
 
-    // Create booking session if it doesn't exist
     if (bookingSession == null) {
-      LOGGER.log(Level.WARNING, "No booking session found, creating new one");
-      bookingSession = new BookingSession();
-      session.setAttribute("bookingSession", bookingSession);
+      LOGGER.log(Level.SEVERE, "Failed to create booking session");
+      response.setContentType("application/json");
+      response.getWriter().write("{\"success\": false, \"message\": \"Failed to initialize booking session\"}");
+      return;
     }
+
+    // Set persistent cookie if marked by service
+    setPersistentCookieIfNeeded(request, response);
 
     // Get selected service IDs
     String[] serviceIds = request.getParameterValues("serviceIds");
@@ -658,15 +686,18 @@ public class BookingController extends HttpServlet {
         }
       }
 
-      // Store in booking session
-      bookingSession.setSelectedServices(selectedServices);
-      session.setAttribute("bookingSession", bookingSession);
+      // Use BookingSessionService to save services to database
+      boolean success = bookingSessionService.addServicesToSession(bookingSession, selectedServices);
 
-      LOGGER.log(Level.INFO, "Successfully saved " + selectedServices.size() + " services");
-
-      // Return success response
-      response.setContentType("application/json");
-      response.getWriter().write("{\"success\": true, \"nextStep\": \"therapist-selection\"}");
+      if (success) {
+        LOGGER.log(Level.INFO, "Successfully saved " + selectedServices.size() + " services to database");
+        response.setContentType("application/json");
+        response.getWriter().write("{\"success\": true, \"nextStep\": \"therapist-selection\"}");
+      } else {
+        LOGGER.log(Level.SEVERE, "Failed to save services to database");
+        response.setContentType("application/json");
+        response.getWriter().write("{\"success\": false, \"message\": \"Failed to save services to database\"}");
+      }
 
     } catch (NumberFormatException e) {
       LOGGER.log(Level.SEVERE, "Error parsing service IDs", e);
@@ -683,19 +714,16 @@ public class BookingController extends HttpServlet {
   private void saveSelectedTherapist(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
 
-    HttpSession session = request.getSession(false);
-    if (session == null) {
-      response.setContentType("application/json");
-      response.getWriter().write("{\"success\": false, \"message\": \"No session found\"}");
-      return;
-    }
-
-    BookingSession bookingSession = (BookingSession) session.getAttribute("bookingSession");
+    // Get booking session from database
+    BookingSession bookingSession = bookingSessionService.getSessionFromRequest(request);
     if (bookingSession == null) {
       response.setContentType("application/json");
       response.getWriter().write("{\"success\": false, \"message\": \"No booking session found\"}");
       return;
     }
+
+    // Set persistent cookie if marked by service
+    setPersistentCookieIfNeeded(request, response);
 
     String therapistId = request.getParameter("therapistId");
     if (therapistId == null || therapistId.trim().isEmpty()) {
@@ -713,12 +741,31 @@ public class BookingController extends HttpServlet {
         return;
       }
 
-      // Store in booking session
-      bookingSession.setSelectedTherapist(therapist);
-      session.setAttribute("bookingSession", bookingSession);
+      // Use BookingSessionService to assign therapist to services
+      boolean success = false;
+      if (bookingSession.hasServices()) {
+        // Assign therapist to all selected services (simplified approach)
+        for (BookingSession.ServiceSelection serviceSelection : bookingSession.getData().getSelectedServices()) {
+          success = bookingSessionService.assignTherapistToService(
+              bookingSession,
+              serviceSelection.getServiceId(),
+              therapist.getUser().getUserId(),
+              therapist.getUser().getFullName());
+          if (!success) {
+            break; // Stop if any assignment fails
+          }
+        }
+      }
 
-      response.setContentType("application/json");
-      response.getWriter().write("{\"success\": true, \"nextStep\": \"time-selection\"}");
+      if (success) {
+        LOGGER.log(Level.INFO, "Successfully assigned therapist to services in database");
+        response.setContentType("application/json");
+        response.getWriter().write("{\"success\": true, \"nextStep\": \"time-selection\"}");
+      } else {
+        LOGGER.log(Level.SEVERE, "Failed to assign therapist to services in database");
+        response.setContentType("application/json");
+        response.getWriter().write("{\"success\": false, \"message\": \"Failed to assign therapist\"}");
+      }
 
     } catch (NumberFormatException e) {
       response.setContentType("application/json");
@@ -734,19 +781,16 @@ public class BookingController extends HttpServlet {
   private void saveSelectedTime(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
 
-    HttpSession session = request.getSession(false);
-    if (session == null) {
-      response.setContentType("application/json");
-      response.getWriter().write("{\"success\": false, \"message\": \"No session found\"}");
-      return;
-    }
-
-    BookingSession bookingSession = (BookingSession) session.getAttribute("bookingSession");
+    // Get booking session from database
+    BookingSession bookingSession = bookingSessionService.getSessionFromRequest(request);
     if (bookingSession == null) {
       response.setContentType("application/json");
       response.getWriter().write("{\"success\": false, \"message\": \"No booking session found\"}");
       return;
     }
+
+    // Set persistent cookie if marked by service
+    setPersistentCookieIfNeeded(request, response);
 
     String selectedDate = request.getParameter("selectedDate");
     String selectedTime = request.getParameter("selectedTime");
@@ -762,13 +806,39 @@ public class BookingController extends HttpServlet {
       LocalDate date = LocalDate.parse(selectedDate);
       LocalTime time = LocalTime.parse(selectedTime);
 
-      // Store in booking session
-      bookingSession.setSelectedDate(date);
-      bookingSession.setSelectedTime(time);
-      session.setAttribute("bookingSession", bookingSession);
+      // Store date/time in booking session using the new approach
+      LocalDateTime selectedDateTime = LocalDateTime.of(date, time);
 
-      response.setContentType("application/json");
-      response.getWriter().write("{\"success\": true, \"nextStep\": \"payment\"}");
+      // Use BookingSessionService to schedule all services
+      boolean success = true;
+      if (bookingSession.hasServices()) {
+        LocalDateTime currentTime = selectedDateTime;
+
+        for (BookingSession.ServiceSelection serviceSelection : bookingSession.getData().getSelectedServices()) {
+          success = bookingSessionService.scheduleService(bookingSession, serviceSelection.getServiceId(), currentTime);
+          if (!success) {
+            break; // Stop if any scheduling fails
+          }
+          // Next service starts after current service ends
+          currentTime = currentTime.plusMinutes(serviceSelection.getEstimatedDuration());
+        }
+
+        // Set the selected date in the session data if all scheduling was successful
+        if (success) {
+          bookingSession.getData().setSelectedDate(date);
+          bookingSessionService.updateSession(bookingSession);
+        }
+      }
+
+      if (success) {
+        LOGGER.log(Level.INFO, "Successfully scheduled all services in database");
+        response.setContentType("application/json");
+        response.getWriter().write("{\"success\": true, \"nextStep\": \"payment\"}");
+      } else {
+        LOGGER.log(Level.SEVERE, "Failed to schedule services in database");
+        response.setContentType("application/json");
+        response.getWriter().write("{\"success\": false, \"message\": \"Failed to schedule services\"}");
+      }
 
     } catch (Exception e) {
       LOGGER.log(Level.SEVERE, "Error saving date/time", e);
@@ -781,15 +851,9 @@ public class BookingController extends HttpServlet {
   private void processPayment(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
 
-    HttpSession session = request.getSession(false);
-    if (session == null) {
-      response.setContentType("application/json");
-      response.getWriter().write("{\"success\": false, \"message\": \"No session found\"}");
-      return;
-    }
-
-    BookingSession bookingSession = (BookingSession) session.getAttribute("bookingSession");
-    if (bookingSession == null || !bookingSession.isComplete()) {
+    // Get booking session from database
+    BookingSession bookingSession = bookingSessionService.getSessionFromRequest(request);
+    if (bookingSession == null || !bookingSessionService.isSessionReadyForPayment(bookingSession)) {
       response.setContentType("application/json");
       response.getWriter().write("{\"success\": false, \"message\": \"Incomplete booking session\"}");
       return;
@@ -799,24 +863,34 @@ public class BookingController extends HttpServlet {
     String paymentMethod = request.getParameter("paymentMethod");
     String notes = request.getParameter("notes");
 
-    // For now, simulate successful payment (cash at spa)
-    bookingSession.setPaymentMethod(paymentMethod != null ? paymentMethod : "cash");
-    bookingSession.setNotes(notes);
+    // Use BookingSessionService to update payment details
+    boolean success = bookingSessionService.updatePaymentDetails(
+        bookingSession,
+        paymentMethod != null ? paymentMethod : "ONLINE_BANKING",
+        notes);
+
+    if (!success) {
+      response.setContentType("application/json");
+      response.getWriter().write("{\"success\": false, \"message\": \"Failed to update payment details\"}");
+      return;
+    }
 
     try {
-      // Create the actual appointment
-      Appointment appointment = createAppointmentFromBookingSession(bookingSession, session);
+      // Create the actual appointments using new approach
+      HttpSession httpSession = request.getSession();
+      List<BookingAppointment> appointments = createBookingAppointmentsFromSession(bookingSession, httpSession);
 
-      if (appointment != null) {
-        // Clear booking session after successful booking
-        session.removeAttribute("bookingSession");
+      if (!appointments.isEmpty()) {
+        // Clear booking session from database and HTTP session after successful booking
+        bookingSessionService.completeAndDeleteSession(bookingSession.getSessionId());
+        httpSession.removeAttribute("bookingSessionId");
 
         response.setContentType("application/json");
-        response.getWriter().write("{\"success\": true, \"appointmentId\": " + appointment.getAppointmentId()
-            + ", \"nextStep\": \"confirmation\"}");
+        response.getWriter().write("{\"success\": true, \"appointmentId\": " + appointments.get(0).getAppointmentId()
+            + ", \"appointmentCount\": " + appointments.size() + ", \"nextStep\": \"confirmation\"}");
       } else {
         response.setContentType("application/json");
-        response.getWriter().write("{\"success\": false, \"message\": \"Failed to create appointment\"}");
+        response.getWriter().write("{\"success\": false, \"message\": \"Failed to create appointments\"}");
       }
 
     } catch (Exception e) {
@@ -827,51 +901,427 @@ public class BookingController extends HttpServlet {
     }
   }
 
-  // Helper method to create appointment from booking session
-  private Appointment createAppointmentFromBookingSession(BookingSession bookingSession, HttpSession session) {
+  // Helper method to create BookingAppointments from booking session
+  private List<BookingAppointment> createBookingAppointmentsFromSession(BookingSession bookingSession,
+      HttpSession session) {
+    List<BookingAppointment> appointments = new ArrayList<>();
+
     try {
       // Get customer from session (assuming user is logged in)
       Customer customer = (Customer) session.getAttribute("customer");
       if (customer == null) {
         LOGGER.log(Level.WARNING, "No customer found in session");
-        return null;
+        return appointments;
       }
 
-      // Create appointment
-      Appointment appointment = new Appointment();
-      appointment.setCustomerId(customer.getCustomerId());
-      appointment.setTherapistUserId(bookingSession.getSelectedTherapist().getUser().getUserId());
+      // First, create the booking group (master record)
+      BookingGroup bookingGroup = new BookingGroup();
+      bookingGroup.setCustomerId(customer.getCustomerId());
+      bookingGroup.setBookingDate(bookingSession.getData().getSelectedDate());
+      bookingGroup.setTotalAmount(bookingSession.getData().getTotalAmount());
+      bookingGroup.setPaymentStatus(BookingGroup.PaymentStatus.PAID.name());
+      bookingGroup.setBookingStatus(BookingGroup.BookingStatus.CONFIRMED.name());
+      bookingGroup.setPaymentMethod(bookingSession.getData().getPaymentMethod());
+      bookingGroup.setSpecialNotes(bookingSession.getData().getSpecialNotes());
+      bookingGroup.setCreatedAt(LocalDateTime.now());
+      bookingGroup.setUpdatedAt(LocalDateTime.now());
 
-      // Set appointment date/time
-      LocalDateTime appointmentDateTime = LocalDateTime.of(
-          bookingSession.getSelectedDate(),
-          bookingSession.getSelectedTime());
-      appointment.setStartTime(appointmentDateTime);
+      // TODO: Save booking group and get the generated ID
+      // BookingGroup savedGroup = bookingGroupDAO.save(bookingGroup);
+      // For now, assume we get an ID back
+      Integer bookingGroupId = 1; // This should come from the saved booking group
 
-      // Calculate end time based on total duration
-      LocalDateTime endTime = appointmentDateTime.plusMinutes(bookingSession.getTotalDurationMinutes());
-      appointment.setEndTime(endTime);
+      // Then create individual appointments for each service
+      for (BookingSession.ServiceSelection serviceSelection : bookingSession.getData().getSelectedServices()) {
+        BookingAppointment appointment = new BookingAppointment();
 
-      // Set total amount
-      appointment.setTotalFinalPrice(bookingSession.getTotalAmount());
-      appointment.setTotalOriginalPrice(bookingSession.getTotalAmount());
-      appointment.setStatus("CONFIRMED");
-      appointment.setPaymentStatus("PAID");
+        appointment.setBookingGroupId(bookingGroupId);
+        appointment.setServiceId(serviceSelection.getServiceId());
+        appointment.setTherapistUserId(serviceSelection.getTherapistUserId());
+        appointment.setStartTime(serviceSelection.getScheduledTime());
 
-      // Save appointment
-      Appointment savedAppointment = appointmentDAO.save(appointment);
+        // Calculate end time
+        LocalDateTime endTime = serviceSelection.getScheduledTime()
+            .plusMinutes(serviceSelection.getEstimatedDuration());
+        appointment.setEndTime(endTime);
 
-      if (savedAppointment != null) {
-        // TODO: Generate QR code for appointment
-        // TODO: Send confirmation email
-        LOGGER.log(Level.INFO, "Appointment created successfully with ID: " + savedAppointment.getAppointmentId());
+        appointment.setServicePrice(serviceSelection.getEstimatedPrice());
+        appointment.setStatus(BookingAppointment.Status.SCHEDULED.name());
+        appointment.setServiceNotes(bookingSession.getData().getSpecialNotes());
+        appointment.setCreatedAt(LocalDateTime.now());
+        appointment.setUpdatedAt(LocalDateTime.now());
+
+        // TODO: Save appointment using proper DAO
+        // BookingAppointment savedAppointment =
+        // bookingAppointmentDAO.save(appointment);
+        // For now, just add to list (this is placeholder code)
+        appointment.setAppointmentId(appointments.size() + 1); // Temporary ID
+        appointments.add(appointment);
+
+        LOGGER.log(Level.INFO, "Created BookingAppointment for service: " + serviceSelection.getServiceName());
       }
-
-      return savedAppointment;
 
     } catch (Exception e) {
-      LOGGER.log(Level.SEVERE, "Error creating appointment", e);
-      return null;
+      LOGGER.log(Level.SEVERE, "Error creating booking appointments", e);
+    }
+
+    return appointments;
+  }
+
+  // ========================= ENHANCED BOOKING METHODS =========================
+
+  /**
+   * Resume existing booking session
+   */
+  private void handleResumeSession(HttpServletRequest request, HttpServletResponse response)
+      throws ServletException, IOException {
+
+    BookingSession session = bookingSessionService.getSessionFromRequest(request);
+
+    if (session == null || session.isExpired()) {
+      // No existing session, start fresh
+      response.sendRedirect(request.getContextPath() + "/process-booking/services");
+      return;
+    }
+
+    // Set persistent cookie to ensure session persistence
+    setPersistentCookieIfNeeded(request, response);
+
+    LOGGER.log(Level.INFO, "Resuming booking session: {0}, current step: {1}",
+        new Object[] { session.getSessionId(), session.getCurrentStep() });
+
+    // Based on the current step and data, redirect to the appropriate step
+    switch (session.getCurrentStep()) {
+      case SERVICES:
+        response.sendRedirect(request.getContextPath() + "/process-booking/services");
+        break;
+      case TIME:
+        if (session.hasServices()) {
+          response.sendRedirect(request.getContextPath() + "/process-booking/time");
+        } else {
+          response.sendRedirect(request.getContextPath() + "/process-booking/services");
+        }
+        break;
+      case THERAPISTS:
+        if (session.hasServices() && session.hasTimeSlots()) {
+          response.sendRedirect(request.getContextPath() + "/process-booking/therapists");
+        } else if (session.hasServices()) {
+          response.sendRedirect(request.getContextPath() + "/process-booking/time");
+        } else {
+          response.sendRedirect(request.getContextPath() + "/process-booking/services");
+        }
+        break;
+      case REGISTRATION:
+        if (session.hasServices() && session.hasTimeSlots() && session.hasTherapistAssignments()) {
+          response.sendRedirect(request.getContextPath() + "/register?booking=true");
+        } else {
+          // Incomplete data, go back to where we need to continue
+          String redirectUrl = bookingSessionService.getRedirectUrl(session);
+          response.sendRedirect(request.getContextPath() + redirectUrl);
+        }
+        break;
+      case PAYMENT:
+        if (session.isReadyForPayment()) {
+          response.sendRedirect(request.getContextPath() + "/process-booking/payment");
+        } else {
+          // Incomplete data, go back to where we need to continue
+          String redirectUrl = bookingSessionService.getRedirectUrl(session);
+          response.sendRedirect(request.getContextPath() + redirectUrl);
+        }
+        break;
+      default:
+        response.sendRedirect(request.getContextPath() + "/process-booking/services");
+        break;
+    }
+  }
+
+  /**
+   * Enhanced service selection using BookingSessionService
+   */
+  private void handleEnhancedServiceSelection(HttpServletRequest request, HttpServletResponse response)
+      throws ServletException, IOException {
+
+    BookingSession session = bookingSessionService.getOrCreateSession(request);
+
+    if (session == null) {
+      LOGGER.log(Level.SEVERE, "Failed to create booking session");
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to initialize booking session");
+      return;
+    }
+
+    // Ensure persistent cookie is set for this session
+    bookingSessionService.ensurePersistentStorage(request, session);
+    setPersistentCookieIfNeeded(request, response);
+
+    // Load service data
+    List<ServiceType> serviceTypes = serviceTypeDAO.findAll();
+    request.setAttribute("serviceTypes", serviceTypes);
+
+    // Load current selections if any
+    if (session.hasServices()) {
+      request.setAttribute("selectedServices", session.getData().getSelectedServices());
+    }
+
+    // Load price range for filtering
+    try {
+      double minPrice = serviceDAO.findMinPrice();
+      double maxPrice = serviceDAO.findMaxPrice();
+      request.setAttribute("minPrice", minPrice);
+      request.setAttribute("maxPrice", maxPrice);
+    } catch (Exception e) {
+      LOGGER.log(Level.WARNING, "Could not fetch price range", e);
+      request.setAttribute("minPrice", 0.0);
+      request.setAttribute("maxPrice", 10000000.0);
+    }
+
+    request.setAttribute("currentStep", "services");
+    request.setAttribute("bookingSession", session);
+    request.getRequestDispatcher("/WEB-INF/view/customer/appointments/services-selection.jsp")
+        .forward(request, response);
+  }
+
+  /**
+   * Enhanced therapist selection using BookingSessionService
+   */
+  private void handleEnhancedTherapistSelection(HttpServletRequest request, HttpServletResponse response)
+      throws ServletException, IOException {
+
+    BookingSession session = bookingSessionService.getSessionFromRequest(request);
+
+    if (session == null || !session.hasServices()) {
+      response.sendRedirect(request.getContextPath() + "/booking/services");
+      return;
+    }
+
+    // Set persistent cookie if session exists
+    bookingSessionService.ensurePersistentStorage(request, session);
+    setPersistentCookieIfNeeded(request, response);
+
+    // Validate step progression
+    if (!bookingSessionService.canProceedToStep(session, BookingSession.CurrentStep.THERAPISTS)) {
+      response.sendRedirect(request.getContextPath() + "/booking/services");
+      return;
+    }
+
+    request.setAttribute("selectedServices", session.getData().getSelectedServices());
+    request.setAttribute("currentStep", "therapists");
+    request.setAttribute("bookingSession", session);
+    request.getRequestDispatcher("/WEB-INF/view/customer/appointments/therapist-selection.jsp")
+        .forward(request, response);
+  }
+
+  /**
+   * Enhanced time selection using BookingSessionService
+   */
+  private void handleEnhancedTimeSelection(HttpServletRequest request, HttpServletResponse response)
+      throws ServletException, IOException {
+
+    BookingSession session = bookingSessionService.getSessionFromRequest(request);
+
+    if (session == null || !session.hasServices() || !session.hasTherapistAssignments()) {
+      String redirectUrl = bookingSessionService.getRedirectUrl(session);
+      response.sendRedirect(request.getContextPath() + redirectUrl);
+      return;
+    }
+
+    // Set persistent cookie if session exists
+    bookingSessionService.ensurePersistentStorage(request, session);
+    setPersistentCookieIfNeeded(request, response);
+
+    // Validate step progression
+    if (!bookingSessionService.canProceedToStep(session, BookingSession.CurrentStep.TIME)) {
+      response.sendRedirect(request.getContextPath() + "/booking/therapists");
+      return;
+    }
+
+    request.setAttribute("selectedServices", session.getData().getSelectedServices());
+    request.setAttribute("currentStep", "time");
+    request.setAttribute("bookingSession", session);
+    request.getRequestDispatcher("/WEB-INF/view/customer/appointments/time-selection.jsp")
+        .forward(request, response);
+  }
+
+  /**
+   * Enhanced payment using BookingSessionService
+   */
+  private void handleEnhancedPayment(HttpServletRequest request, HttpServletResponse response)
+      throws ServletException, IOException {
+
+    BookingSession session = bookingSessionService.getSessionFromRequest(request);
+
+    if (session == null || !bookingSessionService.isSessionReadyForPayment(session)) {
+      // Check if guest needs to register
+      if (session != null && session.getCustomerId() == null && session.hasTimeSlots()) {
+        response.sendRedirect(request.getContextPath() + "/register?booking=true");
+        return;
+      }
+
+      String redirectUrl = bookingSessionService.getRedirectUrl(session);
+      response.sendRedirect(request.getContextPath() + redirectUrl);
+      return;
+    }
+
+    // Set persistent cookie if session exists
+    bookingSessionService.ensurePersistentStorage(request, session);
+    setPersistentCookieIfNeeded(request, response);
+
+    // Load customer information
+    Customer customer = (Customer) request.getSession().getAttribute("customer");
+    request.setAttribute("customer", customer);
+    request.setAttribute("bookingSession", session);
+    request.setAttribute("currentStep", "payment");
+    request.getRequestDispatcher("/WEB-INF/view/customer/appointments/payment.jsp")
+        .forward(request, response);
+  }
+
+  /**
+   * Enhanced service saving using BookingSessionService
+   */
+  private void saveEnhancedServices(HttpServletRequest request, HttpServletResponse response)
+      throws ServletException, IOException {
+
+    response.setContentType("application/json");
+    com.google.gson.JsonObject jsonResponse = new com.google.gson.JsonObject();
+
+    try {
+      BookingSession session = bookingSessionService.getOrCreateSession(request);
+
+      if (session == null) {
+        jsonResponse.addProperty("success", false);
+        jsonResponse.addProperty("message", "Failed to initialize booking session");
+        response.getWriter().write(gson.toJson(jsonResponse));
+        return;
+      }
+
+      // Parse selected service IDs
+      String serviceIdsParam = request.getParameter("serviceIds");
+      if (serviceIdsParam == null || serviceIdsParam.trim().isEmpty()) {
+        jsonResponse.addProperty("success", false);
+        jsonResponse.addProperty("message", "No services selected");
+        response.getWriter().write(gson.toJson(jsonResponse));
+        return;
+      }
+
+      // Convert service IDs to Service objects
+      List<Service> selectedServices = new ArrayList<>();
+      String[] serviceIdArray = serviceIdsParam.split(",");
+
+      for (String serviceIdStr : serviceIdArray) {
+        try {
+          int serviceId = Integer.parseInt(serviceIdStr.trim());
+          Service service = serviceDAO.findById(serviceId).orElse(null);
+          if (service != null) {
+            selectedServices.add(service);
+          }
+        } catch (NumberFormatException e) {
+          LOGGER.log(Level.WARNING, "Invalid service ID: " + serviceIdStr);
+        }
+      }
+
+      if (selectedServices.isEmpty()) {
+        jsonResponse.addProperty("success", false);
+        jsonResponse.addProperty("message", "No valid services selected");
+        response.getWriter().write(gson.toJson(jsonResponse));
+        return;
+      }
+
+      // Save services to session
+      boolean success = bookingSessionService.addServicesToSession(session, selectedServices);
+
+      if (success) {
+        jsonResponse.addProperty("success", true);
+        jsonResponse.addProperty("message", "Services saved successfully");
+        jsonResponse.addProperty("nextStep", "/booking/therapists");
+      } else {
+        jsonResponse.addProperty("success", false);
+        jsonResponse.addProperty("message", "Failed to save services");
+      }
+
+    } catch (Exception e) {
+      LOGGER.log(Level.SEVERE, "Error saving service selection", e);
+      jsonResponse.addProperty("success", false);
+      jsonResponse.addProperty("message", "Internal server error");
+    }
+
+    response.getWriter().write(gson.toJson(jsonResponse));
+  }
+
+  /**
+   * Create appointments from booking session using new models
+   */
+  private List<BookingAppointment> createAppointmentsFromSession(BookingSession session) {
+    List<BookingAppointment> appointments = new ArrayList<>();
+
+    try {
+      // First, create the booking group (master record)
+      BookingGroup bookingGroup = new BookingGroup();
+      bookingGroup.setCustomerId(session.getCustomerId());
+      bookingGroup.setBookingDate(session.getData().getSelectedDate());
+      bookingGroup.setTotalAmount(session.getData().getTotalAmount());
+      bookingGroup.setPaymentStatus(BookingGroup.PaymentStatus.PAID.name());
+      bookingGroup.setBookingStatus(BookingGroup.BookingStatus.CONFIRMED.name());
+      bookingGroup.setPaymentMethod(session.getData().getPaymentMethod());
+      bookingGroup.setSpecialNotes(session.getData().getSpecialNotes());
+      bookingGroup.setCreatedAt(LocalDateTime.now());
+      bookingGroup.setUpdatedAt(LocalDateTime.now());
+
+      // TODO: Save booking group and get the generated ID
+      // BookingGroup savedGroup = bookingGroupDAO.save(bookingGroup);
+      // For now, assume we get an ID back
+      Integer bookingGroupId = 1; // This should come from the saved booking group
+
+      // Then create individual appointments for each service
+      for (BookingSession.ServiceSelection serviceSelection : session.getData().getSelectedServices()) {
+        BookingAppointment appointment = new BookingAppointment();
+
+        appointment.setBookingGroupId(bookingGroupId);
+        appointment.setServiceId(serviceSelection.getServiceId());
+        appointment.setTherapistUserId(serviceSelection.getTherapistUserId());
+        appointment.setStartTime(serviceSelection.getScheduledTime());
+
+        // Calculate end time
+        LocalDateTime endTime = serviceSelection.getScheduledTime()
+            .plusMinutes(serviceSelection.getEstimatedDuration());
+        appointment.setEndTime(endTime);
+
+        appointment.setServicePrice(serviceSelection.getEstimatedPrice());
+        appointment.setStatus(BookingAppointment.Status.SCHEDULED.name());
+        appointment.setServiceNotes(session.getData().getSpecialNotes());
+        appointment.setCreatedAt(LocalDateTime.now());
+        appointment.setUpdatedAt(LocalDateTime.now());
+
+        // TODO: Save appointment using proper DAO
+        // BookingAppointment savedAppointment =
+        // bookingAppointmentDAO.save(appointment);
+        // For now, just add to list (this is placeholder code)
+        appointment.setAppointmentId(appointments.size() + 1); // Temporary ID
+        appointments.add(appointment);
+      }
+
+    } catch (Exception e) {
+      LOGGER.log(Level.SEVERE, "Error creating appointments from session", e);
+    }
+
+    return appointments;
+  }
+
+  /**
+   * Set persistent booking session cookie if marked by the service
+   */
+  private void setPersistentCookieIfNeeded(HttpServletRequest request, HttpServletResponse response) {
+    String sessionIdToSet = (String) request.getAttribute("BOOKING_SESSION_ID_TO_SET");
+    if (sessionIdToSet != null) {
+      Cookie cookie = new Cookie("BOOKING_SESSION_ID", sessionIdToSet);
+      cookie.setMaxAge(30 * 24 * 60 * 60); // 30 days
+      cookie.setPath("/");
+      cookie.setHttpOnly(true);
+      response.addCookie(cookie);
+      LOGGER.log(Level.INFO, "✅ Set persistent booking session cookie: {0} (30-day expiry)", sessionIdToSet);
+
+      // Remove the attribute so it's not processed again
+      request.removeAttribute("BOOKING_SESSION_ID_TO_SET");
+    } else {
+      LOGGER.log(Level.FINE, "No session ID marked for cookie setting");
     }
   }
 }

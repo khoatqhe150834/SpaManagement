@@ -101,6 +101,13 @@
         <div class="section-full content-inner">
     <main class="main">
         <div class="container">
+            <!-- Step Indicator -->
+            <c:set var="currentStep" value="services" />
+            <jsp:include page="/WEB-INF/view/common/booking/step-indicator.jsp">
+                <jsp:param name="currentStep" value="${currentStep}" />
+                <jsp:param name="bookingSession" value="${bookingSession}" />
+            </jsp:include>
+            
             <div class="content-grid">
                 <!-- Main Content -->
                 <div class="main-content">
@@ -231,6 +238,30 @@
     
     <!-- JAVASCRIPT FILES ========================================= -->
     <jsp:include page="/WEB-INF/view/common/home/js.jsp"></jsp:include>
+    
+    <!-- Pass server data to JavaScript -->
+    <script type="text/javascript">
+        // Pass saved booking session data to JavaScript
+        window.savedBookingData = {
+            selectedServices: <c:choose>
+                <c:when test="${not empty selectedServices}">
+                    [
+                        <c:forEach var="service" items="${selectedServices}" varStatus="status">
+                        {
+                            serviceId: ${service.serviceId},
+                            serviceName: "${service.serviceName}",
+                            estimatedPrice: ${service.estimatedPrice},
+                            estimatedDuration: ${service.estimatedDuration}
+                        }<c:if test="${!status.last}">,</c:if>
+                        </c:forEach>
+                    ]
+                </c:when>
+                <c:otherwise>[]</c:otherwise>
+            </c:choose>
+        };
+        
+        console.log('📦 Server-side saved booking data:', window.savedBookingData);
+    </script>
     
     <!-- Custom service selection script -->
     <script src="${pageContext.request.contextPath}/assets/home/js/service-selection.js?v=<%=System.currentTimeMillis()%>"></script>
