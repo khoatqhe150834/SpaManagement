@@ -833,7 +833,7 @@ public class BookingController extends HttpServlet {
       if (success) {
         LOGGER.log(Level.INFO, "Successfully scheduled all services in database");
         response.setContentType("application/json");
-        response.getWriter().write("{\"success\": true, \"nextStep\": \"payment\"}");
+        response.getWriter().write("{\"success\": true, \"nextStep\": \"therapists\"}");
       } else {
         LOGGER.log(Level.SEVERE, "Failed to schedule services in database");
         response.setContentType("application/json");

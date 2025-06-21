@@ -710,8 +710,8 @@ window.TimeSelection = (function() {
             
             if (result.success) {
                 console.log('✅ Time saved successfully');
-                // Navigate to next step
-                window.location.href = `${window.bookingData.contextPath}/process-booking/customer-info`;
+                // Navigate to next step (therapist selection)
+                window.location.href = `${window.bookingData.contextPath}/process-booking/therapists`;
             } else {
                 showError('Lỗi lưu thời gian đã chọn: ' + (result.message || 'Unknown error'));
             }
