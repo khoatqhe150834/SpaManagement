@@ -14,6 +14,8 @@ window.TimeSelection = (function() {
     let currentModalService = null;
     let modalSelectedDate = null;
     let modalSelectedTime = null;
+    let currentModalDate = new Date(); // For calendar navigation
+    let selectedCalendarDate = null; // Currently selected date in calendar
     
     // Configuration
     const config = {
@@ -39,6 +41,12 @@ window.TimeSelection = (function() {
             'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'
         ]
     };
+    
+    // Vietnamese months for display
+    const vietnameseMonths = [
+        'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
+        'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'
+    ];
     
     // Utility Functions
     function formatCurrency(amount) {
@@ -131,6 +139,9 @@ window.TimeSelection = (function() {
         selectedServices = window.bookingData.selectedServices;
         console.log('📋 Selected services:', selectedServices);
         
+        // Load any existing time selections from session data
+        loadExistingSelections();
+        
         // Load availability data
         loadAvailabilityData()
             .then(() => {
@@ -146,6 +157,23 @@ window.TimeSelection = (function() {
             });
         
         console.log('✅ Time Selection initialized successfully');
+    }
+    
+    // Load existing time selections from session data
+    function loadExistingSelections() {
+        if (window.bookingData.sessionData && window.bookingData.sessionData.selectedServices) {
+            const services = window.bookingData.sessionData.selectedServices;
+            services.forEach(service => {
+                if (service.scheduledTime && service.selectedDate) {
+                    serviceTimeSelections[service.serviceId] = {
+                        date: service.selectedDate,
+                        time: service.scheduledTime,
+                        service: service
+                    };
+                    console.log(`🔄 Loaded existing selection for service ${service.serviceId}: ${service.selectedDate} ${service.scheduledTime}`);
+                }
+            });
+        }
     }
     
     // Load availability data from API
@@ -200,38 +228,40 @@ window.TimeSelection = (function() {
             const serviceCard = createServiceCard(service, index);
             container.appendChild(serviceCard);
         });
+        
+        console.log(`📝 Rendered ${selectedServices.length} service cards`);
     }
     
-    // Create a service card with calendar icon
+    // Create service card HTML
     function createServiceCard(service, index) {
-        const isCompleted = serviceTimeSelections[service.serviceId];
-        
         const card = document.createElement('div');
-        card.className = `service-card ${isCompleted ? 'completed' : ''}`;
+        card.className = `service-card ${serviceTimeSelections[service.serviceId] ? 'completed' : ''}`;
+        
+        const duration = service.duration || service.estimatedDuration || 60;
+        const price = service.price || service.estimatedPrice || 0;
+        
         card.innerHTML = `
             <div class="service-header">
                 <div class="service-info">
-                    <div class="service-name">${service.serviceName || service.name}</div>
+                    <h3 class="service-name">${service.serviceName || service.name}</h3>
                     <div class="service-details">
-                        <div class="service-duration">
+                        <span class="service-duration">
                             <iconify-icon icon="material-symbols:schedule"></iconify-icon>
-                            ${formatDuration(service.duration || service.estimatedDuration || 60)}
-                        </div>
-                        <div class="service-price">
-                            <iconify-icon icon="material-symbols:monetization-on"></iconify-icon>
-                            ${formatCurrency(service.price || service.estimatedPrice || 0)}
-                        </div>
+                            ${formatDuration(duration)}
+                        </span>
+                        <span class="service-price">
+                            <iconify-icon icon="material-symbols:payments"></iconify-icon>
+                            ${formatCurrency(price)}
+                        </span>
                     </div>
                 </div>
                 <button class="calendar-icon-btn" onclick="openCalendarModal(${service.serviceId})">
-                    <iconify-icon icon="material-symbols:calendar-month"></iconify-icon>
-                    Chọn ngày
+                    <iconify-icon icon="material-symbols:calendar-month" width="24" height="24"></iconify-icon>
                 </button>
             </div>
-            
-            <div class="service-content" style="${isCompleted ? '' : 'display: none;'}">
+            <div class="service-content" style="display: ${serviceTimeSelections[service.serviceId] ? 'block' : 'none'};">
                 <div class="selected-datetime" id="selectedDateTime_${service.serviceId}">
-                    ${isCompleted ? getSelectedDateTimeDisplay(service.serviceId) : ''}
+                    ${getSelectedDateTimeDisplay(service.serviceId)}
                 </div>
             </div>
         `;
@@ -239,59 +269,82 @@ window.TimeSelection = (function() {
         return card;
     }
     
-    // Get selected date time display
+    // Get selected date/time display
     function getSelectedDateTimeDisplay(serviceId) {
         const selection = serviceTimeSelections[serviceId];
         if (!selection) return '';
         
-        const date = new Date(selection.date + 'T00:00:00');
-        const dayName = vietnameseLocale.dayNames[date.getDay()];
-        const day = date.getDate();
-        const month = date.getMonth() + 1;
-        const year = date.getFullYear();
+        const dateObj = new Date(selection.date);
+        const formattedDate = dateObj.toLocaleDateString('vi-VN', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
         
         return `
-            <div style="display: flex; align-items: center; gap: 8px; color: #c8945f; font-weight: 500;">
-                <iconify-icon icon="material-symbols:event"></iconify-icon>
-                <span>${dayName}, ${day}/${month}/${year} lúc ${selection.time}</span>
+            <div class="datetime-info">
+                <iconify-icon icon="material-symbols:event" class="datetime-icon"></iconify-icon>
+                <div class="datetime-details">
+                    <div class="datetime-date">${formattedDate}</div>
+                    <div class="datetime-time">Thời gian: ${selection.time}</div>
+                </div>
             </div>
         `;
     }
-    
-    // Calendar state
-    let currentModalDate = new Date();
-    let selectedCalendarDate = null;
-    
-    // Vietnamese month names
-    const vietnameseMonths = [
-        'Tháng một', 'Tháng hai', 'Tháng ba', 'Tháng tư',
-        'Tháng năm', 'Tháng sáu', 'Tháng bảy', 'Tháng tám',
-        'Tháng chín', 'Tháng mười', 'Tháng mười một', 'Tháng mười hai'
-    ];
     
     // Open calendar modal
     function openCalendarModal(serviceId) {
         currentModalService = selectedServices.find(s => s.serviceId === serviceId);
         if (!currentModalService) return;
         
+        console.log(`📅 Opening calendar for service: ${currentModalService.serviceName || currentModalService.name}`);
+        
         // Update modal title
         document.getElementById('modalTitle').textContent = `Chọn ngày cho ${currentModalService.serviceName || currentModalService.name}`;
+        
+        // Load existing selection if available
+        const existingSelection = serviceTimeSelections[serviceId];
+        if (existingSelection) {
+            console.log(`🔄 Loading existing selection: ${existingSelection.date} ${existingSelection.time}`);
+            modalSelectedDate = existingSelection.date;
+            modalSelectedTime = existingSelection.time;
+            
+            // Set calendar to the month of existing selection
+            const existingDate = new Date(existingSelection.date);
+            currentModalDate = new Date(existingDate.getFullYear(), existingDate.getMonth(), 1);
+            selectedCalendarDate = existingDate;
+        } else {
+            // Reset modal state for new selection
+            modalSelectedDate = null;
+            modalSelectedTime = null;
+            selectedCalendarDate = null;
+            currentModalDate = new Date(); // Current month
+        }
         
         // Show modal
         document.getElementById('calendarModal').classList.add('open');
         
-        // Initialize custom calendar
+        // Initialize custom calendar after modal is visible
         setTimeout(() => {
             initializeCustomCalendar();
             bindCalendarEvents();
+            
+            // If we have existing selection, show its time slots
+            if (existingSelection) {
+                showModalTimeSlots(existingSelection.date);
+                // Update date input display
+                const dateInput = document.getElementById('datePicker');
+                if (dateInput) {
+                    dateInput.value = selectedCalendarDate.toLocaleDateString('vi-VN');
+                }
+            } else {
+                // Hide time slots for new selection
+                document.getElementById('modalTimeSlots').style.display = 'none';
+            }
+            
+            updateModalConfirmButton();
         }, 100);
-        
-        // Reset modal state
-        modalSelectedDate = null;
-        modalSelectedTime = null;
-        selectedCalendarDate = null;
-        document.getElementById('modalTimeSlots').style.display = 'none';
-        document.getElementById('modalConfirmBtn').disabled = true;
     }
     
     // Close calendar modal
@@ -305,7 +358,6 @@ window.TimeSelection = (function() {
     
     // Initialize custom calendar
     function initializeCustomCalendar() {
-        currentModalDate = new Date(); // Reset to current month
         updateMonthDisplay();
         updateCalendarDays();
     }
@@ -468,27 +520,32 @@ window.TimeSelection = (function() {
         updateCalendarDays();
     }
     
-
-    
-
-    
-    // Show time slots in modal
+    // Show time slots for selected date
     function showModalTimeSlots(dateStr) {
+        console.log(`⏰ Showing time slots for: ${dateStr}`);
+        
         const timeSlotsSection = document.getElementById('modalTimeSlots');
         const timeSlotsGrid = document.getElementById('modalTimeSlotsGrid');
         
-        if (!timeSlotsSection || !timeSlotsGrid || !currentModalService) return;
+        if (!timeSlotsSection || !timeSlotsGrid) return;
         
+        // Generate time slots
         const timeSlots = generateTimeSlots(config.workingHours.start, config.workingHours.end, config.timeSlotInterval);
         const serviceDuration = currentModalService.duration || currentModalService.estimatedDuration || 60;
         
-        // Generate time slot buttons
+        // Clear existing slots
         timeSlotsGrid.innerHTML = '';
         timeSlots.forEach(slot => {
             const isAvailable = isTimeSlotAvailable(dateStr, slot, serviceDuration, currentModalService.serviceId);
             
             const button = document.createElement('button');
             button.className = `time-slot ${isAvailable ? '' : 'disabled'}`;
+            
+            // Check if this is the previously selected time
+            if (modalSelectedTime === slot) {
+                button.classList.add('selected');
+            }
+            
             button.textContent = slot;
             button.disabled = !isAvailable;
             
@@ -611,28 +668,50 @@ window.TimeSelection = (function() {
     async function proceedToNextStep() {
         console.log('🚀 Proceeding to next step with selections:', serviceTimeSelections);
         
+        // Validate that all services have time selections
+        const allServicesSelected = selectedServices.every(service => 
+            serviceTimeSelections[service.serviceId]
+        );
+        
+        if (!allServicesSelected) {
+            showError('Vui lòng chọn thời gian cho tất cả dịch vụ');
+            return;
+        }
+        
         try {
-            // Prepare data for server
-            const timeData = {
-                serviceSelections: Object.values(serviceTimeSelections),
-                sessionId: window.bookingData.sessionId
-            };
+            // Get the first service's date and time (all services should use same start date/time)
+            const firstSelection = Object.values(serviceTimeSelections)[0];
+            if (!firstSelection || !firstSelection.date || !firstSelection.time) {
+                showError('Không tìm thấy thông tin thời gian đã chọn');
+                return;
+            }
+            
+            // Prepare form data for server (backend expects form parameters, not JSON)
+            const formData = new URLSearchParams();
+            formData.append('selectedDate', firstSelection.date);
+            formData.append('selectedTime', firstSelection.time);
+            
+            console.log('📤 Sending date/time to server:', {
+                selectedDate: firstSelection.date,
+                selectedTime: firstSelection.time
+            });
             
             // Save to server
             const response = await fetch(`${window.bookingData.contextPath}${config.apiEndpoints.saveDateTime}`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/x-www-form-urlencoded'
                 },
-                body: JSON.stringify(timeData),
+                body: formData,
                 credentials: 'same-origin'
             });
             
             const result = await response.json();
             
             if (result.success) {
+                console.log('✅ Time saved successfully');
                 // Navigate to next step
-                window.location.href = `${window.bookingData.contextPath}/process-booking/therapists`;
+                window.location.href = `${window.bookingData.contextPath}/process-booking/customer-info`;
             } else {
                 showError('Lỗi lưu thời gian đã chọn: ' + (result.message || 'Unknown error'));
             }
