@@ -301,6 +301,9 @@ async function init() {
   // Initialize DOM elements first
   initializeDOM();
   
+  // Load saved booking state
+  loadBookingState();
+  
   setupEventListeners();
   updateSliderRange();
   
@@ -413,8 +416,17 @@ function setupEventListeners() {
 
   // Continue button
   continueBtn.addEventListener('click', () => {
+      console.log('🔘 Continue button clicked!');
+      console.log('📊 Selected services at click time:', selectedServices);
+      console.log('📊 Selected services length:', selectedServices.length);
+      console.log('📊 Button disabled state:', continueBtn.disabled);
+      
       if (selectedServices.length > 0) {
-          alert('Proceeding to next step...');
+          console.log('✅ Proceeding with service selection...');
+          saveSelectedServicesAndProceed();
+      } else {
+          console.log('❌ No services selected, cannot proceed');
+          alert('Please select at least one service before continuing.');
       }
   });
 }
@@ -520,8 +532,12 @@ function renderServices() {
 
 // Toggle service selection
 function toggleService(serviceId) {
+  console.log('🎯 toggleService called with:', serviceId, 'type:', typeof serviceId);
+  console.log('🎯 Current selectedServices:', selectedServices);
+  
   if (selectedServices.includes(serviceId)) {
       // Remove service
+      console.log('➖ Removing service:', serviceId);
       selectedServices = selectedServices.filter(id => id !== serviceId);
   } else {
       // Check if adding would exceed the limit
@@ -531,8 +547,11 @@ function toggleService(serviceId) {
           return; // Don't add the service
       }
       // Add service
+      console.log('➕ Adding service:', serviceId);
       selectedServices.push(serviceId);
   }
+  
+  console.log('🎯 Updated selectedServices:', selectedServices);
   
   renderServices();
   updateSelectedServices();
@@ -661,6 +680,139 @@ function showServiceLimitWarning() {
       }
     }, 300);
   }, 3000);
+}
+
+// Booking state management functions
+function loadBookingState() {
+  if (window.BookingStorage) {
+    // Load previously selected services
+    const savedServices = window.BookingStorage.getSelectedServices();
+    if (savedServices && savedServices.length > 0) {
+      selectedServices = savedServices.map(service => service.id);
+      console.log('Loaded saved services:', selectedServices);
+    }
+  }
+}
+
+function saveSelectedServicesAndProceed() {
+  try {
+    console.log('🚀 Starting saveSelectedServicesAndProceed...');
+    console.log('📊 Selected services count:', selectedServices.length);
+    console.log('📊 Selected service IDs:', selectedServices);
+    console.log('📊 Current services count:', currentServices.length);
+    console.log('📊 Cache size:', allServicesCache.size);
+    
+    // Debug: Log all current service IDs and cache keys
+    console.log('📊 Current service IDs:', currentServices.map(s => s.id));
+    console.log('📊 Cache keys:', Array.from(allServicesCache.keys()));
+    
+    // Get selected service objects with better matching logic
+    const selectedServiceObjects = selectedServices.map(serviceId => {
+      // Try to find in current services first (exact match)
+      let service = currentServices.find(s => s.id === serviceId);
+      
+      if (!service) {
+        // Try string comparison in case of type mismatch
+        service = currentServices.find(s => s.id == serviceId || s.id === String(serviceId) || String(s.id) === String(serviceId));
+      }
+      
+      if (!service) {
+        // Try cache
+        service = allServicesCache.get(serviceId) || allServicesCache.get(String(serviceId));
+      }
+      
+      if (!service) {
+        console.warn(`⚠️ Service not found for ID: ${serviceId} (type: ${typeof serviceId})`);
+        // Create a minimal service object as fallback
+        service = {
+          id: serviceId,
+          name: `Service ${serviceId}`,
+          price: 'N/A',
+          priceValue: 0,
+          duration: 'N/A',
+          description: 'Service details not available'
+        };
+      }
+      
+      return service;
+    }).filter(service => service !== null && service !== undefined);
+    
+    console.log('📦 Selected service objects:', selectedServiceObjects);
+    
+    if (selectedServiceObjects.length === 0) {
+      console.error('❌ No valid service objects found');
+      alert('Please select at least one service.');
+      return;
+    }
+    
+    // Save to browser storage
+    if (window.BookingStorage) {
+      window.BookingStorage.saveSelectedServices(selectedServiceObjects);
+      console.log('💾 Saved to browser storage');
+    } else {
+      console.warn('⚠️ BookingStorage not available');
+    }
+    
+    // Save to server session - use the original selected service IDs directly
+    const formData = new FormData();
+    selectedServices.forEach((serviceId, index) => {
+      console.log(`➕ Adding service ${index + 1}: ID=${serviceId} (type: ${typeof serviceId})`);
+      formData.append('serviceIds', String(serviceId)); // Ensure it's a string
+    });
+    
+    // Log form data
+    console.log('📤 Form data entries:');
+    for (let pair of formData.entries()) {
+      console.log('  ', pair[0], '=', pair[1]);
+    }
+    
+    // Try alternative approach with URLSearchParams for better compatibility
+    const urlParams = new URLSearchParams();
+    selectedServices.forEach((serviceId, index) => {
+      urlParams.append('serviceIds', String(serviceId));
+    });
+    
+    console.log('📤 URL params string:', urlParams.toString());
+    
+    const contextPath = getContextPath();
+    const url = `${contextPath}/process-booking/save-services`;
+    console.log('🌐 Sending request to:', url);
+    
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: urlParams.toString(),
+      credentials: 'same-origin'
+    })
+    .then(response => {
+      console.log('📡 Response status:', response.status);
+      console.log('📡 Response headers:', response.headers);
+      return response.json();
+    })
+    .then(data => {
+      console.log('📨 Response data:', data);
+      if (data.success) {
+        console.log('✅ Services saved successfully');
+        // Redirect to therapist selection
+        const redirectUrl = `${contextPath}/process-booking/therapist-selection`;
+        console.log('🔄 Redirecting to:', redirectUrl);
+        window.location.href = redirectUrl;
+      } else {
+        console.error('❌ Server returned error:', data.message);
+        alert(`Error saving services: ${data.message || 'Please try again.'}`);
+      }
+    })
+    .catch(error => {
+      console.error('💥 Network/Parse error:', error);
+      alert('Error saving services. Please check your connection and try again.');
+    });
+    
+  } catch (error) {
+    console.error('💥 Exception in saveSelectedServicesAndProceed:', error);
+    alert('Error processing your selection. Please try again.');
+  }
 }
 
 // Initialize the application when DOM is loaded
