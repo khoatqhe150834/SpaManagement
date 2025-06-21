@@ -1,221 +1,273 @@
-<%--
-  Time Selection Page
-  User: quang
-  Date: 18/06/2025
-  Time: 8:45 CH
---%>
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="keywords" content="" />
-    <meta name="author" content="" />
-    <meta name="robots" content="" />
-    <meta
-      name="description"
-      content="BeautyZone : Beauty Spa Salon HTML Template"
-    />
-    <meta
-      property="og:title"
-      content="BeautyZone : Beauty Spa Salon HTML Template"
-    />
-    <meta
-      property="og:description"
-      content="BeautyZone : Beauty Spa Salon HTML Template"
-    />
-    <meta
-      property="og:image"
-      content="../../beautyzone.dexignzone.com/xhtml/social-image.png"
-    />
-    <meta name="format-detection" content="telephone=no" />
-
-    <!-- FAVICONS ICON -->
-    <link
-      rel="icon"
-      href="${pageContext.request.contextPath}/assets/home/images/favicon.ico"
-      type="image/x-icon"
-    />
-    <link
-      rel="shortcut icon"
-      type="image/x-icon"
-      href="${pageContext.request.contextPath}/assets/home/images/favicon.png"
-    />
-    <!-- PAGE TITLE HERE -->
     <title>Chọn Thời Gian - BeautyZone Spa</title>
-
-    <!-- MOBILE SPECIFIC -->
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-    <!--[if lt IE 9]>
-      <script src="js/html5shiv.min.js"></script>
-      <script src="js/respond.min.js"></script>
-    <![endif]-->
-
-    <!-- STYLESHEETS -->
     <jsp:include page="/WEB-INF/view/common/home/stylesheet.jsp"></jsp:include>
     
-    <!-- Iconify for icons -->
-    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-    
-    <!-- FullCalendar CSS -->
-    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css' rel='stylesheet' />
-    
-    <!-- Custom time selection styles -->
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/home/css/time-selection.css">
-</head>
-  <body id="bg">
-    <div class="page-wraper">
-      <div id="loading-area"></div>
-      <!-- header -->
-      <jsp:include page="/WEB-INF/view/common/home/header.jsp"></jsp:include>
-      <!-- header END -->
-      
-      <!-- Content -->
-      <div class="page-content bg-white">
-        <!-- inner page banner -->
-        <div
-          class="dlab-bnr-inr overlay-primary bg-pt"
-           style="
-            background-image: url(${pageContext.request.contextPath}/assets/home/images/banner/bnr2.jpg);
-          "
-        >
-          <div class="container">
-            <div class="dlab-bnr-inr-entry">
-              <h1 class="text-white">Chọn Thời Gian</h1>
-              <!-- Breadcrumb row -->
-              <div class="breadcrumb-row">
-                <ul class="list-inline">
-                  <li><a href="${pageContext.request.contextPath}/">Trang chủ</a></li>
-                  <li><a href="${pageContext.request.contextPath}/appointments">Đặt lịch</a></li>
-                  <li><a href="${pageContext.request.contextPath}/appointments/services">Chọn dịch vụ</a></li>
-                  <li>Chọn thời gian</li>
-                </ul>
-              </div>
-              <!-- Breadcrumb row END -->
-            </div>
-          </div>
-        </div>
-        <!-- inner page banner END -->
+    <style>
+        .time-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
         
-        <!-- Time selection content -->
-        <div class="section-full content-inner">
-          <div class="container">
-            <!-- Breadcrumbs -->
-            <nav class="booking-breadcrumbs">
-                <span>Dịch vụ</span>
-                <span class="mx-2">&gt;</span>
-                <span>Chuyên gia</span>
-                <span class="mx-2">&gt;</span>
-                <span class="font-semibold active">Thời gian</span>
-                <span class="mx-2">&gt;</span>
-                <span>Xác nhận</span>
-            </nav>
+        .time-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .time-header {
+            background: linear-gradient(135deg, #c8945f 0%, #a67c4a 100%);
+            color: white;
+            padding: 24px;
+            text-align: center;
+        }
+        
+        .time-content {
+            padding: 24px;
+        }
+        
+        .date-picker {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-top: 16px;
+        }
+        
+        .date-item {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .date-item.selected {
+            border-color: #c8945f;
+            background-color: #fcf8f1;
+        }
+        
+        .time-slots {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+        
+        .time-slot {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .time-slot.selected {
+            border-color: #c8945f;
+            background-color: #fcf8f1;
+            color: #c8945f;
+        }
+        
+        .btn {
+            padding: 16px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-align: center;
+            display: inline-block;
+            margin: 8px;
+        }
+        
+        .btn-primary {
+            background-color: #c8945f;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background-color: #6b7280;
+            color: white;
+        }
+    </style>
+</head>
 
-            <div class="time-selection-grid">
-                <!-- Left Column: Date Picker -->
-                <div class="date-picker-section">
-                    <h1 class="page-title">Chọn thời gian</h1>
-                    
-                    <!-- User Selector -->
-                    <div class="user-selector">
-                        <button class="user-selector-btn">
-                            <img src="https://placehold.co/32x32/E2E8F0/4A5568?text=D" alt="Deni's avatar" class="user-avatar">
-                            <span class="user-name">Deni</span>
-                            <iconify-icon icon="mdi:chevron-down"></iconify-icon>
-                        </button>
-                    </div>
-                    
-                    <!-- FullCalendar -->
-                    <div class="calendar-section">
-                        <div id="fullcalendar"></div>
-                    </div>
-                    
-                    <!-- Time Slots Section -->
-                    <div class="time-slots-section" style="display: none;">
-                        <h3 class="time-slots-title">Chọn giờ cho <span id="selectedDateDisplay"></span></h3>
-                        <div id="timeSlotsList" class="time-slots-grid">
-                            <!-- Time slots will be dynamically populated -->
-                        </div>
-                    </div>
-
-                    <!-- Availability Message -->
-                    <div class="availability-message">
-                        <img src="https://placehold.co/64x64/E2E8F0/4A5568?text=D" alt="Deni's avatar" class="availability-avatar">
-                        <h3 class="availability-title">Deni đã kín lịch vào ngày này</h3>
-                        <p class="availability-subtitle">Trùng lịch từ Th 7, 21 thg 6</p>
-                        <div class="availability-actions">
-                            <button class="btn-next-available">Chuyển đến ngày còn trống tiếp theo</button>
-                            <button class="btn-waitlist">Tham gia danh sách chờ</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Right Column: Order Summary -->
-                <div class="order-summary-section">
-                    <div class="order-summary-card">
-                        <!-- Business Info -->
-                        <div class="business-info">
-                            <img src="https://placehold.co/64x64/1A202C/FFFFFF?text=PY" alt="Perfect You logo" class="business-logo">
-                            <div class="business-details">
-                                <h3 class="business-name">Perfect You</h3>
-                                <div class="business-rating">
-                                    <span class="rating-score">4.9</span>
-                                    <!-- Star Icons -->
-                                    <iconify-icon icon="mdi:star" class="rating-star"></iconify-icon>
-                                    <span class="rating-count">(1,655)</span>
-                                </div>
-                                <p class="business-address">101 Stanley Road, Teddington, England</p>
-                            </div>
-                        </div>
-
-                        <!-- Service Details -->
-                        <div class="service-details">
-                            <div class="service-info">
-                                <p class="service-name">UV Gel Nail Extensions & Infills (GEL FINISH ONLY)</p>
-                                <p class="service-meta">1 giờ, 45 phút • Infill 2/3 weeks với <span class="therapist-name">Deni</span></p>
-                            </div>
-                            <p class="service-price">46 £</p>
-                        </div>
-
-                        <hr class="summary-divider">
-
-                        <!-- Total -->
-                        <div class="summary-total">
-                            <p class="total-label">Tổng tiền</p>
-                            <p class="total-amount">46 £</p>
-                        </div>
-                        
-                        <!-- Continue Button -->
-                        <button class="continue-btn">
-                            Tiếp tục
-                        </button>
+<body id="bg">
+    <div class="page-wraper">
+        <!-- header -->
+        <jsp:include page="/WEB-INF/view/common/home/header.jsp"></jsp:include>
+        
+        <!-- Content -->
+        <div class="page-content bg-white">
+            <!-- inner page banner -->
+            <div class="dlab-bnr-inr overlay-primary bg-pt" 
+                 style="background-image: url(${pageContext.request.contextPath}/assets/home/images/banner/bnr2.jpg);">
+                <div class="container">
+                    <div class="dlab-bnr-inr-entry">
+                        <h1 class="text-white">Chọn Thời Gian</h1>
                     </div>
                 </div>
             </div>
-          </div>
+            
+            <!-- Time selection content -->
+            <div class="section-full content-inner">
+                <div class="container">
+                    <div class="time-container">
+                        <div class="time-card">
+                            <div class="time-header">
+                                <h2>Chọn ngày và giờ</h2>
+                            </div>
+                            <div class="time-content">
+                                <!-- Calendar Section -->
+                                <div>
+                                    <h4>Chọn ngày</h4>
+                                    <div class="date-picker" id="datePicker">
+                                        <!-- Dates will be generated by JavaScript -->
+                                    </div>
+                                </div>
+                                
+                                <!-- Time Slots Section -->
+                                <div style="margin-top: 32px;">
+                                    <h4>Chọn giờ</h4>
+                                    <div class="time-slots" id="timeSlots">
+                                        <!-- Time slots will be generated by JavaScript -->
+                                    </div>
+                                </div>
+                                
+                                <!-- Action Buttons -->
+                                <div style="text-align: center; margin-top: 32px;">
+                                    <a href="${pageContext.request.contextPath}/process-booking/therapist-selection" class="btn btn-secondary">
+                                        Quay lại
+                                    </a>
+                                    <button type="button" id="continueBtn" class="btn btn-primary" disabled>
+                                        Tiếp tục thanh toán
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <!-- Time selection content END -->
-      </div>
-      <!-- Content END-->
-      
-      <!-- Footer -->
-      <jsp:include page="/WEB-INF/view/common/home/footer.jsp"></jsp:include>
-      <!-- Footer END -->
-      
-      <button class="scroltop fa fa-chevron-up"></button>
+        
+        <!-- Footer -->
+        <jsp:include page="/WEB-INF/view/common/home/footer.jsp"></jsp:include>
     </div>
     
-    <!-- JAVASCRIPT FILES ========================================= -->
+    <!-- JavaScript -->
     <jsp:include page="/WEB-INF/view/common/home/js.jsp"></jsp:include>
+    <script src="${pageContext.request.contextPath}/assets/home/js/booking-storage.js"></script>
     
-    <!-- FullCalendar JS -->
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.js'></script>
-    
-    <!-- Custom time selection script -->
-    <script src="${pageContext.request.contextPath}/assets/home/js/time-selection.js"></script>
+    <script>
+        let selectedDate = null;
+        let selectedTime = null;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCalendar();
+            generateTimeSlots();
+        });
+        
+        function initializeCalendar() {
+            const today = new Date();
+            const datePicker = document.getElementById('datePicker');
+            
+            // Generate next 14 days
+            for (let i = 1; i <= 14; i++) {
+                const date = new Date(today);
+                date.setDate(today.getDate() + i);
+                
+                const dateItem = document.createElement('div');
+                dateItem.className = 'date-item';
+                dateItem.dataset.date = date.toISOString().split('T')[0];
+                dateItem.textContent = date.getDate() + '/' + (date.getMonth() + 1);
+                dateItem.addEventListener('click', () => selectDate(dateItem));
+                datePicker.appendChild(dateItem);
+            }
+        }
+        
+        function generateTimeSlots() {
+            const timeSlotsContainer = document.getElementById('timeSlots');
+            const timeSlots = ['08:00', '09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00'];
+            
+            timeSlots.forEach(time => {
+                const timeSlot = document.createElement('div');
+                timeSlot.className = 'time-slot';
+                timeSlot.textContent = time;
+                timeSlot.dataset.time = time;
+                timeSlot.addEventListener('click', () => selectTime(timeSlot));
+                timeSlotsContainer.appendChild(timeSlot);
+            });
+        }
+        
+        function selectDate(dateElement) {
+            document.querySelectorAll('.date-item.selected').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            dateElement.classList.add('selected');
+            selectedDate = dateElement.dataset.date;
+            updateContinueButton();
+        }
+        
+        function selectTime(timeElement) {
+            document.querySelectorAll('.time-slot.selected').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            timeElement.classList.add('selected');
+            selectedTime = timeElement.dataset.time;
+            updateContinueButton();
+        }
+        
+        function updateContinueButton() {
+            const continueBtn = document.getElementById('continueBtn');
+            if (selectedDate && selectedTime) {
+                continueBtn.disabled = false;
+                continueBtn.onclick = saveTimeAndProceed;
+            } else {
+                continueBtn.disabled = true;
+            }
+        }
+        
+        function saveTimeAndProceed() {
+            // Save to browser storage
+            if (window.BookingStorage) {
+                window.BookingStorage.saveSelectedDateTime(selectedDate, selectedTime);
+            }
+            
+            // Save to server session
+            const formData = new FormData();
+            formData.append('selectedDate', selectedDate);
+            formData.append('selectedTime', selectedTime);
+            
+            fetch('${pageContext.request.contextPath}/process-booking/save-time', {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = '${pageContext.request.contextPath}/process-booking/payment';
+                } else {
+                    alert('Lỗi lưu thời gian');
+                }
+            })
+            .catch(error => {
+                console.error('Error saving time:', error);
+                alert('Lỗi lưu thời gian');
+            });
+        }
+    </script>
 </body>
 </html> 
