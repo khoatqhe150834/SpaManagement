@@ -161,6 +161,13 @@
             <!-- Payment content -->
             <div class="section-full content-inner">
                 <div class="container">
+                    <!-- Step Indicator -->
+                    <c:set var="currentStep" value="payment" />
+                    <jsp:include page="/WEB-INF/view/common/booking/step-indicator.jsp">
+                        <jsp:param name="currentStep" value="${currentStep}" />
+                        <jsp:param name="bookingSession" value="${bookingSession}" />
+                    </jsp:include>
+                    
                     <div class="payment-container">
                         <div class="row">
                             <!-- Payment Form -->

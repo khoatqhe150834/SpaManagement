@@ -32,7 +32,7 @@
 
         <div class="extra-nav">
           <div class="extra-cell">
-            <a href="${pageContext.request.contextPath}/process-booking" class="site-button radius-no">ĐẶT LỊCH NGAY</a>
+            <a href="${pageContext.request.contextPath}/process-booking/resume" class="site-button radius-no">ĐẶT LỊCH NGAY</a>
             
             <c:choose>
                 <%-- Customer is logged in --%>

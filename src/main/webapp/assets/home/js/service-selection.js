@@ -1,6 +1,4 @@
-// TEST: Verify JavaScript file is loading
-console.log('🚀 service-selection.js is loading...');
-alert('JavaScript file loaded!');
+
 
 // Service data - will be loaded from API
 let services = [];
@@ -325,6 +323,13 @@ async function init() {
   await loadAndRenderServices();
   
   updateSelectedServices();
+  
+  // Enable continue button if services are loaded from server
+  if (selectedServices.length > 0 && continueBtn) {
+    continueBtn.disabled = false;
+    console.log('✅ Continue button enabled for', selectedServices.length, 'loaded services');
+  }
+  
   console.log('Application initialization complete');
 }
 
@@ -684,14 +689,27 @@ function showServiceLimitWarning() {
 
 // Booking state management functions
 function loadBookingState() {
+  console.log('🔄 Loading booking state...');
+  
+  // Priority 1: Load from server-side data (most reliable)
+  if (window.savedBookingData && window.savedBookingData.selectedServices && window.savedBookingData.selectedServices.length > 0) {
+    selectedServices = window.savedBookingData.selectedServices.map(service => service.serviceId.toString());
+    console.log('✅ Loaded services from server data:', selectedServices);
+    console.log('📊 Server services details:', window.savedBookingData.selectedServices);
+    return;
+  }
+  
+  // Priority 2: Load from browser storage (fallback)
   if (window.BookingStorage) {
-    // Load previously selected services
     const savedServices = window.BookingStorage.getSelectedServices();
     if (savedServices && savedServices.length > 0) {
       selectedServices = savedServices.map(service => service.id);
-      console.log('Loaded saved services:', selectedServices);
+      console.log('✅ Loaded services from browser storage:', selectedServices);
+      return;
     }
   }
+  
+  console.log('ℹ️ No saved booking state found, starting fresh');
 }
 
 function saveSelectedServicesAndProceed() {
@@ -795,8 +813,8 @@ function saveSelectedServicesAndProceed() {
       console.log('📨 Response data:', data);
       if (data.success) {
         console.log('✅ Services saved successfully');
-        // Redirect to therapist selection
-        const redirectUrl = `${contextPath}/process-booking/therapist-selection`;
+        // Redirect to time selection (new flow: services -> time -> therapists -> payment)
+        const redirectUrl = `${contextPath}/process-booking/time`;
         console.log('🔄 Redirecting to:', redirectUrl);
         window.location.href = redirectUrl;
       } else {

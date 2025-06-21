@@ -100,6 +100,13 @@
         <!-- Therapist selection content -->
         <div class="section-full content-inner">
           <div class="container">
+            <!-- Step Indicator -->
+            <c:set var="currentStep" value="therapists" />
+            <jsp:include page="/WEB-INF/view/common/booking/step-indicator.jsp">
+                <jsp:param name="currentStep" value="${currentStep}" />
+                <jsp:param name="bookingSession" value="${bookingSession}" />
+            </jsp:include>
+            
             <!-- Breadcrumbs -->
             <nav class="booking-breadcrumbs">
                 <span>✓ Dịch vụ</span>

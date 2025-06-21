@@ -40,7 +40,7 @@ contentType="text/html" pageEncoding="UTF-8"%>
         </div>
         <div class="col-xl-2 col-12 col-lg-3 col-md-6 col-sm-6">
           <div class="widget">
-            <a href="booking.html" class="site-button radius-no"
+            <a href="${pageContext.request.contextPath}/process-booking/resume" class="site-button radius-no"
               >ĐẶT LỊCH NGAY</a
             >
           </div>
