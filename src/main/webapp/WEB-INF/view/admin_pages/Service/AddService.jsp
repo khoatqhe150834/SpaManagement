@@ -60,6 +60,7 @@
                                                 Tên dịch vụ <span class="text-danger-600">*</span>
                                             </label>
                                             <input type="text" name="name" class="form-control radius-8" id="name" placeholder="Nhập tên dịch vụ" required>
+                                            <div class="invalid-feedback" id="nameError"></div>
                                         </div>
                                         <div class="mb-20">
                                             <label for="description" class="form-label fw-semibold text-primary-light text-sm mb-8">Mô tả</label>
@@ -185,6 +186,7 @@
 
             <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
             <script>
+                var contextPath = '${pageContext.request.contextPath}';
                 // ================================================ Upload Multiple image js Start here ================================================
                 const fileInputMultiple = document.getElementById("upload-file-multiple");
                 const uploadedImgsContainer = document.querySelector(".uploaded-imgs-container");
@@ -260,7 +262,92 @@
                     uploadedImgsContainer.innerHTML = '';
                 });
                 // ================================================ Upload Multiple image js End here  ================================================
+
+                // Real-time validation
+                const nameInput = document.getElementById('name');
+                const nameError = document.getElementById('nameError');
+                let nameCheckTimeout = null;
+                let isNameDuplicateError = false;
+
+                nameInput.addEventListener('input', function () {
+                    isNameDuplicateError = false;
+                    clearTimeout(nameCheckTimeout);
+                    let value = nameInput.value.trim();
+
+                    if (value === '') {
+                        setInvalid('Tên dịch vụ không được để trống');
+                        return;
+                    }
+                    if (value.length < 2) {
+                        setInvalid('Tên dịch vụ phải có ít nhất 2 ký tự');
+                        return;
+                    }
+                    if (value.length > 200) {
+                        setInvalid('Tên dịch vụ không được vượt quá 200 ký tự');
+                        return;
+                    }
+
+                    if (!isNameDuplicateError) setValid('Tên hợp lệ');
+                    nameCheckTimeout = setTimeout(() => {
+                        checkNameDuplicate(value, function (isDuplicate, msg) {
+                            if (isDuplicate) {
+                                isNameDuplicateError = true;
+                                setInvalid(msg || 'Tên này đã tồn tại trong hệ thống');
+                            } else {
+                                isNameDuplicateError = false;
+                                setValid('Tên hợp lệ');
+                            }
+                        });
+                    }, 400);
+
+                    function setInvalid(msg) {
+                        nameInput.classList.remove('is-valid');
+                        nameInput.classList.add('is-invalid');
+                        nameError.textContent = msg;
+                        nameError.style.color = 'red';
+                        nameError.style.display = 'block';
+                    }
+
+                    function setValid(msg) {
+                        if (!isNameDuplicateError) {
+                            nameInput.classList.remove('is-invalid');
+                            nameInput.classList.add('is-valid');
+                            nameError.textContent = msg;
+                            nameError.style.color = 'green';
+                            nameError.style.display = 'block';
+                        }
+                    }
+                });
+
+                function checkNameDuplicate(name, callback) {
+                    fetch('service?service=check-duplicate-name&name=' + encodeURIComponent(name))
+                        .then(res => res.json())
+                        .then(response => {
+                            callback(!response.valid, response.message);
+                        })
+                        .catch(() => {
+                            callback(false, 'Không thể kiểm tra tên. Vui lòng thử lại.');
+                        });
+                }
             </script>
+            <style>
+                .is-valid {
+                    border: 2px solid #22c55e !important;
+                }
+                .is-invalid {
+                    border: 2px solid #f44336 !important;
+                }
+                .invalid-feedback {
+                    margin-top: 4px;
+                    font-size: 0.95em;
+                    min-height: 18px;
+                    color: red;
+                    display: block;
+                }
+                .is-valid ~ .invalid-feedback {
+                    color: #22c55e;
+                }
+            </style>
         </body>
 
         </html>
