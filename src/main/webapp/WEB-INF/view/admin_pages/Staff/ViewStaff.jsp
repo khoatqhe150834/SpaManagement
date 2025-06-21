@@ -28,7 +28,7 @@
                             </a>
                         </li>
                         <li>-</li>
-                        <li class="fw-medium">Edit Staff Profile</li>
+                        <li class="fw-medium">View Staff Profile</li>
                     </ul>
                 </div>
 
@@ -50,10 +50,6 @@
                                         <span class="w-70 text-secondary-light fw-medium">: ${staff.user.userId}</span>
                                     </li>
                                     <li class="d-flex align-items-center gap-1 mb-12">
-                                        <span class="w-30 text-md fw-semibold text-primary-light">Full Name</span>
-                                        <span class="w-70 text-secondary-light fw-medium">: ${staff.user.fullName}</span>
-                                    </li>
-                                    <li class="d-flex align-items-center gap-1 mb-12">
                                         <span class="w-30 text-md fw-semibold text-primary-light">Email</span>
                                         <span class="w-70 text-secondary-light fw-medium">: ${staff.user.email}</span>
                                     </li>
@@ -68,10 +64,6 @@
                                     <li class="d-flex align-items-center gap-1 mb-12">
                                         <span class="w-30 text-md fw-semibold text-primary-light">Birthday</span>
                                         <span class="w-70 text-secondary-light fw-medium">: <fmt:formatDate value="${staff.user.birthday}" pattern="dd/MM/yyyy"/></span>
-                                    </li>
-                                    <li class="d-flex align-items-center gap-1">
-                                        <span class="w-30 text-md fw-semibold text-primary-light">Bio</span>
-                                        <span class="w-70 text-secondary-light fw-medium">: ${staff.bio}</span>
                                     </li>
                                 </ul>
                             </div>
