@@ -77,12 +77,6 @@
                                         Thông tin hồ sơ 
                                     </button>
                                 </li>
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link d-flex align-items-center px-24" id="pills-change-passwork-tab" data-bs-toggle="pill" data-bs-target="#pills-change-passwork" type="button" role="tab" aria-controls="pills-change-passwork" aria-selected="false" tabindex="-1">
-                                        Đổi mật khẩu
-                                    </button>
-                                </li>
-
                             </ul>
 
                             <div class="tab-content" id="pills-tabContent">   
@@ -143,23 +137,6 @@
                                             <input type="number" name="yearsOfExperience" class="form-control radius-8" id="yearsOfExperience" value="${staff.yearsOfExperience}" required readonly />
                                         </div>
                                     </form>
-                                </div>
-
-                                <div class="tab-pane fade" id="pills-change-passwork" role="tabpanel" aria-labelledby="pills-change-passwork-tab" tabindex="0">
-                                    <div class="mb-20">
-                                        <label for="your-password" class="form-label fw-semibold text-primary-light text-sm mb-8">Mật khẩu mới <span class="text-danger-600">*</span></label>
-                                        <div class="position-relative">
-                                            <input type="password" class="form-control radius-8" id="your-password" placeholder="Nhập mật khẩu mới*">
-                                            <span class="toggle-password ri-eye-line cursor-pointer position-absolute end-0 top-50 translate-middle-y me-16 text-secondary-light" data-toggle="#your-password"></span>
-                                        </div>
-                                    </div>
-                                    <div class="mb-20">
-                                        <label for="confirm-password" class="form-label fw-semibold text-primary-light text-sm mb-8">Xác nhận mật khẩu <span class="text-danger-600">*</span></label>
-                                        <div class="position-relative">
-                                            <input type="password" class="form-control radius-8" id="confirm-password" placeholder="Xác nhận mật khẩu*">
-                                            <span class="toggle-password ri-eye-line cursor-pointer position-absolute end-0 top-50 translate-middle-y me-16 text-secondary-light" data-toggle="#confirm-password"></span>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>
