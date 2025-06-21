@@ -76,7 +76,9 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
                 + "FROM therapists t "
                 + "JOIN users u ON t.user_id = u.user_id "
                 + "LEFT JOIN service_types st ON t.service_type_id = st.service_type_id";
-        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 Staff staff = new Staff();
                 staff.setUser(new User());
@@ -136,7 +138,7 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
             } else {
                 ps.setNull(1, Types.INTEGER);
             }
-            
+
             // Set other fields
             ps.setString(2, entity.getBio());
             ps.setString(3, entity.getAvailabilityStatus().name());
@@ -145,16 +147,20 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
             ps.setInt(6, entity.getUser().getUserId());
 
             LOGGER.info("Executing update query: " + sql);
-            LOGGER.info("Parameters: userId=" + entity.getUser().getUserId() + 
-                       ", serviceTypeId=" + (entity.getServiceType() != null ? entity.getServiceType().getServiceTypeId() : "null") +
-                       ", bio=" + entity.getBio() +
-                       ", availabilityStatus=" + entity.getAvailabilityStatus() +
-                       ", yearsOfExperience=" + entity.getYearsOfExperience());
+            LOGGER.info("Parameters: userId=" + entity.getUser().getUserId() +
+                    ", serviceTypeId="
+                    + (entity.getServiceType() != null ? entity.getServiceType().getServiceTypeId() : "null") +
+                    ", bio=" + entity.getBio() +
+                    ", availabilityStatus=" + entity.getAvailabilityStatus() +
+                    ", yearsOfExperience=" + entity.getYearsOfExperience());
 
             int rowsAffected = ps.executeUpdate();
-            LOGGER.info("Update staff with userId: " + entity.getUser().getUserId() + ", rowsAffected: " + rowsAffected);
-            if (rowsAffected >= 0) return entity;
-            else return null;
+            LOGGER.info(
+                    "Update staff with userId: " + entity.getUser().getUserId() + ", rowsAffected: " + rowsAffected);
+            if (rowsAffected >= 0)
+                return entity;
+            else
+                return null;
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error updating staff", e);
             return null;
@@ -163,26 +169,26 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
 
     private Staff mapResultSetToStaff(ResultSet rs) throws SQLException {
         Staff staff = new Staff();
-        
+
         // Set User information
         User user = new User();
         user.setUserId(rs.getInt("user_id"));
         user.setFullName(rs.getString("full_name"));
         staff.setUser(user);
-        
+
         // Set ServiceType information
         ServiceType serviceType = new ServiceType();
         serviceType.setServiceTypeId(rs.getInt("service_type_id"));
         serviceType.setName(rs.getString("service_type_name"));
         staff.setServiceType(serviceType);
-        
+
         // Set other staff information
         staff.setBio(rs.getString("bio"));
         staff.setAvailabilityStatus(Staff.AvailabilityStatus.valueOf(rs.getString("availability_status")));
         staff.setYearsOfExperience(rs.getInt("years_of_experience"));
         staff.setCreatedAt(rs.getTimestamp("created_at"));
         staff.setUpdatedAt(rs.getTimestamp("updated_at"));
-        
+
         return staff;
     }
 
@@ -192,173 +198,172 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
     }
 
     public List<Staff> searchByNameOrServiceType(String searchQuery) {
-    List<Staff> staffList = new ArrayList<>();
-    String sql = "SELECT t.*, u.full_name, st.name AS service_type_name "
-               + "FROM therapists t "
-               + "JOIN users u ON t.user_id = u.user_id "
-               + "LEFT JOIN service_types st ON t.service_type_id = st.service_type_id "
-               + "WHERE u.full_name LIKE ? OR st.name LIKE ?";
+        List<Staff> staffList = new ArrayList<>();
+        String sql = "SELECT t.*, u.full_name, st.name AS service_type_name "
+                + "FROM therapists t "
+                + "JOIN users u ON t.user_id = u.user_id "
+                + "LEFT JOIN service_types st ON t.service_type_id = st.service_type_id "
+                + "WHERE u.full_name LIKE ? OR st.name LIKE ?";
 
-    try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-        String searchPattern = "%" + searchQuery + "%"; // Tạo mẫu tìm kiếm
-        ps.setString(1, searchPattern);
-        ps.setString(2, searchPattern);
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            String searchPattern = "%" + searchQuery + "%"; // Tạo mẫu tìm kiếm
+            ps.setString(1, searchPattern);
+            ps.setString(2, searchPattern);
 
-        try (ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                Staff staff = new Staff();
-                staff.setUser(new User());
-                staff.getUser().setUserId(rs.getInt("user_id"));
-                staff.getUser().setFullName(rs.getString("full_name"));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Staff staff = new Staff();
+                    staff.setUser(new User());
+                    staff.getUser().setUserId(rs.getInt("user_id"));
+                    staff.getUser().setFullName(rs.getString("full_name"));
 
-                ServiceType serviceType = new ServiceType();
-                serviceType.setName(rs.getString("service_type_name"));
-                staff.setServiceType(serviceType);
+                    ServiceType serviceType = new ServiceType();
+                    serviceType.setName(rs.getString("service_type_name"));
+                    staff.setServiceType(serviceType);
 
-                staff.setBio(rs.getString("bio"));
-                staff.setAvailabilityStatus(Staff.AvailabilityStatus.valueOf(rs.getString("availability_status")));
-                staff.setYearsOfExperience(rs.getInt("years_of_experience"));
-                staff.setCreatedAt(rs.getTimestamp("created_at"));
-                staff.setUpdatedAt(rs.getTimestamp("updated_at"));
+                    staff.setBio(rs.getString("bio"));
+                    staff.setAvailabilityStatus(Staff.AvailabilityStatus.valueOf(rs.getString("availability_status")));
+                    staff.setYearsOfExperience(rs.getInt("years_of_experience"));
+                    staff.setCreatedAt(rs.getTimestamp("created_at"));
+                    staff.setUpdatedAt(rs.getTimestamp("updated_at"));
 
-                staffList.add(staff);
+                    staffList.add(staff);
+                }
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-    } catch (SQLException e) {
-        e.printStackTrace();
+
+        return staffList;
     }
 
-    return staffList;
-}
-
-// Lấy danh sách staff phân trang, có thể lọc theo keyword và status
-public List<Staff> searchByKeywordAndStatus(String keyword, String status, Integer serviceTypeId, int offset, int limit) {
-    List<Staff> staffList = new ArrayList<>();
-    StringBuilder sql = new StringBuilder(
-        "SELECT t.*, u.full_name, st.name AS service_type_name, st.service_type_id " +
-        "FROM therapists t " +
-        "JOIN users u ON t.user_id = u.user_id " +
-        "LEFT JOIN service_types st ON t.service_type_id = st.service_type_id WHERE 1=1"
-    );
-    List<Object> params = new ArrayList<>();
-    if (keyword != null && !keyword.trim().isEmpty()) {
-        sql.append(" AND (LOWER(u.full_name) LIKE ? OR LOWER(st.name) LIKE ?)");
-        params.add("%" + keyword.toLowerCase() + "%");
-        params.add("%" + keyword.toLowerCase() + "%");
-    }
-    if (status != null && !status.isEmpty()) {
-        sql.append(" AND t.availability_status = ?");
-        params.add(status.toUpperCase());
-    }
-    if (serviceTypeId != null && serviceTypeId > 0) {
-        sql.append(" AND t.service_type_id = ?");
-        params.add(serviceTypeId);
-    }
-    sql.append(" ORDER BY t.user_id LIMIT ? OFFSET ?");
-    params.add(limit);
-    params.add(offset);
-
-    try (Connection conn = DBContext.getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql.toString())) {
-        for (int i = 0; i < params.size(); i++) {
-            ps.setObject(i + 1, params.get(i));
+    // Lấy danh sách staff phân trang, có thể lọc theo keyword và status
+    public List<Staff> searchByKeywordAndStatus(String keyword, String status, Integer serviceTypeId, int offset,
+            int limit) {
+        List<Staff> staffList = new ArrayList<>();
+        StringBuilder sql = new StringBuilder(
+                "SELECT t.*, u.full_name, st.name AS service_type_name, st.service_type_id " +
+                        "FROM therapists t " +
+                        "JOIN users u ON t.user_id = u.user_id " +
+                        "LEFT JOIN service_types st ON t.service_type_id = st.service_type_id WHERE 1=1");
+        List<Object> params = new ArrayList<>();
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append(" AND (LOWER(u.full_name) LIKE ? OR LOWER(st.name) LIKE ?)");
+            params.add("%" + keyword.toLowerCase() + "%");
+            params.add("%" + keyword.toLowerCase() + "%");
         }
-        try (ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                Staff staff = mapResultSetToStaff(rs);
-                staffList.add(staff);
+        if (status != null && !status.isEmpty()) {
+            sql.append(" AND t.availability_status = ?");
+            params.add(status.toUpperCase());
+        }
+        if (serviceTypeId != null && serviceTypeId > 0) {
+            sql.append(" AND t.service_type_id = ?");
+            params.add(serviceTypeId);
+        }
+        sql.append(" ORDER BY t.user_id LIMIT ? OFFSET ?");
+        params.add(limit);
+        params.add(offset);
+
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
             }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Staff staff = mapResultSetToStaff(rs);
+                    staffList.add(staff);
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in searchByKeywordAndStatus", e);
         }
-    } catch (SQLException e) {
-        LOGGER.log(Level.SEVERE, "Error in searchByKeywordAndStatus", e);
+        return staffList;
     }
-    return staffList;
-}
 
-// Đếm tổng số staff theo filter
-public int countByKeywordAndStatus(String keyword, String status, Integer serviceTypeId) {
-    StringBuilder sql = new StringBuilder(
-        "SELECT COUNT(*) FROM therapists t " +
-        "JOIN users u ON t.user_id = u.user_id " +
-        "LEFT JOIN service_types st ON t.service_type_id = st.service_type_id WHERE 1=1"
-    );
-    List<Object> params = new ArrayList<>();
-    if (keyword != null && !keyword.trim().isEmpty()) {
-        sql.append(" AND (LOWER(u.full_name) LIKE ? OR LOWER(st.name) LIKE ?)");
-        params.add("%" + keyword.toLowerCase() + "%");
-        params.add("%" + keyword.toLowerCase() + "%");
-    }
-    if (status != null && !status.isEmpty()) {
-        sql.append(" AND t.availability_status = ?");
-        params.add(status.toUpperCase());
-    }
-    if (serviceTypeId != null && serviceTypeId > 0) {
-        sql.append(" AND t.service_type_id = ?");
-        params.add(serviceTypeId);
-    }
-    try (Connection conn = DBContext.getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql.toString())) {
-        for (int i = 0; i < params.size(); i++) {
-            ps.setObject(i + 1, params.get(i));
+    // Đếm tổng số staff theo filter
+    public int countByKeywordAndStatus(String keyword, String status, Integer serviceTypeId) {
+        StringBuilder sql = new StringBuilder(
+                "SELECT COUNT(*) FROM therapists t " +
+                        "JOIN users u ON t.user_id = u.user_id " +
+                        "LEFT JOIN service_types st ON t.service_type_id = st.service_type_id WHERE 1=1");
+        List<Object> params = new ArrayList<>();
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append(" AND (LOWER(u.full_name) LIKE ? OR LOWER(st.name) LIKE ?)");
+            params.add("%" + keyword.toLowerCase() + "%");
+            params.add("%" + keyword.toLowerCase() + "%");
         }
-        try (ResultSet rs = ps.executeQuery()) {
+        if (status != null && !status.isEmpty()) {
+            sql.append(" AND t.availability_status = ?");
+            params.add(status.toUpperCase());
+        }
+        if (serviceTypeId != null && serviceTypeId > 0) {
+            sql.append(" AND t.service_type_id = ?");
+            params.add(serviceTypeId);
+        }
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in countByKeywordAndStatus", e);
+        }
+        return 0;
+    }
+
+    public List<Staff> findPaginated(int offset, int limit) {
+        List<Staff> staffList = new ArrayList<>();
+        String sql = "SELECT t.*, u.full_name, st.name AS service_type_name " +
+                "FROM therapists t " +
+                "JOIN users u ON t.user_id = u.user_id " +
+                "LEFT JOIN service_types st ON t.service_type_id = st.service_type_id " +
+                "ORDER BY t.user_id LIMIT ? OFFSET ?";
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, limit);
+            ps.setInt(2, offset);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Staff staff = mapResultSetToStaff(rs);
+                    staffList.add(staff);
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in findPaginated", e);
+        }
+        return staffList;
+    }
+
+    public int countAll() {
+        String sql = "SELECT COUNT(*) FROM therapists";
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
             if (rs.next()) {
                 return rs.getInt(1);
             }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in countAll", e);
         }
-    } catch (SQLException e) {
-        LOGGER.log(Level.SEVERE, "Error in countByKeywordAndStatus", e);
+        return 0;
     }
-    return 0;
-}
 
-public List<Staff> findPaginated(int offset, int limit) {
-    List<Staff> staffList = new ArrayList<>();
-    String sql = "SELECT t.*, u.full_name, st.name AS service_type_name " +
-                 "FROM therapists t " +
-                 "JOIN users u ON t.user_id = u.user_id " +
-                 "LEFT JOIN service_types st ON t.service_type_id = st.service_type_id " +
-                 "ORDER BY t.user_id LIMIT ? OFFSET ?";
-    try (Connection conn = DBContext.getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
-        ps.setInt(1, limit);
-        ps.setInt(2, offset);
-        try (ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                Staff staff = mapResultSetToStaff(rs);
-                staffList.add(staff);
-            }
+    public int deactiveById(int id) {
+        String sql = "UPDATE therapists SET availability_status = 'OFFLINE' WHERE user_id = ?";
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            return ps.executeUpdate();
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in deactiveById", e);
         }
-    } catch (SQLException e) {
-        LOGGER.log(Level.SEVERE, "Error in findPaginated", e);
+        return 0;
     }
-    return staffList;
-}
-
-public int countAll() {
-    String sql = "SELECT COUNT(*) FROM therapists";
-    try (Connection conn = DBContext.getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql);
-         ResultSet rs = ps.executeQuery()) {
-        if (rs.next()) {
-            return rs.getInt(1);
-        }
-    } catch (SQLException e) {
-        LOGGER.log(Level.SEVERE, "Error in countAll", e);
-    }
-    return 0;
-}
-
-public int deactiveById(int id) {
-    String sql = "UPDATE therapists SET availability_status = 'OFFLINE' WHERE user_id = ?";
-    try (Connection conn = DBContext.getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
-        ps.setInt(1, id);
-        return ps.executeUpdate();
-    } catch (SQLException e) {
-        LOGGER.log(Level.SEVERE, "Error in deactiveById", e);
-    }
-    return 0;
-}
 
 }
