@@ -40,7 +40,7 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
 
     @Override
     public Optional<Staff> findById(Integer id) {
-        String sql = "SELECT t.*, u.full_name, st.name AS service_type_name, st.service_type_id "
+        String sql = "SELECT t.*, u.full_name, u.email, u.phone_number, u.gender, u.birthday, u.avatar_url, st.name AS service_type_name, st.service_type_id "
                 + "FROM therapists t "
                 + "JOIN users u ON t.user_id = u.user_id "
                 + "LEFT JOIN service_types st ON t.service_type_id = st.service_type_id "
@@ -50,16 +50,6 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     Staff staff = mapResultSetToStaff(rs);
-                    User user = new User();
-                    user.setUserId(rs.getInt("user_id"));
-                    user.setFullName(rs.getString("full_name"));
-                    staff.setUser(user);
-
-                    ServiceType serviceType = new ServiceType();
-                    serviceType.setServiceTypeId(rs.getInt("service_type_id"));
-                    serviceType.setName(rs.getString("service_type_name"));
-                    staff.setServiceType(serviceType);
-
                     return Optional.of(staff);
                 }
             }
@@ -72,7 +62,7 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
     @Override
     public List<Staff> findAll() {
         List<Staff> staffList = new ArrayList<>();
-        String sql = "SELECT t.*, u.full_name, st.name AS service_type_name "
+        String sql = "SELECT t.*, u.full_name, u.email, u.phone_number, u.gender, u.birthday, u.avatar_url, st.name AS service_type_name "
                 + "FROM therapists t "
                 + "JOIN users u ON t.user_id = u.user_id "
                 + "LEFT JOIN service_types st ON t.service_type_id = st.service_type_id";
@@ -80,21 +70,7 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
                 PreparedStatement ps = conn.prepareStatement(sql);
                 ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                Staff staff = new Staff();
-                staff.setUser(new User());
-                staff.getUser().setUserId(rs.getInt("user_id"));
-                staff.getUser().setFullName(rs.getString("full_name"));
-
-                ServiceType serviceType = new ServiceType();
-                serviceType.setName(rs.getString("service_type_name"));
-                staff.setServiceType(serviceType);
-
-                staff.setBio(rs.getString("bio"));
-                staff.setAvailabilityStatus(Staff.AvailabilityStatus.valueOf(rs.getString("availability_status")));
-                staff.setYearsOfExperience(rs.getInt("years_of_experience"));
-                staff.setCreatedAt(rs.getTimestamp("created_at"));
-                staff.setUpdatedAt(rs.getTimestamp("updated_at"));
-
+                Staff staff = mapResultSetToStaff(rs);
                 staffList.add(staff);
             }
         } catch (SQLException e) {
@@ -174,6 +150,11 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
         User user = new User();
         user.setUserId(rs.getInt("user_id"));
         user.setFullName(rs.getString("full_name"));
+        user.setEmail(rs.getString("email"));
+        user.setPhoneNumber(rs.getString("phone_number"));
+        user.setGender(rs.getString("gender"));
+        user.setBirthday(rs.getDate("birthday"));
+        user.setAvatarUrl(rs.getString("avatar_url"));
         staff.setUser(user);
 
         // Set ServiceType information
@@ -242,7 +223,7 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
             int limit) {
         List<Staff> staffList = new ArrayList<>();
         StringBuilder sql = new StringBuilder(
-                "SELECT t.*, u.full_name, st.name AS service_type_name, st.service_type_id " +
+                "SELECT t.*, u.full_name, u.email, u.phone_number, u.gender, u.birthday, u.avatar_url, st.name AS service_type_name, st.service_type_id " +
                         "FROM therapists t " +
                         "JOIN users u ON t.user_id = u.user_id " +
                         "LEFT JOIN service_types st ON t.service_type_id = st.service_type_id WHERE 1=1");
@@ -319,7 +300,7 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
 
     public List<Staff> findPaginated(int offset, int limit) {
         List<Staff> staffList = new ArrayList<>();
-        String sql = "SELECT t.*, u.full_name, st.name AS service_type_name " +
+        String sql = "SELECT t.*, u.full_name, u.email, u.phone_number, u.gender, u.birthday, u.avatar_url, st.name AS service_type_name " +
                 "FROM therapists t " +
                 "JOIN users u ON t.user_id = u.user_id " +
                 "LEFT JOIN service_types st ON t.service_type_id = st.service_type_id " +

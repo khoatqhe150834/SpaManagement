@@ -94,7 +94,9 @@ public class StaffController extends HttpServlet {
             case "viewById": {
                 int id = Integer.parseInt(request.getParameter("id"));
                 Staff staff = staffDAO.findById(id).orElse(null);
+                List<ServiceType> serviceTypes = new ServiceTypeDAO().findAll();
                 request.setAttribute("staff", staff);
+                request.setAttribute("serviceTypes", serviceTypes);
                 request.getRequestDispatcher("WEB-INF/view/admin_pages/Staff/ViewStaff.jsp").forward(request, response);
                 break;
             }
