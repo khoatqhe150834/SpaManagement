@@ -89,10 +89,7 @@
 
                             <div class="tab-content" id="pills-tabContent">   
                                 <div class="tab-pane fade show active" id="pills-edit-profile" role="tabpanel" aria-labelledby="pills-edit-profile-tab" tabindex="0">
-                                    <form action="staff" method="post">
-                                        <input type="hidden" name="service" value="update" />
-                                        <input type="hidden" name="userId" value="${staff.user.userId}" />
-
+                                    <form>
                                         <!-- Full Name (Readonly) -->
                                         <div class="mb-20">
                                             <label for="fullName" class="form-label fw-semibold text-primary-light text-sm mb-8">Full Name <span class="text-danger-600">*</span></label>
@@ -116,9 +113,10 @@
                                                     minlength="20"
                                                     maxlength="500"
                                                     required
+                                                    readonly
                                                 >${staff.bio}</textarea>
                                                 <div class="form-text text-end">
-                                                    <span id="bioCharCount">0</span>/500 characters
+                                                    
                                                     <span id="bioValidationMessage" class="ms-2"></span>
                                                 </div>
                                             </div>
@@ -127,7 +125,7 @@
                                         <!-- Service Type -->
                                         <div class="mb-20">
                                             <label for="serviceTypeId" class="form-label fw-semibold text-primary-light text-sm mb-8">Service Type <span class="text-danger-600">*</span></label>
-                                            <select name="serviceTypeId" class="form-control radius-8" id="serviceTypeId" required>
+                                            <select name="serviceTypeId" class="form-control radius-8" id="serviceTypeId" required disabled>
                                                 <c:forEach var="serviceType" items="${serviceTypes}">
                                                     <option value="${serviceType.serviceTypeId}" ${serviceType.serviceTypeId == staff.serviceType.serviceTypeId ? "selected" : ""}>${serviceType.name}</option>
                                                 </c:forEach>
@@ -137,7 +135,7 @@
                                         <!-- Availability Status -->
                                         <div class="mb-20">
                                             <label for="availabilityStatus" class="form-label fw-semibold text-primary-light text-sm mb-8">Availability Status <span class="text-danger-600">*</span></label>
-                                            <select name="availabilityStatus" class="form-control radius-8" id="availabilityStatus" required>
+                                            <select name="availabilityStatus" class="form-control radius-8" id="availabilityStatus" required disabled>
                                                 <option value="AVAILABLE" ${staff.availabilityStatus == 'AVAILABLE' ? "selected" : ""}>Available</option>
                                                 <option value="BUSY" ${staff.availabilityStatus == 'BUSY' ? "selected" : ""}>Busy</option>
                                                 <option value="OFFLINE" ${staff.availabilityStatus == 'OFFLINE' ? "selected" : ""}>Offline</option>
@@ -148,13 +146,7 @@
                                         <!-- Years of Experience -->
                                         <div class="mb-20">
                                             <label for="yearsOfExperience" class="form-label fw-semibold text-primary-light text-sm mb-8">Years of Experience <span class="text-danger-600">*</span></label>
-                                            <input type="number" name="yearsOfExperience" class="form-control radius-8" id="yearsOfExperience" value="${staff.yearsOfExperience}" required />
-                                        </div>
-
-                                        <!-- Action Buttons -->
-                                        <div class="d-flex align-items-center justify-content-center gap-3">
-                                            <a href="staff" class="btn btn-outline-danger border border-danger-600 px-56 py-11 radius-8">Cancel</a>
-                                            <button type="submit" class="btn btn-primary border border-primary-600 text-md px-56 py-12 radius-8">Update</button>
+                                            <input type="number" name="yearsOfExperience" class="form-control radius-8" id="yearsOfExperience" value="${staff.yearsOfExperience}" required readonly />
                                         </div>
                                     </form>
                                 </div>
