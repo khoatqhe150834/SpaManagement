@@ -104,7 +104,6 @@ public class ServiceTypeController extends HttpServlet {
                 break;
             }
 
-            case "searchByKeyword":
             case "searchByKeywordAndStatus": {
                 String keyword = request.getParameter("keyword");
                 String status = request.getParameter("status");

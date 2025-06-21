@@ -222,6 +222,15 @@ public class ServiceController extends HttpServlet {
                 }
                 return;
             }
+            case "check-duplicate-name": {
+                String name = request.getParameter("name");
+                boolean isDuplicate = serviceDAO.existsByName(name);
+                response.setContentType("application/json");
+                response.setCharacterEncoding("UTF-8");
+                String message = isDuplicate ? "Tên này đã tồn tại trong hệ thống." : "Tên hợp lệ";
+                response.getWriter().write("{\"valid\": " + !isDuplicate + ", \"message\": \"" + message + "\"}");
+                return;
+            }
         }
 
         request.getRequestDispatcher(SERVICE_MANAGER_URL).forward(request, response);
