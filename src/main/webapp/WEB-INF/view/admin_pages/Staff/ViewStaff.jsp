@@ -27,8 +27,6 @@
                                 Quay lại danh sách nhân viên
                             </a>
                         </li>
-                        <li>-</li>
-                        <li class="fw-medium">Xem hồ sơ nhân viên</li>
                     </ul>
                 </div>
 
@@ -97,7 +95,7 @@
                                         </div>
 
                                         <!-- Bio -->
-                                        <div class="mb-20">
+                                        <div class="mb-12">
                                             <label for="bio" class="form-label fw-semibold text-primary-light text-sm mb-8">
                                                 Tiểu sử
                                                 <span class="text-muted text-sm">(20-500 ký tự)</span>
@@ -108,22 +106,18 @@
                                                     class="form-control radius-8" 
                                                     id="bio" 
                                                     placeholder="Viết mô tả ngắn về nhân viên (tối thiểu 20 ký tự)..." 
-                                                    rows="4"
+                                                    rows="5"
                                                     style="resize: none;"
                                                     minlength="20"
                                                     maxlength="500"
                                                     required
                                                     readonly
                                                 >${staff.bio}</textarea>
-                                                <div class="form-text text-end">
-                                                    
-                                                    <span id="bioValidationMessage" class="ms-2"></span>
-                                                </div>
                                             </div>
                                         </div>
 
                                         <!-- Service Type -->
-                                        <div class="mb-20">
+                                        <div class="mb-12">
                                             <label for="serviceTypeId" class="form-label fw-semibold text-primary-light text-sm mb-8">Loại dịch vụ <span class="text-danger-600">*</span></label>
                                             <select name="serviceTypeId" class="form-control radius-8" id="serviceTypeId" required disabled>
                                                 <c:forEach var="serviceType" items="${serviceTypes}">
