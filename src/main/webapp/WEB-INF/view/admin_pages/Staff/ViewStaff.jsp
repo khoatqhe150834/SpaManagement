@@ -33,7 +33,7 @@
                 </div>
 
                 <div class="row gy-4">
-                    <div class="col-lg-4">
+                    <div class="col-lg-5">
                         <div class="user-grid-card position-relative border radius-16 overflow-hidden bg-base h-100">
                             <img src="${staff.user.avatarUrl != null ? staff.user.avatarUrl : '/assets/images/user-grid/user-grid-img14.png'}" 
                              alt="Avatar" class="border br-white border-width-2-px w-200-px h-200-px rounded-circle object-fit-cover mx-auto d-block mt-4">
@@ -70,7 +70,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-8">
+                <div class="col-lg-7">
                     <div class="card h-100">
                         <div class="card-body p-24">
                             <ul class="nav border-gradient-tab nav-pills mb-20 d-inline-flex" id="pills-tab" role="tablist">
