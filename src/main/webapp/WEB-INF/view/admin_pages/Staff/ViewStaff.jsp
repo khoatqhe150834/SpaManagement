@@ -41,7 +41,9 @@
                                 <span class="text-secondary-light mb-16">${staff.user.email}</span>
                             </div>
                             <div class="mt-24">
-                                <h6 class="text-xl mb-16">Thông tin cá nhân</h6>
+                                <div class="d-inline-flex border-gradient-tab mb-16">
+                                    <h6 class="nav-link active d-inline-flex align-items-center px-24 py-12 mb-0 text-md">Thông tin cá nhân</h6>
+                                </div>
                                 <ul>
                                     <li class="d-flex align-items-center gap-1 mb-12">
                                         <span class="w-30 text-md fw-semibold text-primary-light">Mã nhân viên</span>
@@ -71,74 +73,66 @@
                 <div class="col-lg-7">
                     <div class="card h-100">
                         <div class="card-body p-24">
-                            <ul class="nav border-gradient-tab nav-pills mb-20 d-inline-flex" id="pills-tab" role="tablist">
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link d-flex align-items-center px-24 active" id="pills-edit-profile-tab" data-bs-toggle="pill" data-bs-target="#pills-edit-profile" type="button" role="tab" aria-controls="pills-edit-profile" aria-selected="true">
-                                        Thông tin hồ sơ 
-                                    </button>
-                                </li>
-                            </ul>
-
-                            <div class="tab-content" id="pills-tabContent">   
-                                <div class="tab-pane fade show active" id="pills-edit-profile" role="tabpanel" aria-labelledby="pills-edit-profile-tab" tabindex="0">
-                                    <form>
-                                        <!-- Full Name (Readonly) -->
-                                        <div class="mb-20">
-                                            <label for="fullName" class="form-label fw-semibold text-primary-light text-sm mb-8">Họ và tên <span class="text-danger-600">*</span></label>
-                                            <input type="text" name="fullName" class="form-control radius-8" id="fullName" value="${staff.user.fullName}" required readonly />
-                                        </div>
-
-                                        <!-- Bio -->
-                                        <div class="mb-12">
-                                            <label for="bio" class="form-label fw-semibold text-primary-light text-sm mb-8">
-                                                Tiểu sử
-                                                <span class="text-muted text-sm">(20-500 ký tự)</span>
-                                            </label>
-                                            <div class="position-relative">
-                                                <textarea 
-                                                    name="bio" 
-                                                    class="form-control radius-8" 
-                                                    id="bio" 
-                                                    placeholder="Viết mô tả ngắn về nhân viên (tối thiểu 20 ký tự)..." 
-                                                    rows="5"
-                                                    style="resize: none;"
-                                                    minlength="20"
-                                                    maxlength="500"
-                                                    required
-                                                    readonly
-                                                >${staff.bio}</textarea>
-                                            </div>
-                                        </div>
-
-                                        <!-- Service Type -->
-                                        <div class="mb-12">
-                                            <label for="serviceTypeId" class="form-label fw-semibold text-primary-light text-sm mb-8">Loại dịch vụ <span class="text-danger-600">*</span></label>
-                                            <select name="serviceTypeId" class="form-control radius-8" id="serviceTypeId" required disabled>
-                                                <c:forEach var="serviceType" items="${serviceTypes}">
-                                                    <option value="${serviceType.serviceTypeId}" ${serviceType.serviceTypeId == staff.serviceType.serviceTypeId ? "selected" : ""}>${serviceType.name}</option>
-                                                </c:forEach>
-                                            </select>
-                                        </div>
-
-                                        <!-- Availability Status -->
-                                        <div class="mb-20">
-                                            <label for="availabilityStatus" class="form-label fw-semibold text-primary-light text-sm mb-8">Trạng thái sẵn sàng <span class="text-danger-600">*</span></label>
-                                            <select name="availabilityStatus" class="form-control radius-8" id="availabilityStatus" required disabled>
-                                                <option value="AVAILABLE" ${staff.availabilityStatus == 'AVAILABLE' ? "selected" : ""}>Sẵn sàng</option>
-                                                <option value="BUSY" ${staff.availabilityStatus == 'BUSY' ? "selected" : ""}>Bận</option>
-                                                <option value="OFFLINE" ${staff.availabilityStatus == 'OFFLINE' ? "selected" : ""}>Ngoại tuyến</option>
-                                                <option value="ON_LEAVE" ${staff.availabilityStatus == 'ON_LEAVE' ? "selected" : ""}>Đang nghỉ</option>
-                                            </select>
-                                        </div>
-
-                                        <!-- Years of Experience -->
-                                        <div class="mb-20">
-                                            <label for="yearsOfExperience" class="form-label fw-semibold text-primary-light text-sm mb-8">Số năm kinh nghiệm <span class="text-danger-600">*</span></label>
-                                            <input type="number" name="yearsOfExperience" class="form-control radius-8" id="yearsOfExperience" value="${staff.yearsOfExperience}" required readonly />
-                                        </div>
-                                    </form>
-                                </div>
+                            <div class="d-inline-flex border-gradient-tab mb-20">
+                                <h6 class="nav-link active d-inline-flex align-items-center px-24 py-12 mb-0 text-md">Thông tin hồ sơ</h6>
                             </div>
+
+                            <form>
+                                <!-- Full Name (Readonly) -->
+                                <div class="mb-20">
+                                    <label for="fullName" class="form-label fw-semibold text-primary-light text-sm mb-8">Họ và tên </label>
+                                    <input type="text" name="fullName" class="form-control radius-8" id="fullName" value="${staff.user.fullName}" required readonly />
+                                </div>
+
+                                <!-- Bio -->
+                                <div class="mb-12">
+                                    <label for="bio" class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                        Tiểu sử
+                                        <span class="text-muted text-sm">(20-500 ký tự)</span>
+                                    </label>
+                                    <div class="position-relative">
+                                        <textarea 
+                                            name="bio" 
+                                            class="form-control radius-8" 
+                                            id="bio" 
+                                            placeholder="Viết mô tả ngắn về nhân viên (tối thiểu 20 ký tự)..." 
+                                            rows="5"
+                                            style="resize: none;"
+                                            minlength="20"
+                                            maxlength="500"
+                                            required
+                                            readonly
+                                        >${staff.bio}</textarea>
+                                    </div>
+                                </div>
+
+                                <!-- Service Type -->
+                                <div class="mb-12">
+                                    <label for="serviceTypeId" class="form-label fw-semibold text-primary-light text-sm mb-8">Loại dịch vụ </label>
+                                    <select name="serviceTypeId" class="form-control radius-8" id="serviceTypeId" required disabled>
+                                        <c:forEach var="serviceType" items="${serviceTypes}">
+                                            <option value="${serviceType.serviceTypeId}" ${serviceType.serviceTypeId == staff.serviceType.serviceTypeId ? "selected" : ""}>${serviceType.name}</option>
+                                        </c:forEach>
+                                    </select>
+                                </div>
+
+                                <!-- Availability Status -->
+                                <div class="mb-20">
+                                    <label for="availabilityStatus" class="form-label fw-semibold text-primary-light text-sm mb-8">Trạng thái sẵn sàng </label>
+                                    <select name="availabilityStatus" class="form-control radius-8" id="availabilityStatus" required disabled>
+                                        <option value="AVAILABLE" ${staff.availabilityStatus == 'AVAILABLE' ? "selected" : ""}>Sẵn sàng</option>
+                                        <option value="BUSY" ${staff.availabilityStatus == 'BUSY' ? "selected" : ""}>Bận</option>
+                                        <option value="OFFLINE" ${staff.availabilityStatus == 'OFFLINE' ? "selected" : ""}>Ngoại tuyến</option>
+                                        <option value="ON_LEAVE" ${staff.availabilityStatus == 'ON_LEAVE' ? "selected" : ""}>Đang nghỉ</option>
+                                    </select>
+                                </div>
+
+                                <!-- Years of Experience -->
+                                <div class="mb-20">
+                                    <label for="yearsOfExperience" class="form-label fw-semibold text-primary-light text-sm mb-8">Số năm kinh nghiệm </label>
+                                    <input type="number" name="yearsOfExperience" class="form-control radius-8" id="yearsOfExperience" value="${staff.yearsOfExperience}" required readonly />
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
