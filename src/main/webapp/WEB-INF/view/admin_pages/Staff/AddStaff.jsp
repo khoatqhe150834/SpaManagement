@@ -56,6 +56,7 @@
             overflow: hidden;
             min-height: 48px;
             line-height: 1.5;
+            position: relative;
         }
         .form-select option {
             padding: 8px 12px;
@@ -87,6 +88,57 @@
             font-size: 0.875rem;
             margin-top: 4px;
         }
+        /* Thêm styles từ AddService */
+        .is-valid {
+            border: 2px solid #22c55e !important;
+        }
+        .is-invalid {
+            border: 2px solid #f44336 !important;
+        }
+        .invalid-feedback {
+            margin-top: 4px;
+            font-size: 0.95em;
+            min-height: 18px;
+            color: red;
+            display: block;
+        }
+        .is-valid ~ .invalid-feedback {
+            color: #22c55e;
+        }
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .section-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .section-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        /* 
+          Custom styles to fix select dropdown behavior.
+          - Ensure dropdown always opens downwards.
+          - Add a scrollbar for long lists.
+        */
+        .form-group .dropdown-menu {
+            max-height: 250px; /* Giới hạn chiều cao của danh sách */
+            overflow-y: auto;  /* Thêm thanh cuộn khi danh sách quá dài */
+
+            /* Buộc danh sách luôn hiển thị bên dưới */
+            top: 100% !important;
+            bottom: auto !important;
+            transform: translateY(0) !important;
+        }
     </style>
 </head>
 <body class="profile-body">
@@ -96,11 +148,17 @@
 
         <div class="dashboard-main-body">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
-                <h4 class="page-title">Tạo hồ sơ nhân viên</h4>
-                <a href="staff" class="btn btn-light d-flex align-items-center gap-1">
-                    <iconify-icon icon="solar:arrow-left-outline" class="icon text-lg"></iconify-icon>
-                    Quay lại danh sách
-                </a>
+                <h6 class="fw-semibold mb-0">Thêm nhân viên mới</h6>
+                <ul class="d-flex align-items-center gap-2">
+                    <li class="fw-medium">
+                        <a href="staff" class="d-flex align-items-center gap-1 hover-text-primary">
+                            <iconify-icon icon="solar:home-smile-angle-outline" class="icon text-lg"></iconify-icon>
+                            Trở lại danh sách nhân viên
+                        </a>
+                    </li>
+                    <li>-</li>
+                    <li class="fw-medium">Thêm nhân viên mới</li>
+                </ul>
             </div>
 
             <div class="card form-card">
@@ -112,70 +170,106 @@
                     <form id="addStaffForm" action="staff" method="post">
                         <input type="hidden" name="service" value="insert" />
                         
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="userSelect" class="form-label">Chọn người dùng</label>
-                                    <select id="userSelect" name="userId" class="form-select" required>
-                                        <option value="" data-fullname="">-- Chọn từ danh sách người dùng --</option>
-                                        <c:forEach var="user" items="${userList}">
-                                            <option value="${user.userId}" data-fullname="${user.fullName}">${user.userId} - ${user.fullName}</option>
-                                        </c:forEach>
-                                    </select>
+                        <!-- =================================== Thông tin người dùng =================================== -->
+                        <div class="mb-32">
+                            <div class="section-header">
+                                <div class="section-icon bg-primary-50">
+                                    <iconify-icon icon="solar:user-outline" class="text-primary text-xl"></iconify-icon>
                                 </div>
+                                <h6 class="section-title">Thông tin người dùng</h6>
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="fullNameInput" class="form-label">Họ và tên</label>
-                                    <input type="text" id="fullNameInput" name="fullName" class="form-control" readonly placeholder="Tên sẽ tự động điền..." />
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="userSelect" class="form-label">
+                                            Chọn người dùng <span class="text-danger-600">*</span>
+                                        </label>
+                                        <select id="userSelect" name="userId" class="form-select" required>
+                                            <option value="" data-fullname="">-- Chọn từ danh sách người dùng --</option>
+                                            <c:forEach var="user" items="${userList}">
+                                                <option value="${user.userId}" data-fullname="${user.fullName}">${user.userId} - ${user.fullName}</option>
+                                            </c:forEach>
+                                        </select>
+                                        <div class="invalid-feedback" id="userSelectError"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="fullNameInput" class="form-label">Họ và tên</label>
+                                        <input type="text" id="fullNameInput" name="fullName" class="form-control" readonly placeholder="Tên sẽ tự động điền..." />
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="form-group">
-                            <label for="bio" class="form-label">Tiểu sử</label>
-                            <textarea name="bio" class="form-control" id="bio" placeholder="Viết mô tả ngắn về nhân viên (tối thiểu 20 ký tự)..." rows="4" style="resize: none;" minlength="20" maxlength="500" required></textarea>
-                            <div class="d-flex justify-content-between">
-                                <small id="bioValidationMessage" class="validation-message text-danger"></small>
-                                <small class="text-muted"><span id="bioCharCount">0</span>/500</small>
+                        <!-- =================================== Thông tin chuyên môn =================================== -->
+                        <div class="mb-32">
+                            <div class="section-header">
+                                <div class="section-icon bg-info-50">
+                                    <iconify-icon icon="solar:user-id-outline" class="text-info text-xl"></iconify-icon>
+                                </div>
+                                <h6 class="section-title">Thông tin chuyên môn</h6>
+                            </div>
+                            <div class="form-group">
+                                <label for="bio" class="form-label">
+                                    Tiểu sử <span class="text-danger-600">*</span>
+                                </label>
+                                <textarea name="bio" class="form-control" id="bio" placeholder="Viết mô tả ngắn về nhân viên (tối thiểu 20 ký tự)..." rows="4" style="resize: none;" minlength="20" maxlength="500" required></textarea>
+                                <div class="d-flex justify-content-between">
+                                    <div class="invalid-feedback" id="bioError"></div>
+                                    <small class="text-muted"><span id="bioCharCount">0</span>/500</small>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="serviceTypeId" class="form-label">
+                                            Loại dịch vụ <span class="text-danger-600">*</span>
+                                        </label>
+                                        <select name="serviceTypeId" class="form-select" id="serviceTypeId" required>
+                                            <option value="">-- Chọn loại dịch vụ --</option>
+                                            <c:forEach var="serviceType" items="${serviceTypes}">
+                                                <option value="${serviceType.serviceTypeId}">${serviceType.name}</option>
+                                            </c:forEach>
+                                        </select>
+                                        <div class="invalid-feedback" id="serviceTypeError"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="availabilityStatus" class="form-label">
+                                            Trạng thái làm việc <span class="text-danger-600">*</span>
+                                        </label>
+                                        <select name="availabilityStatus" class="form-select" id="availabilityStatus" required>
+                                            <option value="">-- Chọn trạng thái --</option>
+                                            <option value="AVAILABLE">Sẵn sàng</option>
+                                            <option value="BUSY">Bận</option>
+                                            <option value="OFFLINE">Ngoại tuyến</option>
+                                            <option value="ON_LEAVE">Nghỉ phép</option>
+                                        </select>
+                                        <div class="invalid-feedback" id="availabilityError"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                     <div class="form-group">
+                                        <label for="yearsOfExperience" class="form-label">
+                                            Số năm kinh nghiệm <span class="text-danger-600">*</span>
+                                        </label>
+                                        <input type="number" name="yearsOfExperience" class="form-control" id="yearsOfExperience" required min="0" max="100" placeholder="Ví dụ: 5"/>
+                                        <div class="invalid-feedback" id="experienceError"></div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="serviceTypeId" class="form-label">Loại dịch vụ</label>
-                                    <select name="serviceTypeId" class="form-select" id="serviceTypeId" required>
-                                        <c:forEach var="serviceType" items="${serviceTypes}">
-                                            <option value="${serviceType.serviceTypeId}">${serviceType.name}</option>
-                                        </c:forEach>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="availabilityStatus" class="form-label">Trạng thái làm việc</label>
-                                    <select name="availabilityStatus" class="form-select" id="availabilityStatus" required>
-                                        <option value="AVAILABLE">Sẵn sàng</option>
-                                        <option value="BUSY">Bận</option>
-                                        <option value="OFFLINE">Ngoại tuyến</option>
-                                        <option value="ON_LEAVE">Nghỉ phép</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                 <div class="form-group">
-                                    <label for="yearsOfExperience" class="form-label">Số năm kinh nghiệm</label>
-                                    <input type="number" name="yearsOfExperience" class="form-control" id="yearsOfExperience" required min="0" max="100" placeholder="Ví dụ: 5"/>
-                                    <small id="experienceValidationMessage" class="validation-message text-danger"></small>
-                                </div>
-                            </div>
-                        </div>
+
+                        <!-- =================================== Cài đặt =================================== -->
+
                     </form>
                 </div>
                 <div class="form-actions">
-                     <a href="staff" class="btn btn-cancel">Hủy</a>
-                     <button type="submit" form="addStaffForm" class="btn btn-primary">Lưu thông tin</button>
+                     <a href="staff" class="btn btn-outline-danger border border-danger-600 px-40 py-11 radius-8">Hủy</a>
+                     <button type="submit" form="addStaffForm" class="btn btn-primary border border-primary-600 text-md px-40 py-12 radius-8">Lưu thông tin</button>
                 </div>
             </div>
         </div>
@@ -188,17 +282,25 @@
             // --- User Selection ---
             const userSelect = document.getElementById('userSelect');
             const fullNameInput = document.getElementById('fullNameInput');
+            const userSelectError = document.getElementById('userSelectError');
 
             userSelect.addEventListener('change', function() {
                 const selectedOption = this.options[this.selectedIndex];
                 const fullName = selectedOption.getAttribute('data-fullname');
                 fullNameInput.value = fullName || 'Tên sẽ tự động điền...';
+                
+                // Validation
+                if (this.value === '') {
+                    setFieldInvalid(this, 'Vui lòng chọn một người dùng.');
+                } else {
+                    setFieldValid(this, 'Đã chọn người dùng.');
+                }
             });
 
             // --- Bio Validation ---
             const bioTextarea = document.getElementById('bio');
             const bioCharCount = document.getElementById('bioCharCount');
-            const bioValidationMessage = document.getElementById('bioValidationMessage');
+            const bioError = document.getElementById('bioError');
             const MIN_BIO_LENGTH = 20;
             const MAX_BIO_LENGTH = 500;
 
@@ -206,11 +308,14 @@
                 const length = bioTextarea.value.trim().length;
                 bioCharCount.textContent = length;
                 
-                if (length > 0 && length < MIN_BIO_LENGTH) {
-                    bioValidationMessage.textContent = `Cần ít nhất ${MIN_BIO_LENGTH} ký tự.`;
+                if (length === 0) {
+                    setFieldInvalid(bioTextarea, 'Tiểu sử không được để trống.');
+                    return false;
+                } else if (length < MIN_BIO_LENGTH) {
+                    setFieldInvalid(bioTextarea, `Cần ít nhất ${MIN_BIO_LENGTH} ký tự.`);
                     return false;
                 } else {
-                    bioValidationMessage.textContent = '';
+                    setFieldValid(bioTextarea, 'Tiểu sử hợp lệ.');
                     return true;
                 }
             };
@@ -218,38 +323,92 @@
 
             // --- Experience Validation ---
             const experienceInput = document.getElementById('yearsOfExperience');
-            const experienceValidationMessage = document.getElementById('experienceValidationMessage');
+            const experienceError = document.getElementById('experienceError');
 
             const validateExperience = () => {
                 const value = parseInt(experienceInput.value, 10);
-                if (isNaN(value) || value < 0 || value > 100) {
-                    experienceValidationMessage.textContent = 'Kinh nghiệm phải là số từ 0 đến 100.';
+                if (experienceInput.value === '') {
+                    setFieldInvalid(experienceInput, 'Số năm kinh nghiệm không được để trống.');
+                    return false;
+                } else if (isNaN(value) || value < 0 || value > 100) {
+                    setFieldInvalid(experienceInput, 'Kinh nghiệm phải là số từ 0 đến 100.');
                     return false;
                 } else {
-                    experienceValidationMessage.textContent = '';
+                    setFieldValid(experienceInput, 'Kinh nghiệm hợp lệ.');
                     return true;
                 }
             };
             experienceInput.addEventListener('input', validateExperience);
 
+            // --- Service Type Validation ---
+            const serviceTypeSelect = document.getElementById('serviceTypeId');
+            const serviceTypeError = document.getElementById('serviceTypeError');
+
+            serviceTypeSelect.addEventListener('change', function() {
+                if (this.value === '') {
+                    setFieldInvalid(this, 'Vui lòng chọn loại dịch vụ.');
+                } else {
+                    setFieldValid(this, 'Đã chọn loại dịch vụ.');
+                }
+            });
+
+            // --- Availability Validation ---
+            const availabilitySelect = document.getElementById('availabilityStatus');
+            const availabilityError = document.getElementById('availabilityError');
+
+            availabilitySelect.addEventListener('change', function() {
+                if (this.value === '') {
+                    setFieldInvalid(this, 'Vui lòng chọn trạng thái làm việc.');
+                } else {
+                    setFieldValid(this, 'Đã chọn trạng thái.');
+                }
+            });
+
             // --- Form Submission ---
             const form = document.getElementById('addStaffForm');
             form.addEventListener('submit', function(e) {
+                const isUserValid = userSelect.value !== '';
                 const isBioValid = validateBio();
                 const isExperienceValid = validateExperience();
-                const isUserSelected = userSelect.value !== '';
+                const isServiceTypeValid = serviceTypeSelect.value !== '';
+                const isAvailabilityValid = availabilitySelect.value !== '';
                 
-                if (!isUserSelected) {
-                     alert('Vui lòng chọn một người dùng.');
-                     e.preventDefault();
-                     return;
+                if (!isUserValid) {
+                    setFieldInvalid(userSelect, 'Vui lòng chọn một người dùng.');
+                }
+                if (!isServiceTypeValid) {
+                    setFieldInvalid(serviceTypeSelect, 'Vui lòng chọn loại dịch vụ.');
+                }
+                if (!isAvailabilityValid) {
+                    setFieldInvalid(availabilitySelect, 'Vui lòng chọn trạng thái làm việc.');
                 }
 
-                if (!isBioValid || !isExperienceValid) {
-                    e.preventDefault(); // Stop form submission
+                if (!isUserValid || !isBioValid || !isExperienceValid || !isServiceTypeValid || !isAvailabilityValid) {
+                    e.preventDefault();
                     alert('Vui lòng kiểm tra lại các thông tin đã nhập.');
                 }
             });
+
+            // Helper functions for validation
+            function setFieldInvalid(field, message) {
+                field.classList.remove('is-valid');
+                field.classList.add('is-invalid');
+                const errorElement = document.getElementById(field.id + 'Error');
+                if (errorElement) {
+                    errorElement.textContent = message;
+                    errorElement.style.display = 'block';
+                }
+            }
+
+            function setFieldValid(field, message) {
+                field.classList.remove('is-invalid');
+                field.classList.add('is-valid');
+                const errorElement = document.getElementById(field.id + 'Error');
+                if (errorElement) {
+                    errorElement.textContent = message;
+                    errorElement.style.display = 'block';
+                }
+            }
         });
     </script>
 </body>
