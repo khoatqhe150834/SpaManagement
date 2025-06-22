@@ -25,7 +25,7 @@
                         <a href="${pageContext.request.contextPath}/promotion/list" class="btn btn-secondary">Quay lại danh sách</a>
                     </c:when>
                     <c:otherwise>
-                        <form action="${pageContext.request.contextPath}/promotion" method="post">
+                        <form action="${pageContext.request.contextPath}/promotion" method="post" enctype="multipart/form-data">
                             <input type="hidden" name="action" value="<c:out value='${isEdit ? "update" : "create"}'/>" />
                             <c:if test="${isEdit}">
                                 <input type="hidden" name="id" value="${promotion.promotionId}" />
@@ -85,6 +85,17 @@
                                         <label for="applicableServiceIdsJson" class="form-label">Dịch vụ áp dụng (IDs, JSON)</label>
                                         <input type="text" class="form-control" id="applicableServiceIdsJson" name="applicableServiceIdsJson" value="<c:out value='${promotion.applicableServiceIdsJson}'/>">
                                     </div>
+                                    <div class="mb-3">
+                                        <label for="imageUrl" class="form-label">Ảnh Khuyến mãi</label>
+                                        <input type="file" class="form-control" id="imageUrl" name="imageUrl" accept="image/*">
+                                        <small class="form-text text-muted">Chọn ảnh cho khuyến mãi (tùy chọn)</small>
+                                        <c:if test="${not empty promotion.imageUrl}">
+                                            <div class="mt-2">
+                                                <img src="${promotion.imageUrl}" alt="Ảnh Khuyến mãi hiện tại" 
+                                                     class="img-thumbnail" style="max-width: 200px;">
+                                            </div>
+                                        </c:if>
+                                    </div>
                                 </div>
                             </div>
                             <div class="card-footer text-end">
@@ -103,5 +114,49 @@
         </div>
     </div>
     <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
+    <script>
+        // Image preview functionality
+        document.getElementById('imageUrl').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const previewContainer = document.getElementById('imagePreview');
+            
+            if (file) {
+                // Validate file type
+                if (!file.type.startsWith('image/')) {
+                    alert('Vui lòng chọn file ảnh hợp lệ');
+                    this.value = '';
+                    return;
+                }
+                
+                // Validate file size (max 10MB)
+                if (file.size > 10 * 1024 * 1024) {
+                    alert('Kích thước file phải nhỏ hơn 10MB');
+                    this.value = '';
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    if (!previewContainer) {
+                        // Create preview container if it doesn't exist
+                        const container = document.createElement('div');
+                        container.id = 'imagePreview';
+                        container.className = 'mt-2';
+                        container.innerHTML = '<img src="' + e.target.result + '" alt="Preview" class="img-thumbnail" style="max-width: 200px;">';
+                        document.getElementById('imageUrl').parentNode.appendChild(container);
+                    } else {
+                        // Update existing preview
+                        previewContainer.innerHTML = '<img src="' + e.target.result + '" alt="Preview" class="img-thumbnail" style="max-width: 200px;">';
+                    }
+                };
+                reader.readAsDataURL(file);
+            } else {
+                // Remove preview if no file selected
+                if (previewContainer) {
+                    previewContainer.remove();
+                }
+            }
+        });
+    </script>
 </body>
 </html>
