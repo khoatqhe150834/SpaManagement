@@ -204,12 +204,12 @@ public class BlogDAO extends DBContext {
         return list;
     }
 
-    // Lấy blog theo slug
+    // Lấy blog theo slug, không lọc status
     public Blog findBySlug(String slug) {
         String sql = "SELECT b.*, u.full_name AS author_name " +
                 "FROM blogs b " +
                 "JOIN users u ON b.author_user_id = u.user_id " +
-                "WHERE b.status='PUBLISHED' AND b.slug = ? LIMIT 1";
+                "WHERE b.slug = ? LIMIT 1";
         try (Connection con = getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, slug);
@@ -285,6 +285,124 @@ public class BlogDAO extends DBContext {
             ps.executeUpdate();
         } catch (SQLException e) {
             System.out.println("incrementViewCount: " + e.getMessage());
+        }
+    }
+
+    /* ========= MARKETING METHODS ========= */
+    
+    // Đếm tổng blog cho marketing (có thể lọc theo status và search)
+    public int countBlogsForMarketing(String searchFilter, String statusFilter) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM blogs b ");
+        List<Object> params = new ArrayList<>();
+
+        if (searchFilter != null && !searchFilter.trim().isEmpty() || 
+            statusFilter != null && !statusFilter.trim().isEmpty()) {
+            sql.append("WHERE ");
+            boolean hasCondition = false;
+            
+            if (searchFilter != null && !searchFilter.trim().isEmpty()) {
+                sql.append("b.title LIKE ? ");
+                params.add("%" + searchFilter.trim() + "%");
+                hasCondition = true;
+            }
+            
+            if (statusFilter != null && !statusFilter.trim().isEmpty()) {
+                if (hasCondition) sql.append("AND ");
+                sql.append("b.status = ? ");
+                params.add(statusFilter.trim());
+            }
+        }
+
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            System.out.println("countBlogsForMarketing: " + e.getMessage());
+        }
+        return 0;
+    }
+
+    // Lấy danh sách blog cho marketing (có thể lọc theo status và search)
+    public List<Blog> findBlogsForMarketing(String searchFilter, String statusFilter, int page, int pageSize) {
+        List<Blog> list = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder(
+                "SELECT b.*, u.full_name AS author_name "
+                + "FROM blogs b JOIN users u ON b.author_user_id = u.user_id ");
+
+        List<Object> params = new ArrayList<>();
+        
+        if (searchFilter != null && !searchFilter.trim().isEmpty() || 
+            statusFilter != null && !statusFilter.trim().isEmpty()) {
+            sql.append("WHERE ");
+            boolean hasCondition = false;
+            
+            if (searchFilter != null && !searchFilter.trim().isEmpty()) {
+                sql.append("b.title LIKE ? ");
+                params.add("%" + searchFilter.trim() + "%");
+                hasCondition = true;
+            }
+            
+            if (statusFilter != null && !statusFilter.trim().isEmpty()) {
+                if (hasCondition) sql.append("AND ");
+                sql.append("b.status = ? ");
+                params.add(statusFilter.trim());
+            }
+        }
+        
+        sql.append("ORDER BY b.created_at DESC LIMIT ? OFFSET ?");
+        params.add(pageSize);
+        params.add((page - 1) * pageSize);
+
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                list.add(getFromResultSet(rs));
+            }
+        } catch (SQLException e) {
+            System.out.println("findBlogsForMarketing: " + e.getMessage());
+        }
+
+        return list;
+    }
+
+    // Lấy blog theo slug cho marketing (không lọc status)
+    public Blog findBySlugForMarketing(String slug) {
+        String sql = "SELECT b.*, u.full_name AS author_name " +
+                "FROM blogs b " +
+                "JOIN users u ON b.author_user_id = u.user_id " +
+                "WHERE b.slug = ? LIMIT 1";
+        try (Connection con = getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, slug);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return getFromResultSet(rs);
+            }
+        } catch (SQLException e) {
+            System.out.println("findBySlugForMarketing: " + e.getMessage());
+        }
+        return null;
+    }
+
+    // Đổi trạng thái comment (APPROVED/REJECTED)
+    public boolean updateCommentStatus(int commentId, String status) {
+        String sql = "UPDATE blog_comments SET status = ?, updated_at = NOW() WHERE comment_id = ?";
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, status);
+            ps.setInt(2, commentId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.out.println("updateCommentStatus: " + e.getMessage());
+            return false;
         }
     }
 
