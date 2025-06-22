@@ -8,6 +8,7 @@
     <title>Thêm nhân viên mới</title>
     <link rel="icon" type="image/png" href="${pageContext.request.contextPath}/assets/images/favicon.png" sizes="16x16">
     <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp" />
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <style>
         .profile-body {
             background-color: #f8f9fa;
@@ -139,6 +140,42 @@
             bottom: auto !important;
             transform: translateY(0) !important;
         }
+
+        /* 
+          Custom styles for Select2 to match theme 
+        */
+        .select2-container .select2-selection--single {
+            height: 48px !important;
+            border-radius: 12px !important;
+            border: 1px solid #ced4da !important;
+            display: flex;
+            align-items: center;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 48px;
+            color: #495057;
+            padding-left: 16px !important;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 46px !important;
+            right: 8px !important;
+        }
+        .select2-dropdown {
+            border-radius: 12px !important;
+            border: 1px solid #ced4da !important;
+            overflow: hidden;
+        }
+        .select2-search--dropdown .select2-search__field {
+             border-radius: 8px;
+        }
+
+        /* Validation styles for Select2 */
+        select.is-invalid + .select2-container .select2-selection--single {
+            border: 2px solid #f44336 !important;
+        }
+        select.is-valid + .select2-container .select2-selection--single {
+            border: 2px solid #22c55e !important;
+        }
     </style>
 </head>
 <body class="profile-body">
@@ -184,8 +221,8 @@
                                         <label for="userSelect" class="form-label">
                                             Chọn người dùng <span class="text-danger-600">*</span>
                                         </label>
-                                        <select id="userSelect" name="userId" class="form-select" required>
-                                            <option value="" data-fullname="">-- Chọn từ danh sách người dùng --</option>
+                                        <select id="userSelect" name="userId" class="form-select select2-hidden-accessible" required>
+                                            <option></option>
                                             <c:forEach var="user" items="${userList}">
                                                 <option value="${user.userId}" data-fullname="${user.fullName}">${user.userId} - ${user.fullName}</option>
                                             </c:forEach>
@@ -227,8 +264,8 @@
                                         <label for="serviceTypeId" class="form-label">
                                             Loại dịch vụ <span class="text-danger-600">*</span>
                                         </label>
-                                        <select name="serviceTypeId" class="form-select" id="serviceTypeId" required>
-                                            <option value="">-- Chọn loại dịch vụ --</option>
+                                        <select name="serviceTypeId" class="form-select select2-hidden-accessible" id="serviceTypeId" required>
+                                            <option></option>
                                             <c:forEach var="serviceType" items="${serviceTypes}">
                                                 <option value="${serviceType.serviceTypeId}">${serviceType.name}</option>
                                             </c:forEach>
@@ -241,8 +278,8 @@
                                         <label for="availabilityStatus" class="form-label">
                                             Trạng thái làm việc <span class="text-danger-600">*</span>
                                         </label>
-                                        <select name="availabilityStatus" class="form-select" id="availabilityStatus" required>
-                                            <option value="">-- Chọn trạng thái --</option>
+                                        <select name="availabilityStatus" class="form-select select2-hidden-accessible" id="availabilityStatus" required>
+                                            <option></option>
                                             <option value="AVAILABLE">Sẵn sàng</option>
                                             <option value="BUSY">Bận</option>
                                             <option value="OFFLINE">Ngoại tuyến</option>
@@ -276,20 +313,37 @@
     </div>
 
     <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // --- Initialize Select2 ---
+            $('#userSelect').select2({
+                placeholder: "-- Chọn từ danh sách người dùng --",
+                allowClear: true,
+                width: '100%'
+            });
+             $('#serviceTypeId').select2({
+                placeholder: "-- Chọn loại dịch vụ --",
+                allowClear: true,
+                width: '100%'
+            });
+             $('#availabilityStatus').select2({
+                placeholder: "-- Chọn trạng thái --",
+                allowClear: true,
+                width: '100%'
+            });
+
+
             // --- User Selection ---
             const userSelect = document.getElementById('userSelect');
             const fullNameInput = document.getElementById('fullNameInput');
-            const userSelectError = document.getElementById('userSelectError');
 
-            userSelect.addEventListener('change', function() {
+            $('#userSelect').on('change', function() {
                 const selectedOption = this.options[this.selectedIndex];
-                const fullName = selectedOption.getAttribute('data-fullname');
+                const fullName = $(selectedOption).data('fullname');
                 fullNameInput.value = fullName || 'Tên sẽ tự động điền...';
                 
-                // Validation
                 if (this.value === '') {
                     setFieldInvalid(this, 'Vui lòng chọn một người dùng.');
                 } else {
@@ -342,9 +396,7 @@
 
             // --- Service Type Validation ---
             const serviceTypeSelect = document.getElementById('serviceTypeId');
-            const serviceTypeError = document.getElementById('serviceTypeError');
-
-            serviceTypeSelect.addEventListener('change', function() {
+            $('#serviceTypeId').on('change', function() {
                 if (this.value === '') {
                     setFieldInvalid(this, 'Vui lòng chọn loại dịch vụ.');
                 } else {
@@ -354,9 +406,7 @@
 
             // --- Availability Validation ---
             const availabilitySelect = document.getElementById('availabilityStatus');
-            const availabilityError = document.getElementById('availabilityError');
-
-            availabilitySelect.addEventListener('change', function() {
+            $('#availabilityStatus').on('change', function() {
                 if (this.value === '') {
                     setFieldInvalid(this, 'Vui lòng chọn trạng thái làm việc.');
                 } else {
