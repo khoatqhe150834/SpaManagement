@@ -60,10 +60,14 @@
         .personal-info-list .info-left {
             display: flex;
             align-items: center;
+            min-width: 140px;
+            flex-shrink: 0;
         }
         .personal-info-list .info-right {
             text-align: right;
             font-weight: 500;
+            flex: 1;
+            margin-left: 16px;
         }
         .personal-info-list iconify-icon {
             font-size: 20px;
@@ -71,6 +75,10 @@
             margin-right: 12px;
             width: 24px;
             text-align: center;
+            flex-shrink: 0;
+        }
+        .personal-info-list .info-left span {
+            white-space: nowrap;
         }
         .professional-info .info-section {
             margin-bottom: 24px;
@@ -170,6 +178,13 @@
                                     <span>Ngày sinh:</span>
                                 </div>
                                 <div class="info-right"><fmt:formatDate value="${staff.user.birthday}" pattern="dd/MM/yyyy"/></div>
+                            </li>
+                            <li>
+                                <div class="info-left">
+                                    <iconify-icon icon="solar:map-point-bold-duotone"></iconify-icon>
+                                    <span>Địa chỉ:</span>
+                                </div>
+                                <div class="info-right">${staff.user.address}</div>
                             </li>
                         </ul>
                     </div>
