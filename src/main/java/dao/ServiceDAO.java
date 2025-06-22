@@ -487,4 +487,21 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
             Logger.getLogger(ServiceDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+
+    // Kiểm tra tên dịch vụ đã tồn tại (không phân biệt loại)
+    public boolean existsByName(String name) {
+        String sql = "SELECT COUNT(*) FROM services WHERE LOWER(name) = ?";
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, name.toLowerCase());
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return false;
+    }
 }

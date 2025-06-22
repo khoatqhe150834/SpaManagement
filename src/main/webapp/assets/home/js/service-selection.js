@@ -1,159 +1,367 @@
-// Service data
-const services = [
-  {
-      id: '1',
-      name: 'Pedicure Treatments - (client to provide flip flops)',
-      duration: '10 phút - 1 giờ, 40 phút',
-      price: 'từ 3 £',
-      priceValue: 3,
-      description: 'IMPORTANT MESSAGE - Perfect You are proud to offer our clients 100% steriliz...',
-      category: 'pedicure'
-  },
-  {
-      id: '2',
-      name: 'Manicure Treatments',
-      duration: '5 phút - 1 giờ, 30 phút',
-      price: 'từ 3 £',
-      priceValue: 3,
-      description: 'IMPORTANT MESSAGE - Perfect You are proud to offer our clients 100% steriliz...',
-      category: 'manicure'
-  },
-  {
-      id: '3',
-      name: 'BIAB Overlay',
-      duration: '1 giờ, 50 phút',
-      price: '45 £',
-      priceValue: 45,
-      description: 'BIAB or in other words builder in the bottle. What is it? Gel like polish applied as...',
-      category: 'biab'
-  },
-  {
-      id: '4',
-      name: 'UV Gel Nail Extensions & Infills ( GEL FINISH ONLY)',
-      duration: '1 giờ, 45 phút - 2 giờ, 35 phút',
-      price: 'từ 46 £',
-      priceValue: 46,
-      description: 'UV Gel UV Gel extensions are not plastic tips! We put a form under your natural...',
-      category: 'extensions'
-  },
-  {
-      id: '5',
-      name: 'Classic Facial Treatment',
-      duration: '1 giờ',
-      price: '35 £',
-      priceValue: 35,
-      description: 'Relaxing facial treatment with deep cleansing and moisturizing...',
-      category: 'facial'
-  },
-  {
-      id: '6',
-      name: 'Eyebrow Threading',
-      duration: '15 phút',
-      price: '12 £',
-      priceValue: 12,
-      description: 'Professional eyebrow shaping using traditional threading technique...',
-      category: 'eyebrows'
-  },
-  {
-      id: '7',
-      name: 'Luxury Spa Pedicure',
-      duration: '1 giờ, 30 phút',
-      price: '55 £',
-      priceValue: 55,
-      description: 'Premium pedicure with exfoliation, massage, and luxury treatments...',
-      category: 'pedicure'
-  },
-  {
-      id: '8',
-      name: 'Gel Polish Manicure',
-      duration: '45 phút',
-      price: '25 £',
-      priceValue: 25,
-      description: 'Long-lasting gel polish application with professional finish...',
-      category: 'manicure'
-  },
-  {
-      id: '9',
-      name: 'Deep Cleansing Facial',
-      duration: '1 giờ, 15 phút',
-      price: '65 £',
-      priceValue: 65,
-      description: 'Intensive facial treatment for deep pore cleansing and skin renewal...',
-      category: 'facial'
-  },
-  {
-      id: '10',
-      name: 'Acrylic Nail Extensions',
-      duration: '2 giờ',
-      price: '80 £',
-      priceValue: 80,
-      description: 'Professional acrylic nail extensions with custom design options...',
-      category: 'extensions'
-  }
-];
+
+
+// Service data - will be loaded from API
+let services = [];
+let serviceTypes = [];
+let currentServices = [];
+let allServicesCache = new Map(); // Cache to store all fetched services
 
 // State management
 let selectedServices = [];
-let activeCategory = 'featured';
+let activeCategory = 'all';
 let searchQuery = '';
 let minPrice = 0;
-let maxPrice = 100;
+let maxPrice = 10000000;
 const absoluteMinPrice = 0;
-const absoluteMaxPrice = 100;
+const absoluteMaxPrice = 10000000;
+const priceStep = 100000; // 100,000 VND steps
+const maxServicesAllowed = 6; // Maximum 6 services allowed
 
-// DOM elements
-const searchInput = document.getElementById('searchInput');
-const minPriceInput = document.getElementById('minPriceInput');
-const maxPriceInput = document.getElementById('maxPriceInput');
-const minSlider = document.getElementById('minSlider');
-const maxSlider = document.getElementById('maxSlider');
-const sliderRange = document.getElementById('sliderRange');
-const minValue = document.getElementById('minValue');
-const maxValue = document.getElementById('maxValue');
-const categoryBtns = document.querySelectorAll('.category-btn');
-const servicesTitle = document.getElementById('servicesTitle');
-const resetFilters = document.getElementById('resetFilters');
-const servicesList = document.getElementById('servicesList');
-const noResults = document.getElementById('noResults');
-const selectedServicesContent = document.getElementById('selectedServicesContent');
-const totalAmount = document.getElementById('totalAmount');
-const continueBtn = document.getElementById('continueBtn');
+// DOM elements - will be initialized after DOM loads
+let searchInput, minPriceInput, maxPriceInput, minSlider, maxSlider, sliderRange;
+let minValue, maxValue, categoryBtns, servicesTitle, resetFilters;
+let servicesList, noResults, selectedServicesContent, totalAmount, continueBtn;
+
+// Initialize DOM elements
+function initializeDOM() {
+  searchInput = document.getElementById('searchInput');
+  minPriceInput = document.getElementById('minPriceInput');
+  maxPriceInput = document.getElementById('maxPriceInput');
+  minSlider = document.getElementById('minSlider');
+  maxSlider = document.getElementById('maxSlider');
+  sliderRange = document.getElementById('sliderRange');
+  minValue = document.getElementById('minValue');
+  maxValue = document.getElementById('maxValue');
+  servicesTitle = document.getElementById('servicesTitle');
+  resetFilters = document.getElementById('resetFilters');
+  servicesList = document.getElementById('servicesList');
+  noResults = document.getElementById('noResults');
+  selectedServicesContent = document.getElementById('selectedServicesContent');
+  totalAmount = document.getElementById('totalAmount');
+  continueBtn = document.getElementById('continueBtn');
+  
+  console.log('DOM elements initialized');
+}
+
+// Get context path for API calls
+function getContextPath() {
+  // For your specific setup, the context path is '/spa'
+  return '/spa';
+}
+
+// Round price to nearest step
+function roundToStep(value) {
+  return Math.round(value / priceStep) * priceStep;
+}
+
+// API functions
+async function fetchServiceTypes() {
+  try {
+    const contextPath = getContextPath();
+    const url = `${contextPath}/api/service-types`;
+    console.log('Fetching service types from:', url);
+    
+    const response = await fetch(url);
+    console.log('Service types response status:', response.status);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    console.log('Service types data received:', data);
+    
+    serviceTypes = data;
+    return data;
+  } catch (error) {
+    console.error('Error fetching service types:', error);
+    return [];
+  }
+}
+
+async function fetchServices(filters = {}) {
+  try {
+    const contextPath = getContextPath();
+    const params = new URLSearchParams();
+    
+    if (filters.category && filters.category !== 'all') {
+      params.append('category', filters.category);
+    }
+    if (filters.search) {
+      params.append('search', filters.search);
+    }
+    if (filters.minPrice !== undefined) {
+      params.append('minPrice', filters.minPrice);
+    }
+    if (filters.maxPrice !== undefined) {
+      params.append('maxPrice', filters.maxPrice);
+    }
+
+    const url = `${contextPath}/api/services?${params}`;
+    console.log('Fetching services from:', url);
+    console.log('Filters applied:', filters);
+    
+    const response = await fetch(url);
+    console.log('Services response status:', response.status);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    console.log('Services data received:', data);
+    
+    // DEBUG: Simple response structure check
+    console.log('🔍 Response type:', typeof data, 'IsArray:', Array.isArray(data));
+    
+    // Try to extract services array
+    if (Array.isArray(data)) {
+      console.log('✅ Direct array, count:', data.length);
+      return data;
+    } else if (data && data.services && Array.isArray(data.services)) {
+      console.log('✅ Services property, count:', data.services.length);
+      return data.services;
+    } else {
+      console.log('❌ No services array found in response');
+      console.log('Available keys:', data ? Object.keys(data) : 'none');
+      return [];
+    }
+  } catch (error) {
+    console.error('Error fetching services:', error);
+    console.warn('Using fallback sample data due to API error');
+    
+    // Return sample data as fallback
+    return [
+      {
+        serviceId: 1,
+        name: "Sample Service (API Failed)",
+        description: "This is sample data because API failed",
+        price: 25,
+        durationMinutes: 30,
+        serviceTypeId: { name: "Sample Category" }
+      }
+    ];
+  }
+}
+
+// Convert service data from backend format to frontend format
+function transformServiceData(serviceList) {
+  return serviceList.map(service => {
+    const transformedService = {
+      id: service.serviceId.toString(),
+      name: service.name,
+      duration: `${service.durationMinutes || 'N/A'} phút`,
+      price: `${(service.price || 0).toLocaleString('vi-VN')} VND`,
+      priceValue: service.price || 0,
+      description: service.description || '',
+      category: service.serviceTypeId?.name?.toLowerCase() || 'other'
+    };
+    
+    // Cache the service for later use
+    allServicesCache.set(transformedService.id, transformedService);
+    return transformedService;
+  });
+}
+
+// Initialize category dropdown with service types
+async function initializeCategoryDropdown() {
+  await fetchServiceTypes();
+  
+  const dropdownMenu = document.getElementById('categoryDropdownMenu');
+  if (!dropdownMenu) return;
+  
+  // Clear existing items except all
+  const allItem = dropdownMenu.querySelector('[data-category="all"]');
+  dropdownMenu.innerHTML = '';
+  
+  // Add all item back
+  if (allItem) {
+    dropdownMenu.appendChild(allItem);
+  } else {
+    const allItem = document.createElement('button');
+    allItem.className = 'category-dropdown-item active';
+    allItem.dataset.category = 'all';
+    allItem.innerHTML = '<i class="fas fa-star"></i>Tất cả';
+    dropdownMenu.appendChild(allItem);
+  }
+  
+  // Add service type items
+  serviceTypes.forEach(serviceType => {
+    console.log('📋 Creating dropdown item for service type:', serviceType.name, 'ID:', serviceType.serviceTypeId);
+    
+    const item = document.createElement('button');
+    item.className = 'category-dropdown-item';
+    // Use type-{typeId} format that the backend expects
+    item.dataset.category = `type-${serviceType.serviceTypeId}`;
+    
+    console.log('📋 Set data-category to:', item.dataset.category);
+    
+    // Add appropriate icon for service type
+    const icon = getServiceTypeIcon(serviceType.name);
+    item.innerHTML = `<i class="${icon}"></i>${serviceType.name}`;
+    
+    dropdownMenu.appendChild(item);
+  });
+  
+  // Setup dropdown event listeners
+  setupDropdownEventListeners();
+}
+
+// Get appropriate icon for service type
+function getServiceTypeIcon(serviceTypeName) {
+  const name = serviceTypeName.toLowerCase();
+  if (name.includes('massage')) return 'fas fa-spa';
+  if (name.includes('chăm sóc da')) return 'fas fa-leaf';
+  if (name.includes('móng')) return 'fas fa-hand-sparkles';
+  if (name.includes('lông')) return 'fas fa-eye';
+  if (name.includes('liệu pháp')) return 'fas fa-seedling';
+  if (name.includes('cắp đôi')) return 'fas fa-heart';
+  if (name.includes('định hình')) return 'fas fa-cut';
+  if (name.includes('waxing')) return 'fas fa-feather';
+  if (name.includes('truyền thống')) return 'fas fa-yin-yang';
+  if (name.includes('thảo dược')) return 'fas fa-mortar-pestle';
+  return 'fas fa-spa'; // default icon
+}
+
+// Setup event listeners for dropdown
+function setupDropdownEventListeners() {
+  const dropdown = document.getElementById('categoryDropdown');
+  const dropdownButton = document.getElementById('categoryDropdownButton');
+  const dropdownMenu = document.getElementById('categoryDropdownMenu');
+  const dropdownText = dropdownButton.querySelector('.category-dropdown-text');
+  
+  // Toggle dropdown
+  dropdownButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    dropdown.classList.toggle('open');
+  });
+  
+  // Close dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!dropdown.contains(e.target)) {
+      dropdown.classList.remove('open');
+    }
+  });
+  
+  // Handle dropdown item selection
+  dropdownMenu.addEventListener('click', async (e) => {
+    const item = e.target.closest('.category-dropdown-item');
+    if (item) {
+      console.log('🎯 Service type clicked:', item.textContent);
+      console.log('🎯 Dataset category:', item.dataset.category);
+      
+      // Update active state
+      document.querySelectorAll('.category-dropdown-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      
+      // Update button text
+      const icon = item.querySelector('i').className;
+      const text = item.textContent;
+      dropdownText.textContent = text;
+      
+      // Update active category and load services
+      activeCategory = item.dataset.category;
+      console.log('🎯 Active category set to:', activeCategory);
+      await loadAndRenderServices();
+      
+      // Close dropdown
+      dropdown.classList.remove('open');
+    }
+  });
+}
+
+// Load and render services based on current filters
+async function loadAndRenderServices() {
+  const filters = {
+    category: activeCategory,
+    search: searchQuery,
+    minPrice: minPrice,
+    maxPrice: maxPrice
+  };
+  
+  console.log('Loading services with filters:', filters);
+  
+  const fetchedServices = await fetchServices(filters);
+  console.log('Fetched services count:', fetchedServices.length);
+  
+  if (fetchedServices.length === 0) {
+    console.warn('No services received from API - this might indicate an API issue');
+  }
+  
+  currentServices = transformServiceData(fetchedServices);
+  console.log('Transformed services:', currentServices);
+  
+  renderServices();
+}
 
 // Initialize the application
-function init() {
+async function init() {
+  console.log('Initializing application...');
+  
+  // Initialize DOM elements first
+  initializeDOM();
+  
+  // Load saved booking state
+  loadBookingState();
+  
   setupEventListeners();
   updateSliderRange();
-  renderServices();
+  
+  console.log('About to initialize category dropdown...');
+  await initializeCategoryDropdown();
+  
+  // TEST: Try fetching ALL services without any filters first
+  console.log('🧪 TEST: Fetching all services without filters...');
+  try {
+    const response = await fetch('/spa/api/services');
+    const allServicesData = await response.json();
+    console.log('🧪 All services (no filters):', allServicesData);
+    console.log('🧪 All services count:', allServicesData.services ? allServicesData.services.length : 'No services property');
+  } catch (error) {
+    console.error('🧪 Error fetching all services:', error);
+  }
+  
+  console.log('About to load and render services...');
+  await loadAndRenderServices();
+  
   updateSelectedServices();
+  
+  // Enable continue button if services are loaded from server
+  if (selectedServices.length > 0 && continueBtn) {
+    continueBtn.disabled = false;
+    console.log('✅ Continue button enabled for', selectedServices.length, 'loaded services');
+  }
+  
+  console.log('Application initialization complete');
 }
 
 // Event listeners
 function setupEventListeners() {
   // Search input
-  searchInput.addEventListener('input', (e) => {
+  searchInput.addEventListener('input', async (e) => {
       searchQuery = e.target.value;
-      renderServices();
+      await loadAndRenderServices();
       updateFiltersVisibility();
   });
 
   // Price inputs
-  minPriceInput.addEventListener('input', (e) => {
-      const value = parseInt(e.target.value) || 0;
-      minPrice = Math.min(value, maxPrice);
+  minPriceInput.addEventListener('blur', async (e) => {
+      const value = parseInt(e.target.value.replace(/[^\d]/g, '')) || 0;
+      const roundedValue = roundToStep(value);
+      minPrice = Math.min(roundedValue, maxPrice);
       minPriceInput.value = minPrice;
       minSlider.value = minPrice;
       updateSliderRange();
-      renderServices();
+      await loadAndRenderServices();
       updateFiltersVisibility();
   });
 
-  maxPriceInput.addEventListener('input', (e) => {
-      const value = parseInt(e.target.value) || 0;
-      maxPrice = Math.max(value, minPrice);
+  maxPriceInput.addEventListener('blur', async (e) => {
+      const value = parseInt(e.target.value.replace(/[^\d]/g, '')) || 0;
+      const roundedValue = roundToStep(value);
+      maxPrice = Math.max(roundedValue, minPrice);
       maxPriceInput.value = maxPrice;
       maxSlider.value = maxPrice;
       updateSliderRange();
-      renderServices();
+      await loadAndRenderServices();
       updateFiltersVisibility();
   });
 
@@ -164,7 +372,10 @@ function setupEventListeners() {
       minSlider.value = minPrice;
       minPriceInput.value = minPrice;
       updateSliderRange();
-      renderServices();
+  });
+
+  minSlider.addEventListener('change', async (e) => {
+      await loadAndRenderServices();
       updateFiltersVisibility();
   });
 
@@ -174,24 +385,19 @@ function setupEventListeners() {
       maxSlider.value = maxPrice;
       maxPriceInput.value = maxPrice;
       updateSliderRange();
-      renderServices();
+  });
+
+  maxSlider.addEventListener('change', async (e) => {
+      await loadAndRenderServices();
       updateFiltersVisibility();
   });
 
-  // Category buttons
-  categoryBtns.forEach(btn => {
-      btn.addEventListener('click', (e) => {
-          activeCategory = e.target.dataset.category;
-          updateCategoryButtons();
-          renderServices();
-      });
-  });
-
   // Reset filters
-  resetFilters.addEventListener('click', () => {
+  resetFilters.addEventListener('click', async () => {
       searchQuery = '';
       minPrice = absoluteMinPrice;
       maxPrice = absoluteMaxPrice;
+      activeCategory = 'all';
       
       searchInput.value = '';
       minPriceInput.value = minPrice;
@@ -199,15 +405,33 @@ function setupEventListeners() {
       minSlider.value = minPrice;
       maxSlider.value = maxPrice;
       
+      // Reset dropdown to "all"
+      document.querySelectorAll('.category-dropdown-item').forEach(i => i.classList.remove('active'));
+      const allItem = document.querySelector('[data-category="all"]');
+      if (allItem) {
+          allItem.classList.add('active');
+          const dropdownText = document.querySelector('.category-dropdown-text');
+          if (dropdownText) dropdownText.textContent = 'Tất cả';
+      }
+      
       updateSliderRange();
-      renderServices();
+      await loadAndRenderServices();
       updateFiltersVisibility();
   });
 
   // Continue button
   continueBtn.addEventListener('click', () => {
+      console.log('🔘 Continue button clicked!');
+      console.log('📊 Selected services at click time:', selectedServices);
+      console.log('📊 Selected services length:', selectedServices.length);
+      console.log('📊 Button disabled state:', continueBtn.disabled);
+      
       if (selectedServices.length > 0) {
-          alert('Proceeding to next step...');
+          console.log('✅ Proceeding with service selection...');
+          saveSelectedServicesAndProceed();
+      } else {
+          console.log('❌ No services selected, cannot proceed');
+          alert('Please select at least one service before continuing.');
       }
   });
 }
@@ -220,75 +444,119 @@ function updateSliderRange() {
   sliderRange.style.left = percent1 + '%';
   sliderRange.style.width = (percent2 - percent1) + '%';
   
-  minValue.textContent = `£${minPrice}`;
-  maxValue.textContent = `£${maxPrice}`;
+  minValue.textContent = `${minPrice.toLocaleString('vi-VN')} VND`;
+  maxValue.textContent = `${maxPrice.toLocaleString('vi-VN')} VND`;
 }
 
-// Update category buttons
-function updateCategoryButtons() {
-  categoryBtns.forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.category === activeCategory);
-  });
-}
-
-// Filter services
-function getFilteredServices() {
-  return services.filter(service => {
-      const matchesSearch = service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           service.description.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesPrice = service.priceValue >= minPrice && service.priceValue <= maxPrice;
-      
-      return matchesSearch && matchesPrice;
-  });
+// Update category dropdown (no longer needed as it's handled in event listener)
+function updateCategoryDropdown() {
+  // This function is now handled by the dropdown event listeners
 }
 
 // Render services
 function renderServices() {
-  const filteredServices = getFilteredServices();
+  console.log('renderServices called with currentServices:', currentServices);
+  
+  // Check if required DOM elements exist
+  if (!servicesList) {
+    console.error('servicesList element not found! Check if #servicesList exists in HTML');
+    return;
+  }
+  if (!servicesTitle) {
+    console.error('servicesTitle element not found! Check if #servicesTitle exists in HTML');
+    return;
+  }
+  
+  const servicesToRender = currentServices;
+  console.log('Services to render:', servicesToRender.length);
   
   // Update title
   if (searchQuery) {
-      servicesTitle.textContent = `Kết quả tìm kiếm (${filteredServices.length})`;
+      servicesTitle.textContent = `Kết quả tìm kiếm (${servicesToRender.length})`;
+  } else if (activeCategory === 'all') {
+      servicesTitle.textContent = 'Tất cả';
+  } else if (activeCategory.startsWith('type-')) {
+      // Extract type ID from "type-{id}" format
+      const typeId = parseInt(activeCategory.substring(5));
+      const categoryName = serviceTypes.find(type => type.serviceTypeId === typeId)?.name || 'Dịch vụ';
+      servicesTitle.textContent = categoryName;
   } else {
-      servicesTitle.textContent = 'Nổi bật';
+      servicesTitle.textContent = 'Dịch vụ';
   }
   
   // Show/hide no results
-  if (filteredServices.length === 0) {
+  if (servicesToRender.length === 0) {
+      console.log('No services to render, showing no results');
       servicesList.style.display = 'none';
-      noResults.style.display = 'block';
+      if (noResults) noResults.style.display = 'block';
       return;
   }
   
   servicesList.style.display = 'block';
-  noResults.style.display = 'none';
+  if (noResults) noResults.style.display = 'none';
+  
+  // Check if we've reached the service limit
+  const isLimitReached = selectedServices.length >= maxServicesAllowed;
   
   // Render service cards
-  servicesList.innerHTML = filteredServices.map(service => `
-      <div class="service-card">
+  const html = servicesToRender.map(service => {
+      const isSelected = selectedServices.includes(service.id);
+      const isDisabled = !isSelected && isLimitReached;
+      
+            return `
+          <div class="service-card ${isDisabled ? 'disabled' : ''}">
           <div class="service-content">
               <div class="service-info">
-                  <h3 class="service-name">${service.name}</h3>
-                  <p class="service-duration">${service.duration}</p>
+                      <h3 class="service-name">
+                          <i class="fas fa-spa service-name-icon"></i>
+                          ${service.name}
+                      </h3>
+                      <p class="service-duration">
+                          <i class="fas fa-clock service-duration-icon"></i>
+                          ${service.duration}
+                      </p>
                   <p class="service-description">${service.description}</p>
-                  <p class="service-price">${service.price}</p>
+                      <p class="service-price">
+                          <i class="fas fa-tag service-price-icon"></i>
+                          ${service.price}
+                      </p>
+                  </div>
+                  <button class="service-add-btn ${isSelected ? 'selected' : ''} ${isDisabled ? 'disabled' : ''}" 
+                          onclick="toggleService('${service.id}')"
+                          ${isDisabled ? 'disabled' : ''}>
+                      <i class="fas ${isSelected ? 'fa-check' : 'fa-plus'}"></i>
+                  </button>
               </div>
-              <button class="service-add-btn ${selectedServices.includes(service.id) ? 'selected' : ''}" 
-                      onclick="toggleService('${service.id}')">
-                  <i class="fas fa-plus"></i>
-              </button>
           </div>
-      </div>
-  `).join('');
+      `;
+  }).join('');
+  
+  console.log('Setting HTML for services list');
+  servicesList.innerHTML = html;
 }
 
 // Toggle service selection
 function toggleService(serviceId) {
+  console.log('🎯 toggleService called with:', serviceId, 'type:', typeof serviceId);
+  console.log('🎯 Current selectedServices:', selectedServices);
+  
   if (selectedServices.includes(serviceId)) {
+      // Remove service
+      console.log('➖ Removing service:', serviceId);
       selectedServices = selectedServices.filter(id => id !== serviceId);
   } else {
+      // Check if adding would exceed the limit
+      if (selectedServices.length >= maxServicesAllowed) {
+          // Show warning message
+          showServiceLimitWarning();
+          return; // Don't add the service
+      }
+      // Add service
+      console.log('➕ Adding service:', serviceId);
       selectedServices.push(serviceId);
   }
+  
+  console.log('🎯 Updated selectedServices:', selectedServices);
   
   renderServices();
   updateSelectedServices();
@@ -303,6 +571,9 @@ function removeService(serviceId) {
 
 // Update selected services display
 function updateSelectedServices() {
+  // Update the service counter
+  updateServiceCounter();
+  
   if (selectedServices.length === 0) {
       selectedServicesContent.innerHTML = '<p class="no-services">Không có dịch vụ nào được chọn</p>';
       totalAmount.textContent = 'miễn phí';
@@ -311,8 +582,25 @@ function updateSelectedServices() {
   }
   
   const selectedServiceItems = selectedServices.map(serviceId => {
-      const service = services.find(s => s.id === serviceId);
-      if (!service) return '';
+      // Find service in current services or cache
+      let service = currentServices.find(s => s.id === serviceId) || allServicesCache.get(serviceId);
+      
+      if (!service) {
+          // If not found anywhere, show placeholder
+          return `
+              <div class="selected-service-item">
+                  <div class="selected-service-content">
+                      <div class="selected-service-info">
+                          <p class="selected-service-name">Dịch vụ đã chọn (ID: ${serviceId})</p>
+                          <p class="selected-service-price">N/A</p>
+                      </div>
+                      <button class="remove-service-btn" onclick="removeService('${serviceId}')">
+                          <i class="fas fa-times"></i>
+                      </button>
+                  </div>
+              </div>
+          `;
+      }
       
       return `
           <div class="selected-service-item">
@@ -331,14 +619,25 @@ function updateSelectedServices() {
   
   selectedServicesContent.innerHTML = `<div class="selected-services-list">${selectedServiceItems}</div>`;
   
-  // Calculate total
-  const total = selectedServices.reduce((sum, serviceId) => {
-      const service = services.find(s => s.id === serviceId);
-      return service ? sum + service.priceValue : sum;
-  }, 0);
-  
-  totalAmount.textContent = `${total} £`;
+  // Calculate total (we need to fetch service details for accurate pricing)
+  calculateTotal();
   continueBtn.disabled = false;
+}
+
+// Calculate total price for selected services
+async function calculateTotal() {
+  let total = 0;
+  
+  for (const serviceId of selectedServices) {
+      // Find in current services or cache
+      let service = currentServices.find(s => s.id === serviceId) || allServicesCache.get(serviceId);
+      
+      if (service) {
+          total += service.priceValue;
+      }
+  }
+  
+  totalAmount.textContent = total > 0 ? `${total.toLocaleString('vi-VN')} VND` : 'miễn phí';
 }
 
 // Update filters visibility
@@ -347,5 +646,195 @@ function updateFiltersVisibility() {
   resetFilters.style.display = hasActiveFilters ? 'block' : 'none';
 }
 
+// Update service counter display
+function updateServiceCounter() {
+  const counterElement = document.getElementById('serviceCounter');
+  if (counterElement) {
+    const countText = `${selectedServices.length}/${maxServicesAllowed}`;
+    const isNearLimit = selectedServices.length >= maxServicesAllowed - 1;
+    
+    counterElement.textContent = countText;
+    counterElement.className = `service-counter ${isNearLimit ? 'warning' : ''}`;
+  }
+}
+
+// Show service limit warning
+function showServiceLimitWarning() {
+  // Create a temporary notification
+  const notification = document.createElement('div');
+  notification.className = 'service-limit-notification';
+  notification.innerHTML = `
+    <div class="notification-content">
+      <i class="fas fa-exclamation-triangle"></i>
+      <span>Bạn chỉ có thể chọn tối đa ${maxServicesAllowed} dịch vụ!</span>
+    </div>
+  `;
+  
+  // Add to page
+  document.body.appendChild(notification);
+  
+  // Show with animation
+  setTimeout(() => notification.classList.add('show'), 10);
+  
+  // Remove after 3 seconds
+  setTimeout(() => {
+    notification.classList.remove('show');
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
+    }, 300);
+  }, 3000);
+}
+
+// Booking state management functions
+function loadBookingState() {
+  console.log('🔄 Loading booking state...');
+  
+  // Priority 1: Load from server-side data (most reliable)
+  if (window.savedBookingData && window.savedBookingData.selectedServices && window.savedBookingData.selectedServices.length > 0) {
+    selectedServices = window.savedBookingData.selectedServices.map(service => service.serviceId.toString());
+    console.log('✅ Loaded services from server data:', selectedServices);
+    console.log('📊 Server services details:', window.savedBookingData.selectedServices);
+    return;
+  }
+  
+  // Priority 2: Load from browser storage (fallback)
+  if (window.BookingStorage) {
+    const savedServices = window.BookingStorage.getSelectedServices();
+    if (savedServices && savedServices.length > 0) {
+      selectedServices = savedServices.map(service => service.id);
+      console.log('✅ Loaded services from browser storage:', selectedServices);
+      return;
+    }
+  }
+  
+  console.log('ℹ️ No saved booking state found, starting fresh');
+}
+
+function saveSelectedServicesAndProceed() {
+  try {
+    console.log('🚀 Starting saveSelectedServicesAndProceed...');
+    console.log('📊 Selected services count:', selectedServices.length);
+    console.log('📊 Selected service IDs:', selectedServices);
+    console.log('📊 Current services count:', currentServices.length);
+    console.log('📊 Cache size:', allServicesCache.size);
+    
+    // Debug: Log all current service IDs and cache keys
+    console.log('📊 Current service IDs:', currentServices.map(s => s.id));
+    console.log('📊 Cache keys:', Array.from(allServicesCache.keys()));
+    
+    // Get selected service objects with better matching logic
+    const selectedServiceObjects = selectedServices.map(serviceId => {
+      // Try to find in current services first (exact match)
+      let service = currentServices.find(s => s.id === serviceId);
+      
+      if (!service) {
+        // Try string comparison in case of type mismatch
+        service = currentServices.find(s => s.id == serviceId || s.id === String(serviceId) || String(s.id) === String(serviceId));
+      }
+      
+      if (!service) {
+        // Try cache
+        service = allServicesCache.get(serviceId) || allServicesCache.get(String(serviceId));
+      }
+      
+      if (!service) {
+        console.warn(`⚠️ Service not found for ID: ${serviceId} (type: ${typeof serviceId})`);
+        // Create a minimal service object as fallback
+        service = {
+          id: serviceId,
+          name: `Service ${serviceId}`,
+          price: 'N/A',
+          priceValue: 0,
+          duration: 'N/A',
+          description: 'Service details not available'
+        };
+      }
+      
+      return service;
+    }).filter(service => service !== null && service !== undefined);
+    
+    console.log('📦 Selected service objects:', selectedServiceObjects);
+    
+    if (selectedServiceObjects.length === 0) {
+      console.error('❌ No valid service objects found');
+      alert('Please select at least one service.');
+      return;
+    }
+    
+    // Save to browser storage
+    if (window.BookingStorage) {
+      window.BookingStorage.saveSelectedServices(selectedServiceObjects);
+      console.log('💾 Saved to browser storage');
+    } else {
+      console.warn('⚠️ BookingStorage not available');
+    }
+    
+    // Save to server session - use the original selected service IDs directly
+    const formData = new FormData();
+    selectedServices.forEach((serviceId, index) => {
+      console.log(`➕ Adding service ${index + 1}: ID=${serviceId} (type: ${typeof serviceId})`);
+      formData.append('serviceIds', String(serviceId)); // Ensure it's a string
+    });
+    
+    // Log form data
+    console.log('📤 Form data entries:');
+    for (let pair of formData.entries()) {
+      console.log('  ', pair[0], '=', pair[1]);
+    }
+    
+    // Try alternative approach with URLSearchParams for better compatibility
+    const urlParams = new URLSearchParams();
+    selectedServices.forEach((serviceId, index) => {
+      urlParams.append('serviceIds', String(serviceId));
+    });
+    
+    console.log('📤 URL params string:', urlParams.toString());
+    
+    const contextPath = getContextPath();
+    const url = `${contextPath}/process-booking/save-services`;
+    console.log('🌐 Sending request to:', url);
+    
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: urlParams.toString(),
+      credentials: 'same-origin'
+    })
+    .then(response => {
+      console.log('📡 Response status:', response.status);
+      console.log('📡 Response headers:', response.headers);
+      return response.json();
+    })
+    .then(data => {
+      console.log('📨 Response data:', data);
+      if (data.success) {
+        console.log('✅ Services saved successfully');
+        // Redirect to time selection (new flow: services -> time -> therapists -> payment)
+        const redirectUrl = `${contextPath}/process-booking/time`;
+        console.log('🔄 Redirecting to:', redirectUrl);
+        window.location.href = redirectUrl;
+      } else {
+        console.error('❌ Server returned error:', data.message);
+        alert(`Error saving services: ${data.message || 'Please try again.'}`);
+      }
+    })
+    .catch(error => {
+      console.error('💥 Network/Parse error:', error);
+      alert('Error saving services. Please check your connection and try again.');
+    });
+    
+  } catch (error) {
+    console.error('💥 Exception in saveSelectedServicesAndProceed:', error);
+    alert('Error processing your selection. Please try again.');
+  }
+}
+
 // Initialize the application when DOM is loaded
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('DOM loaded, starting initialization...');
+  init();
+});

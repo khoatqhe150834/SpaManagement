@@ -2,233 +2,238 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
-
-    <!-- Mirrored from wowdash.wowtheme7.com/demo/view-profile.html by HTTrack Website Copier/3.x [XR&CO'2014], Mon, 03 Feb 2025 04:44:21 GMT -->
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Wowdash - Bootstrap 5 Admin Dashboard HTML Template</title>
-        <link rel="icon" type="image/png" href="assets/images/favicon.png" sizes="16x16">
-        <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp"></jsp:include>
-        </head>
-        <body>
-        <jsp:include page="/WEB-INF/view/common/admin/sidebar.jsp"></jsp:include>
-
+<html lang="vi" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hồ sơ nhân viên</title>
+    <link rel="icon" type="image/png" href="${pageContext.request.contextPath}/assets/images/favicon.png" sizes="16x16">
+    <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp"></jsp:include>
+    <style>
+        .profile-body {
+            background-color: #f4f7fa;
+        }
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0;
+        }
+        .profile-card {
+            background-color: #ffffff;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            height: 100%;
+        }
+        .avatar-section {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .avatar-section .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #e0e7ff;
+            margin-bottom: 16px;
+        }
+        .avatar-section .user-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .avatar-section .user-email {
+            color: #6c757d;
+            margin-bottom: 24px;
+        }
+        .personal-info-list {
+            list-style: none;
+            padding-left: 0;
+        }
+        .personal-info-list li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            font-size: 0.95rem;
+        }
+        .personal-info-list .info-left {
+            display: flex;
+            align-items: center;
+            min-width: 140px;
+            flex-shrink: 0;
+        }
+        .personal-info-list .info-right {
+            text-align: right;
+            font-weight: 500;
+            flex: 1;
+            margin-left: 16px;
+        }
+        .personal-info-list iconify-icon {
+            font-size: 20px;
+            color: #673ab7;
+            margin-right: 12px;
+            width: 24px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .personal-info-list .info-left span {
+            white-space: nowrap;
+        }
+        .professional-info .info-section {
+            margin-bottom: 24px;
+        }
+        .professional-info .info-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #343a40;
+        }
+        .professional-info .info-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 8px;
+        }
+        .professional-info .bio-content {
+            background-color: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            min-height: 160px; /* Adjusted height */
+            color: #495057;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+            font-size: 0.95rem;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+        }
+        .info-grid-item .value {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+        .status-available { background-color: #e6f9f0; color: #28a745; }
+        .status-busy { background-color: #fff0e6; color: #ff6f00; }
+        .status-offline { background-color: #f2f2f2; color: #6c757d; }
+        .status-on-leave { background-color: #e6f2ff; color: #007bff; }
+    </style>
+</head>
+<body class="profile-body">
+    <jsp:include page="/WEB-INF/view/common/admin/sidebar.jsp"></jsp:include>
+    <div class="main-content">
         <jsp:include page="/WEB-INF/view/common/admin/header.jsp"></jsp:include>
+        <div class="dashboard-main-body">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
+                <h4 class="page-title">Hồ sơ nhân viên</h4>
+                <a href="staff" class="btn btn-light d-flex align-items-center gap-1">
+                    <iconify-icon icon="solar:arrow-left-outline" class="icon text-lg"></iconify-icon>
+                    Quay lại danh sách nhân viên
+                </a>
+            </div>
 
-            <div class="dashboard-main-body">
-                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
-                    <h6 class="fw-semibold mb-0">View Staff Profile</h6>
-                    <ul class="d-flex align-items-center gap-2">
-                        <li class="fw-medium">
-                            <a href="staff" class="d-flex align-items-center gap-1 hover-text-primary">
-                                <iconify-icon icon="solar:home-smile-angle-outline" class="icon text-lg"></iconify-icon>
-                                Back to Staff List
-                            </a>
-                        </li>
-                        <li>-</li>
-                        <li class="fw-medium">Edit Staff Profile</li>
-                    </ul>
-                </div>
-
-                <div class="row gy-4">
-                    <div class="col-lg-4">
-                        <div class="user-grid-card position-relative border radius-16 overflow-hidden bg-base h-100">
-                            <img src="${staff.user.avatarUrl != null ? staff.user.avatarUrl : '/assets/images/user-grid/user-grid-img14.png'}" 
-                             alt="Avatar" class="border br-white border-width-2-px w-200-px h-200-px rounded-circle object-fit-cover mx-auto d-block mt-4">
-                        <div class="pb-24 ms-16 mb-24 me-16 mt-4">
-                            <div class="text-center border border-top-0 border-start-0 border-end-0">
-                                <h6 class="mb-0 mt-16">${staff.user.fullName}</h6>
-                                <span class="text-secondary-light mb-16">${staff.user.email}</span>
-                            </div>
-                            <div class="mt-24">
-                                <h6 class="text-xl mb-16">Personal Info</h6>
-                                <ul>
-                                    <li class="d-flex align-items-center gap-1 mb-12">
-                                        <span class="w-30 text-md fw-semibold text-primary-light">User ID</span>
-                                        <span class="w-70 text-secondary-light fw-medium">: ${staff.user.userId}</span>
-                                    </li>
-                                    <li class="d-flex align-items-center gap-1 mb-12">
-                                        <span class="w-30 text-md fw-semibold text-primary-light">Full Name</span>
-                                        <span class="w-70 text-secondary-light fw-medium">: ${staff.user.fullName}</span>
-                                    </li>
-                                    <li class="d-flex align-items-center gap-1 mb-12">
-                                        <span class="w-30 text-md fw-semibold text-primary-light">Email</span>
-                                        <span class="w-70 text-secondary-light fw-medium">: ${staff.user.email}</span>
-                                    </li>
-                                    <li class="d-flex align-items-center gap-1 mb-12">
-                                        <span class="w-30 text-md fw-semibold text-primary-light">Phone</span>
-                                        <span class="w-70 text-secondary-light fw-medium">: ${staff.user.phoneNumber}</span>
-                                    </li>
-                                    <li class="d-flex align-items-center gap-1 mb-12">
-                                        <span class="w-30 text-md fw-semibold text-primary-light">Gender</span>
-                                        <span class="w-70 text-secondary-light fw-medium">: ${staff.user.gender}</span>
-                                    </li>
-                                    <li class="d-flex align-items-center gap-1 mb-12">
-                                        <span class="w-30 text-md fw-semibold text-primary-light">Birthday</span>
-                                        <span class="w-70 text-secondary-light fw-medium">: <fmt:formatDate value="${staff.user.birthday}" pattern="dd/MM/yyyy"/></span>
-                                    </li>
-                                    <li class="d-flex align-items-center gap-1">
-                                        <span class="w-30 text-md fw-semibold text-primary-light">Bio</span>
-                                        <span class="w-70 text-secondary-light fw-medium">: ${staff.bio}</span>
-                                    </li>
-                                </ul>
-                            </div>
+            <div class="row gy-4">
+                <!-- Cột thông tin cá nhân (trái) -->
+                <div class="col-lg-4">
+                    <div class="profile-card">
+                        <div class="avatar-section">
+                            <img src="${not empty staff.user.avatarUrl ? staff.user.avatarUrl : pageContext.request.contextPath.concat('/assets/images/user-grid/user-grid-img14.png')}"
+                                 alt="Avatar" class="profile-avatar">
+                            <h4 class="user-name">${staff.user.fullName}</h4>
+                            <p class="user-email">${staff.user.email}</p>
                         </div>
+                        <hr class="my-24">
+                        <ul class="personal-info-list">
+                            <li>
+                                <div class="info-left">
+                                    <iconify-icon icon="solar:card-2-bold-duotone"></iconify-icon>
+                                    <span>Mã nhân viên:</span>
+                                </div>
+                                <div class="info-right">${staff.user.userId}</div>
+                            </li>
+                            <li>
+                                <div class="info-left">
+                                    <iconify-icon icon="solar:phone-bold-duotone"></iconify-icon>
+                                    <span>Số điện thoại:</span>
+                                </div>
+                                <div class="info-right">${staff.user.phoneNumber}</div>
+                            </li>
+                            <li>
+                                <div class="info-left">
+                                    <iconify-icon icon="solar:user-bold-duotone"></iconify-icon>
+                                    <span>Giới tính:</span>
+                                </div>
+                                <div class="info-right">${staff.user.gender}</div>
+                            </li>
+                            <li>
+                                <div class="info-left">
+                                    <iconify-icon icon="solar:calendar-bold-duotone"></iconify-icon>
+                                    <span>Ngày sinh:</span>
+                                </div>
+                                <div class="info-right"><fmt:formatDate value="${staff.user.birthday}" pattern="dd/MM/yyyy"/></div>
+                            </li>
+                            <li>
+                                <div class="info-left">
+                                    <iconify-icon icon="solar:map-point-bold-duotone"></iconify-icon>
+                                    <span>Địa chỉ:</span>
+                                </div>
+                                <div class="info-right">${staff.user.address != null ? staff.user.address : 'Chưa cập nhật'}</div>
+                            </li>
+                        </ul>
                     </div>
                 </div>
+
+                <!-- Cột thông tin chuyên môn (phải) -->
                 <div class="col-lg-8">
-                    <div class="card h-100">
-                        <div class="card-body p-24">
-                            <ul class="nav border-gradient-tab nav-pills mb-20 d-inline-flex" id="pills-tab" role="tablist">
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link d-flex align-items-center px-24 active" id="pills-edit-profile-tab" data-bs-toggle="pill" data-bs-target="#pills-edit-profile" type="button" role="tab" aria-controls="pills-edit-profile" aria-selected="true">
-                                        Edit Profile 
-                                    </button>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link d-flex align-items-center px-24" id="pills-change-passwork-tab" data-bs-toggle="pill" data-bs-target="#pills-change-passwork" type="button" role="tab" aria-controls="pills-change-passwork" aria-selected="false" tabindex="-1">
-                                        Change Password 
-                                    </button>
-                                </li>
+                    <div class="profile-card professional-info">
+                        <h5 class="info-title">Thông tin chuyên môn</h5>
+                        <div class="info-section">
+                            <p class="info-label">Tiểu sử</p>
+                            <div class="bio-content">${staff.bio}</div>
+                        </div>
 
-                            </ul>
-
-                            <div class="tab-content" id="pills-tabContent">   
-                                <div class="tab-pane fade show active" id="pills-edit-profile" role="tabpanel" aria-labelledby="pills-edit-profile-tab" tabindex="0">
-                                    <form action="staff" method="post">
-                                        <input type="hidden" name="service" value="update" />
-                                        <input type="hidden" name="userId" value="${staff.user.userId}" />
-
-                                        <!-- Full Name (Readonly) -->
-                                        <div class="mb-20">
-                                            <label for="fullName" class="form-label fw-semibold text-primary-light text-sm mb-8">Full Name <span class="text-danger-600">*</span></label>
-                                            <input type="text" name="fullName" class="form-control radius-8" id="fullName" value="${staff.user.fullName}" required readonly />
-                                        </div>
-
-                                        <!-- Bio -->
-                                        <div class="mb-20">
-                                            <label for="bio" class="form-label fw-semibold text-primary-light text-sm mb-8">
-                                                Bio
-                                                <span class="text-muted text-sm">(20-500 characters)</span>
-                                            </label>
-                                            <div class="position-relative">
-                                                <textarea 
-                                                    name="bio" 
-                                                    class="form-control radius-8" 
-                                                    id="bio" 
-                                                    placeholder="Write a brief description about the staff member (minimum 20 characters)..." 
-                                                    rows="4"
-                                                    style="resize: none;"
-                                                    minlength="20"
-                                                    maxlength="500"
-                                                    required
-                                                >${staff.bio}</textarea>
-                                                <div class="form-text text-end">
-                                                    <span id="bioCharCount">0</span>/500 characters
-                                                    <span id="bioValidationMessage" class="ms-2"></span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Service Type -->
-                                        <div class="mb-20">
-                                            <label for="serviceTypeId" class="form-label fw-semibold text-primary-light text-sm mb-8">Service Type <span class="text-danger-600">*</span></label>
-                                            <select name="serviceTypeId" class="form-control radius-8" id="serviceTypeId" required>
-                                                <c:forEach var="serviceType" items="${serviceTypes}">
-                                                    <option value="${serviceType.serviceTypeId}" ${serviceType.serviceTypeId == staff.serviceType.serviceTypeId ? "selected" : ""}>${serviceType.name}</option>
-                                                </c:forEach>
-                                            </select>
-                                        </div>
-
-                                        <!-- Availability Status -->
-                                        <div class="mb-20">
-                                            <label for="availabilityStatus" class="form-label fw-semibold text-primary-light text-sm mb-8">Availability Status <span class="text-danger-600">*</span></label>
-                                            <select name="availabilityStatus" class="form-control radius-8" id="availabilityStatus" required>
-                                                <option value="AVAILABLE" ${staff.availabilityStatus == 'AVAILABLE' ? "selected" : ""}>Available</option>
-                                                <option value="BUSY" ${staff.availabilityStatus == 'BUSY' ? "selected" : ""}>Busy</option>
-                                                <option value="OFFLINE" ${staff.availabilityStatus == 'OFFLINE' ? "selected" : ""}>Offline</option>
-                                                <option value="ON_LEAVE" ${staff.availabilityStatus == 'ON_LEAVE' ? "selected" : ""}>On Leave</option>
-                                            </select>
-                                        </div>
-
-                                        <!-- Years of Experience -->
-                                        <div class="mb-20">
-                                            <label for="yearsOfExperience" class="form-label fw-semibold text-primary-light text-sm mb-8">Years of Experience <span class="text-danger-600">*</span></label>
-                                            <input type="number" name="yearsOfExperience" class="form-control radius-8" id="yearsOfExperience" value="${staff.yearsOfExperience}" required />
-                                        </div>
-
-                                        <!-- Action Buttons -->
-                                        <div class="d-flex align-items-center justify-content-center gap-3">
-                                            <a href="staff" class="btn btn-outline-danger border border-danger-600 px-56 py-11 radius-8">Cancel</a>
-                                            <button type="submit" class="btn btn-primary border border-primary-600 text-md px-56 py-12 radius-8">Update</button>
-                                        </div>
-                                    </form>
+                        <div class="info-grid">
+                            <div class="info-grid-item">
+                                <p class="info-label">Loại dịch vụ</p>
+                                <p class="value">${staff.serviceType.name}</p>
+                            </div>
+                            <div class="info-grid-item">
+                                <p class="info-label">Trạng thái</p>
+                                <div class="value">
+                                    <c:choose>
+                                        <c:when test="${staff.availabilityStatus == 'AVAILABLE'}">
+                                            <span class="status-badge status-available">Sẵn sàng</span>
+                                        </c:when>
+                                        <c:when test="${staff.availabilityStatus == 'BUSY'}">
+                                            <span class="status-badge status-busy">Bận</span>
+                                        </c:when>
+                                        <c:when test="${staff.availabilityStatus == 'ON_LEAVE'}">
+                                            <span class="status-badge status-on-leave">Đang nghỉ</span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span class="status-badge status-offline">Ngoại tuyến</span>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </div>
-
-                                <div class="tab-pane fade" id="pills-change-passwork" role="tabpanel" aria-labelledby="pills-change-passwork-tab" tabindex="0">
-                                    <div class="mb-20">
-                                        <label for="your-password" class="form-label fw-semibold text-primary-light text-sm mb-8">New Password <span class="text-danger-600">*</span></label>
-                                        <div class="position-relative">
-                                            <input type="password" class="form-control radius-8" id="your-password" placeholder="Enter New Password*">
-                                            <span class="toggle-password ri-eye-line cursor-pointer position-absolute end-0 top-50 translate-middle-y me-16 text-secondary-light" data-toggle="#your-password"></span>
-                                        </div>
-                                    </div>
-                                    <div class="mb-20">
-                                        <label for="confirm-password" class="form-label fw-semibold text-primary-light text-sm mb-8">Confirmed Password <span class="text-danger-600">*</span></label>
-                                        <div class="position-relative">
-                                            <input type="password" class="form-control radius-8" id="confirm-password" placeholder="Confirm Password*">
-                                            <span class="toggle-password ri-eye-line cursor-pointer position-absolute end-0 top-50 translate-middle-y me-16 text-secondary-light" data-toggle="#confirm-password"></span>
-                                        </div>
-                                    </div>
-                                </div>
+                            </div>
+                            <div class="info-grid-item">
+                                <p class="info-label">Số năm kinh nghiệm</p>
+                                <p class="value">${staff.yearsOfExperience} năm</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <jsp:include page="/WEB-INF/view/common/admin/js.jsp"></jsp:include>
-
-
-        <script>
-            // ======================== Upload Image Start =====================
-            function readURL(input) {
-                if (input.files && input.files[0]) {
-                    var reader = new FileReader();
-                    reader.onload = function (e) {
-                        $('#imagePreview').css('background-image', 'url(' + e.target.result + ')');
-                        $('#imagePreview').hide();
-                        $('#imagePreview').fadeIn(650);
-                    }
-                    reader.readAsDataURL(input.files[0]);
-                }
-            }
-            $("#imageUpload").change(function () {
-                readURL(this);
-            });
-            // ======================== Upload Image End =====================
-
-            // ================== Password Show Hide Js Start ==========
-            function initializePasswordToggle(toggleSelector) {
-                $(toggleSelector).on('click', function () {
-                    $(this).toggleClass("ri-eye-off-line");
-                    var input = $($(this).attr("data-toggle"));
-                    if (input.attr("type") === "password") {
-                        input.attr("type", "text");
-                    } else {
-                        input.attr("type", "password");
-                    }
-                });
-            }
-            // Call the function
-            initializePasswordToggle('.toggle-password');
-            // ========================= Password Show Hide Js End ===========================
-        </script>
-
-    </body>
-
-    <!-- Mirrored from wowdash.wowtheme7.com/demo/view-profile.html by HTTrack Website Copier/3.x [XR&CO'2014], Mon, 03 Feb 2025 04:44:22 GMT -->
+    <jsp:include page="/WEB-INF/view/common/admin/js.jsp"></jsp:include>
+</body>
 </html>
