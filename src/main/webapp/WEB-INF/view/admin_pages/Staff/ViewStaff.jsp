@@ -184,7 +184,7 @@
                                     <iconify-icon icon="solar:map-point-bold-duotone"></iconify-icon>
                                     <span>Địa chỉ:</span>
                                 </div>
-                                <div class="info-right">${staff.user.address}</div>
+                                <div class="info-right">${staff.user.address != null ? staff.user.address : 'Chưa cập nhật'}</div>
                             </li>
                         </ul>
                     </div>
