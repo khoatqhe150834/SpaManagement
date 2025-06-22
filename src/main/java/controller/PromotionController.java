@@ -1,9 +1,14 @@
 package controller;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,10 +18,12 @@ import java.util.logging.Logger;
 
 import dao.PromotionDAO;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Part;
 import model.Promotion;
 
 /**
@@ -24,6 +31,11 @@ import model.Promotion;
  * Supports actions: list, view, create, edit, delete, search
  */
 @WebServlet(urlPatterns = {"/promotion/*"})
+@MultipartConfig(
+    fileSizeThreshold = 1024 * 1024, // 1 MB
+    maxFileSize = 1024 * 1024 * 10,  // 10 MB
+    maxRequestSize = 1024 * 1024 * 50 // 50 MB
+)
 public class PromotionController extends HttpServlet {
 
     private PromotionDAO promotionDAO;
@@ -281,12 +293,46 @@ public class PromotionController extends HttpServlet {
             String startDateStr = getStringParameter(request, "startDate");
             String endDateStr = getStringParameter(request, "endDate");
 
+            // Xử lý file upload
+            String imageUrl = null;
+            Part filePart = request.getPart("imageUrl");
+            if (filePart != null && filePart.getSize() > 0) {
+                String fileName = getSubmittedFileName(filePart);
+                if (fileName != null && !fileName.isEmpty()) {
+                    // Validate file type
+                    String contentType = filePart.getContentType();
+                    if (contentType != null && contentType.startsWith("image/")) {
+                        // Create upload directory if it doesn't exist
+                        String uploadPath = getServletContext().getRealPath("/uploads/promotions/");
+                        File uploadDir = new File(uploadPath);
+                        if (!uploadDir.exists()) {
+                            uploadDir.mkdirs();
+                        }
+                        
+                        // Generate unique filename
+                        String fileExtension = fileName.substring(fileName.lastIndexOf("."));
+                        String uniqueFileName = System.currentTimeMillis() + "_" + fileName;
+                        String filePath = uploadPath + uniqueFileName;
+                        
+                        // Save file
+                        try (InputStream input = filePart.getInputStream()) {
+                            Files.copy(input, Paths.get(filePath), StandardCopyOption.REPLACE_EXISTING);
+                        }
+                        
+                        imageUrl = request.getContextPath() + "/uploads/promotions/" + uniqueFileName;
+                    } else {
+                        errors.put("imageUrl", "Please select a valid image file");
+                    }
+                }
+            }
+
             // Gán lại dữ liệu nhập cho promotionInput để giữ lại khi có lỗi
             promotionInput.setTitle(title);
             promotionInput.setPromotionCode(promotionCode);
             promotionInput.setDiscountType(discountType);
             promotionInput.setDescription(description);
             promotionInput.setStatus(status);
+            promotionInput.setImageUrl(imageUrl);
             promotionInput.setDiscountValue(discountValueStr != null && !discountValueStr.isEmpty() ? new BigDecimal(discountValueStr) : null);
             promotionInput.setStartDate(startDateStr != null && !startDateStr.isEmpty() ? java.time.LocalDate.parse(startDateStr).atStartOfDay() : null);
             promotionInput.setEndDate(endDateStr != null && !endDateStr.isEmpty() ? java.time.LocalDate.parse(endDateStr).atStartOfDay() : null);
@@ -334,6 +380,7 @@ public class PromotionController extends HttpServlet {
             promotion.setDiscountValue(new BigDecimal(discountValueStr));
             promotion.setDescription(description);
             promotion.setStatus(status);
+            promotion.setImageUrl(imageUrl);
             promotion.setStartDate(startDateStr != null && !startDateStr.isEmpty() ? java.time.LocalDate.parse(startDateStr).atStartOfDay() : null);
             promotion.setEndDate(endDateStr != null && !endDateStr.isEmpty() ? java.time.LocalDate.parse(endDateStr).atStartOfDay() : null);
             promotion.setCurrentUsageCount(0);
@@ -385,6 +432,36 @@ public class PromotionController extends HttpServlet {
             String status = getStringParameter(request, "status", promotion.getStatus());
             String startDateStr = getStringParameter(request, "startDate");
             String endDateStr = getStringParameter(request, "endDate");
+
+            // Xử lý file upload
+            Part filePart = request.getPart("imageUrl");
+            if (filePart != null && filePart.getSize() > 0) {
+                String fileName = getSubmittedFileName(filePart);
+                if (fileName != null && !fileName.isEmpty()) {
+                    // Validate file type
+                    String contentType = filePart.getContentType();
+                    if (contentType != null && contentType.startsWith("image/")) {
+                        // Create upload directory if it doesn't exist
+                        String uploadPath = getServletContext().getRealPath("/uploads/promotions/");
+                        File uploadDir = new File(uploadPath);
+                        if (!uploadDir.exists()) {
+                            uploadDir.mkdirs();
+                        }
+                        
+                        // Generate unique filename
+                        String uniqueFileName = System.currentTimeMillis() + "_" + fileName;
+                        String filePath = uploadPath + uniqueFileName;
+                        
+                        // Save file
+                        try (InputStream input = filePart.getInputStream()) {
+                            Files.copy(input, Paths.get(filePath), StandardCopyOption.REPLACE_EXISTING);
+                        }
+                        
+                        // Update image URL
+                        promotion.setImageUrl(request.getContextPath() + "/uploads/promotions/" + uniqueFileName);
+                    }
+                }
+            }
 
             validatePromotionData(title, promotionCode, discountType, discountValueStr);
 
@@ -622,6 +699,15 @@ public class PromotionController extends HttpServlet {
             return "";
         }
         return str.replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t");
+    }
+
+    private String getSubmittedFileName(Part part) {
+        for (String contentDisposition : part.getHeader("content-disposition").split(";")) {
+            if (contentDisposition.trim().startsWith("filename")) {
+                return contentDisposition.substring(contentDisposition.indexOf('=') + 1).trim().replace("\"", "");
+            }
+        }
+        return null;
     }
 
 }
