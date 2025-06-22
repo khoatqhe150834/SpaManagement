@@ -45,4 +45,8 @@ public class Blog {
         this.publishedAt = dt;
     }
 
+    public void setUpdatedAtDate(Timestamp timestamp) {
+        this.updatedAt = timestamp != null ? timestamp.toLocalDateTime() : null;
+    }
+
 }

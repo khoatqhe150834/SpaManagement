@@ -5,6 +5,8 @@
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@taglib prefix="c"   uri="http://java.sun.com/jsp/jstl/core"%>
+<%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 <!-- meta tags and other links -->
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
@@ -37,258 +39,63 @@
                 </ul>
             </div>
 
+            <!-- Search bar, status filter, and category filter -->
+            <form action="${pageContext.request.contextPath}/blog" method="GET" class="d-flex align-items-center gap-3 mb-24">
+                <input type="hidden" name="action" value="list" />
+                <div class="navbar-search">
+                    <input type="text" class="bg-base h-40-px w-auto" name="search" placeholder="Search by title" value="${param.search != null ? param.search : ''}"/>
+                    <iconify-icon icon="ion:search-outline" class="icon"></iconify-icon>
+                </div>
+                <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px" name="status">
+                    <option value="">All Status</option>
+                    <option value="DRAFT" ${param.status == 'DRAFT' ? 'selected' : ''}>Draft</option>
+                    <option value="PUBLISHED" ${param.status == 'PUBLISHED' ? 'selected' : ''}>Published</option>
+                    <option value="SCHEDULED" ${param.status == 'SCHEDULED' ? 'selected' : ''}>Scheduled</option>
+                    <option value="ARCHIVED" ${param.status == 'ARCHIVED' ? 'selected' : ''}>Archived</option>
+                </select>
+                <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px" name="category">
+                    <option value="">All Categories</option>
+                    <c:forEach var="cat" items="${categories}">
+                        <option value="${cat.categoryId}" ${param.category == cat.categoryId ? 'selected' : ''}>${cat.name}</option>
+                    </c:forEach>
+                </select>
+                <button type="submit" class="btn btn-primary h-40-px radius-12">Search</button>
+            </form>
+
             <div class="row gy-4">
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
-                    <div class="card h-100 p-0 radius-12 overflow-hidden">
-                        <div class="card-body p-24">
-                            <a href="blog-details.html" class="w-100 max-h-194-px radius-8 overflow-hidden">
-                                <img src="${pageContext.request.contextPath}/assets/admin/images/blog/blog1.png" alt="" class="w-100 h-100 object-fit-cover">                        
-                            </a>
-                            <div class="mt-20">
-                                <div class="d-flex align-items-center gap-6 justify-content-between flex-wrap mb-16">
-                                    <a href="blog-details-2.html" class="px-20 py-6 bg-neutral-100 rounded-pill bg-hover-neutral-300 text-neutral-600 fw-medium">Workshop</a>
-                                    <div class="d-flex align-items-center gap-8 text-neutral-500 fw-medium">
-                                        <i class="ri-calendar-2-line"></i>
-                                        Jan 17, 2024
-                                    </div>
-                                </div>
-                                <h6 class="mb-16">
-                                    <a href="blog-details.html" class="text-line-2 text-hover-primary-600 text-xl transition-2">Discover Endless Possibilities in Real Estate Live Your Best Life in a</a>
-                                </h6>
-                                <p class="text-line-3 text-neutral-500">Lorem ipsum dolor sit amet consectetur adipisicing elit. Omnis dolores explicabo corrupti, fuga necessitatibus fugiat adipisci quidem eveniet enim minus.</p>
-                                <a href="blog-details.html" class="d-flex align-items-center gap-8 fw-semibold text-neutral-900 text-hover-primary-600 transition-2">
-                                    Read More
-                                    <i class="ri-arrow-right-double-line text-xl d-flex line-height-1"></i>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
-                    <div class="card h-100 p-0 radius-12 overflow-hidden">
-                        <div class="card-body p-24">
-                            <a href="blog-details.html" class="w-100 max-h-194-px radius-8 overflow-hidden">
-                                <img src="${pageContext.request.contextPath}/assets/admin/images/blog/blog2.png" alt="" class="w-100 h-100 object-fit-cover">                        
-                            </a>
-                            <div class="mt-20">
-                                <div class="d-flex align-items-center gap-6 justify-content-between flex-wrap mb-16">
-                                    <a href="blog-details-2.html" class="px-20 py-6 bg-neutral-100 rounded-pill bg-hover-neutral-300 text-neutral-600 fw-medium">Hiring</a>
-                                    <div class="d-flex align-items-center gap-8 text-neutral-500 fw-medium">
-                                        <i class="ri-calendar-2-line"></i>
-                                        Jan 17, 2024
-                                    </div>
-                                </div>
-                                <h6 class="mb-16">
-                                    <a href="blog-details.html" class="text-line-2 text-hover-primary-600 text-xl transition-2">Turn Your Real Estate Dreams Into Reality Embrace the Real Estate</a>
-                                </h6>
-                                <p class="text-line-3 text-neutral-500">Lorem ipsum dolor sit amet consectetur adipisicing elit. Omnis dolores explicabo corrupti, fuga necessitatibus fugiat adipisci quidem eveniet enim minus.</p>
-                                <a href="blog-details.html" class="d-flex align-items-center gap-8 fw-semibold text-neutral-900 text-hover-primary-600 transition-2">
-                                    Read More
-                                    <i class="ri-arrow-right-double-line text-xl d-flex line-height-1"></i>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
-                    <div class="card h-100 p-0 radius-12 overflow-hidden">
-                        <div class="card-body p-24">
-                            <a href="blog-details.html" class="w-100 max-h-194-px radius-8 overflow-hidden">
-                                <img src="${pageContext.request.contextPath}/assets/admin/images/blog/blog3.png" alt="" class="w-100 h-100 object-fit-cover">                        
-                            </a>
-                            <div class="mt-20">
-                                <div class="d-flex align-items-center gap-6 justify-content-between flex-wrap mb-16">
-                                    <a href="blog-details-2.html" class="px-20 py-6 bg-neutral-100 rounded-pill bg-hover-neutral-300 text-neutral-600 fw-medium">Workshop</a>
-                                    <div class="d-flex align-items-center gap-8 text-neutral-500 fw-medium">
-                                        <i class="ri-calendar-2-line"></i>
-                                        Jan 17, 2024
-                                    </div>
-                                </div>
-                                <h6 class="mb-16">
-                                    <a href="blog-details.html" class="text-line-2 text-hover-primary-600 text-xl transition-2">Your satisfaction is our top the best priority</a>
-                                </h6>
-                                <p class="text-line-3 text-neutral-500">Lorem ipsum dolor sit amet consectetur adipisicing elit. Omnis dolores explicabo corrupti, fuga necessitatibus fugiat adipisci quidem eveniet enim minus.</p>
-                                <a href="blog-details.html" class="d-flex align-items-center gap-8 fw-semibold text-neutral-900 text-hover-primary-600 transition-2">
-                                    Read More
-                                    <i class="ri-arrow-right-double-line text-xl d-flex line-height-1"></i>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
-                    <div class="card h-100 p-0 radius-12 overflow-hidden">
-                        <div class="card-body p-24">
-                            <a href="blog-details.html" class="w-100 max-h-194-px radius-8 overflow-hidden">
-                                <img src="${pageContext.request.contextPath}/assets/admin/images/blog/blog4.png" alt="" class="w-100 h-100 object-fit-cover">                        
-                            </a>
-                            <div class="mt-20">
-                                <div class="d-flex align-items-center gap-6 justify-content-between flex-wrap mb-16">
-                                    <a href="blog-details-2.html" class="px-20 py-6 bg-neutral-100 rounded-pill bg-hover-neutral-300 text-neutral-600 fw-medium">Workshop</a>
-                                    <div class="d-flex align-items-center gap-8 text-neutral-500 fw-medium">
-                                        <i class="ri-calendar-2-line"></i>
-                                        Jan 17, 2024
-                                    </div>
-                                </div>
-                                <h6 class="mb-16">
-                                    <a href="blog-details.html" class="text-line-2 text-hover-primary-600 text-xl transition-2">Your journey to home ownership starts here</a>
-                                </h6>
-                                <p class="text-line-3 text-neutral-500">Lorem ipsum dolor sit amet consectetur adipisicing elit. Omnis dolores explicabo corrupti, fuga necessitatibus fugiat adipisci quidem eveniet enim minus.</p>
-                                <a href="blog-details.html" class="d-flex align-items-center gap-8 fw-semibold text-neutral-900 text-hover-primary-600 transition-2">
-                                    Read More
-                                    <i class="ri-arrow-right-double-line text-xl d-flex line-height-1"></i>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Style Two -->
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
-                    <div class="card h-100 p-0 radius-12 overflow-hidden">
-                        <div class="card-body p-0">
-                            <a href="blog-details.html" class="w-100 max-h-266-px radius-0 overflow-hidden">
-                                <img src="${pageContext.request.contextPath}/assets/admin/images/blog/blog5.png" alt="" class="w-100 h-100 object-fit-cover">                        
-                            </a>
-                            <div class="p-20">
-                                <h6 class="mb-16">
-                                    <a href="blog-details.html" class="text-line-2 text-hover-primary-600 text-xl transition-2">How to hire a right business executive for your company</a>
-                                </h6>
-                                <p class="text-line-3 text-neutral-500 mb-0">Lorem ipsum dolor sit amet consectetur adipisicing elit. Omnis dolores explicabo corrupti, fuga necessitatibus fugiat adipisci quidem eveniet enim minus.</p>
-                                <span class="d-block border-bottom border-neutral-300 border-dashed my-20"></span>
-                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-6">
-                                    <div class="d-flex align-items-center gap-8">
-                                        <img src="${pageContext.request.contextPath}/assets/admin/images/user-list/user-list1.png" alt="" class="w-40-px h-40-px rounded-circle object-fit-cover">
-                                        <div class="d-flex flex-column">
-                                            <h6 class="text-sm mb-0">John Doe</h6>
-                                            <span class="text-xs text-neutral-500">1 day ago</span>
-                                        </div>
-                                    </div>
-                                    <a href="blog-details.html" class="btn btn-sm btn-primary-600 d-flex align-items-center gap-1 text-xs px-8 py-6">
-                                        Read More
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
-                    <div class="card h-100 p-0 radius-12 overflow-hidden">
-                        <div class="card-body p-0">
-                            <a href="blog-details.html" class="w-100 max-h-266-px radius-0 overflow-hidden">
-                                <img src="${pageContext.request.contextPath}/assets/admin/images/blog/blog6.png" alt="" class="w-100 h-100 object-fit-cover">                        
-                            </a>
-                            <div class="p-20">
-                                <h6 class="mb-16">
-                                    <a href="blog-details.html" class="text-line-2 text-hover-primary-600 text-xl transition-2">The Gig Economy: Adapting to a Flexible Workforce</a>
-                                </h6>
-                                <p class="text-line-3 text-neutral-500 mb-0">Lorem ipsum dolor sit amet consectetur adipisicing elit. Omnis dolores explicabo corrupti, fuga necessitatibus fugiat adipisci quidem eveniet enim minus.</p>
-                                <span class="d-block border-bottom border-neutral-300 border-dashed my-20"></span>
-                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-6">
-                                    <div class="d-flex align-items-center gap-8">
-                                        <img src="${pageContext.request.contextPath}/assets/admin/images/user-list/user-list2.png" alt="" class="w-40-px h-40-px rounded-circle object-fit-cover">
-                                        <div class="d-flex flex-column">
-                                            <h6 class="text-sm mb-0">Robiul Hasan</h6>
-                                            <span class="text-xs text-neutral-500">1 day ago</span>
-                                        </div>
-                                    </div>
-                                    <a href="blog-details.html" class="btn btn-sm btn-primary-600 d-flex align-items-center gap-1 text-xs px-8 py-6">
-                                        Read More
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
-                    <div class="card h-100 p-0 radius-12 overflow-hidden">
-                        <div class="card-body p-0">
-                            <a href="blog-details.html" class="w-100 max-h-266-px radius-0 overflow-hidden">
-                                <img src="${pageContext.request.contextPath}/assets/admin/images/blog/blog7.png" alt="" class="w-100 h-100 object-fit-cover">                        
-                            </a>
-                            <div class="p-20">
-                                <h6 class="mb-16">
-                                    <a href="blog-details.html" class="text-line-2 text-hover-primary-600 text-xl transition-2">The Future of Remote Work: Strategies for Success</a>
-                                </h6>
-                                <p class="text-line-3 text-neutral-500 mb-0">Lorem ipsum dolor sit amet consectetur adipisicing elit. Omnis dolores explicabo corrupti, fuga necessitatibus fugiat adipisci quidem eveniet enim minus.</p>
-                                <span class="d-block border-bottom border-neutral-300 border-dashed my-20"></span>
-                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-6">
-                                    <div class="d-flex align-items-center gap-8">
-                                        <img src="${pageContext.request.contextPath}/assets/admin/images/user-list/user-list3.png" alt="" class="w-40-px h-40-px rounded-circle object-fit-cover">
-                                        <div class="d-flex flex-column">
-                                            <h6 class="text-sm mb-0">John Doe</h6>
-                                            <span class="text-xs text-neutral-500">1 day ago</span>
-                                        </div>
-                                    </div>
-                                    <a href="blog-details.html" class="btn btn-sm btn-primary-600 d-flex align-items-center gap-1 text-xs px-8 py-6">
-                                        Read More
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
-                    <div class="card h-100 p-0 radius-12 overflow-hidden">
-                        <div class="card-body p-0">
-                            <a href="blog-details.html" class="w-100 max-h-266-px radius-0 overflow-hidden">
-                                <img src="${pageContext.request.contextPath}/assets/admin/images/blog/blog6.png" alt="" class="w-100 h-100 object-fit-cover">                        
-                            </a>
-                            <div class="p-20">
-                                <h6 class="mb-16">
-                                    <a href="blog-details.html" class="text-line-2 text-hover-primary-600 text-xl transition-2">Lorem ipsum dolor sit amet consectetur adipisicing.</a>
-                                </h6>
-                                <p class="text-line-3 text-neutral-500 mb-0">Lorem ipsum dolor sit amet consectetur adipisicing elit. Omnis dolores explicabo corrupti, fuga necessitatibus fugiat adipisci quidem eveniet enim minus.</p>
-                                <span class="d-block border-bottom border-neutral-300 border-dashed my-20"></span>
-                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-6">
-                                    <div class="d-flex align-items-center gap-8">
-                                        <img src="${pageContext.request.contextPath}/assets/admin/images/user-list/user-list5.png" alt="" class="w-40-px h-40-px rounded-circle object-fit-cover">
-                                        <div class="d-flex flex-column">
-                                            <h6 class="text-sm mb-0">John Doe</h6>
-                                            <span class="text-xs text-neutral-500">1 day ago</span>
-                                        </div>
-                                    </div>
-                                    <a href="blog-details.html" class="btn btn-sm btn-primary-600 d-flex align-items-center gap-1 text-xs px-8 py-6">
-                                        Read More
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Style Three -->
+                <c:forEach var="blog" items="${blogs}">
                 <div class="col-xxl-3 col-lg-4 col-sm-6">
                     <div class="card h-100 p-0 radius-12 overflow-hidden">
                         <div class="card-body p-24">
                             <h6 class="mb-16">
-                                <a href="blog-details.html" class="text-line-2 text-hover-primary-600 text-xl transition-2">Discover Endless Possibilities in Real Estate Live Your Best Life in a</a>
+                                <a href="${pageContext.request.contextPath}/blog?slug=${blog.slug}" class="text-line-2 text-hover-primary-600 text-xl transition-2">${blog.title}</a>
                             </h6>
                             <div class="d-flex align-items-center gap-6 justify-content-between flex-wrap mb-16">
                                 <div class="d-flex align-items-center gap-8 text-neutral-500 fw-medium">
                                     <i class="ri-chat-3-line"></i>
-                                    10 Comments
+                                    ${blog.viewCount} views
                                 </div>
                                 <div class="d-flex align-items-center gap-8 text-neutral-500 fw-medium">
                                     <i class="ri-calendar-2-line"></i>
-                                    Jan 17, 2024
+                                    <fmt:formatDate value="${blog.publishedAtDate != null ? blog.publishedAtDate : blog.createdAtDate}" pattern="MMM dd, yyyy"/>
                                 </div>
                             </div>
-                            <a href="blog-details.html" class="w-100 max-h-194-px radius-8 overflow-hidden">
-                                <img src="${pageContext.request.contextPath}/assets/admin/images/blog/blog1.png" alt="" class="w-100 h-100 object-fit-cover">                        
+                            <a href="${pageContext.request.contextPath}/blog?slug=${blog.slug}" class="w-100 max-h-194-px radius-8 overflow-hidden">
+                                <img src="${pageContext.request.contextPath}/${empty blog.featureImageUrl ? 'assets/admin/images/blog/blog1.png' : blog.featureImageUrl}" alt="" class="w-100 h-100 object-fit-cover">                        
                             </a>
                             <div class="mt-20">
-                                <p class="text-line-3 text-neutral-500">Lorem ipsum dolor sit amet consectetur adipisicing elit. Omnis dolores explicabo corrupti, fuga necessitatibus fugiat adipisci quidem eveniet enim minus.</p>
+                                <p class="text-line-3 text-neutral-500">${blog.summary}</p>
                                 <span class="d-block border-bottom border-neutral-300 border-dashed my-20"></span>
                                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-6">
                                     <div class="d-flex align-items-center gap-8">
                                         <img src="${pageContext.request.contextPath}/assets/admin/images/user-list/user-list1.png" alt="" class="w-40-px h-40-px rounded-circle object-fit-cover">
                                         <div class="d-flex flex-column">
-                                            <h6 class="text-sm mb-0">John Doe</h6>
-                                            <span class="text-xs text-neutral-500">1 day ago</span>
+                                            <h6 class="text-sm mb-0">${blog.authorName}</h6>
+                                            <span class="text-xs text-neutral-500">${blog.status}</span>
                                         </div>
                                     </div>
-                                    <a href="blog-details.html" class="btn btn-sm btn-primary-600 d-flex align-items-center gap-1 text-xs px-8 py-6">
+                                    <a href="${pageContext.request.contextPath}/blog?slug=${blog.slug}" class="btn btn-sm btn-primary-600 d-flex align-items-center gap-1 text-xs px-8 py-6">
                                         Read More
                                     </a>
                                 </div>
@@ -296,121 +103,58 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
-                    <div class="card h-100 p-0 radius-12 overflow-hidden">
-                        <div class="card-body p-24">
-                            <h6 class="mb-16">
-                                <a href="blog-details.html" class="text-line-2 text-hover-primary-600 text-xl transition-2">Turn Your Real Estate Dreams Into Reality Embrace the Real Estate</a>
-                            </h6>
-                            <div class="d-flex align-items-center gap-6 justify-content-between flex-wrap mb-16">
-                                <div class="d-flex align-items-center gap-8 text-neutral-500 fw-medium">
-                                    <i class="ri-chat-3-line"></i>
-                                    10 Comments
-                                </div>
-                                <div class="d-flex align-items-center gap-8 text-neutral-500 fw-medium">
-                                    <i class="ri-calendar-2-line"></i>
-                                    Jan 17, 2024
-                                </div>
-                            </div>
-                            <a href="blog-details.html" class="w-100 max-h-194-px radius-8 overflow-hidden">
-                                <img src="${pageContext.request.contextPath}/assets/admin/images/blog/blog2.png" alt="" class="w-100 h-100 object-fit-cover">                        
-                            </a>
-                            <div class="mt-20">
-                                <p class="text-line-3 text-neutral-500">Lorem ipsum dolor sit amet consectetur adipisicing elit. Omnis dolores explicabo corrupti, fuga necessitatibus fugiat adipisci quidem eveniet enim minus.</p>
-                                <span class="d-block border-bottom border-neutral-300 border-dashed my-20"></span>
-                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-6">
-                                    <div class="d-flex align-items-center gap-8">
-                                        <img src="${pageContext.request.contextPath}/assets/admin/images/user-list/user-list1.png" alt="" class="w-40-px h-40-px rounded-circle object-fit-cover">
-                                        <div class="d-flex flex-column">
-                                            <h6 class="text-sm mb-0">John Doe</h6>
-                                            <span class="text-xs text-neutral-500">1 day ago</span>
-                                        </div>
-                                    </div>
-                                    <a href="blog-details.html" class="btn btn-sm btn-primary-600 d-flex align-items-center gap-1 text-xs px-8 py-6">
-                                        Read More
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
-                    <div class="card h-100 p-0 radius-12 overflow-hidden">
-                        <div class="card-body p-24">
-                            <h6 class="mb-16">
-                                <a href="blog-details.html" class="text-line-2 text-hover-primary-600 text-xl transition-2">Your satisfaction is our top the best priority</a>
-                            </h6>
-                            <div class="d-flex align-items-center gap-6 justify-content-between flex-wrap mb-16">
-                                <div class="d-flex align-items-center gap-8 text-neutral-500 fw-medium">
-                                    <i class="ri-chat-3-line"></i>
-                                    10 Comments
-                                </div>
-                                <div class="d-flex align-items-center gap-8 text-neutral-500 fw-medium">
-                                    <i class="ri-calendar-2-line"></i>
-                                    Jan 17, 2024
-                                </div>
-                            </div>
-                            <a href="blog-details.html" class="w-100 max-h-194-px radius-8 overflow-hidden">
-                                <img src="${pageContext.request.contextPath}/assets/admin/images/blog/blog3.png" alt="" class="w-100 h-100 object-fit-cover">                        
-                            </a>
-                            <div class="mt-20">
-                                <p class="text-line-3 text-neutral-500">Lorem ipsum dolor sit amet consectetur adipisicing elit. Omnis dolores explicabo corrupti, fuga necessitatibus fugiat adipisci quidem eveniet enim minus.</p>
-                                <span class="d-block border-bottom border-neutral-300 border-dashed my-20"></span>
-                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-6">
-                                    <div class="d-flex align-items-center gap-8">
-                                        <img src="${pageContext.request.contextPath}/assets/admin/images/user-list/user-list1.png" alt="" class="w-40-px h-40-px rounded-circle object-fit-cover">
-                                        <div class="d-flex flex-column">
-                                            <h6 class="text-sm mb-0">John Doe</h6>
-                                            <span class="text-xs text-neutral-500">1 day ago</span>
-                                        </div>
-                                    </div>
-                                    <a href="blog-details.html" class="btn btn-sm btn-primary-600 d-flex align-items-center gap-1 text-xs px-8 py-6">
-                                        Read More
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xxl-3 col-lg-4 col-sm-6">
-                    <div class="card h-100 p-0 radius-12 overflow-hidden">
-                        <div class="card-body p-24">
-                            <h6 class="mb-16">
-                                <a href="blog-details.html" class="text-line-2 text-hover-primary-600 text-xl transition-2">Your journey to home ownership starts here</a>
-                            </h6>
-                            <div class="d-flex align-items-center gap-6 justify-content-between flex-wrap mb-16">
-                                <div class="d-flex align-items-center gap-8 text-neutral-500 fw-medium">
-                                    <i class="ri-chat-3-line"></i>
-                                    10 Comments
-                                </div>
-                                <div class="d-flex align-items-center gap-8 text-neutral-500 fw-medium">
-                                    <i class="ri-calendar-2-line"></i>
-                                    Jan 17, 2024
-                                </div>
-                            </div>
-                            <a href="blog-details.html" class="w-100 max-h-194-px radius-8 overflow-hidden">
-                                <img src="${pageContext.request.contextPath}/assets/admin/images/blog/blog4.png" alt="" class="w-100 h-100 object-fit-cover">                        
-                            </a>
-                            <div class="mt-20">
-                                <p class="text-line-3 text-neutral-500">Lorem ipsum dolor sit amet consectetur adipisicing elit. Omnis dolores explicabo corrupti, fuga necessitatibus fugiat adipisci quidem eveniet enim minus.</p>
-                                <span class="d-block border-bottom border-neutral-300 border-dashed my-20"></span>
-                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-6">
-                                    <div class="d-flex align-items-center gap-8">
-                                        <img src="${pageContext.request.contextPath}/assets/admin/images/user-list/user-list1.png" alt="" class="w-40-px h-40-px rounded-circle object-fit-cover">
-                                        <div class="d-flex flex-column">
-                                            <h6 class="text-sm mb-0">John Doe</h6>
-                                            <span class="text-xs text-neutral-500">1 day ago</span>
-                                        </div>
-                                    </div>
-                                    <a href="blog-details.html" class="btn btn-sm btn-primary-600 d-flex align-items-center gap-1 text-xs px-8 py-6">
-                                        Read More
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                </c:forEach>
 
+            </div>
+
+            <!-- Pagination block -->
+            <c:url value="/blog" var="paginationUrl">
+                <c:param name="action" value="list" />
+                <c:if test="${not empty param.search}">
+                    <c:param name="search" value="${param.search}" />
+                </c:if>
+                <c:if test="${not empty param.status}">
+                    <c:param name="status" value="${param.status}" />
+                </c:if>
+            </c:url>
+            <div class="col-md-12 mt-32">
+                <div class="card p-0 overflow-hidden position-relative radius-12">
+                    <div class="card-body p-24">
+                        <ul class="pagination d-flex flex-wrap align-items-center gap-2 justify-content-center">
+                            <!-- First -->
+                            <li class="page-item">
+                                <a class="page-link bg-primary-50 text-secondary-light fw-medium radius-8 border-0 px-20 py-10 d-flex align-items-center justify-content-center h-48-px ${currentPage == 1 ? 'disabled' : ''}"
+                                   href="${currentPage == 1 ? 'javascript:void(0)' : paginationUrl}">First</a>
+                            </li>
+                            <!-- Arrow left -->
+                            <li class="page-item">
+                                <a class="page-link bg-primary-50 text-secondary-light fw-medium radius-8 border-0 px-20 py-10 d-flex align-items-center justify-content-center h-48-px w-48-px ${currentPage == 1 ? 'disabled' : ''}"
+                                   href="${currentPage == 1 ? 'javascript:void(0)' : paginationUrl}&page=${currentPage - 1}">
+                                    <iconify-icon icon="ep:d-arrow-left" class="text-xl"></iconify-icon>
+                                </a>
+                            </li>
+                            <!-- Page numbers -->
+                            <c:forEach begin="1" end="${totalPages}" var="i">
+                                <li class="page-item">
+                                    <a class="page-link bg-primary-50 text-secondary-light fw-medium radius-8 border-0 px-20 py-10 d-flex align-items-center justify-content-center h-48-px w-48-px ${currentPage == i ? 'bg-primary-600 text-white' : ''}"
+                                       href="${paginationUrl}&page=${i}">${i}</a>
+                                </li>
+                            </c:forEach>
+                            <!-- Arrow right -->
+                            <li class="page-item">
+                                <a class="page-link bg-primary-50 text-secondary-light fw-medium radius-8 border-0 px-20 py-10 d-flex align-items-center justify-content-center h-48-px w-48-px ${currentPage == totalPages ? 'disabled' : ''}"
+                                   href="${currentPage == totalPages ? 'javascript:void(0)' : paginationUrl}&page=${currentPage + 1}">
+                                    <iconify-icon icon="ep:d-arrow-right" class="text-xl"></iconify-icon>
+                                </a>
+                            </li>
+                            <!-- Last -->
+                            <li class="page-item">
+                                <a class="page-link bg-primary-50 text-secondary-light fw-medium radius-8 border-0 px-20 py-10 d-flex align-items-center justify-content-center h-48-px ${currentPage == totalPages ? 'disabled' : ''}"
+                                   href="${currentPage == totalPages ? 'javascript:void(0)' : paginationUrl}&page=${totalPages}">Last</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
 
