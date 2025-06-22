@@ -138,15 +138,22 @@ public class LoginController extends HttpServlet {
         if (isPasswordChange && session != null) {
             Boolean passwordChangeSuccess = (Boolean) session.getAttribute("passwordChangeSuccess");
             String passwordChangeEmail = (String) session.getAttribute("passwordChangeEmail");
+            String passwordChangePassword = (String) session.getAttribute("passwordChangeLoginPassword");
 
             if (passwordChangeSuccess != null && passwordChangeSuccess && passwordChangeEmail != null) {
                 request.setAttribute("success",
                         "Mật khẩu đã được thay đổi thành công! Vui lòng đăng nhập bằng mật khẩu mới.");
                 request.setAttribute("prefillEmail", passwordChangeEmail);
 
+                // Prefill the new password for convenience
+                if (passwordChangePassword != null) {
+                    request.setAttribute("prefillPassword", passwordChangePassword);
+                }
+
                 // Clear the session data after use
                 session.removeAttribute("passwordChangeSuccess");
                 session.removeAttribute("passwordChangeEmail");
+                session.removeAttribute("passwordChangeLoginPassword");
 
                 // Don't use remember-me data when coming from password change
                 request.setAttribute("rememberMeChecked", false);
@@ -242,23 +249,12 @@ public class LoginController extends HttpServlet {
         // get email and password
         String email = request.getParameter("email");
         String password = request.getParameter("password");
-        String gRecaptchaResponse = request.getParameter("g-recaptcha-response");
 
         if (email == null || email.isEmpty() || password == null || password.isEmpty()) {
             request.setAttribute("error", "Các trường không được để trống.");
             // Preserve attempted values
             request.setAttribute("attemptedEmail", email != null ? email : "");
             request.setAttribute("attemptedPassword", password != null ? password : "");
-            request.getRequestDispatcher("/WEB-INF/view/auth/login.jsp").forward(request, response);
-            return;
-        }
-
-        // Verify reCAPTCHA first
-        if (!util.RecaptchaVerifier.verify(gRecaptchaResponse)) {
-            request.setAttribute("error", "Vui lòng xác thực reCAPTCHA để tiếp tục.");
-            // Preserve attempted values
-            request.setAttribute("attemptedEmail", email);
-            request.setAttribute("attemptedPassword", password);
             request.getRequestDispatcher("/WEB-INF/view/auth/login.jsp").forward(request, response);
             return;
         }
