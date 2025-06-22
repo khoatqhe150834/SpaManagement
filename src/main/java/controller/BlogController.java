@@ -11,7 +11,9 @@ import model.Blog;
 import model.Category;
 import model.User;
 import model.Customer;
-
+import org.commonmark.node.*;
+import org.commonmark.parser.Parser;
+import org.commonmark.renderer.html.HtmlRenderer;
 import java.io.IOException;
 import java.util.List;
 
@@ -83,7 +85,10 @@ public class BlogController extends HttpServlet {
         String categoryIdStr = request.getParameter("category");
         Integer categoryId = null;
         if (categoryIdStr != null && !categoryIdStr.isEmpty()) {
-            try { categoryId = Integer.parseInt(categoryIdStr); } catch (NumberFormatException ignore) {}
+            try {
+                categoryId = Integer.parseInt(categoryIdStr);
+            } catch (NumberFormatException ignore) {
+            }
         }
         int page = 1;
         int pageSize = 12;
@@ -133,7 +138,10 @@ public class BlogController extends HttpServlet {
         String categoryIdStr = request.getParameter("category");
         Integer categoryId = null;
         if (categoryIdStr != null && !categoryIdStr.isEmpty()) {
-            try { categoryId = Integer.parseInt(categoryIdStr); } catch (NumberFormatException ignore) {}
+            try {
+                categoryId = Integer.parseInt(categoryIdStr);
+            } catch (NumberFormatException ignore) {
+            }
         }
         int page = 1;
         int pageSize = 6;
@@ -183,15 +191,22 @@ public class BlogController extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/blog");
             return;
         }
-        Blog blog = blogDAO.findBySlug(slug); // no status filter
+        Blog blog = blogDAO.findBySlug(slug);
         if (blog == null) {
             response.sendRedirect(request.getContextPath() + "/blog");
             return;
         }
-        // Tăng view count mỗi lần xem chi tiết
+        // Tăng view count
         blogDAO.incrementViewCount(blog.getBlogId());
-        // Lấy lại blog để cập nhật view count mới nhất
         blog = blogDAO.findBySlug(slug);
+
+        // ==== Chuyển Markdown → HTML ==== 
+        Parser mdParser = Parser.builder().build();
+        Node document = mdParser.parse(blog.getContent());
+        HtmlRenderer renderer = HtmlRenderer.builder().build();
+        String htmlContent = renderer.render(document);
+        request.setAttribute("contentHtml", htmlContent);
+
         List<model.BlogComment> comments = blogDAO.findCommentsByBlogId(blog.getBlogId());
         List<Blog> recentBlogs = blogDAO.findRecent(3);
         List<Category> categories = blogDAO.findCategoriesHavingBlogs();
@@ -199,7 +214,8 @@ public class BlogController extends HttpServlet {
         request.setAttribute("comments", comments);
         request.setAttribute("recentBlogs", recentBlogs);
         request.setAttribute("categories", categories);
-        request.getRequestDispatcher("/WEB-INF/view/customer/blog/blog_details.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/view/customer/blog/blog_details.jsp")
+                .forward(request, response);
     }
 
     private void viewMarketingDetail(HttpServletRequest request, HttpServletResponse response)
@@ -209,17 +225,26 @@ public class BlogController extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/blog");
             return;
         }
-        Blog blog = blogDAO.findBySlug(slug); // no status filter
+        Blog blog = blogDAO.findBySlug(slug);
         if (blog == null) {
             response.sendRedirect(request.getContextPath() + "/blog");
             return;
         }
+        // ==== Chuyển Markdown → HTML ==== 
+        Parser mdParser = Parser.builder().build();
+        Node document = mdParser.parse(blog.getContent());
+        HtmlRenderer renderer = HtmlRenderer.builder().build();
+        String htmlContent = renderer.render(document);
+        request.setAttribute("contentHtml", htmlContent);
+
         List<model.BlogComment> comments = blogDAO.findCommentsByBlogId(blog.getBlogId());
         List<Blog> recentBlogs = blogDAO.findRecent(3);
         request.setAttribute("blog", blog);
+        request.setAttribute("contentHtml", htmlContent);
         request.setAttribute("comments", comments);
         request.setAttribute("recentBlogs", recentBlogs);
-        request.getRequestDispatcher("/WEB-INF/view/admin_pages/Blog/blog_details.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/view/admin_pages/Blog/blog_details.jsp")
+                .forward(request, response);
     }
 
     // Xử lý submit comment cho blog details
@@ -264,7 +289,8 @@ public class BlogController extends HttpServlet {
         try {
             int commentId = Integer.parseInt(commentIdStr);
             blogDAO.updateCommentStatus(commentId, "REJECTED");
-        } catch (NumberFormatException ignore) {}
+        } catch (NumberFormatException ignore) {
+        }
         response.sendRedirect(request.getContextPath() + "/blog?slug=" + slug);
     }
 }
