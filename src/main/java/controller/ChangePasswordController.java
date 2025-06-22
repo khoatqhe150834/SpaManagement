@@ -144,10 +144,12 @@ public class ChangePasswordController extends HttpServlet {
                 // Invalidate session for security
                 session.invalidate();
 
-                // Create new session for redirect message
+                // Create new session for redirect message and password prefill
                 HttpSession newSession = request.getSession(true);
                 newSession.setAttribute("passwordChangeSuccess", true);
                 newSession.setAttribute("passwordChangeEmail", userEmail);
+                newSession.setAttribute("passwordChangeLoginPassword", newPassword); // Store new password for login
+                                                                                     // prefill
 
                 // Redirect to login page with success message
                 response.sendRedirect(request.getContextPath() + "/login?passwordChanged=true&email=" +
