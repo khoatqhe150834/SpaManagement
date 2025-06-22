@@ -1,13 +1,17 @@
 package filter;
 
-import jakarta.servlet.*;
+import java.io.IOException;
+
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import java.io.IOException;
-import model.Customer;
-import model.RoleConstants;
 
 /**
  * Authorization filter that handles both role-based access control and email
