@@ -96,7 +96,7 @@
                                         <c:if test="${not empty blog.summary}">
                                             <p><b>${blog.summary}</b></p>
                                         </c:if>
-                                        <c:out value="${blog.content}" escapeXml="false"/>
+                                        <c:out value="${contentHtml}" escapeXml="false"/>
                                     </div>
                                 </div>
                                 <div class="clear" id="comment-list">
