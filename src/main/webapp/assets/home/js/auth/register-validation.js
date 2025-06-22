@@ -18,8 +18,8 @@ $(document).ready(function() {
     // Vietnamese name pattern (includes Vietnamese characters and spaces)
     const vietnameseNamePattern = /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂẾưăạảấầẩẫậắằẳẵặẹẻẽềềểếỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s]{6,100}$/;
     
-    // Vietnamese phone pattern (starts with 0 and specific prefixes)
-    const vietnamesePhonePattern = /^(0[3|5|7|8|9])+([0-9]{8})$/;
+    // Vietnamese phone pattern (starts with 0, second digit 1-9, total 10 digits)
+    const vietnamesePhonePattern = /^0[1-9][0-9]{8}$/;
     
     // Email pattern
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -108,7 +108,7 @@ $(document).ready(function() {
             if (callback) callback(false);
             return false;
         } else if (!vietnamesePhonePattern.test(phone)) {
-            showError(field, 'Số điện thoại phải bắt đầu bằng 03, 05, 07, 08, 09 và có 10 chữ số.');
+            showError(field, 'Số điện thoại phải bắt đầu bằng 0, và có đúng 10 chữ số.');
             if (callback) callback(false);
             return false;
         } else {
@@ -283,7 +283,7 @@ $(document).ready(function() {
                 showError(field, 'Số điện thoại không được để trống.');
                 validationState.phone = false;
             } else if (!vietnamesePhonePattern.test(phone)) {
-                showError(field, 'Số điện thoại phải bắt đầu bằng 03, 05, 07, 08, 09 và có 10 chữ số.');
+                showError(field, 'Số điện thoại phải bắt đầu bằng 0, và có đúng 10 chữ số.');
                 validationState.phone = false;
             } else {
                 clearValidation(field);
