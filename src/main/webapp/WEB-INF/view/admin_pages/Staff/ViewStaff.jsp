@@ -146,28 +146,28 @@
                             <li>
                                 <div class="info-left">
                                     <iconify-icon icon="solar:card-2-bold-duotone"></iconify-icon>
-                                    <span>Mã nhân viên</span>
+                                    <span>Mã nhân viên:</span>
                                 </div>
                                 <div class="info-right">${staff.user.userId}</div>
                             </li>
                             <li>
                                 <div class="info-left">
                                     <iconify-icon icon="solar:phone-bold-duotone"></iconify-icon>
-                                    <span>Số điện thoại</span>
+                                    <span>Số điện thoại:</span>
                                 </div>
                                 <div class="info-right">${staff.user.phoneNumber}</div>
                             </li>
                             <li>
                                 <div class="info-left">
                                     <iconify-icon icon="solar:user-bold-duotone"></iconify-icon>
-                                    <span>Giới tính</span>
+                                    <span>Giới tính:</span>
                                 </div>
                                 <div class="info-right">${staff.user.gender}</div>
                             </li>
                             <li>
                                 <div class="info-left">
                                     <iconify-icon icon="solar:calendar-bold-duotone"></iconify-icon>
-                                    <span>Ngày sinh</span>
+                                    <span>Ngày sinh:</span>
                                 </div>
                                 <div class="info-right"><fmt:formatDate value="${staff.user.birthday}" pattern="dd/MM/yyyy"/></div>
                             </li>
