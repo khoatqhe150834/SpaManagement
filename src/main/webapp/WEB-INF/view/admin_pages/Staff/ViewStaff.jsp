@@ -53,8 +53,17 @@
         .personal-info-list li {
             display: flex;
             align-items: center;
+            justify-content: space-between;
             margin-bottom: 16px;
             font-size: 0.95rem;
+        }
+        .personal-info-list .info-left {
+            display: flex;
+            align-items: center;
+        }
+        .personal-info-list .info-right {
+            text-align: right;
+            font-weight: 500;
         }
         .personal-info-list iconify-icon {
             font-size: 20px;
@@ -135,20 +144,32 @@
                         <hr class="my-24">
                         <ul class="personal-info-list">
                             <li>
-                                <iconify-icon icon="solar:card-2-bold-duotone"></iconify-icon>
-                                <span>Mã nhân viên: ${staff.user.userId}</span>
+                                <div class="info-left">
+                                    <iconify-icon icon="solar:card-2-bold-duotone"></iconify-icon>
+                                    <span>Mã nhân viên</span>
+                                </div>
+                                <div class="info-right">${staff.user.userId}</div>
                             </li>
                             <li>
-                                <iconify-icon icon="solar:phone-bold-duotone"></iconify-icon>
-                                <span>Số điện thoại: ${staff.user.phoneNumber}</span>
+                                <div class="info-left">
+                                    <iconify-icon icon="solar:phone-bold-duotone"></iconify-icon>
+                                    <span>Số điện thoại</span>
+                                </div>
+                                <div class="info-right">${staff.user.phoneNumber}</div>
                             </li>
                             <li>
-                                <iconify-icon icon="solar:user-bold-duotone"></iconify-icon>
-                                <span>Giới tính: ${staff.user.gender}</span>
+                                <div class="info-left">
+                                    <iconify-icon icon="solar:user-bold-duotone"></iconify-icon>
+                                    <span>Giới tính</span>
+                                </div>
+                                <div class="info-right">${staff.user.gender}</div>
                             </li>
                             <li>
-                                <iconify-icon icon="solar:calendar-bold-duotone"></iconify-icon>
-                                <span>Ngày sinh: <fmt:formatDate value="${staff.user.birthday}" pattern="dd/MM/yyyy"/></span>
+                                <div class="info-left">
+                                    <iconify-icon icon="solar:calendar-bold-duotone"></iconify-icon>
+                                    <span>Ngày sinh</span>
+                                </div>
+                                <div class="info-right"><fmt:formatDate value="${staff.user.birthday}" pattern="dd/MM/yyyy"/></div>
                             </li>
                         </ul>
                     </div>
