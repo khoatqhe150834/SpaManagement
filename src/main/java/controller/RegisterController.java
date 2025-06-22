@@ -242,36 +242,71 @@ public class RegisterController extends HttpServlet {
 
         // Create validator instance
         RegisterValidator validator = new RegisterValidator();
-        if (fullName == null || fullName.isBlank() || fullName.isEmpty() || fullName.length() < 6) {
+
+        // Validate full name (match JavaScript validation)
+        if (fullName == null || fullName.isBlank() || fullName.isEmpty()) {
+            request.setAttribute("error", "Họ tên không được để trống.");
+            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
+            return;
+        } else if (fullName.length() < 6) {
             request.setAttribute("error", "Họ tên phải có ít nhất 6 ký tự.");
+            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
+            return;
+        } else if (fullName.length() > 100) {
+            request.setAttribute("error", "Họ tên không được vượt quá 100 ký tự.");
+            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
+            return;
+        } else if (!fullName.matches(
+                "^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂẾưăạảấầẩẫậắằẳẵặẹẻẽềềểếỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\\s]{6,100}$")) {
+            request.setAttribute("error", "Họ tên chỉ được chứa chữ cái và khoảng trắng.");
             request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
             return;
         }
 
         // Validate phone
-        if (phone == null || !phone.matches("[0-9]{10,11}")) {
-            request.setAttribute("error", "Số điện thoại phải là 10 hoặc 11 chữ số.");
+        if (phone == null || !phone.matches("^0[1-9][0-9]{8}$")) {
+            request.setAttribute("error", "Số điện thoại phải bắt đầu bằng 0, và có đúng 10 chữ số.");
             request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
             return;
         }
 
-        // Validate email
-        if (email == null || !email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
-            request.setAttribute("error", "Vui lòng nhập đúng định dạng email.");
+        // Validate email (match JavaScript validation)
+        if (email == null || email.trim().isEmpty()) {
+            request.setAttribute("error", "Email không được để trống.");
+            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
+            return;
+        } else if (!email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
+            request.setAttribute("error", "Định dạng email không hợp lệ.");
+            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
+            return;
+        } else if (email.length() > 255) {
+            request.setAttribute("error", "Email không được vượt quá 255 ký tự.");
             request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
             return;
         }
 
-        // Validate password
-        if (password == null || password.trim().isEmpty() || password.length() < 6 || password.length() > 32) {
+        // Validate password (match JavaScript validation)
+        if (password == null || password.isEmpty()) {
+            request.setAttribute("error", "Mật khẩu không được để trống.");
+            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
+            return;
+        } else if (password.length() < 6) {
             request.setAttribute("error", "Mật khẩu phải có ít nhất 6 ký tự.");
             request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
             return;
+        } else if (password.length() > 30) {
+            request.setAttribute("error", "Mật khẩu không được vượt quá 30 ký tự.");
+            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
+            return;
         }
 
-        // Check password confirmation
-        if (!password.equals(confirmPassword)) {
-            request.setAttribute("error", "Mật khẩu không khớp.");
+        // Validate confirm password (match JavaScript validation)
+        if (confirmPassword == null || confirmPassword.isEmpty()) {
+            request.setAttribute("error", "Vui lòng nhập lại mật khẩu.");
+            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
+            return;
+        } else if (!password.equals(confirmPassword)) {
+            request.setAttribute("error", "Mật khẩu nhập lại không khớp.");
             request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
             return;
         }
