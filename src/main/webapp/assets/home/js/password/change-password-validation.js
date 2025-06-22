@@ -63,12 +63,18 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 hideMessage('currentPassword');
             }
+            
+            // Re-validate new password when current password changes
+            const newPassword = document.getElementById('newPassword').value;
+            if (newPassword) {
+                validateNewPassword();
+            }
         });
         
-        // Real-time validation for new password
-        document.getElementById('newPassword').addEventListener('input', function() {
+        // Function to validate new password
+        function validateNewPassword() {
             const currentPassword = document.getElementById('currentPassword').value;
-            const newPassword = this.value.trim();
+            const newPassword = document.getElementById('newPassword').value.trim();
             
             if (newPassword === '') {
                 hideMessage('newPassword');
@@ -85,7 +91,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (confirmPassword) {
                 validateConfirmPassword();
             }
-        });
+        }
+        
+        // Real-time validation for new password
+        document.getElementById('newPassword').addEventListener('input', validateNewPassword);
         
         // Real-time validation for confirm password
         function validateConfirmPassword() {

@@ -336,6 +336,24 @@ public class RegisterController extends HttpServlet {
         // save data to database
         customerDAO.save(newCustomer);
 
+        try {
+            // Create verification token for email verification
+            EmailVerificationToken token = new EmailVerificationToken(email);
+            verificationTokenDAO.save(token);
+
+            // Send verification email asynchronously
+            asyncEmailService.sendVerificationEmailAsync(email, token.getToken(), fullName);
+
+            LOGGER.info("Verification email sent successfully for new registration: " + email);
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error creating verification token for: " + email, ex);
+            // Continue with registration process even if email fails
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "Error sending verification email for: " + email, ex);
+            // Continue with registration process even if email fails
+        }
+
         // Use POST-redirect-GET pattern to prevent refresh issues
         // Store success data in session temporarily
         HttpSession session = request.getSession();

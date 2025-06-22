@@ -173,12 +173,7 @@ contentType="text/html" pageEncoding="UTF-8"%>
   </div>
 </div>
 
-<!-- reCAPTCHA Widget -->
-<div class="form-group">
-  <div class="g-recaptcha" data-sitekey="6LcD4GIrAAAAAEQxHb-FotK15j9aU_CegmMGUgBC" 
-       data-theme="light" data-size="normal"></div>
-  <div id="recaptchaError" class="field-error-message" style="display: none;"></div>
-</div>
+
 
                       <div class="text-left">
                        <button class="site-button m-r5 button-lg radius-no">ĐĂNG NHẬP</button>
@@ -238,8 +233,7 @@ contentType="text/html" pageEncoding="UTF-8"%>
     <!-- JAVASCRIPT FILES ========================================= -->
     <jsp:include page="/WEB-INF/view/common/home/js.jsp"></jsp:include>
     
-    <!-- Google reCAPTCHA v2 -->
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
     
     <!-- Common Email Validation Utility -->
     <script src="${pageContext.request.contextPath}/assets/home/js/common/email-validation.js"></script>
@@ -301,33 +295,10 @@ contentType="text/html" pageEncoding="UTF-8"%>
                 }
             });
             
-            // reCAPTCHA validation functions
-            const recaptchaError = document.getElementById('recaptchaError');
-            
-            function showRecaptchaError(message) {
-                recaptchaError.textContent = message;
-                recaptchaError.style.display = 'block';
-            }
-            
-            function hideRecaptchaError() {
-                recaptchaError.style.display = 'none';
-                recaptchaError.textContent = '';
-            }
+
             
             // Form submission validation
             loginForm.addEventListener('submit', function(e) {
-                // Get reCAPTCHA response
-                const recaptchaResponse = grecaptcha.getResponse();
-                
-                // Validate reCAPTCHA first
-                if (!recaptchaResponse || recaptchaResponse.length === 0) {
-                    showRecaptchaError('Vui lòng xác thực reCAPTCHA trước khi đăng nhập.');
-                    e.preventDefault();
-                    return false;
-                } else {
-                    hideRecaptchaError();
-                }
-                
                 const emailResult = emailValidator.validate();
                 const passwordValidation = validatePassword(passwordInput.value);
                 

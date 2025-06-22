@@ -20,16 +20,15 @@ public class EmailService {
 
   private static final Logger LOGGER = Logger.getLogger(EmailService.class.getName());
 
-  // Email configuration constants
-  private static final String SMTP_HOST = "smtp.gmail.com";
-  private static final String SMTP_PORT = "587";
-  private static final String EMAIL_USERNAME = "quangkhoa5112@gmail.com"; // Configure this
-  private static final String EMAIL_PASSWORD = "yxjn zgbu grpu hnxv"; // Configure this
-  private static final String FROM_EMAIL = "noreply@spamanagement.com";
-  private static final String FROM_NAME = "Spa Online";
+  // Email configuration - now uses EmailServiceConfig for environment switching
+  private static final String SMTP_HOST = EmailServiceConfig.getSmtpHost();
+  private static final String SMTP_PORT = EmailServiceConfig.getSmtpPort();
+  private static final String EMAIL_USERNAME = EmailServiceConfig.getEmailUsername();
+  private static final String EMAIL_PASSWORD = EmailServiceConfig.getEmailPassword();
+  private static final String FROM_NAME = EmailServiceConfig.FROM_NAME;
 
-  // Application URL for password reset links
-  private static final String APP_BASE_URL = "http://localhost:8080"; // Updated for localhost
+  // Application URL for links
+  private static final String APP_BASE_URL = EmailServiceConfig.APP_BASE_URL;
 
   /**
    * Sends a password reset email to the specified user
@@ -90,19 +89,24 @@ public class EmailService {
 
     // Basic SMTP settings
     props.put("mail.smtp.auth", "true");
-    props.put("mail.smtp.starttls.enable", "true");
     props.put("mail.smtp.host", SMTP_HOST);
     props.put("mail.smtp.port", SMTP_PORT);
-    props.put("mail.smtp.ssl.protocols", "TLSv1.2");
-
-    // Additional settings for better compatibility
-    props.put("mail.smtp.ssl.trust", SMTP_HOST);
-    props.put("mail.debug", "false"); // Disable debug mode for production
+    props.put("mail.debug", "true"); // Enable debug mode for troubleshooting
     props.put("mail.smtp.connectiontimeout", "10000"); // 10 seconds
     props.put("mail.smtp.timeout", "10000"); // 10 seconds
     props.put("mail.smtp.writetimeout", "10000"); // 10 seconds
 
-    LOGGER.info("SMTP Properties configured for production");
+    // Configure SSL/TLS based on environment
+    if (EmailServiceConfig.isDevelopment()) {
+      // Mailtrap typically doesn't require STARTTLS
+      LOGGER.info("SMTP Properties configured for DEVELOPMENT (Mailtrap)");
+    } else {
+      // Production Gmail requires STARTTLS
+      props.put("mail.smtp.starttls.enable", "true");
+      props.put("mail.smtp.ssl.protocols", "TLSv1.2");
+      props.put("mail.smtp.ssl.trust", SMTP_HOST);
+      LOGGER.info("SMTP Properties configured for PRODUCTION (Gmail)");
+    }
 
     return Session.getInstance(props, new Authenticator() {
       @Override
@@ -190,7 +194,7 @@ public class EmailService {
       Session session = createEmailSession();
 
       Message message = new MimeMessage(session);
-      message.setFrom(new InternetAddress(FROM_EMAIL, FROM_NAME));
+      message.setFrom(new InternetAddress(EMAIL_USERNAME, FROM_NAME));
       message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(userEmail));
       message.setSubject("Password Reset Successful - Spa Management System");
 
@@ -265,12 +269,17 @@ public class EmailService {
    */
   public boolean sendVerificationEmail(String userEmail, String verificationToken, String userName) {
     try {
+      LOGGER.info("Attempting to send verification email to: " + userEmail);
+      LOGGER.info("Using SMTP server: " + SMTP_HOST + ":" + SMTP_PORT);
+      LOGGER.info("From email: " + EMAIL_USERNAME);
+
       // Create email session
       Session session = createEmailSession();
+      LOGGER.info("Email session created successfully");
 
       // Create the email message
       Message message = new MimeMessage(session);
-      message.setFrom(new InternetAddress(FROM_EMAIL, FROM_NAME));
+      message.setFrom(new InternetAddress(EMAIL_USERNAME, FROM_NAME)); // Use actual email as from
       message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(userEmail));
       message.setSubject("Email Verification - Spa Management System");
 
@@ -278,12 +287,21 @@ public class EmailService {
       String emailContent = createVerificationEmailContent(verificationToken, userName);
       message.setContent(emailContent, "text/html; charset=utf-8");
 
+      LOGGER.info("Email message prepared, attempting to send...");
+
       // Send the email
       Transport.send(message);
 
       LOGGER.info("Verification email sent successfully to: " + userEmail);
       return true;
 
+    } catch (AuthenticationFailedException e) {
+      LOGGER.log(Level.SEVERE,
+          "Gmail authentication failed. Check email credentials and app password: " + e.getMessage(), e);
+      return false;
+    } catch (MessagingException e) {
+      LOGGER.log(Level.SEVERE, "Email messaging error for: " + userEmail + ". Error: " + e.getMessage(), e);
+      return false;
     } catch (Exception e) {
       LOGGER.log(Level.SEVERE, "Failed to send verification email to: " + userEmail, e);
       return false;
