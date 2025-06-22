@@ -140,15 +140,15 @@
                             </li>
                             <li>
                                 <iconify-icon icon="solar:phone-bold-duotone"></iconify-icon>
-                                <span>${staff.user.phoneNumber}</span>
+                                <span>Số điện thoại: ${staff.user.phoneNumber}</span>
                             </li>
                             <li>
                                 <iconify-icon icon="solar:user-bold-duotone"></iconify-icon>
-                                <span>${staff.user.gender}</span>
+                                <span>Giới tính: ${staff.user.gender}</span>
                             </li>
                             <li>
                                 <iconify-icon icon="solar:calendar-bold-duotone"></iconify-icon>
-                                <span><fmt:formatDate value="${staff.user.birthday}" pattern="dd/MM/yyyy"/></span>
+                                <span>Ngày sinh: <fmt:formatDate value="${staff.user.birthday}" pattern="dd/MM/yyyy"/></span>
                             </li>
                         </ul>
                     </div>
