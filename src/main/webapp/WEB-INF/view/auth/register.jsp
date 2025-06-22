@@ -51,6 +51,21 @@ contentType="text/html" pageEncoding="UTF-8"%>
     
     <!-- Context path for JavaScript -->
     <meta name="context-path" content="${pageContext.request.contextPath}" />
+    
+    <!-- Custom styles for form -->
+    <style>
+        /* Make required field asterisks red */
+        .font-weight-700:contains('*')::after,
+        .font-weight-700 {
+            color: inherit;
+        }
+        
+        /* Target asterisks specifically */
+        .required-asterisk {
+            color: #dc3545 !important;
+            font-weight: bold;
+        }
+    </style>
 
     <!-- MOBILE SPECIFIC -->
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -129,7 +144,7 @@ contentType="text/html" pageEncoding="UTF-8"%>
                         nhập.
                       </p>
                       <div class="form-group">
-                        <label class="font-weight-700">Họ tên *</label>
+                        <label class="font-weight-700">Họ tên <span class="required-asterisk">*</span></label>
                         <input
                           id="fullName"
                           name="fullName"
@@ -144,7 +159,7 @@ contentType="text/html" pageEncoding="UTF-8"%>
                         />
                       </div>
                       <div class="form-group">
-                        <label class="font-weight-700">SĐT *</label>
+                        <label class="font-weight-700">SĐT <span class="required-asterisk">*</span></label>
                         <input
                           id="phone"
                           name="phone"
@@ -152,14 +167,14 @@ contentType="text/html" pageEncoding="UTF-8"%>
                           class="form-control"
                           placeholder="0909090909"
                           type="text"
-                          pattern="[0-9]{10}"
-                          title="Số điện thoại phải là đúng 10 chữ số."
+                          pattern="0[1-9][0-9]{8}"
+                          title="Số điện thoại phải bắt đầu bằng 0, số thứ 2 từ 1-9, và có đúng 10 chữ số."
                           minlength="10"
                           maxlength="10"
                         />
                       </div>
                       <div class="form-group">
-                        <label class="font-weight-700">E-MAIL *</label>
+                        <label class="font-weight-700">E-MAIL <span class="required-asterisk">*</span></label>
                         <input
                           id="email"
                           name="email"
@@ -173,7 +188,7 @@ contentType="text/html" pageEncoding="UTF-8"%>
                         />
                       </div>
                       <div class="form-group">
-                        <label class="font-weight-700">MẬT KHẨU *</label>
+                        <label class="font-weight-700">MẬT KHẨU <span class="required-asterisk">*</span></label>
                         <input
                           id="password"
                           name="password"
@@ -186,11 +201,17 @@ contentType="text/html" pageEncoding="UTF-8"%>
                           title="Mật khẩu phải có ít nhất 6 ký tự."
                           placeholder="******"
                         />
+                        <div class="form-text text-muted" style="font-size: 14px; color: #666; margin-top: 8px; line-height: 1.4;">
+                          <strong>Yêu cầu mật khẩu:</strong><br>
+                          • Tối thiểu 6 ký tự, tối đa 30 ký tự<br>
+                          • Nên sử dụng kết hợp chữ cái, số và ký tự đặc biệt<br>
+                          • Không sử dụng thông tin cá nhân dễ đoán
+                        </div>
                       </div>
 
                       <div class="form-group">
                         <label class="font-weight-700"
-                          >NHẬP LẠI MẬT KHẨU *</label
+                          >NHẬP LẠI MẬT KHẨU <span class="required-asterisk">*</span></label
                         >
                         <input
                           name="confirmPassword"
