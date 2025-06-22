@@ -127,60 +127,54 @@
         }
 
         /* 
-          Custom styles to fix select dropdown behavior.
-          - Ensure dropdown always opens downwards.
-          - Add a scrollbar for long lists.
-        */
-        .form-group .dropdown-menu {
-            max-height: 250px; /* Giới hạn chiều cao của danh sách */
-            overflow-y: auto;  /* Thêm thanh cuộn khi danh sách quá dài */
-
-            /* Buộc danh sách luôn hiển thị bên dưới */
-            top: 100% !important;
-            bottom: auto !important;
-            transform: translateY(0) !important;
-        }
-
-        /* 
-          Custom styles for Select2 to match theme 
+          START: Final & Robust Styles for Select2
+          Using Flexbox to re-order elements and solve conflicts.
         */
         .select2-container .select2-selection--single {
             height: 48px !important;
             border-radius: 12px !important;
             border: 1px solid #ced4da !important;
-            display: flex;
-            align-items: center;
-            background-image: none !important; /* Remove background arrow */
-            position: relative; /* Crucial for positioning child elements */
-        }
-        
-        /* Move arrow to the left */
-        .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 46px !important;
-            left: 8px !important;
-            right: auto !important; /* Override default right positioning */
-        }
-        
-        /* Adjust text padding to make space for left arrow and right clear button */
-        .select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: normal;
-            color: #495057;
-            padding-left: 35px !important; /* Make space for the arrow on the left */
-            padding-right: 30px !important;/* Make space for the clear button on the right */
-        }
-        
-        /* Style and position the clear (x) button to the right */
-        .select2-container--default.select2-container--allow-clear .select2-selection--single .select2-selection__clear {
-            position: absolute;
-            right: 8px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 1.2em;
-            color: #888;
-            cursor: pointer;
-            float: none; /* Override default float if any */
+            background: #fff !important;
+            
+            /* Use Flexbox for layout control */
+            display: flex !important;
+            align-items: center !important;
+            padding: 0 5px !important;
         }
 
+        /* Arrow (▼) -> Order 1 (Left) */
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            order: 1;
+            position: static !important; /* Reset position */
+            height: 100%;
+            width: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Text content -> Order 2 (Middle) */
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            order: 2;
+            flex-grow: 1; /* Take up all available space */
+            line-height: 48px;
+            color: #495057;
+            padding: 0 5px !important;
+        }
+        
+        /* Clear button (x) -> Order 3 (Right) */
+        .select2-container--default.select2-container--allow-clear .select2-selection--single .select2-selection__clear {
+            order: 3;
+            position: static !important; /* Reset position */
+            height: 100%;
+            width: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            float: none !important;
+            margin: 0 !important;
+        }
+        
         .select2-dropdown {
             border-radius: 12px !important;
             border: 1px solid #ced4da !important;
