@@ -84,6 +84,7 @@
             min-height: 160px; /* Adjusted height */
             color: #495057;
             white-space: pre-wrap;
+            overflow-wrap: break-word;
             font-size: 0.95rem;
         }
         .info-grid {
