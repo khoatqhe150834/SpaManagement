@@ -150,23 +150,47 @@
             border: 1px solid #ced4da !important;
             display: flex;
             align-items: center;
+            background-image: none !important; /* Remove background arrow */
+            position: relative; /* Crucial for positioning child elements */
         }
-        .select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: 48px;
-            color: #495057;
-            padding-left: 16px !important;
-        }
+        
+        /* Move arrow to the left */
         .select2-container--default .select2-selection--single .select2-selection__arrow {
             height: 46px !important;
-            right: 8px !important;
+            left: 8px !important;
+            right: auto !important; /* Override default right positioning */
         }
+        
+        /* Adjust text padding to make space for left arrow and right clear button */
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: normal;
+            color: #495057;
+            padding-left: 35px !important; /* Make space for the arrow on the left */
+            padding-right: 30px !important;/* Make space for the clear button on the right */
+        }
+        
+        /* Style and position the clear (x) button to the right */
+        .select2-container--default.select2-container--allow-clear .select2-selection--single .select2-selection__clear {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2em;
+            color: #888;
+            cursor: pointer;
+            float: none; /* Override default float if any */
+        }
+
         .select2-dropdown {
             border-radius: 12px !important;
             border: 1px solid #ced4da !important;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             overflow: hidden;
         }
         .select2-search--dropdown .select2-search__field {
              border-radius: 8px;
+             border: 1px solid #ced4da;
+             padding: 8px 12px;
         }
 
         /* Validation styles for Select2 */
@@ -204,109 +228,110 @@
                     <p class="card-subtitle mb-0">Vui lòng điền đầy đủ các thông tin dưới đây.</p>
                 </div>
                 <div class="card-body">
-                    <form id="addStaffForm" action="staff" method="post">
-                        <input type="hidden" name="service" value="insert" />
-                        
-                        <!-- =================================== Thông tin người dùng =================================== -->
-                        <div class="mb-32">
-                            <div class="section-header">
-                                <div class="section-icon bg-primary-50">
-                                    <iconify-icon icon="solar:user-outline" class="text-primary text-xl"></iconify-icon>
+                    <div class="row justify-content-center">
+                        <div class="col-xl-10">
+                            <form id="addStaffForm" action="staff" method="post">
+                                <input type="hidden" name="service" value="insert" />
+                                
+                                <!-- =================================== Thông tin người dùng =================================== -->
+                                <div class="mb-32">
+                                    <div class="section-header">
+                                        <div class="section-icon bg-primary-50">
+                                            <iconify-icon icon="solar:user-outline" class="text-primary text-xl"></iconify-icon>
+                                        </div>
+                                        <h6 class="section-title">Thông tin người dùng</h6>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="userSelect" class="form-label">
+                                                    Chọn người dùng <span class="text-danger-600">*</span>
+                                                </label>
+                                                <select id="userSelect" name="userId" required>
+                                                    <option></option> <!-- Option trống cho placeholder của Select2 -->
+                                                    <c:forEach var="user" items="${userList}">
+                                                        <option value="${user.userId}" data-fullname="${user.fullName}">${user.userId} - ${user.fullName}</option>
+                                                    </c:forEach>
+                                                </select>
+                                                <div class="invalid-feedback" id="userSelectError"></div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="fullNameInput" class="form-label">Họ và tên</label>
+                                                <input type="text" id="fullNameInput" name="fullName" class="form-control" readonly placeholder="Tên sẽ tự động điền..." />
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <h6 class="section-title">Thông tin người dùng</h6>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6">
+
+                                <!-- =================================== Thông tin chuyên môn =================================== -->
+                                <div class="mb-32">
+                                    <div class="section-header">
+                                        <div class="section-icon bg-info-50">
+                                            <iconify-icon icon="solar:user-id-outline" class="text-info text-xl"></iconify-icon>
+                                        </div>
+                                        <h6 class="section-title">Thông tin chuyên môn</h6>
+                                    </div>
                                     <div class="form-group">
-                                        <label for="userSelect" class="form-label">
-                                            Chọn người dùng <span class="text-danger-600">*</span>
+                                        <label for="bio" class="form-label">
+                                            Tiểu sử <span class="text-danger-600">*</span>
                                         </label>
-                                        <select id="userSelect" name="userId" class="form-select select2-hidden-accessible" required>
-                                            <option></option>
-                                            <c:forEach var="user" items="${userList}">
-                                                <option value="${user.userId}" data-fullname="${user.fullName}">${user.userId} - ${user.fullName}</option>
-                                            </c:forEach>
-                                        </select>
-                                        <div class="invalid-feedback" id="userSelectError"></div>
+                                        <textarea name="bio" class="form-control" id="bio" placeholder="Viết mô tả ngắn về nhân viên (tối thiểu 20 ký tự)..." rows="4" style="resize: none;" minlength="20" maxlength="500" required></textarea>
+                                        <div class="d-flex justify-content-between">
+                                            <div class="invalid-feedback" id="bioError"></div>
+                                            <small class="text-muted"><span id="bioCharCount">0</span>/500</small>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label for="serviceTypeId" class="form-label">
+                                                    Loại dịch vụ <span class="text-danger-600">*</span>
+                                                </label>
+                                                <select name="serviceTypeId" id="serviceTypeId" required>
+                                                    <option></option> <!-- Option trống cho placeholder của Select2 -->
+                                                    <c:forEach var="serviceType" items="${serviceTypes}">
+                                                        <option value="${serviceType.serviceTypeId}">${serviceType.name}</option>
+                                                    </c:forEach>
+                                                </select>
+                                                <div class="invalid-feedback" id="serviceTypeError"></div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label for="availabilityStatus" class="form-label">
+                                                    Trạng thái làm việc <span class="text-danger-600">*</span>
+                                                </label>
+                                                <select name="availabilityStatus" id="availabilityStatus" required>
+                                                     <option></option> <!-- Option trống cho placeholder của Select2 -->
+                                                    <option value="AVAILABLE">Sẵn sàng</option>
+                                                    <option value="BUSY">Bận</option>
+                                                    <option value="OFFLINE">Ngoại tuyến</option>
+                                                    <option value="ON_LEAVE">Nghỉ phép</option>
+                                                </select>
+                                                <div class="invalid-feedback" id="availabilityError"></div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                             <div class="form-group">
+                                                <label for="yearsOfExperience" class="form-label">
+                                                    Số năm kinh nghiệm <span class="text-danger-600">*</span>
+                                                </label>
+                                                <input type="number" name="yearsOfExperience" class="form-control" id="yearsOfExperience" required min="0" max="100" placeholder="Ví dụ: 5"/>
+                                                <div class="invalid-feedback" id="experienceError"></div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="fullNameInput" class="form-label">Họ và tên</label>
-                                        <input type="text" id="fullNameInput" name="fullName" class="form-control" readonly placeholder="Tên sẽ tự động điền..." />
-                                    </div>
+                                <div class="d-flex align-items-center justify-content-end gap-3 mt-4">
+                                     <a href="staff" class="btn btn-outline-danger border border-danger-600 px-40 py-11 radius-8">Hủy</a>
+                                     <button type="submit" class="btn btn-primary border border-primary-600 text-md px-40 py-12 radius-8">Lưu thông tin</button>
                                 </div>
-                            </div>
+                            </form>
                         </div>
-
-                        <!-- =================================== Thông tin chuyên môn =================================== -->
-                        <div class="mb-32">
-                            <div class="section-header">
-                                <div class="section-icon bg-info-50">
-                                    <iconify-icon icon="solar:user-id-outline" class="text-info text-xl"></iconify-icon>
-                                </div>
-                                <h6 class="section-title">Thông tin chuyên môn</h6>
-                            </div>
-                            <div class="form-group">
-                                <label for="bio" class="form-label">
-                                    Tiểu sử <span class="text-danger-600">*</span>
-                                </label>
-                                <textarea name="bio" class="form-control" id="bio" placeholder="Viết mô tả ngắn về nhân viên (tối thiểu 20 ký tự)..." rows="4" style="resize: none;" minlength="20" maxlength="500" required></textarea>
-                                <div class="d-flex justify-content-between">
-                                    <div class="invalid-feedback" id="bioError"></div>
-                                    <small class="text-muted"><span id="bioCharCount">0</span>/500</small>
-                                </div>
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="serviceTypeId" class="form-label">
-                                            Loại dịch vụ <span class="text-danger-600">*</span>
-                                        </label>
-                                        <select name="serviceTypeId" class="form-select select2-hidden-accessible" id="serviceTypeId" required>
-                                            <option></option>
-                                            <c:forEach var="serviceType" items="${serviceTypes}">
-                                                <option value="${serviceType.serviceTypeId}">${serviceType.name}</option>
-                                            </c:forEach>
-                                        </select>
-                                        <div class="invalid-feedback" id="serviceTypeError"></div>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="availabilityStatus" class="form-label">
-                                            Trạng thái làm việc <span class="text-danger-600">*</span>
-                                        </label>
-                                        <select name="availabilityStatus" class="form-select select2-hidden-accessible" id="availabilityStatus" required>
-                                            <option></option>
-                                            <option value="AVAILABLE">Sẵn sàng</option>
-                                            <option value="BUSY">Bận</option>
-                                            <option value="OFFLINE">Ngoại tuyến</option>
-                                            <option value="ON_LEAVE">Nghỉ phép</option>
-                                        </select>
-                                        <div class="invalid-feedback" id="availabilityError"></div>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                     <div class="form-group">
-                                        <label for="yearsOfExperience" class="form-label">
-                                            Số năm kinh nghiệm <span class="text-danger-600">*</span>
-                                        </label>
-                                        <input type="number" name="yearsOfExperience" class="form-control" id="yearsOfExperience" required min="0" max="100" placeholder="Ví dụ: 5"/>
-                                        <div class="invalid-feedback" id="experienceError"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- =================================== Cài đặt =================================== -->
-
-                    </form>
-                </div>
-                <div class="form-actions">
-                     <a href="staff" class="btn btn-outline-danger border border-danger-600 px-40 py-11 radius-8">Hủy</a>
-                     <button type="submit" form="addStaffForm" class="btn btn-primary border border-primary-600 text-md px-40 py-12 radius-8">Lưu thông tin</button>
+                    </div>
                 </div>
             </div>
         </div>
