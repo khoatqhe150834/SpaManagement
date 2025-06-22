@@ -55,7 +55,7 @@
 
                                     <!-- thumbnail -->
                                     <div class="dlab-post-media dlab-img-effect zoom-slow radius-sm">
-                                        <a href="${pageContext.request.contextPath}/blog-detail?slug=${b.slug}">
+                                        <a href="${pageContext.request.contextPath}/blog?slug=${b.slug}">
                                             <img src="${pageContext.request.contextPath}/${empty b.featureImageUrl
                                                         ? 'assets/home/images/blog/default/thum1.jpg'
                                                         : b.featureImageUrl}" alt="">
@@ -77,7 +77,7 @@
 
                                         <div class="dlab-post-title ">
                                             <h4 class="post-title font-24">
-                                                <a href="${pageContext.request.contextPath}/blog-detail?slug=${b.slug}">
+                                                <a href="${pageContext.request.contextPath}/blog?slug=${b.slug}">
                                                     ${b.title}
                                                 </a>
                                             </h4>
@@ -86,7 +86,7 @@
                                         <div class="dlab-post-text"><p>${b.summary}</p></div>
 
                                         <div class="dlab-post-readmore blog-share">
-                                            <a href="${pageContext.request.contextPath}/blog-detail?slug=${b.slug}"
+                                            <a href="${pageContext.request.contextPath}/blog?slug=${b.slug}"
                                                class="site-button-link border-link black">ĐỌC THÊM</a>
                                         </div>
                                     </div>
@@ -158,7 +158,7 @@
                                                 <div class="dlab-post-info">
                                                     <div class="dlab-post-header">
                                                         <h6 class="post-title">
-                                                            <a href="${pageContext.request.contextPath}/blog-detail?slug=${rb.slug}">
+                                                            <a href="${pageContext.request.contextPath}/blog?slug=${rb.slug}">
                                                                 ${rb.title}
                                                             </a>
                                                         </h6>

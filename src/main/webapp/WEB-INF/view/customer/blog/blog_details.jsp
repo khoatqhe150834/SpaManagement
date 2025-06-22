@@ -106,14 +106,14 @@
                                             <!-- comment list START -->
                                             <ol class="comment-list">
                                                 <c:forEach var="cmt" items="${comments}">
-                                                    <li class="comment">
-                                                        <div class="comment-body">
-                                                            <div class="comment-author vcard">
+                                                <li class="comment">
+                                                    <div class="comment-body">
+                                                        <div class="comment-author vcard">
                                                                 <img class="avatar photo" src="${empty cmt.avatarUrl ? pageContext.request.contextPath.concat('/assets/home/images/testimonials/pic1.jpg') : cmt.avatarUrl}" alt="">
                                                                 <cite class="fn">${empty cmt.customerName ? cmt.guestName : cmt.customerName}</cite>
-                                                                <span class="says">says:</span>
-                                                            </div>
-                                                            <div class="comment-meta">
+                                                            <span class="says">says:</span>
+                                                        </div>
+                                                        <div class="comment-meta">
                                                                 <fmt:formatDate value="${cmt.createdAtDate}" pattern="MMMM dd, yyyy HH:mm"/>
                                                             </div>
                                                             <p>${cmt.commentText}</p>
@@ -122,11 +122,11 @@
                                                 </c:forEach>
                                             </ol>
                                             <!-- comment list END -->
-                                        </div>
+                                                        </div>
                                         <!-- Form gửi comment -->
                                         <div class="comment-respond" id="respond">
                                             <h4 class="comment-reply-title" id="reply-title">Leave a Reply <small> <a style="display:none;" href="javascript:void(0);" id="cancel-comment-reply-link" rel="nofollow">Cancel reply</a> </small> </h4>
-                                            <form class="comment-form" id="commentform" method="post" action="${pageContext.request.contextPath}/blog-detail" novalidate>
+                                            <form class="comment-form" id="commentform" method="post" action="${pageContext.request.contextPath}/blog" novalidate>
                                                 <input type="hidden" name="slug" value="${blog.slug}"/>
                                                 <div class="row">
                                                     <div class="col-md-6 mb-3">
@@ -141,7 +141,7 @@
                                                             <input type="email" name="guestEmail" placeholder="Email" id="email" class="form-control" required>
                                                         </div>
                                                     </div>
-                                                </div>
+                                                        </div>
                                                 <div class="mb-3">
                                                     <div class="input-group">
                                                         <span class="input-group-text"><iconify-icon icon="mdi:comment-outline"></iconify-icon></span>
@@ -151,7 +151,7 @@
                                                 <div class="text-center">
                                                     <input type="submit" value="Post Comment" class="submit btn btn-primary" id="submit" name="submit">
                                                 </div>
-                                            </form>
+                                                </form>
                                         </div>
                                     </div>
                                 </div>
@@ -165,24 +165,24 @@
                                         <h6 class="widget-title style-1">Blog Gần Đây</h6>
                                         <div class="widget-post-bx">
                                             <c:forEach var="rb" items="${recentBlogs}">
-                                                <div class="widget-post clearfix">
+                                            <div class="widget-post clearfix">
                                                     <div class="dlab-post-media">
                                                         <img src="${pageContext.request.contextPath}/${empty rb.featureImageUrl ? 'assets/home/images/blog/default/thum1.jpg' : rb.featureImageUrl}" width="200" height="143" alt="">
                                                     </div>
-                                                    <div class="dlab-post-info">
-                                                        <div class="dlab-post-header">
+                                                <div class="dlab-post-info">
+                                                    <div class="dlab-post-header">
                                                             <h6 class="post-title">
-                                                                <a href="${pageContext.request.contextPath}/blog-detail?slug=${rb.slug}">${rb.title}</a>
+                                                                <a href="${pageContext.request.contextPath}/blog?slug=${rb.slug}">${rb.title}</a>
                                                             </h6>
-                                                        </div>
-                                                        <div class="dlab-post-meta">
-                                                            <ul class="d-flex align-items-center">
+                                                    </div>
+                                                    <div class="dlab-post-meta">
+                                                        <ul class="d-flex align-items-center">
                                                                 <li class="post-date">
                                                                     <fmt:formatDate value="${rb.publishedAtDate != null ? rb.publishedAtDate : rb.createdAtDate}" pattern="MMM dd, yyyy"/>
                                                                 </li>
                                                                 <li class="post-comment">${rb.viewCount} views</li>
-                                                            </ul>
-                                                        </div>
+                                                        </ul>
+                                                    </div>
                                                     </div>
                                                 </div>
                                             </c:forEach>
