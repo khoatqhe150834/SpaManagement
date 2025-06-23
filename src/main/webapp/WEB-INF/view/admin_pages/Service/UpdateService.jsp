@@ -406,10 +406,13 @@
                 }
 
                 function checkNameDuplicate(name, callback) {
+                    var id = $('input[name="id"]').val();
+                    var data = { service: 'check-duplicate-name', name: name };
+                    if (id) data.id = id;
                     $.ajax({
                         url: contextPath + '/service',
                         type: 'GET',
-                        data: { service: 'check-duplicate-name', name: name },
+                        data: data,
                         dataType: 'json',
                         success: function (response) {
                             callback(!response.valid, response.message);

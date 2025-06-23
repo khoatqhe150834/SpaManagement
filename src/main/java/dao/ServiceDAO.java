@@ -504,4 +504,22 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
         }
         return false;
     }
+
+    // Kiểm tra tên dịch vụ đã tồn tại, loại trừ 1 id (dùng cho update)
+    public boolean existsByNameExceptId(String name, int excludeId) {
+        String sql = "SELECT COUNT(*) FROM services WHERE LOWER(name) = ? AND service_id <> ?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, name.toLowerCase());
+            stmt.setInt(2, excludeId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return false;
+    }
 }
