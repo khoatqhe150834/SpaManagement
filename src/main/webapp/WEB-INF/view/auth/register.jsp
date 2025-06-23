@@ -51,7 +51,7 @@ contentType="text/html" pageEncoding="UTF-8"%>
     
     <!-- Context path for JavaScript -->
     <meta name="context-path" content="${pageContext.request.contextPath}" />
-    
+
     <!-- Custom styles for form -->
     <style>
         /* Make required field asterisks red */
