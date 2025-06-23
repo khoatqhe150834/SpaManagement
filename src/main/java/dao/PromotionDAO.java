@@ -43,7 +43,7 @@ public class PromotionDAO {
 
     // Thêm khuyến mãi mới
     public boolean save(Promotion p) {
-        String sql = "INSERT INTO promotions (title, promotion_code, discount_type, discount_value, description, status, start_date, end_date, current_usage_count, is_auto_apply, minimum_appointment_value, applicable_scope) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO promotions (title, promotion_code, discount_type, discount_value, description, status, start_date, end_date, current_usage_count, is_auto_apply, minimum_appointment_value, applicable_scope, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, p.getTitle());
@@ -58,6 +58,7 @@ public class PromotionDAO {
             ps.setBoolean(10, p.getIsAutoApply() != null ? p.getIsAutoApply() : false);
             ps.setBigDecimal(11, p.getMinimumAppointmentValue() != null ? p.getMinimumAppointmentValue() : BigDecimal.ZERO);
             ps.setString(12, p.getApplicableScope());
+            ps.setString(13, p.getImageUrl());
             int row = ps.executeUpdate();
             if (row > 0) {
                 ResultSet rs = ps.getGeneratedKeys();
@@ -72,7 +73,7 @@ public class PromotionDAO {
 
     // Update khuyến mãi
     public boolean update(Promotion p) {
-        String sql = "UPDATE promotions SET title=?, promotion_code=?, discount_type=?, discount_value=?, description=?, status=?, start_date=?, end_date=?, current_usage_count=?, is_auto_apply=?, minimum_appointment_value=?, applicable_scope=? WHERE promotion_id=?";
+        String sql = "UPDATE promotions SET title=?, promotion_code=?, discount_type=?, discount_value=?, description=?, status=?, start_date=?, end_date=?, current_usage_count=?, is_auto_apply=?, minimum_appointment_value=?, applicable_scope=?, image_url=? WHERE promotion_id=?";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, p.getTitle());
@@ -87,7 +88,8 @@ public class PromotionDAO {
             ps.setBoolean(10, p.getIsAutoApply() != null ? p.getIsAutoApply() : false);
             ps.setBigDecimal(11, p.getMinimumAppointmentValue() != null ? p.getMinimumAppointmentValue() : BigDecimal.ZERO);
             ps.setString(12, p.getApplicableScope());
-            ps.setInt(13, p.getPromotionId());
+            ps.setString(13, p.getImageUrl());
+            ps.setInt(14, p.getPromotionId());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Update Promotion Error", e);

@@ -20,7 +20,13 @@
         <jsp:include page="/WEB-INF/view/common/admin/header.jsp" />
         <div class="dashboard-main-body">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
-                <h6 class="fw-semibold mb-0">Blog Details</h6>
+                <div class="d-flex align-items-center gap-2">
+                    <a href="${pageContext.request.contextPath}/blog" class="btn btn-secondary radius-8 d-flex align-items-center gap-1">
+                        <iconify-icon icon="ep:back" class="text-lg"></iconify-icon>
+                        Thoát
+                    </a>
+                    <h6 class="fw-semibold mb-0 ms-3">Blog Details</h6>
+                </div>
                 <ul class="d-flex align-items-center gap-2">
                     <li class="fw-medium">
                         <a href="${pageContext.request.contextPath}/admin-dashboard" class="d-flex align-items-center gap-1 hover-text-primary">
@@ -65,7 +71,7 @@
                                 <h3 class="mb-16">${blog.title}</h3>
                                 <p class="text-neutral-500 mb-16">${blog.summary}</p>
                                 <div class="text-neutral-500 mb-16">
-                                    <c:out value="${blog.content}" escapeXml="false"/>
+                                    <c:out value="${contentHtml}" escapeXml="false"/>
                                 </div>
                             </div>
                         </div>
