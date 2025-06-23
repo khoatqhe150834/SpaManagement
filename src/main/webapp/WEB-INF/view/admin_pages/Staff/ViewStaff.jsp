@@ -194,7 +194,7 @@
                                     <span>Mã nhân viên:</span>
                                 </div>
                                 <div class="info-right info-block">
-                                    <div class="value">${staff.user.userId}</div>
+                                    <div>${staff.user.userId}</div>
                                 </div>
                             </li>
                             <li>
@@ -203,7 +203,7 @@
                                     <span>Số điện thoại:</span>
                                 </div>
                                 <div class="info-right info-block">
-                                    <div class="value">${staff.user.phoneNumber}</div>
+                                    <div>${staff.user.phoneNumber}</div>
                                 </div>
                             </li>
                             <li>
@@ -212,7 +212,7 @@
                                     <span>Giới tính:</span>
                                 </div>
                                 <div class="info-right info-block">
-                                    <div class="value">${staff.user.gender}</div>
+                                    <div>${staff.user.gender}</div>
                                 </div>
                             </li>
                             <li>
@@ -221,7 +221,7 @@
                                     <span>Ngày sinh:</span>
                                 </div>
                                 <div class="info-right info-block">
-                                    <div class="value"><fmt:formatDate value="${staff.user.birthday}" pattern="dd/MM/yyyy"/></div>
+                                    <div><fmt:formatDate value="${staff.user.birthday}" pattern="dd/MM/yyyy"/></div>
                                 </div>
                             </li>
                             <li>
@@ -233,16 +233,16 @@
                                     <c:choose>
                                         <c:when test="${not empty staff.user.address}">
                                             <c:set var="addressParts" value="${fn:split(staff.user.address, ',')}" />
-                                            <div class="value">
+                                            <div>
                                                 <c:if test="${addressParts[0] != null}">${addressParts[0]}</c:if>
                                             </div>
-                                            <div class="value">
+                                            <div>
                                                 <c:if test="${addressParts[1] != null}">
                                                     ${addressParts[1]}
                                                     <c:if test="${addressParts[2] != null}">, ${addressParts[2]}</c:if>
                                                 </c:if>
                                             </div>
-                                            <div class="value">
+                                            <div>
                                                 <c:if test="${addressParts[3] != null}">
                                                     ${addressParts[3]}
                                                     <c:if test="${addressParts[4] != null}">, ${addressParts[4]}</c:if>
@@ -251,7 +251,7 @@
                                             </div>
                                         </c:when>
                                         <c:otherwise>
-                                            <div class="value">Chưa cập nhật</div>
+                                            <div>Chưa cập nhật</div>
                                         </c:otherwise>
                                     </c:choose>
                                 </div>
