@@ -108,6 +108,7 @@
                                                             value="${service.price}" required>
                                                         <span class="input-group-text">VND</span>
                                                     </div>
+                                                    <div class="invalid-feedback" id="priceError"></div>
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
@@ -121,6 +122,7 @@
                                                             value="${service.durationMinutes}">
                                                         <span class="input-group-text">phút</span>
                                                     </div>
+                                                    <div class="invalid-feedback" id="durationError"></div>
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
@@ -135,6 +137,7 @@
                                                             value="${service.bufferTimeAfterMinutes}">
                                                         <span class="input-group-text">phút</span>
                                                     </div>
+                                                    <div class="invalid-feedback" id="bufferError"></div>
                                                 </div>
                                             </div>
                                         </div>
@@ -423,6 +426,51 @@
                     });
                 }
 
+                function validatePrice(input) {
+                    const value = parseFloat(input.value);
+                    const errorDiv = document.getElementById('priceError');
+                    if (isNaN(value) || value <= 0) {
+                        input.classList.add('is-invalid');
+                        input.classList.remove('is-valid');
+                        errorDiv.textContent = 'Giá phải là số lớn hơn 0';
+                        return false;
+                    }
+                    input.classList.remove('is-invalid');
+                    input.classList.add('is-valid');
+                    errorDiv.textContent = '';
+                    return true;
+                }
+
+                function validateDuration(input) {
+                    const value = parseInt(input.value);
+                    const errorDiv = document.getElementById('durationError');
+                    if (isNaN(value) || value < 5 || value > 600) {
+                        input.classList.add('is-invalid');
+                        input.classList.remove('is-valid');
+                        errorDiv.textContent = 'Thời lượng phải từ 5 đến 600 phút';
+                        return false;
+                    }
+                    input.classList.remove('is-invalid');
+                    input.classList.add('is-valid');
+                    errorDiv.textContent = '';
+                    return true;
+                }
+
+                function validateBuffer(input) {
+                    const value = parseInt(input.value);
+                    const errorDiv = document.getElementById('bufferError');
+                    if (isNaN(value) || value < 0) {
+                        input.classList.add('is-invalid');
+                        input.classList.remove('is-valid');
+                        errorDiv.textContent = 'Thời gian chờ phải >= 0';
+                        return false;
+                    }
+                    input.classList.remove('is-invalid');
+                    input.classList.add('is-valid');
+                    errorDiv.textContent = '';
+                    return true;
+                }
+
                 $(document).ready(function () {
                     $('#name').on('input', function () {
                         $('#nameCharCount').text(this.value.length + '/200');
@@ -497,6 +545,16 @@
                         validateDescription(this);
                     });
 
+                    $('#price').on('input blur', function () {
+                        validatePrice(this);
+                    });
+                    $('#duration_minutes').on('input blur', function () {
+                        validateDuration(this);
+                    });
+                    $('#buffer_time_after_minutes').on('input blur', function () {
+                        validateBuffer(this);
+                    });
+
                     $('#service-form').on('submit', function (e) {
                         isSubmitting = true;
                         let nameValue = $('#name').val().replace(/\s+/g, ' ').trim();
@@ -504,8 +562,11 @@
 
                         const nameValid = validateName(document.getElementById('name'));
                         const descValid = validateDescription(document.getElementById('description'));
+                        const priceValid = validatePrice(document.getElementById('price'));
+                        const durationValid = validateDuration(document.getElementById('duration_minutes'));
+                        const bufferValid = validateBuffer(document.getElementById('buffer_time_after_minutes'));
 
-                        if (nameValid && descValid) {
+                        if (nameValid && descValid && priceValid && durationValid && bufferValid) {
                             checkNameDuplicate(nameValue, function (isDuplicate, msg) {
                                 if (isDuplicate) {
                                     isNameDuplicateError = true;
