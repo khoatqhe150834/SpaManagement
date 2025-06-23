@@ -17,6 +17,12 @@
         <title>Wowdash - Bootstrap 5 Admin Dashboard HTML Template</title>
         <link rel="icon" type="image/png" href="${pageContext.request.contextPath}/assets/admin/images/favicon.png" sizes="16x16">
         <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp" />
+        <style>
+            .ql-container.is-invalid {
+                border: 1px solid #dc3545 !important;
+                border-radius: 8px;
+            }
+        </style>
     </head>
     <body>
         <jsp:include page="/WEB-INF/view/common/admin/sidebar.jsp" />
@@ -26,7 +32,13 @@
 
         <div class="dashboard-main-body">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
-                <h6 class="fw-semibold mb-0">Add Blog</h6>
+                <div class="d-flex align-items-center gap-2">
+                    <a href="${pageContext.request.contextPath}/blog" class="btn btn-secondary radius-8 d-flex align-items-center gap-1">
+                        <iconify-icon icon="ep:back" class="text-lg"></iconify-icon>
+                        Thoát
+                    </a>
+                    <h6 class="fw-semibold mb-0 ms-3">Add Blog</h6>
+                </div>
                 <ul class="d-flex align-items-center gap-2">
                     <li class="fw-medium">
                         <a href="index.html" class="d-flex align-items-center gap-1 hover-text-primary">
@@ -44,36 +56,41 @@
                     <c:if test="${not empty error}">
                         <div class="alert alert-danger mb-16">${error}</div>
                     </c:if>
-                    <form action="${pageContext.request.contextPath}/blog?action=add" method="post" enctype="multipart/form-data" class="d-flex flex-column gap-20">
+                    <form action="${pageContext.request.contextPath}/blog?action=add" method="post" enctype="multipart/form-data" class="d-flex flex-column gap-20" id="blogAddForm" novalidate>
                         <div>
                             <label class="form-label fw-bold text-neutral-900" for="title">Title <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control border border-neutral-200 radius-8" id="title" name="title" placeholder="Enter Post Title" required>
+                            <input type="text" class="form-control border border-neutral-200 radius-8" id="title" name="title" placeholder="Enter Post Title">
+                            <div class="invalid-feedback" id="titleError"></div>
                         </div>
                         <div>
                             <label class="form-label fw-bold text-neutral-900" for="slug">Slug <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control border border-neutral-200 radius-8" id="slug" name="slug" placeholder="unique-slug" required>
+                            <input type="text" class="form-control border border-neutral-200 radius-8" id="slug" name="slug" placeholder="unique-slug">
+                            <div class="invalid-feedback" id="slugError"></div>
                         </div>
                         <div>
                             <label class="form-label fw-bold text-neutral-900" for="summary">Summary <span class="text-danger">*</span></label>
-                            <textarea class="form-control border border-neutral-200 radius-8" id="summary" name="summary" rows="2" placeholder="Short summary..." required></textarea>
+                            <textarea class="form-control border border-neutral-200 radius-8" id="summary" name="summary" rows="2" placeholder="Short summary..."></textarea>
+                            <div class="invalid-feedback" id="summaryError"></div>
                         </div>
                         <div>
                             <label class="form-label fw-bold text-neutral-900">Category <span class="text-danger">*</span></label>
-                            <select class="form-control border border-neutral-200 radius-8" name="category" id="category" required>
+                            <select class="form-control border border-neutral-200 radius-8" name="category" id="category">
                                 <option value="">Select category</option>
                                 <c:forEach var="cat" items="${categories}">
                                     <option value="${cat.categoryId}">${cat.name}</option>
                                 </c:forEach>
                             </select>
+                            <div class="invalid-feedback" id="categoryError"></div>
                         </div>
                         <div>
                             <label class="form-label fw-bold text-neutral-900">Status <span class="text-danger">*</span></label>
-                            <select class="form-control border border-neutral-200 radius-8" name="status" id="status" required>
+                            <select class="form-control border border-neutral-200 radius-8" name="status" id="status">
                                 <option value="DRAFT">Draft</option>
                                 <option value="PUBLISHED">Published</option>
                                 <option value="SCHEDULED">Scheduled</option>
                                 <option value="ARCHIVED">Archived</option>
                             </select>
+                            <div class="invalid-feedback" id="statusError"></div>
                         </div>
                         <div>
                             <label class="form-label fw-bold text-neutral-900">Content <span class="text-danger">*</span></label>
@@ -126,12 +143,14 @@
                                     </div>
                                     <div id="editor" style="min-height:200px;"></div>
                                     <input type="hidden" name="content" id="content-hidden" />
+                                    <div class="invalid-feedback" id="contentError"></div>
                                 </div>
                             </div>
                         </div>
                         <div>
                             <label class="form-label fw-bold text-neutral-900">Upload Thumbnail <span class="text-danger">*</span></label>
-                            <input type="file" class="form-control border border-neutral-200 radius-8" name="featureImage" id="featureImage" accept="image/*" required>
+                            <input type="file" class="form-control border border-neutral-200 radius-8" name="featureImage" id="featureImage" accept="image/*">
+                            <div class="invalid-feedback" id="imageError"></div>
                         </div>
                         <button type="submit" class="btn btn-primary-600 radius-8">Submit</button>
                     </form>
@@ -156,8 +175,135 @@
                 theme: 'snow',
             });
             // On submit, copy content to hidden input
-            document.querySelector('form').addEventListener('submit', function(e) {
-                document.getElementById('content-hidden').value = quill.root.innerHTML;
+            document.getElementById('blogAddForm').addEventListener('submit', function(e) {
+                let hasError = false;
+                // Title
+                const title = document.getElementById('title');
+                const titleError = document.getElementById('titleError');
+                if (!title.value.trim()) {
+                    title.classList.add('is-invalid');
+                    titleError.textContent = 'Title is required.';
+                    hasError = true;
+                } else if (title.value.trim().length < 5) {
+                    title.classList.add('is-invalid');
+                    titleError.textContent = 'Title must be at least 5 characters.';
+                    hasError = true;
+                } else if (title.value.trim().length > 100) {
+                    title.classList.add('is-invalid');
+                    titleError.textContent = 'Title must be at most 100 characters.';
+                    hasError = true;
+                } else {
+                    title.classList.remove('is-invalid');
+                    titleError.textContent = '';
+                }
+                // Slug
+                const slug = document.getElementById('slug');
+                const slugError = document.getElementById('slugError');
+                const slugVal = slug.value.trim();
+                if (!slugVal) {
+                    slug.classList.add('is-invalid');
+                    slugError.textContent = 'Slug is required.';
+                    hasError = true;
+                } else if (!/^[a-z0-9-]+$/.test(slugVal)) {
+                    slug.classList.add('is-invalid');
+                    slugError.textContent = 'Slug must only contain lowercase letters, numbers, and hyphens.';
+                    hasError = true;
+                } else {
+                    slug.classList.remove('is-invalid');
+                    slugError.textContent = '';
+                }
+                // Summary
+                const summary = document.getElementById('summary');
+                const summaryError = document.getElementById('summaryError');
+                if (!summary.value.trim()) {
+                    summary.classList.add('is-invalid');
+                    summaryError.textContent = 'Summary is required.';
+                    hasError = true;
+                } else if (summary.value.trim().length < 10) {
+                    summary.classList.add('is-invalid');
+                    summaryError.textContent = 'Summary must be at least 10 characters.';
+                    hasError = true;
+                } else if (summary.value.trim().length > 255) {
+                    summary.classList.add('is-invalid');
+                    summaryError.textContent = 'Summary must be at most 255 characters.';
+                    hasError = true;
+                } else {
+                    summary.classList.remove('is-invalid');
+                    summaryError.textContent = '';
+                }
+                // Category
+                const category = document.getElementById('category');
+                const categoryError = document.getElementById('categoryError');
+                const validCategoryValues = Array.from(category.options).map(opt => opt.value).filter(v => v);
+                if (!category.value || !validCategoryValues.includes(category.value)) {
+                    category.classList.add('is-invalid');
+                    categoryError.textContent = 'Please select a valid category.';
+                    hasError = true;
+                } else {
+                    category.classList.remove('is-invalid');
+                    categoryError.textContent = '';
+                }
+                // Status
+                const status = document.getElementById('status');
+                const statusError = document.getElementById('statusError');
+                const validStatus = ['DRAFT', 'PUBLISHED', 'SCHEDULED', 'ARCHIVED'];
+                if (!status.value || !validStatus.includes(status.value)) {
+                    status.classList.add('is-invalid');
+                    statusError.textContent = 'Please select a valid status.';
+                    hasError = true;
+                } else {
+                    status.classList.remove('is-invalid');
+                    statusError.textContent = '';
+                }
+                // Content (Quill)
+                const contentHidden = document.getElementById('content-hidden');
+                const contentError = document.getElementById('contentError');
+                const quillText = quill.getText().trim();
+                const quillHtml = quill.root.innerHTML;
+                contentHidden.value = quillHtml;
+                const quillContainer = document.querySelector('.ql-container');
+                if (!quillText || quillText.length < 10) {
+                    contentError.textContent = 'Content must be at least 10 characters.';
+                    quillContainer.classList.add('is-invalid');
+                    hasError = true;
+                } else if (quillText.length > 5000) {
+                    contentError.textContent = 'Content must be at most 5000 characters.';
+                    quillContainer.classList.add('is-invalid');
+                    hasError = true;
+                } else {
+                    contentError.textContent = '';
+                    quillContainer.classList.remove('is-invalid');
+                }
+                // Image
+                const image = document.getElementById('featureImage');
+                const imageError = document.getElementById('imageError');
+                if (!image.files || !image.files[0]) {
+                    image.classList.add('is-invalid');
+                    imageError.textContent = 'Please upload a thumbnail image.';
+                    hasError = true;
+                } else {
+                    const file = image.files[0];
+                    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+                    if (!validTypes.includes(file.type)) {
+                        image.classList.add('is-invalid');
+                        imageError.textContent = 'Image must be JPG, PNG, WEBP, or GIF.';
+                        hasError = true;
+                    } else if (file.size > 2 * 1024 * 1024) {
+                        image.classList.add('is-invalid');
+                        imageError.textContent = 'Image must be less than 2MB.';
+                        hasError = true;
+                    } else if (!/^[-\w.]+$/.test(file.name)) {
+                        image.classList.add('is-invalid');
+                        imageError.textContent = 'Filename contains invalid characters.';
+                        hasError = true;
+                    } else {
+                        image.classList.remove('is-invalid');
+                        imageError.textContent = '';
+                    }
+                }
+                if (hasError) {
+                    e.preventDefault();
+                }
             });
 
 
