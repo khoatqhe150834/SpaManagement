@@ -406,4 +406,55 @@ public class BlogDAO extends DBContext {
         }
     }
 
+    /**
+     * Thêm blog mới và liên kết category
+     * @param blog Blog object (title, slug, summary, content, featureImageUrl, status, publishedAt, author_userId)
+     * @param categoryIds List<Integer> category IDs
+     * @return blogId nếu thành công, -1 nếu lỗi
+     */
+    public int addBlog(Blog blog, List<Integer> categoryIds) {
+        String sql = "INSERT INTO blogs (author_user_id, title, slug, summary, content, feature_image_url, status, published_at, created_at, updated_at) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
+        int blogId = -1;
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setInt(1, blog.getAuthor_userId());
+            ps.setString(2, blog.getTitle());
+            ps.setString(3, blog.getSlug());
+            ps.setString(4, blog.getSummary());
+            ps.setString(5, blog.getContent());
+            ps.setString(6, blog.getFeatureImageUrl());
+            ps.setString(7, blog.getStatus());
+            if (blog.getPublishedAt() != null) {
+                ps.setTimestamp(8, Timestamp.valueOf(blog.getPublishedAt()));
+            } else {
+                ps.setNull(8, Types.TIMESTAMP);
+            }
+            int affected = ps.executeUpdate();
+            if (affected > 0) {
+                ResultSet rs = ps.getGeneratedKeys();
+                if (rs.next()) {
+                    blogId = rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("addBlog: " + e.getMessage());
+            return -1;
+        }
+        // Insert blog_categories
+        if (blogId > 0 && categoryIds != null) {
+            String sqlCat = "INSERT INTO blog_categories (blog_id, category_id) VALUES (?, ?)";
+            try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sqlCat)) {
+                for (Integer catId : categoryIds) {
+                    ps.setInt(1, blogId);
+                    ps.setInt(2, catId);
+                    ps.addBatch();
+                }
+                ps.executeBatch();
+            } catch (SQLException e) {
+                System.out.println("addBlog - blog_categories: " + e.getMessage());
+            }
+        }
+        return blogId;
+    }
+
 }
