@@ -367,6 +367,17 @@
 
                 $(document).ready(function () {
                     $('#name').on('input', function () {
+                        $('#nameCharCount').text(this.value.length + '/200');
+                    });
+
+                    $('#description').on('input', function () {
+                        $('#descCharCount').text(this.value.length + '/500');
+                    });
+
+                    $('#nameCharCount').text($('#name').val().length + '/200');
+                    $('#descCharCount').text($('#description').val().length + '/500');
+
+                    $('#name').on('input', function () {
                         isNameDuplicateError = false;
                         clearTimeout(nameCheckTimeout);
                         let value = $(this).val();
