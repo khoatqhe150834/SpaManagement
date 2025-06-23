@@ -110,7 +110,7 @@
                 </div>
                 </c:forEach>
 
-            </div>
+                                </div>
 
             <!-- Pagination block -->
             <c:url value="/blog" var="paginationUrl">
@@ -124,7 +124,7 @@
             </c:url>
             <div class="col-md-12 mt-32">
                 <div class="card p-0 overflow-hidden position-relative radius-12">
-                    <div class="card-body p-24">
+                        <div class="card-body p-24">
                         <ul class="pagination d-flex flex-wrap align-items-center gap-2 justify-content-center">
                             <!-- First -->
                             <li class="page-item">
