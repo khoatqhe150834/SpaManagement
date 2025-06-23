@@ -34,7 +34,7 @@
                     <div class="card-body p-24">
                         <div class="row justify-content-center">
                             <div class="col-xxl-8 col-xl-10">
-                                <form action="service" method="post" enctype="multipart/form-data" class="border p-24 radius-12">
+                                <form action="service" method="post" enctype="multipart/form-data" class="border p-24 radius-12" id="service-form">
                                     <input type="hidden" name="service" value="insert" />
 
                                     <!-- =================================== Thông tin cơ bản =================================== -->
@@ -59,12 +59,22 @@
                                             <label for="name" class="form-label fw-semibold text-primary-light text-sm mb-8">
                                                 Tên dịch vụ <span class="text-danger-600">*</span>
                                             </label>
-                                            <input type="text" name="name" class="form-control radius-8" id="name" placeholder="Nhập tên dịch vụ" required>
-                                            <div class="invalid-feedback" id="nameError"></div>
+                                            <input type="text" name="name" class="form-control radius-8" id="name"
+                                                placeholder="Nhập tên dịch vụ" required />
+                                            <div class="d-flex justify-content-between">
+                                                <div class="invalid-feedback" id="nameError"></div>
+                                                <small class="text-muted ms-auto" id="nameCharCount">0/200</small>
+                                            </div>
                                         </div>
                                         <div class="mb-20">
                                             <label for="description" class="form-label fw-semibold text-primary-light text-sm mb-8">Mô tả</label>
-                                            <textarea name="description" id="description" class="form-control radius-8" placeholder="Nhập mô tả..."></textarea>
+                                            <textarea name="description" id="description"
+                                                class="form-control radius-8" placeholder="Nhập mô tả..." rows="7"></textarea>
+                                            <div class="d-flex justify-content-between">
+                                                <div class="invalid-feedback" id="descriptionError"></div>
+                                                <small class="text-muted ms-auto" id="descCharCount">0/500</small>
+                                            </div>
+                                            
                                         </div>
                                     </div>
                                     
@@ -86,6 +96,7 @@
                                                         <input type="number" name="price" class="form-control radius-8-start" id="price" required>
                                                         <span class="input-group-text">VND</span>
                                                     </div>
+                                                    <div class="invalid-feedback" id="priceError"></div>
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
@@ -97,6 +108,7 @@
                                                         <input type="number" name="duration_minutes" class="form-control radius-8-start" id="duration_minutes" required>
                                                         <span class="input-group-text">phút</span>
                                                     </div>
+                                                    <div class="invalid-feedback" id="durationError"></div>
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
@@ -108,6 +120,7 @@
                                                         <input type="number" name="buffer_time_after_minutes" class="form-control radius-8-start" id="buffer_time_after_minutes" value="0">
                                                         <span class="input-group-text">phút</span>
                                                     </div>
+                                                    <div class="invalid-feedback" id="bufferError"></div>
                                                 </div>
                                             </div>
                                         </div>
@@ -262,73 +275,262 @@
                     uploadedImgsContainer.innerHTML = '';
                 });
                 // ================================================ Upload Multiple image js End here  ================================================
+                
 
-                // Real-time validation
-                const nameInput = document.getElementById('name');
-                const nameError = document.getElementById('nameError');
+                //REAL-Time Validation
+                let isSubmitting = false;
                 let nameCheckTimeout = null;
                 let isNameDuplicateError = false;
 
-                nameInput.addEventListener('input', function () {
-                    isNameDuplicateError = false;
-                    clearTimeout(nameCheckTimeout);
-                    let value = nameInput.value.trim();
+                // Regex cho tên dịch vụ: chỉ cho phép chữ cái (có dấu), khoảng trắng
+                const vietnameseNamePattern = /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂẾưăạảấầẩẫậắằẳẵặẹẻẽềềểếỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s]+$/;
+                // Regex cho mô tả: cho phép chữ, số, dấu câu, khoảng trắng
+                const vietnameseDescPattern = /^[a-zA-Z0-9ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂẾưăạảấầẩẫậắằẳẵặẹẻẽềềểếỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s.,\-()!?:;"'\n\r]+$/;
 
+                function validateName(input) {
+                    const value = input.value.trim();
+                    const errorDiv = document.getElementById('nameError');
                     if (value === '') {
                         setInvalid('Tên dịch vụ không được để trống');
-                        return;
+                        return false;
                     }
                     if (value.length < 2) {
                         setInvalid('Tên dịch vụ phải có ít nhất 2 ký tự');
-                        return;
+                        return false;
                     }
                     if (value.length > 200) {
                         setInvalid('Tên dịch vụ không được vượt quá 200 ký tự');
-                        return;
+                        return false;
                     }
-
+                    if (!vietnameseNamePattern.test(value)) {
+                        setInvalid('Tên chỉ được chứa chữ cái, khoảng trắng (cho phép tiếng Việt có dấu)');
+                        return false;
+                    }
                     if (!isNameDuplicateError) setValid('Tên hợp lệ');
-                    nameCheckTimeout = setTimeout(() => {
-                        checkNameDuplicate(value, function (isDuplicate, msg) {
-                            if (isDuplicate) {
-                                isNameDuplicateError = true;
-                                setInvalid(msg || 'Tên này đã tồn tại trong hệ thống');
-                            } else {
-                                isNameDuplicateError = false;
-                                setValid('Tên hợp lệ');
-                            }
-                        });
-                    }, 400);
-
+                    return true;
                     function setInvalid(msg) {
-                        nameInput.classList.remove('is-valid');
-                        nameInput.classList.add('is-invalid');
-                        nameError.textContent = msg;
-                        nameError.style.color = 'red';
-                        nameError.style.display = 'block';
+                        input.classList.remove('is-valid');
+                        input.classList.add('is-invalid');
+                        errorDiv.textContent = msg;
+                        errorDiv.style.color = 'red';
                     }
-
                     function setValid(msg) {
-                        if (!isNameDuplicateError) {
-                            nameInput.classList.remove('is-invalid');
-                            nameInput.classList.add('is-valid');
-                            nameError.textContent = msg;
-                            nameError.style.color = 'green';
-                            nameError.style.display = 'block';
-                        }
+                        input.classList.remove('is-invalid');
+                        input.classList.add('is-valid');
+                        errorDiv.textContent = msg;
+                        errorDiv.style.color = 'green';
                     }
-                });
+                }
+
+                function validateDescription(input) {
+                    const value = input.value.trim();
+                    const errorDiv = document.getElementById('descriptionError');
+                    if (value.length === 0) {
+                        setInvalid('Mô tả dịch vụ không được để trống');
+                        return false;
+                    }
+                    if (value.length > 500) {
+                        setInvalid('Mô tả dịch vụ không được vượt quá 500 ký tự');
+                        return false;
+                    }
+                    if (!vietnameseDescPattern.test(value)) {
+                        setInvalid('Mô tả chỉ được chứa chữ, số, dấu câu, khoảng trắng (cho phép tiếng Việt có dấu)');
+                        return false;
+                    }
+                    setValid('Mô tả hợp lệ');
+                    return true;
+                    function setInvalid(msg) {
+                        input.classList.remove('is-valid');
+                        input.classList.add('is-invalid');
+                        errorDiv.textContent = msg;
+                        errorDiv.style.color = 'red';
+                    }
+                    function setValid(msg) {
+                        input.classList.remove('is-invalid');
+                        input.classList.add('is-valid');
+                        errorDiv.textContent = msg;
+                        errorDiv.style.color = 'green';
+                    }
+                }
 
                 function checkNameDuplicate(name, callback) {
-                    fetch('service?service=check-duplicate-name&name=' + encodeURIComponent(name))
-                        .then(res => res.json())
-                        .then(response => {
+                    $.ajax({
+                        url: contextPath + '/service',
+                        type: 'GET',
+                        data: { service: 'check-duplicate-name', name: name },
+                        dataType: 'json',
+                        success: function (response) {
                             callback(!response.valid, response.message);
-                        })
-                        .catch(() => {
+                        },
+                        error: function () {
                             callback(false, 'Không thể kiểm tra tên. Vui lòng thử lại.');
-                        });
+                        }
+                    });
                 }
+
+                function validatePrice(input) {
+                    const value = parseFloat(input.value);
+                    const errorDiv = document.getElementById('priceError');
+                    if (isNaN(value) || value <= 0) {
+                        input.classList.add('is-invalid');
+                        input.classList.remove('is-valid');
+                        errorDiv.textContent = 'Giá phải là số lớn hơn 0';
+                        return false;
+                    }
+                    input.classList.remove('is-invalid');
+                    input.classList.add('is-valid');
+                    errorDiv.textContent = '';
+                    return true;
+                }
+
+                function validateDuration(input) {
+                    const value = parseInt(input.value);
+                    const errorDiv = document.getElementById('durationError');
+                    if (isNaN(value) || value < 5 || value > 600) {
+                        input.classList.add('is-invalid');
+                        input.classList.remove('is-valid');
+                        errorDiv.textContent = 'Thời lượng phải từ 5 đến 600 phút';
+                        return false;
+                    }
+                    input.classList.remove('is-invalid');
+                    input.classList.add('is-valid');
+                    errorDiv.textContent = '';
+                    return true;
+                }
+
+                function validateBuffer(input) {
+                    const value = parseInt(input.value);
+                    const errorDiv = document.getElementById('bufferError');
+                    if (isNaN(value) || value < 0) {
+                        input.classList.add('is-invalid');
+                        input.classList.remove('is-valid');
+                        errorDiv.textContent = 'Thời gian chờ phải >= 0';
+                        return false;
+                    }
+                    input.classList.remove('is-invalid');
+                    input.classList.add('is-valid');
+                    errorDiv.textContent = '';
+                    return true;
+                }
+
+                $(document).ready(function () {
+                    $('#name').on('input', function () {
+                        $('#nameCharCount').text(this.value.length + '/200');
+                    });
+
+                    $('#description').on('input', function () {
+                        $('#descCharCount').text(this.value.length + '/500');
+                    });
+
+                    $('#nameCharCount').text($('#name').val().length + '/200');
+                    $('#descCharCount').text($('#description').val().length + '/500');
+
+                    $('#name').on('input', function () {
+                        isNameDuplicateError = false;
+                        clearTimeout(nameCheckTimeout);
+                        let value = $(this).val();
+                        const errorDiv = $('#nameError');
+
+                        if (value === '') {
+                            setInvalid('Tên dịch vụ không được để trống');
+                            return;
+                        }
+                        if (value.length < 2) {
+                            setInvalid('Tên dịch vụ phải có ít nhất 2 ký tự');
+                            return;
+                        }
+                        if (value.length > 200) {
+                            setInvalid('Tên dịch vụ không được vượt quá 200 ký tự');
+                            return;
+                        }
+                        if (!vietnameseNamePattern.test(value)) {
+                            setInvalid('Tên chỉ được chứa chữ cái, khoảng trắng (cho phép tiếng Việt có dấu)');
+                            return;
+                        }
+                        if (!isNameDuplicateError) setValid('Tên hợp lệ');
+                        nameCheckTimeout = setTimeout(() => {
+                            checkNameDuplicate(value, function (isDuplicate, msg) {
+                                if (isSubmitting) return;
+                                if (isDuplicate) {
+                                    isNameDuplicateError = true;
+                                    setInvalid(msg || 'Tên này đã tồn tại trong hệ thống');
+                                } else {
+                                    isNameDuplicateError = false;
+                                    setValid('Tên hợp lệ');
+                                }
+                            });
+                        }, 400);
+
+                        function setInvalid(msg) {
+                            $('#name').removeClass('is-valid').addClass('is-invalid');
+                            errorDiv.text(msg).css('color', 'red');
+                        }
+                        function setValid(msg) {
+                            if (!isNameDuplicateError) {
+                                $('#name').removeClass('is-invalid').addClass('is-valid');
+                                errorDiv.text(msg).css('color', 'green');
+                            }
+                        }
+                    });
+
+                    $('#name').on('blur', function () {
+                        let value = $(this).val();
+                        value = value.replace(/\s+/g, ' ').trim();
+                        $(this).val(value).trigger('input');
+                    });
+
+                    $('#description').on('input', function () {
+                        validateDescription(this);
+                    });
+                    $('#description').on('blur', function () {
+                        this.value = this.value.replace(/\s+/g, ' ').trim();
+                        validateDescription(this);
+                    });
+
+                    $('#price').on('input blur', function () {
+                        validatePrice(this);
+                    });
+                    $('#duration_minutes').on('input blur', function () {
+                        validateDuration(this);
+                    });
+                    $('#buffer_time_after_minutes').on('input blur', function () {
+                        validateBuffer(this);
+                    });
+
+                    $('#service-form').on('submit', function (e) {
+                        isSubmitting = true;
+                        let nameValue = $('#name').val().replace(/\s+/g, ' ').trim();
+                        $('#name').val(nameValue);
+
+                        const nameValid = validateName(document.getElementById('name'));
+                        const descValid = validateDescription(document.getElementById('description'));
+                        const priceValid = validatePrice(document.getElementById('price'));
+                        const durationValid = validateDuration(document.getElementById('duration_minutes'));
+                        const bufferValid = validateBuffer(document.getElementById('buffer_time_after_minutes'));
+
+                        if (nameValid && descValid && priceValid && durationValid && bufferValid) {
+                            checkNameDuplicate(nameValue, function (isDuplicate, msg) {
+                                if (isDuplicate) {
+                                    isNameDuplicateError = true;
+                                    $('#name').removeClass('is-valid').addClass('is-invalid');
+                                    $('#nameError').text(msg || 'Tên này đã tồn tại trong hệ thống').css('color', 'red');
+                                    isSubmitting = false;
+                                    e.preventDefault();
+                                    return;
+                                } else {
+                                    isNameDuplicateError = false;
+                                    isSubmitting = false;
+                                    // Cho phép submit
+                                    $('#service-form')[0].submit();
+                                }
+                            });
+                            e.preventDefault(); // Đợi AJAX xong mới submit
+                        } else {
+                            isSubmitting = false;
+                            e.preventDefault();
+                        }
+                    });
+                });
             </script>
             <style>
                 .is-valid {

@@ -1,6 +1,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <!DOCTYPE html>
 <html lang="vi" data-theme="light">
 <head>
@@ -124,6 +125,42 @@
         .status-busy { background-color: #fff0e6; color: #ff6f00; }
         .status-offline { background-color: #f2f2f2; color: #6c757d; }
         .status-on-leave { background-color: #e6f2ff; color: #007bff; }
+        .address-block div {
+            line-height: 1.5;
+            text-align: left;
+        }
+        .info-right.address-block {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            font-weight: 500;
+        }
+        .info-block {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 2px;
+            text-align: left;
+            font-weight: 500;
+        }
+        .info-block .label {
+            color: #888;
+            font-size: 0.92rem;
+            font-weight: 400;
+            margin-bottom: 0;
+        }
+        .info-block .value {
+            color: #222;
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-bottom: 0;
+        }
+        .info-block .divider {
+            width: 100%;
+            height: 1px;
+            background: #f0f0f0;
+            margin: 4px 0 0 0;
+        }
     </style>
 </head>
 <body class="profile-body">
@@ -156,35 +193,68 @@
                                     <iconify-icon icon="solar:card-2-bold-duotone"></iconify-icon>
                                     <span>Mã nhân viên:</span>
                                 </div>
-                                <div class="info-right">${staff.user.userId}</div>
+                                <div class="info-right info-block">
+                                    <div>${staff.user.userId}</div>
+                                </div>
                             </li>
                             <li>
                                 <div class="info-left">
                                     <iconify-icon icon="solar:phone-bold-duotone"></iconify-icon>
                                     <span>Số điện thoại:</span>
                                 </div>
-                                <div class="info-right">${staff.user.phoneNumber}</div>
+                                <div class="info-right info-block">
+                                    <div>${staff.user.phoneNumber}</div>
+                                </div>
                             </li>
                             <li>
                                 <div class="info-left">
                                     <iconify-icon icon="solar:user-bold-duotone"></iconify-icon>
                                     <span>Giới tính:</span>
                                 </div>
-                                <div class="info-right">${staff.user.gender}</div>
+                                <div class="info-right info-block">
+                                    <div>${staff.user.gender}</div>
+                                </div>
                             </li>
                             <li>
                                 <div class="info-left">
                                     <iconify-icon icon="solar:calendar-bold-duotone"></iconify-icon>
                                     <span>Ngày sinh:</span>
                                 </div>
-                                <div class="info-right"><fmt:formatDate value="${staff.user.birthday}" pattern="dd/MM/yyyy"/></div>
+                                <div class="info-right info-block">
+                                    <div><fmt:formatDate value="${staff.user.birthday}" pattern="dd/MM/yyyy"/></div>
+                                </div>
                             </li>
                             <li>
                                 <div class="info-left">
                                     <iconify-icon icon="solar:map-point-bold-duotone"></iconify-icon>
                                     <span>Địa chỉ:</span>
                                 </div>
-                                <div class="info-right">${staff.user.address != null ? staff.user.address : 'Chưa cập nhật'}</div>
+                                <div class="info-right address-block">
+                                    <c:choose>
+                                        <c:when test="${not empty staff.user.address}">
+                                            <c:set var="addressParts" value="${fn:split(staff.user.address, ',')}" />
+                                            <div>
+                                                <c:if test="${addressParts[0] != null}">${addressParts[0]}</c:if>
+                                            </div>
+                                            <div>
+                                                <c:if test="${addressParts[1] != null}">
+                                                    ${addressParts[1]}
+                                                    <c:if test="${addressParts[2] != null}">, ${addressParts[2]}</c:if>
+                                                </c:if>
+                                            </div>
+                                            <div>
+                                                <c:if test="${addressParts[3] != null}">
+                                                    ${addressParts[3]}
+                                                    <c:if test="${addressParts[4] != null}">, ${addressParts[4]}</c:if>
+                                                    <c:if test="${addressParts[5] != null}">, ${addressParts[5]}</c:if>
+                                                </c:if>
+                                            </div>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <div>Chưa cập nhật</div>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </div>
                             </li>
                         </ul>
                     </div>

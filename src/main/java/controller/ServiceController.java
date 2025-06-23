@@ -224,7 +224,14 @@ public class ServiceController extends HttpServlet {
             }
             case "check-duplicate-name": {
                 String name = request.getParameter("name");
-                boolean isDuplicate = serviceDAO.existsByName(name);
+                String idParam = request.getParameter("id");
+                boolean isDuplicate;
+                if (idParam != null && !idParam.isEmpty()) {
+                    int id = Integer.parseInt(idParam);
+                    isDuplicate = serviceDAO.existsByNameExceptId(name, id);
+                } else {
+                    isDuplicate = serviceDAO.existsByName(name);
+                }
                 response.setContentType("application/json");
                 response.setCharacterEncoding("UTF-8");
                 String message = isDuplicate ? "Tên này đã tồn tại trong hệ thống." : "Tên hợp lệ";
