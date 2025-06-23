@@ -40,7 +40,7 @@
             </div>
 
             <!-- Search bar, status filter, and category filter -->
-            <form action="${pageContext.request.contextPath}/blog" method="GET" class="d-flex align-items-center gap-3 mb-24">
+            <form action="${pageContext.request.contextPath}/blog" method="GET" class="d-flex align-items-center gap-3 mb-24" style="flex-wrap: wrap;">
                 <input type="hidden" name="action" value="list" />
                 <div class="navbar-search">
                     <input type="text" class="bg-base h-40-px w-auto" name="search" placeholder="Search by title" value="${param.search != null ? param.search : ''}"/>
@@ -60,6 +60,11 @@
                     </c:forEach>
                 </select>
                 <button type="submit" class="btn btn-primary h-40-px radius-12">Search</button>
+                <c:if test="${sessionScope.user != null && sessionScope.user.roleId == 6}">
+                    <a href="${pageContext.request.contextPath}/blog?action=add" class="btn btn-success h-40-px radius-12 ms-auto d-flex align-items-center gap-1">
+                        <iconify-icon icon="ic:round-add" class="text-lg"></iconify-icon> Add New Blog
+                    </a>
+                </c:if>
             </form>
 
             <div class="row gy-4">
