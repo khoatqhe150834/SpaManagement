@@ -74,7 +74,7 @@
                                                 <div class="invalid-feedback" id="descriptionError"></div>
                                                 <small class="text-muted ms-auto" id="descCharCount">0/500</small>
                                             </div>
-                                            <small class="text-muted">Tối đa 500 ký tự</small>
+                                            
                                         </div>
                                     </div>
                                     
