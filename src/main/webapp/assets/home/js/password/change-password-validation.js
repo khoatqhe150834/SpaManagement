@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 hideMessage('currentPassword');
             }
-            
+        
             // Re-validate new password when current password changes
             const newPassword = document.getElementById('newPassword').value;
             if (newPassword) {
