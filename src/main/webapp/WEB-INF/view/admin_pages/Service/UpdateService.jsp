@@ -251,20 +251,7 @@
             <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
 
             <script>
-                document.addEventListener('DOMContentLoaded', function () {
-                    const deleteCheckboxes = document.querySelectorAll('.delete-checkbox');
-                    deleteCheckboxes.forEach(checkbox => {
-                        checkbox.addEventListener('change', function () {
-                            const container = this.closest('.existing-img-container');
-                            if (this.checked) {
-                                container.style.opacity = '0.5';
-                            } else {
-                                container.style.opacity = '1';
-                            }
-                        });
-                    });
-                });
-
+                var contextPath = '${pageContext.request.contextPath}';
                 // ================================================ Upload Multiple image js Start here ================================================
                 const fileInputMultiple = document.getElementById("upload-file-multiple");
                 const uploadedImgsContainer = document.querySelector(".uploaded-imgs-container");
@@ -340,6 +327,7 @@
                     uploadedImgsContainer.innerHTML = '';
                 });
                 // ================================================ Upload Multiple image js End here  ================================================
+
 
                 //REAL-Time Validation
                 let isSubmitting = false;
@@ -482,12 +470,12 @@
 
                         function setInvalid(msg) {
                             $('#name').removeClass('is-valid').addClass('is-invalid');
-                            $('#nameError').text(msg).css('color', 'red');
+                            errorDiv.text(msg).css('color', 'red');
                         }
                         function setValid(msg) {
                             if (!isNameDuplicateError) {
                                 $('#name').removeClass('is-invalid').addClass('is-valid');
-                                $('#nameError').text(msg).css('color', 'green');
+                                errorDiv.text(msg).css('color', 'green');
                             }
                         }
                     });
@@ -538,14 +526,15 @@
                     });
                 });
             </script>
-
             <style>
                 .is-valid {
                     border: 2px solid #22c55e !important;
                 }
+
                 .is-invalid {
                     border: 2px solid #f44336 !important;
                 }
+
                 .invalid-feedback {
                     margin-top: 4px;
                     font-size: 0.95em;
@@ -553,7 +542,8 @@
                     color: red;
                     display: block;
                 }
-                .is-valid ~ .invalid-feedback {
+
+                .is-valid~.invalid-feedback {
                     color: #22c55e;
                 }
             </style>
