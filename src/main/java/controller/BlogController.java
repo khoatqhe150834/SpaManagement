@@ -16,8 +16,18 @@ import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
 import java.io.IOException;
 import java.util.List;
+import jakarta.servlet.annotation.MultipartConfig;
+import jakarta.servlet.http.Part;
+import java.io.File;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 
 @WebServlet(name = "BlogController", urlPatterns = {"/blog"})
+@MultipartConfig(
+    fileSizeThreshold = 0,
+    maxFileSize = 5 * 1024 * 1024, // 5MB
+    maxRequestSize = 10 * 1024 * 1024
+)
 public class BlogController extends HttpServlet {
 
     private BlogDAO blogDAO;
@@ -38,6 +48,14 @@ public class BlogController extends HttpServlet {
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
         Customer customer = (Customer) session.getAttribute("customer");
+
+        // Add Blog (GET)
+        if ("add".equals(action) && user != null && user.getRoleId() == 6) {
+            List<Category> categories = blogDAO.findCategoriesHavingBlogs();
+            request.setAttribute("categories", categories);
+            request.getRequestDispatcher("/WEB-INF/view/admin_pages/Blog/blog_add.jsp").forward(request, response);
+            return;
+        }
 
         // Marketing blog details view
         if (slug != null && !slug.isEmpty() && user != null && user.getRoleId() == 6) {
@@ -66,6 +84,12 @@ public class BlogController extends HttpServlet {
             throws ServletException, IOException {
         String action = request.getParameter("action");
         String slug = request.getParameter("slug");
+        HttpSession session = request.getSession();
+        User user = (User) session.getAttribute("user");
+        if ("add".equals(action) && user != null && user.getRoleId() == 6) {
+            handleAddBlog(request, response, user);
+            return;
+        }
         if ("rejectComment".equals(action)) {
             handleRejectComment(request, response);
             return;
@@ -75,6 +99,57 @@ public class BlogController extends HttpServlet {
             return;
         }
         doGet(request, response);
+    }
+
+    private void handleAddBlog(HttpServletRequest request, HttpServletResponse response, User user)
+            throws ServletException, IOException {
+        String title = request.getParameter("title");
+        String slugVal = request.getParameter("slug");
+        String summary = request.getParameter("summary");
+        String content = request.getParameter("content");
+        String status = request.getParameter("status");
+        String[] categoryIds = request.getParameterValues("category");
+        List<Integer> catIds = new ArrayList<>();
+        if (categoryIds != null) {
+            for (String cid : categoryIds) {
+                try { catIds.add(Integer.parseInt(cid)); } catch (Exception ignore) {}
+            }
+        }
+        // Handle image upload
+        String featureImageUrl = null;
+        Part imagePart = request.getPart("featureImage");
+        if (imagePart != null && imagePart.getSize() > 0) {
+            String fileName = Paths.get(imagePart.getSubmittedFileName()).getFileName().toString();
+            String ext = fileName.lastIndexOf('.') > 0 ? fileName.substring(fileName.lastIndexOf('.')) : "";
+            String newFileName = System.currentTimeMillis() + ext;
+            String uploadDir = getServletContext().getRealPath("/assets/home/images/blog/");
+            File dir = new File(uploadDir);
+            if (!dir.exists()) dir.mkdirs();
+            File file = new File(dir, newFileName);
+            imagePart.write(file.getAbsolutePath());
+            featureImageUrl = "assets/home/images/blog/" + newFileName;
+        }
+        Blog blog = new Blog();
+        blog.setAuthor_userId(user.getUserId());
+        blog.setTitle(title);
+        blog.setSlug(slugVal);
+        blog.setSummary(summary);
+        blog.setContent(content);
+        blog.setFeatureImageUrl(featureImageUrl);
+        blog.setStatus(status);
+        // Set publishedAt only if status is PUBLISHED
+        if ("PUBLISHED".equalsIgnoreCase(status)) {
+            blog.setPublishedAt(java.time.LocalDateTime.now());
+        }
+        int blogId = blogDAO.addBlog(blog, catIds);
+        if (blogId > 0) {
+            response.sendRedirect(request.getContextPath() + "/blog?action=list");
+        } else {
+            request.setAttribute("error", "Failed to add blog. Please try again.");
+            List<Category> categories = blogDAO.findCategoriesHavingBlogs();
+            request.setAttribute("categories", categories);
+            request.getRequestDispatcher("/WEB-INF/view/admin_pages/Blog/blog_add.jsp").forward(request, response);
+        }
     }
 
     private void listMarketingBlogs(HttpServletRequest request, HttpServletResponse response)
