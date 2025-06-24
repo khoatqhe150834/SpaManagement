@@ -224,7 +224,8 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
             int limit) {
         List<Staff> staffList = new ArrayList<>();
         StringBuilder sql = new StringBuilder(
-                "SELECT t.*, u.full_name, u.email, u.phone_number, u.gender, u.birthday, u.avatar_url, u.address, st.name AS service_type_name, st.service_type_id " +
+                "SELECT t.*, u.full_name, u.email, u.phone_number, u.gender, u.birthday, u.avatar_url, u.address, st.name AS service_type_name, st.service_type_id "
+                        +
                         "FROM therapists t " +
                         "JOIN users u ON t.user_id = u.user_id " +
                         "LEFT JOIN service_types st ON t.service_type_id = st.service_type_id WHERE 1=1");
@@ -301,7 +302,8 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
 
     public List<Staff> findPaginated(int offset, int limit) {
         List<Staff> staffList = new ArrayList<>();
-        String sql = "SELECT t.*, u.full_name, u.email, u.phone_number, u.gender, u.birthday, u.avatar_url, u.address, st.name AS service_type_name " +
+        String sql = "SELECT t.*, u.full_name, u.email, u.phone_number, u.gender, u.birthday, u.avatar_url, u.address, st.name AS service_type_name "
+                +
                 "FROM therapists t " +
                 "JOIN users u ON t.user_id = u.user_id " +
                 "LEFT JOIN service_types st ON t.service_type_id = st.service_type_id " +
@@ -346,6 +348,129 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
             LOGGER.log(Level.SEVERE, "Error in deactiveById", e);
         }
         return 0;
+    }
+
+    /**
+     * Find therapists qualified for a specific service type
+     * 
+     * @param serviceTypeId the ID of the service type
+     * @return List of staff qualified for the service type
+     */
+    public List<Staff> findTherapistsByServiceType(int serviceTypeId) {
+        List<Staff> staffList = new ArrayList<>();
+        String sql = "SELECT t.*, u.full_name, u.email, u.phone_number, u.gender, u.birthday, u.avatar_url, u.address, st.name AS service_type_name, st.service_type_id "
+                + "FROM therapists t "
+                + "JOIN users u ON t.user_id = u.user_id "
+                + "JOIN service_types st ON t.service_type_id = st.service_type_id "
+                + "WHERE t.service_type_id = ? AND t.availability_status = 'AVAILABLE'";
+
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, serviceTypeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Staff staff = mapResultSetToStaff(rs);
+                    staffList.add(staff);
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error finding therapists by service type", e);
+        }
+        return staffList;
+    }
+
+    /**
+     * Find therapists qualified for a specific service type (including OFFLINE
+     * status)
+     * 
+     * @param serviceTypeId  the ID of the service type
+     * @param includeOffline whether to include offline therapists
+     * @return List of staff qualified for the service type
+     */
+    public List<Staff> findTherapistsByServiceType(int serviceTypeId, boolean includeOffline) {
+        List<Staff> staffList = new ArrayList<>();
+        StringBuilder sql = new StringBuilder(
+                "SELECT t.*, u.full_name, u.email, u.phone_number, u.gender, u.birthday, u.avatar_url, u.address, st.name AS service_type_name, st.service_type_id "
+                        + "FROM therapists t "
+                        + "JOIN users u ON t.user_id = u.user_id "
+                        + "JOIN service_types st ON t.service_type_id = st.service_type_id "
+                        + "WHERE t.service_type_id = ?");
+
+        if (!includeOffline) {
+            sql.append(" AND t.availability_status = 'AVAILABLE'");
+        }
+
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            ps.setInt(1, serviceTypeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Staff staff = mapResultSetToStaff(rs);
+                    staffList.add(staff);
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error finding therapists by service type", e);
+        }
+        return staffList;
+    }
+
+    /**
+     * Main method for testing StaffDAO methods
+     */
+    public static void main(String[] args) {
+        StaffDAO staffDAO = new StaffDAO();
+
+        System.out.println("=== Testing StaffDAO Methods ===");
+
+        // Test 1: Find all staff
+        System.out.println("\n1. Testing findAll():");
+        List<Staff> allStaff = staffDAO.findAll();
+        System.out.println("Total staff found: " + allStaff.size());
+        for (Staff staff : allStaff) {
+            System.out.println("- " + staff.getUser().getFullName() +
+                    " (Service Type: " + (staff.getServiceType() != null ? staff.getServiceType().getName() : "None") +
+                    ", Status: " + staff.getAvailabilityStatus() + ")");
+        }
+
+        // Test 2: Find therapists by service type
+        System.out.println("\n2. Testing findTherapistsByServiceType():");
+        if (!allStaff.isEmpty()) {
+            // Get the first staff's service type for testing
+            Staff firstStaff = allStaff.get(0);
+            if (firstStaff.getServiceType() != null) {
+                int serviceTypeId = firstStaff.getServiceType().getServiceTypeId();
+                System.out.println("Looking for therapists with service type ID: " + serviceTypeId);
+
+                List<Staff> qualifiedTherapists = staffDAO.findTherapistsByServiceType(serviceTypeId);
+                System.out.println("Qualified therapists found: " + qualifiedTherapists.size());
+                for (Staff therapist : qualifiedTherapists) {
+                    System.out.println("- " + therapist.getUser().getFullName() +
+                            " (Experience: " + therapist.getYearsOfExperience() + " years)");
+                }
+
+                // Test with offline therapists included
+                System.out.println("\n3. Testing findTherapistsByServiceType() with offline included:");
+                List<Staff> allQualifiedTherapists = staffDAO.findTherapistsByServiceType(serviceTypeId, true);
+                System.out.println("All qualified therapists (including offline): " + allQualifiedTherapists.size());
+            } else {
+                System.out.println("No service type found for testing");
+            }
+        } else {
+            System.out.println("No staff found in database");
+        }
+
+        // Test 3: Count methods
+        System.out.println("\n4. Testing count methods:");
+        int totalCount = staffDAO.countAll();
+        System.out.println("Total staff count: " + totalCount);
+
+        // Test 4: Search functionality
+        System.out.println("\n5. Testing search functionality:");
+        List<Staff> searchResults = staffDAO.searchByKeywordAndStatus("", "AVAILABLE", null, 0, 10);
+        System.out.println("Available staff found: " + searchResults.size());
+
+        System.out.println("\n=== Testing completed ===");
     }
 
 }
