@@ -406,4 +406,109 @@ public class BlogDAO extends DBContext {
         }
     }
 
+
+    public int addBlog(Blog blog, List<Integer> categoryIds) {
+        String sql = "INSERT INTO blogs (author_user_id, title, slug, summary, content, feature_image_url, status, published_at, created_at, updated_at) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
+        int blogId = -1;
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setInt(1, blog.getAuthor_userId());
+            ps.setString(2, blog.getTitle());
+            ps.setString(3, blog.getSlug());
+            ps.setString(4, blog.getSummary());
+            ps.setString(5, blog.getContent());
+            ps.setString(6, blog.getFeatureImageUrl());
+            ps.setString(7, blog.getStatus());
+            if (blog.getPublishedAt() != null) {
+                ps.setTimestamp(8, Timestamp.valueOf(blog.getPublishedAt()));
+            } else {
+                ps.setNull(8, Types.TIMESTAMP);
+            }
+            int affected = ps.executeUpdate();
+            if (affected > 0) {
+                ResultSet rs = ps.getGeneratedKeys();
+                if (rs.next()) {
+                    blogId = rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("addBlog: " + e.getMessage());
+            return -1;
+        }
+        // Insert blog_categories
+        if (blogId > 0 && categoryIds != null) {
+            String sqlCat = "INSERT INTO blog_categories (blog_id, category_id) VALUES (?, ?)";
+            try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sqlCat)) {
+                for (Integer catId : categoryIds) {
+                    ps.setInt(1, blogId);
+                    ps.setInt(2, catId);
+                    ps.addBatch();
+                }
+                ps.executeBatch();
+            } catch (SQLException e) {
+                System.out.println("addBlog - blog_categories: " + e.getMessage());
+            }
+        }
+        return blogId;
+    }
+
+
+    public boolean updateBlog(Blog blog, List<Integer> categoryIds) {
+        String sql = "UPDATE blogs SET title=?, slug=?, summary=?, content=?, feature_image_url=?, status=?, published_at=?, updated_at=NOW() WHERE blog_id=?";
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, blog.getTitle());
+            ps.setString(2, blog.getSlug());
+            ps.setString(3, blog.getSummary());
+            ps.setString(4, blog.getContent());
+            ps.setString(5, blog.getFeatureImageUrl());
+            ps.setString(6, blog.getStatus());
+            if (blog.getPublishedAt() != null) {
+                ps.setTimestamp(7, Timestamp.valueOf(blog.getPublishedAt()));
+            } else {
+                ps.setNull(7, Types.TIMESTAMP);
+            }
+            ps.setInt(8, blog.getBlogId());
+            int affected = ps.executeUpdate();
+            if (affected > 0) {
+                // Xóa category cũ
+                try (PreparedStatement psDel = con.prepareStatement("DELETE FROM blog_categories WHERE blog_id=?")) {
+                    psDel.setInt(1, blog.getBlogId());
+                    psDel.executeUpdate();
+                }
+                // Thêm category mới
+                if (categoryIds != null && !categoryIds.isEmpty()) {
+                    String insertCat = "INSERT INTO blog_categories (blog_id, category_id) VALUES (?, ?)";
+                    try (PreparedStatement psCat = con.prepareStatement(insertCat)) {
+                        for (Integer catId : categoryIds) {
+                            psCat.setInt(1, blog.getBlogId());
+                            psCat.setInt(2, catId);
+                            psCat.addBatch();
+                        }
+                        psCat.executeBatch();
+                    }
+                }
+                return true;
+            }
+        } catch (SQLException e) {
+            System.out.println("updateBlog: " + e.getMessage());
+        }
+        return false;
+    }
+
+
+    public List<Integer> findCategoryIdsByBlogId(int blogId) {
+        List<Integer> ids = new ArrayList<>();
+        String sql = "SELECT category_id FROM blog_categories WHERE blog_id = ?";
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, blogId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                ids.add(rs.getInt("category_id"));
+            }
+        } catch (SQLException e) {
+            System.out.println("findCategoryIdsByBlogId: " + e.getMessage());
+        }
+        return ids;
+    }
+
 }
