@@ -243,8 +243,8 @@ public class BlogDAO extends DBContext {
                 c.setGuestEmail(rs.getString("guest_email"));
                 c.setCommentText(rs.getString("comment_text"));
                 c.setStatus(rs.getString("status"));
-                c.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
-                c.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
+                c.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime().plusHours(7));
+                c.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime().plusHours(7));
                 c.setCustomerName(rs.getString("customerName"));
                 c.setAvatarUrl(rs.getString("avatarUrl"));
                 list.add(c);
