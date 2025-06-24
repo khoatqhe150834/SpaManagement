@@ -291,6 +291,7 @@
                     this.textContent = 'Thanh toán';
                 });
             });
+            
         });
     </script>
 </body>
