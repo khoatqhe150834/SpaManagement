@@ -80,8 +80,8 @@ public class CSPDomain {
     LocalDate today = LocalDate.now();
     Duration interval = Duration.ofMinutes(TIME_INTERVAL);
 
-    // Generate available times for the next specified days
-    for (int day = 0; day < NUMBER_OF_DAY_AHEAD; day++) {
+    // Generate available times for the next specified days (starting from tomorrow)
+    for (int day = 1; day <= NUMBER_OF_DAY_AHEAD; day++) {
       LocalDate currentDate = today.plusDays(day);
       LocalDateTime currentDateTime = LocalDateTime.of(currentDate, BUSINESS_START_TIME);
       LocalDateTime dayEndTime = LocalDateTime.of(currentDate, BUSINESS_END_TIME);
