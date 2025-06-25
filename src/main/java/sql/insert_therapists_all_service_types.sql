@@ -2,7 +2,8 @@
 -- This ensures CSP simulation can find qualified therapists for all services
 
 -- First, insert users for the new therapists
-INSERT INTO `users` (`role_id`, `email`, `password`, `full_name`, `phone_number`, `gender`, `birthday`, `avatar_url`, `address`, `is_verified`, `created_at`, `updated_at`) VALUES
+-- Using INSERT IGNORE to prevent duplicate key errors if already exists
+INSERT IGNORE INTO `users` (`role_id`, `email`, `hash_password`, `full_name`, `phone_number`, `gender`, `birthday`, `avatar_url`, `address`, `is_active`, `created_at`, `updated_at`) VALUES
 -- Service Type 5: Chăm Sóc Móng (Nail Care)
 (3, 'nail.specialist1@spaluxury.com', '$2a$10$encrypted_password', 'Nguyễn Minh Anh', '0903456789', 'FEMALE', '1992-03-15', '/assets/staff/nail_specialist1.jpg', '123 Nail Street, HCM', 1, NOW(), NOW()),
 (3, 'nail.specialist2@spaluxury.com', '$2a$10$encrypted_password', 'Trần Thùy Linh', '0903456790', 'FEMALE', '1990-07-22', '/assets/staff/nail_specialist2.jpg', '456 Beauty Ave, HCM', 1, NOW(), NOW()),
@@ -47,64 +48,65 @@ INSERT INTO `users` (`role_id`, `email`, `password`, `full_name`, `phone_number`
 (3, 'therapeutic.massage1@spaluxury.com', '$2a$10$encrypted_password', 'Mai Thị Bảo', '0903456809', 'FEMALE', '1981-01-17', '/assets/staff/therapeutic_massage1.jpg', '124 Healing St, HCM', 1, NOW(), NOW()),
 (3, 'therapeutic.massage2@spaluxury.com', '$2a$10$encrypted_password', 'Huỳnh Văn Khang', '0903456810', 'MALE', '1979-06-24', '/assets/staff/therapeutic_massage2.jpg', '235 Therapy Ave, HCM', 1, NOW(), NOW());
 
--- Now insert staff records for each new therapist
-INSERT INTO `staff` (`user_id`, `description`, `availability_status`, `service_type_id`, `created_at`, `updated_at`, `average_rating`) VALUES
+-- Now insert therapist records for each new therapist  
+-- Using INSERT IGNORE to prevent duplicate key errors if already exists
+INSERT IGNORE INTO `therapists` (`user_id`, `service_type_id`, `bio`, `availability_status`, `years_of_experience`, `created_at`, `updated_at`) VALUES
 -- Service Type 5: Chăm Sóc Móng (Nail Care)
-((SELECT user_id FROM users WHERE email = 'nail.specialist1@spaluxury.com'), 'Chuyên gia chăm sóc móng với 8 năm kinh nghiệm. Thành thạo nail art và các kỹ thuật trang trí móng hiện đại.', 'AVAILABLE', 5, NOW(), NOW(), 4.8),
-((SELECT user_id FROM users WHERE email = 'nail.specialist2@spaluxury.com'), 'Kỹ thuật viên nail chuyên nghiệp, đặc biệt về gel và acrylic nails.', 'AVAILABLE', 5, NOW(), NOW(), 4.6),
+((SELECT user_id FROM users WHERE email = 'nail.specialist1@spaluxury.com'), 5, 'Chuyên gia chăm sóc móng với 8 năm kinh nghiệm. Thành thạo nail art và các kỹ thuật trang trí móng hiện đại.', 'AVAILABLE', 8, NOW(), NOW()),
+((SELECT user_id FROM users WHERE email = 'nail.specialist2@spaluxury.com'), 5, 'Kỹ thuật viên nail chuyên nghiệp, đặc biệt về gel và acrylic nails.', 'AVAILABLE', 6, NOW(), NOW()),
 
 -- Service Type 6: Tẩy Lông & Waxing
-((SELECT user_id FROM users WHERE email = 'waxing.expert1@spaluxury.com'), 'Chuyên gia tẩy lông với công nghệ laser và wax không đau.', 'AVAILABLE', 6, NOW(), NOW(), 4.7),
-((SELECT user_id FROM users WHERE email = 'waxing.expert2@spaluxury.com'), 'Kỹ thuật viên tẩy lông kinh nghiệm, sử dụng sản phẩm tự nhiên an toàn.', 'AVAILABLE', 6, NOW(), NOW(), 4.5),
+((SELECT user_id FROM users WHERE email = 'waxing.expert1@spaluxury.com'), 6, 'Chuyên gia tẩy lông với công nghệ laser và wax không đau.', 'AVAILABLE', 7, NOW(), NOW()),
+((SELECT user_id FROM users WHERE email = 'waxing.expert2@spaluxury.com'), 6, 'Kỹ thuật viên tẩy lông kinh nghiệm, sử dụng sản phẩm tự nhiên an toàn.', 'AVAILABLE', 5, NOW(), NOW()),
 
 -- Service Type 7: Chăm Sóc Lông Mi & Lông Mày
-((SELECT user_id FROM users WHERE email = 'eyecare.artist1@spaluxury.com'), 'Nghệ sĩ chuyên về nối mi và phun xăm lông mày 3D.', 'AVAILABLE', 7, NOW(), NOW(), 4.9),
-((SELECT user_id FROM users WHERE email = 'eyecare.artist2@spaluxury.com'), 'Chuyên gia định hình lông mày và chăm sóc vùng mắt.', 'AVAILABLE', 7, NOW(), NOW(), 4.6),
+((SELECT user_id FROM users WHERE email = 'eyecare.artist1@spaluxury.com'), 7, 'Nghệ sĩ chuyên về nối mi và phun xăm lông mày 3D.', 'AVAILABLE', 9, NOW(), NOW()),
+((SELECT user_id FROM users WHERE email = 'eyecare.artist2@spaluxury.com'), 7, 'Chuyên gia định hình lông mày và chăm sóc vùng mắt.', 'AVAILABLE', 6, NOW(), NOW()),
 
 -- Service Type 8: Liệu Pháp Thơm (Aromatherapy)
-((SELECT user_id FROM users WHERE email = 'aroma.therapist1@spaluxury.com'), 'Chuyên gia trị liệu tinh dầu với chứng chỉ quốc tế về aromatherapy.', 'AVAILABLE', 8, NOW(), NOW(), 4.8),
-((SELECT user_id FROM users WHERE email = 'aroma.therapist2@spaluxury.com'), 'Kỹ thuật viên trẻ, am hiểu về các loại tinh dầu thiên nhiên Việt Nam.', 'AVAILABLE', 8, NOW(), NOW(), 4.4),
+((SELECT user_id FROM users WHERE email = 'aroma.therapist1@spaluxury.com'), 8, 'Chuyên gia trị liệu tinh dầu với chứng chỉ quốc tế về aromatherapy.', 'AVAILABLE', 8, NOW(), NOW()),
+((SELECT user_id FROM users WHERE email = 'aroma.therapist2@spaluxury.com'), 8, 'Kỹ thuật viên trẻ, am hiểu về các loại tinh dầu thiên nhiên Việt Nam.', 'AVAILABLE', 4, NOW(), NOW()),
 
 -- Service Type 9: Liệu Pháp Nước (Hydrotherapy)
-((SELECT user_id FROM users WHERE email = 'hydro.therapist1@spaluxury.com'), 'Chuyên gia thủy trị liệu với 15 năm kinh nghiệm về jacuzzi và mineral baths.', 'AVAILABLE', 9, NOW(), NOW(), 4.9),
-((SELECT user_id FROM users WHERE email = 'hydro.therapist2@spaluxury.com'), 'Kỹ thuật viên thủy trị liệu, chuyên về các liệu pháp nước khoáng.', 'AVAILABLE', 9, NOW(), NOW(), 4.7),
+((SELECT user_id FROM users WHERE email = 'hydro.therapist1@spaluxury.com'), 9, 'Chuyên gia thủy trị liệu với 15 năm kinh nghiệm về jacuzzi và mineral baths.', 'AVAILABLE', 15, NOW(), NOW()),
+((SELECT user_id FROM users WHERE email = 'hydro.therapist2@spaluxury.com'), 9, 'Kỹ thuật viên thủy trị liệu, chuyên về các liệu pháp nước khoáng.', 'AVAILABLE', 7, NOW(), NOW()),
 
 -- Service Type 10: Y Học Cổ Truyền Việt Nam
-((SELECT user_id FROM users WHERE email = 'traditional.healer1@spaluxury.com'), 'Thầy thuốc y học cổ truyền với 25 năm kinh nghiệm châm cứu và bấm huyệt.', 'AVAILABLE', 10, NOW(), NOW(), 5.0),
-((SELECT user_id FROM users WHERE email = 'traditional.healer2@spaluxury.com'), 'Cô thuốc chuyên về massage bấm huyệt và thảo dược dân gian.', 'AVAILABLE', 10, NOW(), NOW(), 4.8),
+((SELECT user_id FROM users WHERE email = 'traditional.healer1@spaluxury.com'), 10, 'Thầy thuốc y học cổ truyền với 25 năm kinh nghiệm châm cứu và bấm huyệt.', 'AVAILABLE', 25, NOW(), NOW()),
+((SELECT user_id FROM users WHERE email = 'traditional.healer2@spaluxury.com'), 10, 'Cô thuốc chuyên về massage bấm huyệt và thảo dược dân gian.', 'AVAILABLE', 18, NOW(), NOW()),
 
 -- Service Type 11: Giảm Cân & Định Hình Cơ Thể
-((SELECT user_id FROM users WHERE email = 'slimming.coach1@spaluxury.com'), 'Huấn luyện viên thể hình kết hợp với chuyên gia massage giảm cân.', 'AVAILABLE', 11, NOW(), NOW(), 4.6),
-((SELECT user_id FROM users WHERE email = 'slimming.coach2@spaluxury.com'), 'Chuyên gia định hình cơ thể với các công nghệ hiện đại như RF và Cavitation.', 'AVAILABLE', 11, NOW(), NOW(), 4.7),
+((SELECT user_id FROM users WHERE email = 'slimming.coach1@spaluxury.com'), 11, 'Huấn luyện viên thể hình kết hợp với chuyên gia massage giảm cân.', 'AVAILABLE', 6, NOW(), NOW()),
+((SELECT user_id FROM users WHERE email = 'slimming.coach2@spaluxury.com'), 11, 'Chuyên gia định hình cơ thể với các công nghệ hiện đại như RF và Cavitation.', 'AVAILABLE', 7, NOW(), NOW()),
 
 -- Service Type 12: Dịch Vụ Cặp Đôi
-((SELECT user_id FROM users WHERE email = 'couples.specialist1@spaluxury.com'), 'Chuyên gia tư vấn và thực hiện các gói spa dành cho cặp đôi.', 'AVAILABLE', 12, NOW(), NOW(), 4.8),
-((SELECT user_id FROM users WHERE email = 'couples.specialist2@spaluxury.com'), 'Kỹ thuật viên có kinh nghiệm về massage cặp đôi và liệu pháp thư giãn.', 'AVAILABLE', 12, NOW(), NOW(), 4.5),
+((SELECT user_id FROM users WHERE email = 'couples.specialist1@spaluxury.com'), 12, 'Chuyên gia tư vấn và thực hiện các gói spa dành cho cặp đôi.', 'AVAILABLE', 8, NOW(), NOW()),
+((SELECT user_id FROM users WHERE email = 'couples.specialist2@spaluxury.com'), 12, 'Kỹ thuật viên có kinh nghiệm về massage cặp đôi và liệu pháp thư giãn.', 'AVAILABLE', 5, NOW(), NOW()),
 
 -- Service Type 13: Chống Lão Hóa
-((SELECT user_id FROM users WHERE email = 'antiaging.expert1@spaluxury.com'), 'Chuyên gia chống lão hóa với công nghệ Radio Frequency và Micro-current.', 'AVAILABLE', 13, NOW(), NOW(), 4.9),
-((SELECT user_id FROM users WHERE email = 'antiaging.expert2@spaluxury.com'), 'Bác sĩ thẩm mỹ chuyên về các liệu pháp trẻ hóa da không xâm lấn.', 'AVAILABLE', 13, NOW(), NOW(), 5.0),
+((SELECT user_id FROM users WHERE email = 'antiaging.expert1@spaluxury.com'), 13, 'Chuyên gia chống lão hóa với công nghệ Radio Frequency và Micro-current.', 'AVAILABLE', 9, NOW(), NOW()),
+((SELECT user_id FROM users WHERE email = 'antiaging.expert2@spaluxury.com'), 13, 'Bác sĩ thẩm mỹ chuyên về các liệu pháp trẻ hóa da không xâm lấn.', 'AVAILABLE', 10, NOW(), NOW()),
 
 -- Service Type 14: Thải Độc & Thanh Lọc
-((SELECT user_id FROM users WHERE email = 'detox.specialist1@spaluxury.com'), 'Chuyên gia detox với các phương pháp tự nhiên và thảo dược.', 'AVAILABLE', 14, NOW(), NOW(), 4.7),
-((SELECT user_id FROM users WHERE email = 'detox.specialist2@spaluxury.com'), 'Kỹ thuật viên chuyên về colon hydrotherapy và lymphatic drainage.', 'AVAILABLE', 14, NOW(), NOW(), 4.6),
+((SELECT user_id FROM users WHERE email = 'detox.specialist1@spaluxury.com'), 14, 'Chuyên gia detox với các phương pháp tự nhiên và thảo dược.', 'AVAILABLE', 7, NOW(), NOW()),
+((SELECT user_id FROM users WHERE email = 'detox.specialist2@spaluxury.com'), 14, 'Kỹ thuật viên chuyên về colon hydrotherapy và lymphatic drainage.', 'AVAILABLE', 6, NOW(), NOW()),
 
 -- Service Type 15: Massage Trị Liệu
-((SELECT user_id FROM users WHERE email = 'therapeutic.massage1@spaluxury.com'), 'Chuyên gia massage trị liệu với bằng cấp y khoa và 12 năm kinh nghiệm.', 'AVAILABLE', 15, NOW(), NOW(), 5.0),
-((SELECT user_id FROM users WHERE email = 'therapeutic.massage2@spaluxury.com'), 'Kỹ thuật viên massage trị liệu chuyên về phục hồi chức năng và giảm đau.', 'AVAILABLE', 15, NOW(), NOW(), 4.8);
+((SELECT user_id FROM users WHERE email = 'therapeutic.massage1@spaluxury.com'), 15, 'Chuyên gia massage trị liệu với bằng cấp y khoa và 12 năm kinh nghiệm.', 'AVAILABLE', 12, NOW(), NOW()),
+((SELECT user_id FROM users WHERE email = 'therapeutic.massage2@spaluxury.com'), 15, 'Kỹ thuật viên massage trị liệu chuyên về phục hồi chức năng và giảm đau.', 'AVAILABLE', 8, NOW(), NOW());
 
 -- Verify the insertion by selecting therapists by service type
 SELECT 
     st.service_type_id,
     st.name as service_type_name,
-    s.user_id,
+    t.user_id,
     u.full_name as therapist_name,
-    s.description,
-    s.availability_status,
-    s.average_rating
-FROM staff s 
-JOIN users u ON s.user_id = u.user_id 
-JOIN service_types st ON s.service_type_id = st.service_type_id 
+    t.bio,
+    t.availability_status,
+    t.years_of_experience
+FROM therapists t 
+JOIN users u ON t.user_id = u.user_id 
+JOIN service_types st ON t.service_type_id = st.service_type_id 
 WHERE st.service_type_id >= 5 
 ORDER BY st.service_type_id, u.full_name;
 
@@ -112,8 +114,8 @@ ORDER BY st.service_type_id, u.full_name;
 SELECT 
     st.service_type_id,
     st.name as service_type_name,
-    COUNT(s.user_id) as therapist_count
+    COUNT(t.user_id) as therapist_count
 FROM service_types st 
-LEFT JOIN staff s ON st.service_type_id = s.service_type_id 
+LEFT JOIN therapists t ON st.service_type_id = t.service_type_id 
 GROUP BY st.service_type_id, st.name 
 ORDER BY st.service_type_id; 

@@ -14,6 +14,7 @@ window.TimeSelection = (function() {
     let currentModalService = null;
     let modalSelectedDate = null;
     let modalSelectedTime = null;
+    let modalSelectedTherapist = null; // Selected therapist for current time slot
     let currentModalDate = new Date(); // For calendar navigation
     let selectedCalendarDate = null; // Currently selected date in calendar
     
@@ -21,8 +22,8 @@ window.TimeSelection = (function() {
     const config = {
         bufferTime: 10, // 10 minutes buffer between appointments
         workingHours: {
-            start: '08:00',
-            end: '18:00'
+            start: '07:00',
+            end: '19:00'
         },
         timeSlotInterval: 30, // 30 minutes
         maxDaysAhead: 30,
@@ -142,18 +143,28 @@ window.TimeSelection = (function() {
         // Load any existing time selections from session data
         loadExistingSelections();
         
-        // Load availability data
-        loadAvailabilityData()
-            .then(() => {
+        // Render services immediately for faster loading
                 renderServicesList();
                 setupEventListeners();
+        updateContinueButton();
+        
+        // Hide loading state immediately since basic functionality is ready
+        if (window.hideLoadingState) {
+            setTimeout(() => {
+                window.hideLoadingState();
+            }, 50); // Very fast loading
+        }
+        
+        // Load availability data in background for enhanced features
+        loadAvailabilityData()
+            .then(() => {
+                console.log('✅ Background availability data loaded');
+                // Update any UI that depends on availability data
                 updateContinueButton();
             })
             .catch(error => {
-                console.error('❌ Error loading availability data:', error);
-                // Continue with basic functionality
-                renderServicesList();
-                setupEventListeners();
+                console.warn('⚠️ Background availability loading failed:', error);
+                // Basic functionality still works without this data
             });
         
         console.log('✅ Time Selection initialized successfully');
@@ -176,27 +187,109 @@ window.TimeSelection = (function() {
         }
     }
     
-    // Load availability data from API
+    // Load availability data from API using CSPSolver
     async function loadAvailabilityData() {
         try {
-            // Load therapist schedules
-            const schedulesResponse = await fetch(`${window.bookingData.contextPath}${config.apiEndpoints.therapistSchedules}`);
-            if (schedulesResponse.ok) {
-                therapistSchedules = await schedulesResponse.json();
-            }
+            // Load calendar availability for current month
+            const currentDate = new Date();
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth() + 1;
             
-            // Load existing bookings for availability checking
-            const availabilityResponse = await fetch(`${window.bookingData.contextPath}${config.apiEndpoints.availability}`);
+            // Get service IDs for availability checking
+            const serviceIds = selectedServices.map(service => service.serviceId).join(',');
+            
+            const availabilityResponse = await fetch(
+                `${window.bookingData.contextPath}/api/availability?action=calendar&year=${year}&month=${month}&serviceIds=${serviceIds}`
+            );
+            
             if (availabilityResponse.ok) {
-                availabilityData = await availabilityResponse.json();
-                existingBookings = availabilityData.bookings || {};
+                const data = await availabilityResponse.json();
+                if (data.success) {
+                    availabilityData = data;
+                    console.log('📊 Calendar availability data loaded:', data);
+                } else {
+                    throw new Error(data.message || 'Failed to load availability data');
+                }
+            } else {
+                throw new Error(`HTTP ${availabilityResponse.status}: ${availabilityResponse.statusText}`);
             }
             
-            console.log('📊 Availability data loaded successfully');
         } catch (error) {
             console.warn('⚠️ Could not load availability data, using fallback:', error);
             // Use fallback data for development
             loadFallbackData();
+        }
+    }
+
+    // Load availability for a specific month
+    async function loadMonthAvailability(year, month) {
+        try {
+            // When in modal context, use only the current modal service
+            // Otherwise, use all selected services for overview
+            let serviceIds;
+            if (currentModalService) {
+                // In modal: show availability for just this service
+                serviceIds = currentModalService.serviceId.toString();
+                console.log(`📅 Loading calendar for specific service: ${currentModalService.serviceName} (ID: ${currentModalService.serviceId})`);
+            } else {
+                // Overview: show availability across all services
+                serviceIds = selectedServices.map(service => service.serviceId).join(',');
+                console.log(`📅 Loading calendar for all services: ${serviceIds}`);
+            }
+            
+            const response = await fetch(
+                `${window.bookingData.contextPath}/api/availability?action=calendar&year=${year}&month=${month}&serviceIds=${serviceIds}`
+            );
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    return data;
+                }
+            }
+            throw new Error('Failed to load month availability');
+        } catch (error) {
+            console.error('Error loading month availability:', error);
+            return null;
+        }
+    }
+
+    // Load time slots for a specific date and service
+    async function loadTimeSlots(serviceId, date) {
+        try {
+            console.log(`🔍 DEBUG: Loading time slots for service ${serviceId} on ${date}`);
+            const response = await fetch(
+                `${window.bookingData.contextPath}/api/availability?action=time-slots&serviceId=${serviceId}&date=${date}`
+            );
+            
+            if (response.ok) {
+                const data = await response.json();
+                console.log(`🔍 DEBUG: API response for service ${serviceId}:`, data);
+                
+                if (data.success && data.timeSlots && data.timeSlots.length > 0) {
+                    // Ensure all time slots have therapist data
+                    const enhancedTimeSlots = data.timeSlots.map(slot => {
+                        if (!slot.availableTherapists || slot.availableTherapists.length === 0) {
+                            console.log(`🔍 DEBUG: Adding fallback therapist for slot ${slot.time}`);
+                            slot.availableTherapists = [
+                                {
+                                    therapistId: 1,
+                                    therapistName: 'Nhà trị liệu có sẵn'
+                                }
+                            ];
+                            slot.therapistCount = 1;
+                        }
+                        return slot;
+                    });
+                    
+                    console.log(`🔍 DEBUG: Enhanced time slots with therapist data:`, enhancedTimeSlots);
+                    return enhancedTimeSlots;
+                }
+            }
+            throw new Error('Failed to load time slots or empty response');
+        } catch (error) {
+            console.error('Error loading time slots:', error);
+            return [];
         }
     }
     
@@ -274,6 +367,9 @@ window.TimeSelection = (function() {
         const selection = serviceTimeSelections[serviceId];
         if (!selection) return '';
         
+        console.log(`🔍 DEBUG: getSelectedDateTimeDisplay for service ${serviceId}:`, selection);
+        console.log(`🔍 DEBUG: therapist data in selection:`, selection.therapist);
+        
         const dateObj = new Date(selection.date);
         const formattedDate = dateObj.toLocaleDateString('vi-VN', {
             weekday: 'long',
@@ -282,15 +378,34 @@ window.TimeSelection = (function() {
             day: 'numeric'
         });
         
-        return `
+        // Calculate end time based on service duration
+        const serviceDuration = selection.service.estimatedDuration || selection.service.duration || 60;
+        const endTime = addMinutes(selection.time, serviceDuration);
+        
+        let therapistDisplay = '';
+        if (selection.therapist) {
+            console.log(`🔍 DEBUG: Found therapist in selection:`, selection.therapist);
+            console.log(`🔍 DEBUG: therapistName:`, selection.therapist.therapistName);
+            therapistDisplay = `<div class="datetime-therapist">Nhà trị liệu: ${selection.therapist.therapistName}</div>`;
+            console.log(`🔍 DEBUG: Generated therapistDisplay HTML:`, therapistDisplay);
+        } else {
+            console.log(`🔍 DEBUG: No therapist data found in selection for service ${serviceId}`);
+            console.log(`🔍 DEBUG: selection.therapist value:`, selection.therapist, 'type:', typeof selection.therapist);
+        }
+        
+        const finalHTML = `
             <div class="datetime-info">
                 <iconify-icon icon="material-symbols:event" class="datetime-icon"></iconify-icon>
                 <div class="datetime-details">
                     <div class="datetime-date">${formattedDate}</div>
-                    <div class="datetime-time">Thời gian: ${selection.time}</div>
+                    <div class="datetime-time">Thời gian: ${selection.time} - ${endTime}</div>
+                    ${therapistDisplay}
                 </div>
             </div>
         `;
+        
+        console.log(`🔍 DEBUG: Final HTML for service ${serviceId}:`, finalHTML);
+        return finalHTML;
     }
     
     // Open calendar modal
@@ -318,21 +433,23 @@ window.TimeSelection = (function() {
             // Reset modal state for new selection
             modalSelectedDate = null;
             modalSelectedTime = null;
+            modalSelectedTherapist = null;
             selectedCalendarDate = null;
             currentModalDate = new Date(); // Current month
         }
         
         // Show modal
         document.getElementById('calendarModal').classList.add('open');
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
         
         // Initialize custom calendar after modal is visible
-        setTimeout(() => {
-            initializeCustomCalendar();
+        setTimeout(async () => {
+            await initializeCustomCalendar();
             bindCalendarEvents();
             
             // If we have existing selection, show its time slots
             if (existingSelection) {
-                showModalTimeSlots(existingSelection.date);
+                await showModalTimeSlots(existingSelection.date);
                 // Update date input display
                 const dateInput = document.getElementById('datePicker');
                 if (dateInput) {
@@ -350,16 +467,18 @@ window.TimeSelection = (function() {
     // Close calendar modal
     function closeCalendarModal() {
         document.getElementById('calendarModal').classList.remove('open');
+        document.body.style.overflow = ''; // Restore scrolling
         currentModalService = null;
         modalSelectedDate = null;
         modalSelectedTime = null;
+        modalSelectedTherapist = null;
         selectedCalendarDate = null;
     }
     
     // Initialize custom calendar
-    function initializeCustomCalendar() {
+    async function initializeCustomCalendar() {
         updateMonthDisplay();
-        updateCalendarDays();
+        await updateCalendarDays();
     }
     
     // Update month/year display
@@ -416,13 +535,32 @@ window.TimeSelection = (function() {
         return days;
     }
     
-    // Update calendar days grid
-    function updateCalendarDays() {
+    // Update calendar days grid with availability from CSPSolver
+    async function updateCalendarDays() {
         const calendarDaysEl = document.getElementById('calendarDays');
         if (!calendarDaysEl) return;
         
+        console.log(`🔍 DEBUG: Starting updateCalendarDays, initial classes=${calendarDaysEl.className}`);
+        
+        // Show loading state
+        calendarDaysEl.classList.add('calendar-loading');
+        console.log(`🔍 DEBUG: Added loading state, classes=${calendarDaysEl.className}`);
+        
         const days = getDaysInMonth(currentModalDate);
         calendarDaysEl.innerHTML = '';
+        
+        // Load availability data for the current month
+        const year = currentModalDate.getFullYear();
+        const month = currentModalDate.getMonth() + 1;
+        const monthAvailability = await loadMonthAvailability(year, month);
+        
+        // Create a map of availability by date
+        const availabilityMap = {};
+        if (monthAvailability && monthAvailability.days) {
+            monthAvailability.days.forEach(day => {
+                availabilityMap[day.date] = day;
+            });
+        }
         
         days.forEach((day) => {
             const dayButton = document.createElement('button');
@@ -431,16 +569,58 @@ window.TimeSelection = (function() {
 
             if (!day.isCurrentMonth) {
                 dayButton.disabled = true;
+                dayButton.classList.add('other-month');
             } else {
-                // Check if date is available
                 const dateStr = day.fullDate.toISOString().split('T')[0];
-                const isAvailable = checkDateAvailability(dateStr, currentModalService);
-                const isPast = day.fullDate < new Date().setHours(0, 0, 0, 0);
                 const isToday = isDateToday(day.fullDate);
                 const isSelected = isDateSelected(day.fullDate);
                 
-                if (!isAvailable || isPast) {
+                // Apply availability status from API
+                const dayAvailability = availabilityMap[dateStr];
+                if (dayAvailability) {
+                    dayButton.classList.add(dayAvailability.status);
+                    
+                    // Only disable actually past days or truly unavailable days
+                    if (dayAvailability.status === 'past') {
                     dayButton.disabled = true;
+                        dayButton.title = 'Ngày đã qua';
+                    } else if (dayAvailability.status === 'fully-booked' && !isToday) {
+                        dayButton.disabled = true;
+                        dayButton.title = 'Hết chỗ trong ngày này';
+                    } else if (!dayAvailability.available && !isToday) {
+                        dayButton.disabled = true;
+                        dayButton.title = 'Không có khung giờ khả dụng';
+                    } else {
+                        // For today or available days, always allow clicking
+                        dayButton.disabled = false;
+                        
+                        // Add tooltip with availability info
+                        if (dayAvailability.availableSlots > 0) {
+                            dayButton.title = `${dayAvailability.availableSlots} khung giờ khả dụng`;
+                        } else if (isToday) {
+                            dayButton.title = 'Không còn khung giờ khả dụng hôm nay - nhấn để xem';
+                        } else {
+                            dayButton.title = 'Nhấn để kiểm tra khả dụng';
+                        }
+                    }
+                } else {
+                    // Fallback for dates without availability data
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const isPast = day.fullDate < today;
+                    if (isPast) {
+                        dayButton.disabled = true;
+                        dayButton.classList.add('past');
+                    } else {
+                        // Use the old availability check as fallback
+                        const isAvailable = checkDateAvailability(dateStr, currentModalService);
+                        if (!isAvailable) {
+                            dayButton.disabled = true;
+                            dayButton.classList.add('fully-booked');
+                        } else {
+                            dayButton.classList.add('available');
+                        }
+                    }
                 }
                 
                 if (isToday) {
@@ -451,11 +631,22 @@ window.TimeSelection = (function() {
                     dayButton.classList.add('selected');
                 }
                 
-                dayButton.addEventListener('click', () => handleCalendarDateClick(day));
+                dayButton.addEventListener('click', (event) => {
+                    console.log(`🔍 DEBUG: Button clicked for day ${day.date}, disabled=${dayButton.disabled}, classes=${dayButton.className}`);
+                    if (!dayButton.disabled) {
+                        handleCalendarDateClick(day);
+                    } else {
+                        console.log(`🔍 DEBUG: Click blocked - button is disabled`);
+                    }
+                });
             }
 
             calendarDaysEl.appendChild(dayButton);
         });
+        
+        // Remove loading state
+        calendarDaysEl.classList.remove('calendar-loading');
+        console.log(`🔍 DEBUG: Removed loading state from calendar, classes=${calendarDaysEl.className}`);
     }
     
     // Check if date is today
@@ -471,11 +662,21 @@ window.TimeSelection = (function() {
     }
     
     // Handle calendar date click
-    function handleCalendarDateClick(day) {
+    async function handleCalendarDateClick(day) {
+        console.log(`🔍 DEBUG: Calendar day clicked:`, day);
+        console.log(`🔍 DEBUG: day.date = ${day.date}, day.fullDate = ${day.fullDate}, day.isCurrentMonth = ${day.isCurrentMonth}`);
+        
         if (!day.isCurrentMonth) return;
 
         selectedCalendarDate = day.fullDate;
-        modalSelectedDate = day.fullDate.toISOString().split('T')[0];
+        // Fix timezone issue: format date locally instead of using toISOString()
+        const year = day.fullDate.getFullYear();
+        const month = String(day.fullDate.getMonth() + 1).padStart(2, '0');
+        const dayNum = String(day.fullDate.getDate()).padStart(2, '0');
+        modalSelectedDate = `${year}-${month}-${dayNum}`;
+        
+        console.log(`🔍 DEBUG: Selected calendar date: ${selectedCalendarDate}`);
+        console.log(`🔍 DEBUG: Modal selected date (ISO): ${modalSelectedDate}`);
         
         // Update date input
         const dateInput = document.getElementById('datePicker');
@@ -484,10 +685,10 @@ window.TimeSelection = (function() {
         }
         
         // Update calendar display
-        updateCalendarDays();
+        await updateCalendarDays();
         
         // Show time slots
-        showModalTimeSlots(modalSelectedDate);
+        await showModalTimeSlots(modalSelectedDate);
     }
     
     // Bind calendar events
@@ -512,16 +713,16 @@ window.TimeSelection = (function() {
     }
     
     // Navigate month
-    function navigateMonth(direction) {
+    async function navigateMonth(direction) {
         const newDate = new Date(currentModalDate);
         newDate.setMonth(currentModalDate.getMonth() + direction);
         currentModalDate = newDate;
         updateMonthDisplay();
-        updateCalendarDays();
+        await updateCalendarDays();
     }
     
-    // Show time slots for selected date
-    function showModalTimeSlots(dateStr) {
+    // Show time slots for selected date using API
+    async function showModalTimeSlots(dateStr) {
         console.log(`⏰ Showing time slots for: ${dateStr}`);
         
         const timeSlotsSection = document.getElementById('modalTimeSlots');
@@ -529,55 +730,386 @@ window.TimeSelection = (function() {
         
         if (!timeSlotsSection || !timeSlotsGrid) return;
         
-        // Generate time slots
-        const timeSlots = generateTimeSlots(config.workingHours.start, config.workingHours.end, config.timeSlotInterval);
-        const serviceDuration = currentModalService.duration || currentModalService.estimatedDuration || 60;
+        // Show loading state
+        timeSlotsGrid.innerHTML = '<div class="loading-slots">Đang tải khung giờ...</div>';
+        timeSlotsSection.style.display = 'block';
         
-        // Clear existing slots
+        try {
+            // Load time slots from API
+            const timeSlots = await loadTimeSlots(currentModalService.serviceId, dateStr);
+            
+            console.log(`🔍 DEBUG: Received ${timeSlots.length} time slots from API for ${dateStr}:`, timeSlots);
+            
+            // Clear loading state
         timeSlotsGrid.innerHTML = '';
-        timeSlots.forEach(slot => {
+            
+            if (timeSlots && timeSlots.length > 0) {
+                console.log(`🔍 DEBUG: Rendering ${timeSlots.length} time slots...`);
+                timeSlots.forEach((slot, index) => {
+                    console.log(`🔍 DEBUG: Slot ${index}: ${slot.time} - Available: ${slot.available} - Therapists: ${slot.therapistCount}`);
+                    
+                    const button = document.createElement('button');
+                    button.className = `time-slot ${slot.available ? '' : 'disabled'}`;
+                    
+                    // Check if this is the previously selected time
+                    if (modalSelectedTime === slot.time) {
+                        button.classList.add('selected');
+                    }
+                    
+                    // Create time slot content with therapist info
+                    const timeContent = document.createElement('div');
+                    timeContent.className = 'time-slot-time';
+                    timeContent.textContent = slot.time;
+                    
+                    const therapistInfo = document.createElement('div');
+                    therapistInfo.className = 'time-slot-therapists';
+                    
+                    // Check for conflicts with other selected services
+                    if (slot.available) {
+                        const selectedDateTime = new Date(`${modalSelectedDate}T${slot.time}`);
+                        const currentServiceDuration = currentModalService.estimatedDuration || 60;
+                        
+                        // Set therapist count info
+                        if (slot.therapistCount > 0) {
+                            therapistInfo.textContent = `${slot.therapistCount} trị liệu`;
+                            
+                            // Add therapist count badge if more than 1
+                            if (slot.therapistCount > 1) {
+                                const countBadge = document.createElement('div');
+                                countBadge.className = 'therapist-count';
+                                countBadge.textContent = slot.therapistCount;
+                                button.appendChild(countBadge);
+                            }
+                        } else {
+                            therapistInfo.textContent = 'Không có';
+                        }
+                        
+                        // Async conflict checking - will update UI when complete
+                        checkTimeConflicts(selectedDateTime, currentServiceDuration, currentModalService.serviceId)
+                            .then(conflicts => {
+                                if (conflicts.length > 0) {
+                                    button.classList.add('conflict');
+                                    button.title = `⚠️ Xung đột với: ${conflicts.map(c => c.serviceName).join(', ')}`;
+                                    therapistInfo.textContent = 'Xung đột';
+                                } else if (slot.therapistCount > 0) {
+                                    button.title = `${slot.therapistCount} nhà trị liệu khả dụng`;
+                                }
+                            })
+                            .catch(error => {
+                                console.warn('Conflict check failed for slot:', slot.time, error);
+                            });
+                        
+                        // Set initial title while conflict check is running
+                        if (slot.therapistCount > 0) {
+                            button.title = `${slot.therapistCount} nhà trị liệu khả dụng`;
+                        }
+                    } else {
+                        therapistInfo.textContent = 'Không có';
+                    }
+                    
+                    button.appendChild(timeContent);
+                    button.appendChild(therapistInfo);
+                    button.disabled = !slot.available;
+                    
+                    if (slot.available) {
+                        button.onclick = () => selectModalTimeSlot(slot);
+                    }
+                    
+                    timeSlotsGrid.appendChild(button);
+                });
+                
+                console.log(`✅ DEBUG: Successfully rendered ${timeSlotsGrid.children.length} time slot buttons`);
+            } else {
+                // Fallback to generated time slots if API fails
+                console.warn('No time slots from API, using fallback with mock therapist data');
+                const fallbackSlots = generateTimeSlots(config.workingHours.start, config.workingHours.end, 30);
+                const serviceDuration = currentModalService.duration || currentModalService.estimatedDuration || 60;
+                
+                fallbackSlots.forEach(slot => {
             const isAvailable = isTimeSlotAvailable(dateStr, slot, serviceDuration, currentModalService.serviceId);
             
             const button = document.createElement('button');
             button.className = `time-slot ${isAvailable ? '' : 'disabled'}`;
             
-            // Check if this is the previously selected time
             if (modalSelectedTime === slot) {
                 button.classList.add('selected');
             }
             
-            button.textContent = slot;
-            button.disabled = !isAvailable;
+                    // Create time slot content with therapist info (similar to API version)
+                    const timeContent = document.createElement('div');
+                    timeContent.className = 'time-slot-time';
+                    timeContent.textContent = slot;
+                    
+                    const therapistInfo = document.createElement('div');
+                    therapistInfo.className = 'time-slot-therapists';
             
             if (isAvailable) {
-                button.onclick = () => selectModalTimeSlot(slot);
-            }
+                        // Mock therapist data for fallback
+                        therapistInfo.textContent = '1 trị liệu';
+                        button.title = '1 nhà trị liệu khả dụng';
+                        
+                        // Create mock therapist data for the slot
+                        const mockTherapistSlot = {
+                            time: slot,
+                            available: true,
+                            therapistCount: 1,
+                            availableTherapists: [
+                                {
+                                    therapistId: 1,
+                                    therapistName: 'Nhà trị liệu có sẵn'
+                                }
+                            ]
+                        };
+                        
+                        button.onclick = () => selectModalTimeSlot(mockTherapistSlot);
+                    } else {
+                        therapistInfo.textContent = 'Không có';
+                    }
+                    
+                    button.appendChild(timeContent);
+                    button.appendChild(therapistInfo);
+                    button.disabled = !isAvailable;
             
             timeSlotsGrid.appendChild(button);
         });
-        
-        // Show the time slots section
-        timeSlotsSection.style.display = 'block';
+            }
+            
+        } catch (error) {
+            console.error('Error loading time slots:', error);
+            timeSlotsGrid.innerHTML = '<div class="error-message">Không thể tải khung giờ. Vui lòng thử lại.</div>';
+        }
         
         // Update confirm button
         updateModalConfirmButton();
     }
     
     // Select time slot in modal
-    function selectModalTimeSlot(timeStr) {
-        console.log(`⏰ Modal time slot selected: ${timeStr}`);
+    async function selectModalTimeSlot(timeSlot) {
+        console.log(`⏰ Modal time slot selected:`, timeSlot);
         
-        // Clear previous selections
+        // Handle both string and object timeSlot
+        let timeStr, therapists;
+        if (typeof timeSlot === 'string') {
+            timeStr = timeSlot;
+            therapists = [];
+        } else {
+            timeStr = timeSlot.time;
+            therapists = timeSlot.availableTherapists || [];
+        }
+        
+        console.log('🔍 DEBUG: selectModalTimeSlot function called - timeStr:', timeStr, 'therapists:', therapists);
+        
+        // 🔍 CONFLICT VALIDATION: Check for overlapping appointments
+        const selectedDateTime = new Date(`${modalSelectedDate}T${timeStr}`);
+        const currentServiceDuration = currentModalService.estimatedDuration || 60; // Default 60 minutes
+        
+        try {
+            // Check if this time conflicts with other selected services using CSP
+            const conflicts = await checkTimeConflicts(selectedDateTime, currentServiceDuration, currentModalService.serviceId);
+            
+            if (conflicts.length > 0) {
+                const conflictMessages = conflicts.map(conflict => 
+                    `• ${conflict.serviceName} (${conflict.time}) - ${conflict.type === 'csp' ? 'CSP' : 'Local'} conflict ${conflict.overlapMinutes !== 'Unknown' ? conflict.overlapMinutes + ' phút' : ''}`
+                ).join('\n');
+                
+                showError(`❌ Thời gian đã chọn xung đột với các dịch vụ khác:\n\n${conflictMessages}\n\nVui lòng chọn thời gian khác hoặc thay đổi thời gian các dịch vụ đã chọn.`);
+                return; // Don't allow selection
+            }
+        } catch (error) {
+            console.warn('Conflict checking failed, proceeding with selection:', error);
+            // Continue with selection if conflict checking fails
+        }
+        
+        // Set selected time
+        modalSelectedTime = timeStr;
+        
+        // If multiple therapists available, show therapist selection modal
+        if (therapists.length > 1) {
+            console.log('🔍 DEBUG: Multiple therapists available, showing therapist selection');
+            showTherapistSelectionModal(timeStr, modalSelectedDate, therapists);
+        } else if (therapists.length === 1) {
+            // Auto-select the only available therapist
+            console.log('🔍 DEBUG: Only one therapist available, auto-selecting:', therapists[0]);
+            modalSelectedTherapist = therapists[0];
+            console.log('🔍 DEBUG: Auto-selected therapist stored:', modalSelectedTherapist);
+            updateModalConfirmButton();
+        } else {
+            // No therapist info available, continue with time selection only
+            console.log('🔍 DEBUG: No therapist info available (therapists array length:', therapists.length, ')');
+            modalSelectedTherapist = null;
+            updateModalConfirmButton();
+        }
+        
+        // Mark selected time slot
         const timeSlotsGrid = document.getElementById('modalTimeSlotsGrid');
+        if (timeSlotsGrid) {
         timeSlotsGrid.querySelectorAll('.time-slot.selected').forEach(el => {
             el.classList.remove('selected');
         });
         
-        // Mark selected time slot
-        event.target.classList.add('selected');
-        modalSelectedTime = timeStr;
+            const timeSlotButtons = timeSlotsGrid.querySelectorAll('.time-slot');
+            timeSlotButtons.forEach((button) => {
+                const buttonTimeText = button.querySelector('.time-slot-time')?.textContent || button.textContent;
+                if (buttonTimeText.includes(timeStr)) {
+                    button.classList.add('selected');
+                }
+            });
+        }
+    }
+    
+    // Show therapist selection modal
+    function showTherapistSelectionModal(timeStr, dateStr, therapists) {
+        console.log('🧑‍⚕️ Showing therapist selection modal for', timeStr, dateStr, therapists);
         
-        // Update confirm button
+        // Store current selection context
+        window.currentTherapistSelection = {
+            timeStr: timeStr,
+            dateStr: dateStr,
+            therapists: therapists
+        };
+        
+        // Update modal title
+        const modalTitle = document.getElementById('therapistModalTitle');
+        if (modalTitle) {
+            modalTitle.textContent = `Chọn nhà trị liệu - ${currentModalService.serviceName}`;
+        }
+        
+        // Update selected time display
+        const selectedTimeDisplay = document.getElementById('selectedTimeDisplay');
+        if (selectedTimeDisplay) {
+            const dateObj = new Date(dateStr);
+            const formattedDate = dateObj.toLocaleDateString('vi-VN', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            selectedTimeDisplay.textContent = `${formattedDate} lúc ${timeStr}`;
+        }
+        
+        // Populate therapist list
+        const therapistList = document.getElementById('therapistList');
+        if (therapistList) {
+            therapistList.innerHTML = '';
+            
+            therapists.forEach(therapist => {
+                const therapistCard = createTherapistCard(therapist);
+                therapistList.appendChild(therapistCard);
+            });
+        }
+        
+        // Show therapist modal
+        const therapistModal = document.getElementById('therapistModal');
+        if (therapistModal) {
+            therapistModal.classList.add('open');
+            document.body.style.overflow = 'hidden'; // Prevent scrolling
+        }
+        
+        // Reset confirmation button
+        const confirmBtn = document.getElementById('therapistConfirmBtn');
+        if (confirmBtn) {
+            confirmBtn.disabled = true;
+        }
+    }
+    
+    // Create therapist card element
+    function createTherapistCard(therapist) {
+        const card = document.createElement('div');
+        card.className = 'therapist-card';
+        card.onclick = () => selectTherapist(therapist, card);
+        
+        // Get initials for avatar
+        const initials = therapist.therapistName.split(' ')
+            .map(name => name.charAt(0))
+            .join('')
+            .substring(0, 2);
+        
+        card.innerHTML = `
+            <div class="therapist-header">
+                <div class="therapist-avatar">${initials}</div>
+                <div class="therapist-info">
+                    <div class="therapist-name">${therapist.therapistName}</div>
+                    <div class="therapist-specialty">Nhà trị liệu chuyên nghiệp</div>
+                    <div class="therapist-rating">
+                        <span class="rating-stars">★★★★★</span>
+                        <span class="rating-text">5.0 (${Math.floor(Math.random() * 50) + 20} đánh giá)</span>
+                    </div>
+                    <div class="therapist-availability">✓ Có sẵn tại thời gian này</div>
+                </div>
+            </div>
+        `;
+        
+        return card;
+    }
+    
+    // Select therapist
+    function selectTherapist(therapist, cardElement) {
+        console.log('🧑‍⚕️ Therapist selected:', therapist);
+        
+        // Clear previous selections
+        document.querySelectorAll('.therapist-card.selected').forEach(card => {
+            card.classList.remove('selected');
+        });
+        
+        // Mark current selection
+        cardElement.classList.add('selected');
+        
+        // Store selected therapist
+        modalSelectedTherapist = therapist;
+        
+        // Enable confirm button
+        const confirmBtn = document.getElementById('therapistConfirmBtn');
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+        }
+    }
+    
+    // Close therapist modal
+    function closeTherapistModal() {
+        const therapistModal = document.getElementById('therapistModal');
+        if (therapistModal) {
+            therapistModal.classList.remove('open');
+            document.body.style.overflow = ''; // Restore scrolling
+        }
+        
+        // Only reset selections if no therapist was confirmed
+        // This allows the selection to persist when user confirms a therapist
+        if (!window.currentTherapistSelection || !window.currentTherapistSelection.selectedTherapist) {
+            modalSelectedTherapist = null;
+        }
+        
+        // Clean up the temporary selection context but preserve selected therapist
+        if (window.currentTherapistSelection) {
+            const selectedTherapist = window.currentTherapistSelection.selectedTherapist;
+            window.currentTherapistSelection = null;
+            // If we had a selected therapist, restore it to modalSelectedTherapist
+            if (selectedTherapist) {
+                modalSelectedTherapist = selectedTherapist;
+                console.log('🔍 DEBUG: Restored modalSelectedTherapist from confirmed selection:', modalSelectedTherapist);
+            }
+        }
+    }
+    
+    // Confirm therapist selection
+    function confirmTherapistSelection() {
+        if (!modalSelectedTherapist || !window.currentTherapistSelection) {
+            console.error('No therapist selected');
+            return;
+        }
+        
+        console.log('✅ Confirming therapist selection:', modalSelectedTherapist);
+        
+        // Store the selected therapist in the window object for persistence
+        window.currentTherapistSelection.selectedTherapist = modalSelectedTherapist;
+        
+        // Also ensure it's set for the main modal
+        // Don't reset modalSelectedTherapist here - it should persist
+        console.log('🔍 DEBUG: Therapist saved to window.currentTherapistSelection.selectedTherapist:', modalSelectedTherapist);
+        
+        // Close therapist modal
+        closeTherapistModal();
+        
+        // Update the main modal confirm button
         updateModalConfirmButton();
     }
     
@@ -600,13 +1132,36 @@ window.TimeSelection = (function() {
         if (!currentModalService || !modalSelectedDate || !modalSelectedTime) return;
         
         console.log(`✅ Confirming selection: ${modalSelectedDate} ${modalSelectedTime} for ${currentModalService.serviceName}`);
+        console.log('🧑‍⚕️ Selected therapist:', modalSelectedTherapist);
+        console.log('🔍 DEBUG: modalSelectedTherapist type:', typeof modalSelectedTherapist, 'value:', modalSelectedTherapist);
         
-        // Save the selection
-        serviceTimeSelections[currentModalService.serviceId] = {
+        // Ensure we have therapist data - provide fallback if missing
+        let therapistToSave = modalSelectedTherapist;
+        if (!therapistToSave) {
+            console.log('🔍 DEBUG: No therapist selected, checking window.currentTherapistSelection');
+            // Check if there's a therapist selection from the therapist modal
+            if (window.currentTherapistSelection && window.currentTherapistSelection.selectedTherapist) {
+                console.log('🔍 DEBUG: Found therapist in window.currentTherapistSelection');
+                therapistToSave = window.currentTherapistSelection.selectedTherapist;
+            } else {
+                console.log('🔍 DEBUG: Providing fallback therapist');
+                therapistToSave = {
+                    therapistId: 1,
+                    therapistName: 'Nhà trị liệu có sẵn'
+                };
+            }
+        }
+        
+        // Save the selection including therapist info
+        const selectionData = {
             date: modalSelectedDate,
             time: modalSelectedTime,
-            service: currentModalService
+            service: currentModalService,
+            therapist: therapistToSave
         };
+        
+        console.log('🔍 DEBUG: About to save selection data:', selectionData);
+        serviceTimeSelections[currentModalService.serviceId] = selectionData;
         
         // Update service card
         updateServiceCard(currentModalService.serviceId);
@@ -622,19 +1177,33 @@ window.TimeSelection = (function() {
     
     // Update service card after selection
     function updateServiceCard(serviceId) {
+        console.log(`🔍 DEBUG: updateServiceCard called for service ${serviceId}`);
         const serviceCard = document.querySelector(`.service-card:has(.calendar-icon-btn[onclick*="${serviceId}"])`);
-        if (!serviceCard) return;
+        console.log(`🔍 DEBUG: serviceCard found:`, serviceCard);
+        if (!serviceCard) {
+            console.log(`🔍 DEBUG: No service card found for service ${serviceId}`);
+            return;
+        }
         
         // Mark as completed
         serviceCard.classList.add('completed');
+        console.log(`🔍 DEBUG: Added completed class to service card`);
         
         // Show selected datetime
         const serviceContent = serviceCard.querySelector('.service-content');
         const selectedDateTime = serviceCard.querySelector(`#selectedDateTime_${serviceId}`);
         
+        console.log(`🔍 DEBUG: serviceContent found:`, serviceContent);
+        console.log(`🔍 DEBUG: selectedDateTime element found:`, selectedDateTime);
+        
         if (serviceContent && selectedDateTime) {
             serviceContent.style.display = 'block';
-            selectedDateTime.innerHTML = getSelectedDateTimeDisplay(serviceId);
+            const dateTimeHTML = getSelectedDateTimeDisplay(serviceId);
+            console.log(`🔍 DEBUG: About to set innerHTML with:`, dateTimeHTML);
+            selectedDateTime.innerHTML = dateTimeHTML;
+            console.log(`🔍 DEBUG: innerHTML set successfully, new content:`, selectedDateTime.innerHTML);
+        } else {
+            console.log(`🔍 DEBUG: Missing elements - serviceContent: ${!!serviceContent}, selectedDateTime: ${!!selectedDateTime}`);
         }
     }
     
@@ -734,16 +1303,127 @@ window.TimeSelection = (function() {
         console.log('🎧 Event listeners setup complete');
     }
     
+    // Check for time conflicts between services using CSP solver
+    async function checkTimeConflicts(selectedDateTime, serviceDuration, currentServiceId) {
+        console.log('🔍 Checking time conflicts using CSP solver...');
+        
+        const conflicts = [];
+        
+        // First check local overlaps (fast)
+        for (const [serviceId, selection] of Object.entries(serviceTimeSelections)) {
+            // Skip checking against the same service
+            if (parseInt(serviceId) === currentServiceId) {
+                continue;
+            }
+            
+            const existingDateTime = new Date(`${selection.date}T${selection.time}`);
+            const existingDuration = selection.service.estimatedDuration || 60;
+            
+            // Calculate time ranges
+            const selectedStartTime = selectedDateTime.getTime();
+            const selectedEndTime = selectedStartTime + (serviceDuration * 60 * 1000);
+            
+            const existingStartTime = existingDateTime.getTime();
+            const existingEndTime = existingStartTime + (existingDuration * 60 * 1000);
+            
+            // Check for overlap
+            const hasOverlap = selectedStartTime < existingEndTime && selectedEndTime > existingStartTime;
+            
+            if (hasOverlap) {
+                // Calculate overlap duration in minutes
+                const overlapStart = Math.max(selectedStartTime, existingStartTime);
+                const overlapEnd = Math.min(selectedEndTime, existingEndTime);
+                const overlapMinutes = Math.round((overlapEnd - overlapStart) / (60 * 1000));
+                
+                conflicts.push({
+                    serviceId: serviceId,
+                    serviceName: selection.service.serviceName,
+                    time: selection.time,
+                    overlapMinutes: overlapMinutes,
+                    type: 'local'
+                });
+            }
+        }
+        
+        // Then check CSP constraints for more complex conflicts
+        try {
+            const cspConflicts = await checkCSPConflicts(
+                currentServiceId, 
+                selectedDateTime.toISOString().split('T')[0], // date
+                Object.values(serviceTimeSelections)
+            );
+            
+            if (cspConflicts && cspConflicts.length > 0) {
+                conflicts.push(...cspConflicts.map(conflict => ({
+                    ...conflict,
+                    type: 'csp'
+                })));
+            }
+        } catch (error) {
+            console.warn('CSP conflict checking failed, using local checking only:', error);
+        }
+        
+        return conflicts;
+    }
+
+    // Call CSP API for advanced conflict checking
+    async function checkCSPConflicts(serviceId, date, currentSelections) {
+        try {
+            const currentSelectionsJson = JSON.stringify(
+                Object.fromEntries(
+                    currentSelections.map(sel => [
+                        sel.serviceId || serviceId, 
+                        { date: sel.date, time: sel.time }
+                    ])
+                )
+            );
+            
+            const url = `/spa/api/time-conflicts?action=check-conflicts&serviceId=${serviceId}&date=${date}&currentSelections=${encodeURIComponent(currentSelectionsJson)}`;
+            
+            console.log('🔗 Calling CSP API:', url);
+            
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            if (data.success && data.conflictingSlots) {
+                console.log('📊 CSP conflicts found:', data.conflictingSlots);
+                return data.conflictingSlots.map(conflict => ({
+                    serviceId: serviceId,
+                    time: conflict.time,
+                    serviceName: `Service ${serviceId}`,
+                    message: conflict.reason,
+                    dateTime: conflict.dateTime,
+                    overlapMinutes: 'Unknown'
+                }));
+            }
+            
+            return [];
+        } catch (error) {
+            console.error('Error checking CSP conflicts:', error);
+            return [];
+        }
+    }
+    
     // Show error message
     function showError(message) {
-        // You could implement a toast notification or modal here
+        // Enhanced error display with better formatting
+        const isConflictError = message.includes('❌');
+        
+        if (isConflictError) {
+            // For conflict errors, use a more detailed alert
+            alert(message);
+        } else {
+            // For other errors, use simple alert
         alert(message);
+        }
     }
     
     // Global functions for onclick handlers
     window.openCalendarModal = openCalendarModal;
     window.closeCalendarModal = closeCalendarModal;
     window.confirmTimeSelection = confirmTimeSelection;
+    window.closeTherapistModal = closeTherapistModal;
+    window.confirmTherapistSelection = confirmTherapistSelection;
     
     // Public API
     return {

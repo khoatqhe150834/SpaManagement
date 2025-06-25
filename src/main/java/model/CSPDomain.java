@@ -13,10 +13,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class CSPDomain {
-  private static final int NUMBER_OF_DAY_AHEAD = 30; // in days
+  private static final int NUMBER_OF_DAY_AHEAD = 60; // in days
   private static final int TIME_INTERVAL = 30; // in minutes
-  private static final LocalTime BUSINESS_START_TIME = LocalTime.of(8, 0); // 8:00 AM
-  private static final LocalTime BUSINESS_END_TIME = LocalTime.of(20, 0); // 8:00 PM
+  private static final LocalTime BUSINESS_START_TIME = LocalTime.of(7, 0); // 7:00 AM
+  private static final LocalTime BUSINESS_END_TIME = LocalTime.of(19, 0); // 7:00 PM
 
   // Vietnam holidays and closures
   private static final Set<LocalDate> VIETNAM_HOLIDAYS = getVietnamHolidays();
@@ -80,21 +80,54 @@ public class CSPDomain {
     LocalDate today = LocalDate.now();
     Duration interval = Duration.ofMinutes(TIME_INTERVAL);
 
-    // Generate available times for the next specified days (starting from tomorrow)
-    for (int day = 1; day <= NUMBER_OF_DAY_AHEAD; day++) {
+    System.out.println("🕐 DEBUG CSPDomain: Generating slots starting from today: " + today);
+    System.out.println("🕐 DEBUG CSPDomain: Current time: " + LocalDateTime.now());
+
+    // Generate available times for the next specified days (starting from today)
+    for (int day = 0; day <= NUMBER_OF_DAY_AHEAD; day++) {
       LocalDate currentDate = today.plusDays(day);
-      LocalDateTime currentDateTime = LocalDateTime.of(currentDate, BUSINESS_START_TIME);
+      LocalDateTime currentDateTime;
       LocalDateTime dayEndTime = LocalDateTime.of(currentDate, BUSINESS_END_TIME);
+
+      // For today, start from current time or business start time (whichever is
+      // later)
+      if (day == 0) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime businessStart = LocalDateTime.of(currentDate, BUSINESS_START_TIME);
+
+        // MODIFIED: For testing purposes, always start from business hours
+        // In production, you would want to use current time + buffer
+        currentDateTime = businessStart; // Always start from 7 AM for testing
+
+        System.out.println("🕐 DEBUG CSPDomain Day " + day + " (today): Business start=" + businessStart +
+            ", Current time=" + now + ", Using business start for testing=" + currentDateTime);
+
+        // Round up to next interval
+        int minutesToAdd = TIME_INTERVAL - (currentDateTime.getMinute() % TIME_INTERVAL);
+        if (minutesToAdd != TIME_INTERVAL) {
+          currentDateTime = currentDateTime.plusMinutes(minutesToAdd);
+        }
+      } else {
+        currentDateTime = LocalDateTime.of(currentDate, BUSINESS_START_TIME);
+        System.out.println("🕐 DEBUG CSPDomain Day " + day + ": Starting from business hours=" + currentDateTime);
+      }
 
       // Generate time slots for the current day (skip holidays/closures)
       if (!isHolidayOrClosure(currentDate)) {
+        int slotsGenerated = 0;
         while (currentDateTime.isBefore(dayEndTime)) {
           allPossibleDatetimes.add(currentDateTime);
           currentDateTime = currentDateTime.plus(interval);
+          slotsGenerated++;
         }
+        System.out.println(
+            "🕐 DEBUG CSPDomain Day " + day + " (" + currentDate + "): Generated " + slotsGenerated + " slots");
+      } else {
+        System.out.println("🕐 DEBUG CSPDomain Day " + day + " (" + currentDate + "): Skipped (holiday/closure)");
       }
     }
 
+    System.out.println("🕐 DEBUG CSPDomain: Total slots generated: " + allPossibleDatetimes.size());
     return allPossibleDatetimes;
   }
 

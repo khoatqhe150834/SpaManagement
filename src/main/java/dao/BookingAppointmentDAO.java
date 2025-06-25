@@ -100,21 +100,17 @@ public class BookingAppointmentDAO extends DBContext implements BaseDAO<BookingA
         "WHERE therapist_user_id = ? " +
         "AND status IN ('SCHEDULED', 'IN_PROGRESS') " +
         "AND (" +
-        "  (start_time < ? AND end_time > ?) OR " + // Existing appointment overlaps start
-        "  (start_time < ? AND end_time > ?) OR " + // Existing appointment overlaps end
-        "  (start_time >= ? AND end_time <= ?)" + // New appointment completely contains existing
+        "  start_time < ? AND end_time > ?" + // Overlap detection: existing_start < new_end AND existing_end >
+                                              // new_start
         ")";
 
     try (Connection conn = DBContext.getConnection();
         PreparedStatement stmt = conn.prepareStatement(sql)) {
 
       stmt.setInt(1, therapistUserId);
-      stmt.setObject(2, endTime); // end_time > start_time (overlap start)
-      stmt.setObject(3, startTime); // start_time < start_time (overlap start)
-      stmt.setObject(4, endTime); // end_time > end_time (overlap end)
-      stmt.setObject(5, startTime); // start_time < end_time (overlap end)
-      stmt.setObject(6, startTime); // start_time >= start_time (contains)
-      stmt.setObject(7, endTime); // end_time <= end_time (contains)
+      stmt.setObject(2, endTime); // start_time < new_end (existing appointment starts before new appointment
+                                  // ends)
+      stmt.setObject(3, startTime); // end_time > new_start (existing appointment ends after new appointment starts)
 
       try (ResultSet rs = stmt.executeQuery()) {
         while (rs.next()) {
@@ -141,21 +137,18 @@ public class BookingAppointmentDAO extends DBContext implements BaseDAO<BookingA
         "WHERE bg.customer_id = ? " +
         "AND ba.status IN ('SCHEDULED', 'IN_PROGRESS') " +
         "AND (" +
-        "  (ba.start_time < ? AND ba.end_time > ?) OR " + // Existing appointment overlaps start
-        "  (ba.start_time < ? AND ba.end_time > ?) OR " + // Existing appointment overlaps end
-        "  (ba.start_time >= ? AND ba.end_time <= ?)" + // New appointment completely contains existing
+        "  ba.start_time < ? AND ba.end_time > ?" + // Overlap detection: existing_start < new_end AND existing_end >
+                                                    // new_start
         ")";
 
     try (Connection conn = DBContext.getConnection();
         PreparedStatement stmt = conn.prepareStatement(sql)) {
 
       stmt.setInt(1, customerId);
-      stmt.setObject(2, endTime); // end_time > start_time (overlap start)
-      stmt.setObject(3, startTime); // start_time < start_time (overlap start)
-      stmt.setObject(4, endTime); // end_time > end_time (overlap end)
-      stmt.setObject(5, startTime); // start_time < end_time (overlap end)
-      stmt.setObject(6, startTime); // start_time >= start_time (contains)
-      stmt.setObject(7, endTime); // end_time <= end_time (contains)
+      stmt.setObject(2, endTime); // ba.start_time < new_end (existing appointment starts before new appointment
+                                  // ends)
+      stmt.setObject(3, startTime); // ba.end_time > new_start (existing appointment ends after new appointment
+                                    // starts)
 
       try (ResultSet rs = stmt.executeQuery()) {
         while (rs.next()) {

@@ -7,8 +7,7 @@
     <title>Chọn Thời Gian - BeautyZone Spa</title>
     <jsp:include page="/WEB-INF/view/common/home/stylesheet.jsp"></jsp:include>
     
-    <!-- FullCalendar CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+
     
     <style>
         .time-container {
@@ -124,12 +123,16 @@
         /* Beautiful Calendar Modal Styles */
         .calendar-modal {
             position: fixed;
-            inset: 0;
-            z-index: 50;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 999999;
             display: none;
             align-items: center;
             justify-content: center;
             padding: 1rem;
+            background: rgba(0, 0, 0, 0.5);
         }
 
         .calendar-modal.open {
@@ -138,7 +141,10 @@
 
         .calendar-backdrop {
             position: absolute;
-            inset: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background-color: rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(4px);
             transition: opacity 0.3s ease;
@@ -158,6 +164,7 @@
             animation: fadeIn 0.3s ease-out;
             display: flex;
             flex-direction: column;
+            z-index: 1000000;
         }
 
         @keyframes fadeIn {
@@ -400,6 +407,135 @@
             border-radius: 50%;
         }
 
+        /* Availability Status Styles */
+        .calendar-day.fully-booked {
+            background-color: #fee2e2;
+            color: #991b1b;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .calendar-day.fully-booked:hover {
+            background-color: #fee2e2;
+            color: #991b1b;
+            transform: none;
+            border-color: transparent;
+        }
+
+        .calendar-day.limited {
+            background-color: #fef3c7;
+            color: #d97706;
+            border-color: #fde68a;
+        }
+
+        .calendar-day.limited:hover {
+            background-color: #fbbf24;
+            color: white;
+        }
+
+        .calendar-day.available {
+            background-color: #dcfce7;
+            color: #166534;
+            border-color: #bbf7d0;
+        }
+
+        .calendar-day.available:hover {
+            background-color: #16a34a;
+            color: white;
+        }
+
+        .calendar-day.past {
+            background-color: #f3f4f6;
+            color: #9ca3af;
+            cursor: not-allowed;
+            opacity: 0.4;
+        }
+
+        .calendar-day.past:hover {
+            background-color: #f3f4f6;
+            color: #9ca3af;
+            transform: none;
+            border-color: transparent;
+        }
+
+        /* Loading states */
+        .calendar-loading {
+            position: relative;
+            opacity: 0.6;
+        }
+
+        .calendar-loading::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid #e5e7eb;
+            border-top: 2px solid #c8945f;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* Legend for availability status */
+        .availability-legend {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background: #f9fafb;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .legend-color {
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 0.25rem;
+            border: 1px solid #e5e7eb;
+        }
+
+        .legend-available { background-color: #dcfce7; }
+        .legend-limited { background-color: #fef3c7; }
+        .legend-booked { background-color: #fee2e2; }
+        .legend-past { background-color: #f3f4f6; }
+
+        /* Time slots loading and error states */
+        .loading-slots {
+            text-align: center;
+            padding: 2rem;
+            color: #6b7280;
+            font-style: italic;
+        }
+
+        .error-message {
+            text-align: center;
+            padding: 2rem;
+            color: #dc2626;
+            background-color: #fee2e2;
+            border-radius: 0.5rem;
+            border: 1px solid #fecaca;
+        }
+
+        /* Other month days */
+        .calendar-day.other-month {
+            opacity: 0.3;
+            color: #9ca3af;
+        }
+        }
+
         .calendar-day.selected::after {
             content: '';
             position: absolute;
@@ -469,6 +605,38 @@
             transition: all 0.2s ease;
             font-weight: 500;
             font-size: 0.7rem;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.125rem;
+        }
+
+        .time-slot-time {
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+
+        .time-slot-therapists {
+            font-size: 0.6rem;
+            opacity: 0.8;
+            line-height: 1.1;
+        }
+
+        .therapist-count {
+            background: #c8945f;
+            color: white;
+            border-radius: 50%;
+            width: 1rem;
+            height: 1rem;
+            font-size: 0.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            top: -0.25rem;
+            right: -0.25rem;
+            font-weight: 600;
         }
         
         .time-slot:hover:not(.disabled) {
@@ -488,6 +656,131 @@
             color: #9ca3af;
             cursor: not-allowed;
             border-color: #e5e7eb;
+        }
+        
+        /* Conflict styling */
+        .time-slot.conflict {
+            background-color: #fef2f2;
+            color: #dc2626;
+            border-color: #fca5a5;
+            position: relative;
+        }
+
+        .time-slot.conflict::before {
+            content: '⚠️';
+            position: absolute;
+            top: -0.25rem;
+            right: -0.25rem;
+            font-size: 0.6rem;
+            background: #dc2626;
+            color: white;
+            border-radius: 50%;
+            width: 0.8rem;
+            height: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.5rem;
+        }
+
+        .time-slot.conflict:hover {
+            background-color: #dc2626;
+            color: white;
+            border-color: #dc2626;
+        }
+
+        /* Therapist Selection Styles */
+        .therapist-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .therapist-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: white;
+        }
+
+        .therapist-card:hover {
+            border-color: #c8945f;
+            box-shadow: 0 4px 12px rgba(200, 148, 95, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .therapist-card.selected {
+            border-color: #c8945f;
+            background: #fff7ed;
+            box-shadow: 0 4px 16px rgba(200, 148, 95, 0.2);
+        }
+
+        .therapist-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .therapist-avatar {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #c8945f 0%, #a67c4a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .therapist-info {
+            flex: 1;
+        }
+
+        .therapist-name {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.125rem;
+        }
+
+        .therapist-specialty {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .therapist-rating {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            margin-top: 0.25rem;
+        }
+
+        .rating-stars {
+            color: #fbbf24;
+            font-size: 0.875rem;
+        }
+
+        .rating-text {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        .therapist-availability {
+            font-size: 0.75rem;
+            color: #059669;
+            font-weight: 500;
+            margin-top: 0.25rem;
+        }
+
+        /* Service card datetime display */
+        .datetime-therapist {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 0.25rem;
         }
         
         .action-buttons {
@@ -546,6 +839,78 @@
             transform: translateY(-2px);
         }
         
+        /* Page Loading State */
+        .page-loading-state {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 60vh;
+            width: 100%;
+            padding: 3rem 1rem;
+            position: relative;
+        }
+
+        .loading-container {
+            text-align: center;
+            max-width: 400px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+        }
+
+        .loading-spinner {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #c8945f;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-text h3 {
+            color: #374151;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0 0 0.5rem 0;
+        }
+
+        .loading-text p {
+            color: #6b7280;
+            font-size: 1rem;
+            margin: 0;
+            opacity: 0.8;
+        }
+
+        /* Fade in animation for main content */
+        .main-content {
+            opacity: 0;
+            transition: opacity 0.2s ease-out;
+        }
+        
+        .main-content.loaded {
+            animation: fadeInUp 0.3s ease-out;
+            opacity: 1;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         /* Custom scrollbar for better UX */
         ::-webkit-scrollbar {
             width: 6px;
@@ -706,6 +1071,29 @@
                 grid-template-columns: repeat(4, 1fr);
                 gap: 0.375rem;
             }
+            
+            /* Mobile loading state adjustments */
+            .page-loading-state {
+                min-height: 50vh;
+                padding: 1.5rem 1rem;
+            }
+            
+            .loading-container {
+                max-width: 300px;
+            }
+            
+            .spinner {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .loading-text h3 {
+                font-size: 1.1rem;
+            }
+            
+            .loading-text p {
+                font-size: 0.9rem;
+            }
         }
     </style>
 </head>
@@ -745,17 +1133,33 @@
                     </jsp:include>
                     
                     <div class="time-container">
-                        <%-- <!-- Progress Indicator -->
-                        <div class="progress-indicator">
-                            <div class="progress-text">Tiến độ đặt lịch</div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: 50%;"></div>
+                        <!-- Loading State -->
+                        <div id="pageLoadingState" class="page-loading-state">
+                            <div class="loading-container">
+                                <div class="loading-spinner">
+                                    <div class="spinner"></div>
+                                </div>
+                                <div class="loading-text">
+                                    <h3>Đang tải thông tin đặt lịch...</h3>
+                                    <p>Vui lòng đợi trong giây lát</p>
+                                </div>
                             </div>
-                        </div> --%>
+                        </div>
                         
-                        <!-- Services List -->
-                        <div class="services-list" id="servicesList">
-                            <!-- Services will be populated by JavaScript -->
+                        <!-- Main Content (initially hidden) -->
+                        <div id="mainContent" class="main-content" style="display: none;">
+                            <%-- <!-- Progress Indicator -->
+                            <div class="progress-indicator">
+                                <div class="progress-text">Tiến độ đặt lịch</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 50%;"></div>
+                                </div>
+                            </div> --%>
+                            
+                            <!-- Services List -->
+                            <div class="services-list" id="servicesList">
+                                <!-- Services will be populated by JavaScript -->
+                            </div>
                         </div>
                         
                         <!-- Calendar Modal -->
@@ -808,6 +1212,26 @@
                                             </button>
                                         </div>
 
+                                                                <!-- Availability Legend -->
+                        <div class="availability-legend">
+                            <div class="legend-item">
+                                <div class="legend-color legend-available"></div>
+                                <span>Còn nhiều chỗ</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color legend-limited"></div>
+                                <span>Còn ít chỗ</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color legend-booked"></div>
+                                <span>Hết chỗ</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color legend-past"></div>
+                                <span>Đã qua</span>
+                            </div>
+                                        </div>
+
                                         <!-- Calendar Grid -->
                                         <div class="calendar-grid-container">
                                             <!-- Week Headers -->
@@ -843,6 +1267,48 @@
                                         Hủy
                                     </button>
                                     <button type="button" id="modalConfirmBtn" class="btn btn-primary" onclick="confirmTimeSelection()" disabled>
+                                        Xác nhận
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Therapist Selection Modal -->
+                        <div id="therapistModal" class="calendar-modal">
+                            <div class="calendar-backdrop"></div>
+                            <div class="calendar-container" style="max-width: 32rem;">
+                                <!-- Header -->
+                                <div class="calendar-header">
+                                    <button id="closeTherapistBtn" class="close-btn" onclick="closeTherapistModal()">
+                                        <iconify-icon icon="material-symbols:close" width="20" height="20"></iconify-icon>
+                                    </button>
+                                    <div class="header-content">
+                                        <div class="header-icon">
+                                            <iconify-icon icon="material-symbols:person" width="20" height="20"></iconify-icon>
+                                        </div>
+                                        <h2 class="header-title" id="therapistModalTitle">Chọn nhà trị liệu</h2>
+                                    </div>
+                                </div>
+
+                                <!-- Content -->
+                                <div class="calendar-content" style="flex-direction: column; max-height: 60vh; overflow-y: auto;">
+                                    <div id="therapistModalContent">
+                                        <div class="selected-time-info" style="background: #f3f4f6; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+                                            <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 0.25rem;">Thời gian đã chọn:</div>
+                                            <div style="font-weight: 600; color: #374151;" id="selectedTimeDisplay"></div>
+                                        </div>
+                                        <div id="therapistList" class="therapist-list">
+                                            <!-- Therapists will be populated dynamically -->
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Action Buttons -->
+                                <div class="action-buttons">
+                                    <button type="button" class="btn btn-secondary" onclick="closeTherapistModal()">
+                                        Quay lại
+                                    </button>
+                                    <button type="button" id="therapistConfirmBtn" class="btn btn-primary" onclick="confirmTherapistSelection()" disabled>
                                         Xác nhận
                                     </button>
                                 </div>
@@ -904,10 +1370,46 @@
             console.log('📅 Time Selection Page Loading...');
             console.log('Booking Data:', window.bookingData);
             
+            // Show loading state initially
+            showLoadingState();
+            
             if (window.TimeSelection) {
                 window.TimeSelection.init();
             }
         });
+        
+        // Loading state functions
+        function showLoadingState() {
+            const loadingState = document.getElementById('pageLoadingState');
+            const mainContent = document.getElementById('mainContent');
+            
+            if (loadingState) loadingState.style.display = 'flex';
+            if (mainContent) mainContent.style.display = 'none';
+            
+            console.log('🔄 Loading state: SHOWING');
+        }
+        
+        function hideLoadingState() {
+            const loadingState = document.getElementById('pageLoadingState');
+            const mainContent = document.getElementById('mainContent');
+            
+            console.log('✅ Loading state: HIDING, showing main content');
+            
+            if (loadingState) {
+                loadingState.style.display = 'none';
+            }
+            
+            if (mainContent) {
+                mainContent.style.display = 'block';
+                // Add loaded class for animation immediately
+                requestAnimationFrame(() => {
+                    mainContent.classList.add('loaded');
+                });
+            }
+        }
+        
+        // Make function available globally so time-selection.js can call it
+        window.hideLoadingState = hideLoadingState;
     </script>
 </body>
 </html> 
