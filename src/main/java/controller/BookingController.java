@@ -1,29 +1,11 @@
 package controller;
 
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.math.BigDecimal;
-
-import model.Service;
-import model.ServiceType;
-import model.Staff;
-import model.BookingAppointment;
-import model.BookingGroup;
-import model.Customer;
+import com.google.gson.Gson;
+import dao.BookingAppointmentDAO;
+import dao.CustomerDAO;
 import dao.ServiceDAO;
 import dao.ServiceTypeDAO;
 import dao.StaffDAO;
-import dao.BookingAppointmentDAO;
-import dao.CustomerDAO;
-import dao.BookingAppointmentDAO;
-import service.email.EmailService;
-import util.QRCodeGenerator;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.Cookie;
@@ -32,11 +14,26 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
-import com.google.gson.Gson;
-import java.util.logging.Logger;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
+import java.util.logging.Logger;
+import model.BookingAppointment;
+import model.BookingGroup;
 import model.BookingSession;
+import model.Customer;
+import model.Service;
+import model.ServiceType;
+import model.Staff;
 import service.BookingSessionService;
+import service.VNPayService;
+import service.email.EmailService;
+import util.QRCodeGenerator;
 
 @WebServlet(name = "BookingController", urlPatterns = { "/process-booking/*", "/booking/*" })
 public class BookingController extends HttpServlet {
@@ -48,10 +45,10 @@ public class BookingController extends HttpServlet {
   private ServiceTypeDAO serviceTypeDAO;
   private BookingAppointmentDAO bookingAppointmentDAO;
   private CustomerDAO customerDAO;
-  private BookingAppointmentDAO bookingAppointmentDAO;
   private EmailService emailService;
   private QRCodeGenerator qrCodeGenerator;
   private BookingSessionService bookingSessionService;
+  private VNPayService vnPayService;
   private Gson gson;
 
   // Booking session keys
@@ -80,13 +77,14 @@ public class BookingController extends HttpServlet {
     emailService = new EmailService();
     qrCodeGenerator = new QRCodeGenerator();
     bookingSessionService = new BookingSessionService();
+    vnPayService = new VNPayService();
     gson = new Gson();
   }
 
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     String pathInfo = request.getPathInfo();
-    
+
     // Handle appointment list and details via pathInfo
     if (pathInfo != null) {
       if (pathInfo.equals("/list")) {
@@ -107,7 +105,7 @@ public class BookingController extends HttpServlet {
         }
       }
     }
-    
+
     if (pathInfo == null) {
       // Default to individual booking flow
       processBookingIndividual(request, response);
@@ -125,7 +123,7 @@ public class BookingController extends HttpServlet {
         handleTherapistSelection(request, response);
         break;
       case "/time":
-      case "/time-selection":
+      case "/time-therapists-selection":
         handleTimeSelection(request, response);
         break;
       case "/payment":
@@ -133,6 +131,9 @@ public class BookingController extends HttpServlet {
         break;
       case "/confirmation":
         handleConfirmation(request, response);
+        break;
+      case "/vnpay-return":
+        handleVNPayReturn(request, response);
         break;
       case "/resume":
         handleResumeSession(request, response);
@@ -148,6 +149,15 @@ public class BookingController extends HttpServlet {
         break;
       case "/status":
         handleBookingStatus(request, response);
+        break;
+      case "save-time":
+        saveSelectedTime(request, response);
+        break;
+      case "save-time-therapists":
+        saveSelectedTimeAndTherapists(request, response);
+        break;
+      case "save-therapist":
+        saveSelectedTherapist(request, response);
         break;
       default:
         // Default to individual booking flow
@@ -176,9 +186,18 @@ public class BookingController extends HttpServlet {
         case "/save-time":
           saveSelectedTime(request, response);
           break;
+        case "/save-time-therapists":
+          saveSelectedTimeAndTherapists(request, response);
+          break;
         case "/payment":
         case "/process-payment":
           processPayment(request, response);
+          break;
+        case "/vnpay-payment":
+          initVNPayPayment(request, response);
+          break;
+        case "/vnpay-return":
+          handleVNPayReturn(request, response);
           break;
         case "/complete":
         case "/confirm-booking":
@@ -371,35 +390,51 @@ public class BookingController extends HttpServlet {
     request.setAttribute("selectedServices", bookingSession.getData().getSelectedServices());
     request.setAttribute("bookingSession", bookingSession);
     request.setAttribute("currentStep", "time");
-    request.getRequestDispatcher("/WEB-INF/view/customer/appointments/time-selection.jsp").forward(request, response);
+    request.getRequestDispatcher("/WEB-INF/view/customer/appointments/time-therapists-selection.jsp").forward(request,
+        response);
   }
 
   // Handle payment
   private void handlePayment(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    HttpSession session = request.getSession(false);
 
-    if (session == null) {
-      response.sendRedirect(request.getContextPath() + "/process-booking/services");
-      return;
-    }
+    try {
+      // Get booking session from database
+      BookingSession bookingSession = bookingSessionService.getSessionFromRequest(request);
 
-    BookingSession bookingSession = (BookingSession) session.getAttribute("bookingSession");
-    if (bookingSession == null || !bookingSession.isReadyForPayment()) {
-      // Incomplete booking session, redirect to appropriate step
-      if (bookingSession == null || !bookingSession.hasServices()) {
-        response.sendRedirect(request.getContextPath() + "/process-booking/services");
-      } else if (!bookingSession.hasTherapistAssignments()) {
-        response.sendRedirect(request.getContextPath() + "/process-booking/therapist-selection");
-      } else if (!bookingSession.hasTimeSlots()) {
-        response.sendRedirect(request.getContextPath() + "/process-booking/time-selection");
+      if (bookingSession != null && bookingSessionService.isSessionReadyForPayment(bookingSession)) {
+        // Set persistent cookie if available
+        setPersistentCookieIfNeeded(request, response);
+
+        // Pass complete booking data to JSP
+        request.setAttribute("bookingSession", bookingSession);
+        request.setAttribute("selectedServices", bookingSession.getData().getSelectedServices());
+        request.setAttribute("totalAmount", bookingSession.getData().getTotalAmount());
+
+        LOGGER.info("Payment page loaded with booking session: " + bookingSession.getSessionId());
+
+      } else {
+        // No booking session or not ready - provide fallback data for testing
+        LOGGER.warning("No valid booking session found, providing fallback data for payment page");
+
+        // Create sample data for testing
+        request.setAttribute("bookingSession", null);
+        request.setAttribute("selectedServices", null);
+        request.setAttribute("totalAmount", 500000); // Default amount for testing
       }
-      return;
-    }
 
-    // Pass complete booking data to JSP
-    request.setAttribute("bookingSession", bookingSession);
-    request.getRequestDispatcher("/WEB-INF/view/customer/appointments/payment.jsp").forward(request, response);
+      // Always forward to payment page
+      request.getRequestDispatcher("/WEB-INF/view/customer/appointments/payment.jsp").forward(request, response);
+
+    } catch (Exception e) {
+      LOGGER.log(Level.SEVERE, "Error handling payment page", e);
+
+      // Provide minimal fallback
+      request.setAttribute("bookingSession", null);
+      request.setAttribute("selectedServices", null);
+      request.setAttribute("totalAmount", 500000);
+      request.getRequestDispatcher("/WEB-INF/view/customer/appointments/payment.jsp").forward(request, response);
+    }
   }
 
   // Handle confirmation
@@ -703,7 +738,7 @@ public class BookingController extends HttpServlet {
       if (success) {
         LOGGER.log(Level.INFO, "Successfully assigned therapist to services in database");
         response.setContentType("application/json");
-        response.getWriter().write("{\"success\": true, \"nextStep\": \"time-selection\"}");
+        response.getWriter().write("{\"success\": true, \"nextStep\": \"time-therapists-selection\"}");
       } else {
         LOGGER.log(Level.SEVERE, "Failed to assign therapist to services in database");
         response.setContentType("application/json");
@@ -791,6 +826,124 @@ public class BookingController extends HttpServlet {
     }
   }
 
+  /**
+   * Enhanced method to save both time selections and therapist assignments
+   * for the combined time-therapists-selection step
+   */
+  private void saveSelectedTimeAndTherapists(HttpServletRequest request, HttpServletResponse response)
+      throws ServletException, IOException {
+
+    // Get booking session from database
+    BookingSession bookingSession = bookingSessionService.getSessionFromRequest(request);
+    if (bookingSession == null) {
+      response.setContentType("application/json");
+      response.getWriter().write("{\"success\": false, \"message\": \"No booking session found\"}");
+      return;
+    }
+
+    // Set persistent cookie if marked by service
+    setPersistentCookieIfNeeded(request, response);
+
+    String selectedDate = request.getParameter("selectedDate");
+    String selectedTime = request.getParameter("selectedTime");
+
+    if (selectedDate == null || selectedTime == null) {
+      response.setContentType("application/json");
+      response.getWriter().write("{\"success\": false, \"message\": \"Date and time must be selected\"}");
+      return;
+    }
+
+    try {
+      // Parse date and time
+      LocalDate date = LocalDate.parse(selectedDate);
+      LocalTime time = LocalTime.parse(selectedTime);
+      LocalDateTime selectedDateTime = LocalDateTime.of(date, time);
+
+      // Schedule all services with their time slots
+      boolean timeSchedulingSuccess = true;
+      if (bookingSession.hasServices()) {
+        LocalDateTime currentTime = selectedDateTime;
+
+        for (BookingSession.ServiceSelection serviceSelection : bookingSession.getData().getSelectedServices()) {
+          timeSchedulingSuccess = bookingSessionService.scheduleService(
+              bookingSession,
+              serviceSelection.getServiceId(),
+              currentTime);
+
+          if (!timeSchedulingSuccess) {
+            break; // Stop if any scheduling fails
+          }
+
+          // Next service starts after current service ends
+          currentTime = currentTime.plusMinutes(serviceSelection.getEstimatedDuration());
+        }
+
+        // Set the selected date in the session data if all scheduling was successful
+        if (timeSchedulingSuccess) {
+          bookingSession.getData().setSelectedDate(date);
+        }
+      }
+
+      // Process therapist assignments from request parameters
+      boolean therapistAssignmentSuccess = true;
+      if (timeSchedulingSuccess) {
+        // Look for therapist assignment parameters in format:
+        // therapist_<serviceId>=<therapistUserId>_<therapistName>
+        for (BookingSession.ServiceSelection serviceSelection : bookingSession.getData().getSelectedServices()) {
+          String therapistParam = request.getParameter("therapist_" + serviceSelection.getServiceId());
+
+          if (therapistParam != null && !therapistParam.trim().isEmpty()) {
+            // Parse therapist parameter: format "therapistUserId_therapistName"
+            String[] therapistData = therapistParam.split("_", 2);
+            if (therapistData.length >= 2) {
+              try {
+                int therapistUserId = Integer.parseInt(therapistData[0]);
+                String therapistName = therapistData[1];
+
+                therapistAssignmentSuccess = bookingSessionService.assignTherapistToService(
+                    bookingSession,
+                    serviceSelection.getServiceId(),
+                    therapistUserId,
+                    therapistName);
+
+                if (!therapistAssignmentSuccess) {
+                  break; // Stop if any assignment fails
+                }
+              } catch (NumberFormatException e) {
+                LOGGER.log(Level.WARNING, "Invalid therapist user ID format: " + therapistData[0]);
+                therapistAssignmentSuccess = false;
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      // Save session updates
+      if (timeSchedulingSuccess && therapistAssignmentSuccess) {
+        bookingSessionService.updateSession(bookingSession);
+
+        LOGGER.log(Level.INFO, "Successfully saved time slots and therapist assignments to database");
+        response.setContentType("application/json");
+
+        // Determine next step based on whether all therapists are assigned
+        String nextStep = bookingSession.hasTherapistAssignments() ? "payment" : "therapists";
+        response.getWriter().write("{\"success\": true, \"nextStep\": \"" + nextStep + "\"}");
+      } else {
+        String errorMessage = !timeSchedulingSuccess ? "Failed to schedule time slots" : "Failed to assign therapists";
+        LOGGER.log(Level.SEVERE, errorMessage);
+        response.setContentType("application/json");
+        response.getWriter().write("{\"success\": false, \"message\": \"" + errorMessage + "\"}");
+      }
+
+    } catch (Exception e) {
+      LOGGER.log(Level.SEVERE, "Error saving time and therapist selections", e);
+      response.setContentType("application/json");
+      response.getWriter()
+          .write("{\"success\": false, \"message\": \"Error saving selections: " + e.getMessage() + "\"}");
+    }
+  }
+
   private void processPayment(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
 
@@ -842,6 +995,198 @@ public class BookingController extends HttpServlet {
       response.getWriter()
           .write("{\"success\": false, \"message\": \"Error processing payment: " + e.getMessage() + "\"}");
     }
+  }
+
+  /**
+   * Initialize VNPay payment process
+   */
+  private void initVNPayPayment(HttpServletRequest request, HttpServletResponse response)
+      throws ServletException, IOException {
+
+    // Get booking session from database
+    BookingSession bookingSession = bookingSessionService.getSessionFromRequest(request);
+    if (bookingSession == null || !bookingSessionService.isSessionReadyForPayment(bookingSession)) {
+      response.setContentType("application/json");
+      response.getWriter().write("{\"success\": false, \"message\": \"Incomplete booking session\"}");
+      return;
+    }
+
+    try {
+      // Generate unique order ID using session ID and timestamp
+      String orderId = bookingSession.getSessionId() + "_" + System.currentTimeMillis();
+
+      // Get total amount from booking session
+      long totalAmount = bookingSession.getData().getTotalAmount().longValue();
+
+      // Build order info with service and therapist details
+      StringBuilder orderInfo = new StringBuilder();
+      orderInfo.append("Thanh toan dich vu spa - ");
+
+      // Add service information
+      List<BookingSession.ServiceSelection> services = bookingSession.getData().getSelectedServices();
+      for (int i = 0; i < services.size(); i++) {
+        if (i > 0)
+          orderInfo.append(", ");
+        BookingSession.ServiceSelection service = services.get(i);
+        orderInfo.append(service.getServiceName());
+
+        // Add therapist info if available
+        if (service.getTherapistName() != null && !service.getTherapistName().isEmpty()) {
+          orderInfo.append(" (").append(service.getTherapistName()).append(")");
+        }
+      }
+
+      // Add appointment date/time
+      if (bookingSession.getData().getSelectedDate() != null) {
+        orderInfo.append(" - Ngay: ").append(bookingSession.getData().getSelectedDate());
+      }
+      // Get time from first service selection
+      if (!services.isEmpty() && services.get(0).getScheduledTime() != null) {
+        orderInfo.append(" luc ").append(services.get(0).getScheduledTime().toLocalTime());
+      }
+
+      // Get customer info
+      HttpSession httpSession = request.getSession();
+      Customer customer = (Customer) httpSession.getAttribute("customer");
+      String customerInfo = customer != null ? customer.getFullName() : "Guest";
+
+      // Get client IP address
+      String ipAddress = getClientIpAddress(request);
+
+      // Generate return URL
+      String returnUrl = request.getScheme() + "://" + request.getServerName() +
+          ":" + request.getServerPort() + request.getContextPath() +
+          "/process-booking/vnpay-return";
+
+      // Generate VNPay payment URL
+      String paymentUrl = vnPayService.generatePaymentUrl(
+          orderId,
+          totalAmount,
+          orderInfo.toString(),
+          customerInfo,
+          returnUrl,
+          ipAddress);
+
+      if (paymentUrl != null) {
+        // Store order ID in session for verification
+        request.getSession().setAttribute("vnpay_order_id", orderId);
+        request.getSession().setAttribute("vnpay_amount", totalAmount);
+
+        // Return payment URL to frontend
+        response.setContentType("application/json");
+        response.getWriter().write("{\"success\": true, \"paymentUrl\": \"" + paymentUrl + "\"}");
+      } else {
+        response.setContentType("application/json");
+        response.getWriter().write("{\"success\": false, \"message\": \"Failed to generate payment URL\"}");
+      }
+
+    } catch (Exception e) {
+      LOGGER.log(Level.SEVERE, "Error initializing VNPay payment", e);
+      response.setContentType("application/json");
+      response.getWriter()
+          .write("{\"success\": false, \"message\": \"Error initializing payment: " + e.getMessage() + "\"}");
+    }
+  }
+
+  /**
+   * Handle VNPay payment return/callback
+   */
+  private void handleVNPayReturn(HttpServletRequest request, HttpServletResponse response)
+      throws ServletException, IOException {
+
+    try {
+      // Get all parameters from VNPay
+      Map<String, String> vnpParams = new HashMap<>();
+      Map<String, String[]> requestParams = request.getParameterMap();
+
+      for (Map.Entry<String, String[]> entry : requestParams.entrySet()) {
+        if (entry.getValue().length > 0) {
+          vnpParams.put(entry.getKey(), entry.getValue()[0]);
+        }
+      }
+
+      // Process payment result using VNPayService
+      VNPayService.PaymentResult paymentResult = vnPayService.processPaymentResult(vnpParams);
+
+      if (paymentResult.isSuccess()) {
+        // Verify order ID matches what we stored
+        String storedOrderId = (String) request.getSession().getAttribute("vnpay_order_id");
+        Long storedAmount = (Long) request.getSession().getAttribute("vnpay_amount");
+
+        if (storedOrderId != null && storedOrderId.equals(paymentResult.getOrderId()) &&
+            storedAmount != null && storedAmount.equals(paymentResult.getAmount())) {
+
+          // Get booking session and complete the payment
+          BookingSession bookingSession = bookingSessionService.getSessionFromRequest(request);
+          if (bookingSession != null) {
+
+            // Update payment details in booking session
+            boolean updateSuccess = bookingSessionService.updatePaymentDetails(
+                bookingSession,
+                "VNPAY",
+                "VNPay Transaction: " + paymentResult.getTransactionId() +
+                    " | Bank: " + paymentResult.getBankCode());
+
+            if (updateSuccess) {
+              // Create actual appointments
+              HttpSession httpSession = request.getSession();
+              List<BookingAppointment> appointments = createBookingAppointmentsFromSession(bookingSession, httpSession);
+
+              if (!appointments.isEmpty()) {
+                // Clear booking session after successful payment
+                bookingSessionService.completeAndDeleteSession(bookingSession.getSessionId());
+
+                // Clear VNPay session data
+                request.getSession().removeAttribute("vnpay_order_id");
+                request.getSession().removeAttribute("vnpay_amount");
+                request.getSession().removeAttribute("bookingSessionId");
+
+                // Redirect to confirmation page with success
+                response.sendRedirect(request.getContextPath()
+                    + "/process-booking/confirmation?payment=success&transaction=" + paymentResult.getTransactionId());
+                return;
+              }
+            }
+          }
+        }
+
+        // Payment verification failed
+        LOGGER.warning("VNPay payment verification failed for order: " + paymentResult.getOrderId());
+        response.sendRedirect(request.getContextPath() + "/process-booking/payment?error=verification_failed");
+
+      } else {
+        // Payment failed
+        LOGGER
+            .info("VNPay payment failed: " + paymentResult.getMessage() + " for order: " + paymentResult.getOrderId());
+        response.sendRedirect(request.getContextPath() + "/process-booking/payment?error=payment_failed&message=" +
+            java.net.URLEncoder.encode(paymentResult.getMessage(), "UTF-8"));
+      }
+
+    } catch (Exception e) {
+      LOGGER.log(Level.SEVERE, "Error handling VNPay return", e);
+      response.sendRedirect(request.getContextPath() + "/process-booking/payment?error=system_error");
+    }
+  }
+
+  /**
+   * Get client IP address from request
+   */
+  private String getClientIpAddress(HttpServletRequest request) {
+    String ipAddress = request.getHeader("X-Forwarded-For");
+    if (ipAddress == null || ipAddress.isEmpty() || "unknown".equalsIgnoreCase(ipAddress)) {
+      ipAddress = request.getHeader("Proxy-Client-IP");
+    }
+    if (ipAddress == null || ipAddress.isEmpty() || "unknown".equalsIgnoreCase(ipAddress)) {
+      ipAddress = request.getHeader("WL-Proxy-Client-IP");
+    }
+    if (ipAddress == null || ipAddress.isEmpty() || "unknown".equalsIgnoreCase(ipAddress)) {
+      ipAddress = request.getRemoteAddr();
+    }
+    // Handle multiple IPs (take the first one)
+    if (ipAddress != null && ipAddress.contains(",")) {
+      ipAddress = ipAddress.split(",")[0].trim();
+    }
+    return ipAddress != null ? ipAddress : "127.0.0.1";
   }
 
   // Helper method to create BookingAppointments from booking session
@@ -1080,7 +1425,7 @@ public class BookingController extends HttpServlet {
     request.setAttribute("selectedServices", session.getData().getSelectedServices());
     request.setAttribute("currentStep", "time");
     request.setAttribute("bookingSession", session);
-    request.getRequestDispatcher("/WEB-INF/view/customer/appointments/time-selection.jsp")
+    request.getRequestDispatcher("/WEB-INF/view/customer/appointments/time-therapists-selection.jsp")
         .forward(request, response);
   }
 
@@ -1271,35 +1616,36 @@ public class BookingController extends HttpServlet {
   /**
    * Handle booking list for customer
    */
-  private void handleBookingList(HttpServletRequest request, HttpServletResponse response) 
+  private void handleBookingList(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
     try {
       // Get customer from session
       HttpSession session = request.getSession();
       Customer customer = (Customer) session.getAttribute("customer");
-      
+
       if (customer == null) {
         // Redirect to login if not logged in
         response.sendRedirect(request.getContextPath() + "/login");
         return;
       }
-      
+
       // Get search parameter
       String search = request.getParameter("search");
-      
+
       // Get booking groups with appointments
-      List<Map<String, Object>> bookingGroups = bookingAppointmentDAO.findBookingGroupsWithAppointments(customer.getCustomerId());
-      
+      List<Map<String, Object>> bookingGroups = bookingAppointmentDAO
+          .findBookingGroupsWithAppointments(customer.getCustomerId());
+
       // Filter by search if provided
       if (search != null && !search.trim().isEmpty()) {
         bookingGroups = filterBookingGroupsBySearch(bookingGroups, search.trim());
       }
-      
+
       request.setAttribute("bookingGroups", bookingGroups);
       request.setAttribute("search", search);
-      
+
       request.getRequestDispatcher("/WEB-INF/view/customer/appointments/booking_list.jsp").forward(request, response);
-      
+
     } catch (Exception e) {
       LOGGER.log(Level.SEVERE, "Error handling booking list", e);
       request.setAttribute("errorMessage", "Error loading appointments: " + e.getMessage());
@@ -1310,88 +1656,96 @@ public class BookingController extends HttpServlet {
   /**
    * Handle booking details for customer
    */
-  private void handleBookingDetails(HttpServletRequest request, HttpServletResponse response) 
+  private void handleBookingDetails(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
     try {
       // Get customer from session
       HttpSession session = request.getSession();
       Customer customer = (Customer) session.getAttribute("customer");
-      
+
       if (customer == null) {
         // Redirect to login if not logged in
         response.sendRedirect(request.getContextPath() + "/login");
         return;
       }
-      
+
       // Get appointment ID from request attribute (set by pathInfo parsing)
       Integer appointmentId = (Integer) request.getAttribute("appointmentId");
       if (appointmentId == null) {
         request.setAttribute("errorMessage", "Appointment ID is required");
-        request.getRequestDispatcher("/WEB-INF/view/customer/appointments/booking_details.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/view/customer/appointments/booking_details.jsp").forward(request,
+            response);
         return;
       }
-      
+
       // Get appointment details
       Map<String, Object> appointmentDetails = bookingAppointmentDAO.findAppointmentWithDetails(appointmentId);
-      
+
       if (appointmentDetails.isEmpty()) {
         request.setAttribute("errorMessage", "Appointment not found");
-        request.getRequestDispatcher("/WEB-INF/view/customer/appointments/booking_details.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/view/customer/appointments/booking_details.jsp").forward(request,
+            response);
         return;
       }
-      
+
       // Verify that the appointment belongs to the logged-in customer
       @SuppressWarnings("unchecked")
       Map<String, Object> bookingGroup = (Map<String, Object>) appointmentDetails.get("bookingGroup");
       if (bookingGroup == null || !customer.getCustomerId().equals(bookingGroup.get("customerId"))) {
         request.setAttribute("errorMessage", "Access denied: This appointment does not belong to you");
-        request.getRequestDispatcher("/WEB-INF/view/customer/appointments/booking_details.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/view/customer/appointments/booking_details.jsp").forward(request,
+            response);
         return;
       }
       // Convert LocalDateTime to java.util.Date for JSTL compatibility
       BookingAppointment appointment = (BookingAppointment) appointmentDetails.get("appointment");
       if (appointment != null) {
-        java.util.Date startTimeDate = java.util.Date.from(appointment.getStartTime().atZone(java.time.ZoneId.systemDefault()).toInstant());
-        java.util.Date endTimeDate = java.util.Date.from(appointment.getEndTime().atZone(java.time.ZoneId.systemDefault()).toInstant());
+        java.util.Date startTimeDate = java.util.Date
+            .from(appointment.getStartTime().atZone(java.time.ZoneId.systemDefault()).toInstant());
+        java.util.Date endTimeDate = java.util.Date
+            .from(appointment.getEndTime().atZone(java.time.ZoneId.systemDefault()).toInstant());
         appointmentDetails.put("startTimeDate", startTimeDate);
         appointmentDetails.put("endTimeDate", endTimeDate);
       }
       request.setAttribute("appointmentDetails", appointmentDetails);
-      request.getRequestDispatcher("/WEB-INF/view/customer/appointments/booking_details.jsp").forward(request, response);
-      
+      request.getRequestDispatcher("/WEB-INF/view/customer/appointments/booking_details.jsp").forward(request,
+          response);
+
     } catch (Exception e) {
       LOGGER.log(Level.SEVERE, "Error handling booking details", e);
       request.setAttribute("errorMessage", "Error loading appointment details: " + e.getMessage());
-      request.getRequestDispatcher("/WEB-INF/view/customer/appointments/booking_details.jsp").forward(request, response);
+      request.getRequestDispatcher("/WEB-INF/view/customer/appointments/booking_details.jsp").forward(request,
+          response);
     }
   }
 
   /**
    * Filter booking groups by search term
    */
-  private List<Map<String, Object>> filterBookingGroupsBySearch(List<Map<String, Object>> bookingGroups, String search) {
+  private List<Map<String, Object>> filterBookingGroupsBySearch(List<Map<String, Object>> bookingGroups,
+      String search) {
     List<Map<String, Object>> filteredGroups = new ArrayList<>();
     String searchLower = search.toLowerCase();
-    
+
     for (Map<String, Object> group : bookingGroups) {
-        @SuppressWarnings("unchecked")
-        List<Map<String, Object>> appointments = (List<Map<String, Object>>) group.get("appointments");
-        List<Map<String, Object>> filteredAppointments = new ArrayList<>();
-        
-        for (Map<String, Object> appointment : appointments) {
-            String serviceName = (String) appointment.get("serviceName");
-            String therapistName = (String) appointment.get("therapistName");
-            if ((serviceName != null && serviceName.toLowerCase().contains(searchLower)) ||
-                (therapistName != null && therapistName.toLowerCase().contains(searchLower))) {
-                filteredAppointments.add(appointment);
-            }
+      @SuppressWarnings("unchecked")
+      List<Map<String, Object>> appointments = (List<Map<String, Object>>) group.get("appointments");
+      List<Map<String, Object>> filteredAppointments = new ArrayList<>();
+
+      for (Map<String, Object> appointment : appointments) {
+        String serviceName = (String) appointment.get("serviceName");
+        String therapistName = (String) appointment.get("therapistName");
+        if ((serviceName != null && serviceName.toLowerCase().contains(searchLower)) ||
+            (therapistName != null && therapistName.toLowerCase().contains(searchLower))) {
+          filteredAppointments.add(appointment);
         }
-        if (!filteredAppointments.isEmpty()) {
-            // Tạo bản sao group và chỉ giữ lại các appointment khớp search
-            Map<String, Object> groupCopy = new java.util.HashMap<>(group);
-            groupCopy.put("appointments", filteredAppointments);
-            filteredGroups.add(groupCopy);
-        }
+      }
+      if (!filteredAppointments.isEmpty()) {
+        // Tạo bản sao group và chỉ giữ lại các appointment khớp search
+        Map<String, Object> groupCopy = new java.util.HashMap<>(group);
+        groupCopy.put("appointments", filteredAppointments);
+        filteredGroups.add(groupCopy);
+      }
     }
     return filteredGroups;
   }

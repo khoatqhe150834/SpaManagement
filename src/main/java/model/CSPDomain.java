@@ -13,7 +13,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class CSPDomain {
-  private static final int NUMBER_OF_DAY_AHEAD = 60; // in days
+  private static final int NUMBER_OF_DAY_AHEAD = 360; // in days
   private static final int TIME_INTERVAL = 30; // in minutes
   private static final LocalTime BUSINESS_START_TIME = LocalTime.of(7, 0); // 7:00 AM
   private static final LocalTime BUSINESS_END_TIME = LocalTime.of(19, 0); // 7:00 PM

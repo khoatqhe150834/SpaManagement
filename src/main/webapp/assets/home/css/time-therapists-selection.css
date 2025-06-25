@@ -55,14 +55,14 @@ body {
 }
 
 /* Grid layout */
-.time-selection-grid {
+.time-therapists-selection-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 2rem;
 }
 
 @media (min-width: 1024px) {
-  .time-selection-grid {
+  .time-therapists-selection-grid {
     grid-template-columns: 2fr 1fr;
     gap: 3rem;
   }

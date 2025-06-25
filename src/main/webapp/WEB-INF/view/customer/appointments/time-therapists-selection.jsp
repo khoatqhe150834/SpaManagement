@@ -1344,7 +1344,7 @@
     <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
     
     <!-- Time Selection JavaScript -->
-    <script src="${pageContext.request.contextPath}/assets/home/js/time-selection.js"></script>
+    <script src="${pageContext.request.contextPath}/assets/home/js/time-therapists-selection.js"></script>
     
     <script>
         // Pass booking session data to JavaScript
@@ -1408,7 +1408,7 @@
             }
         }
         
-        // Make function available globally so time-selection.js can call it
+        // Make function available globally so time-therapists-selection.js can call it
         window.hideLoadingState = hideLoadingState;
     </script>
 </body>

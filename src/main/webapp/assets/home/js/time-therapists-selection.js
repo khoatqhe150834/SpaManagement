@@ -30,7 +30,7 @@ window.TimeSelection = (function() {
         apiEndpoints: {
             availability: '/api/availability',
             therapistSchedules: '/api/therapist-schedules',
-            saveDateTime: '/process-booking/save-time'
+            saveDateTime: '/process-booking/save-time-therapists'
         }
     };
     
@@ -1260,9 +1260,21 @@ window.TimeSelection = (function() {
             formData.append('selectedDate', firstSelection.date);
             formData.append('selectedTime', firstSelection.time);
             
-            console.log('📤 Sending date/time to server:', {
+            // Add therapist selections for each service
+            for (const [serviceId, selection] of Object.entries(serviceTimeSelections)) {
+                if (selection.therapist && selection.therapist.therapistId) {
+                    const therapistParam = `${selection.therapist.therapistId}_${selection.therapist.therapistName}`;
+                    formData.append(`therapist_${serviceId}`, therapistParam);
+                }
+            }
+            
+            console.log('📤 Sending date/time and therapist data to server:', {
                 selectedDate: firstSelection.date,
-                selectedTime: firstSelection.time
+                selectedTime: firstSelection.time,
+                therapistSelections: Object.entries(serviceTimeSelections).map(([serviceId, sel]) => ({
+                    serviceId,
+                    therapist: sel.therapist
+                }))
             });
             
             // Save to server
@@ -1278,15 +1290,16 @@ window.TimeSelection = (function() {
             const result = await response.json();
             
             if (result.success) {
-                console.log('✅ Time saved successfully');
-                // Navigate to next step (therapist selection)
-                window.location.href = `${window.bookingData.contextPath}/process-booking/therapists`;
+                console.log('✅ Time and therapist selections saved successfully');
+                // Navigate to next step based on server response
+                const nextStep = result.nextStep || 'payment';
+                window.location.href = `${window.bookingData.contextPath}/process-booking/${nextStep}`;
             } else {
-                showError('Lỗi lưu thời gian đã chọn: ' + (result.message || 'Unknown error'));
+                showError('Lỗi lưu thông tin đã chọn: ' + (result.message || 'Unknown error'));
             }
             
         } catch (error) {
-            console.error('❌ Error saving time selections:', error);
+            console.error('❌ Error saving time and therapist selections:', error);
             showError('Lỗi kết nối. Vui lòng thử lại.');
         }
     }

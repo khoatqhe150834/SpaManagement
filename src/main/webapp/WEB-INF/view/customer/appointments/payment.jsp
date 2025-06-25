@@ -185,6 +185,22 @@
                                             </div>
                                             <p style="color: #6b7280; margin-top: 8px;">Thanh toán bằng tiền mặt khi đến spa</p>
                                         </div>
+                                        
+                                        <div class="payment-method-option" data-method="vnpay">
+                                            <div style="display: flex; align-items: center;">
+                                                <iconify-icon icon="mdi:credit-card" style="font-size: 24px; margin-right: 12px; color: #1e40af;"></iconify-icon>
+                                                <span style="font-weight: 600;">Thanh toán online qua VNPay</span>
+                                                <input type="radio" name="paymentMethod" value="vnpay" style="margin-left: auto;">
+                                            </div>
+                                            <p style="color: #6b7280; margin-top: 8px;">Thanh toán qua Internet Banking, QR Code hoặc thẻ ATM</p>
+                                            <div style="margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap;">
+                                                <span style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Vietcombank</span>
+                                                <span style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Techcombank</span>
+                                                <span style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px; font-size: 12px;">BIDV</span>
+                                                <span style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px; font-size: 12px;">ACB</span>
+                                                <span style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px; font-size: 12px;">MBBank</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -197,32 +213,86 @@
                                     </div>
                                     <div class="payment-content">
                                         <div class="booking-summary">
-                                            <!-- Services -->
-                                            <h4 style="margin-bottom: 16px;">Dịch vụ đã chọn</h4>
-                                            <c:forEach var="service" items="${selectedServices}">
+                                            <!-- Booking Details -->
+                                            <h4 style="margin-bottom: 16px;">Chi tiết đặt lịch</h4>
+                                            
+                                            <!-- Time and Date -->
+                                            <c:if test="${not empty bookingSession and not empty bookingSession.data.selectedDate}">
                                                 <div class="service-item">
                                                     <div>
-                                                        <h5>${service.name}</h5>
-                                                        <p>${service.durationMinutes} phút</p>
+                                                        <h5>Ngày & Giờ hẹn</h5>
+                                                        <p>
+                                                            <fmt:formatDate value="${bookingSession.data.selectedDate}" pattern="dd/MM/yyyy" />
+                                                            <c:if test="${not empty bookingSession.data.selectedServices and not empty bookingSession.data.selectedServices[0].scheduledTime}">
+                                                                lúc <fmt:formatDate value="${bookingSession.data.selectedServices[0].scheduledTime}" pattern="HH:mm" />
+                                                            </c:if>
+                                                        </p>
                                                     </div>
-                                                    <div style="font-weight: 600; color: #c8945f;">
-                                                        <fmt:formatNumber value="${service.price}" type="currency" currencySymbol="" /> VND
+                                                    <div>
+                                                        <iconify-icon icon="mdi:calendar-clock" style="color: #c8945f; font-size: 20px;"></iconify-icon>
                                                     </div>
                                                 </div>
-                                            </c:forEach>
+                                            </c:if>
+                                            
+                                            <!-- Services with Therapists -->
+                                            <h4 style="margin-bottom: 16px; margin-top: 24px;">Dịch vụ đã chọn</h4>
+                                            <c:choose>
+                                                <c:when test="${not empty bookingSession and not empty bookingSession.data.selectedServices}">
+                                                    <c:forEach var="serviceSelection" items="${bookingSession.data.selectedServices}">
+                                                        <div class="service-item">
+                                                            <div>
+                                                                <h5>${serviceSelection.serviceName}</h5>
+                                                                <p>${serviceSelection.estimatedDuration} phút</p>
+                                                                <c:if test="${not empty serviceSelection.therapistName}">
+                                                                    <p style="color: #6b7280; font-size: 14px;">
+                                                                        <iconify-icon icon="mdi:account" style="margin-right: 4px;"></iconify-icon>
+                                                                        Nhân viên: ${serviceSelection.therapistName}
+                                                                    </p>
+                                                                </c:if>
+                                                            </div>
+                                                            <div style="font-weight: 600; color: #c8945f;">
+                                                                <fmt:formatNumber value="${serviceSelection.estimatedPrice}" type="currency" currencySymbol="" /> VND
+                                                            </div>
+                                                        </div>
+                                                    </c:forEach>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <!-- Fallback to old format if bookingSession is not available -->
+                                                    <c:forEach var="service" items="${selectedServices}">
+                                                        <div class="service-item">
+                                                            <div>
+                                                                <h5>${service.name}</h5>
+                                                                <p>${service.durationMinutes} phút</p>
+                                                            </div>
+                                                            <div style="font-weight: 600; color: #c8945f;">
+                                                                <fmt:formatNumber value="${service.price}" type="currency" currencySymbol="" /> VND
+                                                            </div>
+                                                        </div>
+                                                    </c:forEach>
+                                                </c:otherwise>
+                                            </c:choose>
                                             
                                             <!-- Total -->
                                             <div class="total-section">
                                                 <div class="total-row" style="font-size: 18px; font-weight: 700;">
                                                     <span>Tổng thanh toán:</span>
-                                                    <span><fmt:formatNumber value="${totalAmount}" type="currency" currencySymbol="" /> VND</span>
+                                                    <span>
+                                                        <c:choose>
+                                                            <c:when test="${not empty bookingSession and not empty bookingSession.data.totalAmount}">
+                                                                <fmt:formatNumber value="${bookingSession.data.totalAmount}" type="currency" currencySymbol="" /> VND
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                <fmt:formatNumber value="${totalAmount}" type="currency" currencySymbol="" /> VND
+                                                            </c:otherwise>
+                                                        </c:choose>
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
                                         
                                         <!-- Action Buttons -->
                                         <div class="btn-group">
-                                            <a href="${pageContext.request.contextPath}/process-booking/time-selection" class="btn btn-secondary">
+                                            <a href="${pageContext.request.contextPath}/process-booking/time-therapists-selection" class="btn btn-secondary">
                                                 Quay lại
                                             </a>
                                             <button type="button" id="processPaymentBtn" class="btn btn-primary">
@@ -251,14 +321,50 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Handle payment method selection
+            const paymentOptions = document.querySelectorAll('.payment-method-option');
+            const paymentBtn = document.getElementById('processPaymentBtn');
+            
+            paymentOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // Remove selected class from all options
+                    paymentOptions.forEach(opt => opt.classList.remove('selected'));
+                    // Add selected class to clicked option
+                    this.classList.add('selected');
+                    // Update radio button
+                    const radio = this.querySelector('input[type="radio"]');
+                    radio.checked = true;
+                    
+                    // Update button text based on payment method
+                    const method = this.getAttribute('data-method');
+                    if (method === 'vnpay') {
+                        paymentBtn.textContent = 'Thanh toán qua VNPay';
+                    } else {
+                        paymentBtn.textContent = 'Thanh toán';
+                    }
+                });
+            });
+            
             // Process payment
-            document.getElementById('processPaymentBtn').addEventListener('click', function() {
+            paymentBtn.addEventListener('click', function() {
+                const selectedPaymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+                
                 this.disabled = true;
                 this.textContent = 'Đang xử lý...';
                 
+                if (selectedPaymentMethod === 'vnpay') {
+                    // Process VNPay payment
+                    processVNPayPayment();
+                } else {
+                    // Process cash payment (existing logic)
+                    processCashPayment();
+                }
+            });
+            
+            function processCashPayment() {
                 const formData = new FormData();
                 formData.append('paymentMethod', 'cash');
-                formData.append('paymentAmount', '${totalAmount}');
+                formData.append('paymentAmount', '${not empty bookingSession.data.totalAmount ? bookingSession.data.totalAmount : totalAmount}');
                 
                 fetch('${pageContext.request.contextPath}/process-booking/process-payment', {
                     method: 'POST',
@@ -280,18 +386,76 @@
                         window.location.href = '${pageContext.request.contextPath}/process-booking/confirmation';
                     } else {
                         alert('Lỗi xử lý thanh toán: ' + (data.message || 'Vui lòng thử lại'));
-                        this.disabled = false;
-                        this.textContent = 'Thanh toán';
+                        resetPaymentButton();
                     }
                 })
                 .catch(error => {
                     console.error('Payment error:', error);
                     alert('Lỗi xử lý thanh toán. Vui lòng thử lại.');
-                    this.disabled = false;
-                    this.textContent = 'Thanh toán';
+                    resetPaymentButton();
                 });
-            });
+            }
             
+            function processVNPayPayment() {
+                fetch('${pageContext.request.contextPath}/process-booking/vnpay-payment', {
+                    method: 'POST',
+                    credentials: 'same-origin'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.paymentUrl) {
+                        // Save payment method to storage
+                        if (window.BookingStorage) {
+                            window.BookingStorage.savePaymentData({
+                                method: 'vnpay',
+                                status: 'PENDING'
+                            });
+                        }
+                        
+                        // Redirect to VNPay payment page
+                        window.location.href = data.paymentUrl;
+                    } else {
+                        alert('Lỗi khởi tạo thanh toán VNPay: ' + (data.message || 'Vui lòng thử lại'));
+                        resetPaymentButton();
+                    }
+                })
+                .catch(error => {
+                    console.error('VNPay payment error:', error);
+                    alert('Lỗi kết nối VNPay. Vui lòng thử lại.');
+                    resetPaymentButton();
+                });
+            }
+            
+            function resetPaymentButton() {
+                const btn = document.getElementById('processPaymentBtn');
+                btn.disabled = false;
+                const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+                btn.textContent = selectedMethod === 'vnpay' ? 'Thanh toán qua VNPay' : 'Thanh toán';
+            }
+            
+            // Handle error messages from URL parameters (for VNPay returns)
+            const urlParams = new URLSearchParams(window.location.search);
+            const error = urlParams.get('error');
+            const message = urlParams.get('message');
+            
+            if (error) {
+                let errorMessage = 'Có lỗi xảy ra trong quá trình thanh toán.';
+                switch(error) {
+                    case 'payment_failed':
+                        errorMessage = 'Thanh toán thất bại: ' + (message || 'Vui lòng thử lại.');
+                        break;
+                    case 'verification_failed':
+                        errorMessage = 'Xác thực thanh toán thất bại. Vui lòng liên hệ hỗ trợ.';
+                        break;
+                    case 'system_error':
+                        errorMessage = 'Lỗi hệ thống. Vui lòng thử lại sau.';
+                        break;
+                }
+                alert(errorMessage);
+                
+                // Clear URL parameters
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
         });
     </script>
 </body>

@@ -422,7 +422,7 @@ async function handleContinue() {
         if (data.success) {
             console.log('✅ Therapist selection saved successfully');
             // Redirect to time selection
-            window.location.href = `${contextPath}/process-booking/time-selection`;
+            window.location.href = `${contextPath}/process-booking/time-therapists-selection`;
         } else {
             console.error('❌ Error saving therapist selection:', data.message);
             alert('Có lỗi xảy ra khi lưu lựa chọn chuyên gia. Vui lòng thử lại.');

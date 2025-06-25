@@ -658,7 +658,7 @@ public class BookingController extends HttpServlet {
             case "/therapist-selection":
                 handleTherapistSelection(request, response, session);
                 break;
-            case "/time-selection":
+            case "/time-therapists-selection":
                 handleTimeSelection(request, response, session);
                 break;
             case "/guest-info":

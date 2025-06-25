@@ -2,7 +2,7 @@
 
 ## Overview
 
-The visual calendar for time-selection.jsp with CSPSolver integration is **ALREADY IMPLEMENTED** and fully functional.
+The visual calendar for time-therapists-selection.jsp with CSPSolver integration is **ALREADY IMPLEMENTED** and fully functional.
 
 ## Current Implementation Features
 
@@ -47,8 +47,8 @@ Constraints    JSON API           Async calls    Color coding
 ### 5. Key Files
 
 - **Backend**: `src/main/java/controller/api/AvailabilityApiServlet.java`
-- **Frontend**: `src/main/webapp/assets/home/js/time-selection.js`
-- **UI**: `src/main/webapp/WEB-INF/view/customer/appointments/time-selection.jsp`
+- **Frontend**: `src/main/webapp/assets/home/js/time-therapists-selection.js`
+- **UI**: `src/main/webapp/WEB-INF/view/customer/appointments/time-therapists-selection.jsp`
 
 ### 6. CSPSolver Methods Used
 

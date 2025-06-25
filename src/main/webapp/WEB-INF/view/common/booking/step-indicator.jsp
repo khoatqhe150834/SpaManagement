@@ -30,10 +30,10 @@
 
             <!-- Step 1: Services -->
             <div class="step-item">
-                <div class="step-circle ${currentStep == 'services' ? 'active' : ''} ${bookingSession.hasServices() ? 'completed' : ''}" 
-                     onclick="navigateToStep('services', ${bookingSession.hasServices() || currentStep == 'services'})">
+                <div class="step-circle ${currentStep == 'services' ? 'active' : ''} ${not empty bookingSession and bookingSession.hasServices() ? 'completed' : ''}" 
+                     onclick="navigateToStep('services', ${(not empty bookingSession and bookingSession.hasServices()) || currentStep == 'services'})">
                     <c:choose>
-                        <c:when test="${bookingSession.hasServices() && currentStep != 'services'}">
+                        <c:when test="${not empty bookingSession and bookingSession.hasServices() && currentStep != 'services'}">
                             <!-- Checkmark Icon -->
                             <iconify-icon icon="material-symbols:check"></iconify-icon>
                         </c:when>
@@ -46,10 +46,10 @@
                     </c:choose>
                 </div>
                 <div class="step-content">
-                    <h3 class="step-title ${currentStep == 'services' ? 'active' : ''} ${bookingSession.hasServices() ? 'completed' : ''}">Chọn Dịch Vụ</h3>
+                    <h3 class="step-title ${currentStep == 'services' ? 'active' : ''} ${not empty bookingSession and bookingSession.hasServices() ? 'completed' : ''}">Chọn Dịch Vụ</h3>
                     <p class="step-description">Lựa chọn các dịch vụ spa</p>
                 </div>
-                <c:if test="${bookingSession.hasServices()}">
+                <c:if test="${not empty bookingSession and bookingSession.hasServices()}">
                     <div class="step-summary">
                         <span class="summary-badge">
                             <iconify-icon icon="material-symbols:spa"></iconify-icon>
@@ -66,10 +66,10 @@
 
             <!-- Step 2: Time -->
             <div class="step-item">
-                <div class="step-circle ${currentStep == 'time' ? 'active' : ''} ${bookingSession.hasTimeSlots() ? 'completed' : ''} ${!bookingSession.hasServices() ? 'disabled' : ''}" 
-                     onclick="navigateToStep('time', ${bookingSession.hasServices()})">
+                <div class="step-circle ${currentStep == 'time' ? 'active' : ''} ${not empty bookingSession and bookingSession.hasTimeSlots() ? 'completed' : ''} ${empty bookingSession or !bookingSession.hasServices() ? 'disabled' : ''}" 
+                     onclick="navigateToStep('time', ${not empty bookingSession and bookingSession.hasServices()})">
                     <c:choose>
-                        <c:when test="${bookingSession.hasTimeSlots() && currentStep != 'time'}">
+                        <c:when test="${not empty bookingSession and bookingSession.hasTimeSlots() && currentStep != 'time'}">
                             <iconify-icon icon="material-symbols:check"></iconify-icon>
                         </c:when>
                         <c:when test="${currentStep == 'time'}">
@@ -81,10 +81,10 @@
                     </c:choose>
                 </div>
                 <div class="step-content">
-                    <h3 class="step-title ${currentStep == 'time' ? 'active' : ''} ${bookingSession.hasTimeSlots() ? 'completed' : ''}">Chọn Thời Gian</h3>
+                    <h3 class="step-title ${currentStep == 'time' ? 'active' : ''} ${not empty bookingSession and bookingSession.hasTimeSlots() ? 'completed' : ''}">Chọn Thời Gian</h3>
                     <p class="step-description">Đặt lịch theo thời gian mong muốn</p>
                 </div>
-                <c:if test="${bookingSession.hasTimeSlots()}">
+                <c:if test="${not empty bookingSession and bookingSession.hasTimeSlots()}">
                     <div class="step-summary">
                         <span class="summary-badge">
                             <iconify-icon icon="material-symbols:schedule"></iconify-icon>
@@ -103,10 +103,10 @@
 
             <!-- Step 3: Therapists -->
             <div class="step-item">
-                <div class="step-circle ${currentStep == 'therapists' ? 'active' : ''} ${bookingSession.hasTherapistAssignments() ? 'completed' : ''} ${!bookingSession.hasTimeSlots() ? 'disabled' : ''}" 
-                     onclick="navigateToStep('therapists', ${bookingSession.hasTimeSlots()})">
+                <div class="step-circle ${currentStep == 'therapists' ? 'active' : ''} ${not empty bookingSession and bookingSession.hasTherapistAssignments() ? 'completed' : ''} ${empty bookingSession or !bookingSession.hasTimeSlots() ? 'disabled' : ''}" 
+                     onclick="navigateToStep('therapists', ${not empty bookingSession and bookingSession.hasTimeSlots()})">
                     <c:choose>
-                        <c:when test="${bookingSession.hasTherapistAssignments() && currentStep != 'therapists'}">
+                        <c:when test="${not empty bookingSession and bookingSession.hasTherapistAssignments() && currentStep != 'therapists'}">
                             <iconify-icon icon="material-symbols:check"></iconify-icon>
                         </c:when>
                         <c:when test="${currentStep == 'therapists'}">
@@ -118,10 +118,10 @@
                     </c:choose>
                 </div>
                 <div class="step-content">
-                    <h3 class="step-title ${currentStep == 'therapists' ? 'active' : ''} ${bookingSession.hasTherapistAssignments() ? 'completed' : ''}">Chọn Nhân Viên</h3>
+                    <h3 class="step-title ${currentStep == 'therapists' ? 'active' : ''} ${not empty bookingSession and bookingSession.hasTherapistAssignments() ? 'completed' : ''}">Chọn Nhân Viên</h3>
                     <p class="step-description">Lựa chọn nhân viên phục vụ</p>
                 </div>
-                <c:if test="${bookingSession.hasTherapistAssignments()}">
+                <c:if test="${not empty bookingSession and bookingSession.hasTherapistAssignments()}">
                     <div class="step-summary">
                         <span class="summary-badge">
                             <iconify-icon icon="material-symbols:person"></iconify-icon>
@@ -138,8 +138,8 @@
 
             <!-- Step 4: Payment -->
             <div class="step-item">
-                <div class="step-circle ${currentStep == 'payment' ? 'active' : ''} ${bookingSession.readyForPayment ? 'completed' : ''} ${!bookingSession.hasTherapistAssignments() ? 'disabled' : ''}" 
-                     onclick="navigateToStep('payment', ${bookingSession.hasTherapistAssignments()})">
+                <div class="step-circle ${currentStep == 'payment' ? 'active' : ''} ${not empty bookingSession and bookingSession.readyForPayment ? 'completed' : ''} ${empty bookingSession or !bookingSession.hasTherapistAssignments() ? 'disabled' : ''}" 
+                     onclick="navigateToStep('payment', ${not empty bookingSession and bookingSession.hasTherapistAssignments()})">
                     <c:choose>
                         <c:when test="${currentStep == 'payment'}">
                             <iconify-icon icon="material-symbols:payments"></iconify-icon>
@@ -150,10 +150,10 @@
                     </c:choose>
                 </div>
                 <div class="step-content">
-                    <h3 class="step-title ${currentStep == 'payment' ? 'active' : ''} ${bookingSession.readyForPayment ? 'completed' : ''}">Thanh Toán</h3>
+                    <h3 class="step-title ${currentStep == 'payment' ? 'active' : ''} ${not empty bookingSession and bookingSession.readyForPayment ? 'completed' : ''}">Thanh Toán</h3>
                     <p class="step-description">Hoàn tất đặt lịch và thanh toán</p>
                 </div>
-                <c:if test="${bookingSession.hasTherapistAssignments() && not empty bookingSession.data.totalAmount}">
+                <c:if test="${not empty bookingSession and bookingSession.hasTherapistAssignments() && not empty bookingSession.data.totalAmount}">
                     <div class="step-summary">
                         <span class="summary-badge">
                             <iconify-icon icon="material-symbols:monetization-on"></iconify-icon>
