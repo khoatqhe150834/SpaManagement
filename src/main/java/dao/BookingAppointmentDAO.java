@@ -10,6 +10,8 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.PreparedStatement;
 import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.HashMap;
 
 /**
  * DAO for BookingAppointment entity using booking_appointments table
@@ -360,5 +362,162 @@ public class BookingAppointmentDAO extends DBContext implements BaseDAO<BookingA
     }
 
     System.out.println("\n=== Testing completed ===");
+  }
+
+  /**
+   * Find appointments by customer ID for booking list
+   */
+  public List<BookingAppointment> findByCustomerId(int customerId) {
+    List<BookingAppointment> appointments = new ArrayList<>();
+    String sql = "SELECT ba.appointment_id, ba.booking_group_id, ba.service_id, ba.therapist_user_id, ba.start_time, ba.end_time, ba.service_price, ba.status, ba.service_notes, ba.created_at, ba.updated_at "
+        + "FROM booking_appointments ba "
+        + "JOIN booking_groups bg ON ba.booking_group_id = bg.booking_group_id "
+        + "WHERE bg.customer_id = ? "
+        + "ORDER BY ba.start_time DESC";
+
+    try (Connection conn = DBContext.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+      stmt.setInt(1, customerId);
+      try (ResultSet rs = stmt.executeQuery()) {
+        while (rs.next()) {
+          appointments.add(getFromResultSet(rs));
+        }
+      }
+    } catch (SQLException e) {
+      System.err.println("Error finding appointments by customer ID: " + e.getMessage());
+    }
+
+    return appointments;
+  }
+
+  /**
+   * Find appointment with service and therapist details for booking details page
+   */
+  public Map<String, Object> findAppointmentWithDetails(int appointmentId) {
+    Map<String, Object> result = new HashMap<>();
+    String sql = "SELECT ba.*, s.name as service_name, s.description as service_description, s.price as original_price, "
+        + "u.full_name as therapist_name, u.phone_number as therapist_phone, "
+        + "bg.customer_id, bg.booking_date, bg.total_amount, bg.payment_status, bg.booking_status, bg.special_notes "
+        + "FROM booking_appointments ba "
+        + "JOIN services s ON ba.service_id = s.service_id "
+        + "JOIN users u ON ba.therapist_user_id = u.user_id "
+        + "JOIN booking_groups bg ON ba.booking_group_id = bg.booking_group_id "
+        + "WHERE ba.appointment_id = ?";
+
+    try (Connection conn = DBContext.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+      stmt.setInt(1, appointmentId);
+      try (ResultSet rs = stmt.executeQuery()) {
+        if (rs.next()) {
+          // Appointment details
+          BookingAppointment appointment = getFromResultSet(rs);
+          result.put("appointment", appointment);
+          
+          // Service details
+          Map<String, Object> service = new HashMap<>();
+          service.put("serviceId", rs.getInt("service_id"));
+          service.put("serviceName", rs.getString("service_name"));
+          service.put("serviceDescription", rs.getString("service_description"));
+          service.put("originalPrice", rs.getBigDecimal("original_price"));
+          result.put("service", service);
+          
+          // Therapist details
+          Map<String, Object> therapist = new HashMap<>();
+          therapist.put("therapistUserId", rs.getInt("therapist_user_id"));
+          therapist.put("therapistName", rs.getString("therapist_name"));
+          therapist.put("therapistPhone", rs.getString("therapist_phone"));
+          result.put("therapist", therapist);
+          
+          // Booking group details
+          Map<String, Object> bookingGroup = new HashMap<>();
+          bookingGroup.put("bookingGroupId", rs.getInt("booking_group_id"));
+          bookingGroup.put("customerId", rs.getInt("customer_id"));
+          bookingGroup.put("bookingDate", rs.getDate("booking_date"));
+          bookingGroup.put("totalAmount", rs.getBigDecimal("total_amount"));
+          bookingGroup.put("paymentStatus", rs.getString("payment_status"));
+          bookingGroup.put("bookingStatus", rs.getString("booking_status"));
+          bookingGroup.put("specialNotes", rs.getString("special_notes"));
+          result.put("bookingGroup", bookingGroup);
+        }
+      }
+    } catch (SQLException e) {
+      System.err.println("Error finding appointment with details: " + e.getMessage());
+    }
+
+    return result;
+  }
+
+  /**
+   * Find booking group with all appointments for a customer
+   */
+  public List<Map<String, Object>> findBookingGroupsWithAppointments(int customerId) {
+    List<Map<String, Object>> results = new ArrayList<>();
+    String sql = "SELECT bg.*, ba.appointment_id, ba.service_id, ba.therapist_user_id, ba.start_time, ba.end_time, "
+        + "ba.service_price, ba.status as appointment_status, ba.service_notes, "
+        + "s.name as service_name, u.full_name as therapist_name "
+        + "FROM booking_groups bg "
+        + "LEFT JOIN booking_appointments ba ON bg.booking_group_id = ba.booking_group_id "
+        + "LEFT JOIN services s ON ba.service_id = s.service_id "
+        + "LEFT JOIN users u ON ba.therapist_user_id = u.user_id "
+        + "WHERE bg.customer_id = ? "
+        + "ORDER BY bg.booking_date DESC, bg.booking_group_id DESC, ba.start_time ASC";
+
+    try (Connection conn = DBContext.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+      stmt.setInt(1, customerId);
+      try (ResultSet rs = stmt.executeQuery()) {
+        Map<Integer, Map<String, Object>> bookingGroups = new HashMap<>();
+        
+        while (rs.next()) {
+          int bookingGroupId = rs.getInt("booking_group_id");
+          
+          // Create or get booking group
+          Map<String, Object> bookingGroup = bookingGroups.get(bookingGroupId);
+          if (bookingGroup == null) {
+            bookingGroup = new HashMap<>();
+            bookingGroup.put("bookingGroupId", bookingGroupId);
+            bookingGroup.put("customerId", rs.getInt("customer_id"));
+            bookingGroup.put("bookingDate", rs.getDate("booking_date"));
+            bookingGroup.put("totalAmount", rs.getBigDecimal("total_amount"));
+            bookingGroup.put("paymentStatus", rs.getString("payment_status"));
+            bookingGroup.put("bookingStatus", rs.getString("booking_status"));
+            bookingGroup.put("paymentMethod", rs.getString("payment_method"));
+            bookingGroup.put("specialNotes", rs.getString("special_notes"));
+            bookingGroup.put("createdAt", rs.getTimestamp("created_at"));
+            bookingGroup.put("updatedAt", rs.getTimestamp("updated_at"));
+            bookingGroup.put("appointments", new ArrayList<>());
+            bookingGroups.put(bookingGroupId, bookingGroup);
+          }
+          
+          // Add appointment if exists
+          if (rs.getInt("appointment_id") > 0) {
+            Map<String, Object> appointment = new HashMap<>();
+            appointment.put("appointmentId", rs.getInt("appointment_id"));
+            appointment.put("serviceId", rs.getInt("service_id"));
+            appointment.put("therapistUserId", rs.getInt("therapist_user_id"));
+            appointment.put("startTime", rs.getTimestamp("start_time"));
+            appointment.put("endTime", rs.getTimestamp("end_time"));
+            appointment.put("servicePrice", rs.getBigDecimal("service_price"));
+            appointment.put("status", rs.getString("appointment_status"));
+            appointment.put("serviceNotes", rs.getString("service_notes"));
+            appointment.put("serviceName", rs.getString("service_name"));
+            appointment.put("therapistName", rs.getString("therapist_name"));
+            
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> appointments = (List<Map<String, Object>>) bookingGroup.get("appointments");
+            appointments.add(appointment);
+          }
+        }
+        
+        results.addAll(bookingGroups.values());
+      }
+    } catch (SQLException e) {
+      System.err.println("Error finding booking groups with appointments: " + e.getMessage());
+    }
+
+    return results;
   }
 }

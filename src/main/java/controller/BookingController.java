@@ -21,6 +21,7 @@ import dao.ServiceTypeDAO;
 import dao.StaffDAO;
 import dao.BookingAppointmentDAO;
 import dao.CustomerDAO;
+import dao.BookingAppointmentDAO;
 import service.email.EmailService;
 import util.QRCodeGenerator;
 import jakarta.servlet.ServletException;
@@ -47,6 +48,7 @@ public class BookingController extends HttpServlet {
   private ServiceTypeDAO serviceTypeDAO;
   private BookingAppointmentDAO bookingAppointmentDAO;
   private CustomerDAO customerDAO;
+  private BookingAppointmentDAO bookingAppointmentDAO;
   private EmailService emailService;
   private QRCodeGenerator qrCodeGenerator;
   private BookingSessionService bookingSessionService;
@@ -74,6 +76,7 @@ public class BookingController extends HttpServlet {
     serviceTypeDAO = new ServiceTypeDAO();
     bookingAppointmentDAO = new BookingAppointmentDAO();
     customerDAO = new CustomerDAO();
+    bookingAppointmentDAO = new BookingAppointmentDAO();
     emailService = new EmailService();
     qrCodeGenerator = new QRCodeGenerator();
     bookingSessionService = new BookingSessionService();
@@ -83,6 +86,28 @@ public class BookingController extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     String pathInfo = request.getPathInfo();
+    
+    // Handle appointment list and details via pathInfo
+    if (pathInfo != null) {
+      if (pathInfo.equals("/list")) {
+        handleBookingList(request, response);
+        return;
+      } else if (pathInfo.startsWith("/details/")) {
+        // Extract appointment ID from path: /details/{id}
+        String[] pathParts = pathInfo.split("/");
+        if (pathParts.length >= 3) {
+          try {
+            int appointmentId = Integer.parseInt(pathParts[2]);
+            request.setAttribute("appointmentId", appointmentId);
+            handleBookingDetails(request, response);
+            return;
+          } catch (NumberFormatException e) {
+            // Invalid appointment ID, continue to default flow
+          }
+        }
+      }
+    }
+    
     if (pathInfo == null) {
       // Default to individual booking flow
       processBookingIndividual(request, response);
@@ -1241,5 +1266,133 @@ public class BookingController extends HttpServlet {
     } else {
       LOGGER.log(Level.FINE, "No session ID marked for cookie setting");
     }
+  }
+
+  /**
+   * Handle booking list for customer
+   */
+  private void handleBookingList(HttpServletRequest request, HttpServletResponse response) 
+      throws ServletException, IOException {
+    try {
+      // Get customer from session
+      HttpSession session = request.getSession();
+      Customer customer = (Customer) session.getAttribute("customer");
+      
+      if (customer == null) {
+        // Redirect to login if not logged in
+        response.sendRedirect(request.getContextPath() + "/login");
+        return;
+      }
+      
+      // Get search parameter
+      String search = request.getParameter("search");
+      
+      // Get booking groups with appointments
+      List<Map<String, Object>> bookingGroups = bookingAppointmentDAO.findBookingGroupsWithAppointments(customer.getCustomerId());
+      
+      // Filter by search if provided
+      if (search != null && !search.trim().isEmpty()) {
+        bookingGroups = filterBookingGroupsBySearch(bookingGroups, search.trim());
+      }
+      
+      request.setAttribute("bookingGroups", bookingGroups);
+      request.setAttribute("search", search);
+      
+      request.getRequestDispatcher("/WEB-INF/view/customer/appointments/booking_list.jsp").forward(request, response);
+      
+    } catch (Exception e) {
+      LOGGER.log(Level.SEVERE, "Error handling booking list", e);
+      request.setAttribute("errorMessage", "Error loading appointments: " + e.getMessage());
+      request.getRequestDispatcher("/WEB-INF/view/customer/appointments/booking_list.jsp").forward(request, response);
+    }
+  }
+
+  /**
+   * Handle booking details for customer
+   */
+  private void handleBookingDetails(HttpServletRequest request, HttpServletResponse response) 
+      throws ServletException, IOException {
+    try {
+      // Get customer from session
+      HttpSession session = request.getSession();
+      Customer customer = (Customer) session.getAttribute("customer");
+      
+      if (customer == null) {
+        // Redirect to login if not logged in
+        response.sendRedirect(request.getContextPath() + "/login");
+        return;
+      }
+      
+      // Get appointment ID from request attribute (set by pathInfo parsing)
+      Integer appointmentId = (Integer) request.getAttribute("appointmentId");
+      if (appointmentId == null) {
+        request.setAttribute("errorMessage", "Appointment ID is required");
+        request.getRequestDispatcher("/WEB-INF/view/customer/appointments/booking_details.jsp").forward(request, response);
+        return;
+      }
+      
+      // Get appointment details
+      Map<String, Object> appointmentDetails = bookingAppointmentDAO.findAppointmentWithDetails(appointmentId);
+      
+      if (appointmentDetails.isEmpty()) {
+        request.setAttribute("errorMessage", "Appointment not found");
+        request.getRequestDispatcher("/WEB-INF/view/customer/appointments/booking_details.jsp").forward(request, response);
+        return;
+      }
+      
+      // Verify that the appointment belongs to the logged-in customer
+      @SuppressWarnings("unchecked")
+      Map<String, Object> bookingGroup = (Map<String, Object>) appointmentDetails.get("bookingGroup");
+      if (bookingGroup == null || !customer.getCustomerId().equals(bookingGroup.get("customerId"))) {
+        request.setAttribute("errorMessage", "Access denied: This appointment does not belong to you");
+        request.getRequestDispatcher("/WEB-INF/view/customer/appointments/booking_details.jsp").forward(request, response);
+        return;
+      }
+      // Convert LocalDateTime to java.util.Date for JSTL compatibility
+      BookingAppointment appointment = (BookingAppointment) appointmentDetails.get("appointment");
+      if (appointment != null) {
+        java.util.Date startTimeDate = java.util.Date.from(appointment.getStartTime().atZone(java.time.ZoneId.systemDefault()).toInstant());
+        java.util.Date endTimeDate = java.util.Date.from(appointment.getEndTime().atZone(java.time.ZoneId.systemDefault()).toInstant());
+        appointmentDetails.put("startTimeDate", startTimeDate);
+        appointmentDetails.put("endTimeDate", endTimeDate);
+      }
+      request.setAttribute("appointmentDetails", appointmentDetails);
+      request.getRequestDispatcher("/WEB-INF/view/customer/appointments/booking_details.jsp").forward(request, response);
+      
+    } catch (Exception e) {
+      LOGGER.log(Level.SEVERE, "Error handling booking details", e);
+      request.setAttribute("errorMessage", "Error loading appointment details: " + e.getMessage());
+      request.getRequestDispatcher("/WEB-INF/view/customer/appointments/booking_details.jsp").forward(request, response);
+    }
+  }
+
+  /**
+   * Filter booking groups by search term
+   */
+  private List<Map<String, Object>> filterBookingGroupsBySearch(List<Map<String, Object>> bookingGroups, String search) {
+    List<Map<String, Object>> filteredGroups = new ArrayList<>();
+    String searchLower = search.toLowerCase();
+    
+    for (Map<String, Object> group : bookingGroups) {
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> appointments = (List<Map<String, Object>>) group.get("appointments");
+        List<Map<String, Object>> filteredAppointments = new ArrayList<>();
+        
+        for (Map<String, Object> appointment : appointments) {
+            String serviceName = (String) appointment.get("serviceName");
+            String therapistName = (String) appointment.get("therapistName");
+            if ((serviceName != null && serviceName.toLowerCase().contains(searchLower)) ||
+                (therapistName != null && therapistName.toLowerCase().contains(searchLower))) {
+                filteredAppointments.add(appointment);
+            }
+        }
+        if (!filteredAppointments.isEmpty()) {
+            // Tạo bản sao group và chỉ giữ lại các appointment khớp search
+            Map<String, Object> groupCopy = new java.util.HashMap<>(group);
+            groupCopy.put("appointments", filteredAppointments);
+            filteredGroups.add(groupCopy);
+        }
+    }
+    return filteredGroups;
   }
 }
