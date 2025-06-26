@@ -101,14 +101,16 @@
         <div class="section-full content-inner">
     <main class="main">
         <div class="container">
-            <!-- Step Indicator -->
-            <c:set var="currentStep" value="services" />
-            <jsp:include page="/WEB-INF/view/common/booking/step-indicator.jsp">
-                <jsp:param name="currentStep" value="${currentStep}" />
-                <jsp:param name="bookingSession" value="${bookingSession}" />
-            </jsp:include>
-            
-            <div class="content-grid">
+            <!-- Booking Layout Container -->
+            <div class="booking-layout-container">
+                <!-- Step Indicator -->
+                <c:set var="currentStep" value="services" />
+                <jsp:include page="/WEB-INF/view/common/booking/step-indicator.jsp">
+                    <jsp:param name="currentStep" value="${currentStep}" />
+                    <jsp:param name="bookingSession" value="${bookingSession}" />
+                </jsp:include>
+                
+                <div class="content-grid">
                 <!-- Main Content -->
                 <div class="main-content">
                     <h1 class="page-title">Dịch vụ</h1>
@@ -224,6 +226,7 @@
                         <button class="continue-btn" id="continueBtn" disabled>Tiếp tục</button>
                     </div>
                 </div>
+            </div>
             </div>
         </div>
     </main>

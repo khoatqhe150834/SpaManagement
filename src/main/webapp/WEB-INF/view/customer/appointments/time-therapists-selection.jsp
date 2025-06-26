@@ -1132,14 +1132,16 @@
             <!-- Time selection content -->
             <div class="section-full content-inner">
                 <div class="container">
-                    <!-- Step Indicator -->
-                    <c:set var="currentStep" value="time" />
-                    <jsp:include page="/WEB-INF/view/common/booking/step-indicator.jsp">
-                        <jsp:param name="currentStep" value="${currentStep}" />
-                        <jsp:param name="bookingSession" value="${bookingSession}" />
-                    </jsp:include>
-                    
-                    <div class="time-container">
+                    <!-- Booking Layout Container -->
+                    <div class="booking-layout-container">
+                        <!-- Step Indicator -->
+                        <c:set var="currentStep" value="time" />
+                        <jsp:include page="/WEB-INF/view/common/booking/step-indicator.jsp">
+                            <jsp:param name="currentStep" value="${currentStep}" />
+                            <jsp:param name="bookingSession" value="${bookingSession}" />
+                        </jsp:include>
+                        
+                        <div class="time-container">
                         <!-- Loading State -->
                         <div id="pageLoadingState" class="page-loading-state">
                             <div class="loading-container">
@@ -1333,6 +1335,7 @@
                                 Tiếp tục
                             </button>
                         </div>
+                    </div>
                     </div>
                 </div>
             </div>
