@@ -181,7 +181,7 @@ function initializeCartIcon() {
  * Update cart count from server
  */
 function updateCartCount() {
-  fetch(getContextPath() + '/api/cart/count', {
+  fetch(getContextPath() + '/api/cart-session/count', {
     method: 'GET',
     credentials: 'same-origin'
   })
@@ -229,25 +229,30 @@ function animateCartBadge() {
  * Add item to cart (to be called from service pages)
  */
 function addToCart(serviceId, quantity = 1) {
-  const formData = new FormData();
-  formData.append('serviceId', serviceId);
-  formData.append('quantity', quantity);
+  const requestData = {
+    itemId: serviceId,
+    itemType: 'SERVICE',
+    quantity: quantity
+  };
   
-  return fetch(getContextPath() + '/api/cart/add', {
+  return fetch(getContextPath() + '/api/cart-session/add', {
     method: 'POST',
-    body: formData,
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(requestData),
     credentials: 'same-origin'
   })
   .then(response => response.json())
   .then(data => {
     if (data.success) {
       // Update cart count immediately
-      updateCartBadge(data.cartCount);
+      updateCartBadge(data.data.totalItems);
       animateCartBadge();
       
       // Dispatch cart updated event
       document.dispatchEvent(new CustomEvent('cartUpdated', {
-        detail: { count: data.cartCount, animate: true }
+        detail: { count: data.data.totalItems, animate: true }
       }));
       
       // Show success message (optional)
@@ -267,23 +272,28 @@ function addToCart(serviceId, quantity = 1) {
 /**
  * Remove item from cart
  */
-function removeFromCart(cartItemId) {
-  const formData = new FormData();
-  formData.append('cartItemId', cartItemId);
+function removeFromCart(serviceId, itemType = 'SERVICE') {
+  const requestData = {
+    itemId: serviceId,
+    itemType: itemType
+  };
   
-  return fetch(getContextPath() + '/api/cart/remove', {
+  return fetch(getContextPath() + '/api/cart-session/remove', {
     method: 'POST',
-    body: formData,
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(requestData),
     credentials: 'same-origin'
   })
   .then(response => response.json())
   .then(data => {
     if (data.success) {
-      updateCartBadge(data.cartCount);
+      updateCartBadge(data.data.totalItems);
       
       // Dispatch cart updated event
       document.dispatchEvent(new CustomEvent('cartUpdated', {
-        detail: { count: data.cartCount }
+        detail: { count: data.data.totalItems }
       }));
       
       showCartMessage(data.message, 'success');
@@ -303,7 +313,7 @@ function removeFromCart(cartItemId) {
  * Clear entire cart
  */
 function clearCart() {
-  return fetch(getContextPath() + '/api/cart/clear', {
+  return fetch(getContextPath() + '/api/cart-session/clear', {
     method: 'POST',
     credentials: 'same-origin'
   })

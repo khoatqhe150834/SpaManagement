@@ -36,10 +36,10 @@
             
             <!-- Dynamic Cart Icon with Iconify -->
             <div class="cart-icon-container">
-              <button type="button" class="cart-icon-button" id="cartIconButton" onclick="window.location.href='${pageContext.request.contextPath}/cart'" title="Giỏ hàng">
+              <a href="${pageContext.request.contextPath}/cart" class="cart-icon-button" id="cartIconButton" title="Giỏ hàng">
                 <iconify-icon icon="heroicons:shopping-bag-20-solid" class="cart-icon"></iconify-icon>
                 <span class="cart-badge" id="cartBadge">0</span>
-              </button>
+              </a>
             </div>
             
             <c:choose>
