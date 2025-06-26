@@ -618,11 +618,27 @@
         }
 
         .time-slot-therapists {
-            font-size: 0.6rem;
-            opacity: 0.8;
-            line-height: 1.1;
+            font-size: 0.75rem;
+            color: #059669 !important;
+            font-weight: 600;
+            margin-top: 0.125rem;
         }
 
+        .therapist-info-display {
+            font-size: 0.75rem;
+            color: #059669 !important;
+            font-weight: 600;
+            margin-top: 0.125rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .time-slot.disabled .time-slot-therapists,
+        .time-slot.disabled .therapist-info-display {
+            color: #9ca3af !important;
+        }
+        
         .therapist-count {
             background: #c8945f;
             color: white;
@@ -656,6 +672,106 @@
             color: #9ca3af;
             cursor: not-allowed;
             border-color: #e5e7eb;
+        }
+        
+        /* Status-based styling for time slots */
+        .time-slot.fully-booked {
+            background: #fee2e2;
+            border-color: #fca5a5;
+            color: #991b1b;
+            cursor: not-allowed;
+        }
+        
+        .time-slot.fully-booked:hover {
+            background: #fee2e2;
+            border-color: #fca5a5;
+            transform: none;
+        }
+        
+        .time-slot.limited {
+            background: #fef3c7;
+            border-color: #fde68a;
+            color: #d97706;
+        }
+        
+        .time-slot.limited:hover:not(.disabled) {
+            background: #fbbf24;
+            color: white;
+            border-color: #f59e0b;
+        }
+        
+        .time-slot.available {
+            background: #ecfdf5;
+            border-color: #a7f3d0;
+            color: #047857;
+        }
+        
+        .time-slot.available:hover:not(.disabled) {
+            background: #10b981;
+            color: white;
+            border-color: #059669;
+        }
+        
+        /* Unavailable display styling */
+        .therapist-info-display.unavailable {
+            color: #dc2626 !important;
+            font-weight: 600;
+            margin-top: 0.125rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Time slot legend styling */
+        .time-slot-legend {
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background: #f9fafb;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .legend-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+        
+        .legend-items {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+        
+        .legend-indicator {
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 0.25rem;
+            border: 1px solid;
+        }
+        
+        .legend-indicator.available {
+            background: #ecfdf5;
+            border-color: #a7f3d0;
+        }
+        
+        .legend-indicator.limited {
+            background: #fef3c7;
+            border-color: #fde68a;
+        }
+        
+        .legend-indicator.fully-booked {
+            background: #fee2e2;
+            border-color: #fca5a5;
         }
         
         /* Conflict styling */
@@ -1095,6 +1211,161 @@
                 font-size: 0.9rem;
             }
         }
+
+        /* Time Selection Info Styles */
+        .time-selection-info {
+            margin-bottom: 1rem;
+        }
+        
+        .info-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+        
+        .info-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .info-content ul {
+            list-style-type: disc;
+        }
+        
+        .info-content li {
+            margin-bottom: 0.25rem;
+        }
+        
+        /* Time Slots Header Styles */
+        .time-slots-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .time-slots-header h4 {
+            margin: 0;
+            color: #1f2937;
+        }
+        
+        .time-slots-legend {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.75rem;
+            color: #6b7280;
+            background: #f3f4f6;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+        }
+        
+        .legend-text {
+            font-weight: 500;
+        }
+        
+        /* Enhanced Time Slot Styles */
+        .time-slot-therapists {
+            font-size: 0.75rem;
+            color: #059669 !important;
+            font-weight: 600;
+            margin-top: 0.125rem;
+        }
+        
+        .therapist-info-display {
+            font-size: 0.75rem;
+            color: #059669 !important;
+            font-weight: 600;
+            margin-top: 0.125rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .time-slot.disabled .time-slot-therapists,
+        .time-slot.disabled .therapist-info-display {
+            color: #9ca3af !important;
+        }
+        
+        /* Therapist Count Badge */
+        .therapist-count {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #dc2626;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+        
+        .time-slot {
+            position: relative;
+        }
+        
+        /* Improved tooltip styles */
+        .time-slot[title]:hover::after {
+            content: attr(title);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1f2937;
+            color: white;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            z-index: 1000;
+            margin-bottom: 0.25rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .time-slot[title]:hover::before {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 4px solid transparent;
+            border-top-color: #1f2937;
+            z-index: 1000;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .time-slots-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .legend-item {
+                font-size: 0.7rem;
+                padding: 0.2rem 0.4rem;
+            }
+            
+            .info-content {
+                font-size: 0.8rem;
+            }
+        }
     </style>
 </head>
 
@@ -1261,8 +1532,44 @@
                                     
                                     <!-- Right Side: Time Slots -->
                                     <div class="calendar-right">
+                                        <!-- Information Section -->
+                                        <div class="time-selection-info" id="timeSelectionInfo" style="display: none;">
+                                            <div class="info-card">
+                                                <div class="info-header">
+                                                    <iconify-icon icon="material-symbols:info" width="20" height="20" style="color: #2563eb;"></iconify-icon>
+                                                    <span style="font-weight: 600; color: #1f2937;">Hướng dẫn chọn giờ</span>
+                                                    <button type="button" onclick="hideTimeSelectionInfo()" style="margin-left: auto; background: none; border: none; color: #6b7280; cursor: pointer; padding: 0.25rem;">
+                                                        <iconify-icon icon="material-symbols:close" width="16" height="16"></iconify-icon>
+                                                    </button>
+                                                </div>
+                                                <div class="info-content">
+                                                    <p style="margin: 0.5rem 0; color: #6b7280; font-size: 0.875rem;">
+                                                        Số "trị liệu" hiển thị bên cạnh mỗi khung giờ cho biết:
+                                                    </p>
+                                                    <ul style="margin: 0.5rem 0; padding-left: 1.5rem; color: #6b7280; font-size: 0.875rem;">
+                                                        <li><strong>Số lượng nhà trị liệu</strong> có thể phục vụ bạn trong khung giờ đó</li>
+                                                        <li>Chọn khung giờ có <strong>nhiều nhà trị liệu</strong> để có nhiều lựa chọn hơn</li>
+                                                        <li>Khung giờ có <strong>ít nhà trị liệu</strong> có thể đầy nhanh hơn</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
                                         <div class="time-slots-section" id="modalTimeSlots" style="display: none;">
-                                            <h4>Chọn giờ khả dụng</h4>
+                                            <div class="time-slots-header">
+                                                <h4>Chọn giờ khả dụng</h4>
+                                                <div class="time-slots-legend">
+                                                    <div class="legend-item">
+                                                        <span class="legend-text">Số bên cạnh giờ = số nhà trị liệu có thể phục vụ</span>
+                                                        <iconify-icon icon="material-symbols:help" width="16" height="16" 
+                                                                    style="color: #6b7280; cursor: help;" 
+                                                                    title="Ví dụ: '3 trị liệu' có nghĩa là có 3 nhà trị liệu có thể phục vụ bạn trong khung giờ này"></iconify-icon>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- Time slot status legend -->
+                                           
+                                            
                                             <div class="time-slots-grid" id="modalTimeSlotsGrid">
                                                 <!-- Time slots will be populated dynamically -->
                                             </div>
@@ -1296,6 +1603,9 @@
                                             <iconify-icon icon="material-symbols:person" width="20" height="20"></iconify-icon>
                                         </div>
                                         <h2 class="header-title" id="therapistModalTitle">Chọn nhà trị liệu</h2>
+                                        <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem; color: #6b7280;">
+                                            Khung giờ này có nhiều nhà trị liệu khả dụng. Hãy chọn nhà trị liệu bạn muốn.
+                                        </p>
                                     </div>
                                 </div>
 
@@ -1420,6 +1730,17 @@
         
         // Make function available globally so time-therapists-selection.js can call it
         window.hideLoadingState = hideLoadingState;
+        
+        // Function to hide the time selection info section
+        function hideTimeSelectionInfo() {
+            const infoSection = document.getElementById('timeSelectionInfo');
+            if (infoSection) {
+                infoSection.style.display = 'none';
+            }
+        }
+        
+        // Make function available globally
+        window.hideTimeSelectionInfo = hideTimeSelectionInfo;
     </script>
 </body>
 </html> 

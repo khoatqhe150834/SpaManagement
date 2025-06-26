@@ -2,7 +2,8 @@
 - Add VNPay QR integration method
 - Fix the step indicator of booking process
 - Adding a cart to store services and products
-- Add auto booking feature for booking time slots and therapists
+- Change font-family
+- Use image icon for avatar
 - ✅Change font family
 - ✅ Show Đặt lịch ngay button only in customer and guest
 - ✅ Fix the banner in service selection jsp page

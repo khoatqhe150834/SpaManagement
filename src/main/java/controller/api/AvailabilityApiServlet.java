@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -349,10 +350,12 @@ public class AvailabilityApiServlet extends HttpServlet {
     Map<LocalDateTime, List<Assignment>> slotsByTime = validSlots.stream()
         .collect(Collectors.groupingBy(Assignment::getStartTime));
 
-    // Convert to time slot format
-    for (Map.Entry<LocalDateTime, List<Assignment>> entry : slotsByTime.entrySet()) {
-      LocalDateTime time = entry.getKey();
-      List<Assignment> assignments = entry.getValue();
+    // Generate all possible time slots for the day (not just available ones)
+    Set<LocalDateTime> allPossibleTimes = generateAllPossibleTimeSlots(date);
+
+    // Convert to time slot format - include both available and unavailable slots
+    for (LocalDateTime time : allPossibleTimes) {
+      List<Assignment> assignments = slotsByTime.getOrDefault(time, new ArrayList<>());
 
       // Filter out assignments for therapists who are actually busy during this time
       List<Assignment> actuallyAvailableAssignments = filterActuallyAvailableTherapists(assignments, service);
@@ -374,14 +377,49 @@ public class AvailabilityApiServlet extends HttpServlet {
 
       timeSlot.put("availableTherapists", availableTherapists);
 
-      // Only add time slot if there are actually available therapists
-      if (!actuallyAvailableAssignments.isEmpty()) {
-        timeSlots.add(timeSlot);
+      // Add status information for better UX
+      if (actuallyAvailableAssignments.isEmpty()) {
+        timeSlot.put("status", "fully-booked");
+        timeSlot.put("statusMessage", "Hết chỗ");
+      } else if (actuallyAvailableAssignments.size() == 1) {
+        timeSlot.put("status", "limited");
+        timeSlot.put("statusMessage", "Còn 1 trị liệu");
+      } else if (actuallyAvailableAssignments.size() <= 2) {
+        timeSlot.put("status", "limited");
+        timeSlot.put("statusMessage", "Còn " + actuallyAvailableAssignments.size() + " trị liệu");
+      } else {
+        timeSlot.put("status", "available");
+        timeSlot.put("statusMessage", actuallyAvailableAssignments.size() + " trị liệu khả dụng");
       }
+
+      // Always add the time slot (both available and unavailable)
+      timeSlots.add(timeSlot);
     }
 
     // Sort by time
     timeSlots.sort((a, b) -> ((String) a.get("time")).compareTo((String) b.get("time")));
+
+    return timeSlots;
+  }
+
+  /**
+   * Generate all possible time slots for a given date based on business hours
+   */
+  private Set<LocalDateTime> generateAllPossibleTimeSlots(LocalDate date) {
+    Set<LocalDateTime> timeSlots = new TreeSet<>();
+
+    // Define business hours (9:00 AM to 9:00 PM)
+    LocalTime startTime = LocalTime.of(9, 0); // 9:00 AM
+    LocalTime endTime = LocalTime.of(21, 0); // 9:00 PM
+    int intervalMinutes = 30; // 30-minute intervals
+
+    LocalDateTime currentSlot = date.atTime(startTime);
+    LocalDateTime endSlot = date.atTime(endTime);
+
+    while (!currentSlot.isAfter(endSlot)) {
+      timeSlots.add(currentSlot);
+      currentSlot = currentSlot.plusMinutes(intervalMinutes);
+    }
 
     return timeSlots;
   }

@@ -727,12 +727,18 @@ window.TimeSelection = (function() {
         
         const timeSlotsSection = document.getElementById('modalTimeSlots');
         const timeSlotsGrid = document.getElementById('modalTimeSlotsGrid');
+        const infoSection = document.getElementById('timeSelectionInfo');
         
         if (!timeSlotsSection || !timeSlotsGrid) return;
         
         // Show loading state
         timeSlotsGrid.innerHTML = '<div class="loading-slots">Đang tải khung giờ...</div>';
         timeSlotsSection.style.display = 'block';
+        
+        // Show information section to help users understand the "trị liệu" numbers
+        if (infoSection) {
+            infoSection.style.display = 'block';
+        }
         
         try {
             // Load time slots from API
@@ -746,10 +752,15 @@ window.TimeSelection = (function() {
             if (timeSlots && timeSlots.length > 0) {
                 console.log(`🔍 DEBUG: Rendering ${timeSlots.length} time slots...`);
                 timeSlots.forEach((slot, index) => {
-                    console.log(`🔍 DEBUG: Slot ${index}: ${slot.time} - Available: ${slot.available} - Therapists: ${slot.therapistCount}`);
+                    console.log(`🔍 DEBUG: Slot ${index}: ${slot.time} - Available: ${slot.available} - Therapists: ${slot.therapistCount} - Status: ${slot.status}`);
                     
                     const button = document.createElement('button');
                     button.className = `time-slot ${slot.available ? '' : 'disabled'}`;
+                    
+                    // Add status-specific classes for better styling
+                    if (slot.status) {
+                        button.classList.add(slot.status);
+                    }
                     
                     // Check if this is the previously selected time
                     if (modalSelectedTime === slot.time) {
@@ -764,14 +775,44 @@ window.TimeSelection = (function() {
                     const therapistInfo = document.createElement('div');
                     therapistInfo.className = 'time-slot-therapists';
                     
+                    // Handle unavailable slots with clear messaging
+                    if (!slot.available) {
+                        // Show "Hết chỗ" for fully booked slots
+                        const unavailableDisplay = document.createElement('div');
+                        unavailableDisplay.className = 'therapist-info-display unavailable';
+                        unavailableDisplay.innerHTML = `
+                            <iconify-icon icon="material-symbols:block" width="12" height="12" style="margin-right: 2px; color: #dc2626;"></iconify-icon>
+                            <span style="color: #dc2626; font-weight: 600;">${slot.statusMessage || 'Hết chỗ'}</span>
+                        `;
+                        therapistInfo.replaceWith(unavailableDisplay);
+                        therapistInfo = unavailableDisplay;
+                        
+                        button.title = 'Khung giờ này đã đầy. Vui lòng chọn khung giờ khác.';
+                        button.disabled = true;
+                    }
                     // Check for conflicts with other selected services
-                    if (slot.available) {
+                    else if (slot.available) {
                         const selectedDateTime = new Date(`${modalSelectedDate}T${slot.time}`);
                         const currentServiceDuration = currentModalService.estimatedDuration || 60;
                         
                         // Set therapist count info
                         if (slot.therapistCount > 0) {
-                            therapistInfo.textContent = `${slot.therapistCount} trị liệu`;
+                            // Create a more descriptive display with icon
+                            const therapistDisplay = document.createElement('div');
+                            therapistDisplay.className = 'therapist-info-display';
+                            therapistDisplay.innerHTML = `
+                                <iconify-icon icon="material-symbols:person" width="12" height="12" style="margin-right: 2px;"></iconify-icon>
+                                ${slot.statusMessage || slot.therapistCount + ' có sẵn'}
+                            `;
+                            therapistInfo.replaceWith(therapistDisplay);
+                            therapistInfo = therapistDisplay;
+                            
+                            // Enhanced tooltip with detailed explanation
+                            const tooltipText = `${slot.therapistCount} nhà trị liệu có thể phục vụ trong khung giờ này. ${
+                                slot.therapistCount > 3 ? 'Rất nhiều lựa chọn!' : 
+                                slot.therapistCount > 1 ? 'Có nhiều lựa chọn nhà trị liệu.' : 
+                                'Chỉ có 1 nhà trị liệu khả dụng.'
+                            }`;
                             
                             // Add therapist count badge if more than 1
                             if (slot.therapistCount > 1) {
@@ -780,6 +821,9 @@ window.TimeSelection = (function() {
                                 countBadge.textContent = slot.therapistCount;
                                 button.appendChild(countBadge);
                             }
+                            
+                            // Set enhanced tooltip
+                            button.title = tooltipText;
                         } else {
                             therapistInfo.textContent = 'Không có';
                         }
@@ -789,10 +833,13 @@ window.TimeSelection = (function() {
                             .then(conflicts => {
                                 if (conflicts.length > 0) {
                                     button.classList.add('conflict');
-                                    button.title = `⚠️ Xung đột với: ${conflicts.map(c => c.serviceName).join(', ')}`;
+                                    button.title = `⚠️ Khung giờ này xung đột với: ${conflicts.map(c => c.serviceName).join(', ')}. Vui lòng chọn khung giờ khác.`;
                                     therapistInfo.textContent = 'Xung đột';
-                                } else if (slot.therapistCount > 0) {
-                                    button.title = `${slot.therapistCount} nhà trị liệu khả dụng`;
+                                } else {
+                                    // Keep the enhanced tooltip that was set earlier
+                                    if (!button.title || button.title.includes('nhà trị liệu khả dụng')) {
+                                        button.title = tooltipText;
+                                    }
                                 }
                             })
                             .catch(error => {
@@ -803,8 +850,6 @@ window.TimeSelection = (function() {
                         if (slot.therapistCount > 0) {
                             button.title = `${slot.therapistCount} nhà trị liệu khả dụng`;
                         }
-                    } else {
-                        therapistInfo.textContent = 'Không có';
                     }
                     
                     button.appendChild(timeContent);
@@ -844,9 +889,17 @@ window.TimeSelection = (function() {
                     therapistInfo.className = 'time-slot-therapists';
             
             if (isAvailable) {
-                        // Mock therapist data for fallback
-                        therapistInfo.textContent = '1 trị liệu';
-                        button.title = '1 nhà trị liệu khả dụng';
+                        // Mock therapist data for fallback with enhanced display
+                        const therapistDisplay = document.createElement('div');
+                        therapistDisplay.className = 'therapist-info-display';
+                        therapistDisplay.innerHTML = `
+                            <iconify-icon icon="material-symbols:person" width="12" height="12" style="margin-right: 2px;"></iconify-icon>
+                            1 có sẵn
+                        `;
+                        therapistInfo.replaceWith(therapistDisplay);
+                        therapistInfo = therapistDisplay;
+                        
+                        button.title = '1 nhà trị liệu có thể phục vụ trong khung giờ này. Chỉ có 1 nhà trị liệu khả dụng.';
                         
                         // Create mock therapist data for the slot
                         const mockTherapistSlot = {

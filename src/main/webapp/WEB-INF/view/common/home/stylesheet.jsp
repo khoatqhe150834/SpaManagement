@@ -13,25 +13,13 @@
 
 <!-- Add this after other stylesheet links but before closing the stylesheet section -->
 
-<!-- Google Fonts - Luxurious Spa Typography -->
+<!-- Google Fonts - Inter for consistent design -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
-<!-- Primary spa font - Lora (sophisticated serif with warmth) -->
+<!-- Inter - Modern, clean, and highly readable font -->
 <link
-  href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&subset=vietnamese&display=swap"
-  rel="stylesheet"
-/>
-
-<!-- Heading font - Source Sans Pro (clean, professional sans-serif) -->
-<link
-  href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,300;0,400;0,600;0,700;0,900;1,300;1,400;1,600;1,700;1,900&subset=vietnamese&display=swap"
-  rel="stylesheet"
-/>
-
-<!-- Accent font - Crimson Text (luxury serif for special elements) -->
-<link
-  href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&subset=vietnamese&display=swap"
+  href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600;1,700;1,800;1,900&subset=vietnamese&display=swap"
   rel="stylesheet"
 />
 
@@ -103,67 +91,66 @@
 <!-- Note: All spa-themed fonts are now imported above -->
 
 <style>
-/* Luxurious Spa Font Implementation */
-/* Primary font: Lora - sophisticated serif with warmth and elegance */
+/* Consistent Inter Font Implementation */
+/* Primary font: Inter - modern, clean, and highly readable */
 * {
-    font-family: 'Lora', Georgia, 'Times New Roman', serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 body {
-    font-family: 'Lora', Georgia, 'Times New Roman', serif !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
     font-weight: 400;
-    line-height: 1.7;
-    letter-spacing: 0.01em;
+    line-height: 1.6;
+    letter-spacing: -0.01em;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     color: #2a2a2a;
 }
 
-/* Headings with Source Sans Pro - clean and professional */
+/* Headings with Inter - consistent and professional */
 h1, h2, h3, h4, h5, h6, .title, .heading, .dlab-title {
-    font-family: 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
     font-weight: 600;
     line-height: 1.3;
-    letter-spacing: 0.01em;
+    letter-spacing: -0.02em;
     color: #1a1a1a;
 }
 
-/* Special luxury elements with Crimson Text */
+/* Special elements with Inter - maintaining consistency */
 .luxury-text, .spa-title, .hero-title, .elegant-accent, .brand-name {
-    font-family: 'Crimson Text', Georgia, serif !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
     font-weight: 600;
-    letter-spacing: 0.02em;
+    letter-spacing: -0.01em;
     line-height: 1.4;
 }
 
-/* Form elements with primary font */
+/* Form elements with Inter */
 input, textarea, select, .form-control {
-    font-family: 'Lora', Georgia, serif !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
     font-weight: 400;
     font-size: 16px;
     line-height: 1.5;
 }
 
-/* Buttons with heading font for clarity */
+/* Buttons with Inter for clarity */
 .btn, button, .button, .site-button {
-    font-family: 'Source Sans Pro', Arial, sans-serif !important;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+    font-weight: 500;
+    letter-spacing: 0.01em;
     font-size: 14px;
 }
 
-/* Navigation with heading font */
+/* Navigation with Inter */
 .navbar, .nav, .menu, .main-nav {
-    font-family: 'Source Sans Pro', Arial, sans-serif !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
     font-weight: 400;
-    letter-spacing: 0.02em;
+    letter-spacing: -0.01em;
 }
 
 /* Body text elements */
 p, span, div, a, li, td, th, label {
-    font-family: 'Lora', Georgia, serif !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
 }
 
 /* Specific font weights for spa aesthetic */
@@ -175,27 +162,27 @@ p, span, div, a, li, td, th, label {
 .font-extrabold { font-weight: 800; }
 .font-black { font-weight: 900; }
 
-/* Spa-specific typography classes */
+/* Inter-specific typography classes */
 .spa-elegant {
-    font-family: 'Crimson Text', Georgia, serif !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
     font-weight: 400;
     font-style: italic;
-    letter-spacing: 0.02em;
+    letter-spacing: -0.01em;
     line-height: 1.6;
 }
 
 .spa-modern {
-    font-family: 'Source Sans Pro', Arial, sans-serif !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
     font-weight: 300;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
 }
 
 .spa-classic {
-    font-family: 'Lora', Georgia, serif !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
     font-weight: 500;
-    letter-spacing: 0.01em;
-    line-height: 1.7;
+    letter-spacing: -0.01em;
+    line-height: 1.6;
 }
 
 /* Enhanced readability for Vietnamese text */
@@ -207,39 +194,39 @@ p, span, div, a, li, td, th, label {
 
 /* Special styling for prices and important information */
 .price, .important-info {
-    font-family: 'Source Sans Pro', Arial, sans-serif !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
     font-weight: 700;
-    letter-spacing: 0.02em;
+    letter-spacing: -0.01em;
 }
 
 /* Testimonials and quotes with elegant styling */
 .testimonial-text, blockquote {
-    font-family: 'Crimson Text', Georgia, serif !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
     font-style: italic;
     font-weight: 400;
-    line-height: 1.8;
-    letter-spacing: 0.01em;
+    line-height: 1.7;
+    letter-spacing: -0.01em;
     font-size: 18px;
 }
 
-/* Luxury call-to-action elements */
+/* Call-to-action elements */
 .luxury-cta {
-    font-family: 'Source Sans Pro', Arial, sans-serif !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
     font-weight: 600;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.02em;
     text-transform: uppercase;
 }
 
-/* Spa service descriptions */
+/* Service descriptions */
 .spa-service-description {
-    font-family: 'Lora', Georgia, serif !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
     font-weight: 400;
-    line-height: 1.8;
+    line-height: 1.7;
     font-size: 16px;
-    letter-spacing: 0.01em;
+    letter-spacing: -0.01em;
 }
 
-/* Admin Style Dropdown Menu with new fonts */
+/* Admin Style Dropdown Menu with Inter font */
 .admin-style-dropdown {
     background: #ffffff;
     border: 1px solid #e5e7eb;
@@ -249,7 +236,7 @@ p, span, div, a, li, td, th, label {
     min-width: max-content;
     width: max-content;
     z-index: 1000;
-    font-family: 'Source Sans Pro', Arial, sans-serif !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
 }
 
 .dropdown-header-admin {
@@ -277,7 +264,7 @@ p, span, div, a, li, td, th, label {
     transition: all 0.2s ease;
     border: none;
     background: none;
-    font-family: 'Source Sans Pro', Arial, sans-serif !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
     font-weight: 400;
 }
 
