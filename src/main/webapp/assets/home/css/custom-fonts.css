@@ -1,44 +1,304 @@
-/* Override Abhaya Libre font with Playfair Display */
+/* Luxurious Spa & Beauty Theme Font Overrides */
+/* Sophisticated typography for premium wellness experience */
 
-/* Main heading replacements - Spa sections */
+/* Main spa heading replacements - Enhanced luxury sections */
 .spa-testimonial .section-head h2, 
 .spa-our-portfolio .section-head h2, 
 .spa-price-bx .section-head h2, 
-.spa-about-content h2, .spa-price-bx .section-head h5 {
-    font-family: 'Playfair Display', serif !important;
+.spa-about-content h2, 
+.spa-price-bx .section-head h5,
+.spa-hero h1,
+.spa-hero h2 {
+    font-family: 'Crimson Text', Georgia, serif !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.02em;
+    line-height: 1.3;
+    font-style: normal;
 }
 
-/* Price table headings */
-.spa-price-tbl li .spa-price-content h4 {
-    font-family: 'Playfair Display', serif !important;
-}
-
-/* Portfolio box headings */
-.spa-our-portfolio .overlay-bx .spa-port-bx h4 {
-    font-family: 'Playfair Display', serif !important;
-}
-
-/* Footer headings */
-.spa-footer.footer-white .footer-top h6 {
-    font-family: 'Playfair Display', serif !important;
-}
-
-/* Service box titles */
+/* Service titles and portfolio headings */
+.spa-price-tbl li .spa-price-content h4,
+.spa-our-portfolio .overlay-bx .spa-port-bx h4,
 .spa-ser-bx .dlab-info-bx .dlab-title {
-    font-family: 'Playfair Display', serif !important;
+    font-family: 'Source Sans Pro', Arial, sans-serif !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-size: 18px;
 }
 
-/* Testimonial text */
-.spa-testimonial .testimonial-text p {
-    font-family: 'Playfair Display', serif !important;
+/* Footer and navigation headings */
+.spa-footer.footer-white .footer-top h6,
+.main-nav a,
+.navbar-nav a {
+    font-family: 'Source Sans Pro', Arial, sans-serif !important;
+    font-weight: 400 !important;
+    letter-spacing: 0.02em;
 }
 
-/* Testimonial names */
-.spa-testimonial .testimonial-name {
-    font-family: 'Playfair Display', serif !important;
+/* Testimonial text - sophisticated and readable */
+.spa-testimonial .testimonial-text p,
+.testimonial-content,
+blockquote {
+    font-family: 'Crimson Text', Georgia, serif !important;
+    font-style: italic;
+    font-weight: 400;
+    line-height: 1.9;
+    letter-spacing: 0.01em;
+    font-size: 19px;
+    color: #3a3a3a;
 }
 
-/* Any other Abhaya Libre instances */
-.font-abhaya {
-    font-family: 'Playfair Display', serif !important;
+/* Testimonial names and attribution */
+.spa-testimonial .testimonial-name,
+.testimonial-author {
+    font-family: 'Source Sans Pro', Arial, sans-serif !important;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-size: 13px;
+}
+
+/* Spa-specific enhancement classes */
+
+/* Luxury brand names and logos */
+.spa-brand-name,
+.luxury-brand,
+.brand-signature {
+    font-family: 'Crimson Text', Georgia, serif !important;
+    font-weight: 600;
+    font-style: italic;
+    letter-spacing: 0.02em;
+    font-size: 22px;
+}
+
+/* Service descriptions and body text */
+.spa-description,
+.service-description,
+.about-text {
+    font-family: 'Lora', Georgia, serif !important;
+    font-weight: 400;
+    line-height: 1.8;
+    letter-spacing: 0.01em;
+    font-size: 16px;
+    color: #4a4a4a;
+}
+
+/* Price displays */
+.spa-price,
+.price-display,
+.cost {
+    font-family: 'Source Sans Pro', Arial, sans-serif !important;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    font-size: 18px;
+}
+
+/* Elegant buttons and call-to-actions */
+.spa-button,
+.book-now,
+.cta-elegant {
+    font-family: 'Source Sans Pro', Arial, sans-serif !important;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 13px;
+}
+
+/* Spa menu and service lists */
+.spa-menu-item,
+.service-list-item {
+    font-family: 'Lora', Georgia, serif !important;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    line-height: 1.6;
+}
+
+/* Special announcements and highlights */
+.spa-highlight,
+.special-offer,
+.announcement {
+    font-family: 'Crimson Text', Georgia, serif !important;
+    font-weight: 600;
+    font-style: italic;
+    letter-spacing: 0.02em;
+    font-size: 17px;
+}
+
+/* Staff names and credentials */
+.staff-name,
+.therapist-name,
+.practitioner {
+    font-family: 'Source Sans Pro', Arial, sans-serif !important;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: capitalize;
+}
+
+/* Hours, contact info, and practical information */
+.contact-info,
+.hours,
+.practical-info {
+    font-family: 'Lora', Georgia, serif !important;
+    font-weight: 400;
+    line-height: 1.7;
+    font-size: 15px;
+}
+
+/* Form labels and inputs - spa themed */
+.spa-form label,
+.booking-form label {
+    font-family: 'Source Sans Pro', Arial, sans-serif !important;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    font-size: 12px;
+    color: #666;
+}
+
+.spa-form input,
+.spa-form textarea,
+.spa-form select,
+.booking-form input,
+.booking-form textarea,
+.booking-form select {
+    font-family: 'Lora', Georgia, serif !important;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 1.6;
+    letter-spacing: 0.01em;
+}
+
+/* Vietnamese text enhancements */
+.vietnamese-elegant {
+    font-family: 'Lora', Georgia, serif !important;
+    line-height: 1.9;
+    letter-spacing: 0.01em;
+    font-weight: 400;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    .spa-testimonial .testimonial-text p,
+    .testimonial-content {
+        font-size: 17px;
+        line-height: 1.7;
+    }
+    
+    .spa-description,
+    .service-description {
+        font-size: 15px;
+        line-height: 1.7;
+    }
+    
+    .spa-button,
+    .book-now {
+        font-size: 12px;
+        letter-spacing: 0.06em;
+    }
+    
+    .spa-brand-name,
+    .luxury-brand {
+        font-size: 20px;
+    }
+}
+
+/* Elegant card and content styling */
+.spa-card-title {
+    font-family: 'Source Sans Pro', Arial, sans-serif !important;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: capitalize;
+}
+
+.spa-card-text {
+    font-family: 'Lora', Georgia, serif !important;
+    font-weight: 400;
+    line-height: 1.7;
+    font-size: 15px;
+}
+
+/* Special section for luxury treatments */
+.luxury-treatment-title {
+    font-family: 'Crimson Text', Georgia, serif !important;
+    font-weight: 700;
+    font-style: italic;
+    letter-spacing: 0.02em;
+    font-size: 30px;
+    line-height: 1.3;
+}
+
+.luxury-treatment-description {
+    font-family: 'Lora', Georgia, serif !important;
+    font-weight: 400;
+    line-height: 1.9;
+    font-size: 17px;
+    letter-spacing: 0.01em;
+    color: #555;
+}
+
+/* Header and hero section styling */
+.spa-header-title {
+    font-family: 'Crimson Text', Georgia, serif !important;
+    font-weight: 700;
+    font-size: 42px;
+    letter-spacing: 0.01em;
+    line-height: 1.2;
+}
+
+.spa-header-subtitle {
+    font-family: 'Source Sans Pro', Arial, sans-serif !important;
+    font-weight: 300;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-size: 14px;
+}
+
+/* Service category headings */
+.service-category-title {
+    font-family: 'Source Sans Pro', Arial, sans-serif !important;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #2a2a2a;
+}
+
+/* Elegant quotes and featured text */
+.spa-quote,
+.featured-text {
+    font-family: 'Crimson Text', Georgia, serif !important;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 20px;
+    line-height: 1.8;
+    letter-spacing: 0.01em;
+    text-align: center;
+}
+
+/* Special wellness content */
+.wellness-tip,
+.spa-philosophy {
+    font-family: 'Lora', Georgia, serif !important;
+    font-weight: 400;
+    line-height: 1.8;
+    font-size: 16px;
+    letter-spacing: 0.005em;
+}
+
+/* Premium service highlights */
+.premium-highlight {
+    font-family: 'Crimson Text', Georgia, serif !important;
+    font-weight: 600;
+    font-style: italic;
+    letter-spacing: 0.02em;
+    color: #8B4513;
+}
+
+/* Breadcrumb and navigation elements */
+.breadcrumb,
+.page-navigation {
+    font-family: 'Source Sans Pro', Arial, sans-serif !important;
+    font-weight: 400;
+    font-size: 13px;
+    letter-spacing: 0.02em;
 }

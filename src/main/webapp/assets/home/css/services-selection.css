@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+/* Spa-themed fonts imported via main stylesheet */
 
 /* FontAwesome Icon Fix */
 .fas, .far, .fab, .fal, .fad, .fa {
@@ -56,10 +56,11 @@
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Lora', Georgia, 'Times New Roman', serif;
   background-color: var(--gray-50);
   color: var(--gray-900);
-  line-height: 1.5;
+  line-height: 1.7;
+  letter-spacing: 0.01em;
 }
 
 .container {
@@ -174,12 +175,15 @@ body {
 
 .search-input {
   width: 100%;
-  padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+  padding: 0.875rem 0.75rem 0.875rem 2.5rem;
   border: 1px solid var(--gray-300);
   border-radius: 0.5rem;
   background-color: var(--white);
-  font-size: 1rem;
+  font-size: 0.875rem;
   transition: all 0.2s;
+  height: auto;
+  min-height: 3.25rem; /* Matches dropdown height */
+  box-sizing: border-box;
 }
 
 .search-input:focus {
@@ -399,6 +403,9 @@ body {
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: var(--shadow-sm);
+  height: auto;
+  min-height: 3.25rem; /* Matches search input height */
+  box-sizing: border-box;
 }
 
 .category-dropdown-button:hover {
@@ -1043,6 +1050,13 @@ body {
   .category-dropdown-button {
       font-size: 0.8125rem;
       padding: 0.75rem 1rem;
+      min-height: 3rem; /* Slightly smaller for mobile */
+  }
+
+  .search-input {
+      font-size: 0.8125rem;
+      padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+      min-height: 3rem; /* Match dropdown on mobile */
   }
 }
 
@@ -1060,6 +1074,13 @@ body {
   .category-dropdown-button {
       padding: 0.65rem 0.875rem;
       font-size: 0.8125rem;
+      min-height: 2.75rem; /* Even smaller for very small screens */
+  }
+
+  .search-input {
+      padding: 0.65rem 0.75rem 0.65rem 2.25rem;
+      font-size: 0.8125rem;
+      min-height: 2.75rem; /* Match dropdown on very small screens */
   }
   
   .category-dropdown-item {

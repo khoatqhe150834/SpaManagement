@@ -132,10 +132,10 @@
                             </div>
                         </div>
 
-                        <!-- Search Bar -->
-                        <div class="search-container">
-                            <i class="fas fa-search search-icon"></i>
-                            <input type="text" id="searchInput" placeholder="Tìm kiếm dịch vụ..." class="search-input">
+                    <!-- Search Bar -->
+                    <div class="search-container">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="searchInput" placeholder="Tìm kiếm dịch vụ..." class="search-input">
                         </div>
                     </div>
 

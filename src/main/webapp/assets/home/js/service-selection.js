@@ -236,53 +236,53 @@ async function initializeCategoryDropdown() {
   try {
     const serviceTypesData = await fetchServiceTypes();
     console.log('🔧 Service types fetched:', serviceTypesData.length, 'items');
-    
-    const dropdownMenu = document.getElementById('categoryDropdownMenu');
+  
+  const dropdownMenu = document.getElementById('categoryDropdownMenu');
     if (!dropdownMenu) {
       console.error('❌ Category dropdown menu element not found!');
       return;
     }
-    
-    // Clear existing items except all
-    const allItem = dropdownMenu.querySelector('[data-category="all"]');
-    dropdownMenu.innerHTML = '';
-    
-    // Add all item back
-    if (allItem) {
-      dropdownMenu.appendChild(allItem);
-    } else {
-      const allItem = document.createElement('button');
-      allItem.className = 'category-dropdown-item active';
-      allItem.dataset.category = 'all';
-      allItem.innerHTML = '<i class="fas fa-star"></i>Tất cả';
-      dropdownMenu.appendChild(allItem);
-    }
-    
-    // Add service type items
+  
+  // Clear existing items except all
+  const allItem = dropdownMenu.querySelector('[data-category="all"]');
+  dropdownMenu.innerHTML = '';
+  
+  // Add all item back
+  if (allItem) {
+    dropdownMenu.appendChild(allItem);
+  } else {
+    const allItem = document.createElement('button');
+    allItem.className = 'category-dropdown-item active';
+    allItem.dataset.category = 'all';
+    allItem.innerHTML = '<i class="fas fa-star"></i>Tất cả';
+    dropdownMenu.appendChild(allItem);
+  }
+  
+  // Add service type items
     if (Array.isArray(serviceTypesData) && serviceTypesData.length > 0) {
       serviceTypesData.forEach(serviceType => {
-        console.log('📋 Creating dropdown item for service type:', serviceType.name, 'ID:', serviceType.serviceTypeId);
-        
-        const item = document.createElement('button');
-        item.className = 'category-dropdown-item';
-        // Use type-{typeId} format that the backend expects
-        item.dataset.category = `type-${serviceType.serviceTypeId}`;
-        
-        console.log('📋 Set data-category to:', item.dataset.category);
-        
-        // Add appropriate icon for service type
-        const icon = getServiceTypeIcon(serviceType.name);
-        item.innerHTML = `<i class="${icon}"></i>${serviceType.name}`;
-        
-        dropdownMenu.appendChild(item);
-      });
+    console.log('📋 Creating dropdown item for service type:', serviceType.name, 'ID:', serviceType.serviceTypeId);
+    
+    const item = document.createElement('button');
+    item.className = 'category-dropdown-item';
+    // Use type-{typeId} format that the backend expects
+    item.dataset.category = `type-${serviceType.serviceTypeId}`;
+    
+    console.log('📋 Set data-category to:', item.dataset.category);
+    
+    // Add appropriate icon for service type
+    const icon = getServiceTypeIcon(serviceType.name);
+    item.innerHTML = `<i class="${icon}"></i>${serviceType.name}`;
+    
+    dropdownMenu.appendChild(item);
+  });
       
       console.log('✅ Added', serviceTypesData.length, 'service type items to dropdown');
     } else {
       console.warn('⚠️ No service types available or invalid data format');
     }
-    
-    // Setup dropdown event listeners
+  
+  // Setup dropdown event listeners
     setupDropdownEventListeners();
     console.log('🔧 Category dropdown initialization complete');
     
@@ -297,7 +297,7 @@ async function initializeCategoryDropdown() {
       allItem.dataset.category = 'all';
       allItem.innerHTML = '<i class="fas fa-star"></i>Tất cả';
       dropdownMenu.appendChild(allItem);
-      setupDropdownEventListeners();
+  setupDropdownEventListeners();
     }
   }
 }
