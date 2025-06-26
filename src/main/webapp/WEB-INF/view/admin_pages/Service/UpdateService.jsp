@@ -157,17 +157,15 @@
                                         <div class="upload-image-wrapper d-flex align-items-center gap-3 flex-wrap">
                                             <c:forEach var="img" items="${serviceImages}">
                                                 <div
-                                                    class="existing-img-container position-relative h-120-px w-120-px border input-form-light radius-8 overflow-hidden border-dashed bg-neutral-50">
+                                                    class="existing-img-container position-relative h-120-px w-120-px border input-form-light radius-8 overflow-hidden border-dashed bg-neutral-50" data-img-id="${img.id}">
                                                     <img src="${pageContext.request.contextPath}${img.imageUrl}"
                                                         class="w-100 h-100 object-fit-cover" />
                                                     <input type="checkbox" name="delete_image_ids" value="${img.id}"
                                                         id="delete_img_${img.id}" class="delete-checkbox" hidden />
-                                                    <label for="delete_img_${img.id}"
-                                                        class="uploaded-img__remove position-absolute top-0 end-0 z-1 text-2xxl line-height-1 me-8 mt-8 d-flex"
-                                                        style="cursor: pointer;">
+                                                    <button type="button" class="uploaded-img__remove position-absolute top-0 end-0 z-1 text-2xxl line-height-1 me-8 mt-8 d-flex remove-existing-img-btn" style="cursor: pointer;">
                                                         <iconify-icon icon="radix-icons:cross-2"
                                                             class="text-xl text-danger-600"></iconify-icon>
-                                                    </label>
+                                                    </button>
                                                 </div>
                                             </c:forEach>
                                             <div class="uploaded-imgs-container d-flex gap-3 flex-wrap"></div>
@@ -587,6 +585,16 @@
                             isSubmitting = false;
                             e.preventDefault();
                         }
+                    });
+
+                    // Xóa preview ảnh cũ khi nhấn nút x
+                    $(document).on('click', '.remove-existing-img-btn', function(e) {
+                        e.preventDefault();
+                        var container = $(this).closest('.existing-img-container');
+                        // Check vào checkbox ẩn để khi submit sẽ xóa trong DB
+                        container.find('.delete-checkbox').prop('checked', true);
+                        // Ẩn ảnh khỏi giao diện (hoặc .remove() nếu muốn xóa hẳn)
+                        container.hide();
                     });
                 });
             </script>
