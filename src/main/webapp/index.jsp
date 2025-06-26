@@ -1,5 +1,6 @@
 <%-- Document : index4.jsp Created on : May 29, 2025, 10:45:37 AM Author : quang --%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html lang="vi"> <%-- Changed lang to Vietnamese --%>
@@ -367,128 +368,145 @@
               <h2 class="m-b10">Bảng Giá Đặc Biệt</h2> <%-- Already Vietnamese --%>
             </div>
             <div class="row">
-              <div class="col-lg-6 col-md-12 col-sm-12">
-                <ul class="spa-price-tbl">
-                  <li>
-                    <div class="spa-price-thumb">
-                      <img
-                        src="${pageContext.request.contextPath}/assets/home/images/gallery/thumb/pic1.jpg"
-                        alt="Massage cho bà bầu" <%-- Translated alt text --%>
-                      />
-                    </div>
-                    <div class="spa-price-content">
-                      <h4>
-                        <a href="booking.html">Massage Cho Bà Bầu</a> <%-- Translated --%>
-                        <span class="spa-price ml-auto text-primary"
-                          >350.000 VNĐ</span <%-- Updated currency --%>
-                        >
-                      </h4>
-                      <p>
-                        Liệu pháp massage nhẹ nhàng dành riêng cho mẹ bầu, giúp giảm căng thẳng, cải thiện lưu thông máu và mang lại cảm giác thư thái. <%-- Updated content --%>
-                      </p>
-                    </div>
-                  </li>
-                  <li>
-                    <div class="spa-price-thumb">
-                      <img
-                        src="${pageContext.request.contextPath}/assets/home/images/gallery/thumb/pic2.jpg"
-                        alt="Massage bấm huyệt" <%-- Translated alt text --%>
-                      />
-                    </div>
-                    <div class="spa-price-content">
-                      <h4>
-                        <a href="booking.html">Massage Bấm Huyệt</a> <%-- Translated --%>
-                        <span class="spa-price ml-auto text-primary"
-                          >500.000 VNĐ</span <%-- Updated currency --%>
-                        >
-                      </h4>
-                      <p>
-                        Kỹ thuật bấm huyệt chuyên sâu tác động lên các điểm huyệt đạo, giúp đả thông kinh mạch, giảm đau nhức và phục hồi năng lượng. <%-- Updated content --%>
-                      </p>
-                    </div>
-                  </li>
-                  <li>
-                    <div class="spa-price-thumb">
-                      <img
-                        src="${pageContext.request.contextPath}/assets/home/images/gallery/thumb/pic3.jpg"
-                        alt="Massage thư giãn toàn thân" <%-- Updated alt text --%>
-                      />
-                    </div>
-                    <div class="spa-price-content">
-                      <h4>
-                        <a href="booking.html">Massage Toàn Thân</a> <%-- Updated --%>
-                        <span class="spa-price ml-auto text-primary"
-                          >800.000 VNĐ</span <%-- Updated currency --%>
-                        >
-                      </h4>
-                      <p>
-                        Tận hưởng sự thư giãn tuyệt đối với liệu pháp massage toàn thân, giải tỏa mọi mệt mỏi, giúp cơ thể nhẹ nhàng và tràn đầy sức sống. <%-- Updated content --%>
-                      </p>
-                    </div>
-                  </li>
-                </ul>
-              </div>
-              <div class="col-lg-6 col-md-12 col-sm-12">
-                <ul class="spa-price-tbl">
-                  <li>
-                    <div class="spa-price-thumb">
-                      <img
-                        src="${pageContext.request.contextPath}/assets/home/images/gallery/thumb/pic4.jpg"
-                        alt="Chăm sóc da mặt chuyên sâu" <%-- Updated alt text --%>
-                      />
-                    </div>
-                    <div class="spa-price-content">
-                      <h4>
-                        <a href="booking.html">Chăm Sóc Da Mặt</a> <%-- Updated --%>
-                        <span class="spa-price ml-auto text-primary"
-                          >600.000 VNĐ</span <%-- Updated currency --%>
-                        >
-                      </h4>
-                      <p>
-                        Liệu trình chăm sóc da mặt chuyên sâu giúp làm sạch, cung cấp dưỡng chất, mang lại làn da căng bóng. <%-- Updated content --%>
-                      </p>
-                    </div>
-                  </li>
-                  <li>
-                    <div class="spa-price-thumb">
-                      <img
-                        src="${pageContext.request.contextPath}/assets/home/images/gallery/thumb/pic5.jpg"
-                        alt="Xông hơi thảo dược" <%-- Updated alt text --%>
-                      />
-                    </div>
-                    <div class="spa-price-content">
-                      <h4>
-                        <a href="booking.html">Xông Hơi Thảo Dược</a> <%-- Updated --%>
-                        <span class="spa-price ml-auto text-primary"
-                          >450.000 VNĐ</span <%-- Updated currency --%>
-                        >
-                      </h4>
-                      <p>
-                        Thư giãn và thanh lọc cơ thể với liệu pháp xông hơi bằng các loại thảo dược quý, giúp đào thải độc tố và cải thiện sức khỏe. <%-- Updated content --%>
-                      </p>
-                    </div>
-                  </li>
-                  <li>
-                    <div class="spa-price-thumb">
-                      <img
-                        src="${pageContext.request.contextPath}/assets/home/images/gallery/thumb/pic6.jpg"
-                        alt="Gói trị liệu cặp đôi" <%-- Updated alt text --%>
-                      />
-                    </div>
-                    <div class="spa-price-content">
-                      <h4>
-                        <a href="booking.html">Gói Trị Liệu Cặp Đôi</a> <%-- Updated --%>
-                        <span class="spa-price ml-auto text-primary"
-                          >1.500.000 VNĐ</span <%-- Updated currency --%>
-                        >
-                      </h4>
-                      <p>
-                        Cùng người thương tận hưởng những phút giây thư giãn lãng mạn với gói trị liệu đặc biệt dành cho các cặp đôi. <%-- Updated content --%>
-                      </p>
-                    </div>
-                  </li>
-                </ul>
-              </div>
+              <c:choose>
+                <c:when test="${not empty featuredServices}">
+                  <div class="col-lg-6 col-md-12 col-sm-12">
+                    <ul class="spa-price-tbl">
+                      <c:forEach var="service" items="${featuredServices}" end="2" varStatus="status">
+                        <li>
+                          <div class="spa-price-thumb">
+                            <img
+                              src="${not empty service.imageUrl ? service.imageUrl : pageContext.request.contextPath.concat('/assets/home/images/gallery/thumb/pic').concat(status.index + 1).concat('.jpg')}"
+                              alt="${service.name}"
+                              onerror="this.src='${pageContext.request.contextPath}/assets/home/images/gallery/thumb/pic${status.index + 1}.jpg'"
+                            />
+                          </div>
+                          <div class="spa-price-content">
+                            <h4>
+                              <a href="${pageContext.request.contextPath}/booking/services-selection">${service.name}</a>
+                            </h4>
+                            <div class="spa-price-display">
+                              <fmt:formatNumber value="${service.price}" type="number" maxFractionDigits="0" /> VNĐ
+                            </div>
+                            <p>
+                              ${not empty service.description ? service.description : 'Dịch vụ chất lượng cao với đội ngũ chuyên nghiệp, mang lại trải nghiệm tuyệt vời nhất cho khách hàng.'}
+                            </p>
+                          </div>
+                        </li>
+                      </c:forEach>
+                    </ul>
+                  </div>
+                  <div class="col-lg-6 col-md-12 col-sm-12">
+                    <ul class="spa-price-tbl">
+                      <c:forEach var="service" items="${featuredServices}" begin="3" end="5" varStatus="status">
+                        <li>
+                          <div class="spa-price-thumb">
+                            <img
+                              src="${not empty service.imageUrl ? service.imageUrl : pageContext.request.contextPath.concat('/assets/home/images/gallery/thumb/pic').concat(status.index + 4).concat('.jpg')}"
+                              alt="${service.name}"
+                              onerror="this.src='${pageContext.request.contextPath}/assets/home/images/gallery/thumb/pic${status.index + 4}.jpg'"
+                            />
+                          </div>
+                          <div class="spa-price-content">
+                            <h4>
+                              <a href="${pageContext.request.contextPath}/booking/services-selection">${service.name}</a>
+                            </h4>
+                            <div class="spa-price-display">
+                              <fmt:formatNumber value="${service.price}" type="number" maxFractionDigits="0" /> VNĐ
+                            </div>
+                            <p>
+                              ${not empty service.description ? service.description : 'Dịch vụ chất lượng cao với đội ngũ chuyên nghiệp, mang lại trải nghiệm tuyệt vời nhất cho khách hàng.'}
+                            </p>
+                          </div>
+                        </li>
+                      </c:forEach>
+                    </ul>
+                  </div>
+                </c:when>
+                <c:otherwise>
+                  <!-- Fallback to static content if no services are loaded -->
+                  <div class="col-lg-6 col-md-12 col-sm-12">
+                    <ul class="spa-price-tbl">
+                      <li>
+                        <div class="spa-price-thumb">
+                          <img src="${pageContext.request.contextPath}/assets/home/images/gallery/thumb/pic1.jpg" alt="Massage cho bà bầu" />
+                        </div>
+                        <div class="spa-price-content">
+                          <h4>
+                            <a href="${pageContext.request.contextPath}/booking/services-selection">Massage Cho Bà Bầu</a>
+                          </h4>
+                          <div class="spa-price-display">350.000 VNĐ</div>
+                          <p>Liệu pháp massage nhẹ nhàng dành riêng cho mẹ bầu, giúp giảm căng thẳng, cải thiện lưu thông máu và mang lại cảm giác thư thái.</p>
+                        </div>
+                      </li>
+                      <li>
+                        <div class="spa-price-thumb">
+                          <img src="${pageContext.request.contextPath}/assets/home/images/gallery/thumb/pic2.jpg" alt="Massage bấm huyệt" />
+                        </div>
+                        <div class="spa-price-content">
+                          <h4>
+                            <a href="${pageContext.request.contextPath}/booking/services-selection">Massage Bấm Huyệt</a>
+                          </h4>
+                          <div class="spa-price-display">500.000 VNĐ</div>
+                          <p>Kỹ thuật bấm huyệt chuyên sâu tác động lên các điểm huyệt đạo, giúp đả thông kinh mạch, giảm đau nhức và phục hồi năng lượng.</p>
+                        </div>
+                      </li>
+                      <li>
+                        <div class="spa-price-thumb">
+                          <img src="${pageContext.request.contextPath}/assets/home/images/gallery/thumb/pic3.jpg" alt="Massage toàn thân" />
+                        </div>
+                        <div class="spa-price-content">
+                          <h4>
+                            <a href="${pageContext.request.contextPath}/booking/services-selection">Massage Toàn Thân</a>
+                          </h4>
+                          <div class="spa-price-display">800.000 VNĐ</div>
+                          <p>Tận hưởng sự thư giãn tuyệt đối với liệu pháp massage toàn thân, giải tỏa mọi mệt mỏi, giúp cơ thể nhẹ nhàng và tràn đầy sức sống.</p>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                  <div class="col-lg-6 col-md-12 col-sm-12">
+                    <ul class="spa-price-tbl">
+                      <li>
+                        <div class="spa-price-thumb">
+                          <img src="${pageContext.request.contextPath}/assets/home/images/gallery/thumb/pic4.jpg" alt="Chăm sóc da mặt" />
+                        </div>
+                        <div class="spa-price-content">
+                          <h4>
+                            <a href="${pageContext.request.contextPath}/booking/services-selection">Chăm Sóc Da Mặt</a>
+                          </h4>
+                          <div class="spa-price-display">600.000 VNĐ</div>
+                          <p>Liệu trình chăm sóc da mặt chuyên sâu giúp làm sạch, cung cấp dưỡng chất, mang lại làn da căng bóng.</p>
+                        </div>
+                      </li>
+                      <li>
+                        <div class="spa-price-thumb">
+                          <img src="${pageContext.request.contextPath}/assets/home/images/gallery/thumb/pic5.jpg" alt="Xông hơi thảo dược" />
+                        </div>
+                        <div class="spa-price-content">
+                          <h4>
+                            <a href="${pageContext.request.contextPath}/booking/services-selection">Xông Hơi Thảo Dược</a>
+                          </h4>
+                          <div class="spa-price-display">450.000 VNĐ</div>
+                          <p>Thư giãn và thanh lọc cơ thể với liệu pháp xông hơi bằng các loại thảo dược quý, giúp đào thải độc tố và cải thiện sức khỏe.</p>
+                        </div>
+                      </li>
+                      <li>
+                        <div class="spa-price-thumb">
+                          <img src="${pageContext.request.contextPath}/assets/home/images/gallery/thumb/pic6.jpg" alt="Gói trị liệu cặp đôi" />
+                        </div>
+                        <div class="spa-price-content">
+                          <h4>
+                            <a href="${pageContext.request.contextPath}/booking/services-selection">Gói Trị Liệu Cặp Đôi</a>
+                          </h4>
+                          <div class="spa-price-display">1.500.000 VNĐ</div>
+                          <p>Cùng người thương tận hưởng những phút giây thư giãn lãng mạn với gói trị liệu đặc biệt dành cho các cặp đôi.</p>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                </c:otherwise>
+              </c:choose>
             </div>
           </div>
         </div>

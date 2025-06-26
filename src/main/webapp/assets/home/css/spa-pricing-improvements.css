@@ -1,0 +1,342 @@
+/* ===================================================
+   Spa Pricing Section Improvements
+   Enhanced styling for service name and price alignment
+   =================================================== */
+
+/* Main pricing table improvements */
+.spa-price-bx .spa-price-tbl {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.spa-price-bx .spa-price-tbl li {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 40px;
+    padding: 25px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    min-height: 200px; /* Fixed height for all cards */
+}
+
+.spa-price-bx .spa-price-tbl li::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #efbb20 0%, #d8a409 100%);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.spa-price-bx .spa-price-tbl li:hover::before {
+    transform: scaleX(1);
+}
+
+.spa-price-bx .spa-price-tbl li:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 45px rgba(0, 0, 0, 0.12);
+}
+
+/* Image styling improvements */
+.spa-price-bx .spa-price-tbl li .spa-price-thumb {
+    width: 120px;
+    min-width: 120px;
+    height: 120px;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    align-self: flex-start;
+}
+
+.spa-price-bx .spa-price-tbl li .spa-price-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.spa-price-bx .spa-price-tbl li:hover .spa-price-thumb img {
+    transform: scale(1.05);
+}
+
+/* Content area improvements */
+.spa-price-bx .spa-price-tbl li .spa-price-content {
+    flex: 1;
+    padding-left: 25px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    height: 100%;
+    min-height: 150px; /* Ensure consistent content height */
+}
+
+/* Service name on single line */
+.spa-price-bx .spa-price-tbl li .spa-price-content h4 {
+    margin-bottom: 8px;
+    font-size: 24px;
+    font-family: 'Lora', Georgia, serif !important;
+    font-weight: 600;
+    line-height: 1.2;
+    color: #2c3e50;
+    display: block; /* Changed from flex to block */
+}
+
+.spa-price-bx .spa-price-tbl li .spa-price-content h4 a {
+    color: #2c3e50;
+    text-decoration: none;
+    transition: color 0.3s ease;
+    display: block;
+    line-height: 1.2;
+}
+
+.spa-price-bx .spa-price-tbl li .spa-price-content h4 a:hover {
+    color: #efbb20;
+}
+
+/* Price styling - positioned below the title */
+.spa-price-bx .spa-price-tbl li .spa-price-content h4 .spa-price {
+    display: none; /* Hide the price span inside h4 */
+}
+
+/* New price container below the title */
+.spa-price-bx .spa-price-tbl li .spa-price-content::after {
+    content: attr(data-price);
+    font-size: 22px;
+    font-weight: 700;
+    color: #efbb20;
+    font-family: 'Source Sans Pro', Arial, sans-serif !important;
+    margin-top: 8px;
+    margin-bottom: 12px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    display: block;
+}
+
+/* Alternative: Create a separate price div */
+.spa-price-display {
+    font-size: 22px;
+    font-weight: 700;
+    color: #efbb20;
+    font-family: 'Source Sans Pro', Arial, sans-serif !important;
+    margin-top: 8px;
+    margin-bottom: 12px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.spa-price-display::before {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent 0%, #efbb20 50%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.spa-price-bx .spa-price-tbl li:hover .spa-price-display::before {
+    opacity: 1;
+}
+
+/* Description styling */
+.spa-price-bx .spa-price-tbl li .spa-price-content p {
+    font-family: 'Lora', Georgia, serif !important;
+    font-size: 16px;
+    line-height: 1.6;
+    color: #5a6c7d;
+    margin: 0;
+    opacity: 0.9;
+    transition: opacity 0.3s ease;
+    flex-grow: 1; /* Allow description to fill remaining space */
+}
+
+.spa-price-bx .spa-price-tbl li:hover .spa-price-content p {
+    opacity: 1;
+}
+
+/* Section header improvements */
+.spa-price-bx .section-head h2 {
+    font-family: 'Crimson Text', Georgia, serif !important;
+    font-size: 42px;
+    font-weight: 700;
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 50px;
+    position: relative;
+}
+
+.spa-price-bx .section-head h2::after {
+    content: '';
+    position: absolute;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 3px;
+    background: linear-gradient(90deg, #efbb20 0%, #d8a409 100%);
+    border-radius: 2px;
+}
+
+/* Responsive improvements */
+@media (max-width: 1200px) {
+    .spa-price-bx .spa-price-tbl li {
+        min-height: 180px;
+    }
+    
+    .spa-price-bx .spa-price-tbl li .spa-price-content h4 {
+        font-size: 22px;
+    }
+    
+    .spa-price-display {
+        font-size: 20px;
+    }
+    
+    .spa-price-bx .spa-price-tbl li .spa-price-thumb {
+        width: 110px;
+        min-width: 110px;
+        height: 110px;
+    }
+    
+    .spa-price-bx .spa-price-tbl li .spa-price-content {
+        min-height: 130px;
+    }
+}
+
+@media (max-width: 991px) {
+    .spa-price-bx .spa-price-tbl li {
+        margin-bottom: 30px;
+        padding: 20px;
+        min-height: 160px;
+    }
+    
+    .spa-price-bx .spa-price-tbl li .spa-price-content {
+        padding-left: 20px;
+        min-height: 120px;
+    }
+    
+    .spa-price-bx .spa-price-tbl li .spa-price-content h4 {
+        font-size: 20px;
+    }
+    
+    .spa-price-display {
+        font-size: 18px;
+    }
+    
+    .spa-price-bx .spa-price-tbl li .spa-price-thumb {
+        width: 100px;
+        min-width: 100px;
+        height: 100px;
+    }
+    
+    .spa-price-bx .section-head h2 {
+        font-size: 36px;
+        margin-bottom: 40px;
+    }
+}
+
+@media (max-width: 767px) {
+    .spa-price-bx .spa-price-tbl li {
+        flex-direction: column;
+        text-align: center;
+        padding: 25px 20px;
+        min-height: 280px; /* Increased height for vertical layout */
+    }
+    
+    .spa-price-bx .spa-price-tbl li .spa-price-thumb {
+        width: 120px;
+        height: 120px;
+        align-self: center;
+        margin-bottom: 20px;
+    }
+    
+    .spa-price-bx .spa-price-tbl li .spa-price-content {
+        padding-left: 0;
+        min-height: auto;
+        align-items: center;
+        text-align: center;
+    }
+    
+    .spa-price-bx .spa-price-tbl li .spa-price-content h4 {
+        text-align: center;
+    }
+    
+    .spa-price-display {
+        font-size: 24px;
+        text-align: center;
+    }
+    
+    .spa-price-bx .section-head h2 {
+        font-size: 32px;
+        margin-bottom: 35px;
+    }
+}
+
+@media (max-width: 480px) {
+    .spa-price-bx .spa-price-tbl li {
+        margin-bottom: 25px;
+        padding: 20px 15px;
+        min-height: 260px;
+    }
+    
+    .spa-price-bx .spa-price-tbl li .spa-price-content h4 {
+        font-size: 18px;
+    }
+    
+    .spa-price-display {
+        font-size: 20px;
+    }
+    
+    .spa-price-bx .spa-price-tbl li .spa-price-content p {
+        font-size: 15px;
+    }
+    
+    .spa-price-bx .spa-price-tbl li .spa-price-thumb {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .spa-price-bx .section-head h2 {
+        font-size: 28px;
+        margin-bottom: 30px;
+    }
+}
+
+/* Premium visual enhancements */
+.spa-price-bx .spa-price-tbl li .spa-price-content h4 .spa-price.text-primary {
+    background: linear-gradient(135deg, #efbb20 0%, #d8a409 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 800;
+}
+
+/* Hover animation for service links */
+.spa-price-bx .spa-price-tbl li .spa-price-content h4 a {
+    position: relative;
+    overflow: hidden;
+}
+
+.spa-price-bx .spa-price-tbl li .spa-price-content h4 a::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: -100%;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, #efbb20 0%, #d8a409 100%);
+    transition: left 0.3s ease;
+}
+
+.spa-price-bx .spa-price-tbl li .spa-price-content h4 a:hover::before {
+    left: 0;
+} 

@@ -32,7 +32,7 @@
 
         <div class="extra-nav">
           <div class="extra-cell">
-            <a href="${pageContext.request.contextPath}/process-booking/resume" class="site-button ">ĐẶT LỊCH NGAY</a>
+            <a href="${pageContext.request.contextPath}/process-booking/resume" class="site-button radius-no">ĐẶT LỊCH NGAY</a>
             
             <%-- <!-- Dynamic Cart Icon with Iconify -->
             <div class="cart-icon-container">
@@ -182,8 +182,8 @@
                 
                 <%-- No one is logged in --%>
                 <c:otherwise>
-                    <a href="${pageContext.request.contextPath}/login" class="site-button " style="margin-left: 10px; width: 120px;">Đăng nhập</a>
-                    <a href="${pageContext.request.contextPath}/register" class="site-button " style="margin-left: 5px; width: 120px;">Đăng ký</a>
+                    <a href="${pageContext.request.contextPath}/login" class="site-button radius-no" style="margin-left: 10px; width: 120px;">Đăng nhập</a>
+                    <a href="${pageContext.request.contextPath}/register" class="site-button radius-no" style="margin-left: 5px; width: 120px;">Đăng ký</a>
                 </c:otherwise>
             </c:choose>
           </div>
