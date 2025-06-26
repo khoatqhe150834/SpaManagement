@@ -23,7 +23,7 @@
 
 /* Base styles */
 body {
-  font-family: 'Inter', sans-serif, sans-serif;
+    font-family: 'Lora', Georgia, serif;
   line-height: 1.6;
   color: var(--gray-800);
 }

@@ -70,10 +70,15 @@
                                            class="site-button m-r5 button-lg radius-no">
                                             <i class="fa fa-arrow-left m-r10"></i>Quay Lại
                                         </a>
-                                        <a href="${pageContext.request.contextPath}/appointments/booking-individual" 
-                                           class="site-button outline button-lg radius-no">
-                                            Đặt Lịch Ngay
-                                        </a>
+                                        <%-- Show "Đặt lịch ngay" button only for customers and guests --%>
+                                        <c:choose>
+                                            <c:when test="${not empty sessionScope.customer or (empty sessionScope.user and empty sessionScope.customer)}">
+                                                <a href="${pageContext.request.contextPath}/appointments/booking-individual" 
+                                                   class="site-button outline button-lg radius-no">
+                                                    Đặt Lịch Ngay
+                                                </a>
+                                            </c:when>
+                                        </c:choose>
                                     </div>
                                 </div>
                             </div>

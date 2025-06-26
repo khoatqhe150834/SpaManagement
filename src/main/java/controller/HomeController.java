@@ -1,11 +1,14 @@
 package controller;
 
+import dao.ServiceDAO;
+import model.Service;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Home Controller to handle the root path
@@ -18,7 +21,14 @@ public class HomeController extends HttpServlet {
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
 
-    // Forward to the main index.jsp page instead of showing test content
+    // Fetch 6 services for the pricing section
+    ServiceDAO serviceDAO = new ServiceDAO();
+    List<Service> featuredServices = serviceDAO.findPaginated(0, 6);
+
+    // Pass the services to the JSP
+    request.setAttribute("featuredServices", featuredServices);
+
+    // Forward to the main index.jsp page
     request.getRequestDispatcher("/index.jsp").forward(request, response);
   }
 

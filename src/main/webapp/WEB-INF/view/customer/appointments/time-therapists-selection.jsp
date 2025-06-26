@@ -1106,33 +1106,42 @@
         <!-- Content -->
         <div class="page-content bg-white">
             <!-- inner page banner -->
-            <div class="dlab-bnr-inr overlay-primary bg-pt" 
-                 style="background-image: url(${pageContext.request.contextPath}/assets/home/images/banner/bnr2.jpg);">
-                <div class="container">
-                    <div class="dlab-bnr-inr-entry">
-                        <h1 class="text-white">Chọn Thời Gian</h1>
-                        <nav aria-label="breadcrumb" class="breadcrumb-row">
-                            <ul class="breadcrumb">
-                                <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/">Trang chủ</a></li>
-                                <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/process-booking/services">Đặt lịch</a></li>
-                                <li class="breadcrumb-item active" aria-current="page">Chọn thời gian</li>
-                            </ul>
-                        </nav>
-                    </div>
+            <div
+              class="dlab-bnr-inr overlay-primary bg-pt"
+               style="
+                background-image: url(${pageContext.request.contextPath}/assets/home/images/banner/bnr2.jpg);
+              "
+            >
+              <div class="container">
+                <div class="dlab-bnr-inr-entry">
+                  <h1 class="text-white">Chọn Thời Gian</h1>
+                  <!-- Breadcrumb row -->
+                  <div class="breadcrumb-row">
+                    <ul class="list-inline">
+                      <li><a href="${pageContext.request.contextPath}/">Trang chủ</a></li>
+                      <li><a href="${pageContext.request.contextPath}/process-booking/services">Đặt lịch</a></li>
+                      <li>Chọn thời gian</li>
+                    </ul>
+                  </div>
+                  <!-- Breadcrumb row END -->
                 </div>
+              </div>
             </div>
+            <!-- inner page banner END -->
             
             <!-- Time selection content -->
             <div class="section-full content-inner">
                 <div class="container">
-                    <!-- Step Indicator -->
-                    <c:set var="currentStep" value="time" />
-                    <jsp:include page="/WEB-INF/view/common/booking/step-indicator.jsp">
-                        <jsp:param name="currentStep" value="${currentStep}" />
-                        <jsp:param name="bookingSession" value="${bookingSession}" />
-                    </jsp:include>
-                    
-                    <div class="time-container">
+                    <!-- Booking Layout Container -->
+                    <div class="booking-layout-container">
+                        <!-- Step Indicator -->
+                        <c:set var="currentStep" value="time" />
+                        <jsp:include page="/WEB-INF/view/common/booking/step-indicator.jsp">
+                            <jsp:param name="currentStep" value="${currentStep}" />
+                            <jsp:param name="bookingSession" value="${bookingSession}" />
+                        </jsp:include>
+                        
+                        <div class="time-container">
                         <!-- Loading State -->
                         <div id="pageLoadingState" class="page-loading-state">
                             <div class="loading-container">
@@ -1326,6 +1335,7 @@
                                 Tiếp tục
                             </button>
                         </div>
+                    </div>
                     </div>
                 </div>
             </div>

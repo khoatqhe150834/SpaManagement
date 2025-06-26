@@ -1,6 +1,8 @@
 <%-- Document : js Created on : May 25, 2025, 5:16:45 PM Author : quang --%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!-- JAVASCRIPT FILES ========================================= -->
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<!-- ICONIFY ICONS -->
 <script src="${pageContext.request.contextPath}/assets/home/js/jquery.min.js"></script>
 <!-- JQUERY.MIN JS -->
 <script src="${pageContext.request.contextPath}/assets/home/plugins/wow/wow.js"></script>

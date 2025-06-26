@@ -13,7 +13,8 @@
 
 <!-- Main container for the component -->
 <div class="booking-step-indicator">
-    <div class="step-indicator-container">
+    <div class="container">
+        <div class="step-indicator-container">
         <!-- The background line for the progress bar -->
         <div class="progress-bar-line"></div>
         <!-- The active/colored line showing progress -->
@@ -64,15 +65,15 @@
                 </c:if>
             </div>
 
-            <!-- Step 2: Time -->
+            <!-- Step 2: Time & Therapists -->
             <div class="step-item">
-                <div class="step-circle ${currentStep == 'time' ? 'active' : ''} ${not empty bookingSession and bookingSession.hasTimeSlots() ? 'completed' : ''} ${empty bookingSession or !bookingSession.hasServices() ? 'disabled' : ''}" 
+                <div class="step-circle ${(currentStep == 'time' or currentStep == 'therapists') ? 'active' : ''} ${not empty bookingSession and bookingSession.hasTherapistAssignments() ? 'completed' : ''} ${empty bookingSession or !bookingSession.hasServices() ? 'disabled' : ''}" 
                      onclick="navigateToStep('time', ${not empty bookingSession and bookingSession.hasServices()})">
                     <c:choose>
-                        <c:when test="${not empty bookingSession and bookingSession.hasTimeSlots() && currentStep != 'time'}">
+                        <c:when test="${not empty bookingSession and bookingSession.hasTherapistAssignments() && currentStep != 'time' && currentStep != 'therapists'}">
                             <iconify-icon icon="material-symbols:check"></iconify-icon>
                         </c:when>
-                        <c:when test="${currentStep == 'time'}">
+                        <c:when test="${currentStep == 'time' or currentStep == 'therapists'}">
                             <iconify-icon icon="material-symbols:schedule"></iconify-icon>
                         </c:when>
                         <c:otherwise>
@@ -81,19 +82,25 @@
                     </c:choose>
                 </div>
                 <div class="step-content">
-                    <h3 class="step-title ${currentStep == 'time' ? 'active' : ''} ${not empty bookingSession and bookingSession.hasTimeSlots() ? 'completed' : ''}">Chọn Thời Gian</h3>
-                    <p class="step-description">Đặt lịch theo thời gian mong muốn</p>
+                    <h3 class="step-title ${(currentStep == 'time' or currentStep == 'therapists') ? 'active' : ''} ${not empty bookingSession and bookingSession.hasTherapistAssignments() ? 'completed' : ''}">Chọn Thời Gian & Nhân Viên</h3>
+                    <p class="step-description">Đặt lịch theo thời gian mong muốn và chọn nhân viên</p>
                 </div>
-                <c:if test="${not empty bookingSession and bookingSession.hasTimeSlots()}">
+                <c:if test="${not empty bookingSession and (bookingSession.hasTimeSlots() or bookingSession.hasTherapistAssignments())}">
                     <div class="step-summary">
-                        <span class="summary-badge">
-                            <iconify-icon icon="material-symbols:schedule"></iconify-icon>
-                            <c:if test="${not empty bookingSession.data.selectedDate}">
+                        <c:if test="${not empty bookingSession.data.selectedDate}">
+                            <span class="summary-badge">
+                                <iconify-icon icon="material-symbols:schedule"></iconify-icon>
                                 Ngày ${bookingSession.data.selectedDate}
-                            </c:if>
-                        </span>
-                        <c:if test="${currentStep != 'time' && bookingSession.hasServices()}">
-                            <button class="edit-button" onclick="navigateToStep('time', true)" title="Chỉnh sửa thời gian">
+                            </span>
+                        </c:if>
+                        <c:if test="${not empty bookingSession and bookingSession.hasTherapistAssignments()}">
+                            <span class="summary-badge">
+                                <iconify-icon icon="material-symbols:person"></iconify-icon>
+                                Nhân viên đã chọn
+                            </span>
+                        </c:if>
+                        <c:if test="${(currentStep != 'time' && currentStep != 'therapists') && bookingSession.hasServices()}">
+                            <button class="edit-button" onclick="navigateToStep('time', true)" title="Chỉnh sửa thời gian & nhân viên">
                                 <iconify-icon icon="material-symbols:edit"></iconify-icon>
                             </button>
                         </c:if>
@@ -101,42 +108,7 @@
                 </c:if>
             </div>
 
-            <!-- Step 3: Therapists -->
-            <div class="step-item">
-                <div class="step-circle ${currentStep == 'therapists' ? 'active' : ''} ${not empty bookingSession and bookingSession.hasTherapistAssignments() ? 'completed' : ''} ${empty bookingSession or !bookingSession.hasTimeSlots() ? 'disabled' : ''}" 
-                     onclick="navigateToStep('therapists', ${not empty bookingSession and bookingSession.hasTimeSlots()})">
-                    <c:choose>
-                        <c:when test="${not empty bookingSession and bookingSession.hasTherapistAssignments() && currentStep != 'therapists'}">
-                            <iconify-icon icon="material-symbols:check"></iconify-icon>
-                        </c:when>
-                        <c:when test="${currentStep == 'therapists'}">
-                            <iconify-icon icon="material-symbols:person"></iconify-icon>
-                        </c:when>
-                        <c:otherwise>
-                            <span class="step-number">3</span>
-                        </c:otherwise>
-                    </c:choose>
-                </div>
-                <div class="step-content">
-                    <h3 class="step-title ${currentStep == 'therapists' ? 'active' : ''} ${not empty bookingSession and bookingSession.hasTherapistAssignments() ? 'completed' : ''}">Chọn Nhân Viên</h3>
-                    <p class="step-description">Lựa chọn nhân viên phục vụ</p>
-                </div>
-                <c:if test="${not empty bookingSession and bookingSession.hasTherapistAssignments()}">
-                    <div class="step-summary">
-                        <span class="summary-badge">
-                            <iconify-icon icon="material-symbols:person"></iconify-icon>
-                            Nhân viên đã được chọn
-                        </span>
-                        <c:if test="${currentStep != 'therapists' && bookingSession.hasTimeSlots()}">
-                            <button class="edit-button" onclick="navigateToStep('therapists', true)" title="Chỉnh sửa nhân viên">
-                                <iconify-icon icon="material-symbols:edit"></iconify-icon>
-                            </button>
-                        </c:if>
-                    </div>
-                </c:if>
-            </div>
-
-            <!-- Step 4: Payment -->
+            <!-- Step 3: Payment -->
             <div class="step-item">
                 <div class="step-circle ${currentStep == 'payment' ? 'active' : ''} ${not empty bookingSession and bookingSession.readyForPayment ? 'completed' : ''} ${empty bookingSession or !bookingSession.hasTherapistAssignments() ? 'disabled' : ''}" 
                      onclick="navigateToStep('payment', ${not empty bookingSession and bookingSession.hasTherapistAssignments()})">
@@ -145,7 +117,7 @@
                             <iconify-icon icon="material-symbols:payments"></iconify-icon>
                         </c:when>
                         <c:otherwise>
-                            <span class="step-number">4</span>
+                            <span class="step-number">3</span>
                         </c:otherwise>
                     </c:choose>
                 </div>
@@ -164,10 +136,22 @@
             </div>
         </div>
     </div>
+    </div>
 </div>
 
 <!-- CSS Styles with Spa Primary Color -->
 <style>
+/* Booking Layout Container */
+.booking-layout-container {
+    /* This container groups the step indicator and booking content together */
+    position: relative;
+    background: var(--white);
+    border-radius: 1rem;
+    border: 2px solid rgba(0, 0, 0, 0.15);
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1), 0 -4px 6px -4px rgb(0 0 0 / 0.05);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
 :root {
     /* Spa Primary Colors */
     --spa-primary: #c8945f;
@@ -197,13 +181,13 @@
 
 .booking-step-indicator {
     width: 100%;
-    max-width: 64rem; /* 4xl */
-    background: var(--white);
-    border-radius: 1rem;
-    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    padding: 1.5rem;
-    margin: 0 auto 2rem auto;
+    background: transparent;
+    margin: 0 0 2rem 0;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.booking-step-indicator .container {
+    padding: 1.5rem;
 }
 
 .step-indicator-container {
@@ -246,7 +230,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 25%;
+    width: 33.333%;
     cursor: pointer;
 }
 

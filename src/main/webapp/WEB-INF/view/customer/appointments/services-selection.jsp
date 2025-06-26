@@ -80,7 +80,7 @@
             background-image: url(${pageContext.request.contextPath}/assets/home/images/banner/bnr2.jpg);
           "
         >
-        <div class="container">
+          <div class="container">
             <div class="dlab-bnr-inr-entry">
               <h1 class="text-white">Chọn Dịch Vụ</h1>
               <!-- Breadcrumb row -->
@@ -90,10 +90,10 @@
                   <li><a href="${pageContext.request.contextPath}/appointments">Đặt lịch</a></li>
                   <li>Chọn dịch vụ</li>
                 </ul>
-                </div>
+              </div>
               <!-- Breadcrumb row END -->
             </div>
-            </div>
+          </div>
         </div>
         <!-- inner page banner END -->
 
@@ -101,22 +101,44 @@
         <div class="section-full content-inner">
     <main class="main">
         <div class="container">
-            <!-- Step Indicator -->
-            <c:set var="currentStep" value="services" />
-            <jsp:include page="/WEB-INF/view/common/booking/step-indicator.jsp">
-                <jsp:param name="currentStep" value="${currentStep}" />
-                <jsp:param name="bookingSession" value="${bookingSession}" />
-            </jsp:include>
-            
-            <div class="content-grid">
+            <!-- Booking Layout Container -->
+            <div class="booking-layout-container">
+                <!-- Step Indicator -->
+                <c:set var="currentStep" value="services" />
+                <jsp:include page="/WEB-INF/view/common/booking/step-indicator.jsp">
+                    <jsp:param name="currentStep" value="${currentStep}" />
+                    <jsp:param name="bookingSession" value="${bookingSession}" />
+                </jsp:include>
+                
+                <div class="content-grid">
                 <!-- Main Content -->
                 <div class="main-content">
                     <h1 class="page-title">Dịch vụ</h1>
                     
+                    <!-- Top Section: Category and Search Bar -->
+                    <div class="top-controls-section">
+                        <!-- Category Navigation -->
+                        <div class="category-nav">
+                            <div class="category-dropdown" id="categoryDropdown">
+                                <button class="category-dropdown-button" id="categoryDropdownButton">
+                                    <span class="category-dropdown-text">Tất cả</span>
+                                    <i class="fas fa-chevron-down category-dropdown-icon"></i>
+                                </button>
+                                <div class="category-dropdown-menu" id="categoryDropdownMenu">
+                                    <button class="category-dropdown-item active" data-category="all">
+                                        <i class="fas fa-star"></i>
+                                        Tất cả
+                                    </button>
+                                    <!-- Service type items will be populated by JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+
                     <!-- Search Bar -->
                     <div class="search-container">
                         <i class="fas fa-search search-icon"></i>
                         <input type="text" id="searchInput" placeholder="Tìm kiếm dịch vụ..." class="search-input">
+                        </div>
                     </div>
 
                     <!-- Price Range Filter -->
@@ -126,14 +148,14 @@
                             <div class="price-input-group">
                                 <label class="price-label">Giá tối thiểu</label>
                                 <div class="price-input-wrapper">
-                                    <input type="number" id="minPriceInput" min="0" max="10000000" value="0" class="price-input" placeholder="0">
+                                    <input type="text" id="minPriceInput" class="price-input" placeholder="0">
                                     <span class="currency">VND</span>
                                 </div>
                             </div>
                             <div class="price-input-group">
                                 <label class="price-label">Giá tối đa</label>
                                 <div class="price-input-wrapper">
-                                    <input type="number" id="maxPriceInput" min="0" max="10000000" value="10000000" class="price-input" placeholder="10,000,000">
+                                    <input type="text" id="maxPriceInput" class="price-input" placeholder="10.000.000">
                                     <span class="currency">VND</span>
                                 </div>
                             </div>
@@ -143,10 +165,10 @@
                         <div class="slider-container">
                             <div class="slider-labels">
                                 <span>0 VND</span>
-                                <span>10,000,000 VND</span>
+                                <span>10.000.000 VND</span>
                             </div>
                             <div class="slider-step-info">
-                                <small>Bước: 100,000 VND</small>
+                                <small>Bước: 100.000 VND</small>
                             </div>
                             <div class="slider-wrapper">
                                 <div class="slider-track"></div>
@@ -156,24 +178,7 @@
                             </div>
                             <div class="slider-values">
                                 <span id="minValue">0 VND</span>
-                                <span id="maxValue">10,000,000 VND</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Category Navigation -->
-                    <div class="category-nav">
-                        <div class="category-dropdown" id="categoryDropdown">
-                            <button class="category-dropdown-button" id="categoryDropdownButton">
-                                <span class="category-dropdown-text">Tất cả</span>
-                                <i class="fas fa-chevron-down category-dropdown-icon"></i>
-                            </button>
-                            <div class="category-dropdown-menu" id="categoryDropdownMenu">
-                                <button class="category-dropdown-item active" data-category="all">
-                                    <i class="fas fa-star"></i>
-                                    Tất cả
-                                </button>
-                                <!-- Service type items will be populated by JavaScript -->
+                                <span id="maxValue">10.000.000 VND</span>
                             </div>
                         </div>
                     </div>
@@ -221,6 +226,7 @@
                         <button class="continue-btn" id="continueBtn" disabled>Tiếp tục</button>
                     </div>
                 </div>
+            </div>
             </div>
         </div>
     </main>

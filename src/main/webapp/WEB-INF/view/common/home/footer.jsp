@@ -40,9 +40,22 @@ contentType="text/html" pageEncoding="UTF-8"%>
         </div>
         <div class="col-xl-2 col-12 col-lg-3 col-md-6 col-sm-6">
           <div class="widget">
-            <a href="${pageContext.request.contextPath}/process-booking/resume" class="site-button radius-no"
-              >ĐẶT LỊCH NGAY</a
-            >
+            <%-- Show "Đặt lịch ngay" button only for customers and guests (not for staff) --%>
+            <c:choose>
+                <%-- Show for customers --%>
+                <c:when test="${not empty sessionScope.customer}">
+                    <a href="${pageContext.request.contextPath}/process-booking/resume" class="site-button radius-no"
+                      >ĐẶT LỊCH NGAY</a
+                    >
+                </c:when>
+                <%-- Show for guests (no user or customer in session) --%>
+                <c:when test="${empty sessionScope.user and empty sessionScope.customer}">
+                    <a href="${pageContext.request.contextPath}/process-booking/resume" class="site-button radius-no"
+                      >ĐẶT LỊCH NGAY</a
+                    >
+                </c:when>
+                <%-- Hide for staff members (admin, manager, therapist, receptionist) --%>
+            </c:choose>
           </div>
         </div>
       </div>

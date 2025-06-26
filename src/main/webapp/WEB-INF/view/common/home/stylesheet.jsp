@@ -7,11 +7,25 @@
 
 <!-- Add this after other stylesheet links but before closing the stylesheet section -->
 
-<!-- Google Fonts - Playfair Display -->
+<!-- Google Fonts - Luxurious Spa Typography -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+<!-- Primary spa font - Lora (sophisticated serif with warmth) -->
 <link
-  href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap"
+  href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&subset=vietnamese&display=swap"
+  rel="stylesheet"
+/>
+
+<!-- Heading font - Source Sans Pro (clean, professional sans-serif) -->
+<link
+  href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,300;0,400;0,600;0,700;0,900;1,300;1,400;1,600;1,700;1,900&subset=vietnamese&display=swap"
+  rel="stylesheet"
+/>
+
+<!-- Accent font - Crimson Text (luxury serif for special elements) -->
+<link
+  href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&subset=vietnamese&display=swap"
   rel="stylesheet"
 />
 
@@ -25,6 +39,11 @@
   rel="stylesheet"
   type="text/css"
   href="${pageContext.request.contextPath}/assets/home/css/header-custom.css"
+/>
+<link
+  rel="stylesheet"
+  type="text/css"
+  href="${pageContext.request.contextPath}/assets/home/css/spa-pricing-improvements.css"
 />
 
 <link
@@ -75,72 +94,73 @@
   href="${pageContext.request.contextPath}/assets/home/plugins/revolution/revolution/css/navigation.css"
 />
 
-<!-- Vietnamese-supported fonts -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&subset=vietnamese&display=swap" rel="stylesheet">
-
-<!-- Add Roboto with Vietnamese support -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;0,900;1,300;1,400;1,500;1,700;1,900&subset=vietnamese&display=swap" rel="stylesheet">
+<!-- Note: All spa-themed fonts are now imported above -->
 
 <style>
-/* Inter Vietnamese font implementation */
+/* Luxurious Spa Font Implementation */
+/* Primary font: Lora - sophisticated serif with warmth and elegance */
 * {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: 'Lora', Georgia, 'Times New Roman', serif;
 }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    font-family: 'Lora', Georgia, 'Times New Roman', serif !important;
     font-weight: 400;
-    line-height: 1.6;
+    line-height: 1.7;
+    letter-spacing: 0.01em;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    color: #2a2a2a;
 }
 
-/* Headings with Inter */
+/* Headings with Source Sans Pro - clean and professional */
 h1, h2, h3, h4, h5, h6, .title, .heading, .dlab-title {
-    font-family: 'Inter', sans-serif !important;
+    font-family: 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif !important;
     font-weight: 600;
     line-height: 1.3;
+    letter-spacing: 0.01em;
+    color: #1a1a1a;
 }
 
-/* Form elements */
+/* Special luxury elements with Crimson Text */
+.luxury-text, .spa-title, .hero-title, .elegant-accent, .brand-name {
+    font-family: 'Crimson Text', Georgia, serif !important;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    line-height: 1.4;
+}
+
+/* Form elements with primary font */
 input, textarea, select, .form-control {
-    font-family: 'Inter', sans-serif !important;
+    font-family: 'Lora', Georgia, serif !important;
     font-weight: 400;
+    font-size: 16px;
+    line-height: 1.5;
 }
 
-/* Buttons */
-.btn, button, .button {
-    font-family: 'Inter', sans-serif !important;
-    font-weight: 500;
+/* Buttons with heading font for clarity */
+.btn, button, .button, .site-button {
+    font-family: 'Source Sans Pro', Arial, sans-serif !important;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-size: 14px;
 }
 
-/* Navigation */
-.navbar, .nav, .menu {
-    font-family: 'Inter', sans-serif !important;
+/* Navigation with heading font */
+.navbar, .nav, .menu, .main-nav {
+    font-family: 'Source Sans Pro', Arial, sans-serif !important;
     font-weight: 400;
+    letter-spacing: 0.02em;
 }
 
-/* Override any existing font declarations */
+/* Body text elements */
 p, span, div, a, li, td, th, label {
-    font-family: 'Inter', sans-serif !important;
+    font-family: 'Lora', Georgia, serif !important;
 }
 
-/* Inter specific optimizations */
-.inter-tight {
-    letter-spacing: -0.01em;
-}
-
-.inter-display {
-    font-weight: 700;
-    letter-spacing: -0.02em;
-}
-
-/* Specific weights for different elements */
+/* Specific font weights for spa aesthetic */
 .font-light { font-weight: 300; }
 .font-normal { font-weight: 400; }
 .font-medium { font-weight: 500; }
@@ -149,7 +169,71 @@ p, span, div, a, li, td, th, label {
 .font-extrabold { font-weight: 800; }
 .font-black { font-weight: 900; }
 
-/* Admin Style Dropdown Menu */
+/* Spa-specific typography classes */
+.spa-elegant {
+    font-family: 'Crimson Text', Georgia, serif !important;
+    font-weight: 400;
+    font-style: italic;
+    letter-spacing: 0.02em;
+    line-height: 1.6;
+}
+
+.spa-modern {
+    font-family: 'Source Sans Pro', Arial, sans-serif !important;
+    font-weight: 300;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.spa-classic {
+    font-family: 'Lora', Georgia, serif !important;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    line-height: 1.7;
+}
+
+/* Enhanced readability for Vietnamese text */
+.vietnamese-text {
+    line-height: 1.8;
+    letter-spacing: 0.005em;
+    font-weight: 400;
+}
+
+/* Special styling for prices and important information */
+.price, .important-info {
+    font-family: 'Source Sans Pro', Arial, sans-serif !important;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+/* Testimonials and quotes with elegant styling */
+.testimonial-text, blockquote {
+    font-family: 'Crimson Text', Georgia, serif !important;
+    font-style: italic;
+    font-weight: 400;
+    line-height: 1.8;
+    letter-spacing: 0.01em;
+    font-size: 18px;
+}
+
+/* Luxury call-to-action elements */
+.luxury-cta {
+    font-family: 'Source Sans Pro', Arial, sans-serif !important;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+/* Spa service descriptions */
+.spa-service-description {
+    font-family: 'Lora', Georgia, serif !important;
+    font-weight: 400;
+    line-height: 1.8;
+    font-size: 16px;
+    letter-spacing: 0.01em;
+}
+
+/* Admin Style Dropdown Menu with new fonts */
 .admin-style-dropdown {
     background: #ffffff;
     border: 1px solid #e5e7eb;
@@ -159,6 +243,7 @@ p, span, div, a, li, td, th, label {
     min-width: max-content;
     width: max-content;
     z-index: 1000;
+    font-family: 'Source Sans Pro', Arial, sans-serif !important;
 }
 
 .dropdown-header-admin {
@@ -186,6 +271,8 @@ p, span, div, a, li, td, th, label {
     transition: all 0.2s ease;
     border: none;
     background: none;
+    font-family: 'Source Sans Pro', Arial, sans-serif !important;
+    font-weight: 400;
 }
 
 .dropdown-item-admin:hover {
@@ -225,5 +312,146 @@ iconify-icon {
     align-items: center;
     justify-content: center;
     vertical-align: middle;
+}
+
+/* Cart Icon Styles */
+.cart-icon-container {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+    margin-left: 12px;
+    margin-right: 8px;
+}
+
+.cart-icon-button {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(88, 107, 180, 0.2);
+    position: relative;
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.cart-icon-button:hover {
+    background-color: rgba(88, 107, 180, 0.1);
+    border-color: rgba(88, 107, 180, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(88, 107, 180, 0.2);
+}
+
+.cart-icon-button .cart-icon {
+    font-size: 20px;
+    color: #586BB4;
+    transition: color 0.3s ease;
+}
+
+.cart-icon-button:hover .cart-icon {
+    color: #3d4a7a;
+}
+
+.cart-icon-button:focus {
+    outline: 2px solid #586BB4;
+    outline-offset: 2px;
+}
+
+.cart-icon-button:focus .cart-icon {
+    color: #3d4a7a;
+}
+
+.cart-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+    color: white;
+    border-radius: 50%;
+    padding: 2px 6px;
+    font-size: 10px;
+    font-weight: 600;
+    min-width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    box-shadow: 0 2px 6px rgba(238, 90, 82, 0.4);
+    border: 2px solid white;
+    font-family: 'Inter', sans-serif;
+    animation: none;
+    transition: all 0.3s ease;
+}
+
+.cart-badge.hidden {
+    display: none;
+}
+
+.cart-badge.animate-pulse {
+    animation: cartPulse 0.6s ease-in-out;
+}
+
+@keyframes cartPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+/* Responsive Design for Cart */
+@media (max-width: 768px) {
+    .cart-icon-container {
+        margin-left: 8px;
+        margin-right: 5px;
+    }
+    
+    .cart-icon-button {
+        width: 36px;
+        height: 36px;
+        padding: 6px;
+    }
+    
+    .cart-icon-button .cart-icon {
+        font-size: 18px;
+    }
+    
+    .cart-badge {
+        font-size: 9px;
+        min-width: 14px;
+        height: 14px;
+        top: -6px;
+        right: -6px;
+    }
+}
+
+@media (max-width: 480px) {
+    .cart-icon-container {
+        margin-left: 6px;
+        margin-right: 3px;
+    }
+    
+    .cart-icon-button {
+        width: 34px;
+        height: 34px;
+        padding: 5px;
+    }
+    
+    .cart-icon-button .cart-icon {
+        font-size: 16px;
+    }
+    
+    .cart-badge {
+        font-size: 8px;
+        min-width: 12px;
+        height: 12px;
+        top: -5px;
+        right: -5px;
+        padding: 1px 4px;
+    }
 }
 </style>

@@ -108,7 +108,12 @@
 .extra-nav .extra-cell {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
+  gap: 8px; /* Add consistent spacing between elements */
+  flex-wrap: nowrap;
 }
+
+
 
 /* Notification Button Styles */
 .user-notification-button {
@@ -172,6 +177,8 @@
     right: -20px; /* Adjust for mobile */
   }
   
+  
+  
   .user-notification-button {
     margin-left: 5px;
   }
@@ -197,4 +204,6 @@
     padding: 6px 12px;
     font-size: 12px;
   }
+  
+  
 } 
