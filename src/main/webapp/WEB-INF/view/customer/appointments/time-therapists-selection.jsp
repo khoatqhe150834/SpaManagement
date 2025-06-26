@@ -1115,7 +1115,14 @@
               <div class="container">
                 <div class="dlab-bnr-inr-entry">
                   <h1 class="text-white">Chọn Thời Gian</h1>
-                  
+                  <!-- Breadcrumb row -->
+                  <div class="breadcrumb-row">
+                    <ul class="list-inline">
+                      <li><a href="${pageContext.request.contextPath}/">Trang chủ</a></li>
+                      <li><a href="${pageContext.request.contextPath}/process-booking/services">Đặt lịch</a></li>
+                      <li>Chọn thời gian</li>
+                    </ul>
+                  </div>
                   <!-- Breadcrumb row END -->
                 </div>
               </div>

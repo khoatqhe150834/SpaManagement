@@ -9,3 +9,4 @@
 - ✅ Show Đặt lịch ngay button only in customer and guest
 - ✅ Fix the banner in service selection jsp page
 - ✅ Fix the banner in time-therapists selection jsp page
+- create a 404 page
