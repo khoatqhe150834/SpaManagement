@@ -34,6 +34,14 @@
           <div class="extra-cell">
             <a href="${pageContext.request.contextPath}/process-booking/resume" class="site-button radius-no">ĐẶT LỊCH NGAY</a>
             
+            <!-- Dynamic Cart Icon with Iconify -->
+            <div class="cart-icon-container">
+              <button type="button" class="cart-icon-button" id="cartIconButton" onclick="window.location.href='${pageContext.request.contextPath}/cart'" title="Giỏ hàng">
+                <iconify-icon icon="heroicons:shopping-bag-20-solid" class="cart-icon"></iconify-icon>
+                <span class="cart-badge" id="cartBadge">0</span>
+              </button>
+            </div>
+            
             <c:choose>
                 <%-- Customer is logged in --%>
                 <c:when test="${not empty sessionScope.customer}">
@@ -223,6 +231,9 @@
                 </li>
               </ul>
             </li>
+
+
+
           </ul>
         </div>
       </div>

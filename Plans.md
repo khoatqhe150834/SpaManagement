@@ -1,0 +1,5 @@
+- Improve loading speed of available time slots
+- Add VNPay QR integration method
+- Fix the step indicator of booking process
+- Adding a cart to store services and products
+- Add auto booking feature for booking time slots and therapists
