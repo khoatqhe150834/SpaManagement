@@ -120,18 +120,6 @@
         <url-pattern>/test</url-pattern>
     </servlet-mapping>
 
-    <!-- CartSession API Servlet -->
-    <servlet>
-        <servlet-name>CartSessionApiServlet</servlet-name>
-        <servlet-class>controller.api.CartSessionApiServlet</servlet-class>
-    </servlet>
-
-    <!-- CartSession API Servlet Mapping -->
-    <servlet-mapping>
-        <servlet-name>CartSessionApiServlet</servlet-name>
-        <url-pattern>/api/cart-session/*</url-pattern>
-    </servlet-mapping>
-
     <!-- BookingSession API Servlet -->
     <servlet>
         <servlet-name>BookingSessionApiServlet</servlet-name>

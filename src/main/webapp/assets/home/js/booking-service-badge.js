@@ -11,14 +11,34 @@
         badgeId: 'bookingServiceBadge',
         badgeGuestClass: 'booking-service-badge-guest',
         sessionStorageKey: 'selectedServices',
-        cartStorageKey: 'cartItems',
+
         maxBadgeCount: 99, // Show 99+ for counts above this
         pulseAnimationDuration: 400
     };
     
-    // Initialize when DOM is ready
-    document.addEventListener('DOMContentLoaded', function() {
-        BookingServiceBadge.init();
+    // Initialize based on DOM readiness state
+    if (document.readyState === 'loading') {
+        // DOM is still loading, wait for DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', function() {
+            BookingServiceBadge.init();
+        });
+    } else {
+        // DOM is already loaded, initialize immediately
+        setTimeout(function() {
+            BookingServiceBadge.init();
+        }, 0);
+    }
+    
+    // Additional redundant check after page fully loads (catches cases where session data loads late)
+    window.addEventListener('load', function() {
+        setTimeout(function() {
+            if (window.BookingServiceBadge && window.BookingServiceBadge.badge) {
+                console.log('🔄 Post-load badge check - loading from database and storage...');
+                window.BookingServiceBadge.loadFromDatabase(); // Try database again after full page load
+                window.BookingServiceBadge.performComprehensiveStorageCheck();
+                window.BookingServiceBadge.updateBadgeFromStorage();
+            }
+        }, 500);
     });
     
     // Main BookingServiceBadge object
@@ -52,19 +72,33 @@
             
             console.log('Badge element found:', this.badge);
             
+            // IMMEDIATE: Load from database first (most authoritative)
+            this.loadFromDatabase();
+            
+            // IMMEDIATE: Check ALL possible storage sources as backup
+            this.performComprehensiveStorageCheck();
+            
             // IMMEDIATE synchronization check on init
             this.forceSynchronizeAllSources();
             
-            // Initial count update with delay for booking pages
+            // Initial count update 
             this.updateBadgeFromStorage();
             
-            // Also try updating after a short delay to catch booking data that loads after DOM
+            // Multiple delayed checks to catch data that loads after DOM
             setTimeout(() => {
+                this.loadFromDatabase(); // Try database again
+                this.performComprehensiveStorageCheck();
+                this.forceSynchronizeAllSources();
+                this.updateBadgeFromStorage();
+            }, 100);
+            
+            setTimeout(() => {
+                this.loadFromDatabase(); // Try database again
+                this.performComprehensiveStorageCheck();
                 this.forceSynchronizeAllSources();
                 this.updateBadgeFromStorage();
             }, 500);
             
-            // Another check after 2 seconds for slow-loading booking data
             setTimeout(() => {
                 this.forceSynchronizeAllSources();
                 this.updateBadgeFromStorage();
@@ -80,6 +114,106 @@
             this.addTestFunctionality();
             
             console.log('Booking service badge initialized successfully');
+        },
+        
+        /**
+         * Load service count from database/server session immediately
+         */
+        loadFromDatabase: function() {
+            console.log('🗄️ Loading service count from database...');
+            
+            // Don't restrict to API pages - always try to load from database
+            if (!this.badge) {
+                return;
+            }
+            
+            // Make API call but don't block on it
+            this.fetchBookingSessionFromAPI(true); // true = immediate load
+        },
+        
+        /**
+         * Perform comprehensive storage check - check ALL storage sources immediately
+         */
+        performComprehensiveStorageCheck: function() {
+            console.log('🔍 Performing comprehensive storage check...');
+            
+            let totalServicesFound = 0;
+            let sourceFound = '';
+            
+            // Check 1: sessionStorage selectedServices
+            try {
+                const selectedServices = sessionStorage.getItem('selectedServices');
+                if (selectedServices) {
+                    const parsed = JSON.parse(selectedServices);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        totalServicesFound = parsed.length;
+                        sourceFound = 'sessionStorage.selectedServices';
+                        console.log(`✅ Found ${totalServicesFound} services in sessionStorage.selectedServices:`, parsed);
+                    }
+                }
+            } catch (e) {
+                console.warn('Error checking sessionStorage.selectedServices:', e);
+            }
+            
+            // Check 2: sessionStorage bookingSession
+            if (totalServicesFound === 0) {
+                try {
+                    const bookingSession = sessionStorage.getItem('bookingSession');
+                    if (bookingSession) {
+                        const parsed = JSON.parse(bookingSession);
+                        if (parsed && parsed.services && Array.isArray(parsed.services) && parsed.services.length > 0) {
+                            totalServicesFound = parsed.services.length;
+                            sourceFound = 'sessionStorage.bookingSession';
+                            console.log(`✅ Found ${totalServicesFound} services in sessionStorage.bookingSession:`, parsed.services);
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Error checking sessionStorage.bookingSession:', e);
+                }
+            }
+            
+            // Check 3: window.bookingData (various forms)
+            if (totalServicesFound === 0) {
+                if (typeof window.bookingData !== 'undefined') {
+                    if (window.bookingData.sessionData && window.bookingData.sessionData.selectedServices) {
+                        const services = window.bookingData.sessionData.selectedServices;
+                        if (Array.isArray(services) && services.length > 0) {
+                            totalServicesFound = services.length;
+                            sourceFound = 'window.bookingData.sessionData.selectedServices';
+                            console.log(`✅ Found ${totalServicesFound} services in window.bookingData.sessionData:`, services);
+                        }
+                    } else if (window.bookingData.selectedServices) {
+                        const services = window.bookingData.selectedServices;
+                        if (Array.isArray(services) && services.length > 0) {
+                            totalServicesFound = services.length;
+                            sourceFound = 'window.bookingData.selectedServices';
+                            console.log(`✅ Found ${totalServicesFound} services in window.bookingData.selectedServices:`, services);
+                        }
+                    }
+                }
+            }
+            
+            // Check 4: window.savedBookingData
+            if (totalServicesFound === 0) {
+                if (typeof window.savedBookingData !== 'undefined' && window.savedBookingData.selectedServices) {
+                    const services = window.savedBookingData.selectedServices;
+                    if (Array.isArray(services) && services.length > 0) {
+                        totalServicesFound = services.length;
+                        sourceFound = 'window.savedBookingData.selectedServices';
+                        console.log(`✅ Found ${totalServicesFound} services in window.savedBookingData:`, services);
+                    }
+                }
+            }
+            
+            // If we found services, immediately update the badge
+            if (totalServicesFound > 0) {
+                console.log(`🎯 Immediately displaying ${totalServicesFound} services from ${sourceFound}`);
+                this.updateBadge(totalServicesFound);
+                return totalServicesFound;
+            } else {
+                console.log('⚠️ No services found in any storage source during comprehensive check');
+                return 0;
+            }
         },
         
         /**
@@ -161,31 +295,38 @@
             
             let totalCount = 0;
             let foundBookingData = false;
+            let dataSource = '';
             
             // Check for booking session data first (priority)
             const bookingSessionData = this.getBookingSessionData();
             if (bookingSessionData && bookingSessionData.services) {
                 totalCount += bookingSessionData.services.length;
                 foundBookingData = true;
+                dataSource = 'booking session data';
             }
             
-            // Only check other sources if no booking session data found
-            if (!foundBookingData) {
-                // Check session storage for selected services
-                const selectedServices = this.getSelectedServicesFromStorage();
-                totalCount += selectedServices.length;
-                
-                // Check for cart items if available
-                const cartItems = this.getCartItemsFromStorage();
-                totalCount += cartItems.length;
-                
-                // Try API fetch only if no local data found and we're on a relevant page
-                if (totalCount === 0 && this.shouldFetchFromAPI()) {
-                    this.fetchBookingSessionFromAPI();
-                    return; // Don't update badge yet, wait for API response
+            // Check other sources even if we found booking data (for debugging/validation)
+            const selectedServices = this.getSelectedServicesFromStorage();
+            if (selectedServices.length > 0) {
+                if (!foundBookingData) {
+                    totalCount = selectedServices.length;
+                    dataSource = 'sessionStorage selectedServices';
+                } else {
+                    console.log(`Note: Also found ${selectedServices.length} services in sessionStorage, but using booking session data (${totalCount})`);
                 }
             }
             
+            // If still no data found, try comprehensive check
+            if (totalCount === 0) {
+                const comprehensiveCount = this.performComprehensiveStorageCheck();
+                if (comprehensiveCount > 0) {
+                    totalCount = comprehensiveCount;
+                    dataSource = 'comprehensive storage check';
+                }
+                // Note: We no longer call API here since database loading happens immediately on init
+            }
+            
+            console.log(`Updating badge with count ${totalCount} from ${dataSource}`);
             this.updateBadge(totalCount);
         },
 
@@ -210,19 +351,6 @@
                 return stored ? JSON.parse(stored) : [];
             } catch (e) {
                 console.warn('Error reading selected services from storage:', e);
-                return [];
-            }
-        },
-        
-        /**
-         * Get cart items from local storage
-         */
-        getCartItemsFromStorage: function() {
-            try {
-                const stored = localStorage.getItem(CONFIG.cartStorageKey);
-                return stored ? JSON.parse(stored) : [];
-            } catch (e) {
-                console.warn('Error reading cart items from storage:', e);
                 return [];
             }
         },
@@ -308,9 +436,13 @@
         /**
          * Fetch booking session data from server API
          */
-        fetchBookingSessionFromAPI: function() {
+        fetchBookingSessionFromAPI: function(immediate = false) {
             // Prevent multiple simultaneous API calls
             if (this.apiCallInProgress) {
+                if (immediate) {
+                    console.log('API call already in progress, but this is immediate load - will try again shortly');
+                    setTimeout(() => this.fetchBookingSessionFromAPI(true), 200);
+                }
                 console.log('API call already in progress, skipping');
                 return;
             }
@@ -318,7 +450,15 @@
             this.apiCallInProgress = true;
             const self = this;
             
-            fetch('/api/booking-session', {
+            console.log(`🌐 Fetching booking session from database${immediate ? ' (immediate load)' : ''}...`);
+            
+            // Use context path from JSP (set in stylesheet.jsp)
+            const contextPath = window.APP_CONTEXT_PATH || '';
+            const apiUrl = `${contextPath}/api/booking-session`;
+            
+            console.log(`Making API call to: ${apiUrl}`);
+            
+            fetch(apiUrl, {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json'
@@ -333,30 +473,57 @@
             })
             .then(data => {
                 if (data.success && data.data) {
-                    console.log('Fetched booking session from API:', data.data);
+                    console.log('✅ Fetched booking session from database:', data.data);
                     const serviceCount = data.data.serviceCount || 0;
                     const selectedServices = data.data.selectedServices || [];
                     
-                    // Sync sessionStorage to match API data
-                    self.syncSessionStorageToMatch(selectedServices);
-                    
-                    // Cache the result in bookingSession storage
-                    sessionStorage.setItem('bookingSession', JSON.stringify({
-                        services: selectedServices,
-                        serviceCount: serviceCount,
-                        lastFetched: Date.now()
-                    }));
-                    
-                    self.updateBadge(serviceCount);
-                    self.lastApiCall = Date.now();
+                    if (serviceCount > 0 || selectedServices.length > 0) {
+                        const actualCount = selectedServices.length || serviceCount;
+                        console.log(`🎯 Database shows ${actualCount} services - updating badge immediately`);
+                        
+                        // Sync sessionStorage to match database data
+                        self.syncSessionStorageToMatch(selectedServices);
+                        
+                        // Cache the result in bookingSession storage
+                        sessionStorage.setItem('bookingSession', JSON.stringify({
+                            services: selectedServices,
+                            serviceCount: actualCount,
+                            lastFetched: Date.now(),
+                            source: 'database'
+                        }));
+                        
+                        // Immediately update badge with database count
+                        self.updateBadge(actualCount);
+                        self.lastApiCall = Date.now();
+                        
+                        console.log(`✅ Badge updated with ${actualCount} services from database`);
+                    } else {
+                        console.log('📭 Database shows no services');
+                        if (!immediate) {
+                            self.updateBadge(0);
+                        }
+                    }
                 } else {
-                    console.log('No booking session data from API');
-                    self.updateBadge(0);
+                    console.log('📭 No booking session data from database API');
+                    if (immediate) {
+                        // On immediate load, if database is empty, still check local storage as fallback
+                        console.log('🔄 No database data on immediate load, checking local storage...');
+                        self.updateBadgeFromStorage();
+                    } else {
+                        self.updateBadge(0);
+                    }
                 }
             })
             .catch(error => {
-                console.warn('Error fetching booking session:', error);
-                // Don't reset badge to 0 on API error, keep current state
+                console.warn('❌ Error fetching booking session from database:', error);
+                if (immediate) {
+                    // On immediate load failure, fall back to local storage
+                    console.log('🔄 Database failed on immediate load, falling back to local storage...');
+                    self.updateBadgeFromStorage();
+                } else {
+                    // Don't reset badge to 0 on API error, keep current state
+                    console.log('API error, keeping current badge state');
+                }
             })
             .finally(() => {
                 self.apiCallInProgress = false;
@@ -415,8 +582,7 @@
             
             // Listen for storage changes (cross-tab communication)
             window.addEventListener('storage', function(e) {
-                if (e.key === CONFIG.sessionStorageKey || 
-                    e.key === CONFIG.cartStorageKey || 
+                if (e.key === CONFIG.sessionStorageKey ||
                     e.key === 'bookingSession') {
                     self.updateBadgeFromStorage();
                 }
@@ -424,10 +590,6 @@
             
             // Listen for custom events that might be dispatched by other scripts
             window.addEventListener('servicesUpdated', function() {
-                self.updateBadgeFromStorage();
-            });
-            
-            window.addEventListener('cartUpdated', function() {
                 self.updateBadgeFromStorage();
             });
             

@@ -1,5 +1,11 @@
 <%-- Document : stylesheet Created on : May 26, 2025, 10:15:46 PM Author : quang
 --%> <%@page contentType="text/html" pageEncoding="UTF-8"%>
+
+<!-- Make context path available to JavaScript -->
+<script>
+    window.APP_CONTEXT_PATH = '${pageContext.request.contextPath}';
+</script>
+
 <!-- STYLESHEETS -->
 
 <!-- Iconify Icons -->
@@ -314,144 +320,5 @@ iconify-icon {
     vertical-align: middle;
 }
 
-/* Cart Icon Styles */
-.cart-icon-container {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    vertical-align: middle;
-    margin-left: 12px;
-    margin-right: 8px;
-}
 
-.cart-icon-button {
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgba(88, 107, 180, 0.2);
-    position: relative;
-    padding: 8px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.cart-icon-button:hover {
-    background-color: rgba(88, 107, 180, 0.1);
-    border-color: rgba(88, 107, 180, 0.4);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(88, 107, 180, 0.2);
-}
-
-.cart-icon-button .cart-icon {
-    font-size: 20px;
-    color: #586BB4;
-    transition: color 0.3s ease;
-}
-
-.cart-icon-button:hover .cart-icon {
-    color: #3d4a7a;
-}
-
-.cart-icon-button:focus {
-    outline: 2px solid #586BB4;
-    outline-offset: 2px;
-}
-
-.cart-icon-button:focus .cart-icon {
-    color: #3d4a7a;
-}
-
-.cart-badge {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    background: linear-gradient(135deg, #ff6b6b, #ee5a52);
-    color: white;
-    border-radius: 50%;
-    padding: 2px 6px;
-    font-size: 10px;
-    font-weight: 600;
-    min-width: 16px;
-    height: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-    box-shadow: 0 2px 6px rgba(238, 90, 82, 0.4);
-    border: 2px solid white;
-    font-family: 'Inter', sans-serif;
-    animation: none;
-    transition: all 0.3s ease;
-}
-
-.cart-badge.hidden {
-    display: none;
-}
-
-.cart-badge.animate-pulse {
-    animation: cartPulse 0.6s ease-in-out;
-}
-
-@keyframes cartPulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.2); }
-    100% { transform: scale(1); }
-}
-
-/* Responsive Design for Cart */
-@media (max-width: 768px) {
-    .cart-icon-container {
-        margin-left: 8px;
-        margin-right: 5px;
-    }
-    
-    .cart-icon-button {
-        width: 36px;
-        height: 36px;
-        padding: 6px;
-    }
-    
-    .cart-icon-button .cart-icon {
-        font-size: 18px;
-    }
-    
-    .cart-badge {
-        font-size: 9px;
-        min-width: 14px;
-        height: 14px;
-        top: -6px;
-        right: -6px;
-    }
-}
-
-@media (max-width: 480px) {
-    .cart-icon-container {
-        margin-left: 6px;
-        margin-right: 3px;
-    }
-    
-    .cart-icon-button {
-        width: 34px;
-        height: 34px;
-        padding: 5px;
-    }
-    
-    .cart-icon-button .cart-icon {
-        font-size: 16px;
-    }
-    
-    .cart-badge {
-        font-size: 8px;
-        min-width: 12px;
-        height: 12px;
-        top: -5px;
-        right: -5px;
-        padding: 1px 4px;
-    }
-}
 </style>
