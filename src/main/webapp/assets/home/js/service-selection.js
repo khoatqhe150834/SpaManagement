@@ -1,5 +1,3 @@
-
-
 // Service data - will be loaded from API
 let services = [];
 let serviceTypes = [];
@@ -43,6 +41,17 @@ function initializeDOM() {
   console.log('DOM elements initialized');
 }
 
+// Initialize price inputs with Vietnamese currency formatting
+function initializePriceInputs() {
+  if (minPriceInput) {
+    minPriceInput.value = formatVietnameseCurrency(minPrice);
+  }
+  if (maxPriceInput) {
+    maxPriceInput.value = formatVietnameseCurrency(maxPrice);
+  }
+  console.log('Price inputs initialized with Vietnamese formatting');
+}
+
 // Get context path for API calls
 function getContextPath() {
   // For your specific setup, the context path is '/spa'
@@ -54,26 +63,85 @@ function roundToStep(value) {
   return Math.round(value / priceStep) * priceStep;
 }
 
+// Format number as Vietnamese currency (with thousand separators)
+function formatVietnameseCurrency(number) {
+  return number.toLocaleString('vi-VN');
+}
+
+// Parse Vietnamese currency string to number
+function parseVietnameseCurrency(str) {
+  // Remove all non-digit characters (including dots, commas, spaces)
+  return parseInt(str.replace(/[^\d]/g, '')) || 0;
+}
+
 // API functions
-async function fetchServiceTypes() {
+async function fetchServiceTypes(retryCount = 0) {
+  const maxRetries = 3;
+  
   try {
     const contextPath = getContextPath();
     const url = `${contextPath}/api/service-types`;
-    console.log('Fetching service types from:', url);
+    console.log('Fetching service types from:', url, `(attempt ${retryCount + 1}/${maxRetries + 1})`);
     
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      credentials: 'same-origin',
+      cache: 'no-cache' // Prevent caching issues
+    });
+    
     console.log('Service types response status:', response.status);
+    console.log('Service types response headers:', response.headers);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    const data = await response.json();
+    
+    // Check if response has content
+    const contentLength = response.headers.get('content-length');
+    console.log('Response content length:', contentLength);
+    
+    if (contentLength === '0') {
+      throw new Error('Empty response received');
+    }
+    
+    // Get response text first to debug
+    const responseText = await response.text();
+    console.log('Raw response text length:', responseText.length);
+    console.log('Raw response preview:', responseText.substring(0, 100) + '...');
+    
+    if (!responseText.trim()) {
+      throw new Error('Empty response body');
+    }
+    
+    // Parse JSON
+    const data = JSON.parse(responseText);
     console.log('Service types data received:', data);
     
+    if (!Array.isArray(data)) {
+      console.warn('Service types response is not an array:', typeof data);
+      return [];
+    }
+    
     serviceTypes = data;
+    console.log('✅ Successfully fetched', data.length, 'service types');
     return data;
+    
   } catch (error) {
     console.error('Error fetching service types:', error);
+    console.error('Error details:', error.message);
+    
+    // Retry logic
+    if (retryCount < maxRetries) {
+      console.log(`⏳ Retrying in 1 second... (${retryCount + 1}/${maxRetries})`);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return fetchServiceTypes(retryCount + 1);
+    }
+    
+    console.error('💥 All retry attempts failed');
     return [];
   }
 }
@@ -163,46 +231,75 @@ function transformServiceData(serviceList) {
 
 // Initialize category dropdown with service types
 async function initializeCategoryDropdown() {
-  await fetchServiceTypes();
+  console.log('🔧 Starting category dropdown initialization...');
   
-  const dropdownMenu = document.getElementById('categoryDropdownMenu');
-  if (!dropdownMenu) return;
-  
-  // Clear existing items except all
-  const allItem = dropdownMenu.querySelector('[data-category="all"]');
-  dropdownMenu.innerHTML = '';
-  
-  // Add all item back
-  if (allItem) {
-    dropdownMenu.appendChild(allItem);
-  } else {
-    const allItem = document.createElement('button');
-    allItem.className = 'category-dropdown-item active';
-    allItem.dataset.category = 'all';
-    allItem.innerHTML = '<i class="fas fa-star"></i>Tất cả';
-    dropdownMenu.appendChild(allItem);
+  try {
+    const serviceTypesData = await fetchServiceTypes();
+    console.log('🔧 Service types fetched:', serviceTypesData.length, 'items');
+    
+    const dropdownMenu = document.getElementById('categoryDropdownMenu');
+    if (!dropdownMenu) {
+      console.error('❌ Category dropdown menu element not found!');
+      return;
+    }
+    
+    // Clear existing items except all
+    const allItem = dropdownMenu.querySelector('[data-category="all"]');
+    dropdownMenu.innerHTML = '';
+    
+    // Add all item back
+    if (allItem) {
+      dropdownMenu.appendChild(allItem);
+    } else {
+      const allItem = document.createElement('button');
+      allItem.className = 'category-dropdown-item active';
+      allItem.dataset.category = 'all';
+      allItem.innerHTML = '<i class="fas fa-star"></i>Tất cả';
+      dropdownMenu.appendChild(allItem);
+    }
+    
+    // Add service type items
+    if (Array.isArray(serviceTypesData) && serviceTypesData.length > 0) {
+      serviceTypesData.forEach(serviceType => {
+        console.log('📋 Creating dropdown item for service type:', serviceType.name, 'ID:', serviceType.serviceTypeId);
+        
+        const item = document.createElement('button');
+        item.className = 'category-dropdown-item';
+        // Use type-{typeId} format that the backend expects
+        item.dataset.category = `type-${serviceType.serviceTypeId}`;
+        
+        console.log('📋 Set data-category to:', item.dataset.category);
+        
+        // Add appropriate icon for service type
+        const icon = getServiceTypeIcon(serviceType.name);
+        item.innerHTML = `<i class="${icon}"></i>${serviceType.name}`;
+        
+        dropdownMenu.appendChild(item);
+      });
+      
+      console.log('✅ Added', serviceTypesData.length, 'service type items to dropdown');
+    } else {
+      console.warn('⚠️ No service types available or invalid data format');
+    }
+    
+    // Setup dropdown event listeners
+    setupDropdownEventListeners();
+    console.log('🔧 Category dropdown initialization complete');
+    
+  } catch (error) {
+    console.error('💥 Error initializing category dropdown:', error);
+    
+    // Fallback: At least ensure the "All" option works
+    const dropdownMenu = document.getElementById('categoryDropdownMenu');
+    if (dropdownMenu && dropdownMenu.children.length === 0) {
+      const allItem = document.createElement('button');
+      allItem.className = 'category-dropdown-item active';
+      allItem.dataset.category = 'all';
+      allItem.innerHTML = '<i class="fas fa-star"></i>Tất cả';
+      dropdownMenu.appendChild(allItem);
+      setupDropdownEventListeners();
+    }
   }
-  
-  // Add service type items
-  serviceTypes.forEach(serviceType => {
-    console.log('📋 Creating dropdown item for service type:', serviceType.name, 'ID:', serviceType.serviceTypeId);
-    
-    const item = document.createElement('button');
-    item.className = 'category-dropdown-item';
-    // Use type-{typeId} format that the backend expects
-    item.dataset.category = `type-${serviceType.serviceTypeId}`;
-    
-    console.log('📋 Set data-category to:', item.dataset.category);
-    
-    // Add appropriate icon for service type
-    const icon = getServiceTypeIcon(serviceType.name);
-    item.innerHTML = `<i class="${icon}"></i>${serviceType.name}`;
-    
-    dropdownMenu.appendChild(item);
-  });
-  
-  // Setup dropdown event listeners
-  setupDropdownEventListeners();
 }
 
 // Get appropriate icon for service type
@@ -303,6 +400,7 @@ async function init() {
   loadBookingState();
   
   setupEventListeners();
+  initializePriceInputs();
   updateSliderRange();
   
   console.log('About to initialize category dropdown...');
@@ -337,17 +435,48 @@ async function init() {
 function setupEventListeners() {
   // Search input
   searchInput.addEventListener('input', async (e) => {
-      searchQuery = e.target.value;
+      // Store the raw value for display (don't modify the input field while typing)
+      const rawValue = e.target.value;
+      
+      // Normalize search query for API calls: trim and handle multiple spaces
+      // But only if there's actual content to search
+      searchQuery = rawValue.trim().replace(/\s+/g, ' ');
+      
       await loadAndRenderServices();
       updateFiltersVisibility();
   });
 
-  // Price inputs
+  // Price inputs - Input filtering (allow only numbers)
+  minPriceInput.addEventListener('input', (e) => {
+      // Allow only digits by removing all non-digit characters
+      let value = e.target.value.replace(/[^\d]/g, '');
+      // Limit to reasonable number length (10 digits = 10 billion VND)
+      if (value.length > 10) {
+          value = value.substring(0, 10);
+      }
+      // Format and display
+      const numericValue = parseInt(value) || 0;
+      e.target.value = formatVietnameseCurrency(numericValue);
+  });
+
+  maxPriceInput.addEventListener('input', (e) => {
+      // Allow only digits by removing all non-digit characters
+      let value = e.target.value.replace(/[^\d]/g, '');
+      // Limit to reasonable number length (10 digits = 10 billion VND)
+      if (value.length > 10) {
+          value = value.substring(0, 10);
+      }
+      // Format and display
+      const numericValue = parseInt(value) || 0;
+      e.target.value = formatVietnameseCurrency(numericValue);
+  });
+
+  // Price inputs - Value validation on blur
   minPriceInput.addEventListener('blur', async (e) => {
-      const value = parseInt(e.target.value.replace(/[^\d]/g, '')) || 0;
+      const value = parseVietnameseCurrency(e.target.value);
       const roundedValue = roundToStep(value);
       minPrice = Math.min(roundedValue, maxPrice);
-      minPriceInput.value = minPrice;
+      minPriceInput.value = formatVietnameseCurrency(minPrice);
       minSlider.value = minPrice;
       updateSliderRange();
       await loadAndRenderServices();
@@ -355,10 +484,10 @@ function setupEventListeners() {
   });
 
   maxPriceInput.addEventListener('blur', async (e) => {
-      const value = parseInt(e.target.value.replace(/[^\d]/g, '')) || 0;
+      const value = parseVietnameseCurrency(e.target.value);
       const roundedValue = roundToStep(value);
       maxPrice = Math.max(roundedValue, minPrice);
-      maxPriceInput.value = maxPrice;
+      maxPriceInput.value = formatVietnameseCurrency(maxPrice);
       maxSlider.value = maxPrice;
       updateSliderRange();
       await loadAndRenderServices();
@@ -370,7 +499,7 @@ function setupEventListeners() {
       const value = parseInt(e.target.value);
       minPrice = Math.min(value, maxPrice);
       minSlider.value = minPrice;
-      minPriceInput.value = minPrice;
+      minPriceInput.value = formatVietnameseCurrency(minPrice);
       updateSliderRange();
   });
 
@@ -383,7 +512,7 @@ function setupEventListeners() {
       const value = parseInt(e.target.value);
       maxPrice = Math.max(value, minPrice);
       maxSlider.value = maxPrice;
-      maxPriceInput.value = maxPrice;
+      maxPriceInput.value = formatVietnameseCurrency(maxPrice);
       updateSliderRange();
   });
 
@@ -400,8 +529,8 @@ function setupEventListeners() {
       activeCategory = 'all';
       
       searchInput.value = '';
-      minPriceInput.value = minPrice;
-      maxPriceInput.value = maxPrice;
+      minPriceInput.value = formatVietnameseCurrency(minPrice);
+      maxPriceInput.value = formatVietnameseCurrency(maxPrice);
       minSlider.value = minPrice;
       maxSlider.value = maxPrice;
       

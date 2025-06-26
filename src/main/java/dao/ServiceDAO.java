@@ -105,7 +105,9 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
 
         try (Connection conn = DBContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            String query = "%" + keyword.toLowerCase() + "%";
+            // Normalize search keyword: trim and handle multiple spaces
+            String normalizedKeyword = keyword.trim().replaceAll("\\s+", " ").toLowerCase();
+            String query = "%" + normalizedKeyword + "%";
             stmt.setString(1, query);
             stmt.setString(2, query);
 
@@ -439,10 +441,12 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
             }
         }
 
-        if (searchQuery != null) {
+        if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+            // Normalize search query: trim and handle multiple spaces
+            String normalizedQuery = searchQuery.trim().replaceAll("\\s+", " ").toLowerCase();
             sql.append(" AND (LOWER(name) LIKE ? OR LOWER(description) LIKE ?)");
-            params.add("%" + searchQuery.toLowerCase() + "%");
-            params.add("%" + searchQuery.toLowerCase() + "%");
+            params.add("%" + normalizedQuery + "%");
+            params.add("%" + normalizedQuery + "%");
         }
 
         if (minPrice != null) {
@@ -509,7 +513,7 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
     public boolean existsByNameExceptId(String name, int excludeId) {
         String sql = "SELECT COUNT(*) FROM services WHERE LOWER(name) = ? AND service_id <> ?";
         try (Connection conn = DBContext.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, name.toLowerCase());
             stmt.setInt(2, excludeId);
             try (ResultSet rs = stmt.executeQuery()) {

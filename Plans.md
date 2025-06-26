@@ -4,3 +4,6 @@
 - Adding a cart to store services and products
 - Add auto booking feature for booking time slots and therapists
 - Move booking category to top - search bar nearby - filter by price below
+- Change font family
+- Fix the cart icon
+-

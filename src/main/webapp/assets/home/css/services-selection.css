@@ -68,10 +68,6 @@ body {
   padding: 0 1rem;
 }
 
-
-
-
-
 .icon-btn {
   padding: 0.5rem;
   background: none;
@@ -132,6 +128,33 @@ body {
   font-size: 1.875rem;
   font-weight: 700;
   margin-bottom: 1.5rem;
+}
+
+/* Top Controls Section - Category and Search Bar */
+.top-controls-section {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+@media (min-width: 768px) {
+  .top-controls-section {
+    flex-wrap: nowrap;
+    align-items: flex-end;
+  }
+}
+
+.top-controls-section .category-nav {
+  flex: 0 0 auto;
+  margin-bottom: 0;
+}
+
+.top-controls-section .search-container {
+  flex: 1;
+  margin-bottom: 0;
+  min-width: 250px;
 }
 
 /* Search Bar */
@@ -350,6 +373,11 @@ body {
   position: relative;
 }
 
+/* When inside top-controls-section, remove bottom margin */
+.top-controls-section .category-nav {
+  margin-bottom: 0;
+}
+
 .category-dropdown {
   position: relative;
   width: 100%;
@@ -363,8 +391,8 @@ body {
   width: 100%;
   padding: 0.875rem 1rem;
   background-color: var(--white);
-  border: 2px solid var(--gray-200);
-  border-radius: 0.75rem;
+  border: 1px solid var(--gray-300);
+  border-radius: 0.5rem;
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--gray-700);
@@ -412,8 +440,8 @@ body {
   left: 0;
   right: 0;
   background-color: var(--white);
-  border: 2px solid var(--gray-200);
-  border-radius: 0.75rem;
+  border: 1px solid var(--gray-300);
+  border-radius: 0.5rem;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   z-index: 1000;
   margin-top: 0.25rem;
@@ -423,12 +451,15 @@ body {
   visibility: hidden;
   transform: translateY(-10px);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 200px;
+  border-top: none;
 }
 
 .category-dropdown.open .category-dropdown-menu {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
+  z-index: 1001;
 }
 
 .category-dropdown-item {
@@ -966,6 +997,19 @@ body {
       font-size: 1.5rem;
   }
   
+  .top-controls-section {
+      flex-direction: column;
+      gap: 1rem;
+  }
+  
+  .top-controls-section .category-nav {
+      width: 100%;
+  }
+  
+  .top-controls-section .search-container {
+      min-width: unset;
+  }
+  
   .price-inputs {
       flex-direction: column;
       gap: 0.75rem;
@@ -1022,4 +1066,14 @@ body {
       padding: 0.65rem 0.875rem;
       font-size: 0.8125rem;
   }
+}
+
+/* Fix dropdown positioning within top-controls-section */
+.top-controls-section .category-dropdown {
+  position: relative;
+  z-index: 10;
+}
+
+.top-controls-section .category-dropdown.open {
+  z-index: 1002;
 }
