@@ -131,4 +131,16 @@
         <servlet-name>CartSessionApiServlet</servlet-name>
         <url-pattern>/api/cart-session/*</url-pattern>
     </servlet-mapping>
+
+    <!-- BookingSession API Servlet -->
+    <servlet>
+        <servlet-name>BookingSessionApiServlet</servlet-name>
+        <servlet-class>controller.api.BookingSessionApiServlet</servlet-class>
+    </servlet>
+
+    <!-- BookingSession API Servlet Mapping -->
+    <servlet-mapping>
+        <servlet-name>BookingSessionApiServlet</servlet-name>
+        <url-pattern>/api/booking-session</url-pattern>
+    </servlet-mapping>
 </web-app>

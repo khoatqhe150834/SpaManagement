@@ -50,9 +50,9 @@ contentType="text/html" pageEncoding="UTF-8"%>
                 </c:when>
                 <%-- Show for guests (no user or customer in session) --%>
                 <c:when test="${empty sessionScope.user and empty sessionScope.customer}">
-                    <a href="${pageContext.request.contextPath}/process-booking/resume" class="site-button radius-no"
-                      >ĐẶT LỊCH NGAY</a
-                    >
+            <a href="${pageContext.request.contextPath}/process-booking/resume" class="site-button radius-no"
+              >ĐẶT LỊCH NGAY</a
+            >
                 </c:when>
                 <%-- Hide for staff members (admin, manager, therapist, receptionist) --%>
             </c:choose>

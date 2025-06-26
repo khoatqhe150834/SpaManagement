@@ -52,6 +52,10 @@ function updateCartQuantity(cartItemId, quantity) {
             if (typeof updateCartCount === 'function') {
                 updateCartCount();
             }
+            // Update booking service badge
+            if (typeof updateBookingBadge === 'function') {
+                updateBookingBadge();
+            }
             // Reload page to show updated cart
             setTimeout(() => {
                 location.reload();
@@ -98,6 +102,10 @@ function removeCartItem(cartItemId) {
             // Update cart count in header
             if (typeof updateCartCount === 'function') {
                 updateCartCount();
+            }
+            // Update booking service badge
+            if (typeof updateBookingBadge === 'function') {
+                updateBookingBadge();
             }
             // Remove the cart item element from DOM
             const cartItemElement = document.querySelector(`[data-cart-item-id="${cartItemId}"]`);
@@ -152,6 +160,10 @@ function clearCartItems() {
             // Update cart count in header
             if (typeof updateCartCount === 'function') {
                 updateCartCount();
+            }
+            // Update booking service badge
+            if (typeof updateBookingBadge === 'function') {
+                updateBookingBadge();
             }
             // Reload page to show empty cart
             setTimeout(() => {

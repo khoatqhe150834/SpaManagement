@@ -32,30 +32,15 @@
 
         <div class="extra-nav">
           <div class="extra-cell">
-            <%-- Show "Đặt lịch ngay" button only for customers and guests (not for staff) --%>
-            <c:choose>
-                <%-- Show for customers --%>
-                <c:when test="${not empty sessionScope.customer}">
-                    <a href="${pageContext.request.contextPath}/process-booking/resume" class="site-button radius-no">ĐẶT LỊCH NGAY</a>
-                </c:when>
-                <%-- Show for guests (no user or customer in session) --%>
-                <c:when test="${empty sessionScope.user and empty sessionScope.customer}">
-                    <a href="${pageContext.request.contextPath}/process-booking/resume" class="site-button radius-no">ĐẶT LỊCH NGAY</a>
-                </c:when>
-                <%-- Hide for staff members (admin, manager, therapist, receptionist) --%>
-            </c:choose>
-            
-            <%-- <!-- Dynamic Cart Icon with Iconify -->
-            <div class="cart-icon-container">
-              <a href="${pageContext.request.contextPath}/cart" class="cart-icon-button" id="cartIconButton" title="Giỏ hàng">
-                <iconify-icon icon="heroicons:shopping-bag-20-solid" class="cart-icon"></iconify-icon>
-                <span class="cart-badge" id="cartBadge">0</span>
-              </a>
-            </div> --%>
-            
             <c:choose>
                 <%-- Customer is logged in --%>
                 <c:when test="${not empty sessionScope.customer}">
+                    <%-- Show "Đặt lịch ngay" button for customers --%>
+                    <div class="booking-button-container">
+                        <a href="${pageContext.request.contextPath}/process-booking/resume" class="site-button radius-no">ĐẶT LỊCH NGAY</a>
+                        <span class="booking-service-badge" id="bookingServiceBadge" style="display: none;">0</span>
+                    </div>
+                    
                     <%
                         // Get customer menu items using MenuService
                         List<MenuService.MenuItem> customerMenuItems = MenuService.getCustomerMenuItems(pageContext.getServletContext().getContextPath());
@@ -101,6 +86,7 @@
                 
                 <%-- User (admin/manager/staff) is logged in --%>
                 <c:when test="${not empty sessionScope.user}">
+                    <%-- No booking button for staff members --%>
                     <%
                         // Get user role name and menu items using MenuService
                         model.User user = (model.User) session.getAttribute("user");
@@ -191,8 +177,14 @@
                     </button>
                 </c:when>
                 
-                <%-- No one is logged in --%>
+                <%-- No one is logged in (guests) --%>
                 <c:otherwise>
+                    <%-- Show "Đặt lịch ngay" button for guests --%>
+                    <div class="booking-button-container">
+                        <a href="${pageContext.request.contextPath}/process-booking/resume" class="site-button radius-no">ĐẶT LỊCH NGAY</a>
+                        <span class="booking-service-badge booking-service-badge-guest" style="display: none;">0</span>
+                    </div>
+                    
                     <a href="${pageContext.request.contextPath}/login" class="site-button radius-no" style="margin-left: 10px; width: 120px;">Đăng nhập</a>
                     <a href="${pageContext.request.contextPath}/register" class="site-button radius-no" style="margin-left: 5px; width: 120px;">Đăng ký</a>
                 </c:otherwise>

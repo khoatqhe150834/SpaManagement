@@ -50,19 +50,7 @@
                     <h3 class="step-title ${currentStep == 'services' ? 'active' : ''} ${not empty bookingSession and bookingSession.hasServices() ? 'completed' : ''}">Chọn Dịch Vụ</h3>
                     <p class="step-description">Lựa chọn các dịch vụ spa</p>
                 </div>
-                <c:if test="${not empty bookingSession and bookingSession.hasServices()}">
-                    <div class="step-summary">
-                        <span class="summary-badge">
-                            <iconify-icon icon="material-symbols:spa"></iconify-icon>
-                            ${bookingSession.data.selectedServices.size()} dịch vụ đã chọn
-                        </span>
-                        <c:if test="${currentStep != 'services'}">
-                            <button class="edit-button" onclick="navigateToStep('services', true)" title="Chỉnh sửa dịch vụ">
-                                <iconify-icon icon="material-symbols:edit"></iconify-icon>
-                            </button>
-                        </c:if>
-                    </div>
-                </c:if>
+
             </div>
 
             <!-- Step 2: Time & Therapists -->

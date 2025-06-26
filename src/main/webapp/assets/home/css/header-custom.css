@@ -206,4 +206,86 @@
   }
   
   
+}
+
+/* ===================================================
+   Booking Service Badge Styles
+   =================================================== */
+
+/* Booking button container to position badge relative to button */
+.booking-button-container {
+  position: relative;
+  display: inline-block;
+}
+
+/* Red badge for service count */
+.booking-service-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #dc3545; /* Bootstrap red */
+  color: white;
+  border-radius: 50%;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: bold;
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  z-index: 10;
+  animation: bounceIn 0.3s ease-out;
+}
+
+/* Animation for badge appearance */
+@keyframes bounceIn {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Pulse animation when count updates */
+.booking-service-badge.pulse {
+  animation: pulseUpdate 0.4s ease-out;
+}
+
+@keyframes pulseUpdate {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); background-color: #e74c3c; }
+  100% { transform: scale(1); background-color: #dc3545; }
+}
+
+/* Responsive adjustments for booking badge */
+@media (max-width: 768px) {
+  .booking-service-badge {
+    top: -6px;
+    right: -6px;
+    padding: 1px 5px;
+    font-size: 10px;
+    min-width: 16px;
+    height: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .booking-service-badge {
+    top: -5px;
+    right: -5px;
+    padding: 1px 4px;
+    font-size: 9px;
+    min-width: 14px;
+    height: 14px;
+  }
 } 
