@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -31,15 +32,30 @@ public class BookingSessionApiServlet extends HttpServlet {
     response.setCharacterEncoding("UTF-8");
 
     try {
-      // Get booking session
-      BookingSession bookingSession = bookingSessionService.getOrCreateSession(request);
+      // Only get existing session, do NOT create new one
+      BookingSession bookingSession = bookingSessionService.getSessionFromRequest(request);
 
       if (bookingSession == null) {
-        sendErrorResponse(response, "No booking session found");
+        // Return empty response instead of error when no session exists
+        Map<String, Object> emptyData = new HashMap<>();
+        emptyData.put("selectedServices", new java.util.ArrayList<>());
+        emptyData.put("serviceCount", 0);
+        emptyData.put("sessionId", null);
+        emptyData.put("currentStep", "NONE");
+
+        Map<String, Object> response_data = Map.of(
+            "success", true,
+            "data", emptyData);
+
+        response.getWriter().write(objectMapper.writeValueAsString(response_data));
+
+        // Handle cookie setting if session ID needs to be stored
+        handleCookieSetting(request, response);
+
         return;
       }
 
-      // Create response data
+      // Create response data for existing session
       Map<String, Object> sessionData = new HashMap<>();
 
       if (bookingSession.hasServices()) {
@@ -59,6 +75,9 @@ public class BookingSessionApiServlet extends HttpServlet {
 
       response.getWriter().write(objectMapper.writeValueAsString(response_data));
 
+      // Handle cookie setting if session ID needs to be stored
+      handleCookieSetting(request, response);
+
     } catch (Exception e) {
       e.printStackTrace();
       sendErrorResponse(response, "Internal server error: " + e.getMessage());
@@ -71,5 +90,23 @@ public class BookingSessionApiServlet extends HttpServlet {
         "success", false,
         "message", message);
     response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
+  }
+
+  /**
+   * Handle setting cookies for persistent session storage
+   */
+  private void handleCookieSetting(HttpServletRequest request, HttpServletResponse response) {
+    String sessionIdToSet = (String) request.getAttribute("BOOKING_SESSION_ID_TO_SET");
+    if (sessionIdToSet != null) {
+      Cookie cookie = new Cookie("BOOKING_SESSION_ID", sessionIdToSet);
+      cookie.setMaxAge(30 * 24 * 60 * 60); // 30 days
+      cookie.setPath("/");
+      cookie.setHttpOnly(true);
+      cookie.setSecure(false); // Set to true in production with HTTPS
+      response.addCookie(cookie);
+
+      // Remove the attribute after setting the cookie
+      request.removeAttribute("BOOKING_SESSION_ID_TO_SET");
+    }
   }
 }
