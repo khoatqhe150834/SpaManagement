@@ -16,6 +16,13 @@
     <jsp:include page="/WEB-INF/view/common/admin/toast.jsp" />
 
     <div class="dashboard-main-body">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
+            <h6 class="fw-semibold mb-0">Category List</h6>
+            <a href="${pageContext.request.contextPath}/admin/dashboard" class="btn btn-outline-primary ms-auto">
+                <iconify-icon icon="solar:home-smile-angle-outline" class="me-1"></iconify-icon> Dashboard
+            </a>
+        </div>
+        
         <div class="card h-100 p-0 radius-12">
             <div class="card-header border-bottom bg-base py-16 px-24 d-flex align-items-center flex-wrap gap-3 justify-content-between">
                 <div class="d-flex align-items-center flex-wrap gap-3">

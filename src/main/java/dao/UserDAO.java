@@ -444,7 +444,7 @@ public class UserDAO implements BaseDAO<User, Integer> {
     }
 
     public boolean updateProfile(User user) {
-        String sql = "UPDATE users SET full_name = ?, phone_number = ?, gender = ?, birthday = ?, address = ?, avatar_url = ?, updated_at = ? WHERE user_id = ?";
+        String sql = "UPDATE users SET full_name = ?, phone_number = ?, gender = ?, birthday = ?, address = ?, avatar_url = ?, updated_at = ?, email = ?, role_id = ?, is_active = ? WHERE user_id = ?";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, user.getFullName());
@@ -454,7 +454,10 @@ public class UserDAO implements BaseDAO<User, Integer> {
             ps.setString(5, user.getAddress());
             ps.setString(6, user.getAvatarUrl());
             ps.setTimestamp(7, new Timestamp(System.currentTimeMillis()));
-            ps.setInt(8, user.getUserId());
+            ps.setString(8, user.getEmail());
+            ps.setInt(9, user.getRoleId());
+            ps.setBoolean(10, user.getIsActive());
+            ps.setInt(11, user.getUserId());
             int rowsAffected = ps.executeUpdate();
             return rowsAffected > 0;
         } catch (SQLException e) {
@@ -537,25 +540,34 @@ public class UserDAO implements BaseDAO<User, Integer> {
     }
 
     public Optional<User> findById(int userId) {
-    try (Connection connection = DBContext.getConnection();
-         PreparedStatement ps = connection.prepareStatement("SELECT * FROM users WHERE user_id = ?")) {
-        ps.setInt(1, userId);
-        ResultSet rs = ps.executeQuery();
+        try (Connection connection = DBContext.getConnection();
+             PreparedStatement ps = connection.prepareStatement("SELECT * FROM users WHERE user_id = ?")) {
+            ps.setInt(1, userId);
+            ResultSet rs = ps.executeQuery();
 
-        if (rs.next()) {
-            User user = new User();
-            user.setUserId(rs.getInt("user_id"));
-            user.setFullName(rs.getString("full_name"));
-            user.setEmail(rs.getString("email"));
-            // Gán các thuộc tính khác của User nếu cần
-            return Optional.of(user);
+            if (rs.next()) {
+                User user = new User();
+                user.setUserId(rs.getInt("user_id"));
+                user.setRoleId(rs.getInt("role_id"));
+                user.setFullName(rs.getString("full_name"));
+                user.setEmail(rs.getString("email"));
+                user.setHashPassword(rs.getString("hash_password"));
+                user.setPhoneNumber(rs.getString("phone_number"));
+                user.setIsActive(rs.getBoolean("is_active"));
+                user.setGender(rs.getString("gender"));
+                user.setBirthday(rs.getDate("birthday"));
+                user.setAddress(rs.getString("address"));
+                user.setAvatarUrl(rs.getString("avatar_url"));
+                user.setLastLoginAt(rs.getDate("last_login_at"));
+                user.setCreatedAt(rs.getDate("created_at"));
+                user.setUpdatedAt(rs.getDate("updated_at"));
+                return Optional.of(user);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-    } catch (SQLException e) {
-        e.printStackTrace();
+        return Optional.empty();
     }
-    return Optional.empty();
-}
-
 
     @Override
     public List<User> findAll() {

@@ -1,6 +1,8 @@
 package controller;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,14 +12,21 @@ import java.util.logging.Logger;
 
 import dao.UserDAO;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.Part;
 import model.User;
 
 @WebServlet(name = "UserController", urlPatterns = {"/user/*"})
+@MultipartConfig(
+    fileSizeThreshold = 1024 * 1024, // 1MB
+    maxFileSize = 1024 * 1024 * 5,   // 5MB
+    maxRequestSize = 1024 * 1024 * 10 // 10MB
+)
 public class UserController extends HttpServlet {
 
     private UserDAO userDAO;
@@ -282,38 +291,82 @@ public class UserController extends HttpServlet {
             String isActiveStr = request.getParameter("isActive");
             String password = request.getParameter("password");
 
-            // Validate required fields
             Map<String, String> errors = new HashMap<>();
             if (fullName == null || fullName.trim().isEmpty()) {
-                errors.put("fullName", "Full name is required");
+                errors.put("fullName", "Họ và tên không được để trống");
             }
             if (email == null || email.trim().isEmpty()) {
-                errors.put("email", "Email is required");
+                errors.put("email", "Email không được để trống");
             } else if (!email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
-                errors.put("email", "Invalid email format");
+                errors.put("email", "Email không đúng định dạng");
+            } else {
+                Optional<User> existingUser = userDAO.findUserByEmail(email);
+                if (existingUser.isPresent() && existingUser.get().getUserId() != userId) {
+                    errors.put("email", "Email đã tồn tại");
+                }
+            }
+            if (phoneNumber != null && !phoneNumber.trim().isEmpty()) {
+                if (!phoneNumber.matches("^0\\d{9}$")) {
+                    errors.put("phoneNumber", "Số điện thoại phải gồm 10 số và bắt đầu bằng số 0");
+                } else {
+                    // Check duplicate phone (excluding current user)
+                    List<User> usersWithPhone = userDAO.findByPhoneContain(phoneNumber);
+                    for (User u : usersWithPhone) {
+                        if (u.getUserId() != userId && phoneNumber.equals(u.getPhoneNumber())) {
+                            errors.put("phoneNumber", "Số điện thoại đã tồn tại");
+                            break;
+                        }
+                    }
+                }
             }
             if (roleIdStr == null || roleIdStr.trim().isEmpty()) {
-                errors.put("roleId", "Role is required");
+                errors.put("roleId", "Vai trò không được để trống");
             }
-
-            // Check for duplicate email (excluding current user)
-            Optional<User> existingUser = userDAO.findUserByEmail(email);
-            if (existingUser.isPresent() && existingUser.get().getUserId() != userId) {
-                errors.put("email", "Email already exists");
+            if (birthday != null && !birthday.isEmpty()) {
+                try {
+                    java.sql.Date.valueOf(birthday);
+                } catch (Exception ex) {
+                    errors.put("birthday", "Ngày sinh không hợp lệ");
+                }
             }
-
-            // Check for duplicate phone (excluding current user)
-            if (phoneNumber != null && !phoneNumber.trim().isEmpty()) {
-                // This would need a method to check phone excluding current user
-                // For now, we'll skip this validation
-            }
-
             if (!errors.isEmpty()) {
-                // Return to form with errors
+                User userInput = new User();
+                userInput.setUserId(userId);
+                userInput.setFullName(fullName);
+                userInput.setEmail(email);
+                userInput.setPhoneNumber(phoneNumber);
+                userInput.setGender(gender);
+                userInput.setBirthday(birthday != null && !birthday.isEmpty() ? java.sql.Date.valueOf(birthday) : null);
+                userInput.setAddress(address);
+                userInput.setRoleId(roleIdStr != null && !roleIdStr.isEmpty() ? Integer.parseInt(roleIdStr) : null);
+                userInput.setIsActive(isActiveStr != null && isActiveStr.equals("on"));
+                // Không set password
                 request.setAttribute("errors", errors);
-                request.setAttribute("user", createUserFromRequest(request));
+                request.setAttribute("user", userInput);
                 request.getRequestDispatcher("/WEB-INF/view/admin_pages/User/user_edit.jsp").forward(request, response);
                 return;
+            }
+
+            // Xử lý upload file ảnh đại diện
+            String avatarUrl = null;
+            Part avatarPart = request.getPart("avatarFile");
+            if (avatarPart != null && avatarPart.getSize() > 0) {
+                String fileName = Paths.get(avatarPart.getSubmittedFileName()).getFileName().toString();
+                String uploadDir = request.getServletContext().getRealPath("/uploads/avatars");
+                File uploadDirFile = new File(uploadDir);
+                if (!uploadDirFile.exists()) {
+                    uploadDirFile.mkdirs();
+                }
+                String newFileName = "user_" + userId + "_" + System.currentTimeMillis() + fileName.substring(fileName.lastIndexOf('.'));
+                String filePath = uploadDir + File.separator + newFileName;
+                avatarPart.write(filePath);
+                avatarUrl = request.getContextPath() + "/uploads/avatars/" + newFileName;
+            } else {
+                // Nếu không upload file mới, giữ nguyên avatarUrl cũ
+                Optional<User> userOpt = userDAO.findById(userId);
+                if (userOpt.isPresent()) {
+                    avatarUrl = userOpt.get().getAvatarUrl();
+                }
             }
 
             // Update user
@@ -327,6 +380,7 @@ public class UserController extends HttpServlet {
             user.setAddress(address != null ? address.trim() : null);
             user.setRoleId(Integer.parseInt(roleIdStr));
             user.setIsActive(isActiveStr != null && isActiveStr.equals("on"));
+            user.setAvatarUrl(avatarUrl);
 
             // Update password if provided
             if (password != null && !password.trim().isEmpty()) {
