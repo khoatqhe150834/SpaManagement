@@ -142,6 +142,7 @@
                                                 <input id="upload-file-multiple" type="file" name="images" multiple hidden>
                                             </label>
                                         </div>
+                                        <div class="invalid-feedback" id="imageError" style="margin-top: 4px; font-size: 0.95em; min-height: 18px; color: red; display: block;"></div>
                                     </div>
                                     
                                     <!-- =================================== Cài đặt =================================== -->
@@ -207,65 +208,117 @@
 
                 fileInputMultiple.addEventListener("change", (e) => {
                     const files = e.target.files;
-                    
-                    // Add new files to our DataTransfer object
+                    let hasError = false;
+                    let errorMsg = "";
+                    const imageErrorDiv = document.getElementById('imageError');
+                    imageErrorDiv.textContent = "";
+
                     Array.from(files).forEach(file => {
                         // Validate file type
-                        if (!file.type.startsWith('image/')) {
-                            alert('Please upload only image files.');
-                            return;
+                        if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
+                            errorMsg = 'Chỉ chấp nhận ảnh JPEG, PNG hoặc GIF.';
+                            hasError = true;
                         }
-                        
-                        // Validate file size (2MB = 2 * 1024 * 1024 bytes)
-                        if (file.size > 2 * 1024 * 1024) {
-                            alert('File size should not exceed 2MB.');
-                            return;
+                        // Validate file size (2MB)
+                        else if (file.size > 2 * 1024 * 1024) {
+                            errorMsg = 'Kích thước ảnh không được vượt quá 2MB.';
+                            hasError = true;
                         }
-
-                        selectedFiles.items.add(file);
-                        const src = URL.createObjectURL(file);
-
-                        const imgContainer = document.createElement('div');
-                        imgContainer.classList.add('position-relative', 'h-120-px', 'w-120-px', 'border', 'input-form-light', 'radius-8', 'overflow-hidden', 'border-dashed', 'bg-neutral-50');
-
-                        const removeButton = document.createElement('button');
-                        removeButton.type = 'button';
-                        removeButton.classList.add('uploaded-img__remove', 'position-absolute', 'top-0', 'end-0', 'z-1', 'text-2xxl', 'line-height-1', 'me-8', 'mt-8', 'd-flex');
-                        removeButton.innerHTML = '<iconify-icon icon="radix-icons:cross-2" class="text-xl text-danger-600"></iconify-icon>';
-
-                        const imagePreview = document.createElement('img');
-                        imagePreview.classList.add('w-100', 'h-100', 'object-fit-cover');
-                        imagePreview.src = src;
-                        
-                        // Store file name as data attribute for removal
-                        imgContainer.dataset.fileName = file.name;
-
-                        imgContainer.appendChild(removeButton);
-                        imgContainer.appendChild(imagePreview);
-                        uploadedImgsContainer.appendChild(imgContainer);
-
-                        removeButton.addEventListener('click', () => {
-                            // Remove file from DataTransfer object
-                            const newFiles = new DataTransfer();
-                            const fileName = imgContainer.dataset.fileName;
-                            
-                            Array.from(selectedFiles.files).forEach(file => {
-                                if (file.name !== fileName) {
-                                    newFiles.items.add(file);
-                                }
-                            });
-                            
-                            selectedFiles = newFiles;
-                            fileInputMultiple.files = selectedFiles.files;
-                            
-                            // Remove preview
-                            URL.revokeObjectURL(src);
-                            imgContainer.remove();
-                        });
                     });
 
-                    // Update the file input with all selected files
-                    fileInputMultiple.files = selectedFiles.files;
+                    if (hasError) {
+                        imageErrorDiv.textContent = errorMsg;
+                        imageErrorDiv.style.color = 'red';
+                        fileInputMultiple.value = "";
+                        return;
+                    }
+
+                    // Validate dimensions (asynchronous)
+                    let checkedCount = 0;
+                    let validCount = 0;
+                    uploadedImgsContainer.innerHTML = '';
+                    selectedFiles = new DataTransfer();
+
+                    Array.from(files).forEach(file => {
+                        const reader = new FileReader();
+                        reader.onload = function (event) {
+                            const img = new Image();
+                            img.onload = function () {
+                                checkedCount++;
+                                if (img.width < 150 || img.height < 150) {
+                                    errorMsg = 'Kích thước ảnh phải lớn hơn 150x150px.';
+                                    hasError = true;
+                                } else {
+                                    // Nếu hợp lệ, thêm vào DataTransfer và preview
+                                    selectedFiles.items.add(file);
+                                    const src = URL.createObjectURL(file);
+
+                                    const imgContainer = document.createElement('div');
+                                    imgContainer.classList.add('position-relative', 'h-120-px', 'w-120-px', 'border', 'input-form-light', 'radius-8', 'overflow-hidden', 'border-dashed', 'bg-neutral-50');
+
+                                    const removeButton = document.createElement('button');
+                                    removeButton.type = 'button';
+                                    removeButton.classList.add('uploaded-img__remove', 'position-absolute', 'top-0', 'end-0', 'z-1', 'text-2xxl', 'line-height-1', 'me-8', 'mt-8', 'd-flex');
+                                    removeButton.innerHTML = '<iconify-icon icon="radix-icons:cross-2" class="text-xl text-danger-600"></iconify-icon>';
+
+                                    const imagePreview = document.createElement('img');
+                                    imagePreview.classList.add('w-100', 'h-100', 'object-fit-cover');
+                                    imagePreview.src = src;
+
+                                    imgContainer.dataset.fileName = file.name;
+                                    imgContainer.appendChild(removeButton);
+                                    imgContainer.appendChild(imagePreview);
+                                    uploadedImgsContainer.appendChild(imgContainer);
+
+                                    removeButton.addEventListener('click', () => {
+                                        const newFiles = new DataTransfer();
+                                        const fileName = imgContainer.dataset.fileName;
+                                        Array.from(selectedFiles.files).forEach(f => {
+                                            if (f.name !== fileName) {
+                                                newFiles.items.add(f);
+                                            }
+                                        });
+                                        selectedFiles = newFiles;
+                                        fileInputMultiple.files = selectedFiles.files;
+                                        URL.revokeObjectURL(src);
+                                        imgContainer.remove();
+                                        if (selectedFiles.files.length === 0) {
+                                            imageErrorDiv.textContent = "";
+                                        }
+                                    });
+                                    validCount++;
+                                }
+                                // Khi đã kiểm tra hết ảnh
+                                if (checkedCount === files.length) {
+                                    if (hasError) {
+                                        imageErrorDiv.textContent = errorMsg;
+                                        imageErrorDiv.style.color = 'red';
+                                        fileInputMultiple.value = "";
+                                        uploadedImgsContainer.innerHTML = '';
+                                        selectedFiles = new DataTransfer();
+                                    } else {
+                                        imageErrorDiv.textContent = "Ảnh hợp lệ";
+                                        imageErrorDiv.style.color = 'green';
+                                        fileInputMultiple.files = selectedFiles.files;
+                                    }
+                                }
+                            };
+                            img.onerror = function () {
+                                checkedCount++;
+                                hasError = true;
+                                errorMsg = 'File không phải là ảnh hợp lệ.';
+                                if (checkedCount === files.length) {
+                                    imageErrorDiv.textContent = errorMsg;
+                                    imageErrorDiv.style.color = 'red';
+                                    fileInputMultiple.value = "";
+                                    uploadedImgsContainer.innerHTML = '';
+                                    selectedFiles = new DataTransfer();
+                                }
+                            };
+                            img.src = event.target.result;
+                        };
+                        reader.readAsDataURL(file);
+                    });
                 });
 
                 // Clear selected files when form is reset
