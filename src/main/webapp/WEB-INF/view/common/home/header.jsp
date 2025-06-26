@@ -47,8 +47,8 @@
                         request.setAttribute("menuItems", customerMenuItems);
                     %>
                     <div class="user-avatar-container">
-                        <button type="button" class="user-avatar-button" id="customerAvatarButton" aria-haspopup="true" aria-expanded="false">
-                            <img src="https://placehold.co/40x40/7C3AED/FFFFFF?text=C" alt="Customer Avatar">
+                        <button type="button" class="user-avatar-button icon-avatar customer-avatar" id="customerAvatarButton" aria-haspopup="true" aria-expanded="false">
+                            <i class="fa fa-user"></i>
                         </button>
                         <div class="avatar-dropdown admin-style-dropdown" id="customerAvatarDropdown" aria-labelledby="customerAvatarButton">
                             <c:if test="${not empty sessionScope.customer.fullName}">
@@ -140,8 +140,29 @@
                         request.setAttribute("avatarText", avatarText);
                     %>
                     <div class="user-avatar-container">
-                        <button type="button" class="user-avatar-button" id="userAvatarButton" aria-haspopup="true" aria-expanded="false">
-                            <img src="https://placehold.co/40x40/${avatarColor.substring(1)}/FFFFFF?text=${avatarText}" alt="User Avatar">
+                        <button type="button" class="user-avatar-button icon-avatar user-avatar" id="userAvatarButton" aria-haspopup="true" aria-expanded="false" data-role="${roleName}">
+                            <%
+                                // Set icon based on role
+                                String roleIcon = "fa-user";
+                                if (roleName != null) {
+                                    switch (roleName) {
+                                        case "ADMIN":
+                                            roleIcon = "fa-user-shield";
+                                            break;
+                                        case "MANAGER":
+                                            roleIcon = "fa-user-tie";
+                                            break;
+                                        case "THERAPIST":
+                                            roleIcon = "fa-user-md";
+                                            break;
+                                        case "RECEPTIONIST":
+                                            roleIcon = "fa-user-check";
+                                            break;
+                                    }
+                                }
+                                request.setAttribute("roleIcon", roleIcon);
+                            %>
+                            <i class="fa ${roleIcon}"></i>
                         </button>
                         <div class="avatar-dropdown admin-style-dropdown" id="userAvatarDropdown" aria-labelledby="userAvatarButton">
                             <c:if test="${not empty sessionScope.user.fullName}">

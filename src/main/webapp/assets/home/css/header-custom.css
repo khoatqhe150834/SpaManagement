@@ -15,15 +15,66 @@
   border: none;
   padding: 0;
   cursor: pointer;
-  display: block; /* Ensures image is block for consistent behavior */
+  display: block; /* Ensures consistent behavior */
 }
 
+/* Icon-based avatar styles */
+.user-avatar-button.icon-avatar {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  position: relative;
+}
+
+.user-avatar-button.icon-avatar i {
+  font-size: 20px;
+  color: #ffffff;
+  font-family: 'FontAwesome' !important;
+  font-weight: normal !important;
+  font-style: normal !important;
+}
+
+/* Customer avatar styling */
+.user-avatar-button.customer-avatar {
+  background: #586BB4;
+}
+
+/* User/Staff avatar styling based on role */
+.user-avatar-button.user-avatar[data-role="ADMIN"] {
+  background: #586BB4;
+}
+
+.user-avatar-button.user-avatar[data-role="MANAGER"] {
+  background: #586BB4;
+}
+
+.user-avatar-button.user-avatar[data-role="THERAPIST"] {
+  background: #586BB4;
+}
+
+.user-avatar-button.user-avatar[data-role="RECEPTIONIST"] {
+  background: #586BB4;
+}
+
+/* Default user avatar if no specific role */
+.user-avatar-button.user-avatar {
+  background: #586BB4;
+}
+
+
+
+/* Legacy image avatar styles (kept for backward compatibility) */
 .user-avatar-button img {
   width: 40px;
   height: 40px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #fff; /* Example border, adjust to your theme */
+  border: 2px solid #fff;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   transition: box-shadow 0.3s ease;
 }
@@ -166,6 +217,15 @@
     margin-left: 10px;
   }
   
+  .user-avatar-button.icon-avatar {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .user-avatar-button.icon-avatar i {
+    font-size: 18px;
+  }
+  
   .user-avatar-button img {
     width: 35px;
     height: 35px;
@@ -177,8 +237,6 @@
     right: -20px; /* Adjust for mobile */
   }
   
-  
-  
   .user-notification-button {
     margin-left: 5px;
   }
@@ -189,6 +247,15 @@
 }
 
 @media (max-width: 480px) {
+  .user-avatar-button.icon-avatar {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .user-avatar-button.icon-avatar i {
+    font-size: 16px;
+  }
+  
   .avatar-dropdown {
     right: -40px;
     min-width: max-content;
