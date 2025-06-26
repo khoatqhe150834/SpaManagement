@@ -4,6 +4,8 @@
 - Adding a cart to store services and products
 - Add auto booking feature for booking time slots and therapists
 - Move booking category to top - search bar nearby - filter by price below
-- Change font family
+- ✅Change font family
 - Fix the cart icon
--
+- ✅ Show Đặt lịch ngay button only in customer and guest
+- ✅ Fix the banner in service selection jsp page
+- ✅ Fix the banner in time-therapists selection jsp page

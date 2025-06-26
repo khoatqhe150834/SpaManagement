@@ -1106,21 +1106,21 @@
         <!-- Content -->
         <div class="page-content bg-white">
             <!-- inner page banner -->
-            <div class="dlab-bnr-inr overlay-primary bg-pt" 
-                 style="background-image: url(${pageContext.request.contextPath}/assets/home/images/banner/bnr2.jpg);">
-                <div class="container">
-                    <div class="dlab-bnr-inr-entry">
-                        <h1 class="text-white">Chọn Thời Gian</h1>
-                        <nav aria-label="breadcrumb" class="breadcrumb-row">
-                            <ul class="breadcrumb">
-                                <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/">Trang chủ</a></li>
-                                <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/process-booking/services">Đặt lịch</a></li>
-                                <li class="breadcrumb-item active" aria-current="page">Chọn thời gian</li>
-                            </ul>
-                        </nav>
-                    </div>
+            <div
+              class="dlab-bnr-inr overlay-primary bg-pt"
+               style="
+                background-image: url(${pageContext.request.contextPath}/assets/home/images/banner/bnr2.jpg);
+              "
+            >
+              <div class="container">
+                <div class="dlab-bnr-inr-entry">
+                  <h1 class="text-white">Chọn Thời Gian</h1>
+                  
+                  <!-- Breadcrumb row END -->
                 </div>
+              </div>
             </div>
+            <!-- inner page banner END -->
             
             <!-- Time selection content -->
             <div class="section-full content-inner">

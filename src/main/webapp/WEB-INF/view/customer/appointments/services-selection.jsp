@@ -80,20 +80,14 @@
             background-image: url(${pageContext.request.contextPath}/assets/home/images/banner/bnr2.jpg);
           "
         >
-        <div class="container">
+          <div class="container">
             <div class="dlab-bnr-inr-entry">
               <h1 class="text-white">Chọn Dịch Vụ</h1>
               <!-- Breadcrumb row -->
-              <div class="breadcrumb-row">
-                <ul class="list-inline">
-                  <li><a href="${pageContext.request.contextPath}/">Trang chủ</a></li>
-                  <li><a href="${pageContext.request.contextPath}/appointments">Đặt lịch</a></li>
-                  <li>Chọn dịch vụ</li>
-                </ul>
-                </div>
+             
               <!-- Breadcrumb row END -->
             </div>
-            </div>
+          </div>
         </div>
         <!-- inner page banner END -->
 
