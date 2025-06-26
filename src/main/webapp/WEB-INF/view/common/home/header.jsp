@@ -113,53 +113,43 @@
                         List<MenuService.MenuItem> userMenuItems = MenuService.getMenuItemsByRole(roleName, pageContext.getServletContext().getContextPath());
                         request.setAttribute("userMenuItems", userMenuItems);
                         
-                        // Set avatar color based on role
+                        // Set avatar color and role display text based on role
                         String avatarColor = "#DC2626"; // Default red
                         String avatarText = "U";
+                        String roleDisplayText = "Nhân viên"; // Default
                         if (roleName != null) {
                             switch (roleName) {
                                 case "ADMIN":
                                     avatarColor = "#DC2626"; // Red
                                     avatarText = "A";
+                                    roleDisplayText = "Quản trị viên";
                                     break;
                                 case "MANAGER":
                                     avatarColor = "#2563EB"; // Blue
                                     avatarText = "M";
+                                    roleDisplayText = "Quản lý";
                                     break;
                                 case "THERAPIST":
                                     avatarColor = "#059669"; // Green
                                     avatarText = "T";
+                                    roleDisplayText = "Nhân viên trị liệu";
                                     break;
                                 case "RECEPTIONIST":
                                     avatarColor = "#7C3AED"; // Purple
                                     avatarText = "R";
+                                    roleDisplayText = "Nhân viên lễ tân";
                                     break;
                             }
                         }
                         request.setAttribute("avatarColor", avatarColor);
                         request.setAttribute("avatarText", avatarText);
+                        request.setAttribute("roleDisplayText", roleDisplayText);
                     %>
                     <div class="user-avatar-container">
                         <button type="button" class="user-avatar-button icon-avatar user-avatar" id="userAvatarButton" aria-haspopup="true" aria-expanded="false" data-role="${roleName}">
                             <%
-                                // Set icon based on role
+                                // Use same user icon for all roles
                                 String roleIcon = "fa-user";
-                                if (roleName != null) {
-                                    switch (roleName) {
-                                        case "ADMIN":
-                                            roleIcon = "fa-user-shield";
-                                            break;
-                                        case "MANAGER":
-                                            roleIcon = "fa-user-tie";
-                                            break;
-                                        case "THERAPIST":
-                                            roleIcon = "fa-user-md";
-                                            break;
-                                        case "RECEPTIONIST":
-                                            roleIcon = "fa-user-check";
-                                            break;
-                                    }
-                                }
                                 request.setAttribute("roleIcon", roleIcon);
                             %>
                             <i class="fa ${roleIcon}"></i>
@@ -170,7 +160,7 @@
                                     <div class="d-flex align-items-center gap-2">
                                         <div>
                                             <h6 class="mb-0 fw-semibold text-neutral-900">Chào, ${sessionScope.user.fullName}</h6>
-                                            <span class="text-xs text-secondary-light">Nhân viên</span>
+                                            <span class="text-xs text-secondary-light">${roleDisplayText}</span>
                                         </div>
                                     </div>
                                 </div>
