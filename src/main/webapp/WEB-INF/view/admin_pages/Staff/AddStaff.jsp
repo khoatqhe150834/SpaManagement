@@ -379,6 +379,8 @@
             const fullNameInput = document.getElementById('fullNameInput');
             const experienceInput = document.getElementById('yearsOfExperience');
 
+            let maxExp = 100; // Giá trị mặc định
+
             $('#userSelect').on('change', function() {
                 const selectedOption = this.options[this.selectedIndex];
                 const fullName = $(selectedOption).data('fullname');
@@ -399,7 +401,6 @@
                     setFieldInvalid(userSelect, 'Vui lòng chọn một người dùng.');
                 }
 
-                // Tính số năm kinh nghiệm tối đa
                 if (birthday) {
                     const birthDate = new Date(birthday);
                     const today = new Date();
@@ -408,10 +409,13 @@
                     if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
                         age--;
                     }
-                    const maxExp = Math.max(0, age - 18);
+                    maxExp = Math.max(0, age - 18);
                     experienceInput.max = maxExp;
                     experienceInput.value = '';
                     experienceInput.placeholder = `Tối đa: ${maxExp}`;
+                } else {
+                    maxExp = 100; // fallback nếu không có ngày sinh
+                    experienceInput.max = maxExp;
                 }
             });
 
@@ -443,7 +447,6 @@
 
             // --- Experience Validation ---
             const experienceError = document.getElementById('yearsOfExperienceError');
-            const maxExp = parseInt(experienceInput.max, 10);
 
             experienceInput.addEventListener('input', function() {
                 const value = this.value;
@@ -454,7 +457,7 @@
                 } else if (parseInt(value, 10) > maxExp) {
                     setFieldInvalid(experienceInput, `Số năm kinh nghiệm phải nhỏ hơn hoặc bằng ${maxExp}.`);
                 } else {
-                    setFieldValid(experienceInput, ''); // Không hiện "Kinh nghiệm hợp lệ."
+                    setFieldValid(experienceInput, '');
                 }
             });
 
