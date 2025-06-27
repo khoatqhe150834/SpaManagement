@@ -195,6 +195,11 @@
         textarea#bio.expanded {
             height: 220px !important;
         }
+        /* Ẩn icon tích xanh mặc định của Bootstrap cho textarea khi is-valid */
+        textarea.is-valid, textarea.form-control.is-valid {
+            background-image: none !important;
+            padding-right: 0 !important;
+        }
     </style>
 </head>
 <body class="profile-body">
@@ -275,7 +280,6 @@
                                                 placeholder="Viết mô tả ngắn về nhân viên (tối thiểu 20 ký tự)..."
                                                 rows="4" minlength="20" maxlength="500" required
                                                 style="transition: height 0.2s; resize: none; min-height: 120px; max-height: 220px;"></textarea>
-                                            <span id="bioValidIcon" style="display:none;position:absolute;top:12px;right:16px;z-index:2;color:#22c55e;font-size:1.3em;">✔</span>
                                         </div>
                                         <div class="valid-feedback" id="bioValidMsg" style="display:none"></div>
                                         <div class="invalid-feedback" id="bioError"></div>
@@ -403,7 +407,6 @@
 
             // --- Bio Validation ---
             const bioTextarea = document.getElementById('bio');
-            const bioValidIcon = document.getElementById('bioValidIcon');
             const bioValidMsg = document.getElementById('bioValidMsg');
             const bioError = document.getElementById('bioError');
             const toggleBioSizeBtn = document.getElementById('toggleBioSize');
@@ -498,7 +501,6 @@
                 bioError.style.display = 'none';
                 bioValidMsg.textContent = message;
                 bioValidMsg.style.display = 'block';
-                bioValidIcon.style.display = 'inline';
             }
 
             function setFieldInvalid(field, message) {
@@ -507,7 +509,6 @@
                 bioError.textContent = message;
                 bioError.style.display = 'block';
                 bioValidMsg.style.display = 'none';
-                bioValidIcon.style.display = 'none';
             }
 
             // Toggle mở rộng/thu gọn
