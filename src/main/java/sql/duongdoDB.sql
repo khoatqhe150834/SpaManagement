@@ -839,6 +839,8 @@ CREATE TABLE `service_reviews` (
   `comment` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `is_visible` tinyint(1) NOT NULL DEFAULT 1 COMMENT '1: Hiện, 0: Ẩn review khỏi public',
+  `manager_reply` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Phản hồi của manager cho review này',
   PRIMARY KEY (`review_id`),
   KEY `service_id` (`service_id`),
   KEY `customer_id` (`customer_id`),
@@ -855,7 +857,17 @@ CREATE TABLE `service_reviews` (
 
 LOCK TABLES `service_reviews` WRITE;
 /*!40000 ALTER TABLE `service_reviews` DISABLE KEYS */;
-INSERT INTO `service_reviews` VALUES (4,3,2,6,5,'Rất hài lòng!','Dịch vụ chăm sóc da rất tốt, da tôi cải thiện rõ rệt. Kỹ thuật viên Dung rất nhiệt tình.','2025-06-01 09:40:23','2025-06-01 09:40:23'),(5,2,1,50,5,'Tuyệt vời!','Anh Cường massage rất chuyên nghiệp.','2025-06-18 09:04:30','2025-06-18 09:04:30'),(6,1,2,51,4,'Hài lòng','Dịch vụ tốt, sẽ quay lại.','2025-06-18 09:04:30','2025-06-18 09:04:30'),(7,3,3,52,4,'Khá tốt','Chị Dung làm da rất cẩn thận.','2025-06-18 09:04:30','2025-06-18 09:04:30'),(8,7,5,53,5,'Rất thư giãn','Massage Thái đúng chuẩn.','2025-06-18 09:04:30','2025-06-18 09:04:30'),(9,11,6,54,3,'Tạm được','Hiệu quả chưa rõ rệt lắm.','2025-06-18 09:04:30','2025-06-18 09:04:30'),(10,12,7,55,5,'Da sáng mịn','Rất thích liệu trình vitamin C này.','2025-06-18 09:04:30','2025-06-18 09:04:30'),(11,1,8,56,4,'Tốt','Anh Long tay nghề tốt.','2025-06-18 09:04:30','2025-06-18 09:04:30'),(12,2,9,57,5,'Trên cả tuyệt vời!','Đá nóng rất hiệu quả, cảm ơn anh Huy.','2025-06-18 09:04:30','2025-06-18 09:04:30');
+INSERT INTO `service_reviews` 
+(`review_id`, `service_id`, `customer_id`, `appointment_id`, `rating`, `title`, `comment`, `created_at`, `updated_at`, `is_visible`, `manager_reply`) VALUES
+(4,3,2,6,5,'Rất hài lòng!','Dịch vụ chăm sóc da rất tốt, da tôi cải thiện rõ rệt. Kỹ thuật viên Dung rất nhiệt tình.','2025-06-01 09:40:23','2025-06-01 09:40:23',1,NULL),
+(5,2,1,50,5,'Tuyệt vời!','Anh Cường massage rất chuyên nghiệp.','2025-06-18 09:04:30','2025-06-18 09:04:30',1,NULL),
+(6,1,2,51,4,'Hài lòng','Dịch vụ tốt, sẽ quay lại.','2025-06-18 09:04:30','2025-06-18 09:04:30',1,NULL),
+(7,3,3,52,4,'Khá tốt','Chị Dung làm da rất cẩn thận.','2025-06-18 09:04:30','2025-06-18 09:04:30',1,NULL),
+(8,7,5,53,5,'Rất thư giãn','Massage Thái đúng chuẩn.','2025-06-18 09:04:30','2025-06-18 09:04:30',1,NULL),
+(9,11,6,54,3,'Tạm được','Hiệu quả chưa rõ rệt lắm.','2025-06-18 09:04:30','2025-06-18 09:04:30',1,NULL),
+(10,12,7,55,5,'Da sáng mịn','Rất thích liệu trình vitamin C này.','2025-06-18 09:04:30','2025-06-18 09:04:30',1,NULL),
+(11,1,8,56,4,'Tốt','Anh Long tay nghề tốt.','2025-06-18 09:04:30','2025-06-18 09:04:30',1,NULL),
+(12,2,9,57,5,'Trên cả tuyệt vời!','Đá nóng rất hiệu quả, cảm ơn anh Huy.','2025-06-18 09:04:30','2025-06-18 09:04:30',1,NULL);
 /*!40000 ALTER TABLE `service_reviews` ENABLE KEYS */;
 UNLOCK TABLES;
 
