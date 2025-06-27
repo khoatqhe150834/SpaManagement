@@ -1,5 +1,6 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <!DOCTYPE html>
 <html lang="vi" data-theme="light">
 <head>
@@ -255,7 +256,7 @@
                                                 <select id="userSelect" name="userId" required>
                                                     <option></option> <!-- Option trống cho placeholder của Select2 -->
                                                     <c:forEach var="user" items="${userList}">
-                                                        <option value="${user.userId}" data-fullname="${user.fullName}" data-birthday="${user.birthday}">${user.userId} - ${user.fullName}</option>
+                                                        <option value="${user.userId}" data-fullname="${user.fullName}" data-birthday="<fmt:formatDate value='${user.birthday}' pattern='yyyy-MM-dd'/>">${user.userId} - ${user.fullName}</option>
                                                     </c:forEach>
                                                 </select>
                                                 <div class="valid-feedback" id="userSelectValid"></div>
@@ -266,6 +267,7 @@
                                             <div class="form-group">
                                                 <label for="fullNameInput" class="form-label">Họ và tên</label>
                                                 <input type="text" id="fullNameInput" name="fullName" class="form-control" readonly placeholder="Tên sẽ tự động điền..." />
+                                                <span id="userAge" style="margin-left:8px; font-weight:500; color:#888;"></span>
                                             </div>
                                         </div>
                                     </div>
@@ -332,8 +334,9 @@
                                             <label for="yearsOfExperience" class="form-label">
                                                 Số năm kinh nghiệm <span class="text-danger-600">*</span>
                                             </label>
-                                            <input type="number" name="yearsOfExperience" class="form-control" id="yearsOfExperience" required min="0" max="100" placeholder="Ví dụ: 5"/>
-                                            <div class="valid-feedback" id="yearsOfExperienceValid"></div>
+                                            <input type="number" id="yearsOfExperience" name="yearsOfExperience"
+                                                class="form-control" required min="0" max="27"
+                                                inputmode="numeric" pattern="[0-9]*" autocomplete="off" />
                                             <div class="invalid-feedback" id="yearsOfExperienceError"></div>
                                         </div>
                                     </div>
@@ -378,11 +381,27 @@
             const fullNameInput = document.getElementById('fullNameInput');
             const experienceInput = document.getElementById('yearsOfExperience');
 
+            let maxExp = 100; // Giá trị mặc định
+
             $('#userSelect').on('change', function() {
                 const selectedOption = this.options[this.selectedIndex];
                 const fullName = $(selectedOption).data('fullname');
                 const birthday = $(selectedOption).data('birthday');
-                fullNameInput.value = fullName || 'Tên sẽ tự động điền...';
+                let ageText = '';
+                if (birthday) {
+                    const birthDate = new Date(birthday);
+                    const today = new Date();
+                    let age = today.getFullYear() - birthDate.getFullYear();
+                    const m = today.getMonth() - birthDate.getMonth();
+                    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                        age--;
+                    }
+                    if (!isNaN(age) && age > 0) {
+                        ageText = ` (${age} tuổi)`;
+                    }
+                }
+                fullNameInput.value = (fullName || 'Tên sẽ tự động điền...') + ageText;
+                document.getElementById('userAge').textContent = '';
 
                 if (this.value !== '') {
                     $.get('staff', { service: 'check-duplicate', userId: this.value }, function(res) {
@@ -398,7 +417,6 @@
                     setFieldInvalid(userSelect, 'Vui lòng chọn một người dùng.');
                 }
 
-                // Tính số năm kinh nghiệm tối đa
                 if (birthday) {
                     const birthDate = new Date(birthday);
                     const today = new Date();
@@ -407,10 +425,13 @@
                     if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
                         age--;
                     }
-                    const maxExp = Math.max(0, age - 18);
+                    maxExp = Math.max(0, age - 18);
                     experienceInput.max = maxExp;
                     experienceInput.value = '';
                     experienceInput.placeholder = `Tối đa: ${maxExp}`;
+                } else {
+                    maxExp = 100; // fallback nếu không có ngày sinh
+                    experienceInput.max = maxExp;
                 }
             });
 
@@ -441,22 +462,20 @@
             bioTextarea.addEventListener('input', validateBio);
 
             // --- Experience Validation ---
-            const experienceError = document.getElementById('experienceError');
+            const experienceError = document.getElementById('yearsOfExperienceError');
 
-            const validateExperience = () => {
-                const value = parseInt(experienceInput.value, 10);
-                if (experienceInput.value === '') {
+            experienceInput.addEventListener('input', function() {
+                const value = this.value;
+                if (value === '') {
                     setFieldInvalid(experienceInput, 'Số năm kinh nghiệm không được để trống.');
-                    return false;
-                } else if (isNaN(value) || value < 0 || value > 100) {
-                    setFieldInvalid(experienceInput, 'Kinh nghiệm phải là số từ 0 đến 100.');
-                    return false;
+                } else if (isNaN(value) || value < 0) {
+                    setFieldInvalid(experienceInput, 'Kinh nghiệm phải là số không âm.');
+                } else if (parseInt(value, 10) > maxExp) {
+                    setFieldInvalid(experienceInput, `Số năm kinh nghiệm phải nhỏ hơn hoặc bằng số tuổi trừ đi 18.`);
                 } else {
-                    setFieldValid(experienceInput, 'Kinh nghiệm hợp lệ.');
-                    return true;
+                    setFieldValid(experienceInput, '');
                 }
-            };
-            experienceInput.addEventListener('input', validateExperience);
+            });
 
             // --- Service Type Validation ---
             const serviceTypeSelect = document.getElementById('serviceTypeId');
@@ -551,6 +570,13 @@
             // Đếm ký tự
             bioTextarea.addEventListener('input', function() {
                 bioCharCount.textContent = this.value.length;
+            });
+
+            // Chặn nhập ký tự không phải số
+            experienceInput.addEventListener('keypress', function(e) {
+                if (e.key.length === 1 && !/[0-9]/.test(e.key)) {
+                    e.preventDefault();
+                }
             });
         });
     </script>
