@@ -77,6 +77,10 @@
                     </li>
                 </ul>
             </div>
+            <p>${reviews}</p>
+            <c:forEach var="review" items="${reviews}">
+                <p>Review: ${review} - Service: ${review.serviceId} - Customer: ${review.customerId}</p>
+            </c:forEach>
         </div>
     </div>
 </div>
