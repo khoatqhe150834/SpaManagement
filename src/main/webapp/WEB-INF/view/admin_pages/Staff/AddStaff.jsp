@@ -455,7 +455,7 @@
                 } else if (isNaN(value) || value < 0) {
                     setFieldInvalid(experienceInput, 'Kinh nghiệm phải là số không âm.');
                 } else if (parseInt(value, 10) > maxExp) {
-                    setFieldInvalid(experienceInput, `Số năm kinh nghiệm phải nhỏ hơn hoặc bằng ${maxExp}.`);
+                    setFieldInvalid(experienceInput, `Số năm kinh nghiệm phải nhỏ hơn hoặc bằng số tuổi trừ đi 18.`);
                 } else {
                     setFieldValid(experienceInput, '');
                 }
