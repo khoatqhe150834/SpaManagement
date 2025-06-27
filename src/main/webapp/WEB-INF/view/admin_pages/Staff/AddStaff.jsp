@@ -1,5 +1,6 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <!DOCTYPE html>
 <html lang="vi" data-theme="light">
 <head>
@@ -255,7 +256,7 @@
                                                 <select id="userSelect" name="userId" required>
                                                     <option></option> <!-- Option trống cho placeholder của Select2 -->
                                                     <c:forEach var="user" items="${userList}">
-                                                        <option value="${user.userId}" data-fullname="${user.fullName}" data-birthday="${user.birthday}">${user.userId} - ${user.fullName}</option>
+                                                        <option value="${user.userId}" data-fullname="${user.fullName}" data-birthday="<fmt:formatDate value='${user.birthday}' pattern='yyyy-MM-dd'/>">${user.userId} - ${user.fullName}</option>
                                                     </c:forEach>
                                                 </select>
                                                 <div class="valid-feedback" id="userSelectValid"></div>
@@ -266,6 +267,7 @@
                                             <div class="form-group">
                                                 <label for="fullNameInput" class="form-label">Họ và tên</label>
                                                 <input type="text" id="fullNameInput" name="fullName" class="form-control" readonly placeholder="Tên sẽ tự động điền..." />
+                                                <span id="userAge" style="margin-left:8px; font-weight:500; color:#888;"></span>
                                             </div>
                                         </div>
                                     </div>
@@ -385,7 +387,21 @@
                 const selectedOption = this.options[this.selectedIndex];
                 const fullName = $(selectedOption).data('fullname');
                 const birthday = $(selectedOption).data('birthday');
-                fullNameInput.value = fullName || 'Tên sẽ tự động điền...';
+                let ageText = '';
+                if (birthday) {
+                    const birthDate = new Date(birthday);
+                    const today = new Date();
+                    let age = today.getFullYear() - birthDate.getFullYear();
+                    const m = today.getMonth() - birthDate.getMonth();
+                    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                        age--;
+                    }
+                    if (!isNaN(age) && age > 0) {
+                        ageText = ` (${age} tuổi)`;
+                    }
+                }
+                fullNameInput.value = (fullName || 'Tên sẽ tự động điền...') + ageText;
+                document.getElementById('userAge').textContent = '';
 
                 if (this.value !== '') {
                     $.get('staff', { service: 'check-duplicate', userId: this.value }, function(res) {
