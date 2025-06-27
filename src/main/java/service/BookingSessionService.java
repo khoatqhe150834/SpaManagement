@@ -31,10 +31,11 @@ public class BookingSessionService {
   /**
    * Get or create a booking session for the current user
    * Handles both guest and logged-in customer scenarios
+   * NOTE: This method creates sessions and should only be called when user
+   * explicitly starts booking
    */
   public BookingSession getOrCreateSession(HttpServletRequest request) {
-    HttpSession httpSession = request.getSession();
-    Customer customer = (Customer) httpSession.getAttribute("customer");
+    Customer customer = (Customer) request.getSession().getAttribute("customer");
 
     BookingSession bookingSession = null;
 
@@ -43,27 +44,18 @@ public class BookingSessionService {
       bookingSession = bookingSessionDAO.findByCustomerId(customer.getCustomerId());
 
       if (bookingSession == null) {
-        bookingSession = createCustomerSession(httpSession.getId(), customer, request);
+        bookingSession = createCustomerSession(customer, request);
       }
     } else {
-      // Guest user: check multiple sources for session ID
-      String sessionId = (String) httpSession.getAttribute("bookingSessionId");
-
-      // If not in HTTP session, try to get from browser persistence
-      if (sessionId == null) {
-        sessionId = getPersistentSessionIdFromRequest(request);
-        if (sessionId != null) {
-          // Re-associate with HTTP session
-          httpSession.setAttribute("bookingSessionId", sessionId);
-        }
-      }
+      // Guest user: check cookie for session ID only (no HTTP session)
+      String sessionId = getPersistentSessionIdFromRequest(request);
 
       if (sessionId != null) {
         bookingSession = bookingSessionDAO.findBySessionId(sessionId);
       }
 
       if (bookingSession == null) {
-        bookingSession = createGuestSession(httpSession, request);
+        bookingSession = createGuestSession(request);
       }
     }
 
@@ -77,22 +69,50 @@ public class BookingSessionService {
   }
 
   /**
-   * Create a new guest session
+   * Start a new booking session explicitly (for when users click "Đặt lịch ngay")
+   * This always creates a new session, replacing any existing one
    */
-  private BookingSession createGuestSession(HttpSession httpSession, HttpServletRequest request) {
+  public BookingSession startNewBookingSession(HttpServletRequest request) {
+    Customer customer = (Customer) request.getSession().getAttribute("customer");
+
+    // Clean up any existing session first
+    if (customer != null) {
+      BookingSession existingSession = bookingSessionDAO.findByCustomerId(customer.getCustomerId());
+      if (existingSession != null) {
+        bookingSessionDAO.delete(existingSession.getSessionId());
+        LOGGER.log(Level.INFO, "Deleted existing customer session before creating new one: {0}",
+            existingSession.getSessionId());
+      }
+    } else {
+      String existingSessionId = getPersistentSessionIdFromRequest(request);
+      if (existingSessionId != null) {
+        bookingSessionDAO.delete(existingSessionId);
+        LOGGER.log(Level.INFO, "Deleted existing guest session before creating new one: {0}", existingSessionId);
+      }
+    }
+
+    // Create fresh session
+    if (customer != null) {
+      return createCustomerSession(customer, request);
+    } else {
+      return createGuestSession(request);
+    }
+  }
+
+  /**
+   * Create a new guest session (cookie-only, no HTTP session)
+   */
+  private BookingSession createGuestSession(HttpServletRequest request) {
     String sessionId = generateSessionId();
     BookingSession bookingSession = new BookingSession(sessionId);
     bookingSession.setCustomerId(null); // Guest session
     bookingSession.setCurrentStep(BookingSession.CurrentStep.SERVICES);
 
     if (bookingSessionDAO.create(bookingSession)) {
-      // Store booking session ID in HTTP session for guest tracking
-      httpSession.setAttribute("bookingSessionId", sessionId);
-
-      // Store in persistent browser storage (via response)
+      // Store in cookie only (no HTTP session)
       setPersistentSessionId(request, sessionId);
 
-      LOGGER.log(Level.INFO, "Created guest booking session: {0}", sessionId);
+      LOGGER.log(Level.INFO, "Created guest booking session (cookie-only): {0}", sessionId);
       return bookingSession;
     }
 
@@ -101,19 +121,19 @@ public class BookingSessionService {
   }
 
   /**
-   * Create a new customer session
+   * Create a new customer session (cookie-only)
    */
-  private BookingSession createCustomerSession(String httpSessionId, Customer customer, HttpServletRequest request) {
+  private BookingSession createCustomerSession(Customer customer, HttpServletRequest request) {
     String sessionId = generateSessionId();
     BookingSession bookingSession = new BookingSession(sessionId);
     bookingSession.setCustomerId(customer.getCustomerId());
     bookingSession.setCurrentStep(BookingSession.CurrentStep.SERVICES);
 
     if (bookingSessionDAO.create(bookingSession)) {
-      // Store in persistent browser storage (via response)
+      // Store in cookie only
       setPersistentSessionId(request, sessionId);
 
-      LOGGER.log(Level.INFO, "Created customer booking session: {0} for customer: {1}",
+      LOGGER.log(Level.INFO, "Created customer booking session (cookie-only): {0} for customer: {1}",
           new Object[] { sessionId, customer.getCustomerId() });
       return bookingSession;
     }
@@ -342,47 +362,38 @@ public class BookingSessionService {
   }
 
   /**
-   * Get session from HTTP request
+   * Get session from HTTP request (cookies only - does NOT create sessions)
+   * This method only retrieves existing sessions and will not create new ones
    */
   public BookingSession getSessionFromRequest(HttpServletRequest request) {
-    HttpSession httpSession = request.getSession();
-    Customer customer = (Customer) httpSession.getAttribute("customer");
+    Customer customer = (Customer) request.getSession().getAttribute("customer");
 
-    // Priority 1: Check for logged-in customer
+    // Priority 1: Check for logged-in customer session
     if (customer != null) {
       BookingSession session = bookingSessionDAO.findByCustomerId(customer.getCustomerId());
-      if (session != null) {
-        // Ensure cookie is set for persistence
+      if (session != null && !session.isExpired()) {
+        // Ensure cookie is set for persistence (but don't store in HTTP session)
         setPersistentSessionId(request, session.getSessionId());
         return session;
       }
     }
 
-    // Priority 2: Check HTTP session for session ID
-    String sessionId = (String) httpSession.getAttribute("bookingSessionId");
-    if (sessionId != null) {
-      BookingSession session = bookingSessionDAO.findBySessionId(sessionId);
-      if (session != null) {
-        // Ensure cookie is set for persistence
-        setPersistentSessionId(request, session.getSessionId());
-        return session;
-      }
-    }
-
-    // Priority 3: Check browser-sent cookie/header for persistent session ID
+    // Priority 2: Check cookie for persistent session ID (no HTTP session check)
     String persistentSessionId = getPersistentSessionIdFromRequest(request);
     if (persistentSessionId != null) {
       BookingSession session = bookingSessionDAO.findBySessionId(persistentSessionId);
       if (session != null && !session.isExpired()) {
-        // Re-associate with current HTTP session
-        httpSession.setAttribute("bookingSessionId", persistentSessionId);
-        // Ensure cookie is refreshed for persistence
+        // Refresh cookie but do NOT store in HTTP session
         setPersistentSessionId(request, persistentSessionId);
-        LOGGER.log(Level.INFO, "Restored booking session from persistent ID: {0}", persistentSessionId);
+        LOGGER.log(Level.INFO, "Retrieved existing booking session from cookie: {0}", persistentSessionId);
         return session;
+      } else if (session != null && session.isExpired()) {
+        LOGGER.log(Level.INFO, "Found expired booking session in cookie: {0}", persistentSessionId);
+        // Don't return expired sessions
       }
     }
 
+    // No existing session found - do NOT create one
     return null;
   }
 

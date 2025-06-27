@@ -41,6 +41,8 @@
 <!-- CONTACT JS  -->
 <script src="${pageContext.request.contextPath}/assets/home/js/header-custom.js"></script>
 <!-- HEADER CUSTOM JS -->
+<script src="${pageContext.request.contextPath}/assets/home/js/booking-service-badge.js"></script>
+<!-- BOOKING SERVICE BADGE JS -->
 <script src="${pageContext.request.contextPath}/assets/home/plugins/perfect-scrollbar/js/perfect-scrollbar.min.js"></script>
 
 <!-- revolution JS FILES -->

@@ -21,7 +21,7 @@
     
     <div class="dashboard-main-body">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
-            <h4 class="fw-bold mb-0">Add New Promotion</h4>
+            <h4 class="fw-bold mb-0">Thêm khuyến mãi mới</h4>
             <a href="${pageContext.request.contextPath}/promotion/list" class="btn btn-outline-primary">
                 <iconify-icon icon="solar:arrow-left-linear" class="icon text-lg me-8"></iconify-icon>
                 Back to List
@@ -46,19 +46,21 @@
                     
                     <div class="row">
                         <div class="col-md-6 mb-4">
-            <label class="form-label" for="title">Promotion Title <span class="text-danger">*</span></label>
+            <label for="title" class="form-label">Tiêu đề <span class="text-danger">*</span></label>
             <input type="text" class="form-control ${not empty errors.title ? 'is-invalid' : ''}" 
                    id="title" name="title" required maxlength="100" 
-                   value="${not empty promotionInput.title ? promotionInput.title : ''}">
-            <div class="error-text">${errors.title}</div>
+                   value="${not empty promotionInput.title ? promotionInput.title : ''}" placeholder="Nhập tiêu đề" oninput="validateTitle()">
+            <div class="invalid-feedback d-block" id="titleError" style="display:none">Vui lòng nhập tiêu đề.</div>
+            <div class="valid-feedback d-block" id="titleValid" style="display:none;color:#219653;font-size:0.95em;">Hợp lệ!</div>
         </div>
                         
                         <div class="col-md-6 mb-4">
-            <label class="form-label" for="promotionCode">Promotion Code <span class="text-danger">*</span></label>
+            <label for="promotionCode" class="form-label">Mã khuyến mãi <span class="text-danger">*</span></label>
             <input type="text" class="form-control ${not empty errors.promotionCode ? 'is-invalid' : ''}" 
                    id="promotionCode" name="promotionCode" required maxlength="10" 
-                   value="${not empty promotionInput.promotionCode ? promotionInput.promotionCode : ''}">
-            <div class="error-text">${errors.promotionCode}</div>
+                   value="${not empty promotionInput.promotionCode ? promotionInput.promotionCode : ''}" placeholder="Nhập mã khuyến mãi" oninput="validateCode()">
+            <div class="invalid-feedback d-block" id="codeError" style="display:none">Vui lòng nhập mã khuyến mãi.</div>
+            <div class="valid-feedback d-block" id="codeValid" style="display:none;color:#219653;font-size:0.95em;">Hợp lệ!</div>
         </div>
                     </div>
                     
@@ -74,29 +76,28 @@
                         </div>
                         
                         <div class="col-md-6 mb-4">
-                            <label class="form-label" for="discountValue">Discount Value <span class="text-danger">*</span></label>
+                            <label for="discountValue" class="form-label">Giá trị giảm <span class="text-danger">*</span></label>
                             <input type="number" class="form-control ${not empty errors.discountValue ? 'is-invalid' : ''}" 
                                    id="discountValue" name="discountValue" required min="1" step="0.01"
-                                   value="${not empty promotionInput.discountValue ? promotionInput.discountValue : ''}">
-                            <div class="error-text">${errors.discountValue}</div>
+                                   value="${not empty promotionInput.discountValue ? promotionInput.discountValue : ''}" placeholder="Nhập giá trị giảm" oninput="validateDiscount()">
+                            <div class="invalid-feedback d-block" id="discountError" style="display:none">Vui lòng nhập giá trị giảm hợp lệ.</div>
+                            <div class="valid-feedback d-block" id="discountValid" style="display:none;color:#219653;font-size:0.95em;">Hợp lệ!</div>
                         </div>
                     </div>
                     
                     <div class="row">
                         <div class="col-md-6 mb-4">
                             <label class="form-label" for="startDate">Start Date <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control ${not empty errors.startDate ? 'is-invalid' : ''}" 
-                                   id="startDate" name="startDate" required
-                                   value="${promotionInput.startDate}">
-                            <div class="error-text">${errors.startDate}</div>
+                            <input type="datetime-local" class="form-control" id="startDate" name="startDate" required oninput="validateStartDate()">
+                            <div class="invalid-feedback d-block" id="startDateError" style="display:none">Vui lòng chọn ngày bắt đầu hợp lệ.</div>
+                            <div class="valid-feedback d-block" id="startDateValid" style="display:none;color:#219653;font-size:0.95em;">Hợp lệ!</div>
                         </div>
                         
                         <div class="col-md-6 mb-4">
                             <label class="form-label" for="endDate">End Date <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control ${not empty errors.endDate ? 'is-invalid' : ''}" 
-                                   id="endDate" name="endDate" required
-                                   value="${promotionInput.endDate}">
-                            <div class="error-text">${errors.endDate}</div>
+                            <input type="datetime-local" class="form-control" id="endDate" name="endDate" required oninput="validateEndDate()">
+                            <div class="invalid-feedback d-block" id="endDateError" style="display:none">Vui lòng chọn ngày kết thúc hợp lệ (sau ngày bắt đầu).</div>
+                            <div class="valid-feedback d-block" id="endDateValid" style="display:none;color:#219653;font-size:0.95em;">Hợp lệ!</div>
                         </div>
                     </div>
                     
@@ -131,9 +132,13 @@
         </div>
                     
                     <div class="d-flex gap-16 justify-content-end mt-24">
+                        <a href="${pageContext.request.contextPath}/promotion/list" class="btn btn-outline-secondary btn-sm px-20 py-11 radius-8">
+                            <iconify-icon icon="solar:arrow-left-linear" class="icon text-lg me-8"></iconify-icon>
+                            Hủy bỏ
+                        </a>
                         <button type="submit" class="btn btn-primary btn-sm px-20 py-11 radius-8">
                             <iconify-icon icon="solar:check-circle-bold" class="icon text-lg me-8"></iconify-icon>
-                            Add Promotion
+                            Thêm khuyến mãi
                         </button>
         </div>
                 </form>
@@ -185,6 +190,121 @@
             }
         }
     });
+
+$(document).ready(function() {
+    function showError(input, message) {
+        input.addClass('is-invalid');
+        input.next('.error-text').text(message);
+    }
+    function clearError(input) {
+        input.removeClass('is-invalid');
+        input.next('.error-text').text('');
+    }
+    // Title
+    $('#title').on('input blur', function() {
+        const val = $(this).val().trim();
+        if (!val) showError($(this), 'Title is required.');
+        else if (val.length > 100) showError($(this), 'Max 100 characters.');
+        else clearError($(this));
+    });
+    // Promotion Code
+    $('#promotionCode').on('input blur', function() {
+        const val = $(this).val().trim();
+        if (!val) showError($(this), 'Promotion code is required.');
+        else if (val.length > 10) showError($(this), 'Max 10 characters.');
+        else clearError($(this));
+    });
+    // Discount Type
+    $('#discountType').on('change blur', function() {
+        const val = $(this).val();
+        if (!val) showError($(this), 'Discount type is required.');
+        else clearError($(this));
+    });
+    // Discount Value
+    $('#discountValue').on('input blur', function() {
+        const val = $(this).val();
+        if (!val) showError($(this), 'Discount value is required.');
+        else if (isNaN(val) || Number(val) <= 0) showError($(this), 'Must be a positive number.');
+        else clearError($(this));
+    });
+    // Start Date
+    $('#startDate').on('input blur', function() {
+        const val = $(this).val();
+        if (!val) showError($(this), 'Start date is required.');
+        else clearError($(this));
+    });
+    // End Date
+    $('#endDate').on('input blur', function() {
+        const val = $(this).val();
+        const startVal = $('#startDate').val();
+        if (!val) showError($(this), 'End date is required.');
+        else if (startVal && val < startVal) showError($(this), 'End date must be after start date.');
+        else clearError($(this));
+    });
+    // Description
+    $('#description').on('input blur', function() {
+        const val = $(this).val().trim();
+        if (!val) showError($(this), 'Description is required.');
+        else clearError($(this));
+    });
+    // On submit: check all
+    $('form').on('submit', function(e) {
+        let valid = true;
+        $('#title').trigger('blur');
+        $('#promotionCode').trigger('blur');
+        $('#discountType').trigger('blur');
+        $('#discountValue').trigger('blur');
+        $('#startDate').trigger('blur');
+        $('#endDate').trigger('blur');
+        $('#description').trigger('blur');
+        $(this).find('input,select,textarea').each(function() {
+            if ($(this).hasClass('is-invalid')) valid = false;
+        });
+        if (!valid) e.preventDefault();
+    });
+});
+
+function validateTitle() {
+  const value = document.getElementById('title').value.trim();
+  document.getElementById('titleError').style.display = value ? 'none' : 'block';
+  document.getElementById('titleValid').style.display = value ? 'block' : 'none';
+}
+function validateCode() {
+  const value = document.getElementById('promotionCode').value.trim();
+  document.getElementById('codeError').style.display = value ? 'none' : 'block';
+  document.getElementById('codeValid').style.display = value ? 'block' : 'none';
+}
+function validateDiscount() {
+  const value = document.getElementById('discountValue').value.trim();
+  const valid = value && !isNaN(value) && Number(value) > 0;
+  document.getElementById('discountError').style.display = valid ? 'none' : 'block';
+  document.getElementById('discountValid').style.display = valid ? 'block' : 'none';
+}
+function validateStartDate() {
+  const value = document.getElementById('startDate').value;
+  document.getElementById('startDateError').style.display = value ? 'none' : 'block';
+  document.getElementById('startDateValid').style.display = value ? 'block' : 'none';
+}
+function validateEndDate() {
+  const start = document.getElementById('startDate').value;
+  const end = document.getElementById('endDate').value;
+  const valid = end && start && end > start;
+  document.getElementById('endDateError').style.display = valid ? 'none' : 'block';
+  document.getElementById('endDateValid').style.display = valid ? 'block' : 'none';
+}
+const form = document.querySelector('form');
+if(form) {
+  form.onsubmit = function(e) {
+    validateTitle(); validateCode(); validateDiscount(); validateStartDate(); validateEndDate();
+    if(document.getElementById('titleError').style.display === 'block' ||
+       document.getElementById('codeError').style.display === 'block' ||
+       document.getElementById('discountError').style.display === 'block' ||
+       document.getElementById('startDateError').style.display === 'block' ||
+       document.getElementById('endDateError').style.display === 'block') {
+      e.preventDefault();
+    }
+  }
+}
 </script>
 </body>
 </html>

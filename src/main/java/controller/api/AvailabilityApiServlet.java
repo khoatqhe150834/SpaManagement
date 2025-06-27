@@ -17,8 +17,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -32,6 +34,10 @@ public class AvailabilityApiServlet extends HttpServlet {
   private StaffDAO staffDAO;
   private Gson gson;
   private CSPSolver cspSolver;
+
+  // PERFORMANCE OPTIMIZATION: Cache for monthly availability data
+  private static final Map<String, CachedAvailabilityData> monthlyAvailabilityCache = new ConcurrentHashMap<>();
+  private static final long CACHE_DURATION_MS = 2 * 60 * 1000; // 2 minutes cache for API calls
 
   @Override
   public void init() throws ServletException {
@@ -48,6 +54,32 @@ public class AvailabilityApiServlet extends HttpServlet {
         new BookingSessionConflictConstraint());
     cspSolver = new CSPSolver(globalDomain, constraints);
     cspSolver.setUseForwardChecking(true);
+  }
+
+  /**
+   * Clear caches when needed (useful for testing or when appointments change)
+   */
+  public static void clearCaches() {
+    monthlyAvailabilityCache.clear();
+    CSPDomain.clearAppointmentCache();
+    System.out.println("🗑️ All availability caches cleared");
+  }
+
+  /**
+   * Cache structure for availability data
+   */
+  private static class CachedAvailabilityData {
+    final Map<String, Object> data;
+    final long timestamp;
+
+    public CachedAvailabilityData(Map<String, Object> data) {
+      this.data = data;
+      this.timestamp = System.currentTimeMillis();
+    }
+
+    public boolean isExpired() {
+      return (System.currentTimeMillis() - timestamp) > CACHE_DURATION_MS;
+    }
   }
 
   @Override
@@ -217,9 +249,26 @@ public class AvailabilityApiServlet extends HttpServlet {
   }
 
   /**
-   * Generate monthly availability data using CSPSolver
+   * PERFORMANCE OPTIMIZED: Generate monthly availability data using CSPSolver
+   * with caching
    */
   private Map<String, Object> generateMonthlyAvailability(List<Integer> serviceIds, int year, int month) {
+
+    // Generate cache key
+    String cacheKey = "month_" + year + "_" + month + "_services_" +
+        (serviceIds.isEmpty() ? "all" : serviceIds.toString());
+
+    // Check cache
+    CachedAvailabilityData cachedData = monthlyAvailabilityCache.get(cacheKey);
+    if (cachedData != null && !cachedData.isExpired()) {
+      System.out.println("💾 CACHE HIT: Using cached monthly availability for " + year + "/" + month);
+      return cachedData.data;
+    }
+
+    System.out.println("🔄 GENERATING: Monthly availability for " + year + "/" + month +
+        " with " + serviceIds.size() + " services");
+    long startTime = System.currentTimeMillis();
+
     Map<String, Object> result = new HashMap<>();
     List<Map<String, Object>> dayData = new ArrayList<>();
     Map<String, Integer> summary = new HashMap<>();
@@ -276,6 +325,13 @@ public class AvailabilityApiServlet extends HttpServlet {
 
     result.put("days", dayData);
     result.put("summary", summary);
+
+    // Cache the result
+    monthlyAvailabilityCache.put(cacheKey, new CachedAvailabilityData(result));
+
+    long endTime = System.currentTimeMillis();
+    System.out.println("✅ MONTHLY AVAILABILITY COMPLETE: " + year + "/" + month +
+        " in " + (endTime - startTime) + "ms - cached as '" + cacheKey + "'");
 
     return result;
   }
@@ -349,10 +405,12 @@ public class AvailabilityApiServlet extends HttpServlet {
     Map<LocalDateTime, List<Assignment>> slotsByTime = validSlots.stream()
         .collect(Collectors.groupingBy(Assignment::getStartTime));
 
-    // Convert to time slot format
-    for (Map.Entry<LocalDateTime, List<Assignment>> entry : slotsByTime.entrySet()) {
-      LocalDateTime time = entry.getKey();
-      List<Assignment> assignments = entry.getValue();
+    // Generate all possible time slots for the day (not just available ones)
+    Set<LocalDateTime> allPossibleTimes = generateAllPossibleTimeSlots(date);
+
+    // Convert to time slot format - include both available and unavailable slots
+    for (LocalDateTime time : allPossibleTimes) {
+      List<Assignment> assignments = slotsByTime.getOrDefault(time, new ArrayList<>());
 
       // Filter out assignments for therapists who are actually busy during this time
       List<Assignment> actuallyAvailableAssignments = filterActuallyAvailableTherapists(assignments, service);
@@ -374,14 +432,49 @@ public class AvailabilityApiServlet extends HttpServlet {
 
       timeSlot.put("availableTherapists", availableTherapists);
 
-      // Only add time slot if there are actually available therapists
-      if (!actuallyAvailableAssignments.isEmpty()) {
-        timeSlots.add(timeSlot);
+      // Add status information for better UX
+      if (actuallyAvailableAssignments.isEmpty()) {
+        timeSlot.put("status", "fully-booked");
+        timeSlot.put("statusMessage", "Hết chỗ");
+      } else if (actuallyAvailableAssignments.size() == 1) {
+        timeSlot.put("status", "limited");
+        timeSlot.put("statusMessage", "Còn 1 trị liệu");
+      } else if (actuallyAvailableAssignments.size() <= 2) {
+        timeSlot.put("status", "limited");
+        timeSlot.put("statusMessage", "Còn " + actuallyAvailableAssignments.size() + " trị liệu");
+      } else {
+        timeSlot.put("status", "available");
+        timeSlot.put("statusMessage", actuallyAvailableAssignments.size() + " trị liệu khả dụng");
       }
+
+      // Always add the time slot (both available and unavailable)
+      timeSlots.add(timeSlot);
     }
 
     // Sort by time
     timeSlots.sort((a, b) -> ((String) a.get("time")).compareTo((String) b.get("time")));
+
+    return timeSlots;
+  }
+
+  /**
+   * Generate all possible time slots for a given date based on business hours
+   */
+  private Set<LocalDateTime> generateAllPossibleTimeSlots(LocalDate date) {
+    Set<LocalDateTime> timeSlots = new TreeSet<>();
+
+    // Define business hours (7:00 AM to 9:00 PM)
+    LocalTime startTime = LocalTime.of(7, 0); // 7:00 AM
+    LocalTime endTime = LocalTime.of(19, 0); // 7:00 PM
+    int intervalMinutes = 30; // 30-minute intervals
+
+    LocalDateTime currentSlot = date.atTime(startTime);
+    LocalDateTime endSlot = date.atTime(endTime);
+
+    while (!currentSlot.isAfter(endSlot)) {
+      timeSlots.add(currentSlot);
+      currentSlot = currentSlot.plusMinutes(intervalMinutes);
+    }
 
     return timeSlots;
   }

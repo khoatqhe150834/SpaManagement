@@ -15,15 +15,66 @@
   border: none;
   padding: 0;
   cursor: pointer;
-  display: block; /* Ensures image is block for consistent behavior */
+  display: block; /* Ensures consistent behavior */
 }
 
+/* Icon-based avatar styles */
+.user-avatar-button.icon-avatar {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  position: relative;
+}
+
+.user-avatar-button.icon-avatar i {
+  font-size: 20px;
+  color: #ffffff;
+  font-family: 'FontAwesome' !important;
+  font-weight: normal !important;
+  font-style: normal !important;
+}
+
+/* Customer avatar styling */
+.user-avatar-button.customer-avatar {
+  background: #586BB4;
+}
+
+/* User/Staff avatar styling based on role */
+.user-avatar-button.user-avatar[data-role="ADMIN"] {
+  background: #586BB4;
+}
+
+.user-avatar-button.user-avatar[data-role="MANAGER"] {
+  background: #586BB4;
+}
+
+.user-avatar-button.user-avatar[data-role="THERAPIST"] {
+  background: #586BB4;
+}
+
+.user-avatar-button.user-avatar[data-role="RECEPTIONIST"] {
+  background: #586BB4;
+}
+
+/* Default user avatar if no specific role */
+.user-avatar-button.user-avatar {
+  background: #586BB4;
+}
+
+
+
+/* Legacy image avatar styles (kept for backward compatibility) */
 .user-avatar-button img {
   width: 40px;
   height: 40px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #fff; /* Example border, adjust to your theme */
+  border: 2px solid #fff;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   transition: box-shadow 0.3s ease;
 }
@@ -166,6 +217,15 @@
     margin-left: 10px;
   }
   
+  .user-avatar-button.icon-avatar {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .user-avatar-button.icon-avatar i {
+    font-size: 18px;
+  }
+  
   .user-avatar-button img {
     width: 35px;
     height: 35px;
@@ -177,8 +237,6 @@
     right: -20px; /* Adjust for mobile */
   }
   
-  
-  
   .user-notification-button {
     margin-left: 5px;
   }
@@ -189,6 +247,15 @@
 }
 
 @media (max-width: 480px) {
+  .user-avatar-button.icon-avatar {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .user-avatar-button.icon-avatar i {
+    font-size: 16px;
+  }
+  
   .avatar-dropdown {
     right: -40px;
     min-width: max-content;
@@ -206,4 +273,84 @@
   }
   
   
+}
+
+/* ===================================================
+   Booking Service Badge Styles
+   =================================================== */
+
+/* Booking button container to position badge relative to button */
+.booking-button-container {
+  position: relative;
+  display: inline-block;
+}
+
+/* Red badge for service count */
+.booking-service-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #dc3545; /* Bootstrap red */
+  color: white;
+  border-radius: 50%;
+  padding: 0;
+  font-size: 11px;
+  font-weight: bold;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  z-index: 10;
+  animation: bounceIn 0.3s ease-out;
+}
+
+/* Animation for badge appearance */
+@keyframes bounceIn {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Pulse animation when count updates */
+.booking-service-badge.pulse {
+  animation: pulseUpdate 0.4s ease-out;
+}
+
+@keyframes pulseUpdate {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); background-color: #e74c3c; }
+  100% { transform: scale(1); background-color: #dc3545; }
+}
+
+/* Responsive adjustments for booking badge */
+@media (max-width: 768px) {
+  .booking-service-badge {
+    top: -6px;
+    right: -6px;
+    font-size: 10px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .booking-service-badge {
+    top: -5px;
+    right: -5px;
+    font-size: 9px;
+    width: 16px;
+    height: 16px;
+  }
 } 

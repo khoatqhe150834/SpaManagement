@@ -32,38 +32,23 @@
 
         <div class="extra-nav">
           <div class="extra-cell">
-            <%-- Show "Đặt lịch ngay" button only for customers and guests (not for staff) --%>
-            <c:choose>
-                <%-- Show for customers --%>
-                <c:when test="${not empty sessionScope.customer}">
-                    <a href="${pageContext.request.contextPath}/process-booking/resume" class="site-button radius-no">ĐẶT LỊCH NGAY</a>
-                </c:when>
-                <%-- Show for guests (no user or customer in session) --%>
-                <c:when test="${empty sessionScope.user and empty sessionScope.customer}">
-                    <a href="${pageContext.request.contextPath}/process-booking/resume" class="site-button radius-no">ĐẶT LỊCH NGAY</a>
-                </c:when>
-                <%-- Hide for staff members (admin, manager, therapist, receptionist) --%>
-            </c:choose>
-            
-            <%-- <!-- Dynamic Cart Icon with Iconify -->
-            <div class="cart-icon-container">
-              <a href="${pageContext.request.contextPath}/cart" class="cart-icon-button" id="cartIconButton" title="Giỏ hàng">
-                <iconify-icon icon="heroicons:shopping-bag-20-solid" class="cart-icon"></iconify-icon>
-                <span class="cart-badge" id="cartBadge">0</span>
-              </a>
-            </div> --%>
-            
             <c:choose>
                 <%-- Customer is logged in --%>
                 <c:when test="${not empty sessionScope.customer}">
+                    <%-- Show "Đặt lịch ngay" button for customers --%>
+                    <div class="booking-button-container">
+                        <a href="${pageContext.request.contextPath}/process-booking/resume" class="site-button radius-no">ĐẶT LỊCH NGAY</a>
+                        <span class="booking-service-badge" id="bookingServiceBadge" style="display: none;">0</span>
+                    </div>
+                    
                     <%
                         // Get customer menu items using MenuService
                         List<MenuService.MenuItem> customerMenuItems = MenuService.getCustomerMenuItems(pageContext.getServletContext().getContextPath());
                         request.setAttribute("menuItems", customerMenuItems);
                     %>
                     <div class="user-avatar-container">
-                        <button type="button" class="user-avatar-button" id="customerAvatarButton" aria-haspopup="true" aria-expanded="false">
-                            <img src="https://placehold.co/40x40/7C3AED/FFFFFF?text=C" alt="Customer Avatar">
+                        <button type="button" class="user-avatar-button icon-avatar customer-avatar" id="customerAvatarButton" aria-haspopup="true" aria-expanded="false">
+                            <i class="fa fa-user"></i>
                         </button>
                         <div class="avatar-dropdown admin-style-dropdown" id="customerAvatarDropdown" aria-labelledby="customerAvatarButton">
                             <c:if test="${not empty sessionScope.customer.fullName}">
@@ -101,6 +86,7 @@
                 
                 <%-- User (admin/manager/staff) is logged in --%>
                 <c:when test="${not empty sessionScope.user}">
+                    <%-- No booking button for staff members --%>
                     <%
                         // Get user role name and menu items using MenuService
                         model.User user = (model.User) session.getAttribute("user");
@@ -127,35 +113,46 @@
                         List<MenuService.MenuItem> userMenuItems = MenuService.getMenuItemsByRole(roleName, pageContext.getServletContext().getContextPath());
                         request.setAttribute("userMenuItems", userMenuItems);
                         
-                        // Set avatar color based on role
+                        // Set avatar color and role display text based on role
                         String avatarColor = "#DC2626"; // Default red
                         String avatarText = "U";
+                        String roleDisplayText = "Nhân viên"; // Default
                         if (roleName != null) {
                             switch (roleName) {
                                 case "ADMIN":
                                     avatarColor = "#DC2626"; // Red
                                     avatarText = "A";
+                                    roleDisplayText = "Quản trị viên";
                                     break;
                                 case "MANAGER":
                                     avatarColor = "#2563EB"; // Blue
                                     avatarText = "M";
+                                    roleDisplayText = "Quản lý";
                                     break;
                                 case "THERAPIST":
                                     avatarColor = "#059669"; // Green
                                     avatarText = "T";
+                                    roleDisplayText = "Nhân viên trị liệu";
                                     break;
                                 case "RECEPTIONIST":
                                     avatarColor = "#7C3AED"; // Purple
                                     avatarText = "R";
+                                    roleDisplayText = "Nhân viên lễ tân";
                                     break;
                             }
                         }
                         request.setAttribute("avatarColor", avatarColor);
                         request.setAttribute("avatarText", avatarText);
+                        request.setAttribute("roleDisplayText", roleDisplayText);
                     %>
                     <div class="user-avatar-container">
-                        <button type="button" class="user-avatar-button" id="userAvatarButton" aria-haspopup="true" aria-expanded="false">
-                            <img src="https://placehold.co/40x40/${avatarColor.substring(1)}/FFFFFF?text=${avatarText}" alt="User Avatar">
+                        <button type="button" class="user-avatar-button icon-avatar user-avatar" id="userAvatarButton" aria-haspopup="true" aria-expanded="false" data-role="${roleName}">
+                            <%
+                                // Use same user icon for all roles
+                                String roleIcon = "fa-user";
+                                request.setAttribute("roleIcon", roleIcon);
+                            %>
+                            <i class="fa ${roleIcon}"></i>
                         </button>
                         <div class="avatar-dropdown admin-style-dropdown" id="userAvatarDropdown" aria-labelledby="userAvatarButton">
                             <c:if test="${not empty sessionScope.user.fullName}">
@@ -163,7 +160,7 @@
                                     <div class="d-flex align-items-center gap-2">
                                         <div>
                                             <h6 class="mb-0 fw-semibold text-neutral-900">Chào, ${sessionScope.user.fullName}</h6>
-                                            <span class="text-xs text-secondary-light">Nhân viên</span>
+                                            <span class="text-xs text-secondary-light">${roleDisplayText}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -191,8 +188,14 @@
                     </button>
                 </c:when>
                 
-                <%-- No one is logged in --%>
+                <%-- No one is logged in (guests) --%>
                 <c:otherwise>
+                    <%-- Show "Đặt lịch ngay" button for guests --%>
+                    <div class="booking-button-container">
+                        <a href="${pageContext.request.contextPath}/process-booking/resume" class="site-button radius-no">ĐẶT LỊCH NGAY</a>
+                        <span class="booking-service-badge booking-service-badge-guest" style="display: none;">0</span>
+                    </div>
+                    
                     <a href="${pageContext.request.contextPath}/login" class="site-button radius-no" style="margin-left: 10px; width: 120px;">Đăng nhập</a>
                     <a href="${pageContext.request.contextPath}/register" class="site-button radius-no" style="margin-left: 5px; width: 120px;">Đăng ký</a>
                 </c:otherwise>

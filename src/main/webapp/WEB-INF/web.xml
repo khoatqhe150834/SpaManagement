@@ -24,8 +24,24 @@
     </session-config>
 
     <welcome-file-list>
-        <welcome-file>index.jsp</welcome-file>
+        <welcome-file>index</welcome-file>
     </welcome-file-list>
+
+    <!-- Error Pages Configuration -->
+    <error-page>
+        <error-code>404</error-code>
+        <location>/WEB-INF/view/common/error-404.jsp</location>
+    </error-page>
+
+    <error-page>
+        <error-code>500</error-code>
+        <location>/WEB-INF/view/common/error.jsp</location>
+    </error-page>
+
+    <error-page>
+        <exception-type>java.lang.Exception</exception-type>
+        <location>/WEB-INF/view/common/error.jsp</location>
+    </error-page>
 
     <!-- Static resource mapping -->
     <servlet-mapping>
@@ -91,7 +107,7 @@
 
     <servlet-mapping>
         <servlet-name>HomeController</servlet-name>
-        <url-pattern>/</url-pattern>
+        <url-pattern>/home</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>
@@ -104,15 +120,15 @@
         <url-pattern>/test</url-pattern>
     </servlet-mapping>
 
-    <!-- CartSession API Servlet -->
+    <!-- BookingSession API Servlet -->
     <servlet>
-        <servlet-name>CartSessionApiServlet</servlet-name>
-        <servlet-class>controller.api.CartSessionApiServlet</servlet-class>
+        <servlet-name>BookingSessionApiServlet</servlet-name>
+        <servlet-class>controller.api.BookingSessionApiServlet</servlet-class>
     </servlet>
 
-    <!-- CartSession API Servlet Mapping -->
+    <!-- BookingSession API Servlet Mapping -->
     <servlet-mapping>
-        <servlet-name>CartSessionApiServlet</servlet-name>
-        <url-pattern>/api/cart-session/*</url-pattern>
+        <servlet-name>BookingSessionApiServlet</servlet-name>
+        <url-pattern>/api/booking-session</url-pattern>
     </servlet-mapping>
 </web-app>
