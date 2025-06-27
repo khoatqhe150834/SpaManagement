@@ -473,4 +473,32 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
         System.out.println("\n=== Testing completed ===");
     }
 
+    // Kiểm tra userId đã tồn tại trong therapists
+    public boolean existsByUserId(int userId) {
+        String sql = "SELECT 1 FROM therapists WHERE user_id = ?";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error checking if staff exists by userId", e);
+        }
+        return false;
+    }
+
+    // Kiểm tra fullName đã tồn tại trong therapists
+    public boolean existsByFullName(String fullName) {
+        String sql = "SELECT 1 FROM therapists t JOIN users u ON t.user_id = u.user_id WHERE u.full_name = ?";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, fullName);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error checking if staff exists by fullName", e);
+        }
+        return false;
+    }
+
 }

@@ -31,6 +31,29 @@ public class StaffController extends HttpServlet {
             service = "list-all";
         }
 
+        if ("check-duplicate".equals(service)) {
+            String userIdStr = request.getParameter("userId");
+            boolean exists = false;
+            String message = "";
+            if (userIdStr != null && !userIdStr.isEmpty()) {
+                int userId = Integer.parseInt(userIdStr);
+                StaffDAO staffDAO = new StaffDAO();
+                User user = new UserDAO().findById(userId).orElse(null);
+                if (user != null) {
+                    if (staffDAO.existsByUserId(userId)) {
+                        exists = true;
+                        message = "Nhân viên này đã tồn tại. Vui lòng chọn nhân viên khác.";
+                    } else if (staffDAO.existsByFullName(user.getFullName())) {
+                        exists = true;
+                        message = "Tên nhân viên này đã tồn tại. Vui lòng chọn nhân viên khác.";
+                    }
+                }
+            }
+            response.setContentType("application/json");
+            response.getWriter().write("{\"exists\": " + exists + ", \"message\": \"" + message + "\"}");
+            return;
+        }
+
         StaffDAO staffDAO = new StaffDAO();
         int limit = 5; // Default value
         if (request.getParameter("limit") != null) {

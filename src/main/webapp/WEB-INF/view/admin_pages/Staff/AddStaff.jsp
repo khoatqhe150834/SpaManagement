@@ -244,7 +244,7 @@
                                                 <select id="userSelect" name="userId" required>
                                                     <option></option> <!-- Option trống cho placeholder của Select2 -->
                                                     <c:forEach var="user" items="${userList}">
-                                                        <option value="${user.userId}" data-fullname="${user.fullName}">${user.userId} - ${user.fullName}</option>
+                                                        <option value="${user.userId}" data-fullname="${user.fullName}" data-birthday="${user.birthday}">${user.userId} - ${user.fullName}</option>
                                                     </c:forEach>
                                                 </select>
                                                 <div class="invalid-feedback" id="userSelectError"></div>
@@ -274,7 +274,7 @@
                                         <textarea name="bio" class="form-control" id="bio" placeholder="Viết mô tả ngắn về nhân viên (tối thiểu 20 ký tự)..." rows="4" style="resize: none;" minlength="20" maxlength="500" required></textarea>
                                         <div class="d-flex justify-content-between">
                                             <div class="invalid-feedback" id="bioError"></div>
-                                            <small class="text-muted"><span id="bioCharCount">0</span>/500</small>
+                                            <small class="text-muted"><span id="bioCharCount">0/500</span>/500</small>
                                         </div>
                                     </div>
                                     
@@ -357,16 +357,41 @@
             // --- User Selection ---
             const userSelect = document.getElementById('userSelect');
             const fullNameInput = document.getElementById('fullNameInput');
+            const experienceInput = document.getElementById('yearsOfExperience');
 
             $('#userSelect').on('change', function() {
                 const selectedOption = this.options[this.selectedIndex];
                 const fullName = $(selectedOption).data('fullname');
+                const birthday = $(selectedOption).data('birthday');
                 fullNameInput.value = fullName || 'Tên sẽ tự động điền...';
-                
-                if (this.value === '') {
-                    setFieldInvalid(this, 'Vui lòng chọn một người dùng.');
+
+                if (this.value !== '') {
+                    $.get('staff', { service: 'check-duplicate', userId: this.value }, function(res) {
+                        if (res.exists) {
+                            setFieldInvalid(userSelect, res.message);
+                            userSelect.value = '';
+                            fullNameInput.value = '';
+                        } else {
+                            setFieldValid(userSelect, 'Đã chọn người dùng.');
+                        }
+                    }, 'json');
                 } else {
-                    setFieldValid(this, 'Đã chọn người dùng.');
+                    setFieldInvalid(userSelect, 'Vui lòng chọn một người dùng.');
+                }
+
+                // Tính số năm kinh nghiệm tối đa
+                if (birthday) {
+                    const birthDate = new Date(birthday);
+                    const today = new Date();
+                    let age = today.getFullYear() - birthDate.getFullYear();
+                    const m = today.getMonth() - birthDate.getMonth();
+                    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                        age--;
+                    }
+                    const maxExp = Math.max(0, age - 18);
+                    experienceInput.max = maxExp;
+                    experienceInput.value = '';
+                    experienceInput.placeholder = `Tối đa: ${maxExp}`;
                 }
             });
 
@@ -395,7 +420,6 @@
             bioTextarea.addEventListener('input', validateBio);
 
             // --- Experience Validation ---
-            const experienceInput = document.getElementById('yearsOfExperience');
             const experienceError = document.getElementById('experienceError');
 
             const validateExperience = () => {
