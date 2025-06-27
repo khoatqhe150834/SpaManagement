@@ -178,6 +178,18 @@
         select.is-valid + .select2-container .select2-selection--single {
             border: 2px solid #22c55e !important;
         }
+        .valid-feedback {
+            color: #22c55e !important;
+            font-size: 0.95em;
+            margin-top: 4px;
+            min-height: 18px;
+            display: block;
+        }
+        textarea#bio {
+            resize: both !important;
+            min-height: 120px;
+            max-height: 600px;
+        }
     </style>
 </head>
 <body class="profile-body">
@@ -251,55 +263,58 @@
                                         </div>
                                         <h6 class="section-title">Thông tin chuyên môn</h6>
                                     </div>
-                                    <div class="form-group">
+                                    <div class="form-group position-relative">
                                         <label for="bio" class="form-label">
                                             Tiểu sử <span class="text-danger-600">*</span>
                                         </label>
                                         <textarea name="bio" class="form-control" id="bio" placeholder="Viết mô tả ngắn về nhân viên (tối thiểu 20 ký tự)..." rows="4" style="resize: none;" minlength="20" maxlength="500" required></textarea>
-                                        <div class="d-flex justify-content-between">
-                                            <div class="invalid-feedback" id="bioError"></div>
-                                            <small class="text-muted"><span id="bioCharCount">0</span>/500</small>
+                                        <span id="bioValidIcon" style="position:absolute;top:12px;right:12px;z-index:2;display:none;color:#22c55e;font-size:1.2em;">✔</span>
+                                        <div class="valid-feedback" id="bioValidMsg" style="display:none"></div>
+                                        <div class="invalid-feedback" id="bioError"></div>
+                                        <button type="button" id="expandBio" class="btn btn-outline-secondary btn-sm mt-2">Mở rộng</button>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <div class="invalid-feedback" id="bioError"></div>
+                                        <small class="text-muted"><span id="bioCharCount">0</span>/500</small>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="serviceTypeId" class="form-label">
+                                                Loại dịch vụ <span class="text-danger-600">*</span>
+                                            </label>
+                                            <select name="serviceTypeId" id="serviceTypeId" required>
+                                                <option></option> <!-- Option trống cho placeholder của Select2 -->
+                                                <c:forEach var="serviceType" items="${serviceTypes}">
+                                                    <option value="${serviceType.serviceTypeId}">${serviceType.name}</option>
+                                                </c:forEach>
+                                            </select>
+                                            <div class="invalid-feedback" id="serviceTypeError"></div>
                                         </div>
                                     </div>
-                                    
-                                    <div class="row">
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <label for="serviceTypeId" class="form-label">
-                                                    Loại dịch vụ <span class="text-danger-600">*</span>
-                                                </label>
-                                                <select name="serviceTypeId" id="serviceTypeId" required>
-                                                    <option></option> <!-- Option trống cho placeholder của Select2 -->
-                                                    <c:forEach var="serviceType" items="${serviceTypes}">
-                                                        <option value="${serviceType.serviceTypeId}">${serviceType.name}</option>
-                                                    </c:forEach>
-                                                </select>
-                                                <div class="invalid-feedback" id="serviceTypeError"></div>
-                                            </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="availabilityStatus" class="form-label">
+                                                Trạng thái làm việc <span class="text-danger-600">*</span>
+                                            </label>
+                                            <select name="availabilityStatus" id="availabilityStatus" required>
+                                                 <option></option> <!-- Option trống cho placeholder của Select2 -->
+                                                <option value="AVAILABLE">Sẵn sàng</option>
+                                                <option value="BUSY">Bận</option>
+                                                <option value="OFFLINE">Ngoại tuyến</option>
+                                                <option value="ON_LEAVE">Nghỉ phép</option>
+                                            </select>
+                                            <div class="invalid-feedback" id="availabilityError"></div>
                                         </div>
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <label for="availabilityStatus" class="form-label">
-                                                    Trạng thái làm việc <span class="text-danger-600">*</span>
-                                                </label>
-                                                <select name="availabilityStatus" id="availabilityStatus" required>
-                                                     <option></option> <!-- Option trống cho placeholder của Select2 -->
-                                                    <option value="AVAILABLE">Sẵn sàng</option>
-                                                    <option value="BUSY">Bận</option>
-                                                    <option value="OFFLINE">Ngoại tuyến</option>
-                                                    <option value="ON_LEAVE">Nghỉ phép</option>
-                                                </select>
-                                                <div class="invalid-feedback" id="availabilityError"></div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                             <div class="form-group">
-                                                <label for="yearsOfExperience" class="form-label">
-                                                    Số năm kinh nghiệm <span class="text-danger-600">*</span>
-                                                </label>
-                                                <input type="number" name="yearsOfExperience" class="form-control" id="yearsOfExperience" required min="0" max="100" placeholder="Ví dụ: 5"/>
-                                                <div class="invalid-feedback" id="experienceError"></div>
-                                            </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                         <div class="form-group">
+                                            <label for="yearsOfExperience" class="form-label">
+                                                Số năm kinh nghiệm <span class="text-danger-600">*</span>
+                                            </label>
+                                            <input type="number" name="yearsOfExperience" class="form-control" id="yearsOfExperience" required min="0" max="100" placeholder="Ví dụ: 5"/>
+                                            <div class="invalid-feedback" id="experienceError"></div>
                                         </div>
                                     </div>
                                 </div>
@@ -467,24 +482,35 @@
             });
 
             // Helper functions for validation
-            function setFieldInvalid(field, message) {
-                field.classList.remove('is-valid');
-                field.classList.add('is-invalid');
-                const errorElement = document.getElementById(field.id + 'Error');
-                if (errorElement) {
-                    errorElement.textContent = message;
-                    errorElement.style.display = 'block';
-                }
-            }
-
             function setFieldValid(field, message) {
                 field.classList.remove('is-invalid');
                 field.classList.add('is-valid');
-                const errorElement = document.getElementById(field.id + 'Error');
-                if (errorElement) {
-                    errorElement.textContent = message;
-                    errorElement.style.display = 'block';
+                document.getElementById(field.id + 'Error').style.display = 'none';
+                let validMsg = document.getElementById(field.id + 'ValidMsg');
+                if (validMsg) {
+                    validMsg.textContent = message;
+                    validMsg.style.display = 'block';
                 }
+                if (field.id === 'bio') {
+                    document.getElementById('bioValidIcon').style.display = 'inline';
+                }
+            }
+
+            function setFieldInvalid(field, message) {
+                field.classList.remove('is-valid');
+                field.classList.add('is-invalid');
+                document.getElementById(field.id + 'Error').textContent = message;
+                document.getElementById(field.id + 'Error').style.display = 'block';
+                let validMsg = document.getElementById(field.id + 'ValidMsg');
+                if (validMsg) validMsg.style.display = 'none';
+                if (field.id === 'bio') {
+                    document.getElementById('bioValidIcon').style.display = 'none';
+                }
+            }
+
+            document.getElementById('expandBio').onclick = function() {
+                var bio = document.getElementById('bio');
+                bio.style.height = (bio.offsetHeight + 100) + 'px';
             }
         });
     </script>
