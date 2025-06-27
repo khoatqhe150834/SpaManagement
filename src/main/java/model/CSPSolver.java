@@ -461,9 +461,10 @@ public class CSPSolver {
   }
 
   /**
-   * Get all valid slots for a service within the next 30 days
-   * This method returns all possible combinations of therapists and times
-   * that satisfy the constraints for a given service
+   * PERFORMANCE OPTIMIZED: Get all valid slots for a service within the next 360
+   * days
+   * This method uses bulk loading and in-memory conflict checking for massive
+   * performance gains
    * 
    * @param service The service to find slots for
    * @return List of valid assignments (therapist-time combinations)
@@ -473,30 +474,61 @@ public class CSPSolver {
       return new ArrayList<>();
     }
 
+    long startTime = System.currentTimeMillis();
+
     // Create a CSP variable for this service
     CSPVariable variable = new CSPVariable(service, null, null, true);
+
+    // OPTIMIZATION 1: Bulk load all appointments for qualified therapists
+    Map<Integer, List<BookingAppointment>> therapistAppointments = globalDomain.bulkLoadTherapistAppointments(service);
 
     // Get compatible therapists and times from domain
     List<Staff> availableTherapists = globalDomain.getCompatibleTherapistsForService(variable);
     List<LocalDateTime> availableTimes = globalDomain.getCompatibleTimesForService(variable);
 
     List<Assignment> validAssignments = new ArrayList<>();
+    int totalCombinations = availableTherapists.size() * availableTimes.size();
+    int validCombinations = 0;
 
-    // Generate all possible combinations
+    System.out.println("🚀 OPTIMIZED getAllValidSlots: Processing " + totalCombinations +
+        " combinations for service " + service.getServiceId());
+
+    // OPTIMIZATION 2: Use fast in-memory checking instead of database queries
     for (Staff therapist : availableTherapists) {
+      int therapistId = therapist.getUser().getUserId();
+
       for (LocalDateTime time : availableTimes) {
-        Assignment candidateAssignment = new Assignment(variable, therapist, time, service);
+        LocalDateTime endTime = time.plusMinutes(service.getDurationMinutes());
 
-        // Create temporary assignment map for constraint checking
-        Map<CSPVariable, Assignment> tempAssignment = new HashMap<>();
-        tempAssignment.put(variable, candidateAssignment);
+        // OPTIMIZATION 3: Fast in-memory conflict checking
+        if (!globalDomain.hasAppointmentConflict(therapistId, time, endTime, therapistAppointments)) {
 
-        // Check if this assignment satisfies all constraints
-        if (isPartialAssignmentConsistent(Arrays.asList(variable), tempAssignment)) {
-          validAssignments.add(candidateAssignment);
+          // OPTIMIZATION 4: Fast in-memory buffer time checking
+          LocalDateTime bufferStart = time.minusMinutes(15); // 15 min buffer before
+          LocalDateTime bufferEnd = endTime.plusMinutes(15); // 15 min buffer after
+
+          if (!globalDomain.hasBufferTimeConflict(therapistId, bufferStart, time, endTime,
+              bufferEnd, therapistAppointments)) {
+
+            Assignment candidateAssignment = new Assignment(variable, therapist, time, service);
+            validAssignments.add(candidateAssignment);
+            validCombinations++;
+          }
         }
       }
     }
+
+    long endTime = System.currentTimeMillis();
+    long duration = endTime - startTime;
+
+    System.out.println("✅ OPTIMIZED getAllValidSlots COMPLETE:");
+    System.out.println("   - Service: " + service.getServiceId());
+    System.out.println("   - Therapists: " + availableTherapists.size());
+    System.out.println("   - Time slots: " + availableTimes.size());
+    System.out.println("   - Total combinations: " + totalCombinations);
+    System.out.println("   - Valid combinations: " + validCombinations);
+    System.out.println("   - Processing time: " + duration + "ms");
+    System.out.println("   - Performance: " + (totalCombinations * 1000 / Math.max(duration, 1)) + " combinations/sec");
 
     return validAssignments;
   }

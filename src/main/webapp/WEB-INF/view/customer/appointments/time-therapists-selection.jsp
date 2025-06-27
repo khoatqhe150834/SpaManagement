@@ -156,7 +156,7 @@
             border-radius: 0.75rem;
             box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.2);
             border: 1px solid #e5e7eb;
-            max-width: 44rem;
+            max-width: 68rem;
             width: 95%;
             margin: 0.5rem;
             transform: scale(1);
@@ -228,7 +228,7 @@
         }
         
         .calendar-content {
-            padding: 1rem;
+            padding: 0.75rem;
             background: white;
             border-radius: 0 0 0.75rem 0.75rem;
             display: flex;
@@ -242,7 +242,7 @@
         }
 
         .calendar-right {
-            flex: 0 0 18rem;
+            flex: 0 0 24rem;
             border-left: 1px solid #e5e7eb;
             padding-left: 1rem;
         }
@@ -589,7 +589,7 @@
         
         .time-slots-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(6, 1fr);
             gap: 0.5rem;
             flex: 1;
             align-content: start;
@@ -604,34 +604,42 @@
             cursor: pointer;
             transition: all 0.2s ease;
             font-weight: 500;
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             position: relative;
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             gap: 0.125rem;
+            aspect-ratio: 1;
+            min-height: 2.5rem;
+            max-width: 5rem;
+            max-height: 5rem;
         }
 
         .time-slot-time {
             font-weight: 600;
             font-size: 0.75rem;
+            line-height: 1;
         }
 
         .time-slot-therapists {
-            font-size: 0.75rem;
+            font-size: 0.625rem;
             color: #059669 !important;
             font-weight: 600;
             margin-top: 0.125rem;
+            line-height: 1;
         }
 
         .therapist-info-display {
-            font-size: 0.75rem;
+            font-size: 0.625rem;
             color: #059669 !important;
             font-weight: 600;
             margin-top: 0.125rem;
             display: flex;
             align-items: center;
             justify-content: center;
+            line-height: 1;
         }
         
         .time-slot.disabled .time-slot-therapists,
@@ -645,7 +653,7 @@
             border-radius: 50%;
             width: 1rem;
             height: 1rem;
-            font-size: 0.6rem;
+            font-size: 0.625rem;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -653,6 +661,7 @@
             top: -0.25rem;
             right: -0.25rem;
             font-weight: 600;
+            line-height: 1;
         }
         
         .time-slot:hover:not(.disabled) {
@@ -1027,6 +1036,77 @@
             }
         }
 
+        /* Responsive adjustments for wider modal */
+        @media (max-width: 1200px) {
+            .calendar-container {
+                max-width: 56rem;
+            }
+            
+            .calendar-right {
+                flex: 0 0 20rem;
+            }
+        }
+        
+        @media (max-width: 1024px) {
+            .calendar-container {
+                max-width: 48rem;
+            }
+            
+            .calendar-right {
+                flex: 0 0 18rem;
+            }
+            
+            .time-slots-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .calendar-container {
+                max-width: 90%;
+                width: 90%;
+            }
+            
+            .calendar-content {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+            
+            .calendar-right {
+                flex: none;
+                border-left: none;
+                border-top: 1px solid #e5e7eb;
+                padding-left: 0;
+                padding-top: 0.75rem;
+            }
+            
+            .time-slots-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 0.25rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .time-slots-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .time-slot {
+                padding: 0.1rem;
+                font-size: 0.4rem;
+                aspect-ratio: 1;
+            }
+            
+            .time-slot-time {
+                font-size: 0.65rem;
+            }
+            
+            .time-slot-therapists,
+            .therapist-info-display {
+                font-size: 0.4rem;
+            }
+        }
+
         /* Custom scrollbar for better UX */
         ::-webkit-scrollbar {
             width: 6px;
@@ -1078,11 +1158,11 @@
         /* Desktop optimizations */
         @media (min-width: 1024px) {
             .calendar-container {
-                max-width: 48rem;
+                max-width: 50rem;
             }
             
             .calendar-right {
-                flex: 0 0 20rem;
+                flex: 0 0 30rem;
             }
             
             .time-slots-grid {
@@ -1463,21 +1543,7 @@
                                 <div class="calendar-content">
                                     <!-- Left Side: Calendar -->
                                     <div class="calendar-left">
-                                        <!-- Date Input -->
-                                        <div class="date-input-section">
-                                            <label class="date-input-label">Chọn ngày:</label>
-                                            <div class="date-input-container">
-                                                <input
-                                                    type="text"
-                                                    id="datePicker"
-                                                    readonly
-                                                    placeholder="Nhấn để chọn ngày..."
-                                                    class="date-input"
-                                                />
-                                                <iconify-icon icon="material-symbols:calendar-today" class="input-icon" width="20" height="20"></iconify-icon>
-                                            </div>
-                                        </div>
-
+                                       
                                         <!-- Month Navigation -->
                                         <div class="month-navigation">
                                             <button id="prevMonthBtn" class="nav-btn">
@@ -1494,22 +1560,7 @@
 
                                                                 <!-- Availability Legend -->
                         <div class="availability-legend">
-                            <div class="legend-item">
-                                <div class="legend-color legend-available"></div>
-                                <span>Còn nhiều chỗ</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="legend-color legend-limited"></div>
-                                <span>Còn ít chỗ</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="legend-color legend-booked"></div>
-                                <span>Hết chỗ</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="legend-color legend-past"></div>
-                                <span>Đã qua</span>
-                            </div>
+                           
                                         </div>
 
                                         <!-- Calendar Grid -->
@@ -1533,27 +1584,7 @@
                                     <!-- Right Side: Time Slots -->
                                     <div class="calendar-right">
                                         <!-- Information Section -->
-                                        <div class="time-selection-info" id="timeSelectionInfo" style="display: none;">
-                                            <div class="info-card">
-                                                <div class="info-header">
-                                                    <iconify-icon icon="material-symbols:info" width="20" height="20" style="color: #2563eb;"></iconify-icon>
-                                                    <span style="font-weight: 600; color: #1f2937;">Hướng dẫn chọn giờ</span>
-                                                    <button type="button" onclick="hideTimeSelectionInfo()" style="margin-left: auto; background: none; border: none; color: #6b7280; cursor: pointer; padding: 0.25rem;">
-                                                        <iconify-icon icon="material-symbols:close" width="16" height="16"></iconify-icon>
-                                                    </button>
-                                                </div>
-                                                <div class="info-content">
-                                                    <p style="margin: 0.5rem 0; color: #6b7280; font-size: 0.875rem;">
-                                                        Số "trị liệu" hiển thị bên cạnh mỗi khung giờ cho biết:
-                                                    </p>
-                                                    <ul style="margin: 0.5rem 0; padding-left: 1.5rem; color: #6b7280; font-size: 0.875rem;">
-                                                        <li><strong>Số lượng nhà trị liệu</strong> có thể phục vụ bạn trong khung giờ đó</li>
-                                                        <li>Chọn khung giờ có <strong>nhiều nhà trị liệu</strong> để có nhiều lựa chọn hơn</li>
-                                                        <li>Khung giờ có <strong>ít nhà trị liệu</strong> có thể đầy nhanh hơn</li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        
                                         
                                         <div class="time-slots-section" id="modalTimeSlots" style="display: none;">
                                             <div class="time-slots-header">

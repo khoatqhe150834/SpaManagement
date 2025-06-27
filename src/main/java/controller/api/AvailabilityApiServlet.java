@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -33,6 +34,10 @@ public class AvailabilityApiServlet extends HttpServlet {
   private StaffDAO staffDAO;
   private Gson gson;
   private CSPSolver cspSolver;
+
+  // PERFORMANCE OPTIMIZATION: Cache for monthly availability data
+  private static final Map<String, CachedAvailabilityData> monthlyAvailabilityCache = new ConcurrentHashMap<>();
+  private static final long CACHE_DURATION_MS = 2 * 60 * 1000; // 2 minutes cache for API calls
 
   @Override
   public void init() throws ServletException {
@@ -49,6 +54,32 @@ public class AvailabilityApiServlet extends HttpServlet {
         new BookingSessionConflictConstraint());
     cspSolver = new CSPSolver(globalDomain, constraints);
     cspSolver.setUseForwardChecking(true);
+  }
+
+  /**
+   * Clear caches when needed (useful for testing or when appointments change)
+   */
+  public static void clearCaches() {
+    monthlyAvailabilityCache.clear();
+    CSPDomain.clearAppointmentCache();
+    System.out.println("🗑️ All availability caches cleared");
+  }
+
+  /**
+   * Cache structure for availability data
+   */
+  private static class CachedAvailabilityData {
+    final Map<String, Object> data;
+    final long timestamp;
+
+    public CachedAvailabilityData(Map<String, Object> data) {
+      this.data = data;
+      this.timestamp = System.currentTimeMillis();
+    }
+
+    public boolean isExpired() {
+      return (System.currentTimeMillis() - timestamp) > CACHE_DURATION_MS;
+    }
   }
 
   @Override
@@ -218,9 +249,26 @@ public class AvailabilityApiServlet extends HttpServlet {
   }
 
   /**
-   * Generate monthly availability data using CSPSolver
+   * PERFORMANCE OPTIMIZED: Generate monthly availability data using CSPSolver
+   * with caching
    */
   private Map<String, Object> generateMonthlyAvailability(List<Integer> serviceIds, int year, int month) {
+
+    // Generate cache key
+    String cacheKey = "month_" + year + "_" + month + "_services_" +
+        (serviceIds.isEmpty() ? "all" : serviceIds.toString());
+
+    // Check cache
+    CachedAvailabilityData cachedData = monthlyAvailabilityCache.get(cacheKey);
+    if (cachedData != null && !cachedData.isExpired()) {
+      System.out.println("💾 CACHE HIT: Using cached monthly availability for " + year + "/" + month);
+      return cachedData.data;
+    }
+
+    System.out.println("🔄 GENERATING: Monthly availability for " + year + "/" + month +
+        " with " + serviceIds.size() + " services");
+    long startTime = System.currentTimeMillis();
+
     Map<String, Object> result = new HashMap<>();
     List<Map<String, Object>> dayData = new ArrayList<>();
     Map<String, Integer> summary = new HashMap<>();
@@ -277,6 +325,13 @@ public class AvailabilityApiServlet extends HttpServlet {
 
     result.put("days", dayData);
     result.put("summary", summary);
+
+    // Cache the result
+    monthlyAvailabilityCache.put(cacheKey, new CachedAvailabilityData(result));
+
+    long endTime = System.currentTimeMillis();
+    System.out.println("✅ MONTHLY AVAILABILITY COMPLETE: " + year + "/" + month +
+        " in " + (endTime - startTime) + "ms - cached as '" + cacheKey + "'");
 
     return result;
   }
@@ -408,9 +463,9 @@ public class AvailabilityApiServlet extends HttpServlet {
   private Set<LocalDateTime> generateAllPossibleTimeSlots(LocalDate date) {
     Set<LocalDateTime> timeSlots = new TreeSet<>();
 
-    // Define business hours (9:00 AM to 9:00 PM)
-    LocalTime startTime = LocalTime.of(9, 0); // 9:00 AM
-    LocalTime endTime = LocalTime.of(21, 0); // 9:00 PM
+    // Define business hours (7:00 AM to 9:00 PM)
+    LocalTime startTime = LocalTime.of(7, 0); // 7:00 AM
+    LocalTime endTime = LocalTime.of(19, 0); // 7:00 PM
     int intervalMinutes = 30; // 30-minute intervals
 
     LocalDateTime currentSlot = date.atTime(startTime);
