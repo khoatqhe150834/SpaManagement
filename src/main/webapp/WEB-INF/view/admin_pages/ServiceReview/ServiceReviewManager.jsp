@@ -16,7 +16,7 @@
 <div class="dashboard-main-body">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
         <h6 class="fw-semibold mb-0">Danh Sách Đánh Giá Dịch Vụ</h6>
-        <a href="/admin/review?action=add" class="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2">
+        <a href="/service-review?action=add" class="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2">
             <iconify-icon icon="ic:baseline-plus" class="icon text-xl line-height-1"></iconify-icon>
             Thêm Đánh Giá Mới
         </a>
@@ -50,8 +50,8 @@
                                 <td>${review.comment}</td>
                                 <td><fmt:formatDate value="${review.createdAt}" pattern="dd/MM/yyyy"/></td>
                                 <td class="text-center">
-                                    <a href="/admin/review?action=edit&id=${review.reviewId}" class="btn btn-sm btn-success radius-8 px-2 py-1"><iconify-icon icon="lucide:edit"></iconify-icon></a>
-                                    <a href="/admin/review?action=delete&id=${review.reviewId}" class="btn btn-sm btn-danger radius-8 px-2 py-1" onclick="return confirm('Bạn có chắc chắn muốn xóa đánh giá này?')"><iconify-icon icon="mdi:delete"></iconify-icon></a>
+                                    <a href="/service-review?action=edit&id=${review.reviewId}" class="btn btn-sm btn-success radius-8 px-2 py-1"><iconify-icon icon="lucide:edit"></iconify-icon></a>
+                                    <a href="/service-review?action=delete&id=${review.reviewId}" class="btn btn-sm btn-danger radius-8 px-2 py-1" onclick="return confirm('Bạn có chắc chắn muốn xóa đánh giá này?')"><iconify-icon icon="mdi:delete"></iconify-icon></a>
                                 </td>
                             </tr>
                         </c:forEach>
@@ -65,15 +65,15 @@
                 <span>Hiển thị ${start} đến ${end} của ${totalEntries} mục</span>
                 <ul class="pagination d-flex flex-wrap align-items-center gap-2 justify-content-center">
                     <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
-                        <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px ${currentPage == 1 ? 'disabled' : ''}" href="/admin/review?page=${currentPage - 1}&limit=${limit}"><iconify-icon icon="ep:d-arrow-left"></iconify-icon></a>
+                        <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px ${currentPage == 1 ? 'disabled' : ''}" href="/service-review?page=${currentPage - 1}&limit=${limit}"><iconify-icon icon="ep:d-arrow-left"></iconify-icon></a>
                     </li>
                     <c:forEach var="i" begin="1" end="${totalPages}">
                         <li class="page-item ${i == currentPage ? 'active' : ''}">
-                            <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px ${i == currentPage ? 'bg-primary-600 text-white' : 'bg-neutral-200 text-secondary-light'}" href="/admin/review?page=${i}&limit=${limit}">${i}</a>
+                            <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px ${i == currentPage ? 'bg-primary-600 text-white' : 'bg-neutral-200 text-secondary-light'}" href="/service-review?page=${i}&limit=${limit}">${i}</a>
                         </li>
                     </c:forEach>
                     <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
-                        <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px ${currentPage == totalPages ? 'disabled' : ''}" href="/admin/review?page=${currentPage + 1}&limit=${limit}"><iconify-icon icon="ep:d-arrow-right"></iconify-icon></a>
+                        <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px ${currentPage == totalPages ? 'disabled' : ''}" href="/service-review?page=${currentPage + 1}&limit=${limit}"><iconify-icon icon="ep:d-arrow-right"></iconify-icon></a>
                     </li>
                 </ul>
             </div>
