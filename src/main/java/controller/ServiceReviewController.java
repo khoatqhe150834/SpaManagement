@@ -51,7 +51,7 @@ public class ServiceReviewController extends HttpServlet {
             case "add": {
                 request.setAttribute("services", serviceDAO.findAll());
                 request.setAttribute("customers", customerDAO.findAll());
-                request.setAttribute("appointments", appointmentDAO.findAll());
+                request.setAttribute("appointments", appointmentDAO.findByStatus("COMPLETED"));
                 request.getRequestDispatcher(ADD_URL).forward(request, response);
                 return;
             }
@@ -62,7 +62,7 @@ public class ServiceReviewController extends HttpServlet {
                     request.setAttribute("review", reviewOpt.get());
                     request.setAttribute("services", serviceDAO.findAll());
                     request.setAttribute("customers", customerDAO.findAll());
-                    request.setAttribute("appointments", appointmentDAO.findAll());
+                    request.setAttribute("appointments", appointmentDAO.findByStatus("COMPLETED"));
                     request.getRequestDispatcher(UPDATE_URL).forward(request, response);
                 } else {
                     response.sendRedirect("/service-review?toastType=error&toastMessage=Review+not+found");
@@ -108,6 +108,10 @@ public class ServiceReviewController extends HttpServlet {
         BookingAppointment appointment = appointmentDAO.findById(appointmentId).orElse(null);
 
         if (action.equals("add")) {
+            if (appointment == null || !"COMPLETED".equals(appointment.getStatus())) {
+                response.sendRedirect("/service-review?action=add&toastType=error&toastMessage=Chỉ+được+review+appointment+COMPLETED");
+                return;
+            }
             Service_Reviews review = new Service_Reviews(0, service, customer, appointment, rating, title, comment, now, now);
             reviewDAO.save(review);
             response.sendRedirect("/admin/review?toastType=success&toastMessage=Added+successfully");

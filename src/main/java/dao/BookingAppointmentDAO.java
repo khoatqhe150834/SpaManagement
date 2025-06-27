@@ -636,4 +636,20 @@ public class BookingAppointmentDAO extends DBContext implements BaseDAO<BookingA
 
     return appointments;
   }
+
+  public List<BookingAppointment> findByStatus(String status) {
+    List<BookingAppointment> list = new ArrayList<>();
+    String sql = "SELECT * FROM booking_appointments WHERE status = ?";
+    try (Connection conn = DBContext.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+        stmt.setString(1, status);
+        ResultSet rs = stmt.executeQuery();
+        while (rs.next()) {
+            list.add(getFromResultSet(rs));
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return list;
+  }
 }
