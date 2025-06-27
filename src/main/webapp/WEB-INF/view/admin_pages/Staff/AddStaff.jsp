@@ -131,50 +131,34 @@
           Using Flexbox to re-order elements and solve conflicts.
         */
         .select2-container .select2-selection--single {
-            height: 48px !important;
-            border-radius: 12px !important;
-            border: 1px solid #ced4da !important;
-            background: #fff !important;
-            
-            /* Use Flexbox for layout control */
             display: flex !important;
             align-items: center !important;
-            padding: 0 5px !important;
+            position: relative;
         }
-
-        /* Arrow (▼) -> Order 1 (Left) */
         .select2-container--default .select2-selection--single .select2-selection__arrow {
-            order: 1;
-            position: static !important; /* Reset position */
-            height: 100%;
-            width: 30px;
+            order: 3;
+            width: 32px;
             display: flex;
             align-items: center;
             justify-content: center;
+            right: 0;
+            left: auto;
+            margin-left: auto;
+            pointer-events: none;
+            background: transparent;
+            z-index: 1;
         }
-
-        /* Text content -> Order 2 (Middle) */
         .select2-container--default .select2-selection--single .select2-selection__rendered {
             order: 2;
-            flex-grow: 1; /* Take up all available space */
+            flex-grow: 1;
             line-height: 48px;
             color: #495057;
-            padding: 0 5px !important;
+            padding: 0 16px 0 5px !important;
+            padding-right: 40px !important;
         }
-        
-        /* Clear button (x) -> Order 3 (Right) */
-        .select2-container--default.select2-container--allow-clear .select2-selection--single .select2-selection__clear {
-            order: 3;
-            position: static !important; /* Reset position */
-            height: 100%;
-            width: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            float: none !important;
-            margin: 0 !important;
+        .select2-container--default.select2-container--allow-clear .select2-selection--single .select2-selection__rendered {
+            padding-right: 60px !important;
         }
-        
         .select2-dropdown {
             border-radius: 12px !important;
             border: 1px solid #ced4da !important;
