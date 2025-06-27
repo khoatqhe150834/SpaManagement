@@ -51,22 +51,24 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group mb-3">
-                            <label class="form-label required-field" for="fullName">Full Name</label>
+                            <label for="fullName" class="form-label">Họ và tên <span class="text-danger">*</span></label>
                             <input type="text" class="form-control ${not empty errors.fullName ? 'is-invalid' : ''}" 
                                    id="fullName" name="fullName" required maxlength="100" 
                                    value="${not empty userInput.fullName ? userInput.fullName : ''}"
-                                   placeholder="Enter full name">
-                            <div class="error-text">${errors.fullName}</div>
+                                   placeholder="Nhập họ và tên" oninput="validateFullName()">
+                            <div class="invalid-feedback d-block" id="fullNameError" style="display:none">Vui lòng nhập họ và tên.</div>
+                            <div class="valid-feedback d-block" id="fullNameValid" style="display:none;color:#219653;font-size:0.95em;">Hợp lệ!</div>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group mb-3">
-                            <label class="form-label required-field" for="email">Email Address</label>
+                            <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
                             <input type="email" class="form-control ${not empty errors.email ? 'is-invalid' : ''}" 
                                    id="email" name="email" required 
                                    value="${not empty userInput.email ? userInput.email : ''}"
-                                   placeholder="Enter email address">
-                            <div class="error-text">${errors.email}</div>
+                                   placeholder="Nhập email" oninput="validateEmail()">
+                            <div class="invalid-feedback d-block" id="emailError" style="display:none">Email không hợp lệ.</div>
+                            <div class="valid-feedback d-block" id="emailValid" style="display:none;color:#219653;font-size:0.95em;">Hợp lệ!</div>
                         </div>
                     </div>
                 </div>
@@ -74,7 +76,7 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group mb-3">
-                            <label class="form-label required-field" for="password">Password</label>
+                            <label for="password" class="form-label">Password</label>
                             <input type="password" class="form-control ${not empty errors.password ? 'is-invalid' : ''}" 
                                    id="password" name="password" required minlength="6"
                                    placeholder="Enter password (min 6 characters)">
@@ -83,13 +85,14 @@
                     </div>
                     <div class="col-md-6">
                         <div class="form-group mb-3">
-                            <label class="form-label" for="phoneNumber">Phone Number</label>
-                            <input type="tel" class="form-control ${not empty errors.phoneNumber ? 'is-invalid' : ''}" 
-                                   id="phoneNumber" name="phoneNumber" pattern="^0\d{9}$" 
+                            <label for="phone" class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control ${not empty errors.phoneNumber ? 'is-invalid' : ''}" 
+                                   id="phone" name="phone" pattern="^0\d{9}$" 
                                    title="Phone number must be 10 digits starting with 0." 
                                    value="${not empty userInput.phoneNumber ? userInput.phoneNumber : ''}"
-                                   placeholder="Enter phone number">
-                            <div class="error-text">${errors.phoneNumber}</div>
+                                   placeholder="Nhập số điện thoại" required oninput="validatePhone()">
+                            <div class="invalid-feedback d-block" id="phoneError" style="display:none">Vui lòng nhập số điện thoại hợp lệ.</div>
+                            <div class="valid-feedback d-block" id="phoneValid" style="display:none;color:#219653;font-size:0.95em;">Hợp lệ!</div>
                         </div>
                     </div>
                 </div>
@@ -139,10 +142,9 @@
                     </div>
                     <div class="col-md-6">
                         <div class="form-group mb-3">
-                            <label class="form-label" for="avatarUrl">Avatar URL</label>
-                            <input type="url" class="form-control" id="avatarUrl" name="avatarUrl" 
-                                   value="${not empty userInput.avatarUrl ? userInput.avatarUrl : ''}"
-                                   placeholder="Enter avatar URL">
+                            <label class="form-label" for="avatarFile">Avatar Image</label>
+                            <input type="file" class="form-control" id="avatarFile" name="avatarFile" accept="image/*">
+                            <div id="avatarPreview" class="mt-2"></div>
                         </div>
                     </div>
                 </div>
@@ -176,87 +178,128 @@
      
      <script>
         $(document).ready(function() {
-            // Form validation and submission
-            $('#userForm').on('submit', function(e) {
-                e.preventDefault();
-                
-                // Basic validation
-                let isValid = true;
-                const requiredFields = ['fullName', 'email', 'password', 'roleId'];
-                
-                requiredFields.forEach(field => {
-                    const value = $(`#${field}`).val().trim();
-                    if (!value) {
-                        $(`#${field}`).addClass('is-invalid');
-                        isValid = false;
-                    } else {
-                        $(`#${field}`).removeClass('is-invalid');
-                    }
-                });
-                
-                // Email validation
-                const email = $('#email').val().trim();
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (email && !emailRegex.test(email)) {
-                    $('#email').addClass('is-invalid');
-                    isValid = false;
-                }
-                
-                // Password validation
-                const password = $('#password').val();
-                if (password && password.length < 6) {
-                    $('#password').addClass('is-invalid');
-                    isValid = false;
-                }
-                
-                if (!isValid) {
-                    Swal.fire({
-                        title: '❌ Validation Error',
-                        text: 'Please fill in all required fields correctly.',
-                        icon: 'error',
-                        confirmButtonText: 'OK'
-                    });
-                    return;
-                }
-                
-                // Show loading
-                Swal.fire({
-                    title: '🔄 Creating User...',
-                    text: 'Please wait while we create the user account.',
-                    icon: 'info',
-                    allowOutsideClick: false,
-                    showConfirmButton: false,
-                    willOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-                
-                // Submit form
-                this.submit();
+            function showError(input, message) {
+                input.addClass('is-invalid');
+                input.next('.error-text').text(message);
+            }
+            function clearError(input) {
+                input.removeClass('is-invalid');
+                input.next('.error-text').text('');
+            }
+            // Full Name
+            $('#fullName').on('input blur', function() {
+                const val = $(this).val().trim();
+                if (!val) showError($(this), 'Full name is required.');
+                else if (val.length > 100) showError($(this), 'Max 100 characters.');
+                else clearError($(this));
             });
-            
-            // Real-time validation
-            $('input, select').on('blur', function() {
-                const field = $(this);
-                const value = field.val().trim();
-                
-                if (field.attr('required') && !value) {
-                    field.addClass('is-invalid');
+            // Email
+            $('#email').on('input blur', function() {
+                const val = $(this).val().trim();
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!val) showError($(this), 'Email is required.');
+                else if (!emailRegex.test(val)) showError($(this), 'Invalid email format.');
+                else clearError($(this));
+            });
+            // Password
+            $('#password').on('input blur', function() {
+                const val = $(this).val();
+                if (!val) showError($(this), 'Password is required.');
+                else if (val.length < 6) showError($(this), 'Password must be at least 6 characters.');
+                else clearError($(this));
+            });
+            // Phone Number (optional)
+            $('#phone').on('input blur', function() {
+                const val = $(this).val().trim();
+                if (val && !/^0\d{9}$/.test(val)) showError($(this), 'Phone number must be 10 digits starting with 0.');
+                else clearError($(this));
+            });
+            // Birthday (optional)
+            $('#birthday').on('change blur', function() {
+                const val = $(this).val();
+                if (val) {
+                    const inputDate = new Date(val);
+                    const today = new Date();
+                    today.setHours(0,0,0,0);
+                    if (inputDate > today) showError($(this), 'Birthday cannot be in the future.');
+                    else clearError($(this));
                 } else {
-                    field.removeClass('is-invalid');
+                    clearError($(this));
                 }
-                
-                // Email validation
-                if (field.attr('type') === 'email' && value) {
-                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                    if (!emailRegex.test(value)) {
-                        field.addClass('is-invalid');
-                    } else {
-                        field.removeClass('is-invalid');
+            });
+            // Role
+            $('#roleId').on('change blur', function() {
+                const val = $(this).val();
+                if (!val) showError($(this), 'Role is required.');
+                else clearError($(this));
+            });
+            // Avatar image preview
+            $('#avatarFile').on('change', function(e) {
+                const file = this.files[0];
+                const preview = $('#avatarPreview');
+                preview.empty();
+                if (file) {
+                    if (!file.type.startsWith('image/')) {
+                        preview.html('<span class="text-danger">Selected file is not an image.</span>');
+                        this.value = '';
+                        return;
                     }
+                    if (file.size > 5 * 1024 * 1024) {
+                        preview.html('<span class="text-danger">Image size must be less than 5MB.</span>');
+                        this.value = '';
+                        return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        preview.html('<img src="' + e.target.result + '" alt="Avatar Preview" class="rounded-circle" style="width:80px;height:80px;object-fit:cover;border:2px solid #eee;">');
+                    };
+                    reader.readAsDataURL(file);
                 }
+            });
+            // On submit: check all
+            $('form').on('submit', function(e) {
+                let valid = true;
+                $('#fullName').trigger('blur');
+                $('#email').trigger('blur');
+                $('#password').trigger('blur');
+                $('#phone').trigger('blur');
+                $('#birthday').trigger('blur');
+                $('#roleId').trigger('blur');
+                $(this).find('input,select,textarea').each(function() {
+                    if ($(this).hasClass('is-invalid')) valid = false;
+                });
+                if (!valid) e.preventDefault();
             });
         });
+
+        function validateFullName() {
+            const value = document.getElementById('fullName').value.trim();
+            document.getElementById('fullNameError').style.display = value ? 'none' : 'block';
+            document.getElementById('fullNameValid').style.display = value ? 'block' : 'none';
+        }
+        function validateEmail() {
+            const value = document.getElementById('email').value.trim();
+            const valid = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value);
+            document.getElementById('emailError').style.display = valid ? 'none' : 'block';
+            document.getElementById('emailValid').style.display = value && valid ? 'block' : 'none';
+        }
+        function validatePhone() {
+            const value = document.getElementById('phone').value.trim();
+            const valid = /^0\d{9,10}$/.test(value);
+            document.getElementById('phoneError').style.display = valid ? 'none' : 'block';
+            document.getElementById('phoneValid').style.display = value && valid ? 'block' : 'none';
+        }
+        const form = document.querySelector('form');
+        if(form) {
+            form.onsubmit = function(e) {
+                validateFullName(); validateEmail(); validatePhone();
+                if(document.getElementById('fullNameError').style.display === 'block' ||
+                   document.getElementById('emailError').style.display === 'block' ||
+                   document.getElementById('phoneError').style.display === 'block') {
+                    e.preventDefault();
+                }
+            }
+        }
      </script>
 </body>
 </html> 

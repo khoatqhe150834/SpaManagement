@@ -11,6 +11,7 @@
 <html lang="en" data-theme="light">
 <head>
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Promotions - Admin Dashboard</title>
@@ -18,26 +19,37 @@
     <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp"></jsp:include>
     <style>
         .toast-message {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
             position: fixed;
-            top: 20px;
-            right: -300px;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            min-width: 240px;
+            max-width: 90vw;
+            padding: 16px 32px;
+            border-radius: 10px;
+            font-size: 1.1rem;
             z-index: 9999;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-weight: 500;
-            color: white;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            transition: right 0.3s ease;
-            max-width: 300px;
-        }
-        .toast-success {
-            background-color: #4CAF50;
-        }
-        .toast-error {
-            background-color: #f44336;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
         }
         .toast-message.show {
-            right: 20px;
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .toast-success {
+            background: #e6f4ea;
+            color: #219653;
+            border: 1px solid #b7e4c7;
+        }
+        .toast-error {
+            background: #fdecea;
+            color: #d32f2f;
+            border: 1px solid #f5c6cb;
         }
         .table-responsive {
             overflow-x: auto;
@@ -71,29 +83,31 @@
 
     <div class="dashboard-main-body">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
-            <h6 class="fw-semibold mb-0">Promotion List</h6>
+            <h6 class="fw-semibold mb-0">Danh sách khuyến mãi</h6>
             <div class="d-flex align-items-center gap-2">
                 <a href="${pageContext.request.contextPath}/" class="btn btn-outline-primary">
-                    <iconify-icon icon="ic:round-home" class="me-1"></iconify-icon> Homepage
+                    <iconify-icon icon="ic:round-home" class="me-1"></iconify-icon> Trang chủ
                 </a>
                 <a href="${pageContext.request.contextPath}/admin/dashboard" class="btn btn-primary">
-                    <iconify-icon icon="solar:home-smile-angle-outline" class="me-1"></iconify-icon> Dashboard
+                    <iconify-icon icon="solar:home-smile-angle-outline" class="me-1"></iconify-icon> Bảng điều khiển
                 </a>
             </div>
         </div>
 
-        <%-- Hiển thị thông báo thành công --%>
+        <%-- Display success message --%>
         <c:if test="${not empty sessionScope.successMessage}">
-            <div class="alert alert-success mb-24" role="alert">
-                ${sessionScope.successMessage}
+            <div id="toast-message" class="toast-message toast-success">
+                <iconify-icon icon="mdi:check-circle" style="font-size: 1.6rem; color: #219653;"></iconify-icon>
+                <span>Thành công!</span>
             </div>
             <c:remove var="successMessage" scope="session"/>
         </c:if>
 
-        <%-- Hiển thị thông báo lỗi --%>
+        <%-- Display error message --%>
         <c:if test="${not empty sessionScope.errorMessage}">
-            <div class="alert alert-danger mb-24" role="alert">
-                ${sessionScope.errorMessage}
+            <div id="toast-message" class="toast-message toast-error">
+                <iconify-icon icon="mdi:close-circle" style="font-size: 1.6rem; color: #d32f2f;"></iconify-icon>
+                <span>Thất bại!</span>
             </div>
             <c:remove var="errorMessage" scope="session"/>
         </c:if>
@@ -109,20 +123,22 @@
                             <option value="50" ${pageSize == 50 ? 'selected' : ''}>50</option>
                             <option value="9999" ${pageSize == 9999 ? 'selected' : ''}>All</option>
                         </select>
-                        <input type="text" class="bg-base h-40-px w-auto" name="searchValue" placeholder="Search by title, code..." value="${searchValue}">
+                        
+                        <input type="text" class="bg-base h-40-px w-auto" name="searchValue" placeholder="Tìm theo tiêu đề, mã khuyến mãi..." value="${searchValue}">
+                        
                         <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px" name="status">
-                            <option value="">All Status</option>
-                            <option value="ACTIVE" ${status == 'ACTIVE' ? 'selected' : ''}>Active</option>
-                            <option value="INACTIVE" ${status == 'INACTIVE' ? 'selected' : ''}>Inactive</option>
-                            <option value="SCHEDULED" ${status == 'SCHEDULED' ? 'selected' : ''}>Scheduled</option>
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="ACTIVE" ${status == 'ACTIVE' ? 'selected' : ''}>Đang áp dụng</option>
+                            <option value="INACTIVE" ${status == 'INACTIVE' ? 'selected' : ''}>Ngừng áp dụng</option>
+                            <option value="SCHEDULED" ${status == 'SCHEDULED' ? 'selected' : ''}>Sắp diễn ra</option>
                         </select>
-                        <button type="submit" class="btn btn-primary h-40-px radius-12">Search</button>
+                        <button type="submit" class="btn btn-primary h-40-px radius-12">Tìm kiếm</button>
                         <input type="hidden" name="page" value="1">
                     </form>
                 </div>
                 <a href="${pageContext.request.contextPath}/promotion/create" class="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2">
                     <iconify-icon icon="ic:baseline-plus" class="icon text-xl line-height-1"></iconify-icon>
-                    Add New Promotion
+                    Thêm khuyến mãi
                 </a>
             </div>
 
@@ -137,16 +153,16 @@
                                         <a href="?sortBy=id&sortOrder=asc<c:if test='${not empty searchValue}'>&searchValue=${searchValue}</c:if><c:if test='${not empty status}'>&status=${status}</c:if>&page=${currentPage}" title="Sort Ascending">&#9650;</a>
                                         <a href="?sortBy=id&sortOrder=desc<c:if test='${not empty searchValue}'>&searchValue=${searchValue}</c:if><c:if test='${not empty status}'>&status=${status}</c:if>&page=${currentPage}" title="Sort Descending">&#9660;</a>
                                     </th>
-                                    <th scope="col">Image</th>
+                                    <th scope="col">Ảnh</th>
                                     <th scope="col">
-                                        Title
+                                        Tiêu đề
                                         <a href="?sortBy=title&sortOrder=asc<c:if test='${not empty searchValue}'>&searchValue=${searchValue}</c:if><c:if test='${not empty status}'>&status=${status}</c:if>&page=${currentPage}" title="Sort Ascending">&#9650;</a>
                                         <a href="?sortBy=title&sortOrder=desc<c:if test='${not empty searchValue}'>&searchValue=${searchValue}</c:if><c:if test='${not empty status}'>&status=${status}</c:if>&page=${currentPage}" title="Sort Descending">&#9660;</a>
                                     </th>
-                                    <th scope="col">Code</th>
-                                    <th scope="col">Value</th>
-                                    <th scope="col" class="text-center">Status</th>
-                                    <th scope="col" class="text-center">Action</th>
+                                    <th scope="col">Mã khuyến mãi</th>
+                                    <th scope="col">Giá trị</th>
+                                    <th scope="col" class="text-center">Trạng thái</th>
+                                    <th scope="col" class="text-center">Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -174,22 +190,22 @@
                                         <td class="text-center">
                                             <c:choose>
                                                 <c:when test="${promotion.status eq 'ACTIVE'}">
-                                                    <span class="bg-success-focus text-success-600 border border-success-main px-24 py-4 radius-4 fw-medium text-sm">Active</span>
+                                                    <span class="bg-success-focus text-success-600 border border-success-main px-24 py-4 radius-4 fw-medium text-sm">Đang áp dụng</span>
                                                 </c:when>
                                                 <c:when test="${promotion.status eq 'SCHEDULED'}">
-                                                    <span class="bg-warning-focus text-warning-600 border border-warning-main px-24 py-4 radius-4 fw-medium text-sm">Scheduled</span>
+                                                    <span class="bg-warning-focus text-warning-600 border border-warning-main px-24 py-4 radius-4 fw-medium text-sm">Sắp diễn ra</span>
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <span class="bg-neutral-200 text-neutral-600 border border-neutral-400 px-24 py-4 radius-4 fw-medium text-sm">Inactive</span>
+                                                    <span class="bg-neutral-200 text-neutral-600 border border-neutral-400 px-24 py-4 radius-4 fw-medium text-sm">Ngừng áp dụng</span>
                                                 </c:otherwise>
                                             </c:choose>
                                         </td>
                                         <td class="text-center">
                                             <div class="d-flex align-items-center gap-10 justify-content-center">
-                                                <a href="${pageContext.request.contextPath}/promotion/view?id=${promotion.promotionId}" class="bg-info-focus text-info-600 bg-hover-info-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
+                                                <a href="${pageContext.request.contextPath}/promotion/view?id=${promotion.promotionId}" class="bg-info-focus text-info-600 bg-hover-info-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle" title="Xem">
                                                     <iconify-icon icon="majesticons:eye-line" class="menu-icon"></iconify-icon>
                                                 </a>
-                                                <a href="${pageContext.request.contextPath}/promotion/edit?id=${promotion.promotionId}" class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
+                                                <a href="${pageContext.request.contextPath}/promotion/edit?id=${promotion.promotionId}" class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle" title="Sửa">
                                                     <iconify-icon icon="lucide:edit" class="menu-icon"></iconify-icon>
                                                 </a>
                                                 <c:choose>
@@ -197,10 +213,10 @@
                                                         <c:url var="deactivateUrl" value="/promotion/deactivate">
                                                             <c:param name="id" value="${promotion.promotionId}" />
                                                             <c:param name="page" value="${currentPage}" />
-                                                            <c:param name="search" value="${searchValue}" />
+                                                            <c:param name="searchValue" value="${searchValue}" />
                                                             <c:param name="status" value="${status}" />
                                                         </c:url>
-                                                        <a href="#" onclick="return confirmAction('${deactivateUrl}', 'Are you sure you want to deactivate this promotion?');" class="bg-warning-focus bg-hover-warning-200 text-warning-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle" title="Deactivate">
+                                                        <a href="${deactivateUrl}" onclick="confirmAction(event, this.href, 'Bạn muốn vô hiệu hóa khuyến mãi này?')" class="bg-warning-focus bg-hover-warning-200 text-warning-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle" title="Vô hiệu hóa">
                                                             <iconify-icon icon="fluent:presence-available-24-filled" class="menu-icon"></iconify-icon>
                                                         </a>
                                                     </c:when>
@@ -208,10 +224,10 @@
                                                         <c:url var="activateUrl" value="/promotion/activate">
                                                             <c:param name="id" value="${promotion.promotionId}" />
                                                             <c:param name="page" value="${currentPage}" />
-                                                            <c:param name="search" value="${searchValue}" />
+                                                            <c:param name="searchValue" value="${searchValue}" />
                                                             <c:param name="status" value="${status}" />
                                                         </c:url>
-                                                        <a href="#" onclick="return confirmAction('${activateUrl}', 'Are you sure you want to activate this promotion?');" class="bg-success-focus bg-hover-success-200 text-success-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle" title="Activate">
+                                                        <a href="${activateUrl}" onclick="confirmAction(event, this.href, 'Bạn muốn kích hoạt khuyến mãi này?')" class="bg-success-focus bg-hover-success-200 text-success-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle" title="Kích hoạt">
                                                             <iconify-icon icon="fluent:presence-blocked-20-regular" class="menu-icon"></iconify-icon>
                                                         </a>
                                                     </c:when>
@@ -219,10 +235,10 @@
                                                         <c:url var="activateUrl" value="/promotion/activate">
                                                             <c:param name="id" value="${promotion.promotionId}" />
                                                             <c:param name="page" value="${currentPage}" />
-                                                            <c:param name="search" value="${searchValue}" />
+                                                            <c:param name="searchValue" value="${searchValue}" />
                                                             <c:param name="status" value="${status}" />
                                                         </c:url>
-                                                        <a href="#" onclick="return confirmAction('${activateUrl}', 'Are you sure you want to activate this promotion?');" class="bg-success-focus bg-hover-success-200 text-success-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle" title="Activate">
+                                                        <a href="${activateUrl}" onclick="confirmAction(event, this.href, 'Bạn muốn kích hoạt ngay khuyến mãi này?')" class="bg-success-focus bg-hover-success-200 text-success-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle" title="Activate Now">
                                                             <iconify-icon icon="material-symbols:schedule" class="menu-icon"></iconify-icon>
                                                         </a>
                                                     </c:when>
@@ -286,37 +302,33 @@
 
     <jsp:include page="/WEB-INF/view/common/admin/js.jsp"></jsp:include>
     <script>
-        function confirmAction(url, message) {
-            if (confirm(message)) {
-                window.location.href = url;
-            }
-            return false;
+        function confirmAction(event, url, message) {
+            event.preventDefault(); // Stop the link from navigating immediately
+            Swal.fire({
+                title: 'Bạn có chắc chắn?',
+                text: message,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Đồng ý',
+                cancelButtonText: 'Hủy bỏ'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = url;
+                }
+            });
         }
 
         document.addEventListener("DOMContentLoaded", function () {
-            const selectAll = document.getElementById("selectAll");
-            const checkboxes = document.querySelectorAll(".form-check-input:not(#selectAll)");
-            
-            selectAll.addEventListener("change", function () {
-                checkboxes.forEach(checkbox => {
-                    checkbox.checked = selectAll.checked;
-                });
-            });
-
-            // Display toast message if present
-            <c:if test="${not empty toastMessage}">
-                const toast = document.createElement("div");
-                toast.textContent = "${toastMessage}";
-                toast.className = "toast-message ${toastType eq 'success' ? 'toast-success' : 'toast-error'}";
-                document.body.appendChild(toast);
-                setTimeout(() => {
-                    toast.classList.add("show");
-                }, 100);
+            const toast = document.getElementById("toast-message");
+            if (toast) {
+                toast.classList.add("show");
                 setTimeout(() => {
                     toast.classList.remove("show");
-                    setTimeout(() => toast.remove(), 300);
-                }, 4000);
-            </c:if>
+                    setTimeout(() => toast.remove(), 500);
+                }, 3000);
+            }
         });
     </script>
 </body>

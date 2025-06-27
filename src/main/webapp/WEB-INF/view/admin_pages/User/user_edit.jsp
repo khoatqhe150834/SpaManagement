@@ -4,7 +4,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Edit User - Admin Dashboard</title>
+    <title>Chỉnh sửa người dùng - Trang quản trị</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/admin/css/style.css"/>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/admin/css/remixicon.css"/>
@@ -28,9 +28,9 @@
      <jsp:include page="/WEB-INF/view/common/admin/header.jsp" />
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="text-primary mb-0">Edit User</h3>
+        <h3 class="text-primary mb-0">Chỉnh sửa người dùng</h3>
         <a href="${pageContext.request.contextPath}/user/list" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Back to User List
+            <i class="fas fa-arrow-left"></i> Quay lại danh sách
         </a>
     </div>
 
@@ -38,7 +38,7 @@
         <div class="card-header">
             <h5 class="mb-0">
                 <i class="fas fa-user-edit me-2"></i>
-                Edit User Information
+                Thông tin người dùng
             </h5>
         </div>
         <div class="card-body p-4">
@@ -47,7 +47,7 @@
                 <div class="row align-items-center">
                     <div class="col-md-2 text-center">
                         <img src="${not empty user.avatarUrl ? user.avatarUrl : 'https://placehold.co/80x80/7C3AED/FFFFFF?text=USER'}" 
-                             alt="User Avatar" class="user-avatar">
+                             alt="Ảnh đại diện" class="user-avatar">
                     </div>
                     <div class="col-md-10">
                         <h6 class="mb-1">${user.fullName}</h6>
@@ -55,9 +55,9 @@
                             <i class="fas fa-envelope me-1"></i>${user.email}
                         </p>
                         <p class="text-muted mb-0">
-                            <i class="fas fa-id-card me-1"></i>User ID: #${user.userId}
+                            <i class="fas fa-id-card me-1"></i>Mã người dùng: #${user.userId}
                             <span class="badge ${user.isActive ? 'bg-success' : 'bg-secondary'} ms-2">
-                                ${user.isActive ? 'Active' : 'Inactive'}
+                                ${user.isActive ? 'Đang hoạt động' : 'Ngưng hoạt động'}
                             </span>
                         </p>
                     </div>
@@ -68,29 +68,29 @@
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
                     <i class="fas fa-exclamation-triangle me-2"></i>
                     ${error}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
                 </div>
             </c:if>
 
-            <form action="${pageContext.request.contextPath}/user/update" method="post" novalidate id="userEditForm">
+            <form action="${pageContext.request.contextPath}/user/update" method="post" novalidate id="userEditForm" enctype="multipart/form-data">
                 <input type="hidden" name="userId" value="${user.userId}" />
                 
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group mb-3">
-                            <label class="form-label required-field" for="fullName">Full Name</label>
+                            <label class="form-label required-field" for="fullName">Họ và tên</label>
                             <input type="text" class="form-control ${not empty errors.fullName ? 'is-invalid' : ''}" 
                                    id="fullName" name="fullName" required maxlength="100" 
-                                   value="${user.fullName}" placeholder="Enter full name">
+                                   value="${user.fullName}" placeholder="Nhập họ và tên">
                             <div class="error-text">${errors.fullName}</div>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group mb-3">
-                            <label class="form-label required-field" for="email">Email Address</label>
+                            <label class="form-label required-field" for="email">Email</label>
                             <input type="email" class="form-control ${not empty errors.email ? 'is-invalid' : ''}" 
                                    id="email" name="email" required value="${user.email}"
-                                   placeholder="Enter email address">
+                                   placeholder="Nhập địa chỉ email">
                             <div class="error-text">${errors.email}</div>
                         </div>
                     </div>
@@ -99,24 +99,24 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group mb-3">
-                            <label class="form-label" for="password">Password</label>
+                            <label class="form-label" for="password">Mật khẩu mới</label>
                             <input type="password" class="form-control ${not empty errors.password ? 'is-invalid' : ''}" 
                                    id="password" name="password" minlength="6"
-                                   placeholder="Leave blank to keep current password">
+                                   placeholder="Để trống nếu không đổi mật khẩu">
                             <div class="error-text">${errors.password}</div>
                             <small class="form-text text-muted">
                                 <i class="fas fa-info-circle me-1"></i>
-                                Leave blank to keep the current password
+                                Để trống nếu không muốn thay đổi mật khẩu hiện tại
                             </small>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group mb-3">
-                            <label class="form-label" for="phoneNumber">Phone Number</label>
+                            <label class="form-label" for="phoneNumber">Số điện thoại</label>
                             <input type="tel" class="form-control ${not empty errors.phoneNumber ? 'is-invalid' : ''}" 
                                    id="phoneNumber" name="phoneNumber" pattern="^0\d{9}$" 
-                                   title="Phone number must be 10 digits starting with 0." 
-                                   value="${user.phoneNumber}" placeholder="Enter phone number">
+                                   title="Số điện thoại phải gồm 10 số và bắt đầu bằng số 0." 
+                                   value="${user.phoneNumber}" placeholder="Nhập số điện thoại">
                             <div class="error-text">${errors.phoneNumber}</div>
                         </div>
                     </div>
@@ -125,18 +125,18 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group mb-3">
-                            <label class="form-label" for="gender">Gender</label>
+                            <label class="form-label" for="gender">Giới tính</label>
                             <select class="form-control" name="gender">
-                                <option value="">-- Select Gender --</option>
-                                <option value="Male" ${user.gender == 'Male' ? 'selected' : ''}>Male</option>
-                                <option value="Female" ${user.gender == 'Female' ? 'selected' : ''}>Female</option>
-                                <option value="Other" ${user.gender == 'Other' ? 'selected' : ''}>Other</option>
+                                <option value="">-- Chọn giới tính --</option>
+                                <option value="Male" ${user.gender == 'Male' ? 'selected' : ''}>Nam</option>
+                                <option value="Female" ${user.gender == 'Female' ? 'selected' : ''}>Nữ</option>
+                                <option value="Other" ${user.gender == 'Other' ? 'selected' : ''}>Khác</option>
                             </select>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group mb-3">
-                            <label class="form-label" for="birthday">Birthday</label>
+                            <label class="form-label" for="birthday">Ngày sinh</label>
                             <input type="date" class="form-control ${not empty errors.birthday ? 'is-invalid' : ''}" 
                                    id="birthday" name="birthday" 
                                    value="<fmt:formatDate value='${user.birthday}' pattern='yyyy-MM-dd'/>">
@@ -146,31 +146,35 @@
                 </div>
 
                 <div class="form-group mb-3">
-                    <label class="form-label" for="address">Address</label>
+                    <label class="form-label" for="address">Địa chỉ</label>
                     <textarea class="form-control" id="address" name="address" rows="3" 
-                              placeholder="Enter address">${user.address}</textarea>
+                              placeholder="Nhập địa chỉ">${user.address}</textarea>
                 </div>
 
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group mb-3">
-                            <label class="form-label required-field" for="roleId">Role</label>
+                            <label class="form-label required-field" for="roleId">Vai trò</label>
                             <select class="form-control ${not empty errors.roleId ? 'is-invalid' : ''}" 
                                     id="roleId" name="roleId" required>
-                                <option value="">-- Select Role --</option>
-                                <option value="1" ${user.roleId == 1 ? 'selected' : ''}>Admin</option>
-                                <option value="2" ${user.roleId == 2 ? 'selected' : ''}>Manager</option>
-                                <option value="3" ${user.roleId == 3 ? 'selected' : ''}>Therapist</option>
-                                <option value="4" ${user.roleId == 4 ? 'selected' : ''}>Receptionist</option>
+                                <option value="">-- Chọn vai trò --</option>
+                                <option value="1" ${user.roleId == 1 ? 'selected' : ''}>Quản trị viên</option>
+                                <option value="2" ${user.roleId == 2 ? 'selected' : ''}>Quản lý</option>
+                                <option value="3" ${user.roleId == 3 ? 'selected' : ''}>Chuyên viên</option>
+                                <option value="4" ${user.roleId == 4 ? 'selected' : ''}>Lễ tân</option>
                             </select>
                             <div class="error-text">${errors.roleId}</div>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group mb-3">
-                            <label class="form-label" for="avatarUrl">Avatar URL</label>
-                            <input type="url" class="form-control" id="avatarUrl" name="avatarUrl" 
-                                   value="${user.avatarUrl}" placeholder="Enter avatar URL">
+                            <label class="form-label" for="avatarFile">Ảnh đại diện</label>
+                            <div class="mb-2">
+                                <img src="${not empty user.avatarUrl ? user.avatarUrl : 'https://placehold.co/80x80/7C3AED/FFFFFF?text=USER'}" 
+                                     alt="Ảnh đại diện hiện tại" class="user-avatar" style="width:60px;height:60px;object-fit:cover;border-radius:50%;border:2px solid #dee2e6;">
+                            </div>
+                            <input type="file" class="form-control-file" id="avatarFile" name="avatarFile" accept="image/*">
+                            <small class="form-text text-muted">Chọn ảnh mới nếu muốn thay đổi ảnh đại diện.</small>
                         </div>
                     </div>
                 </div>
@@ -181,17 +185,17 @@
                                ${user.isActive ? 'checked' : ''}>
                         <label class="form-check-label" for="isActive">
                             <i class="fas fa-check-circle me-1"></i>
-                            Active User Account
+                            Tài khoản đang hoạt động
                         </label>
                     </div>
                 </div>
 
                 <div class="d-flex gap-2 justify-content-end">
                     <a href="${pageContext.request.contextPath}/user/list" class="btn btn-secondary">
-                        <i class="fas fa-times me-1"></i> Cancel
+                        <i class="fas fa-times me-1"></i> Hủy bỏ
                     </a>
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save me-1"></i> Update User
+                        <i class="fas fa-save me-1"></i> Cập nhật
                     </button>
                 </div>
             </form>
@@ -201,90 +205,5 @@
 
      <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-     
-     <script>
-        $(document).ready(function() {
-            // Form validation and submission
-            $('#userEditForm').on('submit', function(e) {
-                e.preventDefault();
-                
-                // Basic validation
-                let isValid = true;
-                const requiredFields = ['fullName', 'email', 'roleId'];
-                
-                requiredFields.forEach(field => {
-                    const value = $(`#${field}`).val().trim();
-                    if (!value) {
-                        $(`#${field}`).addClass('is-invalid');
-                        isValid = false;
-                    } else {
-                        $(`#${field}`).removeClass('is-invalid');
-                    }
-                });
-                
-                // Email validation
-                const email = $('#email').val().trim();
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (email && !emailRegex.test(email)) {
-                    $('#email').addClass('is-invalid');
-                    isValid = false;
-                }
-                
-                // Password validation (if provided)
-                const password = $('#password').val();
-                if (password && password.length < 6) {
-                    $('#password').addClass('is-invalid');
-                    isValid = false;
-                }
-                
-                if (!isValid) {
-                    Swal.fire({
-                        title: '❌ Validation Error',
-                        text: 'Please fill in all required fields correctly.',
-                        icon: 'error',
-                        confirmButtonText: 'OK'
-                    });
-                    return;
-                }
-                
-                // Show loading
-                Swal.fire({
-                    title: '🔄 Updating User...',
-                    text: 'Please wait while we update the user information.',
-                    icon: 'info',
-                    allowOutsideClick: false,
-                    showConfirmButton: false,
-                    willOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-                
-                // Submit form
-                this.submit();
-            });
-            
-            // Real-time validation
-            $('input, select').on('blur', function() {
-                const field = $(this);
-                const value = field.val().trim();
-                
-                if (field.attr('required') && !value) {
-                    field.addClass('is-invalid');
-                } else {
-                    field.removeClass('is-invalid');
-                }
-                
-                // Email validation
-                if (field.attr('type') === 'email' && value) {
-                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                    if (!emailRegex.test(value)) {
-                        field.addClass('is-invalid');
-                    } else {
-                        field.removeClass('is-invalid');
-                    }
-                }
-            });
-        });
-     </script>
 </body>
-</html> 
+</html>
