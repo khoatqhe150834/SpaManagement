@@ -287,7 +287,7 @@
                                                 rows="4" minlength="20" maxlength="500" required
                                                 style="transition: height 0.2s; resize: none; min-height: 120px; max-height: 220px;"></textarea>
                                         </div>
-                                        <div class="valid-feedback" id="bioValidMsg" style="display:none"></div>
+                                        <div class="valid-feedback" id="bioValid"></div>
                                         <div class="invalid-feedback" id="bioError"></div>
                                         <button type="button" id="toggleBioSize" class="btn btn-outline-secondary btn-sm mt-2">Mở rộng</button>
                                         <div class="d-flex justify-content-end align-items-center" style="margin-top: 4px;">
