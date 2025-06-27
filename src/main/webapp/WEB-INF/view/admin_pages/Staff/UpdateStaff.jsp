@@ -66,15 +66,15 @@
                                         <!-- Bio -->
                                         <div class="mb-20">
                                             <label for="bio" class="form-label fw-semibold text-primary-light text-sm mb-8">
-                                                Bio
-                                                <span class="text-muted text-sm">(20-500 characters)</span>
+                                                Tiểu sử
+                                                <span class="text-muted text-sm">(20-500 ký tự)</span>
                                             </label>
                                             <div class="position-relative">
                                                 <textarea 
                                                     name="bio" 
                                                     class="form-control radius-8" 
                                                     id="bio" 
-                                                    placeholder="Write a brief description about the staff member (minimum 20 characters)..." 
+                                                    placeholder="Viết mô tả ngắn về nhân viên (tối thiểu 20 ký tự)..." 
                                                     rows="4"
                                                     style="resize: none;"
                                                     minlength="20"
@@ -90,12 +90,16 @@
 
                                         <!-- Service Type -->
                                         <div class="mb-20">
-                                            <label for="serviceTypeId" class="form-label fw-semibold text-primary-light text-sm mb-8">Service Type <span class="text-danger-600">*</span></label>
+                                            <label for="serviceTypeId" class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                                Loại dịch vụ <span class="text-danger-600">*</span>
+                                            </label>
                                             <select name="serviceTypeId" class="form-control radius-8" id="serviceTypeId" required>
                                                 <c:forEach var="serviceType" items="${serviceTypes}">
                                                     <option value="${serviceType.serviceTypeId}" ${serviceType.serviceTypeId == staff.serviceType.serviceTypeId ? "selected" : ""}>${serviceType.name}</option>
                                                 </c:forEach>
                                             </select>
+                                            <div class="valid-feedback" id="serviceTypeIdValid"></div>
+                                            <div class="invalid-feedback" id="serviceTypeIdError"></div>
                                         </div>
 
                                         <!-- Availability Status -->
@@ -117,8 +121,8 @@
 
                                         <!-- Action Buttons -->
                                         <div class="d-flex align-items-center justify-content-center gap-3">
-                                            <a href="staff" class="btn btn-outline-danger border border-danger-600 px-56 py-11 radius-8">Cancel</a>
-                                            <button type="submit" class="btn btn-primary border border-primary-600 text-md px-56 py-12 radius-8">Update</button>
+                                            <a href="staff" class="btn btn-outline-danger border border-danger-600 px-56 py-11 radius-8">Hủy</a>
+                                            <button type="submit" class="btn btn-primary border border-primary-600 text-md px-56 py-12 radius-8">Cập nhật</button>
                                         </div>
                                     </form>
                                 </div>
@@ -216,6 +220,10 @@
 
             // Khởi tạo khi trang load
             updateCharCount();
+
+            setFieldInvalid(bioTextarea, 'Tiểu sử không được để trống.');
+            setFieldInvalid(experienceInput, 'Kinh nghiệm phải là số không âm.');
+            setFieldValid(bioTextarea, 'Tiểu sử hợp lệ.');
         </script>
 
         <style>
