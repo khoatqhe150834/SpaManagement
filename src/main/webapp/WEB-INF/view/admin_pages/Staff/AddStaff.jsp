@@ -46,10 +46,15 @@
             color: #34495e;
         }
         .form-control, .form-select {
+            min-height: 48px;
+            height: 48px;
             border-radius: 12px;
+            font-size: 1rem;
             padding: 12px 16px;
             border: 1px solid #ced4da;
-            transition: all 0.3s ease;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            box-shadow: none;
+            background: #fff;
         }
         .form-select {
             text-overflow: ellipsis;
@@ -253,6 +258,7 @@
                                                         <option value="${user.userId}" data-fullname="${user.fullName}" data-birthday="${user.birthday}">${user.userId} - ${user.fullName}</option>
                                                     </c:forEach>
                                                 </select>
+                                                <div class="valid-feedback" id="userSelectValid"></div>
                                                 <div class="invalid-feedback" id="userSelectError"></div>
                                             </div>
                                         </div>
@@ -281,7 +287,7 @@
                                                 rows="4" minlength="20" maxlength="500" required
                                                 style="transition: height 0.2s; resize: none; min-height: 120px; max-height: 220px;"></textarea>
                                         </div>
-                                        <div class="valid-feedback" id="bioValidMsg" style="display:none"></div>
+                                        <div class="valid-feedback" id="bioValid"></div>
                                         <div class="invalid-feedback" id="bioError"></div>
                                         <button type="button" id="toggleBioSize" class="btn btn-outline-secondary btn-sm mt-2">Mở rộng</button>
                                         <div class="d-flex justify-content-end align-items-center" style="margin-top: 4px;">
@@ -301,7 +307,8 @@
                                                     <option value="${serviceType.serviceTypeId}">${serviceType.name}</option>
                                                 </c:forEach>
                                             </select>
-                                            <div class="invalid-feedback" id="serviceTypeError"></div>
+                                            <div class="valid-feedback" id="serviceTypeIdValid"></div>
+                                            <div class="invalid-feedback" id="serviceTypeIdError"></div>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
@@ -316,7 +323,8 @@
                                                 <option value="OFFLINE">Ngoại tuyến</option>
                                                 <option value="ON_LEAVE">Nghỉ phép</option>
                                             </select>
-                                            <div class="invalid-feedback" id="availabilityError"></div>
+                                            <div class="valid-feedback" id="availabilityStatusValid"></div>
+                                            <div class="invalid-feedback" id="availabilityStatusError"></div>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
@@ -325,7 +333,8 @@
                                                 Số năm kinh nghiệm <span class="text-danger-600">*</span>
                                             </label>
                                             <input type="number" name="yearsOfExperience" class="form-control" id="yearsOfExperience" required min="0" max="100" placeholder="Ví dụ: 5"/>
-                                            <div class="invalid-feedback" id="experienceError"></div>
+                                            <div class="valid-feedback" id="yearsOfExperienceValid"></div>
+                                            <div class="invalid-feedback" id="yearsOfExperienceError"></div>
                                         </div>
                                     </div>
                                 </div>
@@ -495,20 +504,28 @@
             });
 
             // Helper functions for validation
-            function setFieldValid(field, message) {
-                field.classList.remove('is-invalid');
-                field.classList.add('is-valid');
-                bioError.style.display = 'none';
-                bioValidMsg.textContent = message;
-                bioValidMsg.style.display = 'block';
-            }
-
             function setFieldInvalid(field, message) {
                 field.classList.remove('is-valid');
                 field.classList.add('is-invalid');
-                bioError.textContent = message;
-                bioError.style.display = 'block';
-                bioValidMsg.style.display = 'none';
+                const errorElement = document.getElementById(field.id + 'Error');
+                const validElement = document.getElementById(field.id + 'Valid');
+                if (errorElement) {
+                    errorElement.textContent = message;
+                    errorElement.style.display = 'block';
+                }
+                if (validElement) validElement.style.display = 'none';
+            }
+
+            function setFieldValid(field, message) {
+                field.classList.remove('is-invalid');
+                field.classList.add('is-valid');
+                const errorElement = document.getElementById(field.id + 'Error');
+                const validElement = document.getElementById(field.id + 'Valid');
+                if (validElement) {
+                    validElement.textContent = message;
+                    validElement.style.display = 'block';
+                }
+                if (errorElement) errorElement.style.display = 'none';
             }
 
             // Toggle mở rộng/thu gọn
