@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import dao.AccountDAO;
 import dao.CustomerDAO;
@@ -434,7 +433,19 @@ private void handleProcessCreateForm(HttpServletRequest request, HttpServletResp
 
             request.setAttribute("toastMessage", "Customer updated successfully!");
             request.setAttribute("toastType", "success");
-            response.sendRedirect(request.getContextPath() + "/customer/list");
+            // Lấy lại các tham số tìm kiếm
+            String page = request.getParameter("page");
+            String pageSize = request.getParameter("pageSize");
+            String searchValue = request.getParameter("searchValue");
+            String status = request.getParameter("status");
+            StringBuilder redirectUrl = new StringBuilder(request.getContextPath() + "/customer/list");
+            List<String> params = new ArrayList<>();
+            if (page != null && !page.isEmpty()) params.add("page=" + page);
+            if (pageSize != null && !pageSize.isEmpty()) params.add("pageSize=" + pageSize);
+            if (searchValue != null && !searchValue.isEmpty()) params.add("searchValue=" + java.net.URLEncoder.encode(searchValue, "UTF-8"));
+            if (status != null && !status.isEmpty()) params.add("status=" + status);
+            if (!params.isEmpty()) redirectUrl.append("?" + String.join("&", params));
+            response.sendRedirect(redirectUrl.toString());
 
         } catch (NumberFormatException e) {
             logger.log(Level.WARNING, "Invalid number format while updating customer.", e);

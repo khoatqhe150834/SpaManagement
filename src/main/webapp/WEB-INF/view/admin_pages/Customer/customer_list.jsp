@@ -151,7 +151,6 @@
                                             <a href="?sortBy=name&sortOrder=desc&pageSize=${pageSize}&searchValue=${searchValue}&status=${status}&page=${currentPage}" title="Sort Name Descending">&#9660;</a>
                                         </th>
                                         <th scope="col">Email</th>
-                                        <th scope="col">Số điện thoại</th>
                                         <th scope="col" class="text-center">Trạng thái</th>
                                         <th scope="col" class="text-center">Thao tác</th>
                                     </tr>
@@ -162,7 +161,6 @@
                                             <td>${customer.customerId}</td>
                                             <td>${customer.fullName}</td>
                                             <td>${customer.email}</td>
-                                            <td>${customer.phoneNumber}</td>
                                             <td class="text-center">
                                                 <c:choose>
                                                     <c:when test="${customer.isActive}">
@@ -179,7 +177,7 @@
                                                     <a href="${pageContext.request.contextPath}/customer/view?id=${customer.customerId}" class="bg-info-focus text-info-600 bg-hover-info-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle" title="Xem">
                                                         <iconify-icon icon="majesticons:eye-line" class="menu-icon"></iconify-icon>
                                                     </a>
-                                                    <a href="${pageContext.request.contextPath}/customer/edit?id=${customer.customerId}" class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle" title="Sửa">
+                                                    <a href="${pageContext.request.contextPath}/customer/edit?id=${customer.customerId}&page=${currentPage}&pageSize=${pageSize}&searchValue=${searchValue}&status=${status}" class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle" title="Sửa">
                                                         <iconify-icon icon="lucide:edit" class="menu-icon"></iconify-icon>
                                                     </a>
                                                     <c:if test="${customer.isActive}">
