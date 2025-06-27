@@ -97,8 +97,14 @@
 
                                         <!-- Years of Experience -->
                                         <div class="mb-20">
-                                            <label for="yearsOfExperience" class="form-label fw-semibold text-primary-light text-sm mb-8">Years of Experience <span class="text-danger-600">*</span></label>
-                                            <input type="number" name="yearsOfExperience" class="form-control radius-8" id="yearsOfExperience" value="${staff.yearsOfExperience}" required />
+                                            <label for="yearsOfExperience" class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                                Số năm kinh nghiệm <span class="text-danger-600">*</span>
+                                            </label>
+                                            <input type="number" name="yearsOfExperience" class="form-control radius-8" id="yearsOfExperience"
+                                                value="${staff.yearsOfExperience}" required
+                                                data-birthday="<fmt:formatDate value='${staff.user.birthday}' pattern='yyyy-MM-dd'/>" />
+                                            <div class="invalid-feedback" id="yearsOfExperienceError"></div>
+                                            <div class="valid-feedback" id="yearsOfExperienceValid"></div>
                                         </div>
 
                                         <!-- Action Buttons -->
@@ -202,6 +208,80 @@
 
             // Khởi tạo khi trang load
             updateCharCount();
+
+            // Validate Số năm kinh nghiệm
+            const experienceInput = document.getElementById('yearsOfExperience');
+            const experienceError = document.getElementById('yearsOfExperienceError');
+            const experienceValid = document.getElementById('yearsOfExperienceValid');
+            let maxExp = 100;
+            const birthday = experienceInput.getAttribute('data-birthday');
+            if (birthday) {
+                const birthDate = new Date(birthday);
+                const today = new Date();
+                let age = today.getFullYear() - birthDate.getFullYear();
+                const m = today.getMonth() - birthDate.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                    age--;
+                }
+                maxExp = Math.max(0, age - 18);
+                experienceInput.max = maxExp;
+                experienceInput.placeholder = `Tối đa: ${maxExp}`;
+            }
+
+            function setFieldInvalid(field, message) {
+                field.classList.remove('is-valid');
+                field.classList.add('is-invalid');
+                const errorElement = document.getElementById(field.id + 'Error');
+                const validElement = document.getElementById(field.id + 'Valid');
+                if (errorElement) {
+                    errorElement.textContent = message;
+                    errorElement.style.display = 'block';
+                }
+                if (validElement) validElement.style.display = 'none';
+            }
+            function setFieldValid(field, message) {
+                field.classList.remove('is-invalid');
+                field.classList.add('is-valid');
+                const errorElement = document.getElementById(field.id + 'Error');
+                const validElement = document.getElementById(field.id + 'Valid');
+                if (validElement) {
+                    validElement.textContent = message;
+                    validElement.style.display = 'block';
+                }
+                if (errorElement) errorElement.style.display = 'none';
+            }
+
+            function validateExperience() {
+                const value = experienceInput.value;
+                if (value === '') {
+                    setFieldInvalid(experienceInput, 'Số năm kinh nghiệm phải nhỏ hơn hoặc bằng ' + maxExp + '.');
+                    return false;
+                } else {
+                    setFieldValid(experienceInput, 'Số năm kinh nghiệm hợp lệ.');
+                    return true;
+                }
+            }
+
+            // Lắng nghe sự kiện nhập liệu
+            experienceInput.addEventListener('input', validateExperience);
+
+            // Chặn nhập ký tự không phải số
+            experienceInput.addEventListener('keypress', function(e) {
+                if (e.key.length === 1 && !/[0-9]/.test(e.key)) {
+                    e.preventDefault();
+                }
+            });
+
+            // Validate khi submit form
+            document.querySelector('form').addEventListener('submit', function(e) {
+                if (!validateExperience()) {
+                    e.preventDefault();
+                    experienceInput.focus();
+                }
+            });
+
+            // Khởi tạo validate khi load trang
+            validateExperience();
         </script>
 
         <style>
