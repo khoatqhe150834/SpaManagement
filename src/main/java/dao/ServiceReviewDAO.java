@@ -57,7 +57,7 @@ public class ServiceReviewDAO implements BaseDAO<Service_Reviews, Integer> {
     @Override
     public List<Service_Reviews> findAll() {
         List<Service_Reviews> reviews = new ArrayList<>();
-        String sql = "SELECT * FROM service_reviews ORDER BY created_at DESC";
+        String sql = "SELECT r.* FROM service_reviews r JOIN booking_appointments a ON r.appointment_id = a.appointment_id WHERE a.status = 'COMPLETED' ORDER BY r.created_at DESC";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
@@ -72,7 +72,7 @@ public class ServiceReviewDAO implements BaseDAO<Service_Reviews, Integer> {
 
     public List<Service_Reviews> findPaginated(int offset, int limit) {
         List<Service_Reviews> reviews = new ArrayList<>();
-        String sql = "SELECT * FROM service_reviews ORDER BY created_at DESC LIMIT ? OFFSET ?";
+        String sql = "SELECT r.* FROM service_reviews r JOIN booking_appointments a ON r.appointment_id = a.appointment_id WHERE a.status = 'COMPLETED' ORDER BY r.created_at DESC LIMIT ? OFFSET ?";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, limit);
@@ -88,7 +88,7 @@ public class ServiceReviewDAO implements BaseDAO<Service_Reviews, Integer> {
     }
 
     public int countAll() {
-        String sql = "SELECT COUNT(*) FROM service_reviews";
+        String sql = "SELECT COUNT(*) FROM service_reviews r JOIN booking_appointments a ON r.appointment_id = a.appointment_id WHERE a.status = 'COMPLETED'";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
