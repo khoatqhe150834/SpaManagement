@@ -371,8 +371,8 @@
                     </a>
                     <ul class="sidebar-submenu">
                         <li>
-                            <a href="<%= contextPath %>/manager-dashboard/services/packages">
-                                <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Gói Dịch Vụ
+                            <a href="<%= contextPath %>/servicetype">
+                                <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Quản lí loại dịch vụ
                             </a>
                         </li>
                         <li>

@@ -1,5 +1,6 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <!DOCTYPE html>
 <html lang="vi" data-theme="light">
 <head>
@@ -46,10 +47,15 @@
             color: #34495e;
         }
         .form-control, .form-select {
+            min-height: 48px;
+            height: 48px;
             border-radius: 12px;
+            font-size: 1rem;
             padding: 12px 16px;
             border: 1px solid #ced4da;
-            transition: all 0.3s ease;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            box-shadow: none;
+            background: #fff;
         }
         .form-select {
             text-overflow: ellipsis;
@@ -250,9 +256,10 @@
                                                 <select id="userSelect" name="userId" required>
                                                     <option></option> <!-- Option trống cho placeholder của Select2 -->
                                                     <c:forEach var="user" items="${userList}">
-                                                        <option value="${user.userId}" data-fullname="${user.fullName}" data-birthday="${user.birthday}">${user.userId} - ${user.fullName}</option>
+                                                        <option value="${user.userId}" data-fullname="${user.fullName}" data-birthday="<fmt:formatDate value='${user.birthday}' pattern='yyyy-MM-dd'/>">${user.userId} - ${user.fullName}</option>
                                                     </c:forEach>
                                                 </select>
+                                                <div class="valid-feedback" id="userSelectValid"></div>
                                                 <div class="invalid-feedback" id="userSelectError"></div>
                                             </div>
                                         </div>
@@ -260,6 +267,7 @@
                                             <div class="form-group">
                                                 <label for="fullNameInput" class="form-label">Họ và tên</label>
                                                 <input type="text" id="fullNameInput" name="fullName" class="form-control" readonly placeholder="Tên sẽ tự động điền..." />
+                                                <span id="userAge" style="margin-left:8px; font-weight:500; color:#888;"></span>
                                             </div>
                                         </div>
                                     </div>
@@ -281,7 +289,7 @@
                                                 rows="4" minlength="20" maxlength="500" required
                                                 style="transition: height 0.2s; resize: none; min-height: 120px; max-height: 220px;"></textarea>
                                         </div>
-                                        <div class="valid-feedback" id="bioValidMsg" style="display:none"></div>
+                                        <div class="valid-feedback" id="bioValid"></div>
                                         <div class="invalid-feedback" id="bioError"></div>
                                         <button type="button" id="toggleBioSize" class="btn btn-outline-secondary btn-sm mt-2">Mở rộng</button>
                                         <div class="d-flex justify-content-end align-items-center" style="margin-top: 4px;">
@@ -301,7 +309,8 @@
                                                     <option value="${serviceType.serviceTypeId}">${serviceType.name}</option>
                                                 </c:forEach>
                                             </select>
-                                            <div class="invalid-feedback" id="serviceTypeError"></div>
+                                            <div class="valid-feedback" id="serviceTypeIdValid"></div>
+                                            <div class="invalid-feedback" id="serviceTypeIdError"></div>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
@@ -316,7 +325,8 @@
                                                 <option value="OFFLINE">Ngoại tuyến</option>
                                                 <option value="ON_LEAVE">Nghỉ phép</option>
                                             </select>
-                                            <div class="invalid-feedback" id="availabilityError"></div>
+                                            <div class="valid-feedback" id="availabilityStatusValid"></div>
+                                            <div class="invalid-feedback" id="availabilityStatusError"></div>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
@@ -324,8 +334,10 @@
                                             <label for="yearsOfExperience" class="form-label">
                                                 Số năm kinh nghiệm <span class="text-danger-600">*</span>
                                             </label>
-                                            <input type="number" name="yearsOfExperience" class="form-control" id="yearsOfExperience" required min="0" max="100" placeholder="Ví dụ: 5"/>
-                                            <div class="invalid-feedback" id="experienceError"></div>
+                                            <input type="number" id="yearsOfExperience" name="yearsOfExperience"
+                                                class="form-control" required min="0" max="27"
+                                                inputmode="numeric" pattern="[0-9]*" autocomplete="off" />
+                                            <div class="invalid-feedback" id="yearsOfExperienceError"></div>
                                         </div>
                                     </div>
                                 </div>
@@ -369,11 +381,27 @@
             const fullNameInput = document.getElementById('fullNameInput');
             const experienceInput = document.getElementById('yearsOfExperience');
 
+            let maxExp = 100; // Giá trị mặc định
+
             $('#userSelect').on('change', function() {
                 const selectedOption = this.options[this.selectedIndex];
                 const fullName = $(selectedOption).data('fullname');
                 const birthday = $(selectedOption).data('birthday');
-                fullNameInput.value = fullName || 'Tên sẽ tự động điền...';
+                let ageText = '';
+                if (birthday) {
+                    const birthDate = new Date(birthday);
+                    const today = new Date();
+                    let age = today.getFullYear() - birthDate.getFullYear();
+                    const m = today.getMonth() - birthDate.getMonth();
+                    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                        age--;
+                    }
+                    if (!isNaN(age) && age > 0) {
+                        ageText = ` (${age} tuổi)`;
+                    }
+                }
+                fullNameInput.value = (fullName || 'Tên sẽ tự động điền...') + ageText;
+                document.getElementById('userAge').textContent = '';
 
                 if (this.value !== '') {
                     $.get('staff', { service: 'check-duplicate', userId: this.value }, function(res) {
@@ -389,7 +417,6 @@
                     setFieldInvalid(userSelect, 'Vui lòng chọn một người dùng.');
                 }
 
-                // Tính số năm kinh nghiệm tối đa
                 if (birthday) {
                     const birthDate = new Date(birthday);
                     const today = new Date();
@@ -398,10 +425,13 @@
                     if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
                         age--;
                     }
-                    const maxExp = Math.max(0, age - 18);
+                    maxExp = Math.max(0, age - 18);
                     experienceInput.max = maxExp;
                     experienceInput.value = '';
                     experienceInput.placeholder = `Tối đa: ${maxExp}`;
+                } else {
+                    maxExp = 100; // fallback nếu không có ngày sinh
+                    experienceInput.max = maxExp;
                 }
             });
 
@@ -432,22 +462,20 @@
             bioTextarea.addEventListener('input', validateBio);
 
             // --- Experience Validation ---
-            const experienceError = document.getElementById('experienceError');
+            const experienceError = document.getElementById('yearsOfExperienceError');
 
-            const validateExperience = () => {
-                const value = parseInt(experienceInput.value, 10);
-                if (experienceInput.value === '') {
+            experienceInput.addEventListener('input', function() {
+                const value = this.value;
+                if (value === '') {
                     setFieldInvalid(experienceInput, 'Số năm kinh nghiệm không được để trống.');
-                    return false;
-                } else if (isNaN(value) || value < 0 || value > 100) {
-                    setFieldInvalid(experienceInput, 'Kinh nghiệm phải là số từ 0 đến 100.');
-                    return false;
+                } else if (isNaN(value) || value < 0) {
+                    setFieldInvalid(experienceInput, 'Kinh nghiệm phải là số không âm.');
+                } else if (parseInt(value, 10) > maxExp) {
+                    setFieldInvalid(experienceInput, `Số năm kinh nghiệm phải nhỏ hơn hoặc bằng số tuổi trừ đi 18.`);
                 } else {
-                    setFieldValid(experienceInput, 'Kinh nghiệm hợp lệ.');
-                    return true;
+                    setFieldValid(experienceInput, '');
                 }
-            };
-            experienceInput.addEventListener('input', validateExperience);
+            });
 
             // --- Service Type Validation ---
             const serviceTypeSelect = document.getElementById('serviceTypeId');
@@ -495,20 +523,28 @@
             });
 
             // Helper functions for validation
-            function setFieldValid(field, message) {
-                field.classList.remove('is-invalid');
-                field.classList.add('is-valid');
-                bioError.style.display = 'none';
-                bioValidMsg.textContent = message;
-                bioValidMsg.style.display = 'block';
-            }
-
             function setFieldInvalid(field, message) {
                 field.classList.remove('is-valid');
                 field.classList.add('is-invalid');
-                bioError.textContent = message;
-                bioError.style.display = 'block';
-                bioValidMsg.style.display = 'none';
+                const errorElement = document.getElementById(field.id + 'Error');
+                const validElement = document.getElementById(field.id + 'Valid');
+                if (errorElement) {
+                    errorElement.textContent = message;
+                    errorElement.style.display = 'block';
+                }
+                if (validElement) validElement.style.display = 'none';
+            }
+
+            function setFieldValid(field, message) {
+                field.classList.remove('is-invalid');
+                field.classList.add('is-valid');
+                const errorElement = document.getElementById(field.id + 'Error');
+                const validElement = document.getElementById(field.id + 'Valid');
+                if (validElement) {
+                    validElement.textContent = message;
+                    validElement.style.display = 'block';
+                }
+                if (errorElement) errorElement.style.display = 'none';
             }
 
             // Toggle mở rộng/thu gọn
@@ -534,6 +570,13 @@
             // Đếm ký tự
             bioTextarea.addEventListener('input', function() {
                 bioCharCount.textContent = this.value.length;
+            });
+
+            // Chặn nhập ký tự không phải số
+            experienceInput.addEventListener('keypress', function(e) {
+                if (e.key.length === 1 && !/[0-9]/.test(e.key)) {
+                    e.preventDefault();
+                }
             });
         });
     </script>

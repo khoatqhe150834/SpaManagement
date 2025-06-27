@@ -40,20 +40,6 @@
                                     <form action="staff" method="post">
                                         <input type="hidden" name="service" value="update" />
                                         <input type="hidden" name="userId" value="${staff.user.userId}" />
-                                        <!-- Upload Image Start -->
-                                        <div class="mb-24 mt-16">
-                                            <div class="avatar-upload">
-                                                <div class="avatar-edit position-absolute bottom-0 end-0 me-24 mt-16 z-1 cursor-pointer">
-                                                    <input type='file' id="imageUpload" accept=".png, .jpg, .jpeg" hidden>
-                                                    <label for="imageUpload" class="w-32-px h-32-px d-flex justify-content-center align-items-center bg-primary-50 text-primary-600 border border-primary-600 bg-hover-primary-100 text-lg rounded-circle">
-                                                        <iconify-icon icon="solar:camera-outline" class="icon"></iconify-icon>
-                                                    </label>
-                                                </div>
-                                                <div class="avatar-preview">
-                                                    <div id="imagePreview"> </div>
-                                                </div>
-                                            </div>
-                                        </div>
 
                                         <!-- Full Name -->
                                         <!-- Full Name (Readonly) -->
@@ -80,7 +66,7 @@
                                                     minlength="20"
                                                     maxlength="500"
                                                     required
-                                                    >${staff.bio}</textarea>
+                                                >${staff.bio}</textarea>
                                                 <div class="form-text text-end">
                                                     <span id="bioCharCount">0</span>/500 characters
                                                     <span id="bioValidationMessage" class="ms-2"></span>
@@ -111,8 +97,14 @@
 
                                         <!-- Years of Experience -->
                                         <div class="mb-20">
-                                            <label for="yearsOfExperience" class="form-label fw-semibold text-primary-light text-sm mb-8">Years of Experience <span class="text-danger-600">*</span></label>
-                                            <input type="number" name="yearsOfExperience" class="form-control radius-8" id="yearsOfExperience" value="${staff.yearsOfExperience}" required />
+                                            <label for="yearsOfExperience" class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                                Số năm kinh nghiệm <span class="text-danger-600">*</span>
+                                            </label>
+                                            <input type="number" name="yearsOfExperience" class="form-control radius-8" id="yearsOfExperience"
+                                                value="${staff.yearsOfExperience}" required
+                                                data-birthday="<fmt:formatDate value='${staff.user.birthday}' pattern='yyyy-MM-dd'/>" />
+                                            <div class="invalid-feedback" id="yearsOfExperienceError"></div>
+                                            <div class="valid-feedback" id="yearsOfExperienceValid"></div>
                                         </div>
 
                                         <!-- Action Buttons -->
@@ -147,7 +139,7 @@
             function validateBio(text) {
                 const formattedText = formatBio(text);
                 const length = formattedText.length;
-
+                
                 if (length < minLength) {
                     bioValidationMessage.textContent = `Please enter at least ${minLength} characters`;
                     bioValidationMessage.className = 'ms-2 text-danger';
@@ -168,9 +160,9 @@
                 const currentText = bioTextarea.value;
                 const formattedText = formatBio(currentText);
                 const currentLength = formattedText.length;
-
+                
                 bioCharCount.textContent = currentLength;
-
+                
                 if (currentLength > maxLength) {
                     bioCharCount.classList.add('text-danger');
                 } else {
@@ -181,32 +173,32 @@
             }
 
             // Xử lý sự kiện input
-            bioTextarea.addEventListener('input', function (e) {
+            bioTextarea.addEventListener('input', function(e) {
                 const currentText = this.value;
                 const formattedText = formatBio(currentText);
-
+                
                 // Nếu text đã được format khác với text hiện tại
                 if (currentText !== formattedText) {
                     const cursorPosition = this.selectionStart;
                     const diff = currentText.length - formattedText.length;
-
+                    
                     this.value = formattedText;
-
+                    
                     // Giữ vị trí con trỏ
                     this.setSelectionRange(cursorPosition - diff, cursorPosition - diff);
                 }
-
+                
                 updateCharCount();
             });
 
             // Xử lý sự kiện blur (khi rời khỏi textarea)
-            bioTextarea.addEventListener('blur', function () {
+            bioTextarea.addEventListener('blur', function() {
                 this.value = formatBio(this.value);
                 updateCharCount();
             });
 
             // Xử lý sự kiện submit form
-            document.querySelector('form').addEventListener('submit', function (e) {
+            document.querySelector('form').addEventListener('submit', function(e) {
                 const bioText = bioTextarea.value;
                 if (!validateBio(bioText)) {
                     e.preventDefault();
@@ -216,6 +208,80 @@
 
             // Khởi tạo khi trang load
             updateCharCount();
+
+            // Validate Số năm kinh nghiệm
+            const experienceInput = document.getElementById('yearsOfExperience');
+            const experienceError = document.getElementById('yearsOfExperienceError');
+            const experienceValid = document.getElementById('yearsOfExperienceValid');
+            let maxExp = 100;
+            const birthday = experienceInput.getAttribute('data-birthday');
+            if (birthday) {
+                const birthDate = new Date(birthday);
+                const today = new Date();
+                let age = today.getFullYear() - birthDate.getFullYear();
+                const m = today.getMonth() - birthDate.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                    age--;
+                }
+                maxExp = Math.max(0, age - 18);
+                experienceInput.max = maxExp;
+                experienceInput.placeholder = `Tối đa: ${maxExp}`;
+            }
+
+            function setFieldInvalid(field, message) {
+                field.classList.remove('is-valid');
+                field.classList.add('is-invalid');
+                const errorElement = document.getElementById(field.id + 'Error');
+                const validElement = document.getElementById(field.id + 'Valid');
+                if (errorElement) {
+                    errorElement.textContent = message;
+                    errorElement.style.display = 'block';
+                }
+                if (validElement) validElement.style.display = 'none';
+            }
+            function setFieldValid(field, message) {
+                field.classList.remove('is-invalid');
+                field.classList.add('is-valid');
+                const errorElement = document.getElementById(field.id + 'Error');
+                const validElement = document.getElementById(field.id + 'Valid');
+                if (validElement) {
+                    validElement.textContent = message;
+                    validElement.style.display = 'block';
+                }
+                if (errorElement) errorElement.style.display = 'none';
+            }
+
+            function validateExperience() {
+                const value = experienceInput.value;
+                if (value === '') {
+                    setFieldInvalid(experienceInput, 'Số năm kinh nghiệm phải nhỏ hơn hoặc bằng ' + maxExp + '.');
+                    return false;
+                } else {
+                    setFieldValid(experienceInput, 'Số năm kinh nghiệm hợp lệ.');
+                    return true;
+                }
+            }
+
+            // Lắng nghe sự kiện nhập liệu
+            experienceInput.addEventListener('input', validateExperience);
+
+            // Chặn nhập ký tự không phải số
+            experienceInput.addEventListener('keypress', function(e) {
+                if (e.key.length === 1 && !/[0-9]/.test(e.key)) {
+                    e.preventDefault();
+                }
+            });
+
+            // Validate khi submit form
+            document.querySelector('form').addEventListener('submit', function(e) {
+                if (!validateExperience()) {
+                    e.preventDefault();
+                    experienceInput.focus();
+                }
+            });
+
+            // Khởi tạo validate khi load trang
+            validateExperience();
         </script>
 
         <style>
@@ -223,24 +289,24 @@
                 font-size: 0.875rem;
                 color: #6c757d;
             }
-
+            
             .text-danger {
                 color: #dc3545 !important;
             }
-
+            
             textarea#bio {
                 transition: border-color 0.15s ease-in-out;
             }
-
+            
             textarea#bio:focus {
                 border-color: var(--primary-color);
                 box-shadow: 0 0 0 0.2rem rgba(var(--primary-rgb), 0.25);
             }
-
+            
             textarea#bio.error {
                 border-color: #dc3545;
             }
-
+            
             #bioValidationMessage {
                 font-size: 0.875rem;
                 transition: color 0.15s ease-in-out;
