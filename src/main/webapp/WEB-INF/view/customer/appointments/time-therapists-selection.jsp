@@ -534,7 +534,7 @@
             opacity: 0.3;
             color: #9ca3af;
         }
-        }
+        
 
         .calendar-day.selected::after {
             content: '';
