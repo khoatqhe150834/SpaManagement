@@ -258,7 +258,7 @@
                                         <textarea name="bio" class="form-control" id="bio" placeholder="Viết mô tả ngắn về nhân viên (tối thiểu 20 ký tự)..." rows="4" style="resize: none;" minlength="20" maxlength="500" required></textarea>
                                         <div class="d-flex justify-content-between">
                                             <div class="invalid-feedback" id="bioError"></div>
-                                            <small class="text-muted"><span id="bioCharCount">0/500</span>/500</small>
+                                            <small class="text-muted"><span id="bioCharCount">0</span>/500</small>
                                         </div>
                                     </div>
                                     
@@ -394,7 +394,7 @@
                     setFieldInvalid(bioTextarea, 'Tiểu sử không được để trống.');
                     return false;
                 } else if (length < MIN_BIO_LENGTH) {
-                    setFieldInvalid(bioTextarea, `Cần ít nhất ${MIN_BIO_LENGTH} ký tự.`);
+                    setFieldInvalid(bioTextarea, `Cần ít nhất 20 ${MIN_BIO_LENGTH} ký tự.`);
                     return false;
                 } else {
                     setFieldValid(bioTextarea, 'Tiểu sử hợp lệ.');
