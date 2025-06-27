@@ -338,7 +338,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             // --- Initialize Select2 ---
             $('#userSelect').select2({
-                placeholder: "-- Chọn từ danh sách người dùng --",
+                placeholder: "-- Chọn người dùng --",
                 allowClear: true,
                 width: '100%'
             });
