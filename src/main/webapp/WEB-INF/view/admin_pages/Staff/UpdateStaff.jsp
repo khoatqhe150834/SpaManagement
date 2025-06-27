@@ -37,78 +37,95 @@
                         <div class="col-xxl-6 col-xl-8 col-lg-10">
                             <div class="card border">
                                 <div class="card-body">
-                                    <form action="staff" method="post">
+                                    <form action="staff" method="post" id="updateStaffForm">
                                         <input type="hidden" name="service" value="update" />
                                         <input type="hidden" name="userId" value="${staff.user.userId}" />
-                                        <!-- Upload Image Start -->
-                                        <div class="mb-24 mt-16">
-                                            <div class="avatar-upload">
-                                                <div class="avatar-edit position-absolute bottom-0 end-0 me-24 mt-16 z-1 cursor-pointer">
-                                                    <input type='file' id="imageUpload" accept=".png, .jpg, .jpeg" hidden>
-                                                    <label for="imageUpload" class="w-32-px h-32-px d-flex justify-content-center align-items-center bg-primary-50 text-primary-600 border border-primary-600 bg-hover-primary-100 text-lg rounded-circle">
-                                                        <iconify-icon icon="solar:camera-outline" class="icon"></iconify-icon>
-                                                    </label>
+
+                                        <!-- ========== SECTION: Thông tin người dùng ========== -->
+                                        <div class="mb-32">
+                                            <div class="section-header d-flex align-items-center gap-3 mb-3">
+                                                <div class="section-icon bg-primary-50 d-flex align-items-center justify-content-center rounded-3" style="width:40px;height:40px;">
+                                                    <iconify-icon icon="solar:user-outline" class="text-primary text-xl"></iconify-icon>
                                                 </div>
-                                                <div class="avatar-preview">
-                                                    <div id="imagePreview"> </div>
+                                                <h6 class="section-title fw-semibold mb-0">Thông tin người dùng</h6>
+                                            </div>
+                                            <!-- Upload Image Start -->
+                                            <div class="mb-24 mt-16">
+                                                <div class="avatar-upload">
+                                                    <div class="avatar-edit position-absolute bottom-0 end-0 me-24 mt-16 z-1 cursor-pointer">
+                                                        <input type='file' id="imageUpload" accept=".png, .jpg, .jpeg" hidden>
+                                                        <label for="imageUpload" class="w-32-px h-32-px d-flex justify-content-center align-items-center bg-primary-50 text-primary-600 border border-primary-600 bg-hover-primary-100 text-lg rounded-circle">
+                                                            <iconify-icon icon="solar:camera-outline" class="icon"></iconify-icon>
+                                                        </label>
+                                                    </div>
+                                                    <div class="avatar-preview">
+                                                        <div id="imagePreview"> </div>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-
-                                        <!-- Full Name -->
-                                        <!-- Full Name (Readonly) -->
-                                        <div class="mb-20">
-                                            <label for="fullName" class="form-label fw-semibold text-primary-light text-sm mb-8">Full Name <span class="text-danger-600">*</span></label>
-                                            <input type="text" name="fullName" class="form-control radius-8" id="fullName" value="${staff.user.fullName}" required readonly />
-                                        </div>
-
-
-                                        <!-- Bio -->
-                                        <div class="form-group position-relative" style="max-width:100%;">
-                                            <label for="bio" class="form-label">Tiểu sử <span class="text-danger-600">*</span></label>
-                                            <div style="position:relative;">
-                                                <textarea name="bio" class="form-control" id="bio"
-                                                    placeholder="Viết mô tả ngắn về nhân viên (tối thiểu 20 ký tự)..."
-                                                    rows="4" minlength="20" maxlength="500" required>${staff.bio}</textarea>
-                                            </div>
-                                            <div class="valid-feedback" id="bioValid"></div>
-                                            <div class="invalid-feedback" id="bioError"></div>
-                                            <div class="d-flex justify-content-end align-items-center" style="margin-top: 4px;">
-                                                <small class="text-muted"><span id="bioCharCount">0</span>/500</small>
+                                            <!-- Full Name (Readonly) -->
+                                            <div class="mb-20">
+                                                <label for="fullName" class="form-label fw-semibold text-primary-light text-sm mb-8">Full Name <span class="text-danger-600">*</span></label>
+                                                <input type="text" name="fullName" class="form-control radius-8" id="fullName" value="${staff.user.fullName}" required readonly />
                                             </div>
                                         </div>
 
-                                        <!-- Service Type -->
-                                        <div class="mb-20">
-                                            <label for="serviceTypeId" class="form-label fw-semibold text-primary-light text-sm mb-8">
-                                                Loại dịch vụ <span class="text-danger-600">*</span>
-                                            </label>
-                                            <select name="serviceTypeId" class="form-control radius-8" id="serviceTypeId" required>
-                                                <c:forEach var="serviceType" items="${serviceTypes}">
-                                                    <option value="${serviceType.serviceTypeId}" ${serviceType.serviceTypeId == staff.serviceType.serviceTypeId ? "selected" : ""}>${serviceType.name}</option>
-                                                </c:forEach>
-                                            </select>
-                                            <div class="valid-feedback" id="serviceTypeIdValid"></div>
-                                            <div class="invalid-feedback" id="serviceTypeIdError"></div>
-                                        </div>
+                                        <!-- ========== SECTION: Thông tin chuyên môn ========== -->
+                                        <div class="mb-32">
+                                            <div class="section-header d-flex align-items-center gap-3 mb-3">
+                                                <div class="section-icon bg-info-50 d-flex align-items-center justify-content-center rounded-3" style="width:40px;height:40px;">
+                                                    <iconify-icon icon="solar:user-id-outline" class="text-info text-xl"></iconify-icon>
+                                                </div>
+                                                <h6 class="section-title fw-semibold mb-0">Thông tin chuyên môn</h6>
+                                            </div>
+                                            <!-- Bio -->
+                                            <div class="form-group position-relative" style="max-width:100%;">
+                                                <label for="bio" class="form-label">Tiểu sử <span class="text-danger-600">*</span></label>
+                                                <div style="position:relative;">
+                                                    <textarea name="bio" class="form-control" id="bio"
+                                                        placeholder="Viết mô tả ngắn về nhân viên (tối thiểu 20 ký tự)..."
+                                                        rows="4" minlength="20" maxlength="500" required>${staff.bio}</textarea>
+                                                </div>
+                                                <button type="button" id="toggleBioSize" class="btn btn-outline-secondary btn-sm mt-2">Mở rộng</button>
+                                                <div class="valid-feedback" id="bioValid"></div>
+                                                <div class="invalid-feedback" id="bioError"></div>
+                                                <div class="d-flex justify-content-end align-items-center" style="margin-top: 4px;">
+                                                    <small class="text-muted"><span id="bioCharCount">0</span>/500</small>
+                                                </div>
+                                            </div>
 
-                                        <!-- Availability Status -->
-                                        <div class="mb-20">
-                                            <label for="availabilityStatus" class="form-label fw-semibold text-primary-light text-sm mb-8">Availability Status <span class="text-danger-600">*</span></label>
-                                            <select name="availabilityStatus" class="form-control radius-8" id="availabilityStatus" required>
-                                                <option value="AVAILABLE" ${staff.availabilityStatus == 'AVAILABLE' ? "selected" : ""}>Available</option>
-                                                <option value="BUSY" ${staff.availabilityStatus == 'BUSY' ? "selected" : ""}>Busy</option>
-                                                <option value="OFFLINE" ${staff.availabilityStatus == 'OFFLINE' ? "selected" : ""}>Offline</option>
-                                                <option value="ON_LEAVE" ${staff.availabilityStatus == 'ON_LEAVE' ? "selected" : ""}>On Leave</option>
-                                            </select>
-                                        </div>
+                                            <!-- Service Type -->
+                                            <div class="mb-20">
+                                                <label for="serviceTypeId" class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                                    Loại dịch vụ <span class="text-danger-600">*</span>
+                                                </label>
+                                                <select name="serviceTypeId" class="form-control radius-8" id="serviceTypeId" required>
+                                                    <c:forEach var="serviceType" items="${serviceTypes}">
+                                                        <option value="${serviceType.serviceTypeId}" ${serviceType.serviceTypeId == staff.serviceType.serviceTypeId ? "selected" : ""}>${serviceType.name}</option>
+                                                    </c:forEach>
+                                                </select>
+                                                <div class="valid-feedback" id="serviceTypeIdValid"></div>
+                                                <div class="invalid-feedback" id="serviceTypeIdError"></div>
+                                            </div>
 
-                                        <!-- Years of Experience -->
-                                        <div class="form-group">
-                                            <label for="yearsOfExperience" class="form-label">Số năm kinh nghiệm <span class="text-danger-600">*</span></label>
-                                            <input type="number" name="yearsOfExperience" class="form-control" id="yearsOfExperience"
-                                                value="${staff.yearsOfExperience}" required data-birthday="<fmt:formatDate value='${staff.user.birthday}' pattern='yyyy-MM-dd'/>" />
-                                            <div class="invalid-feedback" id="yearsOfExperienceError"></div>
+                                            <!-- Availability Status -->
+                                            <div class="mb-20">
+                                                <label for="availabilityStatus" class="form-label fw-semibold text-primary-light text-sm mb-8">Availability Status <span class="text-danger-600">*</span></label>
+                                                <select name="availabilityStatus" class="form-control radius-8" id="availabilityStatus" required>
+                                                    <option value="AVAILABLE" ${staff.availabilityStatus == 'AVAILABLE' ? "selected" : ""}>Available</option>
+                                                    <option value="BUSY" ${staff.availabilityStatus == 'BUSY' ? "selected" : ""}>Busy</option>
+                                                    <option value="OFFLINE" ${staff.availabilityStatus == 'OFFLINE' ? "selected" : ""}>Offline</option>
+                                                    <option value="ON_LEAVE" ${staff.availabilityStatus == 'ON_LEAVE' ? "selected" : ""}>On Leave</option>
+                                                </select>
+                                            </div>
+
+                                            <!-- Years of Experience -->
+                                            <div class="form-group">
+                                                <label for="yearsOfExperience" class="form-label">Số năm kinh nghiệm <span class="text-danger-600">*</span></label>
+                                                <input type="number" name="yearsOfExperience" class="form-control" id="yearsOfExperience"
+                                                    value="${staff.yearsOfExperience}" required data-birthday="<fmt:formatDate value='${staff.user.birthday}' pattern='yyyy-MM-dd'/>" />
+                                                <div class="invalid-feedback" id="yearsOfExperienceError"></div>
+                                            </div>
                                         </div>
 
                                         <!-- Action Buttons -->
