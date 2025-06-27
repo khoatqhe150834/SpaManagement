@@ -48,6 +48,10 @@
                 justify-content: center;
                 border-radius: 8px;
             }
+            .service-title {
+                max-width: 100%;
+                word-break: break-word;
+            }
         </style>
     </head>
     <body>
@@ -76,7 +80,7 @@
                         <div class="col-lg-7">
                             <div class="d-flex justify-content-between align-items-start mb-16">
                                 <div>
-                                    <h4 class="fw-bold mb-8">${service.name}</h4>
+                                    <h4 class="fw-bold mb-8 service-title">${service.name}</h4>
                                     <p class="text-muted mb-0">Loại dịch vụ: 
                                         <c:choose>
                                             <c:when test="${not empty service.serviceTypeId}">
