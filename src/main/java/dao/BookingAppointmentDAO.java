@@ -10,8 +10,10 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.PreparedStatement;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.stream.Collectors;
 
 /**
  * DAO for BookingAppointment entity using booking_appointments table
@@ -414,7 +416,7 @@ public class BookingAppointmentDAO extends DBContext implements BaseDAO<BookingA
           // Appointment details
           BookingAppointment appointment = getFromResultSet(rs);
           result.put("appointment", appointment);
-          
+
           // Service details
           Map<String, Object> service = new HashMap<>();
           service.put("serviceId", rs.getInt("service_id"));
@@ -422,14 +424,14 @@ public class BookingAppointmentDAO extends DBContext implements BaseDAO<BookingA
           service.put("serviceDescription", rs.getString("service_description"));
           service.put("originalPrice", rs.getBigDecimal("original_price"));
           result.put("service", service);
-          
+
           // Therapist details
           Map<String, Object> therapist = new HashMap<>();
           therapist.put("therapistUserId", rs.getInt("therapist_user_id"));
           therapist.put("therapistName", rs.getString("therapist_name"));
           therapist.put("therapistPhone", rs.getString("therapist_phone"));
           result.put("therapist", therapist);
-          
+
           // Booking group details
           Map<String, Object> bookingGroup = new HashMap<>();
           bookingGroup.put("bookingGroupId", rs.getInt("booking_group_id"));
@@ -470,10 +472,10 @@ public class BookingAppointmentDAO extends DBContext implements BaseDAO<BookingA
       stmt.setInt(1, customerId);
       try (ResultSet rs = stmt.executeQuery()) {
         Map<Integer, Map<String, Object>> bookingGroups = new HashMap<>();
-        
+
         while (rs.next()) {
           int bookingGroupId = rs.getInt("booking_group_id");
-          
+
           // Create or get booking group
           Map<String, Object> bookingGroup = bookingGroups.get(bookingGroupId);
           if (bookingGroup == null) {
@@ -491,7 +493,7 @@ public class BookingAppointmentDAO extends DBContext implements BaseDAO<BookingA
             bookingGroup.put("appointments", new ArrayList<>());
             bookingGroups.put(bookingGroupId, bookingGroup);
           }
-          
+
           // Add appointment if exists
           if (rs.getInt("appointment_id") > 0) {
             Map<String, Object> appointment = new HashMap<>();
@@ -505,13 +507,13 @@ public class BookingAppointmentDAO extends DBContext implements BaseDAO<BookingA
             appointment.put("serviceNotes", rs.getString("service_notes"));
             appointment.put("serviceName", rs.getString("service_name"));
             appointment.put("therapistName", rs.getString("therapist_name"));
-            
+
             @SuppressWarnings("unchecked")
             List<Map<String, Object>> appointments = (List<Map<String, Object>>) bookingGroup.get("appointments");
             appointments.add(appointment);
           }
         }
-        
+
         results.addAll(bookingGroups.values());
       }
     } catch (SQLException e) {
@@ -519,5 +521,119 @@ public class BookingAppointmentDAO extends DBContext implements BaseDAO<BookingA
     }
 
     return results;
+  }
+
+  /**
+   * PERFORMANCE OPTIMIZATION: Bulk load all appointments for multiple therapists
+   * within a date range
+   * This replaces hundreds of individual database queries with a single bulk
+   * query
+   * 
+   * @param therapistIds List of therapist user IDs to load appointments for
+   * @param startDate    Start date for the range (inclusive)
+   * @param endDate      End date for the range (exclusive)
+   * @return Map of therapist ID to their appointments in the date range
+   */
+  public Map<Integer, List<BookingAppointment>> findByTherapistIdsAndDateRange(
+      List<Integer> therapistIds, LocalDate startDate, LocalDate endDate) {
+
+    Map<Integer, List<BookingAppointment>> result = new HashMap<>();
+
+    if (therapistIds == null || therapistIds.isEmpty()) {
+      return result;
+    }
+
+    // Create placeholders for IN clause
+    String placeholders = therapistIds.stream()
+        .map(id -> "?")
+        .collect(Collectors.joining(","));
+
+    String sql = "SELECT appointment_id, booking_group_id, service_id, therapist_user_id, " +
+        "start_time, end_time, service_price, status, service_notes, created_at, updated_at " +
+        "FROM booking_appointments " +
+        "WHERE therapist_user_id IN (" + placeholders + ") " +
+        "AND status IN ('SCHEDULED', 'IN_PROGRESS') " +
+        "AND start_time >= ? " +
+        "AND start_time < ? " +
+        "ORDER BY therapist_user_id, start_time";
+
+    try (Connection conn = DBContext.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+      // Set therapist IDs
+      int paramIndex = 1;
+      for (Integer therapistId : therapistIds) {
+        stmt.setInt(paramIndex++, therapistId);
+      }
+
+      // Set date range
+      stmt.setObject(paramIndex++, startDate.atStartOfDay());
+      stmt.setObject(paramIndex, endDate.plusDays(1).atStartOfDay());
+
+      System.out.println("🔍 BULK LOAD: Loading appointments for " + therapistIds.size() +
+          " therapists from " + startDate + " to " + endDate);
+
+      try (ResultSet rs = stmt.executeQuery()) {
+        int appointmentCount = 0;
+        while (rs.next()) {
+          BookingAppointment appointment = getFromResultSet(rs);
+          int therapistId = appointment.getTherapistUserId();
+
+          result.computeIfAbsent(therapistId, k -> new ArrayList<>()).add(appointment);
+          appointmentCount++;
+        }
+
+        System.out.println("✅ BULK LOAD: Loaded " + appointmentCount +
+            " appointments for " + result.size() + " therapists");
+      }
+
+    } catch (SQLException e) {
+      System.err.println("❌ Error bulk loading therapist appointments: " + e.getMessage());
+      e.printStackTrace();
+    }
+
+    return result;
+  }
+
+  /**
+   * PERFORMANCE OPTIMIZATION: Bulk load appointments for a single therapist over
+   * extended period
+   * Used when we need all appointments for one therapist across many months
+   * 
+   * @param therapistId Therapist user ID
+   * @param startDate   Start date for the range (inclusive)
+   * @param endDate     End date for the range (exclusive)
+   * @return List of appointments for the therapist in the date range
+   */
+  public List<BookingAppointment> findByTherapistAndDateRange(int therapistId, LocalDate startDate, LocalDate endDate) {
+    List<BookingAppointment> appointments = new ArrayList<>();
+
+    String sql = "SELECT appointment_id, booking_group_id, service_id, therapist_user_id, " +
+        "start_time, end_time, service_price, status, service_notes, created_at, updated_at " +
+        "FROM booking_appointments " +
+        "WHERE therapist_user_id = ? " +
+        "AND status IN ('SCHEDULED', 'IN_PROGRESS') " +
+        "AND start_time >= ? " +
+        "AND start_time < ? " +
+        "ORDER BY start_time";
+
+    try (Connection conn = DBContext.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+      stmt.setInt(1, therapistId);
+      stmt.setObject(2, startDate.atStartOfDay());
+      stmt.setObject(3, endDate.plusDays(1).atStartOfDay());
+
+      try (ResultSet rs = stmt.executeQuery()) {
+        while (rs.next()) {
+          appointments.add(getFromResultSet(rs));
+        }
+      }
+
+    } catch (SQLException e) {
+      System.err.println("Error loading therapist appointments by date range: " + e.getMessage());
+    }
+
+    return appointments;
   }
 }

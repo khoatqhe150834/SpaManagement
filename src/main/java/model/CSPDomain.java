@@ -1,6 +1,7 @@
 package model;
 
 import dao.StaffDAO;
+import dao.BookingAppointmentDAO;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -10,6 +11,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class CSPDomain {
@@ -24,6 +28,11 @@ public class CSPDomain {
   private List<Staff> availableTherapists;
   private List<LocalDateTime> availableTimes;
 
+  // PERFORMANCE OPTIMIZATION: Cache for bulk-loaded appointments
+  private static final Map<String, Map<Integer, List<BookingAppointment>>> appointmentCache = new ConcurrentHashMap<>();
+  private static long lastCacheUpdate = 0;
+  private static final long CACHE_DURATION_MS = 5 * 60 * 1000; // 5 minutes cache
+
   public CSPDomain(List<Staff> availableTherapists, List<LocalDateTime> availableTimes) {
     this.availableTherapists = availableTherapists != null ? new ArrayList<>(availableTherapists) : new ArrayList<>();
     this.availableTimes = availableTimes != null ? new ArrayList<>(availableTimes) : new ArrayList<>();
@@ -32,6 +41,150 @@ public class CSPDomain {
   public CSPDomain() {
     this.availableTherapists = new ArrayList<>();
     this.availableTimes = getAllPossibleDateTimes();
+  }
+
+  /**
+   * PERFORMANCE OPTIMIZATION: Bulk load appointments for all therapists qualified
+   * for a service
+   * This replaces hundreds of individual database queries with a single bulk
+   * query
+   * 
+   * @param service The service to get therapists for
+   * @return Map of therapist ID to their appointments over the next
+   *         NUMBER_OF_DAY_AHEAD days
+   */
+  public Map<Integer, List<BookingAppointment>> bulkLoadTherapistAppointments(Service service) {
+    // Generate cache key
+    String cacheKey = "service_" + (service != null ? service.getServiceId() : "null");
+
+    // Check cache validity
+    long currentTime = System.currentTimeMillis();
+    if (appointmentCache.containsKey(cacheKey) &&
+        (currentTime - lastCacheUpdate) < CACHE_DURATION_MS) {
+      System.out.println("💾 CACHE HIT: Using cached appointments for service " + service.getServiceId());
+      return appointmentCache.get(cacheKey);
+    }
+
+    // Get qualified therapists
+    List<Staff> qualifiedTherapists = getCompatibleTherapistsForService(
+        new CSPVariable(service, null, null, true));
+
+    if (qualifiedTherapists.isEmpty()) {
+      Map<Integer, List<BookingAppointment>> emptyResult = new HashMap<>();
+      appointmentCache.put(cacheKey, emptyResult);
+      return emptyResult;
+    }
+
+    // Extract therapist IDs
+    List<Integer> therapistIds = qualifiedTherapists.stream()
+        .map(staff -> staff.getUser().getUserId())
+        .collect(Collectors.toList());
+
+    // Define date range for bulk loading
+    LocalDate startDate = LocalDate.now();
+    LocalDate endDate = startDate.plusDays(NUMBER_OF_DAY_AHEAD);
+
+    // Bulk load appointments
+    BookingAppointmentDAO appointmentDAO = new BookingAppointmentDAO();
+    Map<Integer, List<BookingAppointment>> therapistAppointments = appointmentDAO
+        .findByTherapistIdsAndDateRange(therapistIds, startDate, endDate);
+
+    // Cache the result
+    appointmentCache.put(cacheKey, therapistAppointments);
+    lastCacheUpdate = currentTime;
+
+    System.out.println("🚀 BULK LOAD COMPLETE: Loaded appointments for " + therapistIds.size() +
+        " therapists, cached as '" + cacheKey + "'");
+
+    return therapistAppointments;
+  }
+
+  /**
+   * PERFORMANCE OPTIMIZATION: Check if a time slot conflicts with existing
+   * appointments IN MEMORY
+   * This replaces individual database queries with fast in-memory checks
+   * 
+   * @param therapistId           Therapist user ID
+   * @param startTime             Proposed appointment start time
+   * @param endTime               Proposed appointment end time
+   * @param therapistAppointments Pre-loaded appointments for this therapist
+   * @return true if there's a conflict, false if the slot is available
+   */
+  public boolean hasAppointmentConflict(int therapistId, LocalDateTime startTime, LocalDateTime endTime,
+      Map<Integer, List<BookingAppointment>> therapistAppointments) {
+
+    List<BookingAppointment> appointments = therapistAppointments.get(therapistId);
+    if (appointments == null || appointments.isEmpty()) {
+      return false; // No appointments = no conflicts
+    }
+
+    // Check for overlaps with existing appointments
+    for (BookingAppointment existing : appointments) {
+      LocalDateTime existingStart = existing.getStartTime();
+      LocalDateTime existingEnd = existing.getEndTime();
+
+      // Check overlap: existing_start < new_end AND existing_end > new_start
+      if (existingStart.isBefore(endTime) && existingEnd.isAfter(startTime)) {
+        return true; // Conflict found
+      }
+    }
+
+    return false; // No conflicts
+  }
+
+  /**
+   * PERFORMANCE OPTIMIZATION: Check buffer time conflicts IN MEMORY
+   * This replaces database queries with fast in-memory checks for buffer time
+   * validation
+   * 
+   * @param therapistId           Therapist user ID
+   * @param bufferStart           Buffer start time (appointment start - buffer)
+   * @param appointmentStart      Actual appointment start time
+   * @param appointmentEnd        Actual appointment end time
+   * @param bufferEnd             Buffer end time (appointment end + buffer)
+   * @param therapistAppointments Pre-loaded appointments for this therapist
+   * @return true if there's a buffer conflict, false if the slot respects buffer
+   *         time
+   */
+  public boolean hasBufferTimeConflict(int therapistId, LocalDateTime bufferStart,
+      LocalDateTime appointmentStart, LocalDateTime appointmentEnd,
+      LocalDateTime bufferEnd,
+      Map<Integer, List<BookingAppointment>> therapistAppointments) {
+
+    List<BookingAppointment> appointments = therapistAppointments.get(therapistId);
+    if (appointments == null || appointments.isEmpty()) {
+      return false; // No appointments = no buffer conflicts
+    }
+
+    // Check for buffer conflicts with existing appointments
+    for (BookingAppointment existing : appointments) {
+      LocalDateTime existingStart = existing.getStartTime();
+      LocalDateTime existingEnd = existing.getEndTime();
+
+      // Check if existing appointment conflicts with buffer zones
+      // Before appointment: existing ends after buffer starts AND existing starts
+      // before appointment starts
+      if (existingEnd.isAfter(bufferStart) && existingStart.isBefore(appointmentStart)) {
+        return true; // Buffer conflict before appointment
+      }
+
+      // After appointment: existing starts before buffer ends AND existing ends after
+      // appointment ends
+      if (existingStart.isBefore(bufferEnd) && existingEnd.isAfter(appointmentEnd)) {
+        return true; // Buffer conflict after appointment
+      }
+    }
+
+    return false; // No buffer conflicts
+  }
+
+  /**
+   * Clear the appointment cache (useful for testing or when appointments change)
+   */
+  public static void clearAppointmentCache() {
+    appointmentCache.clear();
+    lastCacheUpdate = 0;
+    System.out.println("🗑️ Appointment cache cleared");
   }
 
   /**

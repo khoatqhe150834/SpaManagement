@@ -772,20 +772,17 @@ window.TimeSelection = (function() {
                     timeContent.className = 'time-slot-time';
                     timeContent.textContent = slot.time;
                     
-                    const therapistInfo = document.createElement('div');
+                    let therapistInfo = document.createElement('div');
                     therapistInfo.className = 'time-slot-therapists';
                     
                     // Handle unavailable slots with clear messaging
                     if (!slot.available) {
-                        // Show "Hết chỗ" for fully booked slots
-                        const unavailableDisplay = document.createElement('div');
-                        unavailableDisplay.className = 'therapist-info-display unavailable';
-                        unavailableDisplay.innerHTML = `
+                        // Update existing element instead of replacing
+                        therapistInfo.className = 'time-slot-therapists therapist-info-display unavailable';
+                        therapistInfo.innerHTML = `
                             <iconify-icon icon="material-symbols:block" width="12" height="12" style="margin-right: 2px; color: #dc2626;"></iconify-icon>
                             <span style="color: #dc2626; font-weight: 600;">${slot.statusMessage || 'Hết chỗ'}</span>
                         `;
-                        therapistInfo.replaceWith(unavailableDisplay);
-                        therapistInfo = unavailableDisplay;
                         
                         button.title = 'Khung giờ này đã đầy. Vui lòng chọn khung giờ khác.';
                         button.disabled = true;
@@ -797,18 +794,15 @@ window.TimeSelection = (function() {
                         
                         // Set therapist count info
                         if (slot.therapistCount > 0) {
-                            // Create a more descriptive display with icon
-                            const therapistDisplay = document.createElement('div');
-                            therapistDisplay.className = 'therapist-info-display';
-                            therapistDisplay.innerHTML = `
+                            // Update the existing element instead of replacing it
+                            therapistInfo.className = 'time-slot-therapists therapist-info-display';
+                            therapistInfo.innerHTML = `
                                 <iconify-icon icon="material-symbols:person" width="12" height="12" style="margin-right: 2px;"></iconify-icon>
                                 ${slot.statusMessage || slot.therapistCount + ' có sẵn'}
                             `;
-                            therapistInfo.replaceWith(therapistDisplay);
-                            therapistInfo = therapistDisplay;
                             
-                            // Enhanced tooltip with detailed explanation
-                            const tooltipText = `${slot.therapistCount} nhà trị liệu có thể phục vụ trong khung giờ này. ${
+                            // Create tooltip text directly
+                            const therapistTooltip = `${slot.therapistCount} nhà trị liệu có thể phục vụ trong khung giờ này. ${
                                 slot.therapistCount > 3 ? 'Rất nhiều lựa chọn!' : 
                                 slot.therapistCount > 1 ? 'Có nhiều lựa chọn nhà trị liệu.' : 
                                 'Chỉ có 1 nhà trị liệu khả dụng.'
@@ -823,22 +817,26 @@ window.TimeSelection = (function() {
                             }
                             
                             // Set enhanced tooltip
-                            button.title = tooltipText;
+                            button.title = therapistTooltip;
                         } else {
                             therapistInfo.textContent = 'Không có';
                         }
                         
                         // Async conflict checking - will update UI when complete
+                        // Store reference to avoid closure issues
+                        const currentTherapistInfo = therapistInfo;
+                        const originalTooltip = button.title;
+                        
                         checkTimeConflicts(selectedDateTime, currentServiceDuration, currentModalService.serviceId)
                             .then(conflicts => {
                                 if (conflicts.length > 0) {
                                     button.classList.add('conflict');
                                     button.title = `⚠️ Khung giờ này xung đột với: ${conflicts.map(c => c.serviceName).join(', ')}. Vui lòng chọn khung giờ khác.`;
-                                    therapistInfo.textContent = 'Xung đột';
+                                    currentTherapistInfo.textContent = 'Xung đột';
                                 } else {
                                     // Keep the enhanced tooltip that was set earlier
                                     if (!button.title || button.title.includes('nhà trị liệu khả dụng')) {
-                                        button.title = tooltipText;
+                                        button.title = originalTooltip;
                                     }
                                 }
                             })
@@ -885,19 +883,16 @@ window.TimeSelection = (function() {
                     timeContent.className = 'time-slot-time';
                     timeContent.textContent = slot;
                     
-                    const therapistInfo = document.createElement('div');
+                    let therapistInfo = document.createElement('div');
                     therapistInfo.className = 'time-slot-therapists';
             
             if (isAvailable) {
                         // Mock therapist data for fallback with enhanced display
-                        const therapistDisplay = document.createElement('div');
-                        therapistDisplay.className = 'therapist-info-display';
-                        therapistDisplay.innerHTML = `
+                        therapistInfo.className = 'time-slot-therapists therapist-info-display';
+                        therapistInfo.innerHTML = `
                             <iconify-icon icon="material-symbols:person" width="12" height="12" style="margin-right: 2px;"></iconify-icon>
                             1 có sẵn
                         `;
-                        therapistInfo.replaceWith(therapistDisplay);
-                        therapistInfo = therapistDisplay;
                         
                         button.title = '1 nhà trị liệu có thể phục vụ trong khung giờ này. Chỉ có 1 nhà trị liệu khả dụng.';
                         
