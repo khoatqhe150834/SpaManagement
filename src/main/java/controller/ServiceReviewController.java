@@ -114,7 +114,7 @@ public class ServiceReviewController extends HttpServlet {
             }
             Service_Reviews review = new Service_Reviews(0, service, customer, appointment, rating, title, comment, now, now);
             reviewDAO.save(review);
-            response.sendRedirect("/admin/review?toastType=success&toastMessage=Added+successfully");
+            response.sendRedirect("/service-review?toastType=success&toastMessage=Added+successfully");
         } else if (action.equals("edit")) {
             int reviewId = Integer.parseInt(request.getParameter("review_id"));
             Service_Reviews review = new Service_Reviews(reviewId, service, customer, appointment, rating, title, comment, now, now);
