@@ -186,15 +186,14 @@
             display: block;
         }
         textarea#bio {
+            min-height: 120px;
+            max-height: 220px;
+            height: 120px;
             transition: height 0.2s;
             resize: none !important;
-            min-height: 120px;
-            max-height: 350px;
         }
         textarea#bio.expanded {
-            min-height: 250px;
-            height: 350px !important;
-            max-height: 350px;
+            height: 220px !important;
         }
     </style>
 </head>
@@ -275,17 +274,15 @@
                                             <textarea name="bio" class="form-control" id="bio"
                                                 placeholder="Viết mô tả ngắn về nhân viên (tối thiểu 20 ký tự)..."
                                                 rows="4" minlength="20" maxlength="500" required
-                                                style="transition: height 0.2s; resize: none; min-height: 120px; max-height: 350px;"></textarea>
-                                            <span id="bioValidIcon"
-                                                style="display:none;position:absolute;top:12px;right:16px;z-index:2;color:#22c55e;font-size:1.3em;">✔</span>
+                                                style="transition: height 0.2s; resize: none; min-height: 120px; max-height: 220px;"></textarea>
+                                            <span id="bioValidIcon" style="display:none;position:absolute;top:12px;right:16px;z-index:2;color:#22c55e;font-size:1.3em;">✔</span>
                                         </div>
                                         <div class="valid-feedback" id="bioValidMsg" style="display:none"></div>
                                         <div class="invalid-feedback" id="bioError"></div>
                                         <button type="button" id="toggleBioSize" class="btn btn-outline-secondary btn-sm mt-2">Mở rộng</button>
-                                    </div>
-                                    <div class="d-flex justify-content-between">
-                                        <div class="invalid-feedback" id="bioError"></div>
-                                        <small class="text-muted"><span id="bioCharCount">0</span>/500</small>
+                                        <div class="d-flex justify-content-end align-items-center" style="margin-top: 4px;">
+                                            <small class="text-muted"><span id="bioCharCount">0</span>/500</small>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="row">
@@ -410,9 +407,11 @@
             const bioValidMsg = document.getElementById('bioValidMsg');
             const bioError = document.getElementById('bioError');
             const toggleBioSizeBtn = document.getElementById('toggleBioSize');
+            const bioCharCount = document.getElementById('bioCharCount');
 
-            const DEFAULT_HEIGHT = 120; // px
-            const EXPANDED_HEIGHT = 350; // px (đủ cho 500 ký tự, có thể điều chỉnh)
+            const DEFAULT_HEIGHT = 120;
+            const EXPANDED_HEIGHT = 220;
+            let isExpanded = false;
 
             const validateBio = () => {
                 const length = bioTextarea.value.trim().length;
@@ -512,7 +511,6 @@
             }
 
             // Toggle mở rộng/thu gọn
-            let isExpanded = false;
             toggleBioSizeBtn.onclick = function() {
                 if (!isExpanded) {
                     bioTextarea.classList.add('expanded');
@@ -531,6 +529,11 @@
             bioTextarea.style.height = DEFAULT_HEIGHT + 'px';
             toggleBioSizeBtn.textContent = 'Mở rộng';
             isExpanded = false;
+
+            // Đếm ký tự
+            bioTextarea.addEventListener('input', function() {
+                bioCharCount.textContent = this.value.length;
+            });
         });
     </script>
 </body>
