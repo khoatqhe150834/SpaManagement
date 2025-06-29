@@ -33,92 +33,88 @@
 
             <div class="card h-100 p-0 radius-12">
                 <div class="card-body p-24">
-                    <div class="row justify-content-center">
-                        <div class="col-xxl-6 col-xl-8 col-lg-10">
-                            <div class="card border">
-                                <div class="card-body">
-                                    <form action="staff" method="post">
-                                        <input type="hidden" name="service" value="update" />
-                                        <input type="hidden" name="userId" value="${staff.user.userId}" />
-
-                                        <!-- Họ và tên (Readonly) -->
-                                        <div class="mb-20">
-                                            <label for="fullName" class="form-label fw-semibold text-primary-light text-sm mb-8">
-                                                Họ và tên <span class="text-danger-600">*</span>
-                                            </label>
-                                            <input type="text" name="fullName" class="form-control radius-8" id="fullName" value="${staff.user.fullName}" required readonly />
-                                        </div>
-
-                                        <!-- Tiểu sử -->
-                                        <div class="mb-20">
-                                            <label for="bio" class="form-label fw-semibold text-primary-light text-sm mb-8">
-                                                Tiểu sử <span class="text-danger-600">*</span>
-                                            </label>
-                                            <div style="position:relative;">
-                                                <textarea 
-                                                    name="bio" 
-                                                    class="form-control" 
-                                                    id="bio" 
-                                                    placeholder="Viết mô tả ngắn về nhân viên (tối thiểu 20 ký tự)..."
-                                                    rows="4" minlength="20" maxlength="500" required
-                                                    style="transition: height 0.2s; resize: none; min-height: 120px; max-height: 220px;"
-                                                >${staff.bio}</textarea>
-                                            </div>
-                                            <div class="valid-feedback" id="bioValid"></div>
-                                            <div class="invalid-feedback" id="bioError"></div>
-                                            <button type="button" id="toggleBioSize" class="btn btn-outline-secondary btn-sm mt-2">Mở rộng</button>
-                                            <div class="d-flex justify-content-end align-items-center" style="margin-top: 4px;">
-                                                <small class="text-muted"><span id="bioCharCount">0</span>/500</small>
-                                            </div>
-                                        </div>
-
-                                        <!-- Loại dịch vụ -->
-                                        <div class="mb-20">
-                                            <label for="serviceTypeId" class="form-label fw-semibold text-primary-light text-sm mb-8">
-                                                Loại dịch vụ <span class="text-danger-600">*</span>
-                                            </label>
-                                            <select name="serviceTypeId" class="form-control radius-8" id="serviceTypeId" required>
-                                                <c:forEach var="serviceType" items="${serviceTypes}">
-                                                    <option value="${serviceType.serviceTypeId}" ${serviceType.serviceTypeId == staff.serviceType.serviceTypeId ? "selected" : ""}>${serviceType.name}</option>
-                                                </c:forEach>
-                                            </select>
-                                        </div>
-
-                                        <!-- Trạng thái làm việc -->
-                                        <div class="mb-20">
-                                            <label for="availabilityStatus" class="form-label fw-semibold text-primary-light text-sm mb-8">
-                                                Trạng thái làm việc <span class="text-danger-600">*</span>
-                                            </label>
-                                            <select name="availabilityStatus" class="form-control radius-8" id="availabilityStatus" required>
-                                                <option value="AVAILABLE" ${staff.availabilityStatus == 'AVAILABLE' ? "selected" : ""}>Sẵn sàng</option>
-                                                <option value="BUSY" ${staff.availabilityStatus == 'BUSY' ? "selected" : ""}>Đang bận</option>
-                                                <option value="OFFLINE" ${staff.availabilityStatus == 'OFFLINE' ? "selected" : ""}>Ngoại tuyến</option>
-                                                <option value="ON_LEAVE" ${staff.availabilityStatus == 'ON_LEAVE' ? "selected" : ""}>Đang nghỉ phép</option>
-                                            </select>
-                                        </div>
-
-                                        <!-- Số năm kinh nghiệm -->
-                                        <div class="mb-20">
-                                            <label for="yearsOfExperience" class="form-label fw-semibold text-primary-light text-sm mb-8">
-                                                Số năm kinh nghiệm <span class="text-danger-600">*</span>
-                                            </label>
-                                            <input type="number" name="yearsOfExperience" class="form-control radius-8" id="yearsOfExperience"
-                                                value="${staff.yearsOfExperience}" required
-                                                data-birthday="<fmt:formatDate value='${staff.user.birthday}' pattern='yyyy-MM-dd'/>" />
-                                            <div class="invalid-feedback" id="yearsOfExperienceError"></div>
-                                            <div class="valid-feedback" id="yearsOfExperienceValid"></div>
-                                        </div>
-
-                                        <!-- Nút thao tác -->
-                                        <div class="d-flex align-items-center justify-content-center gap-3">
-                                            <a href="staff" class="btn btn-outline-danger border border-danger-600 px-56 py-11 radius-8">Hủy</a>
-                                            <button type="submit" class="btn btn-primary border border-primary-600 text-md px-56 py-12 radius-8">Cập nhật</button>
-                                        </div>
-                                    </form>
+                    <form action="staff" method="post">
+                        <input type="hidden" name="service" value="update" />
+                        <input type="hidden" name="userId" value="${staff.user.userId}" />
+                        <div class="row">
+                            <!-- Cột trái -->
+                            <div class="col-md-6">
+                                <!-- Họ và tên -->
+                                <div class="mb-20">
+                                    <label for="fullName" class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                        Họ và tên <span class="text-danger-600">*</span>
+                                    </label>
+                                    <input type="text" name="fullName" class="form-control radius-8" id="fullName" value="${staff.user.fullName}" required readonly />
+                                </div>
+                                <!-- Tiểu sử -->
+                                <div class="mb-20">
+                                    <label for="bio" class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                        Tiểu sử <span class="text-danger-600">*</span>
+                                    </label>
+                                    <div style="position:relative;">
+                                        <textarea name="bio" class="form-control" id="bio"
+                                            placeholder="Viết mô tả ngắn về nhân viên (tối thiểu 20 ký tự)..."
+                                            rows="4" minlength="20" maxlength="500" required
+                                            style="transition: height 0.2s; resize: none; min-height: 120px; max-height: 220px;">${staff.bio}</textarea>
+                                    </div>
+                                    <div class="valid-feedback" id="bioValid"></div>
+                                    <div class="invalid-feedback" id="bioError"></div>
+                                    <button type="button" id="toggleBioSize" class="btn btn-outline-secondary btn-sm mt-2">Mở rộng</button>
+                                    <div class="d-flex justify-content-end align-items-center" style="margin-top: 4px;">
+                                        <small class="text-muted"><span id="bioCharCount">0</span>/500</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Cột phải -->
+                            <div class="col-md-6">
+                                <!-- Loại dịch vụ -->
+                                <div class="mb-20">
+                                    <label for="serviceTypeId" class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                        Loại dịch vụ <span class="text-danger-600">*</span>
+                                    </label>
+                                    <select name="serviceTypeId" class="form-control radius-8" id="serviceTypeId" required>
+                                        <option value="">-- Chọn loại dịch vụ --</option>
+                                        <c:forEach var="serviceType" items="${serviceTypes}">
+                                            <option value="${serviceType.serviceTypeId}" ${serviceType.serviceTypeId == staff.serviceType.serviceTypeId ? "selected" : ""}>${serviceType.name}</option>
+                                        </c:forEach>
+                                    </select>
+                                    <div class="valid-feedback" id="serviceTypeIdValid"></div>
+                                    <div class="invalid-feedback" id="serviceTypeIdError"></div>
+                                </div>
+                                <!-- Trạng thái làm việc -->
+                                <div class="mb-20">
+                                    <label for="availabilityStatus" class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                        Trạng thái làm việc <span class="text-danger-600">*</span>
+                                    </label>
+                                    <select name="availabilityStatus" class="form-control radius-8" id="availabilityStatus" required>
+                                        <option value="">-- Chọn trạng thái --</option>
+                                        <option value="AVAILABLE" ${staff.availabilityStatus == 'AVAILABLE' ? "selected" : ""}>Sẵn sàng</option>
+                                        <option value="BUSY" ${staff.availabilityStatus == 'BUSY' ? "selected" : ""}>Đang bận</option>
+                                        <option value="OFFLINE" ${staff.availabilityStatus == 'OFFLINE' ? "selected" : ""}>Ngoại tuyến</option>
+                                        <option value="ON_LEAVE" ${staff.availabilityStatus == 'ON_LEAVE' ? "selected" : ""}>Đang nghỉ phép</option>
+                                    </select>
+                                    <div class="valid-feedback" id="availabilityStatusValid"></div>
+                                    <div class="invalid-feedback" id="availabilityStatusError"></div>
+                                </div>
+                                <!-- Số năm kinh nghiệm -->
+                                <div class="mb-20">
+                                    <label for="yearsOfExperience" class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                        Số năm kinh nghiệm <span class="text-danger-600">*</span>
+                                    </label>
+                                    <input type="number" name="yearsOfExperience" class="form-control radius-8" id="yearsOfExperience"
+                                        value="${staff.yearsOfExperience}" required
+                                        data-birthday="<fmt:formatDate value='${staff.user.birthday}' pattern='yyyy-MM-dd'/>" />
+                                    <div class="invalid-feedback" id="yearsOfExperienceError"></div>
+                                    <div class="valid-feedback" id="yearsOfExperienceValid"></div>
+                                </div>
+                                <!-- Nút thao tác -->
+                                <div class="d-flex align-items-center justify-content-center gap-3 mt-4">
+                                    <a href="staff" class="btn btn-outline-danger border border-danger-600 px-56 py-11 radius-8">Hủy</a>
+                                    <button type="submit" class="btn btn-primary border border-primary-600 text-md px-56 py-12 radius-8">Cập nhật</button>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -295,6 +291,13 @@
             #bioValidationMessage {
                 font-size: 0.875rem;
                 transition: color 0.15s ease-in-out;
+            }
+
+            @media (min-width: 992px) {
+                .card-body .row > [class^="col-"] {
+                    padding-left: 32px;
+                    padding-right: 32px;
+                }
             }
         </style>
 
