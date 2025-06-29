@@ -130,7 +130,7 @@
                                                 <div class="comment-respond" id="respond">
                                                     <h4 class="comment-reply-title" id="reply-title">Leave a Reply <small> <a style="display:none;" href="javascript:void(0);" id="cancel-comment-reply-link" rel="nofollow">Cancel reply</a> </small> </h4>
                                                     <form class="comment-form" id="commentform" method="post" action="${pageContext.request.contextPath}/blog" novalidate>
-                                                        <input type="hidden" name="slug" value="${blog.slug}"/>
+                                                        <input type="hidden" name="id" value="${blog.blogId}" />
                                                         <div class="mb-3">
                                                             <div class="input-group">
                                                                 <span class="input-group-text"><iconify-icon icon="mdi:comment-outline"></iconify-icon></span>

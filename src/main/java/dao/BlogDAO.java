@@ -621,4 +621,19 @@ public class BlogDAO extends DBContext {
         return ids;
     }
 
+    // Lấy blog theo id
+    public Blog findById(int id) {
+        String sql = "SELECT b.*, u.full_name AS author_name FROM blogs b JOIN users u ON b.author_user_id = u.user_id WHERE b.blog_id = ? LIMIT 1";
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return getFromResultSet(rs);
+            }
+        } catch (SQLException e) {
+            System.out.println("findById: " + e.getMessage());
+        }
+        return null;
+    }
+
 }

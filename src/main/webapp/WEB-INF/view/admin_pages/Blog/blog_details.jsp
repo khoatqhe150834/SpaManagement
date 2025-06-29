@@ -88,68 +88,67 @@
                             </div>
                         </div>
                     </div>
-                    <div class="card mt-24" id="comments">
-                        <div class="card-header border-bottom">
-                            <h6 class="text-xl mb-0">Comments</h6>
-                        </div>
-                        <div class="card-body p-24">
-                            <div class="comment-list d-flex flex-column">
-                                <c:choose>
-                                    <c:when test="${empty comments}">
-                                        <div class="text-neutral-500">No comments yet.</div>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <c:forEach var="comment" items="${comments}">
-                                            <div class="comment-list__item">
-                                                <div class="d-flex align-items-start gap-16">
-                                                    <div class="flex-shrink-0">
-                                                        <img src="
-                                                             <c:choose>
-                                                                 <c:when test='${not empty comment.avatarUrl && fn:startsWith(comment.avatarUrl, "http")}'>
-                                                                     ${comment.avatarUrl}
-                                                                 </c:when>
-                                                                 <c:when test='${not empty comment.avatarUrl}'>
-                                                                     ${pageContext.request.contextPath}${comment.avatarUrl}
-                                                                 </c:when>
-                                                                 <c:otherwise>
-                                                                     ${pageContext.request.contextPath}/assets/admin/images/user-list/user-list1.png
-                                                                 </c:otherwise>
-                                                             </c:choose>"
-                                                             class="w-60-px h-60-px rounded-circle object-fit-cover" alt="" />
-                                                    </div>
-                                                    <div
-                                                        class="flex-grow-1 border-bottom pb-40 mb-40 border-dashed d-flex align-items-center justify-content-between">
-                                                        <div>
-                                                            <h6 class="text-lg mb-4 mb-lg-0">${empty comment.customerName ?
-                                                                                               comment.guestName : comment.customerName}</h6>
-                                                            <span class="text-neutral-500 text-sm">
-                                                                <fmt:formatDate value="${comment.createdAtDate}"
-                                                                                pattern="MMM dd, yyyy 'at' HH:mm" />
-                                                            </span>
-                                                            <p class="text-neutral-600 text-md my-16">${comment.commentText}</p>
+                    <c:if test="${sessionScope.user != null && sessionScope.user.roleId == 6}">
+                            <div class="card mt-24" id="comments">
+                                <div class="card-header border-bottom">
+                                    <h6 class="text-xl mb-0">Comments</h6>
+                                </div>
+                                <div class="card-body p-24">
+                                    <div class="comment-list d-flex flex-column">
+                                        <c:choose>
+                                            <c:when test="${empty comments}">
+                                                <div class="text-neutral-500">No comments yet.</div>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <c:forEach var="comment" items="${comments}">
+                                                    <div class="comment-list__item">
+                                                        <div class="d-flex align-items-start gap-16">
+                                                            <div class="flex-shrink-0">
+                                                                <img src="
+                                                                     <c:choose>
+                                                                         <c:when test='${not empty comment.avatarUrl && fn:startsWith(comment.avatarUrl, "http")}'>
+                                                                             ${comment.avatarUrl}
+                                                                         </c:when>
+                                                                         <c:when test='${not empty comment.avatarUrl}'>
+                                                                             ${pageContext.request.contextPath}${comment.avatarUrl}
+                                                                         </c:when>
+                                                                         <c:otherwise>
+                                                                             ${pageContext.request.contextPath}/assets/admin/images/user-list/user-list1.png
+                                                                         </c:otherwise>
+                                                                     </c:choose>"
+                                                                     class="w-60-px h-60-px rounded-circle object-fit-cover" alt="" />
+                                                            </div>
+                                                            <div
+                                                                class="flex-grow-1 border-bottom pb-40 mb-40 border-dashed d-flex align-items-center justify-content-between">
+                                                                <div>
+                                                                    <h6 class="text-lg mb-4 mb-lg-0">${empty comment.customerName ?
+                                                                                                           comment.guestName : comment.customerName}</h6>
+                                                                    <span class="text-neutral-500 text-sm">
+                                                                        <fmt:formatDate value="${comment.createdAtDate}"
+                                                                                        pattern="MMM dd, yyyy 'at' HH:mm" />
+                                                                    </span>
+                                                                    <p class="text-neutral-600 text-md my-16">${comment.commentText}</p>
+                                                                </div>
+                                                                <form method="post" action="${pageContext.request.contextPath}/blog"
+                                                                      style="display:inline; margin-left: 12px;">
+                                                                    <input type="hidden" name="action" value="rejectComment" />
+                                                                    <input type="hidden" name="commentId"
+                                                                           value="${comment.commentId}" />
+                                                                    <input type="hidden" name="id" value="${blog.blogId}" />
+                                                                    <button type="submit"
+                                                                            class="btn btn-sm btn-danger radius-8">Reject
+                                                                        Comment</button>
+                                                                </form>
+                                                            </div>
                                                         </div>
-                                                        <c:if
-                                                            test="${sessionScope.user != null && sessionScope.user.roleId == 6}">
-                                                            <form method="post" action="${pageContext.request.contextPath}/blog"
-                                                                  style="display:inline; margin-left: 12px;">
-                                                                <input type="hidden" name="action" value="rejectComment" />
-                                                                <input type="hidden" name="commentId"
-                                                                       value="${comment.commentId}" />
-                                                                <input type="hidden" name="slug" value="${blog.slug}" />
-                                                                <button type="submit"
-                                                                        class="btn btn-sm btn-danger radius-8">Reject
-                                                                    Comment</button>
-                                                            </form>
-                                                        </c:if>
                                                     </div>
-                                                </div>
-                                            </div>
-                                        </c:forEach>
-                                    </c:otherwise>
-                                </c:choose>
+                                                </c:forEach>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
+                        </c:if>
                 </div>
 
                 <!-- Sidebar Start -->
@@ -206,8 +205,9 @@
                                                 <input type="hidden" name="action" value="updateBlogStatus">
                                                 <input type="hidden" name="blogId" value="${blog.blogId}">
                                                 <input type="hidden" name="status" value="PUBLISHED">
-                                                <button type="submit" class="btn btn-success radius-8 px-20 py-11 w-100">
-                                                    <iconify-icon icon="mdi:check" class="text-lg"></iconify-icon>
+                                                <input type="hidden" name="id" value="${blog.blogId}" />
+                                                <button type="submit" style="width:100%; background:#28a745; color:#fff; border:none; border-radius:16px; padding:20px 0; font-size:1.2rem; font-weight:600; display:flex; align-items:center; justify-content:center; gap:12px; transition:background 0.2s;" onmouseover="this.style.background='#218838'" onmouseout="this.style.background='#28a745'">
+                                                    <iconify-icon icon="mdi:check" style="font-size:1.5rem;"></iconify-icon>
                                                     Approve Blog
                                                 </button>
                                             </form>
@@ -217,8 +217,9 @@
                                                 <input type="hidden" name="action" value="updateBlogStatus">
                                                 <input type="hidden" name="blogId" value="${blog.blogId}">
                                                 <input type="hidden" name="status" value="ARCHIVED">
-                                                <button type="submit" class="btn btn-warning radius-8 px-20 py-11 w-100">
-                                                    <iconify-icon icon="mdi:archive" class="text-lg"></iconify-icon>
+                                                <input type="hidden" name="id" value="${blog.blogId}" />
+                                                <button type="submit" style="width:100%; background:#ffc107; color:#212529; border:none; border-radius:16px; padding:20px 0; font-size:1.2rem; font-weight:600; display:flex; align-items:center; justify-content:center; gap:12px; transition:background 0.2s;" onmouseover="this.style.background='#e0a800'" onmouseout="this.style.background='#ffc107'">
+                                                    <iconify-icon icon="mdi:archive" style="font-size:1.5rem;"></iconify-icon>
                                                     Archive Blog
                                                 </button>
                                             </form>
@@ -228,8 +229,9 @@
                                                 <input type="hidden" name="action" value="updateBlogStatus">
                                                 <input type="hidden" name="blogId" value="${blog.blogId}">
                                                 <input type="hidden" name="status" value="PUBLISHED">
-                                                <button type="submit" class="btn btn-info radius-8 px-20 py-11 w-100">
-                                                    <iconify-icon icon="mdi:restore" class="text-lg"></iconify-icon>
+                                                <input type="hidden" name="id" value="${blog.blogId}" />
+                                                <button type="submit" style="width:100%; background:#17a2b8; color:#fff; border:none; border-radius:16px; padding:20px 0; font-size:1.2rem; font-weight:600; display:flex; align-items:center; justify-content:center; gap:12px; transition:background 0.2s;" onmouseover="this.style.background='#117a8b'" onmouseout="this.style.background='#17a2b8'">
+                                                    <iconify-icon icon="mdi:restore" style="font-size:1.5rem;"></iconify-icon>
                                                     Restore Blog
                                                 </button>
                                             </form>
@@ -238,6 +240,8 @@
                                 </div>
                             </div>
                         </c:if>
+
+                        
                     </div>
                 </div>
             </div>
