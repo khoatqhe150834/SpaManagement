@@ -33,181 +33,171 @@
 
             <div class="card h-100 p-0 radius-12">
                 <div class="card-body p-24">
-                    <div class="row justify-content-center">
-                        <div class="col-xxl-6 col-xl-8 col-lg-10">
-                            <div class="card border">
-                                <div class="card-body">
-                                    <form action="staff" method="post">
-                                        <input type="hidden" name="service" value="update" />
-                                        <input type="hidden" name="userId" value="${staff.user.userId}" />
-
-                                        <!-- Full Name -->
-                                        <!-- Full Name (Readonly) -->
-                                        <div class="mb-20">
-                                            <label for="fullName" class="form-label fw-semibold text-primary-light text-sm mb-8">Full Name <span class="text-danger-600">*</span></label>
-                                            <input type="text" name="fullName" class="form-control radius-8" id="fullName" value="${staff.user.fullName}" required readonly />
-                                        </div>
-
-
-                                        <!-- Bio -->
-                                        <div class="mb-20">
-                                            <label for="bio" class="form-label fw-semibold text-primary-light text-sm mb-8">
-                                                Bio
-                                                <span class="text-muted text-sm">(20-500 characters)</span>
-                                            </label>
-                                            <div class="position-relative">
-                                                <textarea 
-                                                    name="bio" 
-                                                    class="form-control radius-8" 
-                                                    id="bio" 
-                                                    placeholder="Write a brief description about the staff member (minimum 20 characters)..." 
-                                                    rows="4"
-                                                    style="resize: none;"
-                                                    minlength="20"
-                                                    maxlength="500"
-                                                    required
-                                                >${staff.bio}</textarea>
-                                                <div class="form-text text-end">
-                                                    <span id="bioCharCount">0</span>/500 characters
-                                                    <span id="bioValidationMessage" class="ms-2"></span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Service Type -->
-                                        <div class="mb-20">
-                                            <label for="serviceTypeId" class="form-label fw-semibold text-primary-light text-sm mb-8">Service Type <span class="text-danger-600">*</span></label>
-                                            <select name="serviceTypeId" class="form-control radius-8" id="serviceTypeId" required>
-                                                <c:forEach var="serviceType" items="${serviceTypes}">
-                                                    <option value="${serviceType.serviceTypeId}" ${serviceType.serviceTypeId == staff.serviceType.serviceTypeId ? "selected" : ""}>${serviceType.name}</option>
-                                                </c:forEach>
-                                            </select>
-                                        </div>
-
-                                        <!-- Availability Status -->
-                                        <div class="mb-20">
-                                            <label for="availabilityStatus" class="form-label fw-semibold text-primary-light text-sm mb-8">Availability Status <span class="text-danger-600">*</span></label>
-                                            <select name="availabilityStatus" class="form-control radius-8" id="availabilityStatus" required>
-                                                <option value="AVAILABLE" ${staff.availabilityStatus == 'AVAILABLE' ? "selected" : ""}>Available</option>
-                                                <option value="BUSY" ${staff.availabilityStatus == 'BUSY' ? "selected" : ""}>Busy</option>
-                                                <option value="OFFLINE" ${staff.availabilityStatus == 'OFFLINE' ? "selected" : ""}>Offline</option>
-                                                <option value="ON_LEAVE" ${staff.availabilityStatus == 'ON_LEAVE' ? "selected" : ""}>On Leave</option>
-                                            </select>
-                                        </div>
-
-                                        <!-- Years of Experience -->
-                                        <div class="mb-20">
-                                            <label for="yearsOfExperience" class="form-label fw-semibold text-primary-light text-sm mb-8">
-                                                Số năm kinh nghiệm <span class="text-danger-600">*</span>
-                                            </label>
-                                            <input type="number" name="yearsOfExperience" class="form-control radius-8" id="yearsOfExperience"
-                                                value="${staff.yearsOfExperience}" required
-                                                data-birthday="<fmt:formatDate value='${staff.user.birthday}' pattern='yyyy-MM-dd'/>" />
-                                            <div class="invalid-feedback" id="yearsOfExperienceError"></div>
-                                            <div class="valid-feedback" id="yearsOfExperienceValid"></div>
-                                        </div>
-
-                                        <!-- Action Buttons -->
-                                        <div class="d-flex align-items-center justify-content-center gap-3">
-                                            <a href="staff" class="btn btn-outline-danger border border-danger-600 px-56 py-11 radius-8">Cancel</a>
-                                            <button type="submit" class="btn btn-primary border border-primary-600 text-md px-56 py-12 radius-8">Update</button>
-                                        </div>
-                                    </form>
+                    <form action="staff" method="post">
+                        <input type="hidden" name="service" value="update" />
+                        <input type="hidden" name="userId" value="${staff.user.userId}" />
+                        <div class="row">
+                            <!-- Cột trái -->
+                            <div class="col-md-6">
+                                <!-- Họ và tên -->
+                                <div class="mb-20">
+                                    <label for="fullName" class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                        Họ và tên <span class="text-danger-600">*</span>
+                                    </label>
+                                    <input type="text" name="fullName" class="form-control radius-8" id="fullName" value="${staff.user.fullName}" required readonly />
+                                </div>
+                                <!-- Tiểu sử -->
+                                <div class="mb-20">
+                                    <label for="bio" class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                        Tiểu sử <span class="text-danger-600">*</span>
+                                    </label>
+                                    <div style="position:relative;">
+                                        <textarea name="bio" class="form-control" id="bio"
+                                            placeholder="Viết mô tả ngắn về nhân viên (tối thiểu 20 ký tự)..."
+                                            rows="4" minlength="20" maxlength="500" required
+                                            style="transition: height 0.2s; resize: none; min-height: 120px; max-height: 220px;">${staff.bio}</textarea>
+                                    </div>
+                                    <div class="valid-feedback" id="bioValid"></div>
+                                    <div class="invalid-feedback" id="bioError"></div>
+                                    <button type="button" id="toggleBioSize" class="btn btn-outline-secondary btn-sm mt-2">Mở rộng</button>
+                                    <div class="d-flex justify-content-end align-items-center" style="margin-top: 4px;">
+                                        <small class="text-muted"><span id="bioCharCount">0</span>/500</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Cột phải -->
+                            <div class="col-md-6">
+                                <!-- Loại dịch vụ -->
+                                <div class="mb-20">
+                                    <label for="serviceTypeId" class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                        Loại dịch vụ <span class="text-danger-600">*</span>
+                                    </label>
+                                    <select name="serviceTypeId" class="form-control radius-8" id="serviceTypeId" required>
+                                        <option value="">-- Chọn loại dịch vụ --</option>
+                                        <c:forEach var="serviceType" items="${serviceTypes}">
+                                            <option value="${serviceType.serviceTypeId}" ${serviceType.serviceTypeId == staff.serviceType.serviceTypeId ? "selected" : ""}>${serviceType.name}</option>
+                                        </c:forEach>
+                                    </select>
+                                    <div class="valid-feedback" id="serviceTypeIdValid"></div>
+                                    <div class="invalid-feedback" id="serviceTypeIdError"></div>
+                                </div>
+                                <!-- Trạng thái làm việc -->
+                                <div class="mb-20">
+                                    <label for="availabilityStatus" class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                        Trạng thái làm việc <span class="text-danger-600">*</span>
+                                    </label>
+                                    <select name="availabilityStatus" class="form-control radius-8" id="availabilityStatus" required>
+                                        <option value="">-- Chọn trạng thái --</option>
+                                        <option value="AVAILABLE" ${staff.availabilityStatus == 'AVAILABLE' ? "selected" : ""}>Sẵn sàng</option>
+                                        <option value="BUSY" ${staff.availabilityStatus == 'BUSY' ? "selected" : ""}>Đang bận</option>
+                                        <option value="OFFLINE" ${staff.availabilityStatus == 'OFFLINE' ? "selected" : ""}>Ngoại tuyến</option>
+                                        <option value="ON_LEAVE" ${staff.availabilityStatus == 'ON_LEAVE' ? "selected" : ""}>Đang nghỉ phép</option>
+                                    </select>
+                                    <div class="valid-feedback" id="availabilityStatusValid"></div>
+                                    <div class="invalid-feedback" id="availabilityStatusError"></div>
+                                </div>
+                                <!-- Số năm kinh nghiệm -->
+                                <div class="mb-20">
+                                    <label for="yearsOfExperience" class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                        Số năm kinh nghiệm <span class="text-danger-600">*</span>
+                                    </label>
+                                    <input type="number" name="yearsOfExperience" class="form-control radius-8" id="yearsOfExperience"
+                                        value="${staff.yearsOfExperience}" required
+                                        data-birthday="<fmt:formatDate value='${staff.user.birthday}' pattern='yyyy-MM-dd'/>" />
+                                    <div class="invalid-feedback" id="yearsOfExperienceError"></div>
+                                    <div class="valid-feedback" id="yearsOfExperienceValid"></div>
+                                </div>
+                                <!-- Nút thao tác -->
+                                <div class="d-flex align-items-center justify-content-center gap-3 mt-4">
+                                    <a href="staff" class="btn btn-outline-danger border border-danger-600 px-56 py-11 radius-8">Hủy</a>
+                                    <button type="submit" class="btn btn-primary border border-primary-600 text-md px-56 py-12 radius-8">Cập nhật</button>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>
 
         <script>
-            // Xử lý bio textarea
+            // --- Bio Validation ---
             const bioTextarea = document.getElementById('bio');
+            const bioValid = document.getElementById('bioValid');
+            const bioError = document.getElementById('bioError');
+            const toggleBioSizeBtn = document.getElementById('toggleBioSize');
             const bioCharCount = document.getElementById('bioCharCount');
-            const bioValidationMessage = document.getElementById('bioValidationMessage');
-            const minLength = 20;
-            const maxLength = 500;
 
-            // Hàm format bio: loại bỏ khoảng trắng thừa
-            function formatBio(text) {
-                // Thay thế 2 hoặc nhiều khoảng trắng bằng 1 khoảng trắng
-                return text.replace(/\s{2,}/g, ' ').trim();
+            const DEFAULT_HEIGHT = 120;
+            const EXPANDED_HEIGHT = 220;
+            let isExpanded = false;
+
+            function setFieldInvalid(field, message) {
+                field.classList.remove('is-valid');
+                field.classList.add('is-invalid');
+                if (bioError) {
+                    bioError.textContent = message;
+                    bioError.style.display = 'block';
+                }
+                if (bioValid) bioValid.style.display = 'none';
+            }
+            function setFieldValid(field, message) {
+                field.classList.remove('is-invalid');
+                field.classList.add('is-valid');
+                if (bioValid) {
+                    bioValid.textContent = message;
+                    bioValid.style.display = 'block';
+                }
+                if (bioError) bioError.style.display = 'none';
             }
 
-            // Hàm validate bio
-            function validateBio(text) {
-                const formattedText = formatBio(text);
-                const length = formattedText.length;
-                
-                if (length < minLength) {
-                    bioValidationMessage.textContent = `Please enter at least ${minLength} characters`;
-                    bioValidationMessage.className = 'ms-2 text-danger';
+            function validateBio() {
+                const length = bioTextarea.value.trim().length;
+                if (length === 0) {
+                    setFieldInvalid(bioTextarea, 'Tiểu sử không được để trống.');
                     return false;
-                } else if (length > maxLength) {
-                    bioValidationMessage.textContent = `Maximum ${maxLength} characters allowed`;
-                    bioValidationMessage.className = 'ms-2 text-danger';
+                } else if (length < 20) {
+                    setFieldInvalid(bioTextarea, 'Cần ít nhất 20 ký tự.');
                     return false;
                 } else {
-                    bioValidationMessage.textContent = '';
-                    bioValidationMessage.className = 'ms-2';
+                    setFieldValid(bioTextarea, 'Tiểu sử hợp lệ.');
                     return true;
                 }
             }
+            bioTextarea.addEventListener('input', function() {
+                validateBio();
+                bioCharCount.textContent = this.value.length;
+            });
 
-            // Hàm cập nhật số ký tự
-            function updateCharCount() {
-                const currentText = bioTextarea.value;
-                const formattedText = formatBio(currentText);
-                const currentLength = formattedText.length;
-                
-                bioCharCount.textContent = currentLength;
-                
-                if (currentLength > maxLength) {
-                    bioCharCount.classList.add('text-danger');
+            // Toggle mở rộng/thu gọn
+            toggleBioSizeBtn.onclick = function() {
+                if (!isExpanded) {
+                    bioTextarea.classList.add('expanded');
+                    toggleBioSizeBtn.textContent = 'Thu gọn';
+                    isExpanded = true;
                 } else {
-                    bioCharCount.classList.remove('text-danger');
+                    bioTextarea.classList.remove('expanded');
+                    bioTextarea.style.height = DEFAULT_HEIGHT + 'px';
+                    toggleBioSizeBtn.textContent = 'Mở rộng';
+                    isExpanded = false;
                 }
+            };
 
-                validateBio(currentText);
-            }
+            // Đảm bảo khi load lại form, textarea ở trạng thái thu gọn
+            bioTextarea.classList.remove('expanded');
+            bioTextarea.style.height = DEFAULT_HEIGHT + 'px';
+            toggleBioSizeBtn.textContent = 'Mở rộng';
+            isExpanded = false;
 
-            // Xử lý sự kiện input
-            bioTextarea.addEventListener('input', function(e) {
-                const currentText = this.value;
-                const formattedText = formatBio(currentText);
-                
-                // Nếu text đã được format khác với text hiện tại
-                if (currentText !== formattedText) {
-                    const cursorPosition = this.selectionStart;
-                    const diff = currentText.length - formattedText.length;
-                    
-                    this.value = formattedText;
-                    
-                    // Giữ vị trí con trỏ
-                    this.setSelectionRange(cursorPosition - diff, cursorPosition - diff);
-                }
-                
-                updateCharCount();
-            });
+            // Khởi tạo đếm ký tự khi load trang
+            bioCharCount.textContent = bioTextarea.value.length;
 
-            // Xử lý sự kiện blur (khi rời khỏi textarea)
-            bioTextarea.addEventListener('blur', function() {
-                this.value = formatBio(this.value);
-                updateCharCount();
-            });
-
-            // Xử lý sự kiện submit form
+            // Validate khi submit form
             document.querySelector('form').addEventListener('submit', function(e) {
-                const bioText = bioTextarea.value;
-                if (!validateBio(bioText)) {
+                if (!validateBio()) {
                     e.preventDefault();
                     bioTextarea.focus();
                 }
             });
-
-            // Khởi tạo khi trang load
-            updateCharCount();
 
             // Validate Số năm kinh nghiệm
             const experienceInput = document.getElementById('yearsOfExperience');
@@ -226,29 +216,6 @@
                 maxExp = Math.max(0, age - 18);
                 experienceInput.max = maxExp;
                 experienceInput.placeholder = `Tối đa: ${maxExp}`;
-            }
-
-            function setFieldInvalid(field, message) {
-                field.classList.remove('is-valid');
-                field.classList.add('is-invalid');
-                const errorElement = document.getElementById(field.id + 'Error');
-                const validElement = document.getElementById(field.id + 'Valid');
-                if (errorElement) {
-                    errorElement.textContent = message;
-                    errorElement.style.display = 'block';
-                }
-                if (validElement) validElement.style.display = 'none';
-            }
-            function setFieldValid(field, message) {
-                field.classList.remove('is-invalid');
-                field.classList.add('is-valid');
-                const errorElement = document.getElementById(field.id + 'Error');
-                const validElement = document.getElementById(field.id + 'Valid');
-                if (validElement) {
-                    validElement.textContent = message;
-                    validElement.style.display = 'block';
-                }
-                if (errorElement) errorElement.style.display = 'none';
             }
 
             function validateExperience() {
@@ -295,7 +262,21 @@
             }
             
             textarea#bio {
-                transition: border-color 0.15s ease-in-out;
+                min-height: 120px;
+                max-height: 220px;
+                height: 120px;
+                transition: height 0.2s;
+                resize: none !important;
+            }
+            
+            textarea#bio.expanded {
+                height: 220px !important;
+            }
+            
+            /* Ẩn icon tích xanh mặc định của Bootstrap cho textarea khi is-valid */
+            textarea.is-valid, textarea.form-control.is-valid {
+                background-image: none !important;
+                padding-right: 0 !important;
             }
             
             textarea#bio:focus {
@@ -310,6 +291,13 @@
             #bioValidationMessage {
                 font-size: 0.875rem;
                 transition: color 0.15s ease-in-out;
+            }
+
+            @media (min-width: 992px) {
+                .card-body .row > [class^="col-"] {
+                    padding-left: 32px;
+                    padding-right: 32px;
+                }
             }
         </style>
 
