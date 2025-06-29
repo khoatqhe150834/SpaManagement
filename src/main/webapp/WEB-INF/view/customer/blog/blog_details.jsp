@@ -130,6 +130,7 @@
                                                 <div class="comment-respond" id="respond">
                                                     <h4 class="comment-reply-title" id="reply-title">Leave a Reply <small> <a style="display:none;" href="javascript:void(0);" id="cancel-comment-reply-link" rel="nofollow">Cancel reply</a> </small> </h4>
                                                     <form class="comment-form" id="commentform" method="post" action="${pageContext.request.contextPath}/blog" novalidate>
+                                                        <input type="hidden" name="action" value="submitComment" />
                                                         <input type="hidden" name="id" value="${blog.blogId}" />
                                                         <div class="mb-3">
                                                             <div class="input-group">
@@ -145,7 +146,7 @@
                                             </c:when>
                                             <c:otherwise>
                                                 <div class="alert alert-warning text-center mt-4 mb-4">
-                                                    Bạn cần <a href='${pageContext.request.contextPath}/login?returnUrl=${pageContext.request.requestURI}?slug=${blog.slug}'>đăng nhập</a> để bình luận.
+                                                    Bạn cần <a href='${pageContext.request.contextPath}/login?returnUrl=${pageContext.request.requestURI}?id=${blog.blogId}'>đăng nhập</a> để bình luận.
                                                 </div>
                                             </c:otherwise>
                                         </c:choose>
@@ -168,7 +169,7 @@
                                                 <div class="dlab-post-info">
                                                     <div class="dlab-post-header">
                                                             <h6 class="post-title">
-                                                                <a href="${pageContext.request.contextPath}/blog?slug=${rb.slug}">${rb.title}</a>
+                                                                <a href="${pageContext.request.contextPath}/blog?id=${rb.blogId}">${rb.title}</a>
                                                             </h6>
                                                     </div>
                                                     <div class="dlab-post-meta">

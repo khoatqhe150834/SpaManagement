@@ -33,7 +33,7 @@
         <div class="dashboard-main-body">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
                 <div class="d-flex align-items-center gap-2">
-                    <a href="${pageContext.request.contextPath}/blog?slug=${blog.slug}" class="btn btn-secondary radius-8 d-flex align-items-center gap-1">
+                    <a href="${pageContext.request.contextPath}/blog?id=${blog.blogId}" class="btn btn-secondary radius-8 d-flex align-items-center gap-1">
                         <iconify-icon icon="ep:back" class="text-lg"></iconify-icon>
                         Thoát
                     </a>
@@ -61,7 +61,7 @@
                             <c:if test="${not empty success}">
                                 <div class="alert alert-success mb-16">${success}</div>
                             </c:if>
-                            <form action="${pageContext.request.contextPath}/blog?action=edit&slug=${blog.slug}" method="post" enctype="multipart/form-data" class="d-flex flex-column gap-20" id="blogEditForm" novalidate>
+                            <form action="${pageContext.request.contextPath}/blog?action=edit&id=${blog.blogId}" method="post" enctype="multipart/form-data" class="d-flex flex-column gap-20" id="blogEditForm" novalidate>
                                 <div>
                                     <label class="form-label fw-bold text-neutral-900" for="title">Title <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control border border-neutral-200 radius-8" id="title" name="title" placeholder="Enter Post Title" value="${blog.title}">
@@ -166,6 +166,7 @@
         <script src="${pageContext.request.contextPath}/assets/admin/js/editor.katex.min.js"></script>
 
         <script>
+            const blogId = ${blog.blogId};
             // Editor Js Start
             const quill = new Quill('#editor', {
                 modules: {
@@ -178,14 +179,15 @@
             // Set initial content
             quill.root.innerHTML = `${blog.content}`;
             // On submit, copy content to hidden input
-            document.getElementById('blogEditForm').addEventListener('submit', function(e) {
+            document.getElementById('blogEditForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
                 let hasError = false;
                 // Title
                 const title = document.getElementById('title');
                 const titleError = document.getElementById('titleError');
-                if (!title.value.trim()) {
+                if (isOnlyWhitespace(title.value)) {
                     title.classList.add('is-invalid');
-                    titleError.textContent = 'Title is required.';
+                    titleError.textContent = 'Title không được để trống hoặc chỉ chứa khoảng trắng.';
                     hasError = true;
                 } else if (title.value.trim().length < 5) {
                     title.classList.add('is-invalid');
@@ -199,12 +201,21 @@
                     title.classList.remove('is-invalid');
                     titleError.textContent = '';
                 }
+                // Title duplicate check
+                if (title.value.trim()) {
+                    const isDup = await checkTitleDuplicate(title.value);
+                    if (isDup) {
+                        title.classList.add('is-invalid');
+                        titleError.textContent = 'Title đã tồn tại, vui lòng chọn tiêu đề khác.';
+                        hasError = true;
+                    }
+                }
                 // Summary
                 const summary = document.getElementById('summary');
                 const summaryError = document.getElementById('summaryError');
-                if (!summary.value.trim()) {
+                if (isOnlyWhitespace(summary.value)) {
                     summary.classList.add('is-invalid');
-                    summaryError.textContent = 'Summary is required.';
+                    summaryError.textContent = 'Summary không được để trống hoặc chỉ chứa khoảng trắng.';
                     hasError = true;
                 } else if (summary.value.trim().length < 10) {
                     summary.classList.add('is-invalid');
@@ -237,7 +248,11 @@
                 const quillHtml = quill.root.innerHTML;
                 contentHidden.value = quillHtml;
                 const quillContainer = document.querySelector('.ql-container');
-                if (!quillText || quillText.length < 10) {
+                if (isOnlyWhitespace(quillText)) {
+                    contentError.textContent = 'Content không được để trống hoặc chỉ chứa khoảng trắng.';
+                    quillContainer.classList.add('is-invalid');
+                    hasError = true;
+                } else if (quillText.length < 10) {
                     contentError.textContent = 'Content must be at least 10 characters.';
                     quillContainer.classList.add('is-invalid');
                     hasError = true;
@@ -249,7 +264,7 @@
                     contentError.textContent = '';
                     quillContainer.classList.remove('is-invalid');
                 }
-                // Image (không bắt buộc upload mới, chỉ validate nếu có file)
+                // Image
                 const image = document.getElementById('featureImage');
                 const imageError = document.getElementById('imageError');
                 if (image.files && image.files[0]) {
@@ -263,22 +278,64 @@
                         image.classList.add('is-invalid');
                         imageError.textContent = 'Image must be less than 2MB.';
                         hasError = true;
-                    } else if (!/^[-\w.]+$/.test(file.name)) {
-                        image.classList.add('is-invalid');
-                        imageError.textContent = 'Filename contains invalid characters.';
-                        hasError = true;
                     } else {
-                        image.classList.remove('is-invalid');
-                        imageError.textContent = '';
+                        // Kiểm tra file thực sự là ảnh bằng FileReader
+                        const fr = new FileReader();
+                        fr.onload = function(e) {
+                            const arr = new Uint8Array(e.target.result).subarray(0, 4);
+                            let header = '';
+                            for(let i = 0; i < arr.length; i++) header += arr[i].toString(16);
+                            // Kiểm tra magic number của file ảnh phổ biến
+                            const isImage = (
+                                header.startsWith('ffd8') || // jpg
+                                header.startsWith('89504e47') || // png
+                                header.startsWith('47494638') || // gif
+                                header.startsWith('52494646') // webp
+                            );
+                            if (!isImage) {
+                                image.classList.add('is-invalid');
+                                imageError.textContent = 'File không phải là ảnh hợp lệ.';
+                                hasError = true;
+                            } else {
+                                image.classList.remove('is-invalid');
+                                imageError.textContent = '';
+                            }
+                        };
+                        fr.readAsArrayBuffer(file.slice(0, 4));
                     }
                 } else {
                     image.classList.remove('is-invalid');
                     imageError.textContent = '';
                 }
-                if (hasError) {
-                    e.preventDefault();
+                if (!hasError) {
+                    this.submit();
                 }
             });
+            // AJAX check title duplicate
+            async function checkTitleDuplicate(title) {
+                if (!title.trim()) return false;
+                const resp = await fetch(`${pageContext.request.contextPath}/blog?action=checkTitle&title=` + encodeURIComponent(title.trim()) + '&excludeId=' + blogId);
+                if (!resp.ok) return false;
+                const data = await resp.json();
+                return data.duplicate === true;
+            }
+            document.getElementById('title').addEventListener('blur', async function() {
+                const title = this.value.trim();
+                if (title) {
+                    const isDup = await checkTitleDuplicate(title);
+                    if (isDup) {
+                        this.classList.add('is-invalid');
+                        document.getElementById('titleError').textContent = 'Title đã tồn tại, vui lòng chọn tiêu đề khác.';
+                    }
+                }
+            });
+            function isOnlyWhitespace(str) {
+                return !str || str.trim().length === 0;
+            }
+            function containsDangerousChars(str) {
+                // Chỉ loại các ký tự: < > { } [ ] | ` ~ ^ $ % \
+                return /[<>\{\}\[\]\|`~^$%\\]/.test(str);
+            }
         </script>
 
     </body>

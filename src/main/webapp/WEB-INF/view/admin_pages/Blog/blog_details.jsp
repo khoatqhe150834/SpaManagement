@@ -187,7 +187,7 @@
                         <c:if test="${sessionScope.user != null && sessionScope.user.roleId == 6}">
                             <div class="card">
                                 <div class="card-body p-24">
-                                    <a href="${pageContext.request.contextPath}/blog?action=edit&slug=${blog.slug}"
+                                    <a href="${pageContext.request.contextPath}/blog?action=edit&id=${blog.blogId}"
                                        class="btn btn-warning-600 radius-8 px-20 py-11 w-100">Edit Blog</a>
                                 </div>
                             </div>
