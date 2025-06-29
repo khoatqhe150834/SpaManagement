@@ -267,7 +267,12 @@
                                             <div class="form-group">
                                                 <label for="fullNameInput" class="form-label">Họ và tên</label>
                                                 <input type="text" id="fullNameInput" name="fullName" class="form-control" readonly placeholder="Tên sẽ tự động điền..." />
-                                                <span id="userAge" style="margin-left:8px; font-weight:500; color:#888;"></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label for="ageInput" class="form-label">Tuổi</label>
+                                                <input type="text" id="ageInput" class="form-control" readonly placeholder="--" />
                                             </div>
                                         </div>
                                     </div>
@@ -379,6 +384,7 @@
             // --- User Selection ---
             const userSelect = document.getElementById('userSelect');
             const fullNameInput = document.getElementById('fullNameInput');
+            const ageInput = document.getElementById('ageInput');
             const experienceInput = document.getElementById('yearsOfExperience');
 
             let maxExp = 100; // Giá trị mặc định
@@ -388,7 +394,8 @@
                 const fullName = $(selectedOption).data('fullname');
                 const birthday = $(selectedOption).data('birthday');
                 let ageText = '';
-                if (birthday) {
+                let ageValue = '';
+                if (birthday && birthday !== "null" && birthday !== "") {
                     const birthDate = new Date(birthday);
                     const today = new Date();
                     let age = today.getFullYear() - birthDate.getFullYear();
@@ -398,10 +405,11 @@
                     }
                     if (!isNaN(age) && age > 0) {
                         ageText = ` (${age} tuổi)`;
+                        ageValue = age;
                     }
                 }
-                fullNameInput.value = (fullName || 'Tên sẽ tự động điền...') + ageText;
-                document.getElementById('userAge').textContent = '';
+                fullNameInput.value = (fullName || 'Tên sẽ tự động điền...');
+                ageInput.value = ageValue || '';
 
                 if (this.value !== '') {
                     $.get('staff', { service: 'check-duplicate', userId: this.value }, function(res) {
