@@ -125,35 +125,30 @@
                                             <!-- comment list END -->
                                                         </div>
                                         <!-- Form gửi comment -->
-                                        <div class="comment-respond" id="respond">
-                                            <h4 class="comment-reply-title" id="reply-title">Leave a Reply <small> <a style="display:none;" href="javascript:void(0);" id="cancel-comment-reply-link" rel="nofollow">Cancel reply</a> </small> </h4>
-                                            <form class="comment-form" id="commentform" method="post" action="${pageContext.request.contextPath}/blog" novalidate>
-                                                <input type="hidden" name="slug" value="${blog.slug}"/>
-                                                <div class="row">
-                                                    <div class="col-md-6 mb-3">
-                                                        <div class="input-group">
-                                                            <span class="input-group-text"><iconify-icon icon="mdi:account-outline"></iconify-icon></span>
-                                                            <input type="text" name="guestName" placeholder="Author" id="author" class="form-control" required>
+                                        <c:choose>
+                                            <c:when test="${not empty sessionScope.customer}">
+                                                <div class="comment-respond" id="respond">
+                                                    <h4 class="comment-reply-title" id="reply-title">Leave a Reply <small> <a style="display:none;" href="javascript:void(0);" id="cancel-comment-reply-link" rel="nofollow">Cancel reply</a> </small> </h4>
+                                                    <form class="comment-form" id="commentform" method="post" action="${pageContext.request.contextPath}/blog" novalidate>
+                                                        <input type="hidden" name="slug" value="${blog.slug}"/>
+                                                        <div class="mb-3">
+                                                            <div class="input-group">
+                                                                <span class="input-group-text"><iconify-icon icon="mdi:comment-outline"></iconify-icon></span>
+                                                                <textarea rows="5" name="commentText" placeholder="Comment" id="comment" class="form-control" required></textarea>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                    <div class="col-md-6 mb-3">
-                                                        <div class="input-group">
-                                                            <span class="input-group-text"><iconify-icon icon="mdi:email-outline"></iconify-icon></span>
-                                                            <input type="email" name="guestEmail" placeholder="Email" id="email" class="form-control" required>
+                                                        <div class="text-center">
+                                                            <input type="submit" value="Post Comment" class="submit btn btn-primary" id="submit" name="submit">
                                                         </div>
-                                                    </div>
-                                                        </div>
-                                                <div class="mb-3">
-                                                    <div class="input-group">
-                                                        <span class="input-group-text"><iconify-icon icon="mdi:comment-outline"></iconify-icon></span>
-                                                        <textarea rows="5" name="commentText" placeholder="Comment" id="comment" class="form-control" required></textarea>
-                                                    </div>
+                                                    </form>
                                                 </div>
-                                                <div class="text-center">
-                                                    <input type="submit" value="Post Comment" class="submit btn btn-primary" id="submit" name="submit">
+                                            </c:when>
+                                            <c:otherwise>
+                                                <div class="alert alert-warning text-center mt-4 mb-4">
+                                                    Bạn cần <a href='${pageContext.request.contextPath}/login?returnUrl=${pageContext.request.requestURI}?slug=${blog.slug}'>đăng nhập</a> để bình luận.
                                                 </div>
-                                                </form>
-                                        </div>
+                                            </c:otherwise>
+                                        </c:choose>
                                     </div>
                                 </div>
                                 <!-- blog END -->

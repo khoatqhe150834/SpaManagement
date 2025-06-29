@@ -421,15 +421,21 @@ public class BlogController extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/blog");
             return;
         }
+        // Kiểm tra customer đã đăng nhập
+        HttpSession session = request.getSession();
+        Customer customer = (Customer) session.getAttribute("customer");
+        if (customer == null) {
+            // Nếu chưa đăng nhập, chuyển hướng về trang đăng nhập
+            response.sendRedirect(request.getContextPath() + "/login?returnUrl=" + request.getRequestURI() + "?slug=" + slug);
+            return;
+        }
         String commentText = request.getParameter("commentText");
-        String guestName = request.getParameter("guestName");
-        String guestEmail = request.getParameter("guestEmail");
-        Integer customerId = (Integer) request.getSession().getAttribute("customerId");
+        // Không cho phép nhập guestName, guestEmail nữa
         model.BlogComment comment = new model.BlogComment();
         comment.setBlogId(blog.getBlogId());
-        comment.setCustomerId(customerId);
-        comment.setGuestName(guestName);
-        comment.setGuestEmail(guestEmail);
+        comment.setCustomerId(customer.getCustomerId());
+        comment.setGuestName(null);
+        comment.setGuestEmail(null);
         comment.setCommentText(commentText);
         comment.setStatus("APPROVED"); // hoặc PENDING nếu muốn duyệt
         blogDAO.addComment(comment);
