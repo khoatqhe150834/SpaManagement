@@ -52,25 +52,23 @@
                                         <!-- Tiểu sử -->
                                         <div class="mb-20">
                                             <label for="bio" class="form-label fw-semibold text-primary-light text-sm mb-8">
-                                                Tiểu sử
-                                                <span class="text-muted text-sm">(20-500 ký tự)</span>
+                                                Tiểu sử <span class="text-danger-600">*</span>
                                             </label>
-                                            <div class="position-relative">
+                                            <div style="position:relative;">
                                                 <textarea 
                                                     name="bio" 
-                                                    class="form-control radius-8" 
+                                                    class="form-control" 
                                                     id="bio" 
-                                                    placeholder="Viết tiểu sử ngắn về nhân viên (tối thiểu 20 ký tự)..." 
-                                                    rows="4"
-                                                    style="resize: none;"
-                                                    minlength="20"
-                                                    maxlength="500"
-                                                    required
+                                                    placeholder="Viết mô tả ngắn về nhân viên (tối thiểu 20 ký tự)..."
+                                                    rows="4" minlength="20" maxlength="500" required
+                                                    style="transition: height 0.2s; resize: none; min-height: 120px; max-height: 220px;"
                                                 >${staff.bio}</textarea>
-                                                <div class="form-text text-end">
-                                                    <span id="bioCharCount">0</span>/500 ký tự
-                                                    <span id="bioValidationMessage" class="ms-2"></span>
-                                                </div>
+                                            </div>
+                                            <div class="valid-feedback" id="bioValid"></div>
+                                            <div class="invalid-feedback" id="bioError"></div>
+                                            <button type="button" id="toggleBioSize" class="btn btn-outline-secondary btn-sm mt-2">Mở rộng</button>
+                                            <div class="d-flex justify-content-end align-items-center" style="margin-top: 4px;">
+                                                <small class="text-muted"><span id="bioCharCount">0</span>/500</small>
                                             </div>
                                         </div>
 
@@ -126,92 +124,84 @@
         </div>
 
         <script>
-            // Xử lý bio textarea
+            // --- Bio Validation ---
             const bioTextarea = document.getElementById('bio');
+            const bioValid = document.getElementById('bioValid');
+            const bioError = document.getElementById('bioError');
+            const toggleBioSizeBtn = document.getElementById('toggleBioSize');
             const bioCharCount = document.getElementById('bioCharCount');
-            const bioValidationMessage = document.getElementById('bioValidationMessage');
-            const minLength = 20;
-            const maxLength = 500;
 
-            // Hàm format bio: loại bỏ khoảng trắng thừa
-            function formatBio(text) {
-                // Thay thế 2 hoặc nhiều khoảng trắng bằng 1 khoảng trắng
-                return text.replace(/\s{2,}/g, ' ').trim();
+            const DEFAULT_HEIGHT = 120;
+            const EXPANDED_HEIGHT = 220;
+            let isExpanded = false;
+
+            function setFieldInvalid(field, message) {
+                field.classList.remove('is-valid');
+                field.classList.add('is-invalid');
+                if (bioError) {
+                    bioError.textContent = message;
+                    bioError.style.display = 'block';
+                }
+                if (bioValid) bioValid.style.display = 'none';
+            }
+            function setFieldValid(field, message) {
+                field.classList.remove('is-invalid');
+                field.classList.add('is-valid');
+                if (bioValid) {
+                    bioValid.textContent = message;
+                    bioValid.style.display = 'block';
+                }
+                if (bioError) bioError.style.display = 'none';
             }
 
-            // Hàm validate bio
-            function validateBio(text) {
-                const formattedText = formatBio(text);
-                const length = formattedText.length;
-                
-                if (length < minLength) {
-                    bioValidationMessage.textContent = `Please enter at least ${minLength} characters`;
-                    bioValidationMessage.className = 'ms-2 text-danger';
+            function validateBio() {
+                const length = bioTextarea.value.trim().length;
+                if (length === 0) {
+                    setFieldInvalid(bioTextarea, 'Tiểu sử không được để trống.');
                     return false;
-                } else if (length > maxLength) {
-                    bioValidationMessage.textContent = `Maximum ${maxLength} characters allowed`;
-                    bioValidationMessage.className = 'ms-2 text-danger';
+                } else if (length < 20) {
+                    setFieldInvalid(bioTextarea, 'Cần ít nhất 20 ký tự.');
                     return false;
                 } else {
-                    bioValidationMessage.textContent = '';
-                    bioValidationMessage.className = 'ms-2';
+                    setFieldValid(bioTextarea, 'Tiểu sử hợp lệ.');
                     return true;
                 }
             }
+            bioTextarea.addEventListener('input', function() {
+                validateBio();
+                bioCharCount.textContent = this.value.length;
+            });
 
-            // Hàm cập nhật số ký tự
-            function updateCharCount() {
-                const currentText = bioTextarea.value;
-                const formattedText = formatBio(currentText);
-                const currentLength = formattedText.length;
-                
-                bioCharCount.textContent = currentLength;
-                
-                if (currentLength > maxLength) {
-                    bioCharCount.classList.add('text-danger');
+            // Toggle mở rộng/thu gọn
+            toggleBioSizeBtn.onclick = function() {
+                if (!isExpanded) {
+                    bioTextarea.classList.add('expanded');
+                    toggleBioSizeBtn.textContent = 'Thu gọn';
+                    isExpanded = true;
                 } else {
-                    bioCharCount.classList.remove('text-danger');
+                    bioTextarea.classList.remove('expanded');
+                    bioTextarea.style.height = DEFAULT_HEIGHT + 'px';
+                    toggleBioSizeBtn.textContent = 'Mở rộng';
+                    isExpanded = false;
                 }
+            };
 
-                validateBio(currentText);
-            }
+            // Đảm bảo khi load lại form, textarea ở trạng thái thu gọn
+            bioTextarea.classList.remove('expanded');
+            bioTextarea.style.height = DEFAULT_HEIGHT + 'px';
+            toggleBioSizeBtn.textContent = 'Mở rộng';
+            isExpanded = false;
 
-            // Xử lý sự kiện input
-            bioTextarea.addEventListener('input', function(e) {
-                const currentText = this.value;
-                const formattedText = formatBio(currentText);
-                
-                // Nếu text đã được format khác với text hiện tại
-                if (currentText !== formattedText) {
-                    const cursorPosition = this.selectionStart;
-                    const diff = currentText.length - formattedText.length;
-                    
-                    this.value = formattedText;
-                    
-                    // Giữ vị trí con trỏ
-                    this.setSelectionRange(cursorPosition - diff, cursorPosition - diff);
-                }
-                
-                updateCharCount();
-            });
+            // Khởi tạo đếm ký tự khi load trang
+            bioCharCount.textContent = bioTextarea.value.length;
 
-            // Xử lý sự kiện blur (khi rời khỏi textarea)
-            bioTextarea.addEventListener('blur', function() {
-                this.value = formatBio(this.value);
-                updateCharCount();
-            });
-
-            // Xử lý sự kiện submit form
+            // Validate khi submit form
             document.querySelector('form').addEventListener('submit', function(e) {
-                const bioText = bioTextarea.value;
-                if (!validateBio(bioText)) {
+                if (!validateBio()) {
                     e.preventDefault();
                     bioTextarea.focus();
                 }
             });
-
-            // Khởi tạo khi trang load
-            updateCharCount();
 
             // Validate Số năm kinh nghiệm
             const experienceInput = document.getElementById('yearsOfExperience');
@@ -230,29 +220,6 @@
                 maxExp = Math.max(0, age - 18);
                 experienceInput.max = maxExp;
                 experienceInput.placeholder = `Tối đa: ${maxExp}`;
-            }
-
-            function setFieldInvalid(field, message) {
-                field.classList.remove('is-valid');
-                field.classList.add('is-invalid');
-                const errorElement = document.getElementById(field.id + 'Error');
-                const validElement = document.getElementById(field.id + 'Valid');
-                if (errorElement) {
-                    errorElement.textContent = message;
-                    errorElement.style.display = 'block';
-                }
-                if (validElement) validElement.style.display = 'none';
-            }
-            function setFieldValid(field, message) {
-                field.classList.remove('is-invalid');
-                field.classList.add('is-valid');
-                const errorElement = document.getElementById(field.id + 'Error');
-                const validElement = document.getElementById(field.id + 'Valid');
-                if (validElement) {
-                    validElement.textContent = message;
-                    validElement.style.display = 'block';
-                }
-                if (errorElement) errorElement.style.display = 'none';
             }
 
             function validateExperience() {
@@ -299,7 +266,21 @@
             }
             
             textarea#bio {
-                transition: border-color 0.15s ease-in-out;
+                min-height: 120px;
+                max-height: 220px;
+                height: 120px;
+                transition: height 0.2s;
+                resize: none !important;
+            }
+            
+            textarea#bio.expanded {
+                height: 220px !important;
+            }
+            
+            /* Ẩn icon tích xanh mặc định của Bootstrap cho textarea khi is-valid */
+            textarea.is-valid, textarea.form-control.is-valid {
+                background-image: none !important;
+                padding-right: 0 !important;
             }
             
             textarea#bio:focus {
