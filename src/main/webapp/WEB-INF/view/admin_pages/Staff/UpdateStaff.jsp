@@ -41,26 +41,26 @@
                                         <input type="hidden" name="service" value="update" />
                                         <input type="hidden" name="userId" value="${staff.user.userId}" />
 
-                                        <!-- Full Name -->
-                                        <!-- Full Name (Readonly) -->
+                                        <!-- Họ và tên (Readonly) -->
                                         <div class="mb-20">
-                                            <label for="fullName" class="form-label fw-semibold text-primary-light text-sm mb-8">Full Name <span class="text-danger-600">*</span></label>
+                                            <label for="fullName" class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                                Họ và tên <span class="text-danger-600">*</span>
+                                            </label>
                                             <input type="text" name="fullName" class="form-control radius-8" id="fullName" value="${staff.user.fullName}" required readonly />
                                         </div>
 
-
-                                        <!-- Bio -->
+                                        <!-- Tiểu sử -->
                                         <div class="mb-20">
                                             <label for="bio" class="form-label fw-semibold text-primary-light text-sm mb-8">
-                                                Bio
-                                                <span class="text-muted text-sm">(20-500 characters)</span>
+                                                Tiểu sử
+                                                <span class="text-muted text-sm">(20-500 ký tự)</span>
                                             </label>
                                             <div class="position-relative">
                                                 <textarea 
                                                     name="bio" 
                                                     class="form-control radius-8" 
                                                     id="bio" 
-                                                    placeholder="Write a brief description about the staff member (minimum 20 characters)..." 
+                                                    placeholder="Viết tiểu sử ngắn về nhân viên (tối thiểu 20 ký tự)..." 
                                                     rows="4"
                                                     style="resize: none;"
                                                     minlength="20"
@@ -68,15 +68,17 @@
                                                     required
                                                 >${staff.bio}</textarea>
                                                 <div class="form-text text-end">
-                                                    <span id="bioCharCount">0</span>/500 characters
+                                                    <span id="bioCharCount">0</span>/500 ký tự
                                                     <span id="bioValidationMessage" class="ms-2"></span>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <!-- Service Type -->
+                                        <!-- Loại dịch vụ -->
                                         <div class="mb-20">
-                                            <label for="serviceTypeId" class="form-label fw-semibold text-primary-light text-sm mb-8">Service Type <span class="text-danger-600">*</span></label>
+                                            <label for="serviceTypeId" class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                                Loại dịch vụ <span class="text-danger-600">*</span>
+                                            </label>
                                             <select name="serviceTypeId" class="form-control radius-8" id="serviceTypeId" required>
                                                 <c:forEach var="serviceType" items="${serviceTypes}">
                                                     <option value="${serviceType.serviceTypeId}" ${serviceType.serviceTypeId == staff.serviceType.serviceTypeId ? "selected" : ""}>${serviceType.name}</option>
@@ -84,18 +86,20 @@
                                             </select>
                                         </div>
 
-                                        <!-- Availability Status -->
+                                        <!-- Trạng thái làm việc -->
                                         <div class="mb-20">
-                                            <label for="availabilityStatus" class="form-label fw-semibold text-primary-light text-sm mb-8">Availability Status <span class="text-danger-600">*</span></label>
+                                            <label for="availabilityStatus" class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                                Trạng thái làm việc <span class="text-danger-600">*</span>
+                                            </label>
                                             <select name="availabilityStatus" class="form-control radius-8" id="availabilityStatus" required>
-                                                <option value="AVAILABLE" ${staff.availabilityStatus == 'AVAILABLE' ? "selected" : ""}>Available</option>
-                                                <option value="BUSY" ${staff.availabilityStatus == 'BUSY' ? "selected" : ""}>Busy</option>
-                                                <option value="OFFLINE" ${staff.availabilityStatus == 'OFFLINE' ? "selected" : ""}>Offline</option>
-                                                <option value="ON_LEAVE" ${staff.availabilityStatus == 'ON_LEAVE' ? "selected" : ""}>On Leave</option>
+                                                <option value="AVAILABLE" ${staff.availabilityStatus == 'AVAILABLE' ? "selected" : ""}>Sẵn sàng</option>
+                                                <option value="BUSY" ${staff.availabilityStatus == 'BUSY' ? "selected" : ""}>Đang bận</option>
+                                                <option value="OFFLINE" ${staff.availabilityStatus == 'OFFLINE' ? "selected" : ""}>Ngoại tuyến</option>
+                                                <option value="ON_LEAVE" ${staff.availabilityStatus == 'ON_LEAVE' ? "selected" : ""}>Đang nghỉ phép</option>
                                             </select>
                                         </div>
 
-                                        <!-- Years of Experience -->
+                                        <!-- Số năm kinh nghiệm -->
                                         <div class="mb-20">
                                             <label for="yearsOfExperience" class="form-label fw-semibold text-primary-light text-sm mb-8">
                                                 Số năm kinh nghiệm <span class="text-danger-600">*</span>
@@ -107,10 +111,10 @@
                                             <div class="valid-feedback" id="yearsOfExperienceValid"></div>
                                         </div>
 
-                                        <!-- Action Buttons -->
+                                        <!-- Nút thao tác -->
                                         <div class="d-flex align-items-center justify-content-center gap-3">
-                                            <a href="staff" class="btn btn-outline-danger border border-danger-600 px-56 py-11 radius-8">Cancel</a>
-                                            <button type="submit" class="btn btn-primary border border-primary-600 text-md px-56 py-12 radius-8">Update</button>
+                                            <a href="staff" class="btn btn-outline-danger border border-danger-600 px-56 py-11 radius-8">Hủy</a>
+                                            <button type="submit" class="btn btn-primary border border-primary-600 text-md px-56 py-12 radius-8">Cập nhật</button>
                                         </div>
                                     </form>
                                 </div>
