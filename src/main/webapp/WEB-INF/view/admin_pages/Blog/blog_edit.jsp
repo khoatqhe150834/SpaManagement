@@ -25,7 +25,7 @@
         </style>
     </head>
     <body>
-        <jsp:include page="/WEB-INF/view/common/admin/sidebar.jsp" />
+        <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
         <jsp:include page="/WEB-INF/view/common/admin/header.jsp" />
 
 
@@ -81,16 +81,6 @@
                                         </c:forEach>
                                     </select>
                                     <div class="invalid-feedback" id="categoryError"></div>
-                                </div>
-                                <div>
-                                    <label class="form-label fw-bold text-neutral-900">Status <span class="text-danger">*</span></label>
-                                    <select class="form-control border border-neutral-200 radius-8" name="status" id="status">
-                                        <option value="DRAFT" ${blog.status == 'DRAFT' ? 'selected' : ''}>Draft</option>
-                                        <option value="PUBLISHED" ${blog.status == 'PUBLISHED' ? 'selected' : ''}>Published</option>
-                                        <option value="SCHEDULED" ${blog.status == 'SCHEDULED' ? 'selected' : ''}>Scheduled</option>
-                                        <option value="ARCHIVED" ${blog.status == 'ARCHIVED' ? 'selected' : ''}>Archived</option>
-                                    </select>
-                                    <div class="invalid-feedback" id="statusError"></div>
                                 </div>
                                 <div>
                                     <label class="form-label fw-bold text-neutral-900">Content <span class="text-danger">*</span></label>
@@ -239,18 +229,6 @@
                 } else {
                     category.classList.remove('is-invalid');
                     categoryError.textContent = '';
-                }
-                // Status
-                const status = document.getElementById('status');
-                const statusError = document.getElementById('statusError');
-                const validStatus = ['DRAFT', 'PUBLISHED', 'SCHEDULED', 'ARCHIVED'];
-                if (!status.value || !validStatus.includes(status.value)) {
-                    status.classList.add('is-invalid');
-                    statusError.textContent = 'Please select a valid status.';
-                    hasError = true;
-                } else {
-                    status.classList.remove('is-invalid');
-                    statusError.textContent = '';
                 }
                 // Content (Quill)
                 const contentHidden = document.getElementById('content-hidden');

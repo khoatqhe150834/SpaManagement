@@ -14,7 +14,7 @@
         <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp" />
 
     <body>
-        <jsp:include page="/WEB-INF/view/common/admin/sidebar.jsp" />
+        <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
         <jsp:include page="/WEB-INF/view/common/admin/header.jsp" />
         <div class="dashboard-main-body">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
@@ -105,92 +105,139 @@
                                                     <div class="flex-shrink-0">
                                                         <img src="
                                                              <c:choose>
-                                                                 <c:when test='${not empty comment.avatarUrl && fn:startsWith(comment.avatarUrl, "
-                                                                                 http") }'>
-                                                                             ${comment.avatarUrl}
-                                                                         </c:when>
-                                                                         <c:when test='${not empty comment.avatarUrl}'>
-                                                                             ${pageContext.request.contextPath}${comment.avatarUrl}
-                                                                         </c:when>
-                                                                         <c:otherwise>
-                                                                             ${pageContext.request.contextPath}/assets/admin/images/user-list/user-list1.png
-                                                                         </c:otherwise>
-                                                                 </c:choose>"
-                                                                 class="w-60-px h-60-px rounded-circle object-fit-cover" alt="" />
+                                                                 <c:when test='${not empty comment.avatarUrl && fn:startsWith(comment.avatarUrl, "http")}'>
+                                                                     ${comment.avatarUrl}
+                                                                 </c:when>
+                                                                 <c:when test='${not empty comment.avatarUrl}'>
+                                                                     ${pageContext.request.contextPath}${comment.avatarUrl}
+                                                                 </c:when>
+                                                                 <c:otherwise>
+                                                                     ${pageContext.request.contextPath}/assets/admin/images/user-list/user-list1.png
+                                                                 </c:otherwise>
+                                                             </c:choose>"
+                                                             class="w-60-px h-60-px rounded-circle object-fit-cover" alt="" />
+                                                    </div>
+                                                    <div
+                                                        class="flex-grow-1 border-bottom pb-40 mb-40 border-dashed d-flex align-items-center justify-content-between">
+                                                        <div>
+                                                            <h6 class="text-lg mb-4 mb-lg-0">${empty comment.customerName ?
+                                                                                               comment.guestName : comment.customerName}</h6>
+                                                            <span class="text-neutral-500 text-sm">
+                                                                <fmt:formatDate value="${comment.createdAtDate}"
+                                                                                pattern="MMM dd, yyyy 'at' HH:mm" />
+                                                            </span>
+                                                            <p class="text-neutral-600 text-md my-16">${comment.commentText}</p>
                                                         </div>
-                                                        <div
-                                                            class="flex-grow-1 border-bottom pb-40 mb-40 border-dashed d-flex align-items-center justify-content-between">
-                                                            <div>
-                                                                <h6 class="text-lg mb-4 mb-lg-0">${empty comment.customerName ?
-                                                                                                   comment.guestName : comment.customerName}</h6>
-                                                                <span class="text-neutral-500 text-sm">
-                                                                    <fmt:formatDate value="${comment.createdAtDate}"
-                                                                                    pattern="MMM dd, yyyy 'at' HH:mm" />
-                                                                </span>
-                                                                <p class="text-neutral-600 text-md my-16">${comment.commentText}</p>
-                                                            </div>
-                                                            <c:if
-                                                                test="${sessionScope.user != null && sessionScope.user.roleId == 6}">
-                                                                <form method="post" action="${pageContext.request.contextPath}/blog"
-                                                                      style="display:inline; margin-left: 12px;">
-                                                                    <input type="hidden" name="action" value="rejectComment" />
-                                                                    <input type="hidden" name="commentId"
-                                                                           value="${comment.commentId}" />
-                                                                    <input type="hidden" name="slug" value="${blog.slug}" />
-                                                                    <button type="submit"
-                                                                            class="btn btn-sm btn-danger radius-8">Reject
-                                                                        Comment</button>
-                                                                </form>
-                                                            </c:if>
-                                                        </div>
+                                                        <c:if
+                                                            test="${sessionScope.user != null && sessionScope.user.roleId == 6}">
+                                                            <form method="post" action="${pageContext.request.contextPath}/blog"
+                                                                  style="display:inline; margin-left: 12px;">
+                                                                <input type="hidden" name="action" value="rejectComment" />
+                                                                <input type="hidden" name="commentId"
+                                                                       value="${comment.commentId}" />
+                                                                <input type="hidden" name="slug" value="${blog.slug}" />
+                                                                <button type="submit"
+                                                                        class="btn btn-sm btn-danger radius-8">Reject
+                                                                    Comment</button>
+                                                            </form>
+                                                        </c:if>
                                                     </div>
                                                 </div>
-                                            </c:forEach>
-                                        </c:otherwise>
-                                    </c:choose>
-                                </div>
+                                            </div>
+                                        </c:forEach>
+                                    </c:otherwise>
+                                </c:choose>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Sidebar Start -->
-                    <div class="col-lg-4">
-                        <div class="d-flex flex-column gap-24">
+                <!-- Sidebar Start -->
+                <div class="col-lg-4">
+                    <div class="d-flex flex-column gap-24">
 
-                            <!-- Latest Blog -->
-                            <div class="card">
-                                <div class="card-header border-bottom">
-                                    <h6 class="text-xl mb-0">Latest Posts</h6>
-                                </div>
-                                <div class="card-body d-flex flex-column gap-24 p-24">
-                                    <c:forEach var="recent" items="${recentBlogs}">
-                                        <div class="d-flex flex-wrap mb-16">
-                                            <a href="${pageContext.request.contextPath}/blog?slug=${recent.slug}"
-                                               class="blog__thumb w-100 radius-12 overflow-hidden"
-                                               style="aspect-ratio: 16/9; display: block;">
-                                                <img src="${pageContext.request.contextPath}/${empty recent.featureImageUrl ? 'assets/admin/images/blog/blog5.png' : recent.featureImageUrl}"
-                                                     alt="" class="w-100 h-100 object-fit-cover"
-                                                     style="object-fit: cover; width: 100%; height: 100%;" />
-                                            </a>
-                                            <div class="blog__content">
-                                                <h6 class="mb-8">
-                                                    <a href="${pageContext.request.contextPath}/blog?slug=${recent.slug}"
-                                                       class="text-line-2 text-hover-primary-600 text-md transition-2">${recent.title}</a>
-                                                </h6>
-                                                <p class="text-line-2 text-sm text-neutral-500 mb-0">
-                                                    ${recent.summary}</p>
-                                            </div>
-                                        </div>
-                                    </c:forEach>
-                                </div>
+                        <!-- Latest Blog -->
+                        <div class="card">
+                            <div class="card-header border-bottom">
+                                <h6 class="text-xl mb-0">Latest Posts</h6>
                             </div>
-                            <c:if test="${sessionScope.user != null && sessionScope.user.roleId == 6}">
-                                <div class="mb-3">
+                            <div class="card-body d-flex flex-column gap-24 p-24">
+                                <c:forEach var="recent" items="${recentBlogs}">
+                                    <div class="d-flex flex-wrap mb-16">
+                                        <a href="${pageContext.request.contextPath}/blog?slug=${recent.slug}"
+                                           class="blog__thumb w-100 radius-12 overflow-hidden"
+                                           style="aspect-ratio: 16/9; display: block;">
+                                            <img src="${pageContext.request.contextPath}/${empty recent.featureImageUrl ? 'assets/admin/images/blog/blog5.png' : recent.featureImageUrl}"
+                                                 alt="" class="w-100 h-100 object-fit-cover"
+                                                 style="object-fit: cover; width: 100%; height: 100%;" />
+                                        </a>
+                                        <div class="blog__content">
+                                            <h6 class="mb-8">
+                                                <a href="${pageContext.request.contextPath}/blog?slug=${recent.slug}"
+                                                   class="text-line-2 text-hover-primary-600 text-md transition-2">${recent.title}</a>
+                                            </h6>
+                                            <p class="text-line-2 text-sm text-neutral-500 mb-0">
+                                                ${recent.summary}</p>
+                                        </div>
+                                    </div>
+                                </c:forEach>
+                            </div>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <c:if test="${sessionScope.user != null && sessionScope.user.roleId == 6}">
+                            <div class="card">
+                                <div class="card-body p-24">
                                     <a href="${pageContext.request.contextPath}/blog?action=edit&slug=${blog.slug}"
                                        class="btn btn-warning-600 radius-8 px-20 py-11 w-100">Edit Blog</a>
                                 </div>
-                            </c:if>
-                        </div>
+                            </div>
+                        </c:if>
+                        
+                        <c:if test="${sessionScope.user != null && sessionScope.user.roleId == 2}">
+                            <div class="card">
+                                <div class="card-header border-bottom">
+                                    <h6 class="text-xl mb-0">Blog Actions</h6>
+                                </div>
+                                <div class="card-body p-24">
+                                    <c:choose>
+                                        <c:when test="${blog.status == 'DRAFT'}">
+                                            <form action="${pageContext.request.contextPath}/blog" method="post" class="mb-2">
+                                                <input type="hidden" name="action" value="updateBlogStatus">
+                                                <input type="hidden" name="blogId" value="${blog.blogId}">
+                                                <input type="hidden" name="status" value="PUBLISHED">
+                                                <button type="submit" class="btn btn-success radius-8 px-20 py-11 w-100">
+                                                    <iconify-icon icon="mdi:check" class="text-lg"></iconify-icon>
+                                                    Approve Blog
+                                                </button>
+                                            </form>
+                                        </c:when>
+                                        <c:when test="${blog.status == 'PUBLISHED'}">
+                                            <form action="${pageContext.request.contextPath}/blog" method="post" class="mb-2">
+                                                <input type="hidden" name="action" value="updateBlogStatus">
+                                                <input type="hidden" name="blogId" value="${blog.blogId}">
+                                                <input type="hidden" name="status" value="ARCHIVED">
+                                                <button type="submit" class="btn btn-warning radius-8 px-20 py-11 w-100">
+                                                    <iconify-icon icon="mdi:archive" class="text-lg"></iconify-icon>
+                                                    Archive Blog
+                                                </button>
+                                            </form>
+                                        </c:when>
+                                        <c:when test="${blog.status == 'ARCHIVED'}">
+                                            <form action="${pageContext.request.contextPath}/blog" method="post" class="mb-2">
+                                                <input type="hidden" name="action" value="updateBlogStatus">
+                                                <input type="hidden" name="blogId" value="${blog.blogId}">
+                                                <input type="hidden" name="status" value="PUBLISHED">
+                                                <button type="submit" class="btn btn-info radius-8 px-20 py-11 w-100">
+                                                    <iconify-icon icon="mdi:restore" class="text-lg"></iconify-icon>
+                                                    Restore Blog
+                                                </button>
+                                            </form>
+                                        </c:when>
+                                    </c:choose>
+                                </div>
+                            </div>
+                        </c:if>
                     </div>
                 </div>
             </div>
@@ -198,6 +245,7 @@
 
 
             <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
+            <script src="${pageContext.request.contextPath}/assets/admin/js/lib/iconify-icon.min.js"></script>
 
         </body>
 
