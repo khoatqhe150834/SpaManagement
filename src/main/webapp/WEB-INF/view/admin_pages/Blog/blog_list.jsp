@@ -73,7 +73,7 @@
                     <div class="card h-100 p-0 radius-12 overflow-hidden">
                         <div class="card-body p-24">
                             <h6 class="mb-16">
-                                <a href="${pageContext.request.contextPath}/blog?slug=${blog.slug}" class="text-line-2 text-hover-primary-600 text-xl transition-2">${blog.title}</a>
+                                <a href="${pageContext.request.contextPath}/blog?id=${blog.blogId}" class="text-line-2 text-hover-primary-600 text-xl transition-2">${blog.title}</a>
                             </h6>
                             <div class="d-flex align-items-center gap-6 justify-content-between flex-wrap mb-16">
                                 <div class="d-flex align-items-center gap-8 text-neutral-500 fw-medium">
@@ -85,7 +85,7 @@
                                     <fmt:formatDate value="${blog.publishedAtDate != null ? blog.publishedAtDate : blog.createdAtDate}" pattern="MMM dd, yyyy"/>
                                 </div>
                             </div>
-                            <a href="${pageContext.request.contextPath}/blog?slug=${blog.slug}" class="w-100 max-h-194-px radius-8 overflow-hidden">
+                            <a href="${pageContext.request.contextPath}/blog?id=${blog.blogId}" class="w-100 max-h-194-px radius-8 overflow-hidden">
                                 <img src="${pageContext.request.contextPath}/${empty blog.featureImageUrl ? 'assets/admin/images/blog/blog1.png' : blog.featureImageUrl}" alt="" class="w-100 h-100 object-fit-cover">                        
                             </a>
                             <div class="mt-20">
@@ -96,11 +96,24 @@
                                         <img src="${pageContext.request.contextPath}/assets/admin/images/user-list/user-list1.png" alt="" class="w-40-px h-40-px rounded-circle object-fit-cover">
                                         <div class="d-flex flex-column">
                                             <h6 class="text-sm mb-0">${blog.authorName}</h6>
-                                            <span class="text-xs text-neutral-500">${blog.status}</span>
+                                            <c:choose>
+                                                <c:when test="${blog.status == 'PUBLISHED'}">
+                                                    <span class="badge px-2 py-1 mt-1" style="font-size:12px; font-weight:600; background-color:#28a745; color:#fff;">PUBLISHED</span>
+                                                </c:when>
+                                                <c:when test="${blog.status == 'DRAFT'}">
+                                                    <span class="badge px-2 py-1 mt-1" style="font-size:12px; font-weight:600; background-color:#6c757d; color:#fff;">DRAFT</span>
+                                                </c:when>
+                                                <c:when test="${blog.status == 'ARCHIVED'}">
+                                                    <span class="badge px-2 py-1 mt-1" style="font-size:12px; font-weight:600; background-color:#ffc107; color:#212529;">ARCHIVED</span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="badge px-2 py-1 mt-1" style="font-size:12px; font-weight:600; background-color:#dee2e6; color:#212529;">${blog.status}</span>
+                                                </c:otherwise>
+                                            </c:choose>
                                         </div>
                                     </div>
                                     <div class="d-flex flex-column align-items-end gap-2">
-                                        <a href="${pageContext.request.contextPath}/blog?slug=${blog.slug}" class="btn btn-sm btn-primary-600 d-flex align-items-center gap-1 text-xs px-8 py-6">
+                                        <a href="${pageContext.request.contextPath}/blog?id=${blog.blogId}" class="btn btn-sm btn-primary-600 d-flex align-items-center gap-1 text-xs px-8 py-6">
                                             Read More
                                         </a>
                                         <c:if test="${sessionScope.user != null && sessionScope.user.roleId == 2}">
@@ -110,6 +123,7 @@
                                                         <input type="hidden" name="action" value="updateBlogStatus">
                                                         <input type="hidden" name="blogId" value="${blog.blogId}">
                                                         <input type="hidden" name="status" value="PUBLISHED">
+                                                        <input type="hidden" name="page" value="${currentPage}" />
                                                         <button type="submit" class="btn btn-sm btn-success d-flex align-items-center gap-1 text-xs px-8 py-6 w-100">
                                                             <iconify-icon icon="mdi:check" class="text-lg"></iconify-icon>
                                                             Approve
@@ -121,6 +135,7 @@
                                                         <input type="hidden" name="action" value="updateBlogStatus">
                                                         <input type="hidden" name="blogId" value="${blog.blogId}">
                                                         <input type="hidden" name="status" value="ARCHIVED">
+                                                        <input type="hidden" name="page" value="${currentPage}" />
                                                         <button type="submit" class="btn btn-sm btn-warning d-flex align-items-center gap-1 text-xs px-8 py-6 w-100">
                                                             <iconify-icon icon="mdi:archive" class="text-lg"></iconify-icon>
                                                             Archive
@@ -132,6 +147,7 @@
                                                         <input type="hidden" name="action" value="updateBlogStatus">
                                                         <input type="hidden" name="blogId" value="${blog.blogId}">
                                                         <input type="hidden" name="status" value="PUBLISHED">
+                                                        <input type="hidden" name="page" value="${currentPage}" />
                                                         <button type="submit" class="btn btn-sm btn-info d-flex align-items-center gap-1 text-xs px-8 py-6 w-100">
                                                             <iconify-icon icon="mdi:restore" class="text-lg"></iconify-icon>
                                                             Restore
