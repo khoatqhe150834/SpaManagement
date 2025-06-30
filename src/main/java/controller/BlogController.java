@@ -503,6 +503,7 @@ public class BlogController extends HttpServlet {
             return;
         }
         String commentIdStr = request.getParameter("commentId");
+        String id = request.getParameter("id"); // lấy tham số id để kiểm tra redirect
         if (commentIdStr == null) {
             response.sendRedirect(request.getContextPath() + "/blog");
             return;
@@ -512,7 +513,12 @@ public class BlogController extends HttpServlet {
             blogDAO.updateCommentStatus(commentId, "REJECTED");
         } catch (NumberFormatException ignore) {
         }
-        response.sendRedirect(request.getContextPath() + "/blog");
+        if (id != null && !id.isEmpty()) {
+            // Nếu có id, redirect về trang chi tiết blog
+            response.sendRedirect(request.getContextPath() + "/blog?id=" + id + "#comments");
+        } else {
+            response.sendRedirect(request.getContextPath() + "/blog");
+        }
     }
 
     private void handleUpdateBlogStatus(HttpServletRequest request, HttpServletResponse response)
@@ -526,6 +532,7 @@ public class BlogController extends HttpServlet {
         String blogIdStr = request.getParameter("blogId");
         String status = request.getParameter("status");
         String page = request.getParameter("page");
+        String id = request.getParameter("id"); // lấy tham số id để kiểm tra redirect
         if (blogIdStr == null || status == null) {
             response.sendRedirect(request.getContextPath() + "/blog");
             return;
@@ -534,6 +541,11 @@ public class BlogController extends HttpServlet {
             int blogId = Integer.parseInt(blogIdStr);
             boolean ok = blogDAO.updateBlogStatus(blogId, status);
             if (ok) {
+                if (id != null && !id.isEmpty()) {
+                    // Nếu có id, redirect về trang chi tiết blog
+                    response.sendRedirect(request.getContextPath() + "/blog?id=" + id);
+                    return;
+                }
                 String redirectUrl = request.getContextPath() + "/blog?action=list";
                 if (page != null && !page.isEmpty()) {
                     redirectUrl += "&page=" + page;
