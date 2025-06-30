@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.util.List;
 import model.Service;
 
-@WebServlet(name = "ServiceTypeController", urlPatterns = {"/servicetype"})
+@WebServlet(name = "ServiceTypeController", urlPatterns = {"/manager/servicetype"})
 @MultipartConfig(
     fileSizeThreshold = 0,
     maxFileSize = 2097152, // 2MB

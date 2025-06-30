@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Optional;
 
-@WebServlet(name = "ServiceController", urlPatterns = { "/service" })
+@WebServlet(name = "ServiceController", urlPatterns = {"/manager/service"})
 @MultipartConfig(
     fileSizeThreshold = 0,
     maxFileSize = 2097152, // 2MB

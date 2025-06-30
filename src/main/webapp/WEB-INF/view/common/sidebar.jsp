@@ -371,13 +371,13 @@
                     </a>
                     <ul class="sidebar-submenu">
                         <li>
-                            <a href="<%= contextPath %>/servicetype">
+                            <a href="<%= contextPath %>/manager/servicetype">
                                 <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Quản lí loại dịch vụ
                             </a>
                         </li>
                         <li>
-                            <a href="<%= contextPath %>/manager-dashboard/services/pricing">
-                                <i class="ri-circle-fill circle-icon text-warning-main w-auto"></i> Giá & Khuyến Mãi
+                            <a href="<%= contextPath %>/manager/service">
+                                <i class="ri-circle-fill circle-icon text-warning-main w-auto"></i> Quản lí dịch vụ
                             </a>
                         </li>
                         <li>
