@@ -4,6 +4,7 @@ class RegisterPage {
         if (!this.form) return;
 
         this.fullNameInput = document.getElementById('fullName');
+        this.phoneInput = document.getElementById('phone');
         this.emailInput = document.getElementById('email');
         this.passwordInput = document.getElementById('password');
         this.confirmPasswordInput = document.getElementById('confirmPassword');
@@ -13,6 +14,11 @@ class RegisterPage {
         this.toggleConfirmPasswordBtn = document.getElementById('toggle-confirm-password');
 
         this.submitBtn = document.getElementById('submit-btn');
+
+        this.termsLink = document.getElementById('terms-link');
+        this.termsModal = document.getElementById('terms-modal');
+        this.closeModalBtn = document.getElementById('close-modal-btn');
+        this.acceptTermsBtn = document.getElementById('accept-terms-btn');
 
         this.init();
     }
@@ -28,24 +34,31 @@ class RegisterPage {
         this.togglePasswordBtn.addEventListener('click', () => this.togglePasswordVisibility(this.passwordInput, this.togglePasswordBtn));
         this.toggleConfirmPasswordBtn.addEventListener('click', () => this.togglePasswordVisibility(this.confirmPasswordInput, this.toggleConfirmPasswordBtn));
 
+        // Add blur listener for trimming
+        [this.fullNameInput, this.phoneInput, this.emailInput].forEach(input => {
+            input.addEventListener('blur', (e) => this.trimOnBlur(e));
+        });
+
         this.fullNameInput.addEventListener('input', () => this.validateFullName());
-        this.fullNameInput.addEventListener('blur', () => this.validateFullName(true));
-
-        this.emailInput.addEventListener('input', () => this.validateEmail());
-        this.emailInput.addEventListener('blur', () => this.validateEmail(true));
-
-        this.passwordInput.addEventListener('input', () => {
-            this.validatePassword();
-            this.validateConfirmPassword();
-        });
-        this.passwordInput.addEventListener('blur', () => {
-            this.validatePassword(true);
-        });
-
-        this.confirmPasswordInput.addEventListener('input', () => this.validateConfirmPassword());
-        this.confirmPasswordInput.addEventListener('blur', () => this.validateConfirmPassword(true));
         
+        // Debounce validation for email and phone
+        this.emailInput.addEventListener('input', this.debounce(() => this.validateEmail(false, true), 500));
+        this.phoneInput.addEventListener('input', this.debounce(() => this.validatePhone(false, true), 500));
+
         this.agreeTermsCheckbox.addEventListener('change', () => this.validateAgreeTerms());
+
+        // Modal event listeners
+        this.termsLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.openModal();
+        });
+        this.closeModalBtn.addEventListener('click', () => this.closeModal());
+        this.acceptTermsBtn.addEventListener('click', () => this.closeModal());
+        this.termsModal.addEventListener('click', (e) => {
+            if (e.target === this.termsModal) {
+                this.closeModal();
+            }
+        });
     }
 
     togglePasswordVisibility(input, button) {
@@ -57,6 +70,20 @@ class RegisterPage {
         lucide.createIcons();
     }
     
+    sanitizeInput(inputElement) {
+        let value = inputElement.value;
+        // Collapse multiple spaces into a single space
+        value = value.replace(/\s\s+/g, ' ');
+        // For all but password fields, we can also trim in real-time if desired,
+        // but trimming on blur is often a better UX. Let's stick to that.
+        inputElement.value = value;
+    }
+
+    trimOnBlur(event) {
+        const input = event.target;
+        input.value = input.value.trim();
+    }
+
     setError(input, errorElement, message) {
         input.classList.remove('border-green-600', 'focus:ring-green-600');
         input.classList.add('border-red-600', 'focus:ring-red-600');
@@ -74,8 +101,10 @@ class RegisterPage {
     }
 
     validateFullName(showSuccess = false) {
+        this.sanitizeInput(this.fullNameInput);
+        const value = this.fullNameInput.value.trim();
         const errorElement = this.fullNameInput.parentElement.nextElementSibling;
-        if (this.fullNameInput.value.trim() === '') {
+        if (value === '') {
             this.setError(this.fullNameInput, errorElement, 'Vui lòng nhập họ tên.');
             return false;
         }
@@ -83,12 +112,46 @@ class RegisterPage {
         return true;
     }
 
-    validateEmail(showSuccess = false) {
+    async validatePhone(showSuccess = false, checkAvailable = false) {
+        this.sanitizeInput(this.phoneInput);
+        const value = this.phoneInput.value.trim();
+        const errorElement = this.phoneInput.parentElement.nextElementSibling;
+        const phoneRegex = /^0\d{9}$/;
+
+        if (value === '') {
+            this.setError(this.phoneInput, errorElement, 'Vui lòng nhập số điện thoại.');
+            return false;
+        }
+        if (!phoneRegex.test(value)) {
+            this.setError(this.phoneInput, errorElement, 'Số điện thoại phải bắt đầu bằng 0 và có đúng 10 chữ số.');
+            return false;
+        }
+        if (checkAvailable) {
+            const isTaken = await this.checkAvailability('phone', value);
+            if (isTaken) {
+                this.setError(this.phoneInput, errorElement, 'Số điện thoại này đã được đăng ký.');
+                return false;
+            }
+        }
+        this.setSuccess(this.phoneInput, errorElement, showSuccess);
+        return true;
+    }
+
+    async validateEmail(showSuccess = false, checkAvailable = false) {
+        this.sanitizeInput(this.emailInput);
+        const value = this.emailInput.value.trim();
         const errorElement = this.emailInput.parentElement.nextElementSibling;
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(this.emailInput.value)) {
+        const emailRegex = /^[a-zA-Z0-9][a-zA-Z0-9._%+-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailRegex.test(value)) {
             this.setError(this.emailInput, errorElement, 'Email không hợp lệ.');
             return false;
+        }
+         if (checkAvailable) {
+            const isTaken = await this.checkAvailability('email', value);
+            if (isTaken) {
+                this.setError(this.emailInput, errorElement, 'Email này đã được đăng ký.');
+                return false;
+            }
         }
         this.setSuccess(this.emailInput, errorElement, showSuccess);
         return true;
@@ -97,10 +160,10 @@ class RegisterPage {
     validatePassword(showSuccess = false) {
         const errorElement = this.passwordInput.parentElement.nextElementSibling;
         const password = this.passwordInput.value;
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+        const passwordRegex = /^.{6,}$/;
 
         if (!passwordRegex.test(password)) {
-            this.setError(this.passwordInput, errorElement, 'Mật khẩu phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường và số.');
+            this.setError(this.passwordInput, errorElement, 'Mật khẩu phải có ít nhất 6 ký tự.');
             return false;
         }
         this.setSuccess(this.passwordInput, errorElement, showSuccess);
@@ -145,33 +208,75 @@ class RegisterPage {
     async handleSubmit(e) {
         e.preventDefault();
         
-        const isFullNameValid = this.validateFullName(true);
-        const isEmailValid = this.validateEmail(true);
-        const isPasswordValid = this.validatePassword(true);
-        const isConfirmPasswordValid = this.validateConfirmPassword(true);
-        const isTermsAgreed = this.validateAgreeTerms();
+        // Run all validations and wait for them to complete
+        const validations = await Promise.all([
+            this.validateFullName(true),
+            this.validatePhone(true, true),
+            this.validateEmail(true, true),
+            this.validatePassword(true),
+            this.validateConfirmPassword(true),
+            this.validateAgreeTerms()
+        ]);
+        
+        const isFormValid = validations.every(isValid => isValid);
 
-        if (!isFullNameValid || !isEmailValid || !isPasswordValid || !isConfirmPasswordValid || !isTermsAgreed) {
+        if (!isFormValid) {
             return;
         }
 
         this.setLoading(true);
         
-        await new Promise(resolve => setTimeout(resolve, 1600));
+        try {
+            const formData = new FormData(this.form);
+            const response = await fetch('register', {
+                method: 'POST',
+                body: new URLSearchParams(formData)
+            });
 
-        this.setLoading(false);
-        const notification = document.getElementById('notification');
-        if (notification) {
-            notification.textContent = 'Đăng ký thành công! Chuyển hướng đến trang đăng nhập...';
-            notification.className = 'notification success show';
-            setTimeout(() => {
-                notification.className = 'notification success';
-            }, 3000);
+            const result = await response.json();
+
+            if (result.success) {
+                 window.location.href = result.redirectUrl;
+            } else {
+                SpaApp.showNotification(result.message || 'Đăng ký thất bại, vui lòng thử lại.', 'error');
+            }
+        } catch (error) {
+             SpaApp.showNotification('Không thể kết nối đến máy chủ.', 'error');
+        } finally {
+            this.setLoading(false);
         }
-        
-        setTimeout(() => {
-            window.location.href = this.form.querySelector('a[href*="login"]').href;
-        }, 2000);
+    }
+
+    openModal() {
+        this.termsModal.classList.add('flex');
+        this.termsModal.classList.remove('hidden');
+        lucide.createIcons(); // Re-initialize icons when modal opens
+    }
+
+    closeModal() {
+        this.termsModal.classList.add('hidden');
+        this.termsModal.classList.remove('flex');
+    }
+
+    async checkAvailability(field, value) {
+        try {
+            const response = await fetch(`register?validate=${field}&value=${encodeURIComponent(value)}`);
+            const data = await response.json();
+            return data.isDuplicate;
+        } catch (error) {
+            console.error('Availability check failed:', error);
+            return false; // Fail safe, assume it's not taken
+        }
+    }
+
+    debounce(func, delay) {
+        let timeout;
+        return (...args) => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                func.apply(this, args);
+            }, delay);
+        };
     }
 }
 

@@ -19,10 +19,16 @@ import java.sql.SQLException;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.HashMap;
+import java.util.Map;
 import model.Customer;
 import model.EmailVerificationToken;
+import model.RoleConstants;
 import service.email.AsyncEmailService;
 import validation.RegisterValidator;
+import com.google.gson.Gson;
+import dao.AccountDAO;
+import org.mindrot.jbcrypt.BCrypt;
 
 /**
  * Consolidated controller for all registration-related functionality
@@ -42,6 +48,8 @@ public class RegisterController extends HttpServlet {
     private CustomerDAO customerDAO;
     private AsyncEmailService asyncEmailService;
     private EmailVerificationTokenDAO verificationTokenDAO;
+    private Gson gson = new Gson();
+    private AccountDAO accountDAO;
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -49,6 +57,7 @@ public class RegisterController extends HttpServlet {
         this.customerDAO = new CustomerDAO();
         this.asyncEmailService = new AsyncEmailService();
         this.verificationTokenDAO = new EmailVerificationTokenDAO();
+        this.accountDAO = new AccountDAO();
     }
 
     /**
@@ -222,150 +231,68 @@ public class RegisterController extends HttpServlet {
     private void handleRegisterPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // retrieve form data and trim whitespace
-        String fullName = request.getParameter("fullName");
-        String phone = request.getParameter("phone");
-        String email = request.getParameter("email");
-        String password = request.getParameter("password");
-        String confirmPassword = request.getParameter("confirmPassword");
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
 
-        // Trim all input fields to remove leading/trailing spaces
-        if (fullName != null)
-            fullName = fullName.trim();
-        if (phone != null)
-            phone = phone.trim();
-        if (email != null)
-            email = email.trim();
-        // Note: Don't trim password as spaces might be intentional
-        if (confirmPassword != null)
-            confirmPassword = confirmPassword.trim();
-
-        // Create validator instance
-        RegisterValidator validator = new RegisterValidator();
-
-        // Validate full name (match JavaScript validation)
-        if (fullName == null || fullName.isBlank() || fullName.isEmpty()) {
-            request.setAttribute("error", "Họ tên không được để trống.");
-            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
-            return;
-        } else if (fullName.length() < 6) {
-            request.setAttribute("error", "Họ tên phải có ít nhất 6 ký tự.");
-            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
-            return;
-        } else if (fullName.length() > 100) {
-            request.setAttribute("error", "Họ tên không được vượt quá 100 ký tự.");
-            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
-            return;
-        } else if (!fullName.matches(
-                "^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂẾưăạảấầẩẫậắằẳẵặẹẻẽềềểếỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\\s]{6,100}$")) {
-            request.setAttribute("error", "Họ tên chỉ được chứa chữ cái và khoảng trắng.");
-            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
-            return;
-        }
-
-        // Validate phone
-        if (phone == null || !phone.matches("^0[1-9][0-9]{8}$")) {
-            request.setAttribute("error", "Số điện thoại phải bắt đầu bằng 0, và có đúng 10 chữ số.");
-            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
-            return;
-        }
-
-        // Validate email (match JavaScript validation)
-        if (email == null || email.trim().isEmpty()) {
-            request.setAttribute("error", "Email không được để trống.");
-            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
-            return;
-        } else if (!email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
-            request.setAttribute("error", "Định dạng email không hợp lệ.");
-            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
-            return;
-        } else if (email.length() > 255) {
-            request.setAttribute("error", "Email không được vượt quá 255 ký tự.");
-            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
-            return;
-        }
-
-        // Validate password (match JavaScript validation)
-        if (password == null || password.isEmpty()) {
-            request.setAttribute("error", "Mật khẩu không được để trống.");
-            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
-            return;
-        } else if (password.length() < 6) {
-            request.setAttribute("error", "Mật khẩu phải có ít nhất 6 ký tự.");
-            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
-            return;
-        } else if (password.length() > 30) {
-            request.setAttribute("error", "Mật khẩu không được vượt quá 30 ký tự.");
-            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
-            return;
-        }
-
-        // Validate confirm password (match JavaScript validation)
-        if (confirmPassword == null || confirmPassword.isEmpty()) {
-            request.setAttribute("error", "Vui lòng nhập lại mật khẩu.");
-            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
-            return;
-        } else if (!password.equals(confirmPassword)) {
-            request.setAttribute("error", "Mật khẩu nhập lại không khớp.");
-            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
-            return;
-        }
-
-        // Check for duplicate email
-        if (validator.isEmailDuplicate(email)) {
-            request.setAttribute("error", "Email đã tồn tại.");
-            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
-            return;
-        }
-
-        // Check for duplicate phone
-        if (validator.isPhoneDuplicate(phone)) {
-            request.setAttribute("error", "Số điện thoại đã tồn tại.");
-            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
-            return;
-        }
-
-        // create new customer to store form data - pass plain password, it will be
-        // hashed in DAO
-        Customer newCustomer = new Customer(fullName, email, password, phone);
-
-        // Set default values
-        newCustomer.setIsActive(true);
-        newCustomer.setLoyaltyPoints(0);
-
-        // save data to database
-        customerDAO.save(newCustomer);
+        Map<String, Object> jsonResponse = new HashMap<>();
 
         try {
-            // Create verification token for email verification
-            EmailVerificationToken token = new EmailVerificationToken(email);
-            verificationTokenDAO.save(token);
+            String fullName = request.getParameter("fullName");
+            String phone = request.getParameter("phone");
+            String email = request.getParameter("email");
+            String password = request.getParameter("password");
+            String confirmPassword = request.getParameter("confirmPassword");
+            String agreeTerms = request.getParameter("agreeTerms");
 
-            // Send verification email asynchronously
-            asyncEmailService.sendVerificationEmailAsync(email, token.getToken(), fullName);
+            // --- Server-side validation ---
+            if (fullName == null || fullName.trim().isEmpty() ||
+                    phone == null || phone.trim().isEmpty() ||
+                    email == null || email.trim().isEmpty() ||
+                    password == null || password.isEmpty() ||
+                    !"on".equals(agreeTerms)) {
 
-            LOGGER.info("Verification email sent successfully for new registration: " + email);
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                jsonResponse.put("success", false);
+                jsonResponse.put("message", "Vui lòng điền đầy đủ thông tin bắt buộc.");
+                response.getWriter().write(gson.toJson(jsonResponse));
+                return;
+            }
 
-        } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "Error creating verification token for: " + email, ex);
-            // Continue with registration process even if email fails
-        } catch (Exception ex) {
-            LOGGER.log(Level.SEVERE, "Error sending verification email for: " + email, ex);
-            // Continue with registration process even if email fails
+            if (accountDAO.isEmailTakenInSystem(email)) {
+                response.setStatus(HttpServletResponse.SC_CONFLICT);
+                jsonResponse.put("success", false);
+                jsonResponse.put("message", "Email này đã được sử dụng.");
+                response.getWriter().write(gson.toJson(jsonResponse));
+                return;
+            }
+
+            if (accountDAO.isPhoneTakenInSystem(phone)) {
+                response.setStatus(HttpServletResponse.SC_CONFLICT);
+                jsonResponse.put("success", false);
+                jsonResponse.put("message", "Số điện thoại này đã được sử dụng.");
+                response.getWriter().write(gson.toJson(jsonResponse));
+                return;
+            }
+
+            // --- Create and save customer ---
+            Customer newCustomer = new Customer(fullName, email, password, phone);
+
+            customerDAO.save(newCustomer);
+
+            // --- Set flash message and send success response ---
+            request.getSession().setAttribute("flash_success", "Đăng ký thành công! Vui lòng đăng nhập để tiếp tục.");
+
+            jsonResponse.put("success", true);
+            jsonResponse.put("redirectUrl", request.getContextPath() + "/login");
+            response.getWriter().write(gson.toJson(jsonResponse));
+
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error during customer registration", e);
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            jsonResponse.put("success", false);
+            jsonResponse.put("message", "Đã có lỗi xảy ra phía máy chủ. Vui lòng thử lại sau.");
+            response.getWriter().write(gson.toJson(jsonResponse));
         }
-
-        // Use POST-redirect-GET pattern to prevent refresh issues
-        // Store success data in session temporarily
-        HttpSession session = request.getSession();
-        session.setAttribute("registrationEmail", email);
-        session.setAttribute("registrationFullName", fullName);
-        session.setAttribute("registrationPassword", password); // Store password for login pre-filling
-        session.setAttribute("registrationSuccess", true);
-
-        // Redirect to register success page with email parameter for refresh-proof
-        // access
-        response.sendRedirect(request.getContextPath() + "/register-success?email=" +
-                java.net.URLEncoder.encode(email, "UTF-8"));
     }
 
     // ==================== REGISTER SUCCESS HANDLERS ====================
