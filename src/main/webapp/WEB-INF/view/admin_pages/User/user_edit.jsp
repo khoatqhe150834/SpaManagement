@@ -205,5 +205,114 @@
 
      <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+     <script>
+     $(document).ready(function() {
+         let emailUnique = true;
+         let phoneUnique = true;
+         function showError(input, message) {
+             input.addClass('is-invalid');
+             input.closest('.form-group').find('.error-text').text(message);
+         }
+         function clearError(input) {
+             input.removeClass('is-invalid');
+             input.closest('.form-group').find('.error-text').text('');
+         }
+         // AJAX check email
+         $('#email').on('blur', function() {
+             const email = $(this).val().trim();
+             if (email) {
+                 $.get('/api/check-email', { email }, function(data) {
+                     if (data.exists) {
+                         showError($('#email'), 'Email đã tồn tại.');
+                         emailUnique = false;
+                     } else {
+                         clearError($('#email'));
+                         emailUnique = true;
+                     }
+                 });
+             }
+         });
+         // AJAX check phone
+         $('#phoneNumber').on('blur', function() {
+             const phone = $(this).val().trim();
+             if (phone) {
+                 $.get('/api/check-phone', { phone }, function(data) {
+                     if (data.exists) {
+                         showError($('#phoneNumber'), 'Số điện thoại đã tồn tại.');
+                         phoneUnique = false;
+                     } else {
+                         clearError($('#phoneNumber'));
+                         phoneUnique = true;
+                     }
+                 });
+             }
+         });
+         // On submit: check all
+         $('form').on('submit', function(e) {
+             let valid = true;
+             // Validate Full Name
+             const fullName = $('#fullName').val().trim();
+             if (!fullName) {
+                 showError($('#fullName'), 'Full name is required.');
+                 valid = false;
+             } else if (fullName.length > 100) {
+                 showError($('#fullName'), 'Full name must be at most 100 characters.');
+                 valid = false;
+             } else {
+                 clearError($('#fullName'));
+             }
+             // Validate Email
+             const email = $('#email').val().trim();
+             const emailRegex = /^[^\s@]+@[^-\u007f]+$/;
+             if (!email) {
+                 showError($('#email'), 'Email is required.');
+                 valid = false;
+             } else if (!emailRegex.test(email)) {
+                 showError($('#email'), 'Invalid email format.');
+                 valid = false;
+             } else if (!emailUnique) {
+                 showError($('#email'), 'Email đã tồn tại.');
+                 valid = false;
+             } else {
+                 clearError($('#email'));
+             }
+             // Validate Password (nếu nhập)
+             const password = $('#password').val();
+             if (password && password.length < 6) {
+                 showError($('#password'), 'Password must be at least 6 characters.');
+                 valid = false;
+             } else {
+                 clearError($('#password'));
+             }
+             // Validate Phone Number (optional)
+             const phone = $('#phoneNumber').val().trim();
+             if (phone && !/^0\d{9}$/.test(phone)) {
+                 showError($('#phoneNumber'), 'Phone number must be 10 digits starting with 0.');
+                 valid = false;
+             } else if (!phoneUnique) {
+                 showError($('#phoneNumber'), 'Số điện thoại đã tồn tại.');
+                 valid = false;
+             } else {
+                 clearError($('#phoneNumber'));
+             }
+             // Validate Birthday (optional)
+             const birthday = $('#birthday').val();
+             if (birthday) {
+                 const inputDate = new Date(birthday);
+                 const today = new Date();
+                 today.setHours(0,0,0,0);
+                 if (inputDate > today) {
+                     showError($('#birthday'), 'Birthday cannot be in the future.');
+                     valid = false;
+                 } else {
+                     clearError($('#birthday'));
+                 }
+             } else {
+                 clearError($('#birthday'));
+             }
+             if (!valid) e.preventDefault();
+         });
+     });
+     </script>
 </body>
 </html>

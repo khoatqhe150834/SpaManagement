@@ -206,6 +206,22 @@
             background-image: none !important;
             padding-right: 0 !important;
         }
+        /* Đảm bảo các input cùng chiều cao */
+        #fullNameInput, #ageInput, #userSelect {
+            min-height: 48px;
+            height: 48px;
+            font-size: 1rem;
+        }
+        #ageInput {
+            max-width: 80px;
+            text-align: center;
+            margin-left: 0;
+        }
+        @media (max-width: 767px) {
+            .row.align-items-end > [class^="col-"] {
+                margin-bottom: 12px;
+            }
+        }
     </style>
 </head>
 <body class="profile-body">
@@ -247,14 +263,14 @@
                                         </div>
                                         <h6 class="section-title">Thông tin người dùng</h6>
                                     </div>
-                                    <div class="row">
+                                    <div class="row align-items-end">
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label for="userSelect" class="form-label">
                                                     Chọn người dùng <span class="text-danger-600">*</span>
                                                 </label>
                                                 <select id="userSelect" name="userId" required>
-                                                    <option></option> <!-- Option trống cho placeholder của Select2 -->
+                                                    <option></option>
                                                     <c:forEach var="user" items="${userList}">
                                                         <option value="${user.userId}" data-fullname="${user.fullName}" data-birthday="<fmt:formatDate value='${user.birthday}' pattern='yyyy-MM-dd'/>">${user.userId} - ${user.fullName}</option>
                                                     </c:forEach>
@@ -263,11 +279,16 @@
                                                 <div class="invalid-feedback" id="userSelectError"></div>
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
+                                        <div class="col-md-4">
                                             <div class="form-group">
                                                 <label for="fullNameInput" class="form-label">Họ và tên</label>
                                                 <input type="text" id="fullNameInput" name="fullName" class="form-control" readonly placeholder="Tên sẽ tự động điền..." />
-                                                <span id="userAge" style="margin-left:8px; font-weight:500; color:#888;"></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label for="ageInput" class="form-label">Tuổi</label>
+                                                <input type="text" id="ageInput" class="form-control text-center" readonly placeholder="--" />
                                             </div>
                                         </div>
                                     </div>
@@ -379,6 +400,7 @@
             // --- User Selection ---
             const userSelect = document.getElementById('userSelect');
             const fullNameInput = document.getElementById('fullNameInput');
+            const ageInput = document.getElementById('ageInput');
             const experienceInput = document.getElementById('yearsOfExperience');
 
             let maxExp = 100; // Giá trị mặc định
@@ -388,7 +410,8 @@
                 const fullName = $(selectedOption).data('fullname');
                 const birthday = $(selectedOption).data('birthday');
                 let ageText = '';
-                if (birthday) {
+                let ageValue = '';
+                if (birthday && birthday !== "null" && birthday !== "") {
                     const birthDate = new Date(birthday);
                     const today = new Date();
                     let age = today.getFullYear() - birthDate.getFullYear();
@@ -398,10 +421,11 @@
                     }
                     if (!isNaN(age) && age > 0) {
                         ageText = ` (${age} tuổi)`;
+                        ageValue = age;
                     }
                 }
-                fullNameInput.value = (fullName || 'Tên sẽ tự động điền...') + ageText;
-                document.getElementById('userAge').textContent = '';
+                fullNameInput.value = (fullName || 'Tên sẽ tự động điền...');
+                ageInput.value = ageValue || '';
 
                 if (this.value !== '') {
                     $.get('staff', { service: 'check-duplicate', userId: this.value }, function(res) {

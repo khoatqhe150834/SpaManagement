@@ -159,19 +159,14 @@
                             <table class="table bordered-table sm-table mb-0">
                                 <thead>
                                     <tr>
-                                        <th scope="col">
-                                            Mã ND
+                                        <th scope="col">Mã ND
                                             <a href="?sortBy=id&sortOrder=asc&pageSize=${pageSize}&searchValue=${searchValue}&status=${status}&role=${role}&page=${currentPage}" title="Sort Ascending">&#9650;</a>
                                             <a href="?sortBy=id&sortOrder=desc&pageSize=${pageSize}&searchValue=${searchValue}&status=${status}&role=${role}&page=${currentPage}" title="Sort Descending">&#9660;</a>
                                         </th>
-                                        <th scope="col">Ảnh đại diện</th>
-                                        <th scope="col">
-                                            Họ và tên
+                                        <th scope="col">Họ và tên
                                             <a href="?sortBy=name&sortOrder=asc&pageSize=${pageSize}&searchValue=${searchValue}&status=${status}&role=${role}&page=${currentPage}" title="Sort Name Ascending">&#9650;</a>
                                             <a href="?sortBy=name&sortOrder=desc&pageSize=${pageSize}&searchValue=${searchValue}&status=${status}&role=${role}&page=${currentPage}" title="Sort Name Descending">&#9660;</a>
                                         </th>
-                                        <th scope="col">Email</th>
-                                        <th scope="col">Số điện thoại</th>
                                         <th scope="col">Vai trò</th>
                                         <th scope="col" class="text-center">Trạng thái</th>
                                         <th scope="col" class="text-center">Thao tác</th>
@@ -181,15 +176,7 @@
                                     <c:forEach var="user" items="${users}">
                                         <tr>
                                             <td>${user.userId}</td>
-                                            <td>
-                                                <img src="${not empty user.avatarUrl ? user.avatarUrl : 'https://placehold.co/100x100/7C3AED/FFFFFF?text=USER'}" 
-                                                     alt="${user.fullName}"
-                                                     class="rounded-circle"
-                                                     style="width: 40px; height: 40px; object-fit: cover;">
-                                            </td>
                                             <td>${user.fullName}</td>
-                                            <td>${user.email}</td>
-                                            <td>${user.phoneNumber}</td>
                                             <td>
                                                 <c:choose>
                                                     <c:when test="${user.roleId == 1}">

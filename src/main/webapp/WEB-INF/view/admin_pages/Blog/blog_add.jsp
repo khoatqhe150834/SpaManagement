@@ -25,7 +25,7 @@
         </style>
     </head>
     <body>
-        <jsp:include page="/WEB-INF/view/common/admin/sidebar.jsp" />
+        <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
         <jsp:include page="/WEB-INF/view/common/admin/header.jsp" />
 
 
@@ -63,11 +63,6 @@
                             <div class="invalid-feedback" id="titleError"></div>
                         </div>
                         <div>
-                            <label class="form-label fw-bold text-neutral-900" for="slug">Slug <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control border border-neutral-200 radius-8" id="slug" name="slug" placeholder="unique-slug">
-                            <div class="invalid-feedback" id="slugError"></div>
-                        </div>
-                        <div>
                             <label class="form-label fw-bold text-neutral-900" for="summary">Summary <span class="text-danger">*</span></label>
                             <textarea class="form-control border border-neutral-200 radius-8" id="summary" name="summary" rows="2" placeholder="Short summary..."></textarea>
                             <div class="invalid-feedback" id="summaryError"></div>
@@ -81,16 +76,6 @@
                                 </c:forEach>
                             </select>
                             <div class="invalid-feedback" id="categoryError"></div>
-                        </div>
-                        <div>
-                            <label class="form-label fw-bold text-neutral-900">Status <span class="text-danger">*</span></label>
-                            <select class="form-control border border-neutral-200 radius-8" name="status" id="status">
-                                <option value="DRAFT">Draft</option>
-                                <option value="PUBLISHED">Published</option>
-                                <option value="SCHEDULED">Scheduled</option>
-                                <option value="ARCHIVED">Archived</option>
-                            </select>
-                            <div class="invalid-feedback" id="statusError"></div>
                         </div>
                         <div>
                             <label class="form-label fw-bold text-neutral-900">Content <span class="text-danger">*</span></label>
@@ -175,14 +160,15 @@
                 theme: 'snow',
             });
             // On submit, copy content to hidden input
-            document.getElementById('blogAddForm').addEventListener('submit', function(e) {
+            document.getElementById('blogAddForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
                 let hasError = false;
                 // Title
                 const title = document.getElementById('title');
                 const titleError = document.getElementById('titleError');
-                if (!title.value.trim()) {
+                if (isOnlyWhitespace(title.value)) {
                     title.classList.add('is-invalid');
-                    titleError.textContent = 'Title is required.';
+                    titleError.textContent = 'Title không được để trống hoặc chỉ chứa khoảng trắng.';
                     hasError = true;
                 } else if (title.value.trim().length < 5) {
                     title.classList.add('is-invalid');
@@ -196,28 +182,21 @@
                     title.classList.remove('is-invalid');
                     titleError.textContent = '';
                 }
-                // Slug
-                const slug = document.getElementById('slug');
-                const slugError = document.getElementById('slugError');
-                const slugVal = slug.value.trim();
-                if (!slugVal) {
-                    slug.classList.add('is-invalid');
-                    slugError.textContent = 'Slug is required.';
-                    hasError = true;
-                } else if (!/^[a-z0-9-]+$/.test(slugVal)) {
-                    slug.classList.add('is-invalid');
-                    slugError.textContent = 'Slug must only contain lowercase letters, numbers, and hyphens.';
-                    hasError = true;
-                } else {
-                    slug.classList.remove('is-invalid');
-                    slugError.textContent = '';
+                // Title duplicate check
+                if (title.value.trim()) {
+                    const isDup = await checkTitleDuplicate(title.value);
+                    if (isDup) {
+                        title.classList.add('is-invalid');
+                        titleError.textContent = 'Title đã tồn tại, vui lòng chọn tiêu đề khác.';
+                        hasError = true;
+                    }
                 }
                 // Summary
                 const summary = document.getElementById('summary');
                 const summaryError = document.getElementById('summaryError');
-                if (!summary.value.trim()) {
+                if (isOnlyWhitespace(summary.value)) {
                     summary.classList.add('is-invalid');
-                    summaryError.textContent = 'Summary is required.';
+                    summaryError.textContent = 'Summary không được để trống hoặc chỉ chứa khoảng trắng.';
                     hasError = true;
                 } else if (summary.value.trim().length < 10) {
                     summary.classList.add('is-invalid');
@@ -243,18 +222,6 @@
                     category.classList.remove('is-invalid');
                     categoryError.textContent = '';
                 }
-                // Status
-                const status = document.getElementById('status');
-                const statusError = document.getElementById('statusError');
-                const validStatus = ['DRAFT', 'PUBLISHED', 'SCHEDULED', 'ARCHIVED'];
-                if (!status.value || !validStatus.includes(status.value)) {
-                    status.classList.add('is-invalid');
-                    statusError.textContent = 'Please select a valid status.';
-                    hasError = true;
-                } else {
-                    status.classList.remove('is-invalid');
-                    statusError.textContent = '';
-                }
                 // Content (Quill)
                 const contentHidden = document.getElementById('content-hidden');
                 const contentError = document.getElementById('contentError');
@@ -262,7 +229,11 @@
                 const quillHtml = quill.root.innerHTML;
                 contentHidden.value = quillHtml;
                 const quillContainer = document.querySelector('.ql-container');
-                if (!quillText || quillText.length < 10) {
+                if (isOnlyWhitespace(quillText)) {
+                    contentError.textContent = 'Content không được để trống hoặc chỉ chứa khoảng trắng.';
+                    quillContainer.classList.add('is-invalid');
+                    hasError = true;
+                } else if (quillText.length < 10) {
                     contentError.textContent = 'Content must be at least 10 characters.';
                     quillContainer.classList.add('is-invalid');
                     hasError = true;
@@ -292,20 +263,45 @@
                         image.classList.add('is-invalid');
                         imageError.textContent = 'Image must be less than 2MB.';
                         hasError = true;
-                    } else if (!/^[-\w.]+$/.test(file.name)) {
-                        image.classList.add('is-invalid');
-                        imageError.textContent = 'Filename contains invalid characters.';
-                        hasError = true;
                     } else {
-                        image.classList.remove('is-invalid');
-                        imageError.textContent = '';
+                        // Kiểm tra file thực sự là ảnh bằng FileReader
+                        const fr = new FileReader();
+                        fr.onload = function(e) {
+                            const arr = new Uint8Array(e.target.result).subarray(0, 4);
+                            let header = '';
+                            for(let i = 0; i < arr.length; i++) header += arr[i].toString(16);
+                            // Kiểm tra magic number của file ảnh phổ biến
+                            const isImage = (
+                                header.startsWith('ffd8') || // jpg
+                                header.startsWith('89504e47') || // png
+                                header.startsWith('47494638') || // gif
+                                header.startsWith('52494646') // webp
+                            );
+                            if (!isImage) {
+                                image.classList.add('is-invalid');
+                                imageError.textContent = 'File không phải là ảnh hợp lệ.';
+                                hasError = true;
+                            } else {
+                                image.classList.remove('is-invalid');
+                                imageError.textContent = '';
+                            }
+                        };
+                        fr.readAsArrayBuffer(file.slice(0, 4));
                     }
                 }
-                if (hasError) {
-                    e.preventDefault();
+                if (!hasError) {
+                    this.submit();
                 }
             });
 
+            // AJAX check title duplicate
+            async function checkTitleDuplicate(title) {
+                if (!title.trim()) return false;
+                const resp = await fetch(`${pageContext.request.contextPath}/blog?action=checkTitle&title=` + encodeURIComponent(title.trim()));
+                if (!resp.ok) return false;
+                const data = await resp.json();
+                return data.duplicate === true;
+            }
 
             // =============================== Upload Single Image js start here ================================================
             const fileInput = document.getElementById("upload-file");
@@ -326,6 +322,27 @@
                 fileInput.value = "";
             });
             // =============================== Upload Single Image js End here ================================================
+
+            // ... existing code ...
+            document.getElementById('title').addEventListener('blur', async function() {
+                const title = this.value.trim();
+                if (title) {
+                    const isDup = await checkTitleDuplicate(title);
+                    if (isDup) {
+                        this.classList.add('is-invalid');
+                        document.getElementById('titleError').textContent = 'Title đã tồn tại, vui lòng chọn tiêu đề khác.';
+                    }
+                }
+            });
+            // ... existing code ...
+
+            function containsDangerousChars(str) {
+                // Chỉ loại các ký tự: < > { } [ ] | ` ~ ^ $ % \
+                return /[<>\{\}\[\]\|`~^$%\\]/.test(str);
+            }
+            function isOnlyWhitespace(str) {
+                return !str || str.trim().length === 0;
+            }
 
         </script>
 

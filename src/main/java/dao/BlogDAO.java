@@ -204,25 +204,6 @@ public class BlogDAO extends DBContext {
         return list;
     }
 
-    // Lấy blog theo slug, không lọc status
-    public Blog findBySlug(String slug) {
-        String sql = "SELECT b.*, u.full_name AS author_name " +
-                "FROM blogs b " +
-                "JOIN users u ON b.author_user_id = u.user_id " +
-                "WHERE b.slug = ? LIMIT 1";
-        try (Connection con = getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setString(1, slug);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return getFromResultSet(rs);
-            }
-        } catch (SQLException e) {
-            System.out.println("findBySlug: " + e.getMessage());
-        }
-        return null;
-    }
-
     // Lấy tất cả comment đã duyệt cho 1 blog (bỏ parentCommentId, chỉ lấy comment cha là null)
     public List<BlogComment> findCommentsByBlogId(int blogId) {
         List<BlogComment> list = new ArrayList<>();
@@ -243,8 +224,8 @@ public class BlogDAO extends DBContext {
                 c.setGuestEmail(rs.getString("guest_email"));
                 c.setCommentText(rs.getString("comment_text"));
                 c.setStatus(rs.getString("status"));
-                c.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime().plusHours(7));
-                c.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime().plusHours(7));
+                c.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                c.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
                 c.setCustomerName(rs.getString("customerName"));
                 c.setAvatarUrl(rs.getString("avatarUrl"));
                 list.add(c);
@@ -327,6 +308,43 @@ public class BlogDAO extends DBContext {
         return 0;
     }
 
+    // Đếm tổng blog cho manager (có thể lọc theo status và search)
+    public int countBlogsForManager(String searchFilter, String statusFilter) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM blogs b ");
+        List<Object> params = new ArrayList<>();
+
+        if (searchFilter != null && !searchFilter.trim().isEmpty() || 
+            statusFilter != null && !statusFilter.trim().isEmpty()) {
+            sql.append("WHERE ");
+            boolean hasCondition = false;
+            
+            if (searchFilter != null && !searchFilter.trim().isEmpty()) {
+                sql.append("b.title LIKE ? ");
+                params.add("%" + searchFilter.trim() + "%");
+                hasCondition = true;
+            }
+            
+            if (statusFilter != null && !statusFilter.trim().isEmpty()) {
+                if (hasCondition) sql.append("AND ");
+                sql.append("b.status = ? ");
+                params.add(statusFilter.trim());
+            }
+        }
+
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            System.out.println("countBlogsForManager: " + e.getMessage());
+        }
+        return 0;
+    }
+
     // Lấy danh sách blog cho marketing (có thể lọc theo status và search)
     public List<Blog> findBlogsForMarketing(String searchFilter, String statusFilter, int page, int pageSize) {
         List<Blog> list = new ArrayList<>();
@@ -374,23 +392,51 @@ public class BlogDAO extends DBContext {
         return list;
     }
 
-    // Lấy blog theo slug cho marketing (không lọc status)
-    public Blog findBySlugForMarketing(String slug) {
-        String sql = "SELECT b.*, u.full_name AS author_name " +
-                "FROM blogs b " +
-                "JOIN users u ON b.author_user_id = u.user_id " +
-                "WHERE b.slug = ? LIMIT 1";
-        try (Connection con = getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setString(1, slug);
+    // Lấy danh sách blog cho manager (có thể lọc theo status và search)
+    public List<Blog> findBlogsForManager(String searchFilter, String statusFilter, int page, int pageSize) {
+        List<Blog> list = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder(
+                "SELECT b.*, u.full_name AS author_name "
+                + "FROM blogs b JOIN users u ON b.author_user_id = u.user_id ");
+
+        List<Object> params = new ArrayList<>();
+        
+        if (searchFilter != null && !searchFilter.trim().isEmpty() || 
+            statusFilter != null && !statusFilter.trim().isEmpty()) {
+            sql.append("WHERE ");
+            boolean hasCondition = false;
+            
+            if (searchFilter != null && !searchFilter.trim().isEmpty()) {
+                sql.append("b.title LIKE ? ");
+                params.add("%" + searchFilter.trim() + "%");
+                hasCondition = true;
+            }
+            
+            if (statusFilter != null && !statusFilter.trim().isEmpty()) {
+                if (hasCondition) sql.append("AND ");
+                sql.append("b.status = ? ");
+                params.add(statusFilter.trim());
+            }
+        }
+        
+        sql.append("ORDER BY b.created_at DESC LIMIT ? OFFSET ?");
+        params.add(pageSize);
+        params.add((page - 1) * pageSize);
+
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return getFromResultSet(rs);
+            while (rs.next()) {
+                list.add(getFromResultSet(rs));
             }
         } catch (SQLException e) {
-            System.out.println("findBySlugForMarketing: " + e.getMessage());
+            System.out.println("findBlogsForManager: " + e.getMessage());
         }
-        return null;
+
+        return list;
     }
 
     // Đổi trạng thái comment (APPROVED/REJECTED)
@@ -406,23 +452,48 @@ public class BlogDAO extends DBContext {
         }
     }
 
+    // Đổi trạng thái blog (chỉ cho manager)
+    public boolean updateBlogStatus(int blogId, String status) {
+        String sql = "UPDATE blogs SET status = ?, updated_at = NOW()";
+        List<Object> params = new ArrayList<>();
+        params.add(status);
+        
+        // Nếu status là PUBLISHED và chưa có published_at, set published_at = NOW()
+        if ("PUBLISHED".equals(status)) {
+            sql += ", published_at = NOW()";
+        } else if ("DRAFT".equals(status) || "ARCHIVED".equals(status)) {
+            sql += ", published_at = NULL";
+        }
+        
+        sql += " WHERE blog_id = ?";
+        params.add(blogId);
+        
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.out.println("updateBlogStatus: " + e.getMessage());
+            return false;
+        }
+    }
 
     public int addBlog(Blog blog, List<Integer> categoryIds) {
-        String sql = "INSERT INTO blogs (author_user_id, title, slug, summary, content, feature_image_url, status, published_at, created_at, updated_at) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
+        String sql = "INSERT INTO blogs (author_user_id, title, summary, content, feature_image_url, status, published_at, created_at, updated_at) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
         int blogId = -1;
         try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, blog.getAuthor_userId());
             ps.setString(2, blog.getTitle());
-            ps.setString(3, blog.getSlug());
-            ps.setString(4, blog.getSummary());
-            ps.setString(5, blog.getContent());
-            ps.setString(6, blog.getFeatureImageUrl());
-            ps.setString(7, blog.getStatus());
+            ps.setString(3, blog.getSummary());
+            ps.setString(4, blog.getContent());
+            ps.setString(5, blog.getFeatureImageUrl());
+            ps.setString(6, blog.getStatus());
             if (blog.getPublishedAt() != null) {
-                ps.setTimestamp(8, Timestamp.valueOf(blog.getPublishedAt()));
+                ps.setTimestamp(7, Timestamp.valueOf(blog.getPublishedAt()));
             } else {
-                ps.setNull(8, Types.TIMESTAMP);
+                ps.setNull(7, Types.TIMESTAMP);
             }
             int affected = ps.executeUpdate();
             if (affected > 0) {
@@ -454,20 +525,19 @@ public class BlogDAO extends DBContext {
 
 
     public boolean updateBlog(Blog blog, List<Integer> categoryIds) {
-        String sql = "UPDATE blogs SET title=?, slug=?, summary=?, content=?, feature_image_url=?, status=?, published_at=?, updated_at=NOW() WHERE blog_id=?";
+        String sql = "UPDATE blogs SET title=?, summary=?, content=?, feature_image_url=?, status=?, published_at=?, updated_at=NOW() WHERE blog_id=?";
         try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, blog.getTitle());
-            ps.setString(2, blog.getSlug());
-            ps.setString(3, blog.getSummary());
-            ps.setString(4, blog.getContent());
-            ps.setString(5, blog.getFeatureImageUrl());
-            ps.setString(6, blog.getStatus());
+            ps.setString(2, blog.getSummary());
+            ps.setString(3, blog.getContent());
+            ps.setString(4, blog.getFeatureImageUrl());
+            ps.setString(5, blog.getStatus());
             if (blog.getPublishedAt() != null) {
-                ps.setTimestamp(7, Timestamp.valueOf(blog.getPublishedAt()));
+                ps.setTimestamp(6, Timestamp.valueOf(blog.getPublishedAt()));
             } else {
-                ps.setNull(7, Types.TIMESTAMP);
+                ps.setNull(6, Types.TIMESTAMP);
             }
-            ps.setInt(8, blog.getBlogId());
+            ps.setInt(7, blog.getBlogId());
             int affected = ps.executeUpdate();
             if (affected > 0) {
                 // Xóa category cũ
@@ -509,6 +579,43 @@ public class BlogDAO extends DBContext {
             System.out.println("findCategoryIdsByBlogId: " + e.getMessage());
         }
         return ids;
+    }
+
+    // Lấy blog theo id
+    public Blog findById(int id) {
+        String sql = "SELECT b.*, u.full_name AS author_name FROM blogs b JOIN users u ON b.author_user_id = u.user_id WHERE b.blog_id = ? LIMIT 1";
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return getFromResultSet(rs);
+            }
+        } catch (SQLException e) {
+            System.out.println("findById: " + e.getMessage());
+        }
+        return null;
+    }
+
+    // Kiểm tra title đã tồn tại (loại trừ 1 blogId nếu có)
+    public boolean isTitleDuplicate(String title, Integer excludeId) {
+        if (title == null || title.trim().isEmpty()) return false;
+        String sql = "SELECT COUNT(*) FROM blogs WHERE LOWER(title) = LOWER(?)";
+        if (excludeId != null) {
+            sql += " AND blog_id <> ?";
+        }
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, title.trim());
+            if (excludeId != null) {
+                ps.setInt(2, excludeId);
+            }
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            System.out.println("isTitleDuplicate: " + e.getMessage());
+        }
+        return false;
     }
 
 }

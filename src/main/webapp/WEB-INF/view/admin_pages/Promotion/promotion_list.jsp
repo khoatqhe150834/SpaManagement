@@ -153,14 +153,8 @@
                                         <a href="?sortBy=id&sortOrder=asc<c:if test='${not empty searchValue}'>&searchValue=${searchValue}</c:if><c:if test='${not empty status}'>&status=${status}</c:if>&page=${currentPage}" title="Sort Ascending">&#9650;</a>
                                         <a href="?sortBy=id&sortOrder=desc<c:if test='${not empty searchValue}'>&searchValue=${searchValue}</c:if><c:if test='${not empty status}'>&status=${status}</c:if>&page=${currentPage}" title="Sort Descending">&#9660;</a>
                                     </th>
-                                    <th scope="col">Ảnh</th>
-                                    <th scope="col">
-                                        Tiêu đề
-                                        <a href="?sortBy=title&sortOrder=asc<c:if test='${not empty searchValue}'>&searchValue=${searchValue}</c:if><c:if test='${not empty status}'>&status=${status}</c:if>&page=${currentPage}" title="Sort Ascending">&#9650;</a>
-                                        <a href="?sortBy=title&sortOrder=desc<c:if test='${not empty searchValue}'>&searchValue=${searchValue}</c:if><c:if test='${not empty status}'>&status=${status}</c:if>&page=${currentPage}" title="Sort Descending">&#9660;</a>
-                                    </th>
+                                    <th scope="col">Tiêu đề</th>
                                     <th scope="col">Mã khuyến mãi</th>
-                                    <th scope="col">Giá trị</th>
                                     <th scope="col" class="text-center">Trạng thái</th>
                                     <th scope="col" class="text-center">Thao tác</th>
                                 </tr>
@@ -169,34 +163,18 @@
                                 <c:forEach var="promotion" items="${listPromotion}">
                                     <tr>
                                         <td>${promotion.promotionId}</td>
-                                        <td>
-                                            <img src="${not empty promotion.imageUrl ? promotion.imageUrl : 'https://placehold.co/100x100/7C3AED/FFFFFF?text=PROMO'}" 
-                                                 alt="${promotion.title}"
-                                                 class="rounded"
-                                                 style="width: 50px; height: 50px; object-fit: cover;">
-                                        </td>
                                         <td>${promotion.title}</td>
                                         <td>${promotion.promotionCode}</td>
                                         <td>
-                                            <c:choose>
-                                                <c:when test="${promotion.discountType eq 'PERCENTAGE'}">
-                                                    ${promotion.discountValue}%
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <fmt:formatNumber value="${promotion.discountValue}" type="currency" currencyCode="VND"/>
-                                                </c:otherwise>
-                                            </c:choose>
-                                        </td>
-                                        <td class="text-center">
                                             <c:choose>
                                                 <c:when test="${promotion.status eq 'ACTIVE'}">
                                                     <span class="bg-success-focus text-success-600 border border-success-main px-24 py-4 radius-4 fw-medium text-sm">Đang áp dụng</span>
                                                 </c:when>
                                                 <c:when test="${promotion.status eq 'SCHEDULED'}">
-                                                    <span class="bg-warning-focus text-warning-600 border border-warning-main px-24 py-4 radius-4 fw-medium text-sm">Sắp diễn ra</span>
+                                                    <span class="bg-primary-focus text-primary-600 border border-primary-main px-24 py-4 radius-4 fw-medium text-sm">Sắp diễn ra</span>
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <span class="bg-neutral-200 text-neutral-600 border border-neutral-400 px-24 py-4 radius-4 fw-medium text-sm">Ngừng áp dụng</span>
+                                                    <span class="bg-neutral-200 text-neutral-600 border border-neutral-400 px-24 py-4 radius-4 fw-medium text-sm">Không hoạt động</span>
                                                 </c:otherwise>
                                             </c:choose>
                                         </td>
