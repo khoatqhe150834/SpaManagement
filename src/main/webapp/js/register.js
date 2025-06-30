@@ -45,6 +45,10 @@ class RegisterPage {
         this.emailInput.addEventListener('input', this.debounce(() => this.validateEmail(false, true), 500));
         this.phoneInput.addEventListener('input', this.debounce(() => this.validatePhone(false, true), 500));
 
+        // Add real-time validation for password fields
+        this.passwordInput.addEventListener('input', () => this.validatePassword());
+        this.confirmPasswordInput.addEventListener('input', () => this.validateConfirmPassword());
+
         this.agreeTermsCheckbox.addEventListener('change', () => this.validateAgreeTerms());
 
         // Modal event listeners
@@ -87,14 +91,18 @@ class RegisterPage {
     setError(input, errorElement, message) {
         input.classList.remove('border-green-600', 'focus:ring-green-600');
         input.classList.add('border-red-600', 'focus:ring-red-600');
-        errorElement.textContent = message;
-        errorElement.classList.remove('hidden');
+        if (errorElement) {
+            errorElement.textContent = message;
+            errorElement.classList.remove('hidden');
+        }
     }
 
     setSuccess(input, errorElement, show = false) {
         input.classList.remove('border-red-600', 'focus:ring-red-600');
-        errorElement.textContent = '';
-        errorElement.classList.add('hidden');
+        if (errorElement) {
+            errorElement.textContent = '';
+            errorElement.classList.add('hidden');
+        }
         if (show) {
             input.classList.add('border-green-600', 'focus:ring-green-600');
         }
@@ -103,7 +111,7 @@ class RegisterPage {
     validateFullName(showSuccess = false) {
         this.sanitizeInput(this.fullNameInput);
         const value = this.fullNameInput.value.trim();
-        const errorElement = this.fullNameInput.parentElement.nextElementSibling;
+        const errorElement = document.getElementById('fullNameError');
         if (value === '') {
             this.setError(this.fullNameInput, errorElement, 'Vui lòng nhập họ tên.');
             return false;
@@ -115,7 +123,7 @@ class RegisterPage {
     async validatePhone(showSuccess = false, checkAvailable = false) {
         this.sanitizeInput(this.phoneInput);
         const value = this.phoneInput.value.trim();
-        const errorElement = this.phoneInput.parentElement.nextElementSibling;
+        const errorElement = document.getElementById('phoneError');
         const phoneRegex = /^0\d{9}$/;
 
         if (value === '') {
@@ -140,7 +148,13 @@ class RegisterPage {
     async validateEmail(showSuccess = false, checkAvailable = false) {
         this.sanitizeInput(this.emailInput);
         const value = this.emailInput.value.trim();
-        const errorElement = this.emailInput.parentElement.nextElementSibling;
+        const errorElement = document.getElementById('emailError');
+        
+        if (value === '') {
+            this.setError(this.emailInput, errorElement, 'Vui lòng nhập email.');
+            return false;
+        }
+
         const emailRegex = /^[a-zA-Z0-9][a-zA-Z0-9._%+-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         if (!emailRegex.test(value)) {
             this.setError(this.emailInput, errorElement, 'Email không hợp lệ.');
@@ -158,31 +172,52 @@ class RegisterPage {
     }
 
     validatePassword(showSuccess = false) {
-        const errorElement = this.passwordInput.parentElement.nextElementSibling;
+        const errorElement = document.getElementById('passwordError');
         const password = this.passwordInput.value;
-        const passwordRegex = /^.{6,}$/;
 
+        console.log('Validating Password Field:');
+        console.log('  - Password Value:', `"${password}"`);
+        console.log('  - Error Element:', errorElement);
+
+        if (password.trim() === '') {
+            console.log('  - Result: FAIL (empty)');
+            this.setError(this.passwordInput, errorElement, 'Vui lòng nhập mật khẩu.');
+            return false;
+        }
+
+        const passwordRegex = /^.{6,}$/;
         if (!passwordRegex.test(password)) {
+            console.log('  - Result: FAIL (too short)');
             this.setError(this.passwordInput, errorElement, 'Mật khẩu phải có ít nhất 6 ký tự.');
             return false;
         }
+
+        console.log('  - Result: SUCCESS');
         this.setSuccess(this.passwordInput, errorElement, showSuccess);
         return true;
     }
 
     validateConfirmPassword(showSuccess = false) {
-        const errorElement = this.confirmPasswordInput.parentElement.nextElementSibling;
-
-        if (this.passwordInput.value !== this.confirmPasswordInput.value) {
-            this.setError(this.confirmPasswordInput, errorElement, 'Mật khẩu không khớp.');
-            return false;
-        }
+        const errorElement = document.getElementById('confirmPasswordError');
+        const confirmPassword = this.confirmPasswordInput.value;
         
-        if (this.confirmPasswordInput.value.trim() === '') {
+        console.log('Validating Confirm Password Field:');
+        console.log('  - Confirm Password Value:', `"${confirmPassword}"`);
+        console.log('  - Error Element:', errorElement);
+
+        if (confirmPassword.trim() === '') {
+            console.log('  - Result: FAIL (empty)');
             this.setError(this.confirmPasswordInput, errorElement, 'Vui lòng xác nhận mật khẩu.');
             return false;
         }
 
+        if (this.passwordInput.value !== confirmPassword) {
+            console.log('  - Result: FAIL (mismatch)');
+            this.setError(this.confirmPasswordInput, errorElement, 'Mật khẩu không khớp.');
+            return false;
+        }
+        
+        console.log('  - Result: SUCCESS');
         this.setSuccess(this.confirmPasswordInput, errorElement, showSuccess);
         return true;
     }
@@ -211,11 +246,12 @@ class RegisterPage {
         // Run all validations and wait for them to complete
         const validations = await Promise.all([
             this.validateFullName(true),
-            this.validatePhone(true, true),
-            this.validateEmail(true, true),
+            
             this.validatePassword(true),
             this.validateConfirmPassword(true),
-            this.validateAgreeTerms()
+            this.validateAgreeTerms(),
+            this.validatePhone(true, true),
+            this.validateEmail(true, true),
         ]);
         
         const isFormValid = validations.every(isValid => isValid);

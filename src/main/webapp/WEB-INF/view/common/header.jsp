@@ -200,7 +200,7 @@ contentType="text/html" pageEncoding="UTF-8"%>
                         </div>
                       </div>
                     </div>
-                  </div>
+      </div>
               </c:when>
               <c:otherwise>
                 <a
@@ -225,8 +225,8 @@ contentType="text/html" pageEncoding="UTF-8"%>
             <!-- Mobile menu button -->
             <button id="mobile-menu-btn" class="md:hidden">
               <i data-lucide="menu" class="h-6 w-6"></i>
-            </button>
-          </div>
+      </button>
+    </div>
         </div>
 
         <!-- Mobile Navigation -->
@@ -327,7 +327,7 @@ contentType="text/html" pageEncoding="UTF-8"%>
                           </c:choose>
                         </p>
                       </div>
-                    </div>
+    </div>
                   </div>
                   
                   <c:choose>
@@ -352,8 +352,8 @@ contentType="text/html" pageEncoding="UTF-8"%>
                   <a href="<c:url value='/register'/>" class="block py-2 text-spa-dark hover:text-primary">Đăng ký</a>
                 </c:otherwise>
               </c:choose>
-            </div>
-          </nav>
+  </div>
+</nav>
         </div>
       </div>
     </header>
@@ -386,4 +386,3 @@ contentType="text/html" pageEncoding="UTF-8"%>
   </body>
 </html>
 
-    

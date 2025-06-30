@@ -196,54 +196,13 @@
         <jsp:include page="/WEB-INF/view/common/footer.jsp" />
 
         <script>
-            // Navigation functions
-            function navigateToHome() {
-                window.location.href = '${pageContext.request.contextPath}/';
-            }
-            
-            function navigateToLogin() {
-                // Store credentials for auto-prefill in login form
-                const email = '${email}';
-                const password = '${sessionScope.verificationLoginPassword}';
-                
-                if (email) {
-                    sessionStorage.setItem('prefill_email', email);
-                }
-                if (password) {
-                    sessionStorage.setItem('prefill_password', password);
-                }
-                
-                // Add a flag to indicate this is from verification success
-                sessionStorage.setItem('from_verification', 'true');
-                
-                window.location.href = '${pageContext.request.contextPath}/login';
-            }
-            
-            function navigateToServices() {
-                window.location.href = '${pageContext.request.contextPath}/services';
-            }
-            
-            function navigateToProfile() {
-                window.location.href = '${pageContext.request.contextPath}/customer/profile';
-            }
-
-            document.addEventListener('DOMContentLoaded', function() {
-                // Initialize Lucide icons
-                lucide.createIcons();
-                
-                // Add success message animation
-                const successCard = document.querySelector('.bg-white.rounded-xl');
-                if (successCard) {
-                    successCard.style.opacity = '0';
-                    successCard.style.transform = 'translateY(20px)';
-                    
-                    setTimeout(() => {
-                        successCard.style.transition = 'all 0.6s ease-out';
-                        successCard.style.opacity = '1';
-                        successCard.style.transform = 'translateY(0)';
-                    }, 100);
-                }
-            });
+            // Pass JSP variables to the global window object for external scripts
+            window.spaConfig = {
+                contextPath: '${pageContext.request.contextPath}',
+                email: '${email}',
+                password: '${sessionScope.verificationLoginPassword}'
+            };
         </script>
+        <script src="<c:url value='/js/verification-result.js'/>"></script>
     </body>
 </html> 

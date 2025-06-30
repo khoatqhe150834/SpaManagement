@@ -4,6 +4,8 @@
  */
 package controller;
 
+import com.google.gson.Gson;
+import dao.AccountDAO;
 import dao.CustomerDAO;
 import dao.EmailVerificationTokenDAO;
 import jakarta.servlet.ServletConfig;
@@ -17,19 +19,15 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.HashMap;
-import java.util.Map;
 import model.Customer;
 import model.EmailVerificationToken;
-import model.RoleConstants;
 import service.email.AsyncEmailService;
 import validation.RegisterValidator;
-import com.google.gson.Gson;
-import dao.AccountDAO;
-import org.mindrot.jbcrypt.BCrypt;
 
 /**
  * Consolidated controller for all registration-related functionality
@@ -183,50 +181,56 @@ public class RegisterController extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        RegisterValidator validator = new RegisterValidator();
-        boolean isDuplicate = false;
-        String message = "";
+        Map<String, Object> jsonResponse = new HashMap<>();
 
-        try (PrintWriter out = response.getWriter()) {
-            if (value.trim().isEmpty()) {
-                out.print("{\"valid\": false, \"message\": \"Giá trị không được để trống\"}");
-                return;
+        try {
+            if (value == null || value.trim().isEmpty()) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                jsonResponse.put("valid", false);
+                jsonResponse.put("isDuplicate", false);
+                jsonResponse.put("message", "Giá trị không được để trống.");
+            } else {
+                RegisterValidator validator = new RegisterValidator();
+                boolean isDuplicate = false;
+                String message = "";
+                boolean supportedType = true;
+
+                switch (validateType.toLowerCase()) {
+                    case "email":
+                        isDuplicate = validator.isEmailDuplicate(value.trim());
+                        message = isDuplicate ? "Email đã tồn tại trong hệ thống." : "Email có thể sử dụng.";
+                        break;
+                    case "phone":
+                        isDuplicate = validator.isPhoneDuplicate(value.trim());
+                        message = isDuplicate ? "Số điện thoại đã tồn tại trong hệ thống."
+                                : "Số điện thoại có thể sử dụng.";
+                        break;
+                    default:
+                        supportedType = false;
+                        break;
+                }
+
+                if (supportedType) {
+                    jsonResponse.put("valid", !isDuplicate);
+                    jsonResponse.put("isDuplicate", isDuplicate);
+                    jsonResponse.put("message", message);
+                } else {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    jsonResponse.put("valid", false);
+                    jsonResponse.put("message", "Loại validation không hỗ trợ.");
+                }
             }
-
-            switch (validateType.toLowerCase()) {
-                case "email":
-                    isDuplicate = validator.isEmailDuplicate(value.trim());
-                    if (isDuplicate) {
-                        message = "Email đã tồn tại trong hệ thống.";
-                    } else {
-                        message = "Email có thể sử dụng.";
-                    }
-                    break;
-
-                case "phone":
-                    isDuplicate = validator.isPhoneDuplicate(value.trim());
-                    if (isDuplicate) {
-                        message = "Số điện thoại đã tồn tại trong hệ thống.";
-                    } else {
-                        message = "Số điện thoại có thể sử dụng.";
-                    }
-                    break;
-
-                default:
-                    out.print("{\"valid\": false, \"message\": \"Loại validation không hỗ trợ\"}");
-                    return;
-            }
-
-            // Return JSON response
-            out.print("{\"valid\": " + !isDuplicate + ", \"isDuplicate\": " + isDuplicate + ", \"message\": \""
-                    + message + "\"}");
-
         } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error during AJAX validation for type '" + validateType + "'", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            try (PrintWriter out = response.getWriter()) {
-                out.print("{\"valid\": false, \"message\": \"Lỗi hệ thống, vui lòng thử lại.\"}");
-            }
+            jsonResponse.clear();
+            jsonResponse.put("valid", false);
+            // Fail safe: assume it is a duplicate to prevent user from proceeding on error
+            jsonResponse.put("isDuplicate", true);
+            jsonResponse.put("message", "Lỗi hệ thống, vui lòng thử lại sau.");
         }
+
+        response.getWriter().write(gson.toJson(jsonResponse));
     }
 
     private void handleRegisterPost(HttpServletRequest request, HttpServletResponse response)
@@ -292,6 +296,10 @@ public class RegisterController extends HttpServlet {
                 HttpSession session = request.getSession();
                 String lastSentKey = "lastVerificationSent_" + email;
                 session.setAttribute(lastSentKey, System.currentTimeMillis());
+
+                // Temporarily store the plain-text password for the post-verification prefill.
+                // This is a trade-off for user convenience. It will be cleared after use.
+                session.setAttribute("password_for_prefill_" + email, password);
 
                 LOGGER.info("Verification email sent successfully for new registration: " + email);
 
@@ -407,7 +415,6 @@ public class RegisterController extends HttpServlet {
         }
 
         try {
-            // Find the token in database
             EmailVerificationToken verificationToken = verificationTokenDAO.findByToken(token);
 
             if (verificationToken == null) {
@@ -417,7 +424,6 @@ public class RegisterController extends HttpServlet {
                 return;
             }
 
-            // Check if token is valid (not expired and not used)
             if (!verificationTokenDAO.isValid(token)) {
                 LOGGER.warning("Invalid or expired token: " + token);
                 request.setAttribute("error",
@@ -426,7 +432,6 @@ public class RegisterController extends HttpServlet {
                 return;
             }
 
-            // Find the customer by email
             String userEmail = verificationToken.getUserEmail();
             Optional<Customer> customerOpt = customerDAO.findCustomerByEmail(userEmail);
             Customer customer = customerOpt.orElse(null);
@@ -438,7 +443,6 @@ public class RegisterController extends HttpServlet {
                 return;
             }
 
-            // Check if customer is already verified
             if (customer.getIsVerified() != null && customer.getIsVerified()) {
                 LOGGER.info("Customer already verified: " + userEmail);
                 request.setAttribute("success",
@@ -448,7 +452,6 @@ public class RegisterController extends HttpServlet {
                 return;
             }
 
-            // Update customer verification status
             boolean updateSuccess = customerDAO.updateCustomerVerificationStatus(userEmail, true);
 
             if (!updateSuccess) {
@@ -458,7 +461,6 @@ public class RegisterController extends HttpServlet {
                 return;
             }
 
-            // Mark token as used
             verificationTokenDAO.markAsUsed(token);
 
             LOGGER.info("Successfully verified email for customer: " + userEmail);
@@ -466,10 +468,16 @@ public class RegisterController extends HttpServlet {
                     "Email của bạn đã được xác thực thành công! Bạn có thể đăng nhập và sử dụng tất cả các dịch vụ của chúng tôi.");
             request.setAttribute("email", userEmail);
 
-            // Store login data in session for auto-prefill after verification
             HttpSession session = request.getSession();
             session.setAttribute("verificationLoginEmail", userEmail);
-            // Don't store password here as it's not available in verification flow
+
+            String tempPasswordKey = "password_for_prefill_" + userEmail;
+            String passwordForPrefill = (String) session.getAttribute(tempPasswordKey);
+
+            if (passwordForPrefill != null) {
+                session.setAttribute("verificationLoginPassword", passwordForPrefill);
+                session.removeAttribute(tempPasswordKey);
+            }
 
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Database error during email verification for token: " + token, e);

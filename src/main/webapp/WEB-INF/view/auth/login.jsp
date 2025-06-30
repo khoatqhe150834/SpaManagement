@@ -209,6 +209,7 @@ contentType="text/html" pageEncoding="UTF-8"%>
     <div id="notification" class="notification"></div>
 
     <script src="<c:url value='/js/app.js'/>"></script>
+    <script src="<c:url value='/js/utils/prefill-handler.js'/>"></script>
     <script src="<c:url value='/js/login.js'/>"></script>
   </body>
 </html>

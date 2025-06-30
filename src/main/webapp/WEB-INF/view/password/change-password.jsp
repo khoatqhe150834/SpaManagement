@@ -70,30 +70,30 @@
                             <div>
                                 <p class="font-bold text-red-800">Phiên đã hết hạn</p>
                                 <p class="text-sm text-red-700">Liên kết đặt lại mật khẩu đã hết hạn hoặc không hợp lệ. Vui lòng yêu cầu một liên kết mới.</p>
-                            </div>
+            </div>
                         </div>
-                    </div>
+                                    </div>
                     <a href="<c:url value='/reset-password'/>" class="btn btn-primary w-full flex justify-center items-center mt-4">
                         Yêu cầu liên kết mới
                     </a>
-                </c:if>
-
+                            </c:if>
+                            
                 <!-- Change Password Form -->
-                <c:if test="${not empty sessionScope.resetEmail}">
+                            <c:if test="${not empty sessionScope.resetEmail}">
                     <!-- User Info -->
                     <div class="bg-secondary/30 border border-primary/40 rounded-lg p-3 mb-6 text-center">
                         <p class="text-sm text-spa-dark">
                             Bạn đang đặt lại mật khẩu cho: <strong class="font-medium text-primary-dark">${sessionScope.resetEmail}</strong>
                         </p>
-                    </div>
-
+                                </div>
+                                
                     <!-- Error Message -->
-                    <c:if test="${not empty error}">
+                                <c:if test="${not empty error}">
                         <div class="bg-red-50 border border-red-200 rounded-lg p-3 mb-6">
                             <p class="text-sm text-red-600">${error}</p>
-                        </div>
-                    </c:if>
-
+                                    </div>
+                                </c:if>
+                                
                     <form id="change-password-form" class="space-y-6" action="<c:url value='/change-password'/>" method="POST" novalidate>
                         <!-- New Password Field -->
                         <div>
@@ -103,12 +103,12 @@
                                     <i data-lucide="lock" class="h-5 w-5 text-gray-400"></i>
                                 </div>
                                 <input id="newPassword" name="newPassword" type="password" class="form-input pl-11" placeholder="Nhập mật khẩu mới" required minlength="6">
-                            </div>
+                                                </div>
                             <p class="mt-1 text-sm text-gray-500">Mật khẩu phải có ít nhất 6 ký tự.</p>
                             <p class="mt-1 text-sm text-red-600 hidden" id="newPasswordError"></p>
-                        </div>
-
-                        <!-- Confirm Password Field -->
+                                        </div>
+                                        
+                                        <!-- Confirm Password Field -->
                         <div>
                             <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-2">Xác nhận mật khẩu *</label>
                             <div class="relative">
@@ -130,11 +130,11 @@
             </div>
         </div>
     </div>
-
+    
     <jsp:include page="/WEB-INF/view/common/footer.jsp" />
     <div id="notification" class="notification"></div>
-
+    
     <script src="<c:url value='/js/app.js'/>"></script>
     <%-- TODO: Add specific JS for password validation and matching --%>
-</body>
+    </body>
 </html>
