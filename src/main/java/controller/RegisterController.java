@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URLEncoder;
 import java.sql.SQLException;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -279,11 +280,36 @@ public class RegisterController extends HttpServlet {
 
             customerDAO.save(newCustomer);
 
+            try {
+                // Create verification token for email verification
+                EmailVerificationToken token = new EmailVerificationToken(email);
+                verificationTokenDAO.save(token);
+
+                // Send verification email asynchronously
+                asyncEmailService.sendVerificationEmailAsync(email, token.getToken(), fullName);
+
+                // Store timestamp to prevent rapid resending
+                HttpSession session = request.getSession();
+                String lastSentKey = "lastVerificationSent_" + email;
+                session.setAttribute(lastSentKey, System.currentTimeMillis());
+
+                LOGGER.info("Verification email sent successfully for new registration: " + email);
+
+            } catch (SQLException ex) {
+                LOGGER.log(Level.SEVERE, "Error creating verification token for: " + email, ex);
+                // Continue with registration process even if email fails
+            } catch (Exception ex) {
+                LOGGER.log(Level.SEVERE, "Error sending verification email for: " + email, ex);
+                // Continue with registration process even if email fails
+            }
+
             // --- Set flash message and send success response ---
-            request.getSession().setAttribute("flash_success", "Đăng ký thành công! Vui lòng đăng nhập để tiếp tục.");
+            request.getSession().setAttribute("flash_success",
+                    "Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.");
 
             jsonResponse.put("success", true);
-            jsonResponse.put("redirectUrl", request.getContextPath() + "/login");
+            jsonResponse.put("redirectUrl", request.getContextPath() + "/email-verification-required?email="
+                    + java.net.URLEncoder.encode(email, "UTF-8"));
             response.getWriter().write(gson.toJson(jsonResponse));
 
         } catch (Exception e) {
@@ -539,12 +565,17 @@ public class RegisterController extends HttpServlet {
 
     private void handleResendVerificationGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Handle resend verification from login page for unverified customers
+        // Handle resend verification from email verification page
         String email = request.getParameter("email");
 
         if (email == null || email.trim().isEmpty()) {
-            request.setAttribute("error", "Email không hợp lệ.");
-            response.sendRedirect(request.getContextPath() + "/login");
+            // Return JSON error response for AJAX requests
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            try (PrintWriter out = response.getWriter()) {
+                out.print("{\"success\": false, \"message\": \"Email không hợp lệ.\"}");
+            }
             return;
         }
 
@@ -553,15 +584,24 @@ public class RegisterController extends HttpServlet {
             Optional<Customer> customerOpt = customerDAO.findCustomerByEmail(email);
             Customer customer = customerOpt.orElse(null);
             if (customer == null) {
-                request.setAttribute("error", "Không tìm thấy tài khoản với email này.");
-                response.sendRedirect(request.getContextPath() + "/login");
+                response.setContentType("application/json");
+                response.setCharacterEncoding("UTF-8");
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                try (PrintWriter out = response.getWriter()) {
+                    out.print("{\"success\": false, \"message\": \"Không tìm thấy tài khoản với email này.\"}");
+                }
                 return;
             }
 
             // Check if customer is already verified
             if (customerDAO.isCustomerVerified(email)) {
-                request.setAttribute("error", "Email của bạn đã được xác thực. Vui lòng đăng nhập.");
-                response.sendRedirect(request.getContextPath() + "/login");
+                response.setContentType("application/json");
+                response.setCharacterEncoding("UTF-8");
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                try (PrintWriter out = response.getWriter()) {
+                    out.print(
+                            "{\"success\": false, \"message\": \"Email của bạn đã được xác thực. Vui lòng đăng nhập.\"}");
+                }
                 return;
             }
 
@@ -573,8 +613,13 @@ public class RegisterController extends HttpServlet {
                 long timeSinceLastSent = (System.currentTimeMillis() - lastSentTime) / 1000;
                 if (timeSinceLastSent < 60) {
                     long remainingTime = 60 - timeSinceLastSent;
-                    request.setAttribute("error", "Vui lòng đợi " + remainingTime + " giây trước khi gửi lại email.");
-                    response.sendRedirect(request.getContextPath() + "/login");
+                    response.setContentType("application/json");
+                    response.setCharacterEncoding("UTF-8");
+                    response.setStatus(429); // Too Many Requests
+                    try (PrintWriter out = response.getWriter()) {
+                        out.print("{\"success\": false, \"message\": \"Vui lòng đợi " + remainingTime
+                                + " giây trước khi gửi lại email.\"}");
+                    }
                     return;
                 }
             }
@@ -593,57 +638,30 @@ public class RegisterController extends HttpServlet {
             // Store timestamp to prevent rapid resending
             session.setAttribute(lastSentKey, System.currentTimeMillis());
 
-            // Check if this is an AJAX request (from register-success page)
-            String ajaxHeader = request.getHeader("X-Requested-With");
-            if ("XMLHttpRequest".equals(ajaxHeader) || request.getParameter("ajax") != null) {
-                // Return JSON response for AJAX
-                response.setContentType("application/json");
-                response.setCharacterEncoding("UTF-8");
-                try (PrintWriter out = response.getWriter()) {
-                    out.print("{\"success\": true, \"message\": \"Email xác thực đã được gửi thành công!\"}");
-                }
-                return;
+            // Return JSON success response
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            try (PrintWriter out = response.getWriter()) {
+                out.print("{\"success\": true, \"message\": \"Email xác thực đã được gửi thành công!\"}");
             }
-
-            // Redirect to login with success message (for non-AJAX requests)
-            response.sendRedirect(request.getContextPath() + "/login?resent=true");
 
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "Error resending verification email", ex);
-
-            // Check if this is an AJAX request
-            String ajaxHeader = request.getHeader("X-Requested-With");
-            if ("XMLHttpRequest".equals(ajaxHeader) || request.getParameter("ajax") != null) {
-                response.setContentType("application/json");
-                response.setCharacterEncoding("UTF-8");
-                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                try (PrintWriter out = response.getWriter()) {
-                    out.print(
-                            "{\"success\": false, \"message\": \"Có lỗi xảy ra khi gửi email. Vui lòng thử lại sau.\"}");
-                }
-                return;
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            try (PrintWriter out = response.getWriter()) {
+                out.print("{\"success\": false, \"message\": \"Có lỗi xảy ra khi gửi email. Vui lòng thử lại sau.\"}");
             }
-
-            request.setAttribute("error", "Có lỗi xảy ra khi gửi email. Vui lòng thử lại sau.");
-            response.sendRedirect(request.getContextPath() + "/login");
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, "Unexpected error resending verification email", ex);
-
-            // Check if this is an AJAX request
-            String ajaxHeader = request.getHeader("X-Requested-With");
-            if ("XMLHttpRequest".equals(ajaxHeader) || request.getParameter("ajax") != null) {
-                response.setContentType("application/json");
-                response.setCharacterEncoding("UTF-8");
-                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                try (PrintWriter out = response.getWriter()) {
-                    out.print(
-                            "{\"success\": false, \"message\": \"Có lỗi không mong muốn xảy ra. Vui lòng thử lại sau.\"}");
-                }
-                return;
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            try (PrintWriter out = response.getWriter()) {
+                out.print(
+                        "{\"success\": false, \"message\": \"Có lỗi không mong muốn xảy ra. Vui lòng thử lại sau.\"}");
             }
-
-            request.setAttribute("error", "Có lỗi không mong muốn xảy ra. Vui lòng thử lại sau.");
-            response.sendRedirect(request.getContextPath() + "/login");
         }
     }
 

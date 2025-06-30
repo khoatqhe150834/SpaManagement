@@ -11,15 +11,10 @@ class LoginPage {
         this.errorMessageContainer = document.getElementById('error-message');
         this.submitBtn = document.getElementById('submit-btn');
 
-        this.demoUsers = {
-            'admin@spahuongsen.vn': { password: 'password123', role: 'admin', redirect: 'admin-dashboard.html', name: 'Jane Admin' },
-            'manager@spahuongsen.vn': { password: 'password123', role: 'manager', redirect: 'manager-dashboard.html', name: 'Mike Manager' },
-            'marketing@spahuongsen.vn': { password: 'password123', role: 'marketing', redirect: 'marketing-dashboard.html', name: 'Maria Spark' },
-            'therapist@spahuongsen.vn': { password: 'password123', role: 'therapist', redirect: 'therapist-dashboard.html', name: 'Anna Lee' },
-            'customer@spahuongsen.vn': { password: 'password123', role: 'customer', redirect: 'customer-dashboard.html', name: 'John Doe' }
-        };
+        
 
         this.init();
+        this.handlePrefillCredentials();
     }
 
     init() {
@@ -155,6 +150,45 @@ class LoginPage {
             this.showGlobalError('Đã xảy ra lỗi kết nối. Vui lòng thử lại.');
         } finally {
             this.setLoading(false);
+        }
+    }
+
+    handlePrefillCredentials() {
+        // Check if user came from email verification success page
+        const fromVerification = sessionStorage.getItem('from_verification');
+        const prefillEmail = sessionStorage.getItem('prefill_email');
+        const prefillPassword = sessionStorage.getItem('prefill_password');
+        
+        if (fromVerification === 'true' && prefillEmail) {
+            // Fill email field
+            this.emailInput.value = prefillEmail;
+            this.validateEmail(true);
+            
+            // Fill password field if available
+            if (prefillPassword) {
+                this.passwordInput.value = prefillPassword;
+                this.validatePassword(true);
+                
+                // Optionally check remember me
+                document.getElementById('remember-me').checked = true;
+                
+                // Show success message
+                if (window.SpaApp && window.SpaApp.showNotification) {
+                    SpaApp.showNotification('Thông tin đăng nhập đã được điền sẵn từ quá trình xác thực!', 'success');
+                }
+            }
+            
+            // Clear the stored credentials for security
+            sessionStorage.removeItem('from_verification');
+            sessionStorage.removeItem('prefill_email');
+            sessionStorage.removeItem('prefill_password');
+            
+            // Focus on submit button if both fields are filled, otherwise focus on password field
+            if (prefillPassword) {
+                this.submitBtn.focus();
+            } else {
+                this.passwordInput.focus();
+            }
         }
     }
 }

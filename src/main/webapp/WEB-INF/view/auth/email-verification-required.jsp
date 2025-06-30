@@ -1,360 +1,217 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" class="scroll-smooth">
     <head>
-        <meta charset="utf-8" />
-        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <meta name="keywords" content="" />
-        <meta name="author" content="" />
-        <meta name="robots" content="" />
-        <meta name="description" content="BeautyZone : Xác thực email bắt buộc" />
-        <meta property="og:title" content="BeautyZone : Xác thực email bắt buộc" />
-        <meta property="og:description" content="BeautyZone : Xác thực email bắt buộc" />
-        <meta name="format-detection" content="telephone=no" />
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Xác thực email - Spa Hương Sen</title>
 
-        <link rel="icon" href="${pageContext.request.contextPath}/assets/home/images/favicon.ico" type="image/x-icon" />
-        <link rel="shortcut icon" type="image/x-icon" href="${pageContext.request.contextPath}/assets/home/images/favicon.png" />
+        <!-- Tailwind CSS -->
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+          tailwind.config = {
+            theme: {
+              extend: {
+                colors: {
+                  primary: "#D4AF37",
+                  "primary-dark": "#B8941F",
+                  secondary: "#FADADD",
+                  "spa-cream": "#FFF8F0",
+                  "spa-dark": "#333333",
+                },
+                fontFamily: {
+                  serif: ["Playfair Display", "serif"],
+                  sans: ["Roboto", "sans-serif"],
+                },
+              },
+            },
+          };
+        </script>
 
-        <title>Xác thực email bắt buộc | BeautyZone</title>
+        <!-- Google Fonts -->
+        <link
+          href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Roboto:wght@300;400;500;600&display=swap"
+          rel="stylesheet"
+        />
 
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <!-- Lucide Icons -->
+        <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
-        <jsp:include page="/WEB-INF/view/common/home/stylesheet.jsp"></jsp:include>
-
-        <style>
-            .page-content {
-                padding-top: 120px; /* Add space for fixed header */
-            }
-            .verification-container {
-                min-height: 70vh;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                padding: 40px 0;
-            }
-            .verification-card {
-                background: white;
-                border-radius: 15px;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-                padding: 40px;
-                max-width: 600px;
-                width: 100%;
-                text-align: center;
-            }
-            .warning-icon {
-                width: 100px;
-                height: 100px;
-                background: #ffc107;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                margin: 0 auto 30px;
-                color: white;
-                font-size: 50px;
-                box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
-            }
-            .verification-title {
-                color: #333;
-                font-size: 2.5rem;
-                font-weight: 600;
-                margin-bottom: 20px;
-            }
-            .email-highlight {
-                color: #007bff;
-                font-weight: 600;
-            }
-            /* Match header button styles */
-            .btn-custom {
-                background: #6c7ae0;
-                color: white;
-                border: none;
-                padding: 12px 25px;
-                border-radius: 5px;
-                text-decoration: none;
-                display: inline-block;
-                margin: 10px 5px;
-                font-weight: 500;
-                font-size: 14px;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-                transition: all 0.3s ease;
-                min-width: 120px;
-            }
-            .btn-custom:hover {
-                background: #5a6fd8;
-                color: white;
-                text-decoration: none;
-                transform: translateY(-1px);
-                box-shadow: 0 4px 8px rgba(108, 122, 224, 0.3);
-            }
-            .btn-outline-custom {
-                background: transparent;
-                color: #6c7ae0;
-                border: 2px solid #6c7ae0;
-                padding: 10px 23px;
-                border-radius: 5px;
-                text-decoration: none;
-                display: inline-block;
-                margin: 10px 5px;
-                font-weight: 500;
-                font-size: 14px;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-                transition: all 0.3s ease;
-                min-width: 120px;
-            }
-            .btn-outline-custom:hover {
-                background: #6c7ae0;
-                color: white;
-                text-decoration: none;
-                transform: translateY(-1px);
-                box-shadow: 0 4px 8px rgba(108, 122, 224, 0.3);
-            }
-            .countdown-timer {
-                display: inline-block;
-                background: #f8f9fa;
-                border: 2px solid #6c7ae0;
-                border-radius: 50px;
-                padding: 15px 25px;
-                margin: 10px 0;
-                font-size: 1.2rem;
-                font-weight: 600;
-                color: #6c7ae0;
-                box-shadow: 0 2px 10px rgba(108, 122, 224, 0.2);
-            }
-            .countdown-timer span {
-                font-size: 1.5rem;
-                font-weight: 700;
-                color: #dc3545;
-            }
-            .alert.alert-success {
-                background: #d4edda;
-                border: 1px solid #c3e6cb;
-                color: #155724;
-                border-radius: 10px;
-                margin-bottom: 20px;
-            }
-            .alert.alert-success h5 {
-                color: #155724;
-                margin-bottom: 10px;
-            }
-        </style>
+        <!-- Custom CSS -->
+        <link rel="stylesheet" href="<c:url value='/css/style.css'/>" />
     </head>
 
-    <body id="bg">
-        <div class="page-wraper">
-            <div id="loading-area"></div>
-            <jsp:include page="/WEB-INF/view/common/home/header.jsp"></jsp:include>
-            
-            <div class="page-content bg-white">
-                <div class="section-full">
-                    <div class="container">
-                        <div class="verification-container">
-                            <div class="verification-card">
-                                <div class="warning-icon">
-                                    ⚠
+    <body class="bg-spa-cream">
+        <jsp:include page="/WEB-INF/view/common/header.jsp" />
+
+        <div class="min-h-screen flex items-center justify-center pt-32 pb-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-md w-full space-y-8">
+                <!-- Header -->
+                <div class="text-center">
+                    <h1 class="text-4xl font-serif text-spa-dark mb-2">
+                        Xác thực email
+                    </h1>
+                    <p class="text-gray-600">
+                        Vui lòng xác thực email để hoàn tất đăng ký
+                    </p>
                                 </div>
-                                <h2 class="verification-title">Xác thực email bắt buộc</h2>
-                                <div class="mt-4">
-                                    <div id="initialButtons">
-                                        <p class="text-center mb-3">Tài khoản <span class="email-highlight">${email}</span> chưa được xác thực</p>
-                                        <div class="alert alert-info text-center mb-4" style="background: #e7f3ff; border: 1px solid #b8daff; color: #0c5460; border-radius: 10px; padding: 15px;">
-                                            <i class="fa fa-info-circle"></i> Để đăng nhập và sử dụng hết tính năng của trang web, bạn phải xác thực tài khoản qua email.
+
+                <!-- Email Sent Message -->
+                <div class="bg-white rounded-lg shadow-lg p-8 text-center">
+                    <div class="bg-yellow-50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+                        <i data-lucide="mail" class="h-10 w-10 text-primary"></i>
                                         </div>
-                                        <div class="text-center">
-                                            <button class="btn-custom" id="sendVerificationBtn" data-email="${email}">
-                                                <i class="fa fa-envelope"></i> Gửi email xác thực
-                                            </button>
-                                            <a href="${pageContext.request.contextPath}/login" 
-                                               class="btn-outline-custom">
-                                                <i class="fa fa-arrow-left"></i> Quay lại đăng nhập
-                                            </a>
-                                        </div>
+                    
+                    <h2 class="text-2xl font-serif text-spa-dark mb-4">
+                        Đăng ký thành công!
+                    </h2>
+                    
+                    <p class="text-gray-600 mb-6">
+                        Chúng tôi đã gửi email xác thực đến <span id="userEmail" class="font-semibold text-primary">${email}</span>
+                    </p>
+                    
+                    <div class="bg-spa-cream rounded-lg p-4 mb-6 text-left">
+                        <h3 class="font-semibold text-spa-dark mb-2 flex items-center">
+                            <i data-lucide="info" class="h-5 w-5 mr-2 text-primary"></i>
+                            Hướng dẫn
+                        </h3>
+                        <ol class="space-y-2 text-sm text-gray-600 list-decimal list-inside">
+                            <li>Kiểm tra hộp thư đến của bạn</li>
+                            <li>Tìm email có tiêu đề "Xác thực tài khoản - Spa Hương Sen"</li>
+                            <li>Kiểm tra cả thư mục spam nếu không thấy trong hộp thư đến</li>
+                            <li>Nhấp vào nút "Xác thực tài khoản" trong email</li>
+                        </ol>
                                     </div>
                                     
-                                    <div id="emailSentSection" style="display: none;">
-                                        <div class="alert alert-success text-center">
-                                            <h5><i class="fa fa-check-circle"></i> Email đã được gửi!</h5>
-                                            <p>Chúng tôi đã gửi email xác thực đến <strong>${email}</strong></p>
-                                            <p>Vui lòng kiểm tra hộp thư của bạn và nhấp vào liên kết xác thực.</p>
+                    <div class="mb-6">
+                        <p class="text-gray-600 mb-2">Chưa nhận được email?</p>
+                        
+                        <!-- Countdown Section -->
+                        <div id="countdownSection" class="text-sm text-gray-500 mb-2">
+                            Có thể gửi lại sau: <span id="countdownTimer">60</span> giây
                                         </div>
                                         
-                                        <div class="text-center">
-                                            <div id="countdownSection">
-                                                <p class="mb-2">Bạn có thể gửi lại email sau:</p>
-                                                <div class="countdown-timer">
-                                                    <span id="countdownTimer">60</span> giây
+                        <!-- Resend Section -->
+                        <div id="resendSection" style="display: none;">
+                            <button id="resendEmailBtn" class="px-4 py-2 border border-primary text-primary rounded-lg hover:bg-primary hover:text-white transition-all duration-300 font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+                                Gửi lại email
+                            </button>
                                                 </div>
                                             </div>
                                             
-                                            <div id="resendSection" style="display: none;">
-                                                <p class="mb-3">Chưa nhận được email?</p>
-                                                <button class="btn-custom" id="resendBtn" data-email="${email}">
-                                                    <i class="fa fa-envelope"></i> Gửi lại email xác thực
+                    <button onclick="navigateTo('login')" class="w-full flex justify-center items-center py-3 px-4 bg-primary text-white rounded-lg hover:bg-primary-dark transition-all duration-300 font-semibold">
+                        <i data-lucide="arrow-left" class="mr-2 h-5 w-5"></i>
+                        Quay lại đăng nhập
                                                 </button>
                                             </div>
                                             
-                                            <div class="mt-3">
-                                                <a href="${pageContext.request.contextPath}/login" 
-                                                   class="btn-outline-custom">
-                                                    <i class="fa fa-arrow-left"></i> Quay lại đăng nhập
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="mt-3">
-                                        <p class="text-center">
-                                            <small>Đã xác thực email? <a href="${pageContext.request.contextPath}/login">Đăng nhập ngay</a></small>
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                <!-- Help Section -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-spa-dark mb-4 flex items-center">
+                        <i data-lucide="help-circle" class="h-5 w-5 mr-2 text-primary"></i>
+                        Cần hỗ trợ?
+                    </h3>
+                    <p class="text-gray-600 mb-4">
+                        Nếu bạn gặp vấn đề trong quá trình xác thực email, vui lòng liên hệ với chúng tôi qua:
+                    </p>
+                    <div class="flex items-center justify-between">
+                        <a href="tel:0901234567" class="flex items-center text-primary hover:text-primary-dark transition-colors">
+                            <i data-lucide="phone" class="h-4 w-4 mr-2"></i>
+                            0901 234 567
+                        </a>
+                        <a href="mailto:support@spahuongsen.vn" class="flex items-center text-primary hover:text-primary-dark transition-colors">
+                            <i data-lucide="mail" class="h-4 w-4 mr-2"></i>
+                            support@spahuongsen.vn
+                        </a>
                     </div>
                 </div>
             </div>
-
-            <jsp:include page="/WEB-INF/view/common/home/footer.jsp"></jsp:include>
-            <button class="scroltop">↑</button>
         </div>
 
-        <jsp:include page="/WEB-INF/view/common/home/js.jsp"></jsp:include>
+        <jsp:include page="/WEB-INF/view/common/footer.jsp" />
         
+        <script src="<c:url value='/js/countdown-manager.js'/>"></script>
         <script>
-            jQuery(document).ready(function() {
-                var countdownInterval;
-                var email = '${email}';
-                var COUNTDOWN_DURATION = 60; // seconds
-                
-                // Check for existing email send timestamp on page load
-                checkEmailSentStatus();
-                
-                // Handle send verification email button click
-                $("#sendVerificationBtn").click(function(e) {
-                    e.preventDefault();
-                    var email = $(this).data('email');
-                    sendVerificationEmail(email);
-                });
-                
-                // Handle resend verification email button click
-                $("#resendBtn").click(function(e) {
-                    e.preventDefault();
-                    var email = $(this).data('email');
-                    sendVerificationEmail(email, true);
-                });
-                
-                function checkEmailSentStatus() {
-                    var storageKey = 'email_sent_' + email;
-                    var emailSentTime = localStorage.getItem(storageKey);
-                    
-                    if (emailSentTime) {
-                        var sentTimestamp = parseInt(emailSentTime);
-                        var currentTime = Date.now();
-                        var elapsedSeconds = Math.floor((currentTime - sentTimestamp) / 1000);
-                        var remainingSeconds = COUNTDOWN_DURATION - elapsedSeconds;
-                        
-                        if (remainingSeconds > 0) {
-                            // Email was sent recently, show countdown
-                            $("#initialButtons").hide();
-                            $("#emailSentSection").show();
-                            startCountdown(remainingSeconds);
-                        } else {
-                            // Countdown expired, show resend option
-                            $("#initialButtons").hide();
-                            $("#emailSentSection").show();
-                            $("#countdownSection").hide();
-                            $("#resendSection").show();
-                        }
-                    }
-                    // If no stored timestamp, stay on initial state
+            // Navigation function
+            function navigateTo(page) {
+                const contextPath = '${pageContext.request.contextPath}';
+                switch(page) {
+                    case 'login':
+                        window.location.href = contextPath + '/login';
+                        break;
+                    case 'home':
+                        window.location.href = contextPath + '/';
+                        break;
+                    default:
+                        window.location.href = contextPath + '/' + page;
                 }
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                // Initialize Lucide icons
+                lucide.createIcons();
                 
-                function sendVerificationEmail(email, isResend = false) {
-                    var $btn = isResend ? $("#resendBtn") : $("#sendVerificationBtn");
-                    var originalText = $btn.html();
-                    
-                    // Show loading state
-                    $btn.html('<i class="fa fa-spinner fa-spin"></i> Đang gửi...').prop('disabled', true);
-                    
-                    // Send AJAX request
-                    $.get('${pageContext.request.contextPath}/resend-verification', {
-                        email: email
-                    })
-                    .done(function(response) {
-                        // Store email sent timestamp in localStorage
-                        var storageKey = 'email_sent_' + email;
-                        localStorage.setItem(storageKey, Date.now().toString());
-                        
-                        // Show email sent section
-                        $("#initialButtons").hide();
-                        $("#emailSentSection").show();
-                        
-                        // Start countdown from full duration
-                        startCountdown(COUNTDOWN_DURATION);
-                    })
-                    .fail(function(xhr) {
-                        // Handle error
-                        alert('Có lỗi xảy ra khi gửi email. Vui lòng thử lại sau.');
-                        $btn.html(originalText).prop('disabled', false);
+                const email = '${email}';
+                if (!email) {
+                    console.error("Email not found for countdown.");
+                    return;
+                }
+
+                const resendEmailBtn = document.getElementById('resendEmailBtn');
+
+                const countdownManager = new CountdownManager({
+                    countdownSectionId: 'countdownSection',
+                    resendSectionId: 'resendSection',
+                    countdownTimerId: 'countdownTimer',
+                    storageKey: `verification_countdown_end_time_${email}`,
+                    duration: 60
+                });
+
+                countdownManager.init();
+
+                if (resendEmailBtn) {
+                    resendEmailBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        sendVerificationEmail(email);
                     });
                 }
                 
-                function startCountdown(seconds = COUNTDOWN_DURATION) {
-                    // Clear any existing interval
-                    if (countdownInterval) {
-                        clearInterval(countdownInterval);
-                    }
+                function sendVerificationEmail(email) {
+                    var btn = resendEmailBtn;
+                    var originalHTML = btn.innerHTML;
                     
-                    // Ensure seconds is at least 1
-                    seconds = Math.max(1, seconds);
+                    btn.innerHTML = '<i data-lucide="loader-2" class="h-5 w-5 animate-spin"></i><span class="ml-2">Đang gửi...</span>';
+                    btn.disabled = true;
+                    lucide.createIcons();
                     
-                    $("#countdownSection").show();
-                    $("#resendSection").hide();
-                    $("#countdownTimer").text(seconds);
-                    
-                    countdownInterval = setInterval(function() {
-                        seconds--;
-                        $("#countdownTimer").text(seconds);
-                        
-                        if (seconds <= 0) {
-                            clearInterval(countdownInterval);
-                            $("#countdownSection").hide();
-                            $("#resendSection").show();
-                            
-                            // Clean up localStorage when countdown expires
-                            var storageKey = 'email_sent_' + email;
-                            localStorage.removeItem(storageKey);
+                    fetch('${pageContext.request.contextPath}/resend-verification?email=' + encodeURIComponent(email))
+                    .then(response => {
+                        return response.json().then(data => {
+                            if (response.ok) {
+                                countdownManager.start();
+                                if (window.SpaApp && window.SpaApp.showNotification) {
+                                    SpaApp.showNotification(data.message || 'Email xác thực đã được gửi thành công!', 'success');
+                                }
+                            } else {
+                                throw new Error(data.message || 'Network response was not ok');
+                            }
+                        });
+                    })
+                    .catch(error => {
+                        let errorMessage = error.message || 'Có lỗi xảy ra khi gửi email. Vui lòng thử lại sau.';
+                        if (window.SpaApp && window.SpaApp.showNotification) {
+                            SpaApp.showNotification(errorMessage, 'error');
+                        } else {
+                            alert(errorMessage);
                         }
-                    }, 1000);
+                    })
+                    .finally(() => {
+                        btn.innerHTML = originalHTML;
+                        btn.disabled = false;
+                        lucide.createIcons();
+                    });
                 }
-                
-                // Clean up localStorage when user leaves the page after countdown expires
-                $(window).on('beforeunload', function() {
-                    var storageKey = 'email_sent_' + email;
-                    var emailSentTime = localStorage.getItem(storageKey);
-                    
-                    if (emailSentTime) {
-                        var sentTimestamp = parseInt(emailSentTime);
-                        var currentTime = Date.now();
-                        var elapsedSeconds = Math.floor((currentTime - sentTimestamp) / 1000);
-                        
-                        if (elapsedSeconds >= COUNTDOWN_DURATION) {
-                            localStorage.removeItem(storageKey);
-                        }
-                    }
-                });
-                
-                // Add hover effects for better UX
-                $(document).on('mouseenter', '.btn-custom:not(:disabled), .btn-outline-custom', function() {
-                    $(this).css('transform', 'translateY(-2px)');
-                });
-                
-                $(document).on('mouseleave', '.btn-custom, .btn-outline-custom', function() {
-                    $(this).css('transform', 'translateY(0px)');
-                });
             });
         </script>
     </body>

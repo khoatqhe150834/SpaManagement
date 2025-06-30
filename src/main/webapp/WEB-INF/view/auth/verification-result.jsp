@@ -1,197 +1,249 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" class="scroll-smooth">
     <head>
-        <meta charset="utf-8" />
-        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <meta name="keywords" content="" />
-        <meta name="author" content="" />
-        <meta name="robots" content="" />
-        <meta name="description" content="BeautyZone : Kết quả xác thực email" />
-        <meta property="og:title" content="BeautyZone : Kết quả xác thực email" />
-        <meta property="og:description" content="BeautyZone : Kết quả xác thực email" />
-        <meta name="format-detection" content="telephone=no" />
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Kết quả xác thực - Spa Hương Sen</title>
 
-        <link rel="icon" href="${pageContext.request.contextPath}/assets/home/images/favicon.ico" type="image/x-icon" />
-        <link rel="shortcut icon" type="image/x-icon" href="${pageContext.request.contextPath}/assets/home/images/favicon.png" />
+        <!-- Tailwind CSS -->
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+          tailwind.config = {
+            theme: {
+              extend: {
+                colors: {
+                  primary: "#D4AF37",
+                  "primary-dark": "#B8941F",
+                  secondary: "#FADADD",
+                  "spa-cream": "#FFF8F0",
+                  "spa-dark": "#333333",
+                },
+                fontFamily: {
+                  serif: ["Playfair Display", "serif"],
+                  sans: ["Roboto", "sans-serif"],
+                },
+              },
+            },
+          };
+        </script>
 
-        <title>Kết quả xác thực | BeautyZone</title>
+        <!-- Google Fonts -->
+        <link
+          href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Roboto:wght@300;400;500;600&display=swap"
+          rel="stylesheet"
+        />
 
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <!-- Lucide Icons -->
+        <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
-        <jsp:include page="/WEB-INF/view/common/home/stylesheet.jsp"></jsp:include>
-
-        <style>
-            .page-content {
-                padding-top: 120px; /* Add space for fixed header */
-            }
-            .verification-container {
-                min-height: 70vh;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                padding: 40px 0;
-            }
-            .verification-card {
-                background: white;
-                border-radius: 15px;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-                padding: 40px;
-                max-width: 600px;
-                width: 100%;
-                text-align: center;
-            }
-            .success-icon {
-                width: 100px;
-                height: 100px;
-                background: #28a745;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                margin: 0 auto 30px;
-                color: white;
-                font-size: 50px;
-                box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
-            }
-            .error-icon {
-                width: 100px;
-                height: 100px;
-                background: #dc3545;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                margin: 0 auto 30px;
-                color: white;
-                font-size: 50px;
-                box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
-            }
-            .warning-icon {
-                width: 100px;
-                height: 100px;
-                background: #ffc107;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                margin: 0 auto 30px;
-                color: white;
-                font-size: 50px;
-                box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
-            }
-            .verification-title {
-                color: #333;
-                font-size: 2.5rem;
-                font-weight: 600;
-                margin-bottom: 20px;
-            }
-            .success-alert {
-                background: #d4edda;
-                border: 1px solid #c3e6cb;
-                color: #155724;
-                padding: 20px;
-                border-radius: 10px;
-                margin-bottom: 30px;
-            }
-            .error-alert {
-                background: #f8d7da;
-                border: 1px solid #f5c6cb;
-                color: #721c24;
-                padding: 20px;
-                border-radius: 10px;
-                margin-bottom: 30px;
-            }
-            .warning-alert {
-                background: #fff3cd;
-                border: 1px solid #ffeaa7;
-                color: #856404;
-                padding: 20px;
-                border-radius: 10px;
-                margin-bottom: 30px;
-            }
-            .verification-alert h5 {
-                font-weight: 600;
-                margin-bottom: 15px;
-            }
-            .verification-alert p {
-                margin-bottom: 10px;
-                line-height: 1.6;
-            }
-            .email-highlight {
-                color: #007bff;
-                font-weight: 600;
-            }
-            .button-group {
-                margin-top: 20px;
-            }
-            .button-group .site-button {
-                margin: 5px;
-            }
-        </style>
+        <!-- Custom CSS -->
+        <link rel="stylesheet" href="<c:url value='/css/style.css'/>" />
     </head>
 
-    <body id="bg">
-        <div class="page-wraper">
-            <div id="loading-area"></div>
-            <jsp:include page="/WEB-INF/view/common/home/header.jsp"></jsp:include>
-            
-            <div class="page-content bg-white">
-                <div class="section-full">
-                    <div class="container">
-                        <div class="verification-container">
-                            <div class="verification-card">
-                                <% if (request.getAttribute("success") != null) { %>
-                                    <div class="success-icon">
-                                        ✓
+    <body class="bg-spa-cream">
+        <jsp:include page="/WEB-INF/view/common/header.jsp" />
+
+        <div class="min-h-screen pt-20 pb-12 px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-center min-h-[calc(100vh-140px)]">
+                <div class="w-full max-w-sm sm:max-w-lg md:max-w-2xl lg:max-w-4xl xl:max-w-5xl">
+                    
+                    <!-- Main Success Content -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 lg:items-stretch">
+                        
+                        <!-- Left Column: Success Message (Mobile: full width, Desktop: 2 columns) -->
+                        <div class="lg:col-span-2 flex">
+                            <div class="bg-white rounded-xl shadow-lg p-6 sm:p-8 w-full flex flex-col">
+                                <!-- Success Icon and Animation -->
+                                <div class="text-center mb-8">
+                                    <div class="bg-primary rounded-full w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 flex items-center justify-center mx-auto">
+                                        <i data-lucide="check" class="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-white"></i>
                                     </div>
-                                    <h2 class="verification-title text-success">Xác thực thành công!</h2>
-                                    <div class="success-alert verification-alert">
-                                        <h5>Chúc mừng!</h5>
-                                        <p><%= request.getAttribute("success") %></p>
-                                        <% if (request.getAttribute("email") != null) { %>
-                                            <p class="mb-0">Email: <span class="email-highlight"><%= request.getAttribute("email") %></span></p>
-                                        <% } %>
-                                    </div>
-                                        <div class="button-group">
-                                        <a href="${pageContext.request.contextPath}/login?email=<%=java.net.URLEncoder.encode((String)request.getAttribute("email"), "UTF-8")%>&verified=true" class="site-button radius-no">Đăng nhập ngay</a>
+                                </div>
+                                
+                                <!-- Title and Welcome Message -->
+                                <div class="text-center mb-8">
+                                    <h1 class="text-2xl sm:text-3xl lg:text-4xl font-serif text-spa-dark mb-4">
+                                        Xác thực thành công!
+                                    </h1>
+                                    
+                                    <p class="text-lg sm:text-xl text-gray-600 mb-2">
+                                        Chào mừng <span id="userName" class="font-semibold text-primary">${email != null ? email : 'bạn'}</span>
+                                    </p>
+                                    <p class="text-base text-gray-500">
+                                        đến với Spa Hương Sen
+                                    </p>
+                                </div>
+                                
+                                <!-- Next Steps -->
+                                <div class="bg-spa-cream rounded-lg p-4 sm:p-6 mb-8 flex-grow">
+                                    <h3 class="font-semibold text-spa-dark mb-4 text-center lg:text-left text-lg">
+                                        Các bước tiếp theo:
+                                    </h3>
+                                    <div class="space-y-4">
+                                        <div class="flex items-start">
+                                            <div class="bg-primary rounded-full w-8 h-8 flex items-center justify-center text-white font-bold flex-shrink-0 mt-1">
+                                                1
+                                            </div>
+                                            <div class="ml-4">
+                                                <h4 class="font-medium text-spa-dark">Hoàn thiện hồ sơ</h4>
+                                                <p class="text-sm text-gray-600">Cập nhật thông tin cá nhân để nhận ưu đãi phù hợp</p>
+                                            </div>
                                         </div>
-                                <% } else if (request.getAttribute("error") != null) { %>
-                                    <div class="error-icon">
-                                        ✗
+                                        <div class="flex items-start">
+                                            <div class="bg-primary rounded-full w-8 h-8 flex items-center justify-center text-white font-bold flex-shrink-0 mt-1">
+                                                2
+                                            </div>
+                                            <div class="ml-4">
+                                                <h4 class="font-medium text-spa-dark">Khám phá dịch vụ</h4>
+                                                <p class="text-sm text-gray-600">Tìm hiểu các dịch vụ spa cao cấp của chúng tôi</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start">
+                                            <div class="bg-primary rounded-full w-8 h-8 flex items-center justify-center text-white font-bold flex-shrink-0 mt-1">
+                                                3
+                                            </div>
+                                            <div class="ml-4">
+                                                <h4 class="font-medium text-spa-dark">Đặt lịch đầu tiên</h4>
+                                                <p class="text-sm text-gray-600">Nhận ưu đãi 30% cho lần đặt lịch đầu tiên</p>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <h2 class="verification-title text-danger">Xác thực thất bại!</h2>
-                                    <div class="error-alert verification-alert">
-                                        <h5>Có lỗi xảy ra</h5>
-                                        <p><%= request.getAttribute("error") %></p>
+                                </div>
+                                
+                                <!-- Action Buttons -->
+                                <div class="space-y-3 sm:space-y-4 lg:flex lg:space-y-0 lg:space-x-4 mt-auto">
+                                    <button onclick="navigateToHome()" class="w-full lg:flex-1 flex justify-center items-center py-3 px-4 bg-primary text-white rounded-lg hover:bg-primary-dark transition-all duration-300 font-semibold">
+                                        <i data-lucide="home" class="mr-2 h-5 w-5"></i>
+                                        Về trang chủ
+                                    </button>
+                                    
+                                    <button onclick="navigateToLogin()" class="w-full lg:flex-1 flex justify-center items-center py-3 px-4 border-2 border-primary text-primary rounded-lg hover:bg-primary hover:text-white transition-all duration-300 font-semibold">
+                                        <i data-lucide="log-in" class="mr-2 h-5 w-5"></i>
+                                        Đăng nhập ngay
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column: Offers and Social (Mobile: full width, Desktop: 1 column) -->
+                        <div class="lg:col-span-1 flex">
+                            <div class="space-y-6 w-full flex flex-col">
+                            
+                                <!-- Welcome Offer -->
+                                <div class="bg-gradient-to-br from-primary via-primary to-primary-dark rounded-xl shadow-lg p-6 text-white">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <h3 class="text-lg sm:text-xl font-semibold">Ưu đãi chào mừng</h3>
+                                        <i data-lucide="gift" class="h-6 w-6 sm:h-8 sm:w-8"></i>
                                     </div>
-                                    <div class="button-group">
-                                        <a href="${pageContext.request.contextPath}/register" class="site-button radius-no">Đăng ký lại</a>
-                                        <a href="${pageContext.request.contextPath}/" class="site-button radius-no">Về trang chủ</a>
+                                    <p class="mb-4 text-sm sm:text-base">
+                                        Nhận ngay <span class="font-bold text-lg sm:text-xl">30% giảm giá</span> cho lần đặt lịch đầu tiên!
+                                    </p>
+                                    <div class="bg-white/20 rounded-lg p-3 text-sm">
+                                        <p class="font-semibold">Mã ưu đãi: <span class="font-bold">WELCOME30</span></p>
+                                        <p class="text-xs mt-1 opacity-80">Có hiệu lực trong 30 ngày</p>
                                     </div>
-                                <% } else { %>
-                                    <div class="warning-icon">
-                                        ?
+                                </div>
+
+                                <!-- Quick Actions -->
+                                <div class="bg-white rounded-xl shadow-lg p-6 flex-grow">
+                                    <h3 class="text-lg font-semibold text-spa-dark mb-4 text-center">
+                                        Hành động nhanh
+                                    </h3>
+                                    <div class="space-y-3">
+                                        <button onclick="navigateToServices()" class="w-full flex items-center justify-center py-2.5 px-4 bg-secondary text-spa-dark rounded-lg hover:bg-primary hover:text-white transition-all duration-300 font-medium text-sm">
+                                            <i data-lucide="sparkles" class="mr-2 h-4 w-4"></i>
+                                            Xem dịch vụ
+                                        </button>
+                                        <button onclick="navigateToProfile()" class="w-full flex items-center justify-center py-2.5 px-4 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all duration-300 font-medium text-sm">
+                                            <i data-lucide="user" class="mr-2 h-4 w-4"></i>
+                                            Cập nhật hồ sơ
+                                        </button>
                                     </div>
-                                    <h2 class="verification-title">Không có thông tin</h2>
-                                    <div class="warning-alert verification-alert">
-                                        <p>Không có thông tin xác thực.</p>
+                                </div>
+
+                                <!-- Social Sharing -->
+                                <div class="bg-white rounded-xl shadow-lg p-6">
+                                    <h3 class="text-lg font-semibold text-spa-dark mb-3 text-center">
+                                        Chia sẻ với bạn bè
+                                    </h3>
+                                    <p class="text-sm text-gray-600 mb-4 text-center">
+                                        Giới thiệu bạn bè và cả hai cùng nhận ưu đãi 15%
+                                    </p>
+                                    <div class="flex justify-center space-x-3">
+                                        <button class="p-2.5 bg-[#3b5998] text-white rounded-full hover:opacity-90 transition-opacity">
+                                            <i data-lucide="facebook" class="h-4 w-4"></i>
+                                        </button>
+                                        <button class="p-2.5 bg-[#25D366] text-white rounded-full hover:opacity-90 transition-opacity">
+                                            <i data-lucide="message-circle" class="h-4 w-4"></i>
+                                        </button>
+                                        <button class="p-2.5 bg-[#0088cc] text-white rounded-full hover:opacity-90 transition-opacity">
+                                            <i data-lucide="send" class="h-4 w-4"></i>
+                                        </button>
+                                        <button class="p-2.5 bg-[#c13584] text-white rounded-full hover:opacity-90 transition-opacity">
+                                            <i data-lucide="instagram" class="h-4 w-4"></i>
+                                        </button>
                                     </div>
-                                    <div class="button-group">
-                                        <a href="${pageContext.request.contextPath}/" class="site-button radius-no">Về trang chủ</a>
-                                    </div>
-                                <% } %>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <jsp:include page="/WEB-INF/view/common/home/footer.jsp"></jsp:include>
-            <button class="scroltop">↑</button>
         </div>
 
-        <jsp:include page="/WEB-INF/view/common/home/js.jsp"></jsp:include>
+        <jsp:include page="/WEB-INF/view/common/footer.jsp" />
+
+        <script>
+            // Navigation functions
+            function navigateToHome() {
+                window.location.href = '${pageContext.request.contextPath}/';
+            }
+            
+            function navigateToLogin() {
+                // Store credentials for auto-prefill in login form
+                const email = '${email}';
+                const password = '${sessionScope.verificationLoginPassword}';
+                
+                if (email) {
+                    sessionStorage.setItem('prefill_email', email);
+                }
+                if (password) {
+                    sessionStorage.setItem('prefill_password', password);
+                }
+                
+                // Add a flag to indicate this is from verification success
+                sessionStorage.setItem('from_verification', 'true');
+                
+                window.location.href = '${pageContext.request.contextPath}/login';
+            }
+            
+            function navigateToServices() {
+                window.location.href = '${pageContext.request.contextPath}/services';
+            }
+            
+            function navigateToProfile() {
+                window.location.href = '${pageContext.request.contextPath}/customer/profile';
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                // Initialize Lucide icons
+                lucide.createIcons();
+                
+                // Add success message animation
+                const successCard = document.querySelector('.bg-white.rounded-xl');
+                if (successCard) {
+                    successCard.style.opacity = '0';
+                    successCard.style.transform = 'translateY(20px)';
+                    
+                    setTimeout(() => {
+                        successCard.style.transition = 'all 0.6s ease-out';
+                        successCard.style.opacity = '1';
+                        successCard.style.transform = 'translateY(0)';
+                    }, 100);
+                }
+            });
+        </script>
     </body>
 </html> 

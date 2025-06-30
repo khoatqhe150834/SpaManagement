@@ -248,3 +248,4 @@
     <script src="<c:url value='/js/booking.js'/>"></script>
   </body>
 </html>
+ 
