@@ -128,31 +128,7 @@
             </div>
 
             <!-- Help Section -->
-            <div class="bg-white rounded-lg shadow-lg p-6">
-                            <h3 class="text-lg font-semibold text-text-primary mb-4">
-                                Cần hỗ trợ?
-                            </h3>
-                            <div class="space-y-3 text-sm text-gray-600">
-                                <p>
-                                    • Kiểm tra kỹ địa chỉ email bạn đã nhập
-                                </p>
-                                <p>
-                                    • Tìm kiếm email trong thư mục spam hoặc thư rác
-                                </p>
-                                <p>
-                                    • Liên hệ với chúng tôi nếu không nhận được email sau 10 phút
-                                </p>
-                            </div>
-                            <div class="mt-4 pt-4 border-t border-gray-200">
-                                <p class="text-sm text-gray-600">
-                                    Liên hệ hỗ trợ:
-                                    <a href="tel:0901234567" class="text-primary hover:text-primary-dark font-semibold">
-                                        0901 234 567
-                                    </a>
-                                </p>
-                            </div>
-                        </div>
-        </div>
+           
     </main>
 
     <jsp:include page="/WEB-INF/view/common/footer.jsp" />
