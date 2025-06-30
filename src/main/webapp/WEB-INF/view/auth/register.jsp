@@ -1,330 +1,240 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %> <%@page
 contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
-<html lang="en">
-  <!-- Mirrored from www.beautyzone.dexignzone.com/xhtml/register.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 24 May 2025 16:40:31 GMT -->
+<html lang="vi">
   <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="keywords" content="" />
-    <meta name="author" content="" />
-    <meta name="robots" content="" />
-    <meta
-      name="description"
-      content="BeautyZone : Beauty Spa Salon HTML Template"
-    />
-    <meta
-      property="og:title"
-      content="BeautyZone : Beauty Spa Salon HTML Template"
-    />
-    <meta
-      property="og:description"
-      content="BeautyZone : Beauty Spa Salon HTML Template"
-    />
-    <meta
-      property="og:image"
-      content="../../beautyzone.dexignzone.com/xhtml/social-image.png"
-    />
-    <meta name="format-detection" content="telephone=no" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đăng ký - Spa Hương Sen</title>
 
-    <!-- FAVICONS ICON -->
-    <link
-      rel="icon"
-      href="${pageContext.request.contextPath}/assets/home/images/favicon.ico"
-      type="image/x-icon"
-    />
-    <link
-      rel="shortcut icon"
-      type="image/x-icon"
-      href="${pageContext.request.contextPath}/assets/home/images/favicon.png"
-    />
-
-    <!-- Add CSS for validation styling -->
-    <link
-      rel="stylesheet"
-      type="text/css"
-      href="${pageContext.request.contextPath}/assets/home/css/auth/register.css"
-    />
-
-    <!-- PAGE TITLE HERE -->
-    <title>BeautyZone : Beauty Spa Salon</title>
-    
-    <!-- Context path for JavaScript -->
-    <meta name="context-path" content="${pageContext.request.contextPath}" />
-
-    <!-- Custom styles for form -->
-    <style>
-        /* Make required field asterisks red */
-        .font-weight-700:contains('*')::after,
-        .font-weight-700 {
-            color: inherit;
-        }
-        
-        /* Target asterisks specifically */
-        .required-asterisk {
-            color: #dc3545 !important;
-            font-weight: bold;
-        }
-    </style>
-
-    <!-- MOBILE SPECIFIC -->
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-    <!--[if lt IE 9]>
-      <script src="js/html5shiv.min.js"></script>
-      <script src="js/respond.min.js"></script>
-    <![endif]-->
-
-    <!-- STYLESHEETS -->
-    <jsp:include page="/WEB-INF/view/common/home/stylesheet.jsp"></jsp:include>
-  </head>
-  <body id="bg">
-    <div class="page-wraper">
-      <div id="loading-area"></div>
-      <!-- header -->
-      <jsp:include page="/WEB-INF/view/common/home/header.jsp"></jsp:include>
-      <!-- header END -->
-      <!-- Content -->
-      <div class="page-content bg-white">
-        <!-- inner page banner -->
-        <div
-          class="dlab-bnr-inr overlay-primary bg-pt"
-          style="
-            background-image: url(${pageContext.request.contextPath}/assets/home/images/banner/bnr2.jpg);
-          "
-        >
-          <div class="container">
-            <div class="dlab-bnr-inr-entry">
-              <h1 class="text-white">Đăng ký tài khoản</h1>
-              <!-- Breadcrumb row -->
-              <div class="breadcrumb-row">
-                <ul class="list-inline">
-                  <li>
-                    <a href="${pageContext.request.contextPath}/">Trang chủ</a>
-                  </li>
-                  <li>Đăng ký</li>
-                </ul>
-              </div>
-              <!-- Breadcrumb row END -->
-            </div>
-          </div>
-        </div>
-        <!-- inner page banner END -->
-        <!-- contact area -->
-        <div class="section-full content-inner shop-account">
-          <!-- Product -->
-          <div class="container">
-            <div class="row">
-              <div class="col-md-12 text-center">
-                <h3 class="font-weight-700 m-t0 m-b20">Tạo tài khoản</h3>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-md-12 m-b30">
-                <div class="p-a30 border-1 max-w500 m-auto">
-                  <div class="tab-content">
-                    <c:if test="${not empty error}">
-                      <div
-                        class="alert alert-danger"
-                        style="margin-bottom: 1rem"
-                      >
-                        ${error}
-                      </div>
-                    </c:if>
-
-                    <form
-                      id="registerForm"
-                      class="tab-pane active"
-                      method="post"
-                      action="${pageContext.request.contextPath}/register"
-                    >
-                      <h4 class="font-weight-700">THÔNG TIN CÁ NHÂN</h4>
-                      <p class="font-weight-600">
-                        Nếu bạn đã có tài khoản với chúng tôi, vui lòng đăng
-                        nhập.
-                      </p>
-                      <div class="form-group">
-                        <label class="font-weight-700">Họ tên <span class="required-asterisk">*</span></label>
-                        <input
-                          id="fullName"
-                          name="fullName"
-                          required="true"
-                          class="form-control"
-                          placeholder="Trần Văn A"
-                          type="text"
-                          minlength="6"
-                          maxlength="100"
-                          title="Họ tên phải có ít nhất 6 ký tự và không chứa ký tự đặc biệt."
-                          pattern="^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂẾưăạảấầẩẫậắằẳẵặẹẻẽềềểếỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s]{6,}$"
-                        />
-                      </div>
-                      <div class="form-group">
-                        <label class="font-weight-700">SĐT <span class="required-asterisk">*</span></label>
-                        <input
-                          id="phone"
-                          name="phone"
-                          required="true"
-                          class="form-control"
-                          placeholder="0909090909"
-                          type="text"
-                          pattern="0[1-9][0-9]{8}"
-                          title="Số điện thoại phải bắt đầu bằng 0, số thứ 2 từ 1-9, và có đúng 10 chữ số."
-                          minlength="10"
-                          maxlength="10"
-                        />
-                      </div>
-                      <div class="form-group">
-                        <label class="font-weight-700">E-MAIL <span class="required-asterisk">*</span></label>
-                        <input
-                          id="email"
-                          name="email"
-                          required="true"
-                          class="form-control"
-                          placeholder="email@gmail.com"
-                          type="email"
-                          maxlength="255"
-                          pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-                          title="Vui lòng nhập đúng định dạng email (không chứa khoảng trắng)."
-                        />
-                      </div>
-                      <div class="form-group">
-                        <label class="font-weight-700">MẬT KHẨU <span class="required-asterisk">*</span></label>
-                        <input
-                          id="password"
-                          name="password"
-                          required="true"
-                          class="form-control"
-                          type="password"
-                          minlength="6"
-                          maxlength="30"
-                          pattern=".{6,}"
-                          title="Mật khẩu phải có ít nhất 6 ký tự."
-                          placeholder="******"
-                        />
-                        <div class="form-text text-muted" style="font-size: 14px; color: #666; margin-top: 8px; line-height: 1.4;">
-                          <strong>Yêu cầu mật khẩu:</strong><br>
-                          • Tối thiểu 6 ký tự, tối đa 30 ký tự<br>
-                          • Nên sử dụng kết hợp chữ cái, số và ký tự đặc biệt<br>
-                          • Không sử dụng thông tin cá nhân dễ đoán
-                        </div>
-                      </div>
-
-                      <div class="form-group">
-                        <label class="font-weight-700"
-                          >NHẬP LẠI MẬT KHẨU <span class="required-asterisk">*</span></label
-                        >
-                        <input
-                          name="confirmPassword"
-                          id="confirmPassword"
-                          required="true"
-                          class="form-control"
-                          type="password"
-                          minlength="6"
-                          maxlength="30"
-                          title="Mật khẩu phải khớp với mật khẩu đã nhập."
-                          placeholder="******"
-                        />
-                      </div>
-                      <div class="text-left">
-                        <button
-                          type="submit"
-                          style="
-                            background-color: #586BB4;
-                            color: white;
-                            border: none;
-                            border-radius: 0;
-                            padding: 12px 20px;
-                            width: 180px;
-                            font-size: 16px;
-                            font-weight: 600;
-                            text-align: center;
-                            cursor: pointer;
-                            display: inline-block;
-                            text-transform: none;
-                            line-height: 1.42857;
-                            outline: none;
-                          "
-                          onmouseover="this.style.backgroundColor='#455790'"
-                          onmouseout="this.style.backgroundColor='#586BB4'"
-                        >
-                          TẠO TÀI KHOẢN
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <!-- Product END -->
-        </div>
-
-        <!-- contact area  END -->
-      </div>
-      <!-- Content END-->
-      <!-- Footer -->
-      <jsp:include page="/WEB-INF/view/common/home/footer.jsp"></jsp:include>
-      <!-- Footer END -->
-      <button type="button" class="scroltop" aria-label="Scroll to top">
-        <i class="fa fa-chevron-up" aria-hidden="true"></i>
-      </button>
-    </div>
-    <!-- JAVASCRIPT FILES ========================================= -->
-    <jsp:include page="/WEB-INF/view/common/home/js.jsp"></jsp:include>
-    
-    <!-- REGISTRATION VALIDATION SCRIPT -->
-    <script src="${pageContext.request.contextPath}/assets/home/js/auth/register-validation.js"></script>
-    
-    <!-- Auto-focus on full name field -->
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        // Focus on full name field when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            const fullNameField = document.getElementById('fullName');
-            if (fullNameField) {
-                fullNameField.focus();
-            }
-            
-            // Phone number input restriction - only allow numbers
-            const phoneField = document.getElementById('phone');
-            if (phoneField) {
-                // Prevent non-numeric characters on keydown
-                phoneField.addEventListener('keydown', function(e) {
-                    // Allow: backspace, delete, tab, escape, enter, home, end, left, right
-                    if ([8, 9, 27, 13, 46, 35, 36, 37, 39].indexOf(e.keyCode) !== -1 ||
-                        // Allow Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
-                        (e.keyCode === 65 && e.ctrlKey === true) || 
-                        (e.keyCode === 67 && e.ctrlKey === true) || 
-                        (e.keyCode === 86 && e.ctrlKey === true) || 
-                        (e.keyCode === 88 && e.ctrlKey === true)) {
-                        return;
-                    }
-                    // Ensure that it is a number and stop the keypress
-                    if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
-                        e.preventDefault();
-                    }
-                });
-                
-                // Clean pasted content - remove non-numeric characters
-                phoneField.addEventListener('paste', function(e) {
-                    setTimeout(() => {
-                        let value = this.value.replace(/[^0-9]/g, '');
-                        if (value.length > 10) {
-                            value = value.substring(0, 10);
-                        }
-                        this.value = value;
-                    }, 0);
-                });
-                
-                // Also prevent non-numeric input on input event (backup)
-                phoneField.addEventListener('input', function(e) {
-                    let value = this.value.replace(/[^0-9]/g, '');
-                    if (value.length > 10) {
-                        value = value.substring(0, 10);
-                    }
-                    this.value = value;
-                });
-            }
-        });
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#D4AF37",
+              "primary-dark": "#B8941F",
+              secondary: "#FADADD",
+              "spa-cream": "#FFF8F0",
+              "spa-dark": "#333333",
+            },
+            fontFamily: {
+              serif: ["Playfair Display", "serif"],
+              sans: ["Roboto", "sans-serif"],
+            },
+          },
+        },
+      };
     </script>
+
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Roboto:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="<c:url value='/css/style.css'/>" />
+  </head>
+  <body class="bg-spa-cream">
+    <jsp:include page="/WEB-INF/view/common/header.jsp" />
+    <div
+      class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8"
+    >
+      <div class="max-w-md w-full space-y-8">
+        <!-- Header -->
+        <div class="text-center">
+          <a
+            href="<c:url value='/index'/>"
+            class="text-3xl font-serif font-bold text-primary mb-2 inline-block"
+            >Spa Hương Sen</a
+          >
+          <h2 class="text-4xl font-serif text-spa-dark">Tạo tài khoản</h2>
+          <p class="text-gray-600 mt-2">
+            Trải nghiệm dịch vụ cao cấp ngay hôm nay
+          </p>
+        </div>
+
+        <!-- Register Form -->
+        <div class="bg-white rounded-lg shadow-lg p-8">
+          <form id="register-form" class="space-y-6">
+            <!-- Full Name -->
+            <div>
+              <label
+                for="fullName"
+                class="block text-sm font-medium text-gray-700 mb-2"
+                >Họ và tên *</label
+              >
+              <div class="relative">
+                <div
+                  class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+                >
+                  <i data-lucide="user" class="h-5 w-5 text-gray-400"></i>
+                </div>
+                <input
+                  id="fullName"
+                  name="fullName"
+                  type="text"
+                  class="form-input pl-11"
+                  placeholder="Nhập họ và tên"
+                  required
+                />
+              </div>
+              <p class="form-error-text"></p>
+            </div>
+
+            <!-- Email -->
+            <div>
+              <label
+                for="email"
+                class="block text-sm font-medium text-gray-700 mb-2"
+                >Email *</label
+              >
+              <div class="relative">
+                <div
+                  class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+                >
+                  <i data-lucide="mail" class="h-5 w-5 text-gray-400"></i>
+                </div>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  class="form-input pl-11"
+                  placeholder="Nhập email"
+                  required
+                />
+              </div>
+              <p class="form-error-text"></p>
+            </div>
+
+            <!-- Password -->
+            <div>
+              <label
+                for="password"
+                class="block text-sm font-medium text-gray-700 mb-2"
+                >Mật khẩu *</label
+              >
+              <div class="relative">
+                <div
+                  class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+                >
+                  <i data-lucide="lock" class="h-5 w-5 text-gray-400"></i>
+                </div>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  class="form-input pl-11 pr-11"
+                  placeholder="Tạo mật khẩu"
+                  required
+                />
+                <button
+                  type="button"
+                  class="toggle-password absolute inset-y-0 right-0 flex items-center pr-3"
+                >
+                  <i
+                    data-lucide="eye"
+                    class="h-5 w-5 text-gray-400 hover:text-gray-600"
+                  ></i>
+                </button>
+              </div>
+              <p class="form-error-text"></p>
+              <p class="text-xs text-gray-500 mt-2">
+                Ít nhất 8 ký tự, gồm chữ hoa, chữ thường và số.
+              </p>
+            </div>
+
+            <!-- Confirm Password -->
+            <div>
+              <label
+                for="confirmPassword"
+                class="block text-sm font-medium text-gray-700 mb-2"
+                >Xác nhận mật khẩu *</label
+              >
+              <div class="relative">
+                <div
+                  class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+                >
+                  <i data-lucide="lock" class="h-5 w-5 text-gray-400"></i>
+                </div>
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  class="form-input pl-11 pr-11"
+                  placeholder="Nhập lại mật khẩu"
+                  required
+                />
+                <button
+                  type="button"
+                  class="toggle-password absolute inset-y-0 right-0 flex items-center pr-3"
+                >
+                  <i
+                    data-lucide="eye"
+                    class="h-5 w-5 text-gray-400 hover:text-gray-600"
+                  ></i>
+                </button>
+              </div>
+              <p class="form-error-text"></p>
+            </div>
+
+            <!-- Terms and Conditions -->
+            <div class="flex items-start">
+              <div class="flex items-center h-5">
+                <input
+                  id="agreeTerms"
+                  name="agreeTerms"
+                  type="checkbox"
+                  class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                  required
+                />
+              </div>
+              <div class="ml-3 text-sm">
+                <label for="agreeTerms" class="font-medium text-gray-700"
+                  >Tôi đồng ý với
+                  <a href="#" class="text-primary hover:text-primary-dark"
+                    >Điều khoản sử dụng</a
+                  ></label
+                >
+              </div>
+            </div>
+            <p id="agreeTerms-error" class="form-error-text"></p>
+
+            <!-- Submit Button -->
+            <button
+              type="submit"
+              id="submit-btn"
+              class="btn btn-primary w-full flex justify-center items-center"
+            >
+              <span class="btn-text">Đăng ký</span>
+              <span class="btn-spinner hidden"></span>
+            </button>
+          </form>
+
+          <div class="mt-6 text-center">
+            <p class="text-sm text-gray-600">
+              Đã có tài khoản?
+              <a
+                href="<c:url value='/login'/>"
+                class="font-medium text-primary hover:text-primary-dark"
+                >Đăng nhập</a
+              >
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <jsp:include page="/WEB-INF/view/common/footer.jsp" />
+    <div id="notification" class="notification"></div>
+
+    <script src="<c:url value='/js/app.js'/>"></script>
+    <script src="<c:url value='/js/register.js'/>"></script>
   </body>
 </html>

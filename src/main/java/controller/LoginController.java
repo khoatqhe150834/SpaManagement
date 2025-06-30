@@ -24,6 +24,9 @@ import model.Customer;
 import model.RememberMeToken;
 import model.RoleConstants;
 import model.User;
+import com.google.gson.Gson;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -38,6 +41,7 @@ public class LoginController extends HttpServlet {
     private UserDAO userDAO;
 
     private RememberMeTokenDAO rememberMeTokenDAO;
+    private Gson gson;
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -45,6 +49,7 @@ public class LoginController extends HttpServlet {
         customerDAO = new CustomerDAO();
         userDAO = new UserDAO();
         rememberMeTokenDAO = new RememberMeTokenDAO();
+        gson = new Gson();
     }
 
     /**
@@ -246,16 +251,19 @@ public class LoginController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // get email and password
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        Map<String, Object> jsonResponse = new HashMap<>();
+
         String email = request.getParameter("email");
         String password = request.getParameter("password");
 
-        if (email == null || email.isEmpty() || password == null || password.isEmpty()) {
-            request.setAttribute("error", "Các trường không được để trống.");
-            // Preserve attempted values
-            request.setAttribute("attemptedEmail", email != null ? email : "");
-            request.setAttribute("attemptedPassword", password != null ? password : "");
-            request.getRequestDispatcher("/WEB-INF/view/auth/login.jsp").forward(request, response);
+        if (email == null || email.trim().isEmpty() || password == null || password.isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            jsonResponse.put("success", false);
+            jsonResponse.put("message", "Email và mật khẩu không được để trống.");
+            response.getWriter().write(gson.toJson(jsonResponse));
             return;
         }
 
@@ -267,34 +275,38 @@ public class LoginController extends HttpServlet {
             session.setAttribute("user", user);
             session.setAttribute("authenticated", true);
 
-            // Set userType based on role using RoleConstants
             String userType = RoleConstants.getUserTypeFromRole(user.getRoleId());
             session.setAttribute("userType", userType);
 
             handleRememberLogin(request, response, email, password);
-            // Redirect based on role
             String redirectUrl = getRedirectUrlForRole(user.getRoleId());
-            response.sendRedirect(request.getContextPath() + redirectUrl);
+
+            jsonResponse.put("success", true);
+            jsonResponse.put("redirectUrl", request.getContextPath() + redirectUrl);
+            response.getWriter().write(gson.toJson(jsonResponse));
             return;
         }
 
         // If not staff, try customer login
         Customer customer = customerDAO.getCustomerByEmailAndPassword(email, password);
         if (customer != null) {
-            // Check if customer's email is verified BEFORE allowing login
             try {
                 if (!customerDAO.isCustomerVerified(email)) {
-                    // Email not verified, redirect to email verification required page
-                    response.sendRedirect(request.getContextPath() + "/email-verification-required?email=" +
-                            java.net.URLEncoder.encode(email, "UTF-8"));
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    jsonResponse.put("success", false);
+                    jsonResponse.put("message", "Tài khoản của bạn chưa được xác thực. Vui lòng kiểm tra email.");
+                    jsonResponse.put("verificationRequired", true);
+                    jsonResponse.put("email", email);
+                    response.getWriter().write(gson.toJson(jsonResponse));
                     return;
                 }
             } catch (RuntimeException ex) {
                 Logger.getLogger(LoginController.class.getName()).log(Level.SEVERE,
                         "Error checking customer verification status", ex);
-                // If verification check fails, redirect to verification page as safety measure
-                response.sendRedirect(request.getContextPath() + "/email-verification-required?email=" +
-                        java.net.URLEncoder.encode(email, "UTF-8"));
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                jsonResponse.put("success", false);
+                jsonResponse.put("message", "Lỗi hệ thống khi kiểm tra xác thực tài khoản.");
+                response.getWriter().write(gson.toJson(jsonResponse));
                 return;
             }
 
@@ -303,23 +315,22 @@ public class LoginController extends HttpServlet {
             session.setAttribute("customer", customer);
             session.setAttribute("authenticated", true);
 
-            // Set userType based on role using RoleConstants
             String userType = RoleConstants.getUserTypeFromRole(customer.getRoleId());
             session.setAttribute("userType", userType);
 
             handleRememberLogin(request, response, email, password);
 
-            // Email is verified, redirect to homepage for customers
-            response.sendRedirect(request.getContextPath() + "/");
+            jsonResponse.put("success", true);
+            jsonResponse.put("redirectUrl", request.getContextPath() + "/");
+            response.getWriter().write(gson.toJson(jsonResponse));
             return;
         }
 
         // If both logins failed
-        request.setAttribute("error", "Sai mật khẩu hoặc tài khoản. Vui lòng thử lại!");
-        // Preserve attempted values so user doesn't have to retype
-        request.setAttribute("attemptedEmail", email);
-        request.setAttribute("attemptedPassword", password);
-        request.getRequestDispatcher("/WEB-INF/view/auth/login.jsp").forward(request, response);
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        jsonResponse.put("success", false);
+        jsonResponse.put("message", "Email hoặc mật khẩu không chính xác.");
+        response.getWriter().write(gson.toJson(jsonResponse));
     }
 
     private String getRedirectUrlForRole(Integer roleId) {

@@ -1,1003 +1,545 @@
-<%-- Document : index4.jsp Created on : May 29, 2025, 10:45:37 AM Author : quang --%>
+<%-- Document : index.jsp Created on : May 29, 2025, 10:45:37 AM Author : quang --%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
-<html lang="vi"> <%-- Changed lang to Vietnamese --%>
+<html lang="vi" class="scroll-smooth">
   <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="keywords" content="" />
-    <meta name="author" content="" />
-    <meta name="robots" content="" />
-    <meta
-      name="description"
-      content="BeautyZone : Mẫu HTML Spa Thẩm Mỹ Viện" <%-- Translated --%>
-    />
-    <meta
-      property="og:title"
-      content="BeautyZone : Mẫu HTML Spa Thẩm Mỹ Viện" <%-- Translated --%>
-    />
-    <meta
-      property="og:description"
-      content="BeautyZone : Mẫu HTML Spa Thẩm Mỹ Viện" <%-- Translated --%>
-    />
-    <meta
-      property="og:image"
-      content="../../beautyzone.dexignzone.com/xhtml/social-image.png"
-    />
-    <meta name="format-detection" content="telephone=no" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Spa Hương Sen - Nâng Niu Vẻ Đẹp Tự Nhiên</title>
 
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#D4AF37",
+              "primary-dark": "#B8941F",
+              secondary: "#FADADD",
+              "spa-cream": "#FFF8F0",
+              "spa-dark": "#333333",
+            },
+            fontFamily: {
+              serif: ["Playfair Display", "serif"],
+              sans: ["Roboto", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+
+    <!-- Google Fonts -->
     <link
-      rel="icon"
-      href="${pageContext.request.contextPath}/assets/home/images/favicon.ico"
-      type="image/x-icon"
-    />
-    <link
-      rel="shortcut icon"
-      type="image/x-icon"
-      href="${pageContext.request.contextPath}/assets/home/images/favicon.png"
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Roboto:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
     />
 
-    <title>BeautyZone : Mẫu HTML Spa Thẩm Mỹ Viện</title> <%-- Translated --%>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
 
-    <!--[if lt IE 9]>
-      <script src="js/html5shiv.min.js"></script>
-      <script src="js/respond.min.js"></script>
-    <![endif]-->
+  <body class="bg-spa-cream">
+    <jsp:include page="/WEB-INF/view/common/header.jsp" />
 
-    <jsp:include page="/WEB-INF/view/common/home/stylesheet.jsp"></jsp:include>
-
-    <style>
-      /* Styles for price list alignment */
-      .spa-price-tbl li {
-          display: flex;
-          align-items: flex-start; /* Align image and text content to the top */
-          margin-bottom: 30px; /* Increased margin for better separation */
-          padding-bottom: 20px; /* Padding for content before border */
-          border-bottom: 1px solid #f0f0f0; /* Lighter border for separation */
-      }
-      .spa-price-tbl li:last-child {
-          margin-bottom: 0;
-          padding-bottom: 0;
-          border-bottom: none; /* No border for the last item in each list */
-      }
-
-      .spa-price-thumb {
-          flex-shrink: 0; /* Prevent image from shrinking */
-          margin-right: 20px; /* More space between image and text */
-          width: 80px; 
-          height: 80px;
-      }
-      .spa-price-thumb img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover; /* Ensure image covers the area well */
-          border-radius: 4px; /* Slightly rounded corners for image */
-      }
-
-      .spa-price-content {
-          display: flex;
-          flex-direction: column; /* Stack title/price and description vertically */
-          flex-grow: 1; /* Allow content area to take remaining space */
-      }
-
-      .spa-price-content h4 {
-          display: flex; /* Enable flex for title and price alignment */
-          justify-content: space-between; /* Push price to the right */
-          align-items: flex-start; /* Align top of title and price */
-          width: 100%;
-          margin-top: 0; 
-          margin-bottom: 8px; /* Space below title/price line */
-      }
-
-      .spa-price-content h4 a {
-          margin-right: 10px; /* Space between title and price */
-          font-size: 1.1em; 
-          color: #333333; 
-          font-weight: 600; 
-          text-decoration: none; /* Remove underline from links */
-      }
-       .spa-price-content h4 a:hover {
-          color: #c59952; /* Example hover color, adjust to your theme's primary color */
-       }
-
-      .spa-price-content .spa-price {
-          white-space: nowrap; /* Prevent price from wrapping */
-          font-size: 1.1em; 
-          font-weight: 600; 
-          color: #c59952; /* Example primary color, adjust to your theme */
-      }
-
-      .spa-price-content p {
-          margin-top: 0;
-          line-height: 1.6; /* For readability */
-          color: #555555; 
-          font-size: 0.95em;
-          /* Line clamping for consistent paragraph height */
-          display: -webkit-box;
-          -webkit-line-clamp: 3; /* Limit to 3 lines */
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          /* Set a min-height that accommodates 3 lines to prevent shorter paragraphs from collapsing too much */
-          /* Adjust 1.6em * 3 based on your actual font-size and line-height for p */
-          min-height: calc(1.6em * 3 * 0.95); /* (line-height * number of lines * font-size-multiplier) */
-      }
-    </style>
-
-    </head>
-  <body id="bg">
-    <div class="page-wraper">
-      <div id="loading-area"></div>
-      <jsp:include page="/WEB-INF/view/common/home/header.jsp"></jsp:include>
-      <div class="page-content bg-white">
-        <div class="rev-slider">
-          <div
-            id="rev_slider_1164_1_wrapper"
-            class="rev_slider_wrapper fullscreen-container"
-            data-alias="exploration-header"
-            data-source="gallery"
-            style="background-color: transparent; padding: 0px"
-          >
-            <div
-              id="rev_slider_1164_1"
-              class="rev_slider fullscreenbanner"
-              style="display: none"
-              data-version="5.4.1"
-            >
-              <ul>
-                <li
-                  data-index="rs-3204"
-                  data-transition="slideoververtical"
-                  data-slotamount="default"
-                  data-hideafterloop="0"
-                  data-hideslideonmobile="off"
-                  data-easein="default"
-                  data-easeout="default"
-                  data-masterspeed="default"
-                  data-thumb="${pageContext.request.contextPath}/assets/home/images/main-slider/slide6.jpg"
-                  data-rotate="0"
-                  data-fstransition="fade"
-                  data-fsmasterspeed="2000"
-                  data-fsslotamount="7"
-                  data-saveperformance="off"
-                  data-title="" <%-- Assuming this is not for direct display or is dynamic --%>
-                  data-param1="Những gì đội ngũ của chúng tôi đã tìm thấy trong tự nhiên" <%-- Translated --%>
-                  data-param2=""
-                  data-param3=""
-                  data-param4=""
-                  data-param5=""
-                  data-param6=""
-                  data-param7=""
-                  data-param8=""
-                  data-param9=""
-                  data-param10=""
-                  data-description="" <%-- Assuming this is not for direct display or is dynamic --%>
-                >
-                  <img
-                    src="${pageContext.request.contextPath}/assets/home/images/main-slider/slide6.jpg"
-                    alt="Hình ảnh slide chính" <%-- Translated alt text --%>
-                    data-lazyload="${pageContext.request.contextPath}/assets/home/images/main-slider/slide6.jpg"
-                    data-bgposition="center center"
-                    data-bgfit="cover"
-                    data-bgrepeat="no-repeat"
-                    data-bgparallax="6"
-                    class="rev-slidebg"
-                    data-no-retina
-                  />
-                  <div
-                    class="tp-caption tp-shape tp-shapewrapper"
-                    id="slide-101-layer-14"
-                    data-x="['center','center','center','center']"
-                    data-hoffset="['0','0','0','0']"
-                    data-y="['middle','middle','middle','middle']"
-                    data-voffset="['0','0','0','0']"
-                    data-width="full"
-                    data-height="full"
-                    data-whitespace="nowrap"
-                    data-type="shape"
-                    data-basealign="slide"
-                    data-responsive_offset="off"
-                    data-responsive="off"
-                    data-frames='[{"delay":10,"speed":1000,"frame":"0","from":"opacity:0;","to":"o:1;","ease":"Power3.easeInOut"},{"delay":"wait","speed":1500,"frame":"999","to":"opacity:0;","ease":"Power4.easeIn"}]'
-                    data-textAlign="['inherit','inherit','inherit','inherit']"
-                    data-paddingtop="[0,0,0,0]"
-                    data-paddingright="[0,0,0,0]"
-                    data-paddingbottom="[0,0,0,0]"
-                    data-paddingleft="[0,0,0,0]"
-                    style="
-                      z-index: 5;
-                      font-family: Open Sans;
-                      background-color: rgba(0, 0, 0, 0.15);
-                      background-image: url(${pageContext.request.contextPath}/assets/home/images/background/bg6.png);
-                      background-size: 100%;
-                      background-repeat: no-repeat;
-                      background-position: bottom;
-                    "
-                  ></div>
-
-                  <div
-                    class="tp-caption"
-                    id="slide-3204-layer-1"
-                    data-x="['center','center','center','center']"
-                    data-hoffset="['0','0','0','0']"
-                    data-y="['middle','middle','middle','middle']"
-                    data-voffset="['-35','-35','-10','-35']"
-                    data-fontsize="['170','170','100','60']"
-                    data-lineheight="['190','45','35','30']"
-                    data-width="['1000','1000','600','360']"
-                    data-height="none"
-                    data-whitespace="normal"
-                    data-type="text"
-                    data-basealign="slide"
-                    data-responsive_offset="off"
-                    data-responsive="off"
-                    data-frames='[{"from":"y:50px;opacity:0;","speed":1500,"to":"o:1;","delay":500,"ease":"Power4.easeOut"},{"delay":"wait","speed":300,"to":"opacity:0;","ease":"nothing"}]'
-                    data-textAlign="['center','center','center','center']"
-                    data-paddingtop="[0,0,0,0]"
-                    data-paddingright="[0,0,0,0]"
-                    data-paddingbottom="[0,0,0,0]"
-                    data-paddingleft="[0,0,0,0]"
-                    style="
-                      z-index: 5;
-                      white-space: normal;
-                      color: #fff;
-                      font-family: 'Great Vibes', cursive;
-                      border-width: 0px;
-                    "
-                  >
-                    Spa Salon
-                  </div>
-
-                  <div
-                    class="tp-caption"
-                    id="slide-3204-layer-2"
-                    data-x="['center','center','center','center']"
-                    data-hoffset="['0','0','0','0']"
-                    data-y="['middle','middle','middle','middle']"
-                    data-voffset="['90','90','70','40']"
-                    data-width="['600','600','600','260']"
-                    data-fontsize="['50','50','40','30']"
-                    data-lineheight="['65','45','35','30']"
-                    data-height="none"
-                    data-whitespace="normal"
-                    data-type="text"
-                    data-basealign="slide"
-                    data-responsive_offset="off"
-                    data-responsive="off"
-                    data-frames='[{"from":"y:50px;opacity:0;","speed":1500,"to":"o:1;","delay":650,"ease":"Power4.easeOut"},{"delay":"wait","speed":300,"to":"opacity:0;","ease":"nothing"}]'
-                    data-textAlign="['center','center','center','center']"
-                    data-paddingtop="[0,0,0,0]"
-                    data-paddingright="[0,0,0,0]"
-                    data-paddingbottom="[0,0,0,0]"
-                    data-paddingleft="[0,0,0,0]"
-                    style="
-                      z-index: 7;
-                      white-space: normal;
-                      color: #fff;
-                      font-family: 'Montserrat', sans-serif;
-                      border-width: 0px;
-                      text-transform: uppercase;
-                      font-weight: 600;
-                    "
-                  >
-                    SẮC ĐẸP & THƯ GIÃN <%-- Translated --%>
-                  </div>
-
-                  <div
-                    class="tp-caption"
-                    id="slide-3204-layer-3"
-                    data-x="['center','center','center','center']"
-                    data-hoffset="['0','0','0','0']"
-                    data-y="['middle','middle','middle','middle']"
-                    data-voffset="['150','150','110','100']"
-                    data-width="['600','560','340','260']"
-                    data-fontsize="['18','18','18','16']"
-                    data-lineheight="['26','26','26','24']"
-                    data-height="none"
-                    data-whitespace="normal"
-                    data-type="text"
-                    data-basealign="slide"
-                    data-responsive_offset="off"
-                    data-responsive="off"
-                    data-frames='[{"from":"y:50px;opacity:0;","speed":2000,"to":"o:1;","delay":750,"ease":"Power4.easeOut"},{"delay":"wait","speed":300,"to":"opacity:0;","ease":"nothing"}]'
-                    data-textAlign="['center','center','center','center']"
-                    data-paddingtop="[0,0,0,0]"
-                    data-paddingright="[0,0,0,0]"
-                    data-paddingbottom="[0,0,0,0]"
-                    data-paddingleft="[0,0,0,0]"
-                    style="
-                      z-index: 7;
-                      white-space: normal;
-                      color: #fff;
-                      font-family: 'Montserrat', sans-serif;
-                      border-width: 0px;
-                      text-transform: uppercase;
-                      font-weight: 600;
-                    "
-                  >
-                    Trải Nghiệm Bền Lâu <%-- Translated --%>
-                  </div>
-                </li>
-              </ul>
-              <div
-                class="tp-bannertimer tp-bottom"
-                style="visibility: hidden !important"
-              ></div>
-            </div>
-          </div>
-          </div>
-        <div class="section-full bg-white content-inner-2 spa-about-bx">
-          <div class="container">
-            <div class="row d-flex align-items-center">
-              <div class="col-lg-6 col-md-6">
-                <div class="spa-bx-img">
-                  <img
-                    src="${pageContext.request.contextPath}/assets/home/images/about/img4.jpg"
-                    alt="Về chúng tôi" <%-- Translated alt text --%>
-                  />
-                </div>
-              </div>
-              <div class="col-lg-6 col-md-6 spa-about-content">
-                <h2>Không Chỉ Là <br />Một Spa Thông Thường</h2> <%-- Already Vietnamese --%>
-                <p>
-                  Chào mừng bạn đến với dịch vụ spa cao cấp của chúng tôi, nơi
-                  mang đến trải nghiệm thư giãn và làm đẹp toàn diện. Với đội
-                  ngũ chuyên gia giàu kinh nghiệm cùng các liệu pháp hiện đại
-                  kết hợp tinh hoa từ thiên nhiên, chúng tôi cam kết mang đến
-                  cho bạn những phút giây thư thái cho cả thể chất lẫn tinh
-                  thần. Hãy để chúng tôi chăm sóc và nuông chiều bạn theo cách
-                  riêng biệt nhất.
-                </p> <%-- Already Vietnamese --%>
-                <a
-                  href="${pageContext.request.contextPath}/spa-info"
-                  class="site-button radius-no button-effect1"
-                  >Xem Thêm<span></span
-                ></a> <%-- Already Vietnamese --%>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="section-full content-inner-3 spa-price-bx">
-          <div class="container">
-            <div class="section-head text-black text-center">
-              
-              <h2 class="m-b10">Bảng Giá Đặc Biệt</h2> <%-- Already Vietnamese --%>
-            </div>
-            <div class="row">
-              <c:choose>
-                <c:when test="${not empty featuredServices}">
-                  <div class="col-lg-6 col-md-12 col-sm-12">
-                    <ul class="spa-price-tbl">
-                      <c:forEach var="service" items="${featuredServices}" end="2" varStatus="status">
-                        <li>
-                          <div class="spa-price-thumb">
-                            <img
-                              src="${not empty service.imageUrl ? service.imageUrl : pageContext.request.contextPath.concat('/assets/home/images/gallery/thumb/pic').concat(status.index + 1).concat('.jpg')}"
-                              alt="${service.name}"
-                              onerror="this.src='${pageContext.request.contextPath}/assets/home/images/gallery/thumb/pic${status.index + 1}.jpg'"
-                            />
-                          </div>
-                          <div class="spa-price-content">
-                            <h4>
-                              <a href="${pageContext.request.contextPath}/booking/services-selection">${service.name}</a>
-                            </h4>
-                            <div class="spa-price-display">
-                              <fmt:formatNumber value="${service.price}" type="number" maxFractionDigits="0" /> VNĐ
-                            </div>
-                            <p>
-                              ${not empty service.description ? service.description : 'Dịch vụ chất lượng cao với đội ngũ chuyên nghiệp, mang lại trải nghiệm tuyệt vời nhất cho khách hàng.'}
-                            </p>
-                          </div>
-                        </li>
-                      </c:forEach>
-                    </ul>
-                  </div>
-                  <div class="col-lg-6 col-md-12 col-sm-12">
-                    <ul class="spa-price-tbl">
-                      <c:forEach var="service" items="${featuredServices}" begin="3" end="5" varStatus="status">
-                        <li>
-                          <div class="spa-price-thumb">
-                            <img
-                              src="${not empty service.imageUrl ? service.imageUrl : pageContext.request.contextPath.concat('/assets/home/images/gallery/thumb/pic').concat(status.index + 4).concat('.jpg')}"
-                              alt="${service.name}"
-                              onerror="this.src='${pageContext.request.contextPath}/assets/home/images/gallery/thumb/pic${status.index + 4}.jpg'"
-                            />
-                          </div>
-                          <div class="spa-price-content">
-                            <h4>
-                              <a href="${pageContext.request.contextPath}/booking/services-selection">${service.name}</a>
-                            </h4>
-                            <div class="spa-price-display">
-                              <fmt:formatNumber value="${service.price}" type="number" maxFractionDigits="0" /> VNĐ
-                            </div>
-                            <p>
-                              ${not empty service.description ? service.description : 'Dịch vụ chất lượng cao với đội ngũ chuyên nghiệp, mang lại trải nghiệm tuyệt vời nhất cho khách hàng.'}
-                            </p>
-                          </div>
-                        </li>
-                      </c:forEach>
-                    </ul>
-                  </div>
-                </c:when>
-                <c:otherwise>
-                  <!-- Fallback to static content if no services are loaded -->
-                  <div class="col-lg-6 col-md-12 col-sm-12">
-                    <ul class="spa-price-tbl">
-                      <li>
-                        <div class="spa-price-thumb">
-                          <img src="${pageContext.request.contextPath}/assets/home/images/gallery/thumb/pic1.jpg" alt="Massage cho bà bầu" />
-                        </div>
-                        <div class="spa-price-content">
-                          <h4>
-                            <a href="${pageContext.request.contextPath}/booking/services-selection">Massage Cho Bà Bầu</a>
-                          </h4>
-                          <div class="spa-price-display">350.000 VNĐ</div>
-                          <p>Liệu pháp massage nhẹ nhàng dành riêng cho mẹ bầu, giúp giảm căng thẳng, cải thiện lưu thông máu và mang lại cảm giác thư thái.</p>
-                        </div>
-                      </li>
-                      <li>
-                        <div class="spa-price-thumb">
-                          <img src="${pageContext.request.contextPath}/assets/home/images/gallery/thumb/pic2.jpg" alt="Massage bấm huyệt" />
-                        </div>
-                        <div class="spa-price-content">
-                          <h4>
-                            <a href="${pageContext.request.contextPath}/booking/services-selection">Massage Bấm Huyệt</a>
-                          </h4>
-                          <div class="spa-price-display">500.000 VNĐ</div>
-                          <p>Kỹ thuật bấm huyệt chuyên sâu tác động lên các điểm huyệt đạo, giúp đả thông kinh mạch, giảm đau nhức và phục hồi năng lượng.</p>
-                        </div>
-                      </li>
-                      <li>
-                        <div class="spa-price-thumb">
-                          <img src="${pageContext.request.contextPath}/assets/home/images/gallery/thumb/pic3.jpg" alt="Massage toàn thân" />
-                        </div>
-                        <div class="spa-price-content">
-                          <h4>
-                            <a href="${pageContext.request.contextPath}/booking/services-selection">Massage Toàn Thân</a>
-                          </h4>
-                          <div class="spa-price-display">800.000 VNĐ</div>
-                          <p>Tận hưởng sự thư giãn tuyệt đối với liệu pháp massage toàn thân, giải tỏa mọi mệt mỏi, giúp cơ thể nhẹ nhàng và tràn đầy sức sống.</p>
-                        </div>
-                      </li>
-                    </ul>
-                  </div>
-                  <div class="col-lg-6 col-md-12 col-sm-12">
-                    <ul class="spa-price-tbl">
-                      <li>
-                        <div class="spa-price-thumb">
-                          <img src="${pageContext.request.contextPath}/assets/home/images/gallery/thumb/pic4.jpg" alt="Chăm sóc da mặt" />
-                        </div>
-                        <div class="spa-price-content">
-                          <h4>
-                            <a href="${pageContext.request.contextPath}/booking/services-selection">Chăm Sóc Da Mặt</a>
-                          </h4>
-                          <div class="spa-price-display">600.000 VNĐ</div>
-                          <p>Liệu trình chăm sóc da mặt chuyên sâu giúp làm sạch, cung cấp dưỡng chất, mang lại làn da căng bóng.</p>
-                        </div>
-                      </li>
-                      <li>
-                        <div class="spa-price-thumb">
-                          <img src="${pageContext.request.contextPath}/assets/home/images/gallery/thumb/pic5.jpg" alt="Xông hơi thảo dược" />
-                        </div>
-                        <div class="spa-price-content">
-                          <h4>
-                            <a href="${pageContext.request.contextPath}/booking/services-selection">Xông Hơi Thảo Dược</a>
-                          </h4>
-                          <div class="spa-price-display">450.000 VNĐ</div>
-                          <p>Thư giãn và thanh lọc cơ thể với liệu pháp xông hơi bằng các loại thảo dược quý, giúp đào thải độc tố và cải thiện sức khỏe.</p>
-                        </div>
-                      </li>
-                      <li>
-                        <div class="spa-price-thumb">
-                          <img src="${pageContext.request.contextPath}/assets/home/images/gallery/thumb/pic6.jpg" alt="Gói trị liệu cặp đôi" />
-                        </div>
-                        <div class="spa-price-content">
-                          <h4>
-                            <a href="${pageContext.request.contextPath}/booking/services-selection">Gói Trị Liệu Cặp Đôi</a>
-                          </h4>
-                          <div class="spa-price-display">1.500.000 VNĐ</div>
-                          <p>Cùng người thương tận hưởng những phút giây thư giãn lãng mạn với gói trị liệu đặc biệt dành cho các cặp đôi.</p>
-                        </div>
-                      </li>
-                    </ul>
-                  </div>
-                </c:otherwise>
-              </c:choose>
-            </div>
-          </div>
-        </div>
+    <!-- Hero Slider Section -->
+    <section
+      class="relative min-h-screen flex items-center justify-center overflow-hidden"
+    >
+      <!-- Slider Container -->
+      <div id="hero-slider" class="absolute inset-0">
+        <!-- Slide 1 -->
         <div
-          class="section-full content-inner-2 spa-our-portfolio"
+          class="hero-slide active absolute inset-0 bg-cover bg-center"
           style="
-            background-image: url(${pageContext.request.contextPath}/assets/home/images/background/bg9.jpg);
-            background-size: cover;
+            background-image: url('https://images.pexels.com/photos/3985254/pexels-photo-3985254.jpeg?auto=compress&cs=tinysrgb&w=1920');
           "
         >
-          <div class="container">
-            <div class="section-head text-black text-center">
-              
-              <h2 class="m-b10">Portfolio Của Chúng Tôi</h2> <%-- Translated --%>
-            </div>
-            <div class="row">
-              <div class="col-lg-12 col-md-12 col-sm-12">
-                <div class="site-filters style1 clearfix center">
-                  <ul class="filters" data-toggle="buttons">
-                    <li data-filter="" class="btn active">
-                      <input type="radio" /><a href="#"><span>Tất Cả</span></a> <%-- Translated --%>
-                    </li>
-                    <li data-filter="massage" class="btn">
-                      <input type="radio" /><a href="#"><span>Massage</span></a>
-                    </li>
-                    <li data-filter="aroma" class="btn">
-                      <input type="radio" /><a href="#"><span>Hương Liệu</span></a> <%-- Translated --%>
-                    </li>
-                    <li data-filter="salt-aroma" class="btn">
-                      <input type="radio" /><a href="#"
-                        ><span>Muối & Hương Liệu</span></a <%-- Translated --%>
-                      >
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-            <div class="clearfix">
-              <ul
-                id="masonry"
-                class="portfolio-box row dlab-gallery-listing gallery-grid-4 gallery lightgallery"
-              >
-                <li
-                  class="aroma card-container col-lg-4 col-md-6 col-sm-6 m-b30"
-                >
-                  <div class="dlab-box">
-                    <div class="dlab-media">
-                      <img
-                        src="${pageContext.request.contextPath}/assets/home/images/gallery/image-1.jpg"
-                        alt="Hình ảnh portfolio" <%-- Translated alt text --%>
-                      />
-                      <div class="overlay-bx">
-                        <div class="spa-port-bx">
-                          <div>
-                            <h4>
-                              <a href="services-details.html"
-                                >Massage Tẩy Tế Bào Chết Muối</a <%-- Translated --%>
-                              >
-                            </h4>
-                            <p>
-                              Trải nghiệm làn da mịn màng, tươi sáng với liệu pháp tẩy tế bào chết bằng muối khoáng tự nhiên. <%-- Updated content --%>
-                            </p>
-                            <span
-                              data-exthumbimage="${pageContext.request.contextPath}/assets/home/images/gallery/thumb/image-1.jpg"
-                              data-src="${pageContext.request.contextPath}/assets/home/images/gallery/image-1.jpg"
-                              class="icon-bx-xs check-km"
-                              title="Thư viện ảnh Lưới 1" <%-- Translated --%>
-                            >
-                              <i class="ti-fullscreen"></i>
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </li>
-                <li
-                  class="massage image-4 card-container col-lg-4 col-md-6 col-sm-6 m-b30"
-                >
-                  <div class="dlab-box">
-                    <div class="dlab-media">
-                      <img
-                        src="${pageContext.request.contextPath}/assets/home/images/gallery/image-6.jpg"
-                        alt="Hình ảnh portfolio" <%-- Translated alt text --%>
-                      />
-                      <div class="overlay-bx">
-                        <div class="spa-port-bx">
-                          <div>
-                            <h4>
-                              <a href="services-details.html"
-                                >Massage Đá Nóng Thư Giãn</a <%-- Updated --%>
-                              >
-                            </h4>
-                            <p>
-                              Hơi ấm từ đá nóng kết hợp kỹ thuật massage chuyên nghiệp giúp xua tan mệt mỏi, lưu thông khí huyết. <%-- Updated content --%>
-                            </p>
-                            <span
-                              data-exthumbimage="images/gallery/thumb/image-6.jpg"
-                              data-src="${pageContext.request.contextPath}/assets/home/images/gallery/image-6.jpg"
-                              class="icon-bx-xs check-km"
-                              title="Thư viện ảnh Lưới 1" <%-- Translated --%>
-                            >
-                              <i class="ti-fullscreen"></i>
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </li>
-                <li
-                  class="massage image-4 card-container col-lg-4 col-md-6 col-sm-6 m-b30"
-                >
-                  <div class="dlab-box">
-                    <div class="dlab-media">
-                      <img
-                        src="${pageContext.request.contextPath}/assets/home/images/gallery/image-5.jpg"
-                        alt="Hình ảnh portfolio" <%-- Translated alt text --%>
-                      />
-                      <div class="overlay-bx">
-                        <div class="spa-port-bx">
-                          <div>
-                            <h4>
-                              <a href="services-details.html"
-                                >Liệu Pháp Hương Thơm Dịu Nhẹ</a <%-- Updated --%>
-                              >
-                            </h4>
-                            <p>
-                              Đắm mình trong không gian ngập tràn hương thơm tinh dầu thiên nhiên, giúp tinh thần thư thái, giảm stress. <%-- Updated content --%>
-                            </p>
-                            <span
-                              data-exthumbimage="${pageContext.request.contextPath}/assets/home/images/gallery/thumb/image-5.jpg"
-                              data-src="${pageContext.request.contextPath}/assets/home/images/gallery/image-5.jpg"
-                              class="icon-bx-xs check-km"
-                              title="Thư viện ảnh Lưới 1" <%-- Translated --%>
-                            >
-                              <i class="ti-fullscreen"></i>
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </li>
-                <li
-                  class="salt-aroma image-4 card-container col-lg-4 col-md-6 col-sm-6 m-b30"
-                >
-                  <div class="dlab-box">
-                    <div class="dlab-media">
-                      <img
-                        src="${pageContext.request.contextPath}/assets/home/images/gallery/image-7.jpg"
-                        alt="Hình ảnh portfolio" <%-- Translated alt text --%>
-                      />
-                      <div class="overlay-bx">
-                        <div class="spa-port-bx">
-                          <div>
-                            <h4>
-                              <a href="services-details.html"
-                                >Chăm Sóc Toàn Diện Với Muối Khoáng</a <%-- Updated --%>
-                              >
-                            </h4>
-                            <p>
-                              Kết hợp muối khoáng và hương liệu tự nhiên để thanh lọc và nuôi dưỡng làn da, mang lại vẻ đẹp rạng ngời. <%-- Updated content --%>
-                            </p>
-                            <span
-                              data-exthumbimage="${pageContext.request.contextPath}/assets/home/images/gallery/thumb/image-7.jpg"
-                              data-src="${pageContext.request.contextPath}/assets/home/images/gallery/image-7.jpg"
-                              class="icon-bx-xs check-km"
-                              title="Thư viện ảnh Lưới 1" <%-- Translated --%>
-                            >
-                              <i class="ti-fullscreen"></i>
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </li>
-                <li
-                  class="aroma image-4 card-container col-lg-4 col-md-6 col-sm-6 m-b30"
-                >
-                  <div class="dlab-box">
-                    <div class="dlab-media">
-                      <img
-                        src="${pageContext.request.contextPath}/assets/home/images/gallery/image-8.jpg"
-                        alt="Hình ảnh portfolio" <%-- Translated alt text --%>
-                      />
-                      <div class="overlay-bx">
-                        <div class="spa-port-bx">
-                          <div>
-                            <h4>
-                              <a href="services-details.html"
-                                >Không Gian Spa Yên Tĩnh</a <%-- Updated --%>
-                              >
-                            </h4>
-                            <p>
-                              Thiết kế không gian sang trọng, ấm cúng và yên tĩnh, mang đến trải nghiệm thư giãn trọn vẹn. <%-- Updated content --%>
-                            </p>
-                            <span
-                              data-exthumbimage="${pageContext.request.contextPath}/assets/home/images/gallery/thumb/image-8.jpg"
-                              data-src="${pageContext.request.contextPath}/assets/home/images/gallery/image-8.jpg"
-                              class="icon-bx-xs check-km"
-                              title="Thư viện ảnh Lưới 1" <%-- Translated --%>
-                            >
-                              <i class="ti-fullscreen"></i>
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </li>
-                <li
-                  class="salt-aroma image-4 card-container col-lg-4 col-md-6 col-sm-6 m-b30"
-                >
-                  <div class="dlab-box">
-                    <div class="dlab-media">
-                      <img
-                        src="${pageContext.request.contextPath}/assets/home/images/gallery/image-4.jpg"
-                        alt="Hình ảnh portfolio" <%-- Translated alt text --%>
-                      />
-                      <div class="overlay-bx">
-                        <div class="spa-port-bx">
-                          <div>
-                            <h4>
-                              <a href="services-details.html"
-                                >Sản Phẩm Chăm Sóc Cao Cấp</a <%-- Updated --%>
-                              >
-                            </h4>
-                            <p>
-                              Chúng tôi sử dụng các sản phẩm chăm sóc da và cơ thể cao cấp, chiết xuất từ thiên nhiên, an toàn cho mọi loại da. <%-- Updated content --%>
-                            </p>
-                            <span
-                              data-exthumbimage="${pageContext.request.contextPath}/assets/home/images/gallery/thumb/image-4.jpg"
-                              data-src="${pageContext.request.contextPath}/assets/home/images/gallery/image-4.jpg"
-                              class="icon-bx-xs check-km"
-                              title="Thư viện ảnh Lưới 1" <%-- Translated --%>
-                            >
-                              <i class="ti-fullscreen"></i>
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </li>
-              </ul>
-            </div>
-          </div>
+          <div class="absolute inset-0 bg-black/40"></div>
         </div>
-        <div class="section-full content-inner-3 spa-price-bx">
-          <div class="container">
-            <div class="section-head text-black text-center">
-              
-              <h2 class="m-b0">Dịch Vụ Của Chúng Tôi</h2> <%-- Translated --%>
-            </div>
+
+        <!-- Slide 2 -->
+        <div
+          class="hero-slide inactive absolute inset-0 bg-cover bg-center"
+          style="
+            background-image: url('https://images.pexels.com/photos/3997991/pexels-photo-3997991.jpeg?auto=compress&cs=tinysrgb&w=1920');
+          "
+        >
+          <div class="absolute inset-0 bg-black/40"></div>
+        </div>
+
+        <!-- Slide 3 -->
+        <div
+          class="hero-slide inactive absolute inset-0 bg-cover bg-center"
+          style="
+            background-image: url('https://images.pexels.com/photos/3985263/pexels-photo-3985263.jpeg?auto=compress&cs=tinysrgb&w=1920');
+          "
+        >
+          <div class="absolute inset-0 bg-black/40"></div>
+        </div>
+
+        <!-- Slide 4 -->
+        <div
+          class="hero-slide inactive absolute inset-0 bg-cover bg-center"
+          style="
+            background-image: url('https://images.pexels.com/photos/3997989/pexels-photo-3997989.jpeg?auto=compress&cs=tinysrgb&w=1920');
+          "
+        >
+          <div class="absolute inset-0 bg-black/40"></div>
+        </div>
+      </div>
+
+      <!-- Content Overlay -->
+      <div
+        class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white"
+      >
+        <h1
+          id="hero-title"
+          class="text-5xl md:text-6xl lg:text-7xl font-serif mb-6 leading-tight"
+        >
+          Spa Cao Cấp
+          <br />
+          <span class="text-primary">Nâng Niu Vẻ Đẹp</span>
+          <br />
+          Tự Nhiên
+        </h1>
+        <p
+          id="hero-description"
+          class="text-xl md:text-2xl mb-8 leading-relaxed max-w-4xl mx-auto"
+        >
+          Trải nghiệm không gian thư giãn đẳng cấp với các liệu pháp chăm sóc
+          sắc đẹp dành riêng cho phụ nữ Việt Nam
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a
+            href="booking.html"
+            class="px-8 py-4 bg-primary text-white rounded-full hover:bg-primary-dark transition-all duration-300 font-semibold text-lg transform hover:scale-105"
+          >
+            Đặt lịch ngay
+          </a>
+          <a
+            href="services.html"
+            class="px-8 py-4 border-2 border-white text-white rounded-full hover:bg-white hover:text-spa-dark transition-all duration-300 font-semibold text-lg transform hover:scale-105"
+          >
+            Xem dịch vụ
+          </a>
+        </div>
+      </div>
+
+      <!-- Slider Controls -->
+      <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20">
+        <div class="flex space-x-2">
+          <button
+            class="slider-dot w-3 h-3 rounded-full bg-white hover:bg-white transition-colors"
+            data-slide="0"
+          ></button>
+          <button
+            class="slider-dot w-3 h-3 rounded-full bg-white/50 hover:bg-white transition-colors"
+            data-slide="1"
+          ></button>
+          <button
+            class="slider-dot w-3 h-3 rounded-full bg-white/50 hover:bg-white transition-colors"
+            data-slide="2"
+          ></button>
+          <button
+            class="slider-dot w-3 h-3 rounded-full bg-white/50 hover:bg-white transition-colors"
+            data-slide="3"
+          ></button>
+        </div>
+      </div>
+
+      <!-- Navigation Arrows -->
+      <button
+        id="prev-slide"
+        class="absolute left-4 top-1/2 transform -translate-y-1/2 z-20 bg-white/20 hover:bg-white/40 rounded-full p-2 transition-colors"
+      >
+        <i data-lucide="chevron-left" class="h-6 w-6 text-white"></i>
+      </button>
+      <button
+        id="next-slide"
+        class="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 bg-white/20 hover:bg-white/40 rounded-full p-2 transition-colors"
+      >
+        <i data-lucide="chevron-right" class="h-6 w-6 text-white"></i>
+      </button>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="py-16 bg-white fade-in">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div class="text-center">
             <div
-              class="carousel-service owl-carousel owl-btn-center-lr owl-btn-3 owl-theme owl-dots-primary-full owl-loaded owl-drag"
+              class="bg-spa-cream rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4"
             >
-              <div class="item">
-                <div class="dlab-box spa-ser-bx">
-                  <div class="dlab-media">
-                    <a href="services-details.html"
-                      ><img
-                        src="${pageContext.request.contextPath}/assets/home/images/blog/grid/pic1.jpg"
-                        alt="Hình ảnh dịch vụ" <%-- Translated alt text --%>
-                    /></a>
-                  </div>
-                  <div class="dlab-info">
-                    <div class="dlab-info-bx">
-                      <h6 class="dlab-title m-t0">
-                        <a href="services-details.html">Trị Liệu Da Mặt</a> <%-- Updated --%>
-                      </h6>
-                      <a
-                        href="booking.html"
-                        class="site-button radius-no ml-auto"
-                        >Đặt Ngay</a <%-- Translated --%>
-                      >
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="item">
-                <div class="dlab-box spa-ser-bx">
-                  <div class="dlab-media">
-                    <a href="services-details.html"
-                      ><img
-                        src="${pageContext.request.contextPath}/assets/home/images/blog/grid/pic4.jpg"
-                        alt="Hình ảnh dịch vụ" <%-- Translated alt text --%>
-                    /></a>
-                  </div>
-                  <div class="dlab-info">
-                    <div class="dlab-info-bx">
-                      <h6 class="dlab-title m-t0">
-                        <a href="services-details.html">Massage Toàn Thân</a> <%-- Updated --%>
-                      </h6>
-                      <a
-                        href="booking.html"
-                        class="site-button radius-no ml-auto"
-                        >Đặt Ngay</a <%-- Translated --%>
-                      >
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="item">
-                <div class="dlab-box spa-ser-bx">
-                  <div class="dlab-media">
-                    <a href="services-details.html"
-                      ><img
-                        src="${pageContext.request.contextPath}/assets/home/images/blog/grid/pic1.jpg"
-                        alt="Hình ảnh dịch vụ" <%-- Translated alt text --%>
-                    /></a>
-                  </div>
-                  <div class="dlab-info">
-                    <div class="dlab-info-bx">
-                      <h6 class="dlab-title m-t0">
-                        <a href="services-details.html">Chăm Sóc Móng</a> <%-- Updated --%>
-                      </h6>
-                      <a
-                        href="booking.html"
-                        class="site-button radius-no ml-auto"
-                        >Đặt Ngay</a <%-- Translated --%>
-                      >
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="item">
-                <div class="dlab-box spa-ser-bx">
-                  <div class="dlab-media">
-                    <a href="services-details.html"
-                      ><img
-                        src="${pageContext.request.contextPath}/assets/home/images/blog/grid/pic4.jpg"
-                        alt="Hình ảnh dịch vụ" <%-- Translated alt text --%>
-                    /></a>
-                  </div>
-                  <div class="dlab-info">
-                    <div class="dlab-info-bx">
-                      <h6 class="dlab-title m-t0">
-                        <a href="services-details.html">Trang Điểm Chuyên Nghiệp</a> <%-- Updated --%>
-                      </h6>
-                      <a
-                        href="booking.html"
-                        class="site-button radius-no ml-auto"
-                        >Đặt Ngay</a <%-- Translated --%>
-                      >
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="item">
-                <div class="dlab-box spa-ser-bx">
-                  <div class="dlab-media">
-                    <a href="services-details.html"
-                      ><img
-                        src="${pageContext.request.contextPath}/assets/home/images/blog/grid/pic1.jpg"
-                        alt="Hình ảnh dịch vụ" <%-- Translated alt text --%>
-                    /></a>
-                  </div>
-                  <div class="dlab-info">
-                    <div class="dlab-info-bx">
-                      <h6 class="dlab-title m-t0">
-                        <a href="services-details.html">Tạo Kiểu Tóc</a> <%-- Updated --%>
-                      </h6>
-                      <a
-                        href="booking.html"
-                        class="site-button radius-no ml-auto"
-                        >Đặt Ngay</a <%-- Translated --%>
-                      >
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="item">
-                <div class="dlab-box spa-ser-bx">
-                  <div class="dlab-media">
-                    <a href="services-details.html"
-                      ><img
-                        src="${pageContext.request.contextPath}/assets/home/images/blog/grid/pic4.jpg"
-                        alt="Hình ảnh dịch vụ" <%-- Translated alt text --%>
-                    /></a>
-                  </div>
-                  <div class="dlab-info">
-                    <div class="dlab-info-bx">
-                      <h6 class="dlab-title m-t0">
-                        <a href="services-details.html">Gói Spa Thư Giãn</a> <%-- Updated --%>
-                      </h6>
-                      <a
-                        href="booking.html"
-                        class="site-button radius-no ml-auto"
-                        >Đặt Ngay</a <%-- Translated --%>
-                      >
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <i data-lucide="users" class="h-8 w-8 text-primary"></i>
             </div>
+            <h3 class="text-3xl font-bold text-spa-dark mb-2">5000+</h3>
+            <p class="text-gray-600">Khách hàng tin tưởng</p>
+          </div>
+          <div class="text-center">
+            <div
+              class="bg-spa-cream rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4"
+            >
+              <i data-lucide="award" class="h-8 w-8 text-primary"></i>
+            </div>
+            <h3 class="text-3xl font-bold text-spa-dark mb-2">50+</h3>
+            <p class="text-gray-600">Dịch vụ chuyên nghiệp</p>
+          </div>
+          <div class="text-center">
+            <div
+              class="bg-spa-cream rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4"
+            >
+              <i data-lucide="star" class="h-8 w-8 text-primary"></i>
+            </div>
+            <h3 class="text-3xl font-bold text-spa-dark mb-2">4.9/5</h3>
+            <p class="text-gray-600">Đánh giá trung bình</p>
+          </div>
+          <div class="text-center">
+            <div
+              class="bg-spa-cream rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4"
+            >
+              <i data-lucide="calendar" class="h-8 w-8 text-primary"></i>
+            </div>
+            <h3 class="text-3xl font-bold text-spa-dark mb-2">3</h3>
+            <p class="text-gray-600">Năm kinh nghiệm</p>
           </div>
         </div>
-        <div class="section-full content-inner-2 spa-testimonial">
-          <div class="container">
-            <div class="section-head text-black text-center">
-              
-              <h2 class="m-b0">Đánh Giá Của Khách Hàng</h2> <%-- Translated --%>
-            </div>
-            <div class="">
+      </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="py-20 bg-spa-cream fade-in">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+          <h2 class="text-4xl md:text-5xl font-serif text-spa-dark mb-4">
+            Dịch vụ <span class="text-primary">nổi bật</span>
+          </h2>
+          <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+            Khám phá các dịch vụ chăm sóc sắc đẹp cao cấp được thiết kế đặc biệt
+            cho phụ nữ Việt Nam
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <!-- Service 1 -->
+          <div
+            class="group cursor-pointer bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300"
+          >
+            <div class="relative overflow-hidden">
+              <img
+                src="https://images.pexels.com/photos/3985263/pexels-photo-3985263.jpeg?auto=compress&cs=tinysrgb&w=600"
+                alt="Chăm sóc da mặt"
+                class="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105"
+              />
               <div
-                class="testimonial-one owl-carousel owl-btn-center-lr owl-btn-3 owl-theme owl-dots-primary-full owl-loaded owl-drag"
+                class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              ></div>
+              <div
+                class="absolute bottom-4 left-4 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"
               >
-                <div class="item">
-                  <div class="testimonial-1">
-                    <div class="testimonial-pic radius shadow">
-                      <img
-                        src="${pageContext.request.contextPath}/assets/home/images/testimonials/pic1.jpg"
-                        width="100"
-                        height="100"
-                        alt="Ảnh khách hàng" <%-- Translated alt text --%>
-                      />
-                    </div>
-                    <div class="testimonial-text">
-                      <p>
-                        "Dịch vụ ở BeautyZone thật tuyệt vời! Tôi đã có một buổi massage thư giãn và cảm thấy như được tái tạo năng lượng. Nhân viên rất chuyên nghiệp và không gian thì vô cùng sang trọng. Chắc chắn tôi sẽ quay lại!" <%-- Updated content --%>
-                      </p>
-                    </div>
-                    <div class="testimonial-detail">
-                      <strong class="testimonial-name">Nguyễn Lan Anh</strong> <%-- Updated --%>
-                      <span class="testimonial-position">Khách Hàng Thân Thiết</span> <%-- Updated --%>
-                    </div>
-                  </div>
+                <p class="font-semibold">Từ 299.000đ</p>
+              </div>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-semibold text-spa-dark mb-3">
+                Chăm sóc da mặt
+              </h3>
+              <p class="text-gray-600 leading-relaxed mb-4">
+                Phục hồi và nuôi dưỡng làn da tự nhiên với các liệu pháp cao cấp
+              </p>
+              <a
+                href="services.html"
+                class="text-primary hover:text-primary-dark font-semibold"
+              >
+                Xem chi tiết →
+              </a>
+            </div>
+          </div>
+
+          <!-- Service 2 -->
+          <div
+            class="group cursor-pointer bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300"
+          >
+            <div class="relative overflow-hidden">
+              <img
+                src="https://images.pexels.com/photos/3997989/pexels-photo-3997989.jpeg?auto=compress&cs=tinysrgb&w=600"
+                alt="Massage thư giãn"
+                class="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105"
+              />
+              <div
+                class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              ></div>
+              <div
+                class="absolute bottom-4 left-4 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              >
+                <p class="font-semibold">Từ 399.000đ</p>
+              </div>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-semibold text-spa-dark mb-3">
+                Massage thư giãn
+              </h3>
+              <p class="text-gray-600 leading-relaxed mb-4">
+                Thư giãn toàn thân với kỹ thuật massage truyền thống Việt Nam
+              </p>
+              <a
+                href="services.html"
+                class="text-primary hover:text-primary-dark font-semibold"
+              >
+                Xem chi tiết →
+              </a>
+            </div>
+          </div>
+
+          <!-- Service 3 -->
+          <div
+            class="group cursor-pointer bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300"
+          >
+            <div class="relative overflow-hidden">
+              <img
+                src="https://images.pexels.com/photos/3985254/pexels-photo-3985254.jpeg?auto=compress&cs=tinysrgb&w=600"
+                alt="Tắm trắng thảo dược"
+                class="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105"
+              />
+              <div
+                class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              ></div>
+              <div
+                class="absolute bottom-4 left-4 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              >
+                <p class="font-semibold">Từ 199.000đ</p>
+              </div>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-semibold text-spa-dark mb-3">
+                Tắm trắng thảo dược
+              </h3>
+              <p class="text-gray-600 leading-relaxed mb-4">
+                Làm trắng da tự nhiên với các thảo dược quý hiếm
+              </p>
+              <a
+                href="services.html"
+                class="text-primary hover:text-primary-dark font-semibold"
+              >
+                Xem chi tiết →
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-center mt-12">
+          <a
+            href="services.html"
+            class="inline-flex items-center px-8 py-3 bg-secondary text-spa-dark rounded-full hover:bg-primary hover:text-white transition-all duration-300 font-semibold"
+          >
+            Xem tất cả dịch vụ
+            <i data-lucide="arrow-right" class="ml-2 h-5 w-5"></i>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="py-20 bg-white fade-in">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div>
+            <h2 class="text-4xl md:text-5xl font-serif text-spa-dark mb-6">
+              Chào mừng đến với
+              <span class="text-primary"> Spa Hương Sen</span>
+            </h2>
+            <p class="text-lg text-gray-700 mb-6 leading-relaxed">
+              Spa Hương Sen là không gian dành riêng cho phụ nữ Việt Nam, nơi vẻ
+              đẹp tự nhiên được nâng niu và chăm sóc bằng những liệu pháp tinh
+              tế nhất.
+            </p>
+            <p class="text-lg text-gray-700 mb-8 leading-relaxed">
+              Chúng tôi kết hợp giữa truyền thống và hiện đại, mang đến trải
+              nghiệm thư giãn hoàn hảo trong không gian sang trọng và ấm cúng.
+            </p>
+            <a
+              href="about.html"
+              class="inline-flex items-center px-6 py-3 bg-primary text-white rounded-full hover:bg-primary-dark transition-all duration-300 font-semibold"
+            >
+              Tìm hiểu thêm
+              <i data-lucide="arrow-right" class="ml-2 h-5 w-5"></i>
+            </a>
+          </div>
+          <div class="relative">
+            <img
+              src="https://images.pexels.com/photos/3997991/pexels-photo-3997991.jpeg?auto=compress&cs=tinysrgb&w=800"
+              alt="Spa Interior"
+              class="rounded-lg shadow-2xl w-full h-auto"
+            />
+            <div
+              class="absolute -bottom-6 -left-6 bg-white p-6 rounded-lg shadow-lg"
+            >
+              <div class="flex items-center">
+                <i data-lucide="gift" class="h-8 w-8 text-primary mr-3"></i>
+                <div>
+                  <p class="font-semibold text-spa-dark">Ưu đãi đặc biệt</p>
+                  <p class="text-sm text-gray-600">Giảm 20% lần đầu</p>
                 </div>
-                <div class="item">
-                  <div class="testimonial-1">
-                    <div class="testimonial-pic radius shadow">
-                      <img
-                        src="${pageContext.request.contextPath}/assets/home/images/testimonials/pic2.jpg"
-                        width="100"
-                        height="100"
-                        alt="Ảnh khách hàng" <%-- Translated alt text --%>
-                      />
-                    </div>
-                    <div class="testimonial-text">
-                      <p>
-                        "Tôi rất hài lòng với liệu trình chăm sóc da mặt tại đây. Da tôi cải thiện rõ rệt, trở nên mịn màng và sáng hơn. Các bạn kỹ thuật viên rất tận tâm và tư vấn nhiệt tình. Cảm ơn BeautyZone!" <%-- Updated content --%>
-                      </p>
-                    </div>
-                    <div class="testimonial-detail">
-                      <strong class="testimonial-name">Trần Thị Linh</strong> <%-- Updated --%>
-                      <span class="testimonial-position">Khách Hàng Mới</span> <%-- Updated --%>
-                    </div>
-                  </div>
-                </div>
-                <div class="item">
-                  <div class="testimonial-1">
-                    <div class="testimonial-pic radius shadow">
-                      <img
-                        src="${pageContext.request.contextPath}/assets/home/images/testimonials/pic3.jpg"
-                        width="100"
-                        height="100"
-                        alt="Ảnh khách hàng" <%-- Translated alt text --%>
-                      />
-                    </div>
-                    <div class="testimonial-text">
-                      <p>
-                        "Không gian spa rất đẹp và yên tĩnh, đúng là nơi lý tưởng để thư giãn sau những ngày làm việc căng thẳng. Tôi đã thử dịch vụ xông hơi thảo dược và cảm thấy cơ thể nhẹ nhõm hẳn. Sẽ giới thiệu cho bạn bè." <%-- Updated content --%>
-                      </p>
-                    </div>
-                    <div class="testimonial-detail">
-                      <strong class="testimonial-name">Lê Thu Hà</strong> <%-- Updated --%>
-                      <span class="testimonial-position">Khách Hàng</span> <%-- Translated --%>
-                    </div>
-                  </div>
-                </div>
-                    
-                    
               </div>
             </div>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="py-20 bg-spa-cream fade-in">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+          <h2 class="text-4xl md:text-5xl font-serif text-spa-dark mb-4">
+            Khách hàng <span class="text-primary">nói gì</span>
+          </h2>
+          <p class="text-xl text-gray-600">
+            Những chia sẻ chân thật từ khách hàng đã trải nghiệm dịch vụ
+          </p>
         </div>
-      <jsp:include page="/WEB-INF/view/common/home/footer.jsp"></jsp:include>
-      <button class="scroltop">↑</button>
 
-    </div>
-    <jsp:include page="/WEB-INF/view/common/home/js.jsp"></jsp:include>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <!-- Testimonial 1 -->
+          <div class="bg-white p-8 rounded-lg shadow-lg">
+            <div class="flex mb-4">
+              <i
+                data-lucide="star"
+                class="h-5 w-5 text-primary fill-current"
+              ></i>
+              <i
+                data-lucide="star"
+                class="h-5 w-5 text-primary fill-current"
+              ></i>
+              <i
+                data-lucide="star"
+                class="h-5 w-5 text-primary fill-current"
+              ></i>
+              <i
+                data-lucide="star"
+                class="h-5 w-5 text-primary fill-current"
+              ></i>
+              <i
+                data-lucide="star"
+                class="h-5 w-5 text-primary fill-current"
+              ></i>
+            </div>
+            <p class="text-gray-700 mb-6 leading-relaxed italic">
+              "Spa Hương Sen là nơi tôi tin tưởng để chăm sóc sắc đẹp. Dịch vụ
+              chuyên nghiệp, không gian thư giãn tuyệt vời."
+            </p>
+            <div>
+              <p class="font-semibold text-spa-dark">Chị Mai Anh</p>
+              <p class="text-sm text-gray-500">Quận 1, TP.HCM</p>
+            </div>
+          </div>
 
-    <script>
-      jQuery(document).ready(function () {
-        "use strict";
-        dz_rev_slider_4();
-      }); /*ready*/
-    </script>
+          <!-- Testimonial 2 -->
+          <div class="bg-white p-8 rounded-lg shadow-lg">
+            <div class="flex mb-4">
+              <i
+                data-lucide="star"
+                class="h-5 w-5 text-primary fill-current"
+              ></i>
+              <i
+                data-lucide="star"
+                class="h-5 w-5 text-primary fill-current"
+              ></i>
+              <i
+                data-lucide="star"
+                class="h-5 w-5 text-primary fill-current"
+              ></i>
+              <i
+                data-lucide="star"
+                class="h-5 w-5 text-primary fill-current"
+              ></i>
+              <i
+                data-lucide="star"
+                class="h-5 w-5 text-primary fill-current"
+              ></i>
+            </div>
+            <p class="text-gray-700 mb-6 leading-relaxed italic">
+              "Sau khi sử dụng dịch vụ chăm sóc da tại đây, làn da tôi trở nên
+              mịn màng và sáng khỏe hơn rất nhiều."
+            </p>
+            <div>
+              <p class="font-semibold text-spa-dark">Chị Thanh Hương</p>
+              <p class="text-sm text-gray-500">Quận 7, TP.HCM</p>
+            </div>
+          </div>
+
+          <!-- Testimonial 3 -->
+          <div class="bg-white p-8 rounded-lg shadow-lg">
+            <div class="flex mb-4">
+              <i
+                data-lucide="star"
+                class="h-5 w-5 text-primary fill-current"
+              ></i>
+              <i
+                data-lucide="star"
+                class="h-5 w-5 text-primary fill-current"
+              ></i>
+              <i
+                data-lucide="star"
+                class="h-5 w-5 text-primary fill-current"
+              ></i>
+              <i
+                data-lucide="star"
+                class="h-5 w-5 text-primary fill-current"
+              ></i>
+              <i
+                data-lucide="star"
+                class="h-5 w-5 text-primary fill-current"
+              ></i>
+            </div>
+            <p class="text-gray-700 mb-6 leading-relaxed italic">
+              "Nhân viên rất chu đáo, tận tình. Giá cả hợp lý cho chất lượng
+              dịch vụ cao cấp như thế này."
+            </p>
+            <div>
+              <p class="font-semibold text-spa-dark">Chị Phương Linh</p>
+              <p class="text-sm text-gray-500">Quận 3, TP.HCM</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-20 bg-primary fade-in">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="text-4xl md:text-5xl font-serif text-white mb-6">
+          Sẵn sàng trải nghiệm?
+        </h2>
+        <p class="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
+          Đặt lịch ngay hôm nay để nhận ưu đãi đặc biệt dành cho khách hàng mới
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a
+            href="booking.html"
+            class="px-8 py-4 bg-white text-primary rounded-full hover:bg-gray-100 transition-all duration-300 font-semibold text-lg"
+          >
+            Đặt lịch ngay
+          </a>
+          <a
+            href="promotions.html"
+            class="px-8 py-4 border-2 border-white text-white rounded-full hover:bg-white hover:text-primary transition-all duration-300 font-semibold text-lg"
+          >
+            Xem ưu đãi
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <jsp:include page="/WEB-INF/view/common/footer.jsp" />
+
+    <!-- JavaScript -->
+    <script src="<c:url value='/js/app.js'/>"></script>
   </body>
-  </html>
+</html>
