@@ -74,18 +74,18 @@ class LoginPage {
     }
 
     setError(input, errorElement, message) {
-        input.classList.remove('border-green-500', 'focus:ring-green-500');
-        input.classList.add('border-red-500', 'focus:ring-red-500');
+        input.classList.remove('border-green-600', 'focus:ring-green-600');
+        input.classList.add('border-red-600', 'focus:ring-red-600');
         errorElement.textContent = message;
         errorElement.classList.remove('hidden');
     }
 
     setSuccess(input, errorElement, show) {
-        input.classList.remove('border-red-500', 'focus:ring-red-500');
+        input.classList.remove('border-red-600', 'focus:ring-red-600');
         errorElement.textContent = '';
         errorElement.classList.add('hidden');
         if (show) {
-            input.classList.add('border-green-500', 'focus:ring-green-500');
+            input.classList.add('border-green-600', 'focus:ring-green-600');
         }
     }
 
@@ -147,7 +147,7 @@ class LoginPage {
                 let message = result.message;
                 if (result.verificationRequired) {
                     const resendLink = `email-verification-required?email=${encodeURIComponent(result.email)}`;
-                    message += ` <a href="${resendLink}" class="font-bold underline hover:text-red-700">Gửi lại email?</a>`;
+                    message += ` <a href="${resendLink}" class="font-bold underline hover:text-red-600">Gửi lại email?</a>`;
                 }
                 this.showGlobalError(message);
             }

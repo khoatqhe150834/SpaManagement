@@ -281,43 +281,10 @@ body {
     border-bottom: none;
 }
 
-/* Notification styles */
-.notification {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    padding: 16px 20px;
-    border-radius: 8px;
-    color: white;
-    z-index: 1000;
-    transform: translateX(100%);
-    transition: transform 0.3s ease;
-}
-
-.notification.show {
-    transform: translateX(0);
-}
-
-.notification.success {
-    background-color: #10b981;
-}
-
-.notification.error {
-    background-color: #ef4444;
-}
-
-.notification.warning {
-    background-color: #f59e0b;
-}
-
-.notification.info {
-    background-color: #3b82f6;
-}
-
 /* Mobile responsive */
 @media (max-width: 768px) {
     .hero-slide h1 {
-        font-size: 2.5rem;
+        font-size: 3rem;
     }
     
     .hero-slide p {

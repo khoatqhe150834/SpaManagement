@@ -73,4 +73,27 @@ contentType="text/html" pageEncoding="UTF-8"%>
       &copy; 2024 Serenity Spa. All rights reserved.
     </p>
   </div>
+  
+    <%-- Global Flash Message Handler --%>
+    <c:if test="${not empty sessionScope.flash_success}">
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                if (window.SpaApp && typeof window.SpaApp.showNotification === 'function') {
+                    SpaApp.showNotification("${sessionScope.flash_success}", 'success');
+                }
+            });
+        </script>
+        <% session.removeAttribute("flash_success"); %>
+    </c:if>
+
+    <c:if test="${not empty sessionScope.flash_error}">
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                if (window.SpaApp && typeof window.SpaApp.showNotification === 'function') {
+                    SpaApp.showNotification("${sessionScope.flash_error}", 'error');
+                }
+            });
+        </script>
+        <% session.removeAttribute("flash_error"); %>
+    </c:if>
 </footer>

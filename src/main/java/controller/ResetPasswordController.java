@@ -22,6 +22,7 @@ import service.email.EmailService;
 import service.email.AsyncEmailService;
 import model.PasswordResetToken;
 import org.mindrot.jbcrypt.BCrypt;
+import com.google.gson.Gson;
 
 /**
  * Extended ResetPasswordController that handles both Customer and User account
@@ -168,17 +169,22 @@ public class ResetPasswordController extends HttpServlet {
      */
     private void handleResetPassword(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
         String email = request.getParameter("email");
+        Gson gson = new Gson();
+        java.util.Map<String, String> jsonResponse = new java.util.HashMap<>();
 
         if (email == null || email.trim().isEmpty()) {
-            request.setAttribute("error", "Vui lòng nhập địa chỉ email");
-            request.getRequestDispatcher("/WEB-INF/view/password/reset-password.jsp").forward(request, response);
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            jsonResponse.put("message", "Vui lòng nhập địa chỉ email.");
+            response.getWriter().write(gson.toJson(jsonResponse));
             return;
         }
 
         email = email.trim();
-
-        // Use AccountDAO to check if email exists in either table
         boolean isEmailTakenInSystem = accountDAO.isEmailTakenInSystem(email);
 
         if (isEmailTakenInSystem) {
@@ -187,35 +193,33 @@ public class ResetPasswordController extends HttpServlet {
                 PasswordResetToken passwordResetToken = new PasswordResetToken(email);
                 passwordResetTokenDao.save(passwordResetToken);
 
-                // Send email asynchronously to avoid blocking the request
                 asyncEmailService.sendPasswordResetEmailFireAndForget(email, passwordResetToken.getToken(),
                         request.getContextPath());
 
-                // Immediately show success message to user without waiting for email
-                String successMessage = "Liên kết đặt lại mật khẩu đã được gửi đến email của bạn. " +
-                        "Vui lòng kiểm tra hộp thư và làm theo hướng dẫn. " +
-                        "Nếu không thấy email, vui lòng kiểm tra thư mục spam.";
-                request.setAttribute("success", successMessage);
+                response.setStatus(HttpServletResponse.SC_OK);
+                jsonResponse.put("message", "Liên kết đặt lại mật khẩu đã được gửi đến email của bạn.");
+                Logger.getLogger(ResetPasswordController.class.getName()).log(Level.INFO,
+                        "Password reset email queued for: " + email);
 
-                Logger.getLogger(ResetPasswordController.class.getName()).log(
-                        Level.INFO, "Password reset email queued for sending to: " + email);
             } catch (SQLException ex) {
-                Logger.getLogger(ResetPasswordController.class.getName()).log(Level.SEVERE,
-                        "Database error while processing password reset for email: " + email, ex);
-                request.setAttribute("error", "Có lỗi hệ thống xảy ra. Vui lòng thử lại sau.");
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                jsonResponse.put("message", "Lỗi cơ sở dữ liệu. Vui lòng thử lại sau.");
+                Logger.getLogger(ResetPasswordController.class.getName()).log(Level.SEVERE, "DB error for " + email,
+                        ex);
             } catch (Exception ex) {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                jsonResponse.put("message", "Lỗi hệ thống không xác định. Vui lòng thử lại sau.");
                 Logger.getLogger(ResetPasswordController.class.getName()).log(Level.SEVERE,
-                        "Unexpected error while processing password reset for email: " + email, ex);
-                request.setAttribute("error", "Có lỗi không xác định xảy ra. Vui lòng thử lại sau.");
+                        "Unexpected error for " + email, ex);
             }
         } else {
-            String error = "Email không tồn tại trong hệ thống. Vui lòng kiểm tra lại địa chỉ email.";
-            request.setAttribute("error", error);
-            Logger.getLogger(ResetPasswordController.class.getName()).log(
-                    Level.INFO, "Password reset attempted for non-existent email: " + email);
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            jsonResponse.put("message", "Email không tồn tại trong hệ thống.");
+            Logger.getLogger(ResetPasswordController.class.getName()).log(Level.INFO,
+                    "Reset attempt for non-existent email: " + email);
         }
 
-        request.getRequestDispatcher("/WEB-INF/view/password/reset-password.jsp").forward(request, response);
+        response.getWriter().write(gson.toJson(jsonResponse));
     }
 
     private void handleVerifyResetToken(HttpServletRequest request, HttpServletResponse response)

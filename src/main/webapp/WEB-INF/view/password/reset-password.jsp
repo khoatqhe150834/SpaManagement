@@ -6,192 +6,161 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
     <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="keywords" content="" />
-    <meta name="author" content="" />
-    <meta name="robots" content="" />
-    <meta name="description" content="BeautyZone : Beauty Spa Salon HTML Template" />
-    <meta property="og:title" content="BeautyZone : Beauty Spa Salon HTML Template" />
-    <meta property="og:description" content="BeautyZone : Beauty Spa Salon HTML Template" />
-    <meta property="og:image" content="../../beautyzone.dexignzone.com/xhtml/social-image.png" />
-    <meta name="format-detection" content="telephone=no" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đặt Lại Mật Khẩu - Spa Hương Sen</title>
 
-    <!-- FAVICONS ICON -->
-    <link rel="icon" href="${pageContext.request.contextPath}/assets/home/images/favicon.ico" type="image/x-icon" />
-    <link rel="shortcut icon" type="image/x-icon" href="${pageContext.request.contextPath}/assets/home/images/favicon.png" />
-    
-    <!-- PAGE TITLE HERE -->
-    <title>Đặt Lại Mật Khẩu - BeautyZone Spa</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#D4AF37",
+              "primary-dark": "#B8941F",
+              secondary: "#FADADD",
+              "spa-cream": "#FFF8F0",
+              "spa-dark": "#333333",
+            },
+            fontFamily: {
+              serif: ["Playfair Display", "serif"],
+              sans: ["Roboto", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
 
-    <!-- MOBILE SPECIFIC -->
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Roboto:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
 
-    <!--[if lt IE 9]>
-      <script src="js/html5shiv.min.js"></script>
-      <script src="js/respond.min.js"></script>
-    <![endif]-->
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
-    <!-- STYLESHEETS -->
-    <jsp:include page="/WEB-INF/view/common/home/stylesheet.jsp"></jsp:include>
-    
-    <!-- Password Pages Specific CSS -->
-    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/home/css/password-pages.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="<c:url value='/css/style.css'/>" />
     </head>
 
-<body id="bg">
-    <div class="page-wraper">
-        <div id="loading-area"></div>
-        
-        <!-- header -->
-        <jsp:include page="/WEB-INF/view/common/home/header.jsp"></jsp:include>
-        <!-- header END -->
-        
-        <!-- Content -->
-        <div class="page-content bg-white">
-            <!-- inner page banner -->
-            <div class="dlab-bnr-inr overlay-primary bg-pt" style="background-image: url(${pageContext.request.contextPath}/assets/home/images/banner/bnr2.jpg)">
-                <div class="container">
-                    <div class="dlab-bnr-inr-entry">
-                        <h1 class="text-white">Đặt Lại Mật Khẩu</h1>
-                        <!-- Breadcrumb row -->
-                        <div class="breadcrumb-row">
-                            <ul class="list-inline">
-                                <li><a href="${pageContext.request.contextPath}/">Trang chủ</a></li>
-                                <li><a href="${pageContext.request.contextPath}/login">Đăng nhập</a></li>
-                                <li>Đặt lại mật khẩu</li>
-                            </ul>
+<body class="bg-spa-cream">
+    <jsp:include page="/WEB-INF/view/common/header.jsp" />
+
+    <main class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-md w-full space-y-8">
+            <!-- Header -->
+            <div class="text-center">
+                <h1 class="text-4xl font-serif text-spa-dark mb-2">
+                    Quên mật khẩu?
+                </h1>
+                <p class="text-gray-600">
+                    Nhập email của bạn để nhận hướng dẫn đặt lại mật khẩu.
+                </p>
+            </div>
+
+            <!-- Main Content Area -->
+            <div id="reset-container" class="bg-white rounded-lg shadow-lg p-8">
+                <!-- Form View -->
+                <div id="reset-form-view">
+                    <form id="forgotPasswordForm" class="space-y-6" novalidate data-reset-url="<c:url value='/reset-password'/>">
+                        <div id="form-error-container" class="bg-red-50 border border-red-200 text-red-600 rounded-lg p-3 hidden">
+                            <p id="form-error-message"></p>
                         </div>
-                        <!-- Breadcrumb row END -->
+
+                        <!-- Email Field -->
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                                Email đã đăng ký
+                            </label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                                    <i data-lucide="mail" class="h-5 w-5 text-gray-400"></i>
+                                </span>
+                                <input id="email" name="email" type="email" required
+                                    class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
+                                    placeholder="your.email@example.com">
+                            </div>
+                            <p id="email-error" class="mt-1 text-sm text-red-600 hidden"></p>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" id="submit-button"
+                            class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-300 font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed">
+                            <span id="button-text">Gửi email đặt lại</span>
+                            <div id="loading-spinner" class="animate-spin rounded-full h-5 w-5 border-b-2 border-white ml-2 hidden"></div>
+                        </button>
+                    </form>
+                    <div class="mt-6 text-center">
+                        <a href="<c:url value='/login'/>" class="inline-flex items-center text-primary hover:text-primary-dark font-semibold transition-colors">
+                            <i data-lucide="arrow-left" class="mr-2 h-4 w-4"></i>
+                            Quay lại đăng nhập
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Success View -->
+                <div id="success-view" class="text-center hidden">
+                    <i data-lucide="check-circle" class="h-16 w-16 text-green-500 mx-auto mb-6"></i>
+                    <h2 class="text-2xl font-serif text-spa-dark mb-4">
+                        Email đã được gửi!
+                    </h2>
+                    <p class="text-gray-600 mb-6">
+                        Chúng tôi đã gửi hướng dẫn đặt lại mật khẩu tới <strong id="sent-email-address" class="text-spa-dark"></strong>. Vui lòng kiểm tra hộp thư của bạn.
+                    </p>
+                    <p class="text-sm text-gray-500 mb-8">
+                        Link đặt lại mật khẩu sẽ hết hạn sau 15 phút.
+                    </p>
+                    <div class="space-y-4">
+                        <button id="resend-button"
+                            class="w-full py-3 px-4 border border-primary text-primary rounded-lg hover:bg-primary hover:text-white transition-all duration-300 font-semibold disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-wait">
+                            Gửi lại email
+                        </button>
+                        <a href="<c:url value='/login'/>" class="w-full flex justify-center items-center py-3 px-4 bg-primary text-white rounded-lg hover:bg-primary-dark transition-all duration-300 font-semibold">
+                             <i data-lucide="arrow-left" class="mr-2 h-5 w-5"></i>
+                            Quay lại đăng nhập
+                        </a>
                     </div>
                 </div>
             </div>
-            <!-- inner page banner END -->
-            
-            <!-- Reset Password area -->
-            <div class="section-full content-inner shop-account">
-                <!-- Product -->
-                <div class="container">
-                    <div class="reset-container">
-                        <!-- Header -->
-                        <div class="reset-header">
-                            <i class="fa fa-lock lock-icon"></i>
-                            <h3>Quên Mật Khẩu?</h3>
-                            <p>Đừng lo lắng! Chúng tôi sẽ giúp bạn lấy lại mật khẩu</p>
-                        </div>
-                        
-                        <!-- Form Container -->
-                        <div class="reset-form-container">
-                            <!-- Error Messages -->
-        <c:if test="${not empty error}">
-                                <div class="alert alert-danger">
-                                    <i class="fa fa-exclamation-triangle"></i>
-                                    <span>${error}</span>
-                                </div>
-        </c:if>
-                            
-                            <!-- Success Messages -->
-                            <c:if test="${not empty success}">
-                                <div class="alert alert-success">
-                                    <i class="fa fa-check-circle success-icon"></i>
-                                    <div class="success-title">Email Đã Được Gửi!</div>
-                                    <div class="">${success}</div>
-                                    <div class="success-note">
-                                        <i class="fa fa-info-circle"></i>
-                                        Vui lòng kiểm tra cả thư mục spam nếu không thấy email.
-                                    </div>
-                                </div>
-                                
-                                <div class="success-actions">
-                                    <a href="${pageContext.request.contextPath}/login" class="btn btn-primary">
-                                        <i class="fa fa-sign-in"></i> Đăng Nhập
+
+            <!-- Help Section -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                            <h3 class="text-lg font-semibold text-text-primary mb-4">
+                                Cần hỗ trợ?
+                            </h3>
+                            <div class="space-y-3 text-sm text-gray-600">
+                                <p>
+                                    • Kiểm tra kỹ địa chỉ email bạn đã nhập
+                                </p>
+                                <p>
+                                    • Tìm kiếm email trong thư mục spam hoặc thư rác
+                                </p>
+                                <p>
+                                    • Liên hệ với chúng tôi nếu không nhận được email sau 10 phút
+                                </p>
+                            </div>
+                            <div class="mt-4 pt-4 border-t border-gray-200">
+                                <p class="text-sm text-gray-600">
+                                    Liên hệ hỗ trợ:
+                                    <a href="tel:0901234567" class="text-primary hover:text-primary-dark font-semibold">
+                                        0901 234 567
                                     </a>
-                                    <a href="${pageContext.request.contextPath}/reset-password" class="btn btn-outline">
-                                        <i class="fa fa-refresh"></i> Gửi Lại Email
-                                    </a>
-                                </div>
-        </c:if>
-                            
-                            <!-- Reset Password Form -->
-                            <c:if test="${empty success}">
-                                <!-- Security Notice -->
-                                <div class="security-notice">
-                                    <div class="security-notice-content">
-                                        <h6>Thông Tin Bảo Mật</h6>
-                                        <p>Chúng tôi sẽ gửi một liên kết đặt lại mật khẩu đến email của bạn. Liên kết này chỉ có hiệu lực trong 1 giờ vì lý do bảo mật.</p>
-                                    </div>
-                                </div>
-                                
-                                <!-- Form Section -->
-                                <div class="form-section">
-                                    <h4>
-                                        <i class="fa fa-envelope-o"></i>
-                                        NHẬP EMAIL CỦA BẠN
-                                    </h4>
-                                    <p class="form-description">
-                                        Nhập địa chỉ email mà bạn đã sử dụng để đăng ký tài khoản.
-                                    </p>
-                                    
-                                    <form id="resetPasswordForm" method="post" action="reset-password">
-                                        <div class="input-group">
-                                            <label class="input-label">
-                                                <i class="fa fa-envelope"></i>
-                                                ĐỊA CHỈ EMAIL *
-                                            </label>
-                                            <input
-                                                name="email"
-                                                id="emailInput"
-                                                required="true"
-                                                class="email-input"
-                                                placeholder="Nhập email của bạn (ví dụ: john@example.com)"
-                                                type="email"
-                                                value="${param.email}"
-                                            />
-                                            <div class="validation-message" id="emailInputMessage" style="display: none;"></div>
-                                            <%-- <div class="input-help">
-                                                <i class="fa fa-info-circle"></i>
-                                                Email phải đã được đăng ký trong hệ thống của chúng tôi
-                                            </div> --%>
-                                        </div>
-                                        
-                                        <div class="submit-section">
-                                            <button type="submit" class="reset-button" id="submitBtn">
-                                                <i class="fa fa-paper-plane"></i>
-                                                GỬI LIÊN KẾT ĐẶT LẠI
-                                            </button>
-                                        </div>
-                                        
-                                        <div class="back-link">
-                                            <a href="${pageContext.request.contextPath}/login">
-                                                <i class="fa fa-arrow-left"></i>
-                                                Quay lại đăng nhập
-                                            </a>
-                                        </div>
-        </form>
-                                </div>
-                            </c:if>
+                                </p>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                <!-- Product END -->
-            </div>
-            <!-- Reset Password area END -->
         </div>
-        <!-- Content END-->
-        
-        <!-- Footer -->
-        <jsp:include page="/WEB-INF/view/common/home/footer.jsp"></jsp:include>
-        <!-- Footer END -->
-        
-        <button class="scroltop fa fa-chevron-up"></button>
-    </div>
-    
-    <!-- JAVASCRIPT FILES ========================================= -->
-    <jsp:include page="/WEB-INF/view/common/home/js.jsp"></jsp:include>
-    
-    <!-- Unified Email Validation Utility (includes reset password functionality) -->
-    <script src="${pageContext.request.contextPath}/assets/home/js/common/email-validation.js"></script>
-    </body>
+    </main>
+
+    <jsp:include page="/WEB-INF/view/common/footer.jsp" />
+
+    <script src="<c:url value='/js/reset-password.js'/>"></script>
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+    </script>
+</body>
 </html>

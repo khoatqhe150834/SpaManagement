@@ -149,7 +149,7 @@ contentType="text/html" pageEncoding="UTF-8"%>
                 >
               </div>
               <a
-                href="reset-password.html"
+                href="<c:url value='/reset-password'/>"
                 class="text-sm text-primary hover:text-primary-dark"
                 >Quên mật khẩu?</a
               >

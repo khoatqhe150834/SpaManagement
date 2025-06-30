@@ -41,7 +41,7 @@
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="<c:url value='/css/style.css'/>" />
   </head>
 
   <body class="bg-spa-cream">
@@ -117,13 +117,13 @@
         </p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
           <a
-            href="booking.html"
+            href="<c:url value='/booking'/>"
             class="px-8 py-4 bg-primary text-white rounded-full hover:bg-primary-dark transition-all duration-300 font-semibold text-lg transform hover:scale-105"
           >
             Đặt lịch ngay
           </a>
           <a
-            href="services.html"
+            href="<c:url value='/services'/>"
             class="px-8 py-4 border-2 border-white text-white rounded-full hover:bg-white hover:text-spa-dark transition-all duration-300 font-semibold text-lg transform hover:scale-105"
           >
             Xem dịch vụ
@@ -536,10 +536,11 @@
       </div>
     </section>
 
+    <!-- JavaScript -->
+    <script src="<c:url value='/js/app.js'/>"></script>
+    
     <!-- Footer -->
     <jsp:include page="/WEB-INF/view/common/footer.jsp" />
 
-    <!-- JavaScript -->
-    <script src="<c:url value='/js/app.js'/>"></script>
   </body>
 </html>

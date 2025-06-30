@@ -274,6 +274,7 @@ public class LoginController extends HttpServlet {
             HttpSession session = request.getSession();
             session.setAttribute("user", user);
             session.setAttribute("authenticated", true);
+            session.setAttribute("flash_success", "Đăng nhập thành công! Chào mừng, " + user.getFullName() + ".");
 
             String userType = RoleConstants.getUserTypeFromRole(user.getRoleId());
             session.setAttribute("userType", userType);
@@ -314,6 +315,7 @@ public class LoginController extends HttpServlet {
             HttpSession session = request.getSession();
             session.setAttribute("customer", customer);
             session.setAttribute("authenticated", true);
+            session.setAttribute("flash_success", "Đăng nhập thành công! Chào mừng, " + customer.getFullName() + ".");
 
             String userType = RoleConstants.getUserTypeFromRole(customer.getRoleId());
             session.setAttribute("userType", userType);
@@ -340,18 +342,17 @@ public class LoginController extends HttpServlet {
 
         switch (roleId) {
             case RoleConstants.ADMIN_ID:
-                // return "/admin/dashboard";
-                return "/";
+                return "/admin-dashboard";
 
             case RoleConstants.MANAGER_ID:
-                return "/";
-            // return "/manager/dashboard";
+                return "/manager-dashboard";
+
             case RoleConstants.THERAPIST_ID:
-                return "/";
-            // return "/therapist/dashboard";
+                return "/therapist-dashboard";
+
             case RoleConstants.RECEPTIONIST_ID:
-                return "/";
-            // return "/receptionist/dashboard";
+                return "/receptionist-dashboard";
+
             default:
                 return "/";
         }

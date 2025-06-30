@@ -49,11 +49,7 @@ contentType="text/html" pageEncoding="UTF-8"%>
       <div class="max-w-md w-full space-y-8">
         <!-- Header -->
         <div class="text-center">
-          <a
-            href="<c:url value='/index'/>"
-            class="text-3xl font-serif font-bold text-primary mb-2 inline-block"
-            >Spa Hương Sen</a
-          >
+         
           <h2 class="text-4xl font-serif text-spa-dark">Tạo tài khoản</h2>
           <p class="text-gray-600 mt-2">
             Trải nghiệm dịch vụ cao cấp ngay hôm nay
@@ -85,7 +81,7 @@ contentType="text/html" pageEncoding="UTF-8"%>
                   required
                 />
               </div>
-              <p class="form-error-text"></p>
+              <p class="mt-1 text-sm text-red-600 hidden" id="fullNameError"></p>
             </div>
 
             <!-- Email -->
@@ -110,7 +106,7 @@ contentType="text/html" pageEncoding="UTF-8"%>
                   required
                 />
               </div>
-              <p class="form-error-text"></p>
+              <p class="mt-1 text-sm text-red-600 hidden" id="emailError"></p>
             </div>
 
             <!-- Password -->
@@ -136,6 +132,7 @@ contentType="text/html" pageEncoding="UTF-8"%>
                 />
                 <button
                   type="button"
+                  id="toggle-password"
                   class="toggle-password absolute inset-y-0 right-0 flex items-center pr-3"
                 >
                   <i
@@ -144,7 +141,7 @@ contentType="text/html" pageEncoding="UTF-8"%>
                   ></i>
                 </button>
               </div>
-              <p class="form-error-text"></p>
+              <p class="mt-1 text-sm text-red-600 hidden" id="passwordError"></p>
               <p class="text-xs text-gray-500 mt-2">
                 Ít nhất 8 ký tự, gồm chữ hoa, chữ thường và số.
               </p>
@@ -173,6 +170,7 @@ contentType="text/html" pageEncoding="UTF-8"%>
                 />
                 <button
                   type="button"
+                  id="toggle-confirm-password"
                   class="toggle-password absolute inset-y-0 right-0 flex items-center pr-3"
                 >
                   <i
@@ -181,7 +179,7 @@ contentType="text/html" pageEncoding="UTF-8"%>
                   ></i>
                 </button>
               </div>
-              <p class="form-error-text"></p>
+              <p class="mt-1 text-sm text-red-600 hidden" id="confirmPasswordError"></p>
             </div>
 
             <!-- Terms and Conditions -->
@@ -204,7 +202,7 @@ contentType="text/html" pageEncoding="UTF-8"%>
                 >
               </div>
             </div>
-            <p id="agreeTerms-error" class="form-error-text"></p>
+            <p id="agreeTermsError" class="mt-1 text-sm text-red-600 hidden"></p>
 
             <!-- Submit Button -->
             <button
