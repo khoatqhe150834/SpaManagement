@@ -108,7 +108,7 @@
 
             <body>
                 <!-- SIDEBAR here -->
-                <jsp:include page="/WEB-INF/view/common/admin/sidebar.jsp"></jsp:include>
+               <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
 
                 <!-- HEADER here -->
                 <jsp:include page="/WEB-INF/view/common/admin/header.jsp"></jsp:include>
