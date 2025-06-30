@@ -1,6 +1,36 @@
+<%@ page import="model.MenuService" %>
+<%@ page import="java.util.List" %>
+<%@ page import="model.MenuService.MenuItem" %>
+<%@ page import="model.RoleConstants" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %> <%@ taglib
 prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %> <%@page
 contentType="text/html" pageEncoding="UTF-8"%>
+
+<%
+    // Determine the current page's path for active link highlighting
+    String currentPath = request.getServletPath();
+
+    // Get the main navigation menu items
+    List<MenuItem> mainNavItems = MenuService.getMainNavigationMenuItems(request.getContextPath());
+    pageContext.setAttribute("mainNavItems", mainNavItems);
+
+    // Get user-specific menu items if logged in
+    List<MenuItem> userMenuItems = null;
+    String userRole = null;
+    if (session.getAttribute("authenticated") != null && (Boolean)session.getAttribute("authenticated")) {
+        if (session.getAttribute("customer") != null) {
+            userRole = "CUSTOMER";
+        } else if (session.getAttribute("user") != null) {
+            model.User user = (model.User) session.getAttribute("user");
+            userRole = RoleConstants.getUserTypeFromRole(user.getRoleId());
+        }
+        if (userRole != null) {
+            userMenuItems = MenuService.getMenuItemsByRole(userRole, request.getContextPath());
+        }
+    }
+    pageContext.setAttribute("userMenuItems", userMenuItems);
+    pageContext.setAttribute("currentPath", currentPath);
+%>
 
 <!-- Header -->
     <header
@@ -18,36 +48,12 @@ contentType="text/html" pageEncoding="UTF-8"%>
 
           <!-- Navigation -->
           <nav class="hidden md:flex space-x-8">
-            <a
-              href="<c:url value='/index'/>"
-              class="text-spa-dark hover:text-primary transition-colors font-medium border-b-2 border-primary"
-              >Trang chủ</a
-            >
-            <a
-              href="<c:url value='/about'/>"
-              class="text-spa-dark hover:text-primary transition-colors font-medium"
-              >Giới thiệu</a
-            >
-            <a
-              href="<c:url value='/services'/>"
-              class="text-spa-dark hover:text-primary transition-colors font-medium"
-              >Dịch vụ</a
-            >
-            <a
-              href="<c:url value='/promotions'/>"
-              class="text-spa-dark hover:text-primary transition-colors font-medium"
-              >Khuyến mãi</a
-            >
-            <a
-              href="<c:url value='/booking'/>"
-              class="text-spa-dark hover:text-primary transition-colors font-medium"
-              >Đặt lịch</a
-            >
-            <a
-              href="<c:url value='/contact'/>"
-              class="text-spa-dark hover:text-primary transition-colors font-medium"
-              >Liên hệ</a
-            >
+            <c:forEach var="item" items="${mainNavItems}">
+              <a
+                href="${item.url}"
+                class="text-spa-dark hover:text-primary transition-colors font-medium <c:if test='${item.url.endsWith(currentPath)}'>border-b-2 border-primary</c:if>"
+                >${item.label}</a>
+            </c:forEach>
           </nav>
 
           <!-- User Actions -->
@@ -141,63 +147,33 @@ contentType="text/html" pageEncoding="UTF-8"%>
                                 Khách hàng
                               </c:when>
                               <c:when test="${not empty sessionScope.user}">
+                                <c:set var="userRoleName" value="<%= RoleConstants.getUserTypeFromRole(((model.User)session.getAttribute(\"user\")).getRoleId()) %>" />
                                 <c:choose>
-                                  <c:when test="${sessionScope.user.role == 'ADMIN'}">Quản trị viên</c:when>
-                                  <c:when test="${sessionScope.user.role == 'MANAGER'}">Quản lý</c:when>
-                                  <c:when test="${sessionScope.user.role == 'THERAPIST'}">Nhân viên</c:when>
-                                  <c:when test="${sessionScope.user.role == 'MARKETING'}">Marketing</c:when>
+                                  <c:when test="${userRoleName == 'ADMIN'}">Quản trị viên</c:when>
+                                  <c:when test="${userRoleName == 'MANAGER'}">Quản lý</c:when>
+                                  <c:when test="${userRoleName == 'THERAPIST'}">Nhân viên</c:when>
+                                  <c:when test="${userRoleName == 'MARKETING'}">Marketing</c:when>
                                   <c:otherwise>Nhân viên</c:otherwise>
                                 </c:choose>
                               </c:when>
                             </c:choose>
                           </p>
-                        </div>
+        </div>
                         
                         <!-- Menu items -->
-                        <c:choose>
-                          <c:when test="${not empty sessionScope.customer}">
-                            <a href="<c:url value='/customer/dashboard'/>" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
-                              <i data-lucide="user" class="mr-3 h-4 w-4"></i>
-                              Tài khoản của tôi
-                            </a>
-                            <a href="<c:url value='/customer/bookings'/>" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
-                              <i data-lucide="calendar" class="mr-3 h-4 w-4"></i>
-                              Lịch hẹn của tôi
-                            </a>
-                            <a href="<c:url value='/customer/profile'/>" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
-                              <i data-lucide="settings" class="mr-3 h-4 w-4"></i>
-                              Cài đặt
-                            </a>
-                          </c:when>
-                          <c:when test="${not empty sessionScope.user}">
-                            <c:set var="dashboardUrl" value="/"/>
-                            <c:choose>
-                                <c:when test="${sessionScope.user.roleId == 1}"><c:set var="dashboardUrl" value="/admin-dashboard"/></c:when>
-                                <c:when test="${sessionScope.user.roleId == 2}"><c:set var="dashboardUrl" value="/manager-dashboard"/></c:when>
-                                <c:when test="${sessionScope.user.roleId == 3}"><c:set var="dashboardUrl" value="/receptionist-dashboard"/></c:when>
-                                <c:when test="${sessionScope.user.roleId == 4}"><c:set var="dashboardUrl" value="/therapist-dashboard"/></c:when>
-                            </c:choose>
-                            <a href="<c:url value='${dashboardUrl}'/>" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
-                              <i data-lucide="layout-dashboard" class="mr-3 h-4 w-4"></i>
-                              Dashboard
-                            </a>
-                            <a href="<c:url value='/profile'/>" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
-                              <i data-lucide="user" class="mr-3 h-4 w-4"></i>
-                              Hồ sơ cá nhân
-                            </a>
-                            <a href="<c:url value='/settings'/>" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
-                              <i data-lucide="settings" class="mr-3 h-4 w-4"></i>
-                              Cài đặt
-                            </a>
-                          </c:when>
-                        </c:choose>
-                        
-                        <div class="border-t border-gray-200">
-                          <a href="<c:url value='/logout'/>" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
-                            <i data-lucide="log-out" class="mr-3 h-4 w-4"></i>
-                            Đăng xuất
-                          </a>
-                        </div>
+                        <c:forEach var="item" items="${userMenuItems}">
+                          <c:choose>
+                            <c:when test="${item.divider}">
+                              <div class="border-t border-gray-200 my-1"></div>
+                            </c:when>
+                            <c:otherwise>
+                              <a href="${item.url}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
+                                <i data-lucide="${item.icon}" class="mr-3 h-4 w-4"></i>
+                                ${item.label}
+                              </a>
+                            </c:otherwise>
+                          </c:choose>
+                        </c:forEach>
                       </div>
                     </div>
       </div>
@@ -235,36 +211,10 @@ contentType="text/html" pageEncoding="UTF-8"%>
           class="md:hidden hidden border-t border-gray-200 py-4"
         >
           <nav class="space-y-2">
-            <a
-              href="<c:url value='/index'/>"
-              class="block py-2 text-spa-dark hover:text-primary"
-              >Trang chủ</a
-            >
-            <a
-              href="<c:url value='/about'/>"
-              class="block py-2 text-spa-dark hover:text-primary"
-              >Giới thiệu</a
-            >
-            <a
-              href="<c:url value='/services'/>"
-              class="block py-2 text-spa-dark hover:text-primary"
-              >Dịch vụ</a
-            >
-            <a
-              href="<c:url value='/promotions'/>"
-              class="block py-2 text-spa-dark hover:text-primary"
-              >Khuyến mãi</a
-            >
-            <a
-              href="<c:url value='/booking'/>"
-              class="block py-2 text-spa-dark hover:text-primary"
-              >Đặt lịch</a
-            >
-            <a
-              href="<c:url value='/contact'/>"
-              class="block py-2 text-spa-dark hover:text-primary"
-              >Liên hệ</a
-            >
+            <c:forEach var="item" items="${mainNavItems}">
+              <a href="${item.url}" class="block py-2 text-spa-dark hover:text-primary">${item.label}</a>
+            </c:forEach>
+            
             <div class="border-t border-gray-200 pt-4 mt-4 space-y-2">
               <c:choose>
                 <c:when test="${not empty sessionScope.authenticated and sessionScope.authenticated}">
@@ -316,11 +266,12 @@ contentType="text/html" pageEncoding="UTF-8"%>
                               Khách hàng
                             </c:when>
                             <c:when test="${not empty sessionScope.user}">
+                              <c:set var="userRoleName" value="<%= RoleConstants.getUserTypeFromRole(((model.User)session.getAttribute(\"user\")).getRoleId()) %>" />
                               <c:choose>
-                                <c:when test="${sessionScope.user.role == 'ADMIN'}">Quản trị viên</c:when>
-                                <c:when test="${sessionScope.user.role == 'MANAGER'}">Quản lý</c:when>
-                                <c:when test="${sessionScope.user.role == 'THERAPIST'}">Nhân viên</c:when>
-                                <c:when test="${sessionScope.user.role == 'MARKETING'}">Marketing</c:when>
+                                <c:when test="${userRoleName == 'ADMIN'}">Quản trị viên</c:when>
+                                <c:when test="${userRoleName == 'MANAGER'}">Quản lý</c:when>
+                                <c:when test="${userRoleName == 'THERAPIST'}">Nhân viên</c:when>
+                                <c:when test="${userRoleName == 'MARKETING'}">Marketing</c:when>
                                 <c:otherwise>Nhân viên</c:otherwise>
                               </c:choose>
                             </c:when>
@@ -330,22 +281,11 @@ contentType="text/html" pageEncoding="UTF-8"%>
     </div>
                   </div>
                   
-                  <c:choose>
-                    <c:when test="${not empty sessionScope.customer}">
-                      <a href="<c:url value='/customer/dashboard'/>" class="block py-2 text-spa-dark hover:text-primary">Tài khoản</a>
-                    </c:when>
-                    <c:when test="${not empty sessionScope.user}">
-                      <c:set var="dashboardUrl" value="/"/>
-                      <c:choose>
-                          <c:when test="${sessionScope.user.roleId == 1}"><c:set var="dashboardUrl" value="/admin-dashboard"/></c:when>
-                          <c:when test="${sessionScope.user.roleId == 2}"><c:set var="dashboardUrl" value="/manager-dashboard"/></c:when>
-                          <c:when test="${sessionScope.user.roleId == 3}"><c:set var="dashboardUrl" value="/receptionist-dashboard"/></c:when>
-                          <c:when test="${sessionScope.user.roleId == 4}"><c:set var="dashboardUrl" value="/therapist-dashboard"/></c:when>
-                      </c:choose>
-                      <a href="<c:url value='${dashboardUrl}'/>" class="block py-2 text-spa-dark hover:text-primary">Dashboard</a>
-                    </c:when>
-                  </c:choose>
-                  <a href="<c:url value='/logout'/>" class="block py-2 text-spa-dark hover:text-primary">Đăng xuất</a>
+                  <c:forEach var="item" items="${userMenuItems}">
+                    <c:if test="${not item.divider}">
+                      <a href="${item.url}" class="block py-2 text-spa-dark hover:text-primary">${item.label}</a>
+                    </c:if>
+                  </c:forEach>
                 </c:when>
                 <c:otherwise>
                   <a href="<c:url value='/login'/>" class="block py-2 text-spa-dark hover:text-primary">Đăng nhập</a>
@@ -360,7 +300,23 @@ contentType="text/html" pageEncoding="UTF-8"%>
 
     <script>
       document.addEventListener("DOMContentLoaded", function () {
-        // ... (existing script)
+        const header = document.getElementById("header");
+        const mobileMenuBtn = document.getElementById("mobile-menu-btn");
+        const mobileMenu = document.getElementById("mobile-menu");
+
+        // Header scroll effect
+        window.addEventListener("scroll", function () {
+          if (window.scrollY > 50) {
+            header.classList.add("shadow-md");
+          } else {
+            header.classList.remove("shadow-md");
+          }
+        });
+
+        // Mobile menu toggle
+        mobileMenuBtn.addEventListener("click", function () {
+          mobileMenu.classList.toggle("hidden");
+        });
 
         // User Dropdown Toggle
         const userMenuButton = document.getElementById("user-menu-button");
@@ -371,16 +327,23 @@ contentType="text/html" pageEncoding="UTF-8"%>
             const isExpanded = userMenuButton.getAttribute("aria-expanded") === "true";
             userMenuButton.setAttribute("aria-expanded", !isExpanded);
             userDropdownMenu.classList.toggle("hidden");
+            // Re-initialize icons if they are in the dropdown
+            if(!isExpanded) {
+              lucide.createIcons();
+            }
           });
 
           // Close dropdown when clicking outside
           document.addEventListener("click", function (event) {
-            if (!userMenuButton.contains(event.target) && !userDropdownMenu.contains(event.target)) {
+            if (userMenuButton && !userMenuButton.contains(event.target) && !userDropdownMenu.contains(event.target)) {
               userMenuButton.setAttribute("aria-expanded", "false");
               userDropdownMenu.classList.add("hidden");
             }
           });
         }
+        
+        // Initial call to create icons
+        lucide.createIcons();
       });
     </script>
   </body>

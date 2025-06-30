@@ -107,7 +107,7 @@
                                             <div class="ml-4">
                                                 <h4 class="font-medium text-spa-dark">Đặt lịch đầu tiên</h4>
                                                 <p class="text-sm text-gray-600">Nhận ưu đãi 30% cho lần đặt lịch đầu tiên</p>
-                                            </div>
+                                    </div>
                                         </div>
                                     </div>
                                 </div>
@@ -185,7 +185,7 @@
                                             <i data-lucide="instagram" class="h-4 w-4"></i>
                                         </button>
                                     </div>
-                                </div>
+                                    </div>
                             </div>
                         </div>
                     </div>
