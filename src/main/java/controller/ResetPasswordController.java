@@ -224,8 +224,10 @@ public class ResetPasswordController extends HttpServlet {
                 PasswordResetToken passwordResetToken = new PasswordResetToken(email);
                 passwordResetTokenDao.save(passwordResetToken);
 
-                // Pass the user's name to the email service
-                asyncEmailService.sendPasswordResetEmailFireAndForget(email, passwordResetToken.getToken(), userName);
+                // Pass the context path to the email service
+                String contextPath = request.getContextPath();
+                asyncEmailService.sendPasswordResetEmailFireAndForget(email, passwordResetToken.getToken(),
+                        contextPath);
 
                 response.setStatus(HttpServletResponse.SC_OK);
                 jsonResponse.put("message", "Liên kết đặt lại mật khẩu đã được gửi đến email của bạn.");

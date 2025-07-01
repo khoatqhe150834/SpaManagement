@@ -4,6 +4,7 @@
  */
 package service.email;
 
+import dao.AccountDAO;
 import jakarta.mail.*;
 import jakarta.mail.internet.*;
 import java.util.Map;
@@ -34,27 +35,36 @@ public class EmailService {
   /**
    * Sends a password reset email to the specified user
    * 
-   * @param userEmail  The email address of the user
-   * @param resetToken The password reset token
-   * @param userName   The name of the user (optional, can be null)
+   * @param userEmail   The email address of the user
+   * @param resetToken  The password reset token
+   * @param contextPath The application context path to build the reset link
    * @return true if email was sent successfully, false otherwise
    */
-  public boolean sendPasswordResetEmail(String userEmail, String resetToken, String userName) {
-    String resetUrl = APP_BASE_URL + "/password-reset/edit?token=" + resetToken;
-    String subject = "Yêu Cầu Đặt Lại Mật Khẩu - Spa Hương Sen";
+  public boolean sendPasswordResetEmail(String userEmail, String resetToken, String contextPath) {
+    String resetUrl = APP_BASE_URL + contextPath + "/verify-reset-token?token=" + resetToken;
+    String subject = "Password Reset Request";
 
-    Map<String, String> placeholders = Map.of(
-        "userName", userName != null ? userName : "bạn",
-        "resetLink", resetUrl);
+    try {
+      // Get user's full name from database
+      AccountDAO accountDAO = new AccountDAO();
+      String userName = accountDAO.getFullNameByEmail(userEmail);
 
-    String emailContent = EmailTemplateUtil.loadAndPopulateTemplate("password-reset-email.html", placeholders);
+      Map<String, String> placeholders = Map.of(
+          "userName", userName != null ? userName : "User",
+          "resetLink", resetUrl);
 
-    if (emailContent == null) {
-      LOGGER.log(Level.SEVERE, "Could not load password reset email template.");
+      String emailContent = EmailTemplateUtil.loadAndPopulateTemplate("password-reset-email.html", placeholders);
+
+      if (emailContent == null) {
+        LOGGER.log(Level.SEVERE, "Could not load password reset email template.");
+        return false;
+      }
+
+      return sendEmail(userEmail, subject, emailContent);
+    } catch (Exception e) {
+      LOGGER.log(Level.SEVERE, "Error during password reset email preparation for " + userEmail, e);
       return false;
     }
-
-    return sendEmail(userEmail, subject, emailContent);
   }
 
   /**
@@ -224,36 +234,66 @@ public class EmailService {
   }
 
   /**
-   * Test method to verify email configuration
-   * Note: Make sure to configure EMAIL_USERNAME and EMAIL_PASSWORD before testing
+   * Test method to verify email configuration.
+   * Sends both a password reset and a verification email.
+   * Note: Make sure to configure EMAIL_USERNAME and EMAIL_PASSWORD before
+   * testing.
    */
   public static void testEmailConfiguration() {
     EmailService emailService = new EmailService();
 
-    System.out.println("=== Testing Email Configuration ===");
+    System.out.println("=== Starting Email Service Test Suite ===");
+    System.out.println(
+        "Environment: " + (EmailServiceConfig.isDevelopment() ? "DEVELOPMENT (Mailtrap)" : "PRODUCTION (Gmail)"));
+    System.out.println("SMTP Host: " + EmailServiceConfig.getSmtpHost());
+    System.out.println("SMTP Port: " + EmailServiceConfig.getSmtpPort());
+    System.out.println("Sending From: " + EmailServiceConfig.getEmailUsername());
+    System.out.println("=========================================");
 
-    // Test with a sample email (change this to your test email)
-    String testEmail = "quangkhoa5112@gmail.com";
-    String testToken = "sample-token-12345";
-    String testUserName = "Test User";
+    // --- Test Parameters ---
+    String testEmail = "quangkhoa5112@gmail.com"; // The email address that will RECEIVE the tests.
+    String testResetToken = "test-reset-token-123456";
+    String testVerificationToken = "test-verification-token-789012";
+    String testUserName = "Test User Quang";
+    String testContextPath = "/G1_SpaManagement"; // Mimics the application's context path.
 
-    System.out.println("Attempting to send test password reset email...");
-    boolean success = emailService.sendPasswordResetEmail(testEmail, testToken, testUserName);
-
-    if (success) {
-      System.out.println("✓ Test email sent successfully!");
-      System.out.println("Check the email inbox for: " + testEmail);
+    // --- Test 1: Password Reset Email ---
+    System.out.println("\n--- Test 1: Sending Password Reset Email ---");
+    System.out.println("To: " + testEmail);
+    boolean resetSuccess = emailService.sendPasswordResetEmail(testEmail, testResetToken, testContextPath);
+    if (resetSuccess) {
+      System.out.println("✓ SUCCESS: Password reset email method completed without errors.");
+      System.out.println("ACTION: Please check the inbox for \"" + testEmail
+          + "\" for an email with the subject 'Password Reset Request'.");
     } else {
-      System.out.println("✗ Failed to send test email.");
-      System.out.println("Please check your email configuration:");
-      System.out.println("- EMAIL_USERNAME: " + EMAIL_USERNAME);
-      System.out.println("- SMTP_HOST: " + SMTP_HOST);
-      System.out.println("- SMTP_PORT: " + SMTP_PORT);
+      System.out.println(
+          "✗ FAILURE: Password reset email method returned false. Check logs above for detailed errors (e.g., authentication, connection).");
     }
+    System.out.println("------------------------------------------");
+
+    // --- Test 2: Account Verification Email ---
+    System.out.println("\n--- Test 2: Sending Account Verification Email ---");
+    System.out.println("To: " + testEmail);
+    boolean verificationSuccess = emailService.sendVerificationEmail(testEmail, testVerificationToken, testUserName);
+    if (verificationSuccess) {
+      System.out.println("✓ SUCCESS: Account verification email method completed without errors.");
+      System.out.println("ACTION: Please check the inbox for \"" + testEmail
+          + "\" for an email with the subject 'Xác thực tài khoản - Spa Hương Sen'.");
+    } else {
+      System.out.println(
+          "✗ FAILURE: Account verification email method returned false. Check logs above for detailed errors.");
+    }
+    System.out.println("----------------------------------------------");
+
+    System.out.println("\n=== Email Service Test Suite Finished ===\n");
   }
 
   public static void main(String[] args) {
-
+    // To run this test:
+    // 1. Right-click this file in your IDE (NetBeans/IntelliJ/VSCode)
+    // 2. Select "Run File" or a similar option.
+    // 3. Check the console output for success or failure messages.
+    // 4. Check the inbox of the `testEmail` address below.
     testEmailConfiguration();
   }
 }
