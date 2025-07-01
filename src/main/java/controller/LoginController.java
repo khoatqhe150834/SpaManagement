@@ -27,6 +27,7 @@ import model.User;
 import com.google.gson.Gson;
 import java.util.HashMap;
 import java.util.Map;
+import model.FlashMessage;
 
 /**
  *
@@ -258,6 +259,7 @@ public class LoginController extends HttpServlet {
 
         String email = request.getParameter("email");
         String password = request.getParameter("password");
+        String rememberMe = request.getParameter("rememberMe");
 
         if (email == null || email.trim().isEmpty() || password == null || password.isEmpty()) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -274,13 +276,16 @@ public class LoginController extends HttpServlet {
             HttpSession session = request.getSession();
             session.setAttribute("user", user);
             session.setAttribute("authenticated", true);
-            session.setAttribute("flash_success", "Đăng nhập thành công! Chào mừng, " + user.getFullName() + ".");
 
             String userType = RoleConstants.getUserTypeFromRole(user.getRoleId());
             session.setAttribute("userType", userType);
 
             handleRememberLogin(request, response, email, password);
             String redirectUrl = getRedirectUrlForRole(user.getRoleId());
+
+            // Set a success flash message
+            FlashMessage flashMessage = new FlashMessage("Đăng nhập thành công!", "success");
+            session.setAttribute("flash_notification", flashMessage);
 
             jsonResponse.put("success", true);
             jsonResponse.put("redirectUrl", request.getContextPath() + redirectUrl);
@@ -315,12 +320,15 @@ public class LoginController extends HttpServlet {
             HttpSession session = request.getSession();
             session.setAttribute("customer", customer);
             session.setAttribute("authenticated", true);
-            session.setAttribute("flash_success", "Đăng nhập thành công! Chào mừng, " + customer.getFullName() + ".");
 
             String userType = RoleConstants.getUserTypeFromRole(customer.getRoleId());
             session.setAttribute("userType", userType);
 
             handleRememberLogin(request, response, email, password);
+
+            // Set a success flash message
+            FlashMessage flashMessage = new FlashMessage("Đăng nhập thành công!", "success");
+            session.setAttribute("flash_notification", flashMessage);
 
             jsonResponse.put("success", true);
             jsonResponse.put("redirectUrl", request.getContextPath() + "/");

@@ -204,17 +204,31 @@ class ResetPasswordPage {
                 body: formData
             });
 
+            let data;
+            try {
+                data = await response.json();
+            } catch (jsonError) {
+                console.error('JSON parsing error:', jsonError);
+                this.showInlineError('Có lỗi kết nối xảy ra. Đang tải lại trang...');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+                return;
+            }
+
             if (response.ok) {
                 // Success response
-                const data = await response.json();
                 if (data.success) {
-                    // Store credentials and the specific success message for pre-filling the login form
+                    // Store credentials and success message for pre-filling the login form
                     if (data.prefillEmail && data.prefillPassword) {
-                        sessionStorage.setItem('from_verification', 'true');
+                        sessionStorage.setItem('from_password_reset', 'true');
                         sessionStorage.setItem('prefill_email', data.prefillEmail);
                         sessionStorage.setItem('prefill_password', data.prefillPassword);
                         sessionStorage.setItem('prefill_message', data.success);
                     }
+
+                    // Show success notification briefly before redirect
+                    this.showNotification(data.success, 'success');
 
                     // Redirect to the login page after a short delay
                     setTimeout(() => {
@@ -225,7 +239,7 @@ class ResetPasswordPage {
                 }
             } else {
                 // Error response
-                if (data.error) {
+                if (data && data.error) {
                     this.showInlineError(data.error);
                     
                     // If there's a redirect for errors (like session expired)

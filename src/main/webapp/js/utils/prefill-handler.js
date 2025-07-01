@@ -11,12 +11,14 @@
  */
 function handlePrefillCredentials(options) {
     const fromVerification = sessionStorage.getItem('from_verification');
+    const fromPasswordReset = sessionStorage.getItem('from_password_reset');
     const prefillEmail = sessionStorage.getItem('prefill_email');
     const prefillPassword = sessionStorage.getItem('prefill_password');
 
     const result = { emailFilled: false, passwordFilled: false };
 
-    if (fromVerification !== 'true' || !prefillEmail) {
+    // Check if this is from either verification or password reset flow
+    if ((fromVerification !== 'true' && fromPasswordReset !== 'true') || !prefillEmail) {
         return result;
     }
 
@@ -51,6 +53,7 @@ function handlePrefillCredentials(options) {
     
     // Clear all the stored credentials for security
     sessionStorage.removeItem('from_verification');
+    sessionStorage.removeItem('from_password_reset');
     sessionStorage.removeItem('prefill_email');
     sessionStorage.removeItem('prefill_password');
     sessionStorage.removeItem('prefill_message'); // Also clear the message

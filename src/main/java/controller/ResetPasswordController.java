@@ -23,6 +23,9 @@ import service.email.AsyncEmailService;
 import model.PasswordResetToken;
 import org.mindrot.jbcrypt.BCrypt;
 import com.google.gson.Gson;
+import java.util.HashMap;
+import java.util.Map;
+import model.FlashMessage;
 
 /**
  * Extended ResetPasswordController that handles both Customer and User account
@@ -363,23 +366,23 @@ public class ResetPasswordController extends HttpServlet {
             boolean updated = accountDAO.updatePassword(email, newPassword);
 
             if (updated) {
-                // Clean up: remove tokens and session data
+                // Clean up: remove token and session attribute
                 passwordResetTokenDao.deleteTokensByEmail(email);
                 request.getSession().removeAttribute("resetEmail");
 
-                String successMessage = "Mật khẩu đã được thay đổi thành công. Vui lòng đăng nhập bằng mật khẩu mới.";
+                // Set the flash message for the next page
+                String successMessage = "Mật khẩu đã được thay đổi thành công. Vui lòng đăng nhập.";
+                FlashMessage flashMessage = new FlashMessage(successMessage, "success");
+                request.getSession().setAttribute("flash_notification", flashMessage);
+
+                // Return JSON response for JavaScript to handle redirect
+                response.setStatus(HttpServletResponse.SC_OK);
                 jsonResponse.put("success", successMessage);
                 jsonResponse.put("redirect", request.getContextPath() + "/login");
-
-                // Add credentials for pre-filling the login form
                 jsonResponse.put("prefillEmail", email);
                 jsonResponse.put("prefillPassword", newPassword);
-
-                Logger.getLogger(ResetPasswordController.class.getName()).log(
-                        Level.INFO, "Password successfully reset for email: " + email);
-
-                response.setStatus(HttpServletResponse.SC_OK);
                 response.getWriter().write(gson.toJson(jsonResponse));
+
             } else {
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 jsonResponse.put("error", "Có lỗi khi cập nhật mật khẩu. Vui lòng thử lại.");

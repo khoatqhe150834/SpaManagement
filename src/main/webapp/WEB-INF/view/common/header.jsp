@@ -346,6 +346,12 @@ contentType="text/html" pageEncoding="UTF-8"%>
         lucide.createIcons();
       });
     </script>
+
+<!-- Flash Notification System -->
+<jsp:include page="/WEB-INF/view/common/flash-notification.jsp" />
+
+<!-- Add the notification container here so it's available on all pages -->
+<div id="notification" class="notification"></div>
   </body>
 </html>
 

@@ -109,12 +109,31 @@ class LoginPage {
     
     setLoading(isLoading) {
         this.submitBtn.disabled = isLoading;
-        this.submitBtn.querySelector('.btn-text').classList.toggle('hidden', isLoading);
-        this.submitBtn.querySelector('.btn-spinner').classList.toggle('hidden', !isLoading);
-        if(isLoading) {
-            this.submitBtn.classList.add('cursor-not-allowed');
+        
+        if (isLoading) {
+            // Add loading state
+            this.submitBtn.classList.add('cursor-not-allowed', 'opacity-75');
+            this.submitBtn.style.transform = 'scale(0.98)';
+            this.submitBtn.querySelector('.btn-text').textContent = 'Đang xử lý...';
+            
+            // Create and add spinner if it doesn't exist
+            let spinner = this.submitBtn.querySelector('.btn-spinner');
+            if (!spinner) {
+                spinner = document.createElement('div');
+                spinner.className = 'btn-spinner inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2';
+                this.submitBtn.insertBefore(spinner, this.submitBtn.querySelector('.btn-text'));
+            }
+            spinner.classList.remove('hidden');
         } else {
-            this.submitBtn.classList.remove('cursor-not-allowed');
+            // Remove loading state
+            this.submitBtn.classList.remove('cursor-not-allowed', 'opacity-75');
+            this.submitBtn.style.transform = '';
+            this.submitBtn.querySelector('.btn-text').textContent = 'Đăng nhập';
+            
+            const spinner = this.submitBtn.querySelector('.btn-spinner');
+            if (spinner) {
+                spinner.classList.add('hidden');
+            }
         }
     }
     

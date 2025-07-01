@@ -585,5 +585,8 @@ document.addEventListener('DOMContentLoaded', function() {
     window.FormValidator = FormValidator;
     window.StorageManager = StorageManager;
     
+    // Expose showNotification globally for flash messages
+    window.showNotification = SpaApp.showNotification;
+    
     console.log('Spa website initialized successfully!');
 }); 
