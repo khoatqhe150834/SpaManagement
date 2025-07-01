@@ -40,7 +40,7 @@ public class EmailService {
    * @return true if email was sent successfully, false otherwise
    */
   public boolean sendPasswordResetEmail(String userEmail, String resetToken, String userName) {
-    String resetUrl = APP_BASE_URL + "/verify-reset-token?token=" + resetToken;
+    String resetUrl = APP_BASE_URL + "/password-reset/edit?token=" + resetToken;
     String subject = "Yêu Cầu Đặt Lại Mật Khẩu - Spa Hương Sen";
 
     Map<String, String> placeholders = Map.of(

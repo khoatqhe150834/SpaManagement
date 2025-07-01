@@ -250,4 +250,69 @@ public class AccountDAO {
     return null;
   }
 
+  public String getPasswordHashByEmail(String email) throws SQLException {
+    String sql = "SELECT hash_password FROM Customers WHERE email = ? " +
+        "UNION " +
+        "SELECT hash_password FROM Users WHERE email = ?";
+    try (Connection conn = new DBContext().getConnection();
+        PreparedStatement ps = conn.prepareStatement(sql)) {
+      ps.setString(1, email);
+      ps.setString(2, email);
+      try (ResultSet rs = ps.executeQuery()) {
+        if (rs.next()) {
+          return rs.getString("hash_password");
+        }
+      }
+    }
+    return null;
+  }
+
+  public boolean updatePassword(String email, String newPassword) throws SQLException {
+    String hashedPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt());
+
+    // First, try to update the Customers table
+    String sqlCustomer = "UPDATE Customers SET hash_password = ? WHERE email = ?";
+    int customerRowsAffected = 0;
+    try (Connection conn = new DBContext().getConnection();
+        PreparedStatement ps = conn.prepareStatement(sqlCustomer)) {
+      ps.setString(1, hashedPassword);
+      ps.setString(2, email);
+      customerRowsAffected = ps.executeUpdate();
+    }
+
+    if (customerRowsAffected > 0) {
+      return true; // Password updated for a customer
+    }
+
+    // If no customer was updated, try to update the Users table
+    String sqlUser = "UPDATE Users SET hash_password = ? WHERE email = ?";
+    int userRowsAffected = 0;
+    try (Connection conn = new DBContext().getConnection();
+        PreparedStatement ps = conn.prepareStatement(sqlUser)) {
+      ps.setString(1, hashedPassword);
+      ps.setString(2, email);
+      userRowsAffected = ps.executeUpdate();
+    }
+
+    return userRowsAffected > 0; // Return true if a user's password was updated
+  }
+
+  public String getFullNameByEmail(String email) throws SQLException {
+    // This query checks both tables and returns the first name found.
+    String sql = "SELECT full_name FROM Customers WHERE email = ? " +
+        "UNION " +
+        "SELECT full_name FROM Users WHERE email = ?";
+    try (Connection conn = new DBContext().getConnection();
+        PreparedStatement ps = conn.prepareStatement(sql)) {
+      ps.setString(1, email);
+      ps.setString(2, email);
+      try (ResultSet rs = ps.executeQuery()) {
+        if (rs.next()) {
+          return rs.getString("full_name");
+        }
+      }
+    }
+    return null; // Return null if no user is found
+  }
+
 }

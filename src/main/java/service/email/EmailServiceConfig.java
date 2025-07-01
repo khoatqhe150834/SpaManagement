@@ -8,7 +8,7 @@ public class EmailServiceConfig {
 
   // Set to true for development (uses Mailtrap), false for production (uses
   // Gmail)
-  private static final boolean IS_DEVELOPMENT = true;
+  private static final boolean IS_DEVELOPMENT = false;
 
   // Production Gmail settings
   public static final String PROD_SMTP_HOST = "smtp.gmail.com";

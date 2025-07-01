@@ -45,6 +45,12 @@
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="<c:url value='/css/style.css'/>" />
+    <style>
+      /* Custom focus ring for invalid email input */
+      .border-red-500.focus\:ring-primary:focus {
+        --tw-ring-color: theme('colors.red.500');
+      }
+    </style>
     </head>
 
 <body class="bg-spa-cream">
@@ -66,7 +72,9 @@
             <div id="reset-container" class="bg-white rounded-lg shadow-lg p-8">
                 <!-- Form View -->
                 <div id="reset-form-view">
-                    <form id="forgotPasswordForm" class="space-y-6" novalidate data-reset-url="<c:url value='/reset-password'/>">
+                    <form id="forgotPasswordForm" class="space-y-6" action="#" method="POST" novalidate
+                        data-reset-url="<c:url value='/password-reset/request'/>"
+                        data-validate-email-url="<c:url value='/password-reset/new?ajax=checkEmail'/>">
                         <div id="form-error-container" class="bg-red-50 border border-red-200 text-red-600 rounded-lg p-3 hidden">
                             <p id="form-error-message"></p>
                         </div>
@@ -82,9 +90,15 @@
                                 </span>
                                 <input id="email" name="email" type="email" required
                                     class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
-                                    placeholder="your.email@example.com">
+                                    placeholder="your.email@example.com"
+                                    autocomplete="email">
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 transition-opacity duration-200 opacity-0" id="email-validation-icon">
+                                    <i data-lucide="check-circle" class="h-5 w-5 text-green-500 hidden" id="email-valid-icon"></i>
+                                    <i data-lucide="x-circle" class="h-5 w-5 text-red-500 hidden" id="email-invalid-icon"></i>
+                                </div>
                             </div>
                             <p id="email-error" class="mt-1 text-sm text-red-600 hidden"></p>
+                            <p id="email-success" class="mt-1 text-sm text-green-600 hidden"></p>
                         </div>
 
                         <!-- Submit Button -->
@@ -115,10 +129,21 @@
                         Link đặt lại mật khẩu sẽ hết hạn sau 15 phút.
                     </p>
                     <div class="space-y-4">
-                        <button id="resend-button"
-                            class="w-full py-3 px-4 border border-primary text-primary rounded-lg hover:bg-primary hover:text-white transition-all duration-300 font-semibold disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-wait">
-                            Gửi lại email
-                        </button>
+                         <!-- Countdown Section -->
+                        <div id="countdown-section" style="display: none;">
+                            <button id="resend-button-countdown" disabled
+                                class="w-full py-3 px-4 border rounded-lg font-semibold bg-gray-100 text-gray-500 cursor-wait">
+                                Gửi lại sau (<span id="countdown-timer">60</span>s)
+                            </button>
+                        </div>
+
+                        <!-- Resend Section -->
+                        <div id="resend-section">
+                             <button id="resend-button"
+                                class="w-full py-3 px-4 border border-primary text-primary rounded-lg hover:bg-primary hover:text-white transition-all duration-300 font-semibold disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-wait">
+                                Gửi lại email
+                            </button>
+                        </div>
                         <a href="<c:url value='/login'/>" class="w-full flex justify-center items-center py-3 px-4 bg-primary text-white rounded-lg hover:bg-primary-dark transition-all duration-300 font-semibold">
                              <i data-lucide="arrow-left" class="mr-2 h-5 w-5"></i>
                             Quay lại đăng nhập
@@ -133,6 +158,7 @@
 
     <jsp:include page="/WEB-INF/view/common/footer.jsp" />
 
+    <script src="<c:url value='/js/countdown-manager.js'/>"></script>
     <script src="<c:url value='/js/reset-password.js'/>"></script>
     <script>
         // Initialize Lucide icons

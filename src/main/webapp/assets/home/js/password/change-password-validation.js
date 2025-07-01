@@ -6,46 +6,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('passwordChangeForm');
     const submitBtn = document.getElementById('submitBtn');
     
-    // Validation message utility functions
-    function showErrorMessage(fieldId, message) {
-        const field = document.getElementById(fieldId);
-        const messageElement = document.getElementById(fieldId + 'Message');
-        
-        // Update field styling
-        field.style.borderColor = '#f44336';
-        field.style.boxShadow = '0 0 5px rgba(244, 67, 54, 0.3)';
-        
-        // Update message content and styling
-        messageElement.innerHTML = '<i class="fa fa-exclamation-circle"></i>' + message;
-        messageElement.className = 'validation-message invalid';
-        messageElement.style.display = 'block';
+    // Validation utility functions
+    function setError(input, errorElement, message) {
+        input.classList.remove('border-green-600', 'focus:ring-green-600');
+        input.classList.add('border-red-600', 'focus:ring-red-600');
+        errorElement.textContent = message;
+        errorElement.classList.remove('hidden');
     }
-    
-    function showSuccessMessage(fieldId, message) {
-        const field = document.getElementById(fieldId);
-        const messageElement = document.getElementById(fieldId + 'Message');
-        
-        // Update field styling
-        field.style.borderColor = '#4CAF50';
-        field.style.boxShadow = '0 0 5px rgba(76, 175, 80, 0.3)';
-        
-        // Update message content and styling
-        messageElement.innerHTML = '<i class="fa fa-check-circle"></i>' + message;
-        messageElement.className = 'validation-message valid';
-        messageElement.style.display = 'block';
-    }
-    
-    function hideMessage(fieldId) {
-        const field = document.getElementById(fieldId);
-        const messageElement = document.getElementById(fieldId + 'Message');
-        
-        // Reset field styling
-        field.style.borderColor = '';
-        field.style.boxShadow = '';
-        
-        // Hide message
-        messageElement.style.display = 'none';
-        messageElement.className = 'validation-message';
+
+    function setSuccess(input, errorElement, show) {
+        input.classList.remove('border-red-600', 'focus:ring-red-600');
+        errorElement.textContent = '';
+        errorElement.classList.add('hidden');
+        if (show) {
+            input.classList.add('border-green-600', 'focus:ring-green-600');
+        }
     }
     
     if (form) {
@@ -54,115 +29,106 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Real-time validation for current password
         document.getElementById('currentPassword').addEventListener('input', function() {
-            const currentPassword = this.value.trim();
-            
-            if (currentPassword === '') {
-                hideMessage('currentPassword');
-            } else if (currentPassword.length < 6) {
-                showErrorMessage('currentPassword', 'Mật khẩu hiện tại phải có ít nhất 6 ký tự');
-            } else {
-                hideMessage('currentPassword');
-            }
-        
-            // Re-validate new password when current password changes
-            const newPassword = document.getElementById('newPassword').value;
-            if (newPassword) {
-                validateNewPassword();
-            }
+            validateCurrentPassword();
+        });
+
+        document.getElementById('currentPassword').addEventListener('blur', function() {
+            validateCurrentPassword(true);
         });
         
+        // Function to validate current password
+        function validateCurrentPassword(showSuccess = false) {
+            const currentPassword = document.getElementById('currentPassword');
+            const errorElement = document.getElementById('currentPasswordMessage');
+            const value = currentPassword.value.trim();
+            
+            if (value === '') {
+                setError(currentPassword, errorElement, 'Vui lòng nhập mật khẩu hiện tại');
+                return false;
+            } else if (value.length < 6) {
+                setError(currentPassword, errorElement, 'Mật khẩu hiện tại phải có ít nhất 6 ký tự');
+                return false;
+            }
+            
+            setSuccess(currentPassword, errorElement, showSuccess);
+            return true;
+        }
+        
         // Function to validate new password
-        function validateNewPassword() {
-            const currentPassword = document.getElementById('currentPassword').value;
-            const newPassword = document.getElementById('newPassword').value.trim();
+        function validateNewPassword(showSuccess = false) {
+            const currentPassword = document.getElementById('currentPassword').value.trim();
+            const newPassword = document.getElementById('newPassword');
+            const errorElement = document.getElementById('newPasswordMessage');
+            const value = newPassword.value.trim();
             
-            if (newPassword === '') {
-                hideMessage('newPassword');
-            } else if (newPassword.length < 6) {
-                showErrorMessage('newPassword', 'Mật khẩu mới phải có ít nhất 6 ký tự');
-            } else if (currentPassword && newPassword === currentPassword) {
-                showErrorMessage('newPassword', 'Mật khẩu mới phải khác với mật khẩu hiện tại');
-            } else {
-                showSuccessMessage('newPassword', 'Mật khẩu mới hợp lệ');
-            }
+            if (value === '') {
+                setError(newPassword, errorElement, 'Vui lòng nhập mật khẩu mới');
+                return false;
+            } else if (value.length < 6) {
+                setError(newPassword, errorElement, 'Mật khẩu mới phải có ít nhất 6 ký tự');
+                return false;
+            } else if (currentPassword && value === currentPassword) {
+                setError(newPassword, errorElement, 'Mật khẩu mới phải khác với mật khẩu hiện tại');
+                return false;
+            } 
             
-            // Re-validate confirm password if it has value
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            if (confirmPassword) {
-                validateConfirmPassword();
-            }
+            setSuccess(newPassword, errorElement, showSuccess);
+            return true;
         }
         
         // Real-time validation for new password
-        document.getElementById('newPassword').addEventListener('input', validateNewPassword);
+        document.getElementById('newPassword').addEventListener('input', function() {
+            validateNewPassword();
+        });
+
+        document.getElementById('newPassword').addEventListener('input', function() {
+            validateNewPassword(true);
+        });
         
-        // Real-time validation for confirm password
-        function validateConfirmPassword() {
-            const newPassword = document.getElementById('newPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
+        // Function to validate confirm password
+        function validateConfirmPassword(showSuccess = false) {
+            const newPassword = document.getElementById('newPassword').value.trim();
+            const confirmPassword = document.getElementById('confirmPassword');
+            const errorElement = document.getElementById('confirmPasswordMessage');
+            const value = confirmPassword.value.trim();
             
-            if (confirmPassword === '') {
-                hideMessage('confirmPassword');
-            } else if (confirmPassword.length < 6) {
-                showErrorMessage('confirmPassword', 'Xác nhận mật khẩu phải có ít nhất 6 ký tự');
-            } else if (newPassword !== confirmPassword) {
-                showErrorMessage('confirmPassword', 'Xác nhận mật khẩu không khớp với mật khẩu mới');
-            } else {
-                showSuccessMessage('confirmPassword', 'Xác nhận mật khẩu khớp');
+            if (value === '') {
+                setError(confirmPassword, errorElement, 'Vui lòng nhập xác nhận mật khẩu');
+                return false;
+            } else if (value.length < 6) {
+                setError(confirmPassword, errorElement, 'Xác nhận mật khẩu phải có ít nhất 6 ký tự');
+                return false;
+            } else if (newPassword !== value) {
+                setError(confirmPassword, errorElement, 'Xác nhận mật khẩu không khớp với mật khẩu mới');
+                return false;
             }
+            
+            setSuccess(confirmPassword, errorElement, showSuccess);
+            return true;
         }
         
-        document.getElementById('confirmPassword').addEventListener('input', validateConfirmPassword);
+        // Real-time validation for confirm password
+        document.getElementById('confirmPassword').addEventListener('input', function() {
+            validateConfirmPassword();
+        });
+
+        document.getElementById('confirmPassword').addEventListener('blur', function() {
+            validateConfirmPassword(true);
+        });
         
         // Form submission validation
         form.addEventListener('submit', function(e) {
-            const currentPassword = document.getElementById('currentPassword').value.trim();
-            const newPassword = document.getElementById('newPassword').value.trim();
-            const confirmPassword = document.getElementById('confirmPassword').value.trim();
+            const isCurrentPasswordValid = validateCurrentPassword(true);
+            const isNewPasswordValid = validateNewPassword(true);
+            const isConfirmPasswordValid = validateConfirmPassword(true);
             
-            let hasErrors = false;
-            
-            // Validate current password
-            if (!currentPassword) {
-                showErrorMessage('currentPassword', 'Vui lòng nhập mật khẩu hiện tại');
-                hasErrors = true;
-            } else if (currentPassword.length < 6) {
-                showErrorMessage('currentPassword', 'Mật khẩu hiện tại phải có ít nhất 6 ký tự');
-                hasErrors = true;
-            }
-            
-            // Validate new password
-            if (!newPassword) {
-                showErrorMessage('newPassword', 'Vui lòng nhập mật khẩu mới');
-                hasErrors = true;
-            } else if (newPassword.length < 6) {
-                showErrorMessage('newPassword', 'Mật khẩu mới phải có ít nhất 6 ký tự');
-                hasErrors = true;
-            } else if (currentPassword === newPassword) {
-                showErrorMessage('newPassword', 'Mật khẩu mới phải khác với mật khẩu hiện tại');
-                hasErrors = true;
-            }
-            
-            // Validate confirm password
-            if (!confirmPassword) {
-                showErrorMessage('confirmPassword', 'Vui lòng nhập xác nhận mật khẩu');
-                hasErrors = true;
-            } else if (confirmPassword.length < 6) {
-                showErrorMessage('confirmPassword', 'Xác nhận mật khẩu phải có ít nhất 6 ký tự');
-                hasErrors = true;
-            } else if (newPassword !== confirmPassword) {
-                showErrorMessage('confirmPassword', 'Xác nhận mật khẩu không khớp với mật khẩu mới');
-                hasErrors = true;
-            }
-            
-            if (hasErrors) {
+            if (!isCurrentPasswordValid || !isNewPasswordValid || !isConfirmPasswordValid) {
                 e.preventDefault();
                 // Focus on first error field
-                const firstErrorField = document.querySelector('.invalid');
-                if (firstErrorField && firstErrorField.previousElementSibling) {
-                    firstErrorField.previousElementSibling.focus();
+                const firstInvalidField = form.querySelector('.border-red-600');
+                if (firstInvalidField) {
+                    firstInvalidField.focus();
                 } else {
-                    // Fallback: focus on current password field
                     document.getElementById('currentPassword').focus();
                 }
                 return;
@@ -170,7 +136,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Show loading state
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> ĐANG XỬ LÝ...';
+            submitBtn.classList.add('cursor-not-allowed', 'opacity-75');
+            submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i>ĐANG XỬ LÝ...';
         });
     }
     

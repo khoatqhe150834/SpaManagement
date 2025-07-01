@@ -4,18 +4,7 @@
     xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_5_0.xsd"
     version="5.0">
     <!-- AuthorizationFilter re-enabled with Tomcat 10 (Jakarta EE support) -->
-    <filter>
-        <filter-name>AuthorizationFilter</filter-name>
-        <filter-class>filter.AuthorizationFilter</filter-class>
-    </filter>
 
-    <filter-mapping>
-        <filter-name>AuthorizationFilter</filter-name>
-        <url-pattern>/admin/*</url-pattern>
-        <url-pattern>/manager/*</url-pattern>
-        <url-pattern>/therapist/*</url-pattern>
-        <url-pattern>/receptionist/*</url-pattern>
-    </filter-mapping>
 
     <session-config>
         <session-timeout>

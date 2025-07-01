@@ -94,7 +94,7 @@
                                     </div>
                                 </c:if>
                                 
-                    <form id="change-password-form" class="space-y-6" action="<c:url value='/change-password'/>" method="POST" novalidate>
+                    <form id="reset-password-form" class="space-y-6" action="<c:url value='/password-reset/update'/>" method="POST" novalidate>
                         <!-- New Password Field -->
                         <div>
                             <label for="newPassword" class="block text-sm font-medium text-gray-700 mb-2">Mật khẩu mới *</label>
@@ -102,27 +102,42 @@
                                 <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                                     <i data-lucide="lock" class="h-5 w-5 text-gray-400"></i>
                                 </div>
-                                <input id="newPassword" name="newPassword" type="password" class="form-input pl-11" placeholder="Nhập mật khẩu mới" required minlength="6">
-                                                </div>
+                                <input id="newPassword" name="newPassword" type="password" 
+                                       class="form-input pl-11 pr-11" 
+                                       placeholder="Nhập mật khẩu mới" 
+                                       required minlength="6">
+                                <button type="button" id="toggle-new-password" class="toggle-password absolute inset-y-0 right-0 flex items-center pr-3">
+                                    <i data-lucide="eye" class="h-5 w-5 text-gray-400 hover:text-gray-600"></i>
+                                </button>
+                            </div>
                             <p class="mt-1 text-sm text-gray-500">Mật khẩu phải có ít nhất 6 ký tự.</p>
                             <p class="mt-1 text-sm text-red-600 hidden" id="newPasswordError"></p>
-                                        </div>
+                        </div>
                                         
-                                        <!-- Confirm Password Field -->
+                        <!-- Confirm Password Field -->
                         <div>
                             <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-2">Xác nhận mật khẩu *</label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                                     <i data-lucide="lock-keyhole" class="h-5 w-5 text-gray-400"></i>
                                 </div>
-                                <input id="confirmPassword" name="confirmPassword" type="password" class="form-input pl-11" placeholder="Nhập lại mật khẩu mới" required>
+                                <input id="confirmPassword" name="confirmPassword" type="password" 
+                                       class="form-input pl-11 pr-11" 
+                                       placeholder="Nhập lại mật khẩu mới" 
+                                       required>
+                                <button type="button" id="toggle-confirm-password" class="toggle-password absolute inset-y-0 right-0 flex items-center pr-3">
+                                    <i data-lucide="eye" class="h-5 w-5 text-gray-400 hover:text-gray-600"></i>
+                                </button>
                             </div>
                             <p class="mt-1 text-sm text-red-600 hidden" id="confirmPasswordError"></p>
                         </div>
 
-                        <button type="submit" id="submit-btn" class="btn btn-primary w-full flex justify-center items-center">
+                        <button type="submit" id="submit-btn" 
+                                class="w-full flex justify-center py-3 px-4 border border-transparent rounded-full shadow-sm text-lg font-semibold text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-dark transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
                             <span class="btn-text">Đặt Lại Mật Khẩu</span>
-                            <span class="btn-spinner hidden"></span>
+                            <span class="btn-spinner hidden animate-spin mr-3">
+                                <i data-lucide="loader-2"></i>
+                            </span>
                         </button>
                     </form>
                 </c:if>
@@ -135,6 +150,10 @@
     <div id="notification" class="notification"></div>
     
     <script src="<c:url value='/js/app.js'/>"></script>
-    <%-- TODO: Add specific JS for password validation and matching --%>
+    <script src="<c:url value='/js/reset-password-validation.js'/>"></script>
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+    </script>
     </body>
 </html>

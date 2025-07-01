@@ -113,6 +113,12 @@
                                 <span>Hồ sơ cá nhân</span>
                             </a>
                             
+                            <a href="${contextPath}/password/change" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                    data-item-id="change-password">
+                                <i data-lucide="key" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                                <span>Đổi mật khẩu</span>
+                            </a>
+                            
                             <a href="${contextPath}/customer/payments" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="payment-history">
                                 <i data-lucide="credit-card" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
