@@ -135,8 +135,45 @@ class ResetPasswordPage {
         }
     }
 
+    showNotification(message, type = 'info') {
+        // If the global notification system from app.js is available, use it.
+        // This is used for the success message before redirecting.
+        if (window.showNotification) {
+            window.showNotification(message, type);
+        } else {
+            // If the global system isn't found, we no longer use a disruptive alert.
+            // We log to the console, and the redirect on success will proceed as expected.
+            console.log(`Notification (${type}): ${message}`);
+        }
+    }
+
+    showInlineError(message) {
+        const errorContainer = document.getElementById('form-error-message');
+        if (!errorContainer) {
+            console.error("Error container #form-error-message not found. Falling back to alert.");
+            alert(message);
+            return;
+        }
+        
+        const errorMessageElement = errorContainer.querySelector('p');
+        if (errorMessageElement) {
+            errorMessageElement.textContent = message;
+            errorContainer.classList.remove('hidden');
+        }
+    }
+
+    hideInlineError() {
+        const errorContainer = document.getElementById('form-error-message');
+        if (errorContainer) {
+            errorContainer.classList.add('hidden');
+        }
+    }
+
     async handleSubmit(e) {
         e.preventDefault();
+
+        // Hide previous errors before new submission
+        this.hideInlineError();
 
         // Validate all fields
         const isNewPasswordValid = this.validateNewPassword(true);
@@ -167,28 +204,29 @@ class ResetPasswordPage {
                 body: formData
             });
 
-            const data = await response.json();
-
             if (response.ok) {
                 // Success response
+                const data = await response.json();
                 if (data.success) {
-                    this.showNotification(data.success, 'success');
-                    
-                    // Redirect after showing success message
+                    // Store credentials and the specific success message for pre-filling the login form
+                    if (data.prefillEmail && data.prefillPassword) {
+                        sessionStorage.setItem('from_verification', 'true');
+                        sessionStorage.setItem('prefill_email', data.prefillEmail);
+                        sessionStorage.setItem('prefill_password', data.prefillPassword);
+                        sessionStorage.setItem('prefill_message', data.success);
+                    }
+
+                    // Redirect to the login page after a short delay
                     setTimeout(() => {
                         window.location.href = data.redirect || '/spa/login';
-                    }, 1500);
+                    }, 500);
                 } else {
-                    // Unexpected success response format
-                    this.showNotification('Mật khẩu đã được thay đổi thành công!', 'success');
-                    setTimeout(() => {
-                        window.location.href = '/spa/login';
-                    }, 1500);
+                    this.showInlineError(data.error || 'An unexpected success response occurred.');
                 }
             } else {
                 // Error response
                 if (data.error) {
-                    this.showNotification(data.error, 'error');
+                    this.showInlineError(data.error);
                     
                     // If there's a redirect for errors (like session expired)
                     if (data.redirect) {
@@ -197,7 +235,7 @@ class ResetPasswordPage {
                         }, 2000);
                     }
                 } else {
-                    this.showNotification('Có lỗi xảy ra. Vui lòng thử lại.', 'error');
+                    this.showInlineError('Có lỗi xảy ra. Vui lòng thử lại.');
                 }
             }
         } catch (error) {
@@ -206,25 +244,15 @@ class ResetPasswordPage {
             // Check if the error is due to invalid JSON response
             if (error instanceof SyntaxError && error.message.includes('JSON')) {
                 // Server returned HTML instead of JSON, likely a redirect or server error page
-                this.showNotification('Có lỗi kết nối xảy ra. Đang tải lại trang...', 'error');
+                this.showInlineError('Có lỗi kết nối xảy ra. Đang tải lại trang...');
                 setTimeout(() => {
                     window.location.reload();
                 }, 1500);
             } else {
-                this.showNotification('Có lỗi xảy ra. Vui lòng thử lại.', 'error');
+                this.showInlineError('Có lỗi xảy ra. Vui lòng thử lại.');
             }
         } finally {
             this.setLoading(false);
-        }
-    }
-
-    showNotification(message, type = 'info') {
-        // Use the same notification system as other pages
-        if (window.showNotification) {
-            window.showNotification(message, type);
-        } else {
-            // Fallback alert
-            alert(message);
         }
     }
 }

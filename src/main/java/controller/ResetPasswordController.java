@@ -369,7 +369,11 @@ public class ResetPasswordController extends HttpServlet {
 
                 String successMessage = "Mật khẩu đã được thay đổi thành công. Vui lòng đăng nhập bằng mật khẩu mới.";
                 jsonResponse.put("success", successMessage);
-                jsonResponse.put("redirect", "/spa/login");
+                jsonResponse.put("redirect", request.getContextPath() + "/login");
+
+                // Add credentials for pre-filling the login form
+                jsonResponse.put("prefillEmail", email);
+                jsonResponse.put("prefillPassword", newPassword);
 
                 Logger.getLogger(ResetPasswordController.class.getName()).log(
                         Level.INFO, "Password successfully reset for email: " + email);

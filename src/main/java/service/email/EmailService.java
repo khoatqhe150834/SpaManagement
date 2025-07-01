@@ -41,8 +41,8 @@ public class EmailService {
    * @return true if email was sent successfully, false otherwise
    */
   public boolean sendPasswordResetEmail(String userEmail, String resetToken, String contextPath) {
-    String resetUrl = APP_BASE_URL + contextPath + "/verify-reset-token?token=" + resetToken;
-    String subject = "Password Reset Request";
+    String resetUrl = APP_BASE_URL + "/password-reset/edit?token=" + resetToken;
+    String subject = "Yêu Cầu Đặt Lại Mật Khẩu - Spa Hương Sen";
 
     try {
       // Get user's full name from database
@@ -50,7 +50,7 @@ public class EmailService {
       String userName = accountDAO.getFullNameByEmail(userEmail);
 
       Map<String, String> placeholders = Map.of(
-          "userName", userName != null ? userName : "User",
+          "userName", userName != null ? userName : "bạn",
           "resetLink", resetUrl);
 
       String emailContent = EmailTemplateUtil.loadAndPopulateTemplate("password-reset-email.html", placeholders);

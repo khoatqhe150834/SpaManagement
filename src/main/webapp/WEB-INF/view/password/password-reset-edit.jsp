@@ -87,6 +87,12 @@
                         </p>
                                 </div>
                                 
+                    <!-- General Error Message Area -->
+                    <div id="form-error-message"
+                         class="hidden bg-red-50 border border-red-200 rounded-lg p-3 mb-6">
+                        <p class="text-sm text-red-600"></p>
+                    </div>
+
                     <!-- Error Message -->
                                 <c:if test="${not empty error}">
                         <div class="bg-red-50 border border-red-200 rounded-lg p-3 mb-6">

@@ -164,13 +164,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const loginPage = new LoginPage();
 
         if (typeof handlePrefillCredentials === 'function') {
+            // Check for a specific message from a previous flow (e.g., password reset)
+            const prefillMessage = sessionStorage.getItem('prefill_message');
+            
             const prefillResult = handlePrefillCredentials({
                 emailFieldSelector: '#email',
                 passwordFieldSelector: '#password',
                 rememberMeSelector: '#remember-me',
                 notificationCallback: (message, type) => {
-                    if (window.SpaApp && window.SpaApp.showNotification) {
-                        SpaApp.showNotification(message, type);
+                    const finalMessage = prefillMessage || message; // Use specific message if available
+                    if (typeof window.showNotification === 'function') {
+                        window.showNotification(finalMessage, type);
+                    } else {
+                        // Final fallback is console, no more alerts.
+                        console.log(`Notification (${type}): ${finalMessage}`);
                     }
                 }
             });

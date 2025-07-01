@@ -43,14 +43,17 @@ function handlePrefillCredentials(options) {
         }
     }
 
+    // Use the specific message from the previous flow, or fall back to a default.
+    const message = sessionStorage.getItem('prefill_message') || 'Thông tin đăng nhập đã được điền sẵn!';
     if (options.notificationCallback && typeof options.notificationCallback === 'function') {
-        options.notificationCallback('Thông tin đăng nhập đã được điền sẵn từ quá trình xác thực!', 'success');
+        options.notificationCallback(message, 'success');
     }
     
-    // Clear the stored credentials for security
+    // Clear all the stored credentials for security
     sessionStorage.removeItem('from_verification');
     sessionStorage.removeItem('prefill_email');
     sessionStorage.removeItem('prefill_password');
+    sessionStorage.removeItem('prefill_message'); // Also clear the message
 
     return result;
 } 
