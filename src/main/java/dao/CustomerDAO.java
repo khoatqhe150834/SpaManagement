@@ -40,6 +40,7 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         customer.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
         customer.setIsVerified(rs.getObject("is_verified") != null ? rs.getBoolean("is_verified") : false);
         customer.setAvatarUrl(rs.getString("avatar_url"));
+        customer.setNotes(rs.getString("notes"));
         return customer;
     }
 
@@ -189,7 +190,7 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
             throw new IllegalArgumentException("Phone number already exists");
         }
 
-        String sql = "INSERT INTO customers (full_name, email, hash_password, phone_number, role_id, is_active, loyalty_points, is_verified, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO customers (full_name, email, hash_password, phone_number, role_id, is_active, loyalty_points, is_verified, created_at, updated_at, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DBContext.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, customer.getFullName());
@@ -202,6 +203,7 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
             ps.setBoolean(8, customer.getIsVerified() != null ? customer.getIsVerified() : false);
             ps.setTimestamp(9, Timestamp.valueOf(java.time.LocalDateTime.now()));
             ps.setTimestamp(10, Timestamp.valueOf(java.time.LocalDateTime.now()));
+            ps.setString(11, customer.getNotes());
             int rows = ps.executeUpdate();
             if (rows > 0) {
                 ResultSet rs = ps.getGeneratedKeys();
@@ -305,7 +307,7 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
 
     @Override
     public <S extends Customer> S update(S customer) {
-        String sql = "UPDATE customers SET full_name=?, email=?, phone_number=?, gender=?, birthday=?, address=?, is_active=?, loyalty_points=?, role_id=?, is_verified=?, updated_at=? WHERE customer_id=?";
+        String sql = "UPDATE customers SET full_name=?, email=?, phone_number=?, gender=?, birthday=?, address=?, is_active=?, loyalty_points=?, role_id=?, is_verified=?, updated_at=?, avatar_url=?, notes=? WHERE customer_id=?";
         try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, customer.getFullName());
             ps.setString(2, customer.getEmail());
@@ -318,7 +320,9 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
             ps.setInt(9, customer.getRoleId());
             ps.setBoolean(10, customer.getIsVerified() != null ? customer.getIsVerified() : false);
             ps.setTimestamp(11, Timestamp.valueOf(java.time.LocalDateTime.now()));
-            ps.setInt(12, customer.getCustomerId());
+            ps.setString(12, customer.getAvatarUrl());
+            ps.setString(13, customer.getNotes());
+            ps.setInt(14, customer.getCustomerId());
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Error updating customer: " + e.getMessage(), e);
@@ -401,6 +405,7 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
                     if (updatedAt != null) {
                         customer.setUpdatedAt(updatedAt.toLocalDateTime());
                     }
+                    customer.setNotes(rs.getString("notes"));
                     return customer; // <- THIS WAS MISSING!
                 }
             }
