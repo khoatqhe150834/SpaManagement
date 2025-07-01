@@ -152,7 +152,7 @@
                         <li class="fw-medium">
                             <a href="index.html" class="d-flex align-items-center gap-1 hover-text-primary">
                                 <iconify-icon icon="solar:home-smile-angle-outline" class="icon text-lg"></iconify-icon>
-                                Dashboard
+                                Trang Chủ
                             </a>
                         </li>
                         <li>-</li>
