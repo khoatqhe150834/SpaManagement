@@ -282,24 +282,26 @@ public class CustomerController extends HttpServlet {
         }
 
         // 4. Phone Number
-        if (phone != null && !phone.trim().isEmpty()) {
-            if (!phone.matches("^0\\d{9}$")) {
-                errors.put("phoneNumber", "Số điện thoại phải có 10 chữ số và bắt đầu bằng 0.");
-            } else {
-                try {
-                    if (accountDao.isPhoneTakenInSystem(phone.trim())) {
-                        errors.put("phoneNumber", "Số điện thoại này đã được đăng ký.");
-                    }
-                } catch (Exception e) {
-                    logger.log(Level.SEVERE, "Database error checking phone number uniqueness", e);
-                    errors.put("phoneNumber", "Không thể xác minh số điện thoại. Vui lòng thử lại.");
+        if (phone == null || phone.trim().isEmpty()) {
+            errors.put("phoneNumber", "Số điện thoại là bắt buộc.");
+        } else if (!phone.matches("^0\\d{9}$")) {
+            errors.put("phoneNumber", "Số điện thoại phải có 10 chữ số và bắt đầu bằng 0.");
+        } else {
+            try {
+                if (accountDao.isPhoneTakenInSystem(phone.trim())) {
+                    errors.put("phoneNumber", "Số điện thoại này đã được đăng ký.");
                 }
+            } catch (Exception e) {
+                logger.log(Level.SEVERE, "Database error checking phone number uniqueness", e);
+                errors.put("phoneNumber", "Không thể xác minh số điện thoại. Vui lòng thử lại.");
             }
         }
 
         // 5. Birthday
         Date birthday = null;
-        if (birthdayStr != null && !birthdayStr.trim().isEmpty()) {
+        if (birthdayStr == null || birthdayStr.trim().isEmpty()) {
+            errors.put("birthday", "Ngày sinh là bắt buộc.");
+        } else {
             try {
                 birthday = Date.valueOf(birthdayStr);
                 if (birthday.after(new java.util.Date())) {
@@ -313,6 +315,11 @@ public class CustomerController extends HttpServlet {
         // 6. Notes
         if (notes != null && notes.length() > 500) {
             errors.put("notes", "Ghi chú tối đa 500 ký tự.");
+        }
+
+        // 6. Address
+        if (address == null || address.trim().isEmpty()) {
+            errors.put("address", "Địa chỉ là bắt buộc.");
         }
 
         Customer customerInput = new Customer();

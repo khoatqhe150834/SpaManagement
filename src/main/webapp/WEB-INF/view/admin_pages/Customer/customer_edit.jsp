@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
 <body>
-    <jsp:include page="/WEB-INF/view/common/admin/sidebar.jsp" />
+    <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
      <jsp:include page="/WEB-INF/view/common/admin/header.jsp" />
     <div class="container mt-5">
         <div class="card">
@@ -150,47 +150,64 @@ $(document).ready(function() {
         let valid = true;
         // Validate Full Name
         const fullName = $('#fullName').val().trim();
-        const namePattern = /^[\p{L}\s]+$/u;
+        let nameErrors = [];
         if (!fullName) {
-            showError($('#fullName'), 'Tên là bắt buộc.');
-            valid = false;
-        } else if (fullName.length < 2 || fullName.length > 100) {
-            showError($('#fullName'), 'Tên phải có độ dài từ 2 đến 100 ký tự.');
-            valid = false;
-        } else if (fullName.includes('  ')) {
-            showError($('#fullName'), 'Tên không được có nhiều khoảng trắng liền kề.');
-            valid = false;
-        } else if (!fullName.includes(' ')) {
-            showError($('#fullName'), 'Tên đầy đủ cần có ít nhất hai từ (ví dụ: An Nguyen).');
-            valid = false;
-        } else if (!namePattern.test(fullName)) {
-            showError($('#fullName'), 'Tên chỉ được chứa chữ cái và khoảng trắng, không được chứa số hoặc ký tự đặc biệt.');
+            nameErrors.push('Tên là bắt buộc.');
+        }
+        if (/[^\p{L}\s]/u.test(fullName)) {
+            nameErrors.push('Tên chỉ được chứa chữ cái và khoảng trắng, không được chứa số hoặc ký tự đặc biệt.');
+        }
+        if (fullName.length < 2 || fullName.length > 100) {
+            nameErrors.push('Tên phải có độ dài từ 2 đến 100 ký tự.');
+        }
+        if (fullName.includes('  ')) {
+            nameErrors.push('Tên không được có nhiều khoảng trắng liền kề.');
+        }
+        if (!fullName.includes(' ') && fullName.length > 0) {
+            nameErrors.push('Tên đầy đủ cần có ít nhất hai từ (ví dụ: An Nguyen).');
+        }
+        if (nameErrors.length > 0) {
+            showError($('#fullName'), nameErrors.join('<br>'));
             valid = false;
         } else {
             clearError($('#fullName'));
         }
         // Validate Email
         const email = $('#email').val().trim();
+        let emailErrors = [];
         const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         if (!email) {
-            showError($('#email'), 'Email là bắt buộc.');
-            valid = false;
-        } else if (!emailRegex.test(email)) {
-            showError($('#email'), 'Email không đúng định dạng.');
-            valid = false;
-        } else if (!emailUnique) {
-            showError($('#email'), 'Email đã tồn tại.');
+            emailErrors.push('Email là bắt buộc.');
+        }
+        if (email && !emailRegex.test(email)) {
+            emailErrors.push('Email không đúng định dạng.');
+        }
+        if (!emailUnique) {
+            emailErrors.push('Email đã tồn tại.');
+        }
+        if (emailErrors.length > 0) {
+            showError($('#email'), emailErrors.join('<br>'));
             valid = false;
         } else {
             clearError($('#email'));
         }
-        // Validate Phone Number (optional)
+        // Validate Phone Number (required)
         const phone = $('#phoneNumber').val().trim();
+        let phoneErrors = [];
+        if (!phone) {
+            phoneErrors.push('Số điện thoại là bắt buộc.');
+        }
         if (phone && !/^0\d{9}$/.test(phone)) {
-            showError($('#phoneNumber'), 'Phone number must be 10 digits starting with 0.');
-            valid = false;
-        } else if (!phoneUnique) {
-            showError($('#phoneNumber'), 'Số điện thoại đã tồn tại.');
+            phoneErrors.push('Số điện thoại phải gồm 10 số, bắt đầu bằng số 0 và không chứa ký tự đặc biệt.');
+        }
+        if (phone && /[^0-9]/.test(phone)) {
+            phoneErrors.push('Số điện thoại chỉ được chứa số, không được chứa ký tự đặc biệt.');
+        }
+        if (!phoneUnique) {
+            phoneErrors.push('Số điện thoại đã tồn tại.');
+        }
+        if (phoneErrors.length > 0) {
+            showError($('#phoneNumber'), phoneErrors.join('<br>'));
             valid = false;
         } else {
             clearError($('#phoneNumber'));
@@ -202,7 +219,7 @@ $(document).ready(function() {
             const today = new Date();
             today.setHours(0,0,0,0);
             if (inputDate > today) {
-                showError($('#birthday'), 'Birthday cannot be in the future.');
+                showError($('#birthday'), 'không được vượt quá ngày hiện tại');
                 valid = false;
             } else {
                 clearError($('#birthday'));

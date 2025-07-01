@@ -39,7 +39,7 @@
     </style>
 </head>
 <body>
-    <jsp:include page="/WEB-INF/view/common/admin/sidebar.jsp" />
+    <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
     <jsp:include page="/WEB-INF/view/common/admin/header.jsp" />
     
     <div class="container mt-4">

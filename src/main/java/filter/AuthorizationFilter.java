@@ -100,9 +100,6 @@ public class AuthorizationFilter implements Filter {
     }
 
     private boolean isAuthorized(String requestPath, String userType) {
-        if (userType == null) return false;
-        userType = userType.toLowerCase();
-
         // Admin all rights
         if ("admin".equals(userType)) {
             return true;
