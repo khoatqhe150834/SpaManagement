@@ -20,7 +20,7 @@
     </style>
 </head>
 <body>
-     <jsp:include page="/WEB-INF/view/common/admin/sidebar.jsp" />
+     <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
      <jsp:include page="/WEB-INF/view/common/admin/header.jsp" />
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -65,8 +65,7 @@
             <div class="info-section">
                 <div class="section-title">Thông tin chi tiết người dùng</div>
                 <div class="row mb-3"><div class="col-sm-4 detail-label">Mã ND:</div><div class="col-sm-8 detail-value">${user.userId}</div></div>
-                <div class="row mb-3"><div class="col-sm-4 detail-label">Ảnh đại diện:</div><div class="col-sm-8 detail-value">
-                    <img src="${not empty user.avatarUrl ? user.avatarUrl : 'https://placehold.co/120x120/7C3AED/FFFFFF?text=USER'}" alt="Avatar" class="avatar-img mb-2">
+          
                     <div><c:choose><c:when test="${not empty user.avatarUrl}"><a href="${user.avatarUrl}" target="_blank">${user.avatarUrl}</a></c:when><c:otherwise>Ảnh mặc định</c:otherwise></c:choose></div>
                 </div></div>
                 <div class="row mb-3"><div class="col-sm-4 detail-label">Họ và tên:</div><div class="col-sm-8 detail-value">${not empty user.fullName ? user.fullName : 'Chưa cung cấp'}</div></div>

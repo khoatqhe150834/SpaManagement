@@ -22,6 +22,7 @@ public class Customer {
     private LocalDateTime updatedAt;
     private Boolean isVerified; // TRUE = Email verified, FALSE = Not verified
     private String avatarUrl;
+    private String notes;
 
     public Customer() {
     }
@@ -152,6 +153,14 @@ public class Customer {
 
     public void setAvatarUrl(String avatarUrl) {
         this.avatarUrl = avatarUrl;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
     
     // Convenience methods for better readability
