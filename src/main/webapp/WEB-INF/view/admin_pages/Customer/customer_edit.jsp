@@ -58,6 +58,11 @@
                                     <label for="address" class="form-label">Địa chỉ</label>
                                     <textarea class="form-control" id="address" name="address" rows="3"><c:out value="${customer.address}"/></textarea>
                                 </div>
+                                <div class="mb-3">
+                                    <label for="notes" class="form-label">Ghi chú</label>
+                                    <textarea class="form-control" id="notes" name="notes" rows="3" maxlength="500"><c:out value="${customer.notes}"/></textarea>
+                                    <div class="error-text"></div>
+                                </div>
                             </div>
 
                             <!-- Cột phải -->
@@ -145,23 +150,33 @@ $(document).ready(function() {
         let valid = true;
         // Validate Full Name
         const fullName = $('#fullName').val().trim();
+        const namePattern = /^[\p{L}\s]+$/u;
         if (!fullName) {
-            showError($('#fullName'), 'Full name is required.');
+            showError($('#fullName'), 'Tên là bắt buộc.');
             valid = false;
-        } else if (fullName.length > 100) {
-            showError($('#fullName'), 'Full name must be at most 100 characters.');
+        } else if (fullName.length < 2 || fullName.length > 100) {
+            showError($('#fullName'), 'Tên phải có độ dài từ 2 đến 100 ký tự.');
+            valid = false;
+        } else if (fullName.includes('  ')) {
+            showError($('#fullName'), 'Tên không được có nhiều khoảng trắng liền kề.');
+            valid = false;
+        } else if (!fullName.includes(' ')) {
+            showError($('#fullName'), 'Tên đầy đủ cần có ít nhất hai từ (ví dụ: An Nguyen).');
+            valid = false;
+        } else if (!namePattern.test(fullName)) {
+            showError($('#fullName'), 'Tên chỉ được chứa chữ cái và khoảng trắng, không được chứa số hoặc ký tự đặc biệt.');
             valid = false;
         } else {
             clearError($('#fullName'));
         }
         // Validate Email
         const email = $('#email').val().trim();
-        const emailRegex = /^[^\s@]+@[^-\u007f]+$/;
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         if (!email) {
-            showError($('#email'), 'Email is required.');
+            showError($('#email'), 'Email là bắt buộc.');
             valid = false;
         } else if (!emailRegex.test(email)) {
-            showError($('#email'), 'Invalid email format.');
+            showError($('#email'), 'Email không đúng định dạng.');
             valid = false;
         } else if (!emailUnique) {
             showError($('#email'), 'Email đã tồn tại.');
@@ -194,6 +209,14 @@ $(document).ready(function() {
             }
         } else {
             clearError($('#birthday'));
+        }
+        // Validate Notes (optional, max 500 chars)
+        const notes = $('#notes').val();
+        if (notes && notes.length > 500) {
+            showError($('#notes'), 'Ghi chú tối đa 500 ký tự.');
+            valid = false;
+        } else {
+            clearError($('#notes'));
         }
         if (!valid) e.preventDefault();
     });
