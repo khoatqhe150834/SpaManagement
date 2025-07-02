@@ -232,14 +232,13 @@ class ServicesPage {
                     </div>
                     <div class="text-xl font-bold text-primary">${service.price}</div>
                 </div>
-                <div class="flex gap-2">
-                    <button class="view-details-btn flex-1 bg-secondary text-spa-dark py-1.5 px-3 rounded-full hover:bg-primary hover:text-white transition-all duration-300 font-medium text-sm" data-id="${service.id}">
+                <div class="grid grid-cols-2 gap-2">
+                    <button class="view-details-btn w-full bg-secondary text-spa-dark py-2.5 px-3 rounded-full hover:bg-primary hover:text-white transition-all duration-300 font-medium text-sm flex items-center justify-center" data-id="${service.id}">
                         Xem chi tiết
                     </button>
-                    <a href="booking.html?service=${service.id}" class="add-to-cart-btn px-3 py-1.5 bg-primary text-white rounded-full hover:bg-primary-dark transition-all duration-300 font-medium text-sm flex items-center">
-                        Đặt lịch
-                        <i data-lucide="arrow-right" class="ml-1 h-3 w-3"></i>
-                    </a>
+                    <button class="add-to-cart-btn w-full bg-primary text-white py-2.5 px-3 rounded-full hover:bg-primary-dark transition-all duration-300 font-medium text-sm flex items-center justify-center" data-id="${service.id}">
+                        Thêm vào giỏ
+                    </button>
                 </div>
             </div>
         `;
