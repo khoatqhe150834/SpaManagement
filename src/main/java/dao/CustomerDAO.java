@@ -649,7 +649,8 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         }
     }
 
-    public List<Customer> getPaginatedCustomers(int page, int pageSize, String searchValue, String status, String sortBy, String sortOrder) {
+    public List<Customer> getPaginatedCustomers(int page, int pageSize, String searchValue, String status,
+            String sortBy, String sortOrder) {
         List<Customer> customers = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT * FROM customers WHERE 1=1");
         List<Object> params = new ArrayList<>();
@@ -687,7 +688,7 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         }
 
         try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+                PreparedStatement ps = conn.prepareStatement(sql.toString())) {
 
             for (int i = 0; i < params.size(); i++) {
                 ps.setObject(i + 1, params.get(i));
@@ -724,7 +725,7 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         }
 
         try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+                PreparedStatement ps = conn.prepareStatement(sql.toString())) {
 
             for (int i = 0; i < params.size(); i++) {
                 ps.setObject(i + 1, params.get(i));

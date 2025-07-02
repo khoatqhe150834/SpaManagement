@@ -1,69 +1,74 @@
 package dao;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
 /**
- * A simplified base Data Access Object (DAO) interface for essential CRUD operations.
- *
- * @param <T>  The domain type the DAO manages.
- * @param <ID> The type of the id of the domain type the DAO manages.
+ * Base interface for Data Access Objects
+ * 
+ * @param <T>  The entity type this DAO handles
+ * @param <ID> The type of the entity's primary key
  */
 public interface BaseDAO<T, ID> {
-
-    // --- Create / Update ---
+    /**
+     * Gets a connection from the connection pool
+     * 
+     * @return A database connection from the pool
+     * @throws SQLException if connection cannot be obtained
+     */
+    default Connection getConnection() throws SQLException {
+        return db.DBContext.getConnection();
+    }
 
     /**
-     * Saves a given entity. Use this for creating a new entity
-     * or updating an existing one.
-     *
-     * @param entity must not be {@literal null}.
-     * @return the saved entity; will never be {@literal null}.
-     * @param <S> the type of the entity
+     * Closes database resources safely
+     * 
+     * @param resultSet  The ResultSet to close
+     * @param statement  The PreparedStatement to close
+     * @param connection The Connection to return to the pool
      */
-    <S extends T> S save(S entity);
+    default void closeResources(ResultSet resultSet, PreparedStatement statement, Connection connection) {
+        try {
+            if (resultSet != null && !resultSet.isClosed()) {
+                resultSet.close();
+            }
+            if (statement != null && !statement.isClosed()) {
+                statement.close();
+            }
+            if (connection != null && !connection.isClosed()) {
+                connection.close(); // Returns the connection to the pool
+            }
+        } catch (SQLException e) {
+            System.err.println("Error closing resources in BaseDAO: " + e.getMessage());
+        }
+    }
 
-    // --- Read ---
+    // Core CRUD operations
+    Optional<T> findById(ID id) throws SQLException;
 
-    /**
-     * Retrieves an entity by its id.
-     *
-     * @param id must not be {@literal null}.
-     * @return the entity with the given id or {@link Optional#empty()} if none found.
-     */
-    Optional<T> findById(ID id);
+    List<T> findAll() throws SQLException;
 
-    /**
-     * Returns all instances of the type.
-     *
-     * @return all entities; an empty list if none are found.
-     */
-    List<T> findAll();
+    <S extends T> S save(S entity) throws SQLException;
 
-    /**
-     * Returns whether an entity with the given id exists.
-     *
-     * @param id must not be {@literal null}.
-     * @return {@literal true} if an entity with the given id exists, {@literal false} otherwise.
-     */
-    boolean existsById(ID id); // Useful to check before an update or if you just need existence status
+    <S extends T> S update(S entity) throws SQLException;
 
-    // --- Delete ---
+    void deleteById(ID id) throws SQLException;
 
-    /**
-     * Deletes the entity with the given id.
-     *
-     * @param id must not be {@literal null}.
-     */
-    void deleteById(ID id);
-    
-     <S extends T> S update(S entity);
+    void delete(T entity) throws SQLException;
 
-    /**
-     * Deletes a given entity.
-     *
-     * @param entity must not be {@literal null}.
-     */
-    void delete(T entity); // Useful if you already have the entity object
+    boolean existsById(ID id) throws SQLException;
 
+    // Pagination support
+    default List<T> findAll(int page, int pageSize) throws SQLException {
+        throw new UnsupportedOperationException("Pagination not implemented");
+    }
+
+    // Common utility methods
+    default int count() throws SQLException {
+        throw new UnsupportedOperationException("Count not implemented");
+    }
 }
