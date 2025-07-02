@@ -193,10 +193,10 @@ contentType="text/html" pageEncoding="UTF-8"%>
             </c:choose>
 
             <!-- Cart Icon -->
-            <a href="<c:url value='/cart'/>" class="relative p-2 text-spa-dark hover:text-primary transition-colors">
+            <button id="cart-icon-btn" class="relative p-2 text-spa-dark hover:text-primary transition-colors">
               <i data-lucide="shopping-cart" class="w-6 h-6"></i>
-              <span class="absolute inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 border-2 border-white rounded-full -top-1 -right-1">3</span>
-            </a>
+              <span id="cart-badge" class="absolute inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 border-2 border-white rounded-full -top-1 -right-1">0</span>
+            </button>
 
             <!-- Mobile menu button -->
             <button id="mobile-menu-btn" class="md:hidden">
@@ -352,6 +352,12 @@ contentType="text/html" pageEncoding="UTF-8"%>
 
 <!-- Add the notification container here so it's available on all pages -->
 <div id="notification" class="notification"></div>
+
+<!-- Cart Modal -->
+<jsp:include page="/WEB-INF/view/common/cart-modal.jsp" />
+
+<!-- Cart Script -->
+<script src="${pageContext.request.contextPath}/js/cart.js"></script>
   </body>
 </html>
 

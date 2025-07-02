@@ -246,3 +246,369 @@ For systems with very high throughput and infrequent conflicts, **optimistic loc
 ## Conclusion
 
 By combining a strong database schema with a `UNIQUE` constraint and using pessimistic locking (`SELECT ... FOR UPDATE`) within a transaction, you can create a robust and concurrency-safe booking system that prevents double bookings and provides a smooth user experience even under heavy load.
+
+# Concurrency-Safe Booking Implementation
+
+## Overview
+
+This document details the implementation of concurrency-safe booking in our spa management system. The goal is to prevent double-bookings and ensure data consistency when multiple customers try to book appointments simultaneously.
+
+## Key Challenges
+
+1. Race Conditions:
+
+   - Multiple customers selecting same time slot
+   - Overlapping appointments for therapists
+   - Cart item conflicts
+
+2. Session Management:
+   - Temporary holds on time slots
+   - Cart expiration
+   - Payment timeouts
+
+## Solution Architecture
+
+### 1. Database-Level Concurrency Control
+
+```sql
+-- Time slots table with locking support
+CREATE TABLE time_slots (
+    slot_id INT PRIMARY KEY AUTO_INCREMENT,
+    therapist_id INT,
+    start_time TIMESTAMP,
+    end_time TIMESTAMP,
+    status ENUM('available', 'held', 'booked'),
+    held_by VARCHAR(36),  -- session_id
+    held_until TIMESTAMP,
+    version INT DEFAULT 0,  -- for optimistic locking
+    FOREIGN KEY (therapist_id) REFERENCES therapists(therapist_id),
+    UNIQUE KEY unique_therapist_slot (therapist_id, start_time, end_time)
+);
+
+-- Booking sessions for cart management
+CREATE TABLE booking_sessions (
+    session_id VARCHAR(36) PRIMARY KEY,
+    customer_id INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP,
+    status ENUM('active', 'completed', 'expired'),
+    version INT DEFAULT 0,
+    FOREIGN KEY (customer_id) REFERENCES customers(customer_id)
+);
+```
+
+### 2. Pessimistic Locking Implementation
+
+```java
+public class TimeSlotDAO extends BaseDAO<TimeSlot, Integer> {
+
+    /**
+     * Attempts to hold a time slot for a booking session using pessimistic locking
+     */
+    @Transaction(isolation = Connection.TRANSACTION_SERIALIZABLE)
+    public boolean holdTimeSlot(int therapistId, LocalDateTime startTime,
+                              LocalDateTime endTime, String sessionId) {
+        String lockSql = """
+            SELECT slot_id, status
+            FROM time_slots
+            WHERE therapist_id = ?
+            AND start_time = ?
+            AND end_time = ?
+            FOR UPDATE
+            """;
+
+        String updateSql = """
+            UPDATE time_slots
+            SET status = 'held',
+                held_by = ?,
+                held_until = NOW() + INTERVAL 15 MINUTE,
+                version = version + 1
+            WHERE slot_id = ?
+            AND status = 'available'
+            """;
+
+        try (Connection conn = getConnection()) {
+            conn.setAutoCommit(false);
+
+            try {
+                // First acquire lock
+                int slotId;
+                try (PreparedStatement lockStmt = conn.prepareStatement(lockSql)) {
+                    lockStmt.setInt(1, therapistId);
+                    lockStmt.setTimestamp(2, Timestamp.valueOf(startTime));
+                    lockStmt.setTimestamp(3, Timestamp.valueOf(endTime));
+
+                    ResultSet rs = lockStmt.executeQuery();
+                    if (!rs.next() || !"available".equals(rs.getString("status"))) {
+                        conn.rollback();
+                        return false;
+                    }
+                    slotId = rs.getInt("slot_id");
+                }
+
+                // Then update if still available
+                try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
+                    updateStmt.setString(1, sessionId);
+                    updateStmt.setInt(2, slotId);
+
+                    int updated = updateStmt.executeUpdate();
+                    if (updated == 1) {
+                        conn.commit();
+                        return true;
+                    }
+                }
+
+                conn.rollback();
+                return false;
+
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            }
+        }
+    }
+}
+```
+
+### 3. Optimistic Locking for Cart Updates
+
+```java
+public class BookingSession {
+    private String sessionId;
+    private int version;
+    private List<CartItem> items;
+
+    @Version
+    public int getVersion() {
+        return version;
+    }
+}
+
+public class BookingSessionDAO extends BaseDAO<BookingSession, String> {
+
+    /**
+     * Updates cart items using optimistic locking
+     */
+    public boolean updateCart(String sessionId, List<CartItem> newItems, int expectedVersion) {
+        String updateSql = """
+            UPDATE booking_sessions
+            SET items = ?,
+                version = version + 1
+            WHERE session_id = ?
+            AND version = ?
+            """;
+
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(updateSql)) {
+
+            stmt.setString(1, objectMapper.writeValueAsString(newItems));
+            stmt.setString(2, sessionId);
+            stmt.setInt(3, expectedVersion);
+
+            return stmt.executeUpdate() == 1;
+        }
+    }
+}
+```
+
+### 4. Automatic Resource Cleanup
+
+```java
+@Scheduled(fixedRate = 60000)  // Run every minute
+public class ResourceCleanupJob {
+
+    private final TimeSlotDAO timeSlotDAO;
+    private final BookingSessionDAO sessionDAO;
+
+    public void releaseExpiredResources() {
+        releaseExpiredTimeSlots();
+        cleanupExpiredSessions();
+    }
+
+    private void releaseExpiredTimeSlots() {
+        String sql = """
+            UPDATE time_slots
+            SET status = 'available',
+                held_by = NULL,
+                held_until = NULL
+            WHERE status = 'held'
+            AND held_until < NOW()
+            """;
+
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            int released = stmt.executeUpdate();
+            log.info("Released {} expired time slots", released);
+        }
+    }
+
+    private void cleanupExpiredSessions() {
+        String sql = """
+            UPDATE booking_sessions
+            SET status = 'expired'
+            WHERE status = 'active'
+            AND expires_at < NOW()
+            """;
+
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            int expired = stmt.executeUpdate();
+            log.info("Cleaned up {} expired sessions", expired);
+        }
+    }
+}
+```
+
+### 5. Transactional Booking Confirmation
+
+```java
+@Transactional(isolation = Isolation.SERIALIZABLE)
+public class BookingService {
+
+    public Appointment confirmBooking(String sessionId) {
+        // 1. Validate session
+        BookingSession session = sessionDAO.findById(sessionId)
+            .orElseThrow(() -> new BookingException("Invalid session"));
+
+        if (session.isExpired()) {
+            throw new BookingException("Session expired");
+        }
+
+        // 2. Verify all time slots are still held by this session
+        if (!timeSlotDAO.verifyAllSlotsHeld(session.getTimeSlots(), sessionId)) {
+            throw new BookingException("Time slots no longer held");
+        }
+
+        // 3. Create appointment
+        Appointment appointment = new Appointment();
+        appointment.setCustomer(session.getCustomer());
+        appointment.setServices(session.getCartItems());
+        appointment.setTimeSlots(session.getTimeSlots());
+
+        // 4. Process payment
+        Payment payment = paymentService.processPayment(session.getPaymentDetails());
+
+        if (payment.isSuccessful()) {
+            // 5. Confirm time slots
+            timeSlotDAO.confirmBooking(session.getTimeSlots(), sessionId);
+
+            // 6. Save appointment
+            appointment.setStatus(AppointmentStatus.CONFIRMED);
+            appointment.setPayment(payment);
+            appointmentDAO.save(appointment);
+
+            // 7. Complete session
+            session.setStatus(SessionStatus.COMPLETED);
+            sessionDAO.update(session);
+
+            // 8. Send confirmation
+            notificationService.sendBookingConfirmation(appointment);
+
+            return appointment;
+        } else {
+            throw new PaymentException("Payment failed");
+        }
+    }
+}
+```
+
+## Testing Concurrency
+
+### 1. Unit Tests
+
+```java
+@Test
+public void testConcurrentBooking() throws Exception {
+    // Setup test data
+    TimeSlot slot = createTestTimeSlot();
+    int numThreads = 10;
+    CountDownLatch latch = new CountDownLatch(numThreads);
+    AtomicInteger successCount = new AtomicInteger(0);
+
+    // Create multiple threads trying to book same slot
+    ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+    for (int i = 0; i < numThreads; i++) {
+        executor.submit(() -> {
+            try {
+                if (timeSlotDAO.holdTimeSlot(slot.getTherapistId(),
+                                           slot.getStartTime(),
+                                           slot.getEndTime(),
+                                           "session-" + Thread.currentThread().getId())) {
+                    successCount.incrementAndGet();
+                }
+            } finally {
+                latch.countDown();
+            }
+        });
+    }
+
+    latch.await(5, TimeUnit.SECONDS);
+
+    // Verify only one thread succeeded
+    assertEquals(1, successCount.get());
+}
+```
+
+### 2. Integration Tests
+
+```java
+@SpringBootTest
+public class BookingIntegrationTest {
+
+    @Test
+    public void testConcurrentBookingFlow() throws Exception {
+        // Setup test data
+        Customer customer1 = createTestCustomer();
+        Customer customer2 = createTestCustomer();
+        Service service = createTestService();
+        TimeSlot slot = createTestTimeSlot();
+
+        // Simulate concurrent booking attempts
+        Future<Appointment> booking1 = executorService.submit(() ->
+            bookingService.book(customer1.getId(), service.getId(), slot.getId()));
+
+        Future<Appointment> booking2 = executorService.submit(() ->
+            bookingService.book(customer2.getId(), service.getId(), slot.getId()));
+
+        // Wait for results
+        try {
+            Appointment result1 = booking1.get(5, TimeUnit.SECONDS);
+            assertNotNull(result1);
+            assertEquals(AppointmentStatus.CONFIRMED, result1.getStatus());
+
+            assertThrows(BookingException.class, () -> booking2.get());
+        } finally {
+            executorService.shutdown();
+        }
+    }
+}
+```
+
+## Monitoring & Alerts
+
+1. Monitor failed booking attempts
+2. Track concurrent booking conflicts
+3. Alert on high conflict rates
+4. Monitor database deadlocks
+5. Track session cleanup efficiency
+6. Monitor payment timeouts
+
+## Performance Considerations
+
+1. Use connection pooling
+2. Index critical columns
+3. Keep transactions short
+4. Clean up expired records regularly
+5. Cache frequently accessed data
+6. Use appropriate isolation levels
+7. Monitor lock contention
+
+## Error Handling & Recovery
+
+1. Implement retry logic for transient failures
+2. Handle deadlock scenarios gracefully
+3. Provide clear error messages to users
+4. Log detailed error information
+5. Implement compensation logic
+6. Monitor failed transactions
+7. Regular data consistency checks
