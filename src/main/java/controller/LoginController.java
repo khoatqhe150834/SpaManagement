@@ -93,15 +93,17 @@ public class LoginController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // Check if user is already logged in
+        // Check if user is already logged in and verified (simplified)
         HttpSession session = request.getSession(false);
         if (session != null && session.getAttribute("authenticated") != null
                 && (Boolean) session.getAttribute("authenticated")) {
 
             // User is already logged in, check their type and redirect accordingly
-            if (session.getAttribute("customer") != null) {
+            Customer customer = (Customer) session.getAttribute("customer");
+            User user = (User) session.getAttribute("user");
+
+            if (customer != null) {
                 // Customer is logged in - check if verified
-                Customer customer = (Customer) session.getAttribute("customer");
                 try {
                     if (!customerDAO.isCustomerVerified(customer.getEmail())) {
                         // Email not verified, redirect to email verification required page
@@ -121,9 +123,8 @@ public class LoginController extends HttpServlet {
                 // Customer is verified, redirect to homepage
                 response.sendRedirect(request.getContextPath() + "/");
                 return;
-            } else if (session.getAttribute("user") != null) {
+            } else if (user != null) {
                 // Staff/Admin is logged in
-                User user = (User) session.getAttribute("user");
                 String redirectUrl = getRedirectUrlForRole(user.getRoleId());
                 response.sendRedirect(request.getContextPath() + redirectUrl);
                 return;

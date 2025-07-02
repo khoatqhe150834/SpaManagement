@@ -66,8 +66,9 @@ public class MenuService {
    */
   public static List<MenuItem> getMainNavigationMenuItems(String contextPath) {
     List<MenuItem> menuItems = new ArrayList<>();
-    menuItems.add(new MenuItem("Trang chủ", contextPath + "/index", null));
+    menuItems.add(new MenuItem("Trang chủ", contextPath + "/", null));
     menuItems.add(new MenuItem("Giới thiệu", contextPath + "/about", null));
+    menuItems.add(new MenuItem("Blog", contextPath + "/blog", null));
     menuItems.add(new MenuItem("Dịch vụ", contextPath + "/services", null));
     menuItems.add(new MenuItem("Khuyến mãi", contextPath + "/promotions", null));
     menuItems.add(new MenuItem("Đặt lịch", contextPath + "/booking", null));

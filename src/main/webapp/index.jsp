@@ -334,7 +334,7 @@
 
         <div class="text-center mt-12">
           <a
-            href="services.html"
+            href="${pageContext.request.contextPath}/services"
             class="inline-flex items-center px-8 py-3 bg-secondary text-spa-dark rounded-full hover:bg-primary hover:text-white transition-all duration-300 font-semibold"
           >
             Xem tất cả dịch vụ

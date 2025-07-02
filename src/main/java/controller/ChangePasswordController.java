@@ -63,25 +63,14 @@ public class ChangePasswordController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = request.getSession(false);
 
-        // get customer or user from session
-        Object account = session.getAttribute("customer") != null ? session.getAttribute("customer")
-                : session.getAttribute("user");
+        // Get user info from request attributes (set by AuthenticationFilter)
+        User user = (User) request.getAttribute("currentUser");
+        Customer customer = (Customer) request.getAttribute("currentCustomer");
 
-        if (account == null) {
-            session.setAttribute("flash_error", "Phiên của bạn đã hết hạn. Vui lòng đăng nhập lại.");
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
-        // Check if user is authenticated (either as customer or staff)
-        if (session == null || (session.getAttribute("customer") == null && session.getAttribute("user") == null)) {
-            if (session != null) {
-                session.setAttribute("flash_error", "Phiên của bạn đã hết hạn. Vui lòng đăng nhập lại.");
-            }
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
+        // AuthenticationFilter ensures user is authenticated, so either user or
+        // customer will be non-null
+        Object account = customer != null ? customer : user;
 
         String currentPassword = request.getParameter("currentPassword");
         String newPassword = request.getParameter("newPassword");
@@ -112,23 +101,19 @@ public class ChangePasswordController extends HttpServlet {
         try {
             // Get the authenticated user's email and type
             String userEmail = null;
-            boolean isCustomer = false;
+            boolean isCustomer = customer != null;
 
-            if (account instanceof Customer) {
-                Customer customer = (Customer) account;
+            if (isCustomer) {
                 userEmail = customer.getEmail();
-                isCustomer = true;
-            } else if (account instanceof User) {
-                User user = (User) account;
+            } else {
                 userEmail = user.getEmail();
-                isCustomer = false;
             }
 
             boolean success = false;
             if (isCustomer) {
-                success = handleCustomerPasswordChange((Customer) account, currentPassword, newPassword, request);
+                success = handleCustomerPasswordChange(customer, currentPassword, newPassword, request);
             } else {
-                success = handleUserPasswordChange((User) account, currentPassword, newPassword, request);
+                success = handleUserPasswordChange(user, currentPassword, newPassword, request);
             }
 
             if (success) {
@@ -136,6 +121,7 @@ public class ChangePasswordController extends HttpServlet {
                 cleanupRememberMeData(userEmail, request, response);
 
                 // Set success message and redirect
+                HttpSession session = request.getSession();
                 session.setAttribute("flash_success", "Mật khẩu của bạn đã được thay đổi thành công!");
 
                 request.getRequestDispatcher("/WEB-INF/view/common/dashboard.jsp").forward(request, response);

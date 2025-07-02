@@ -31,13 +31,7 @@ public class ProfileController extends HttpServlet {
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
 
-    // Check authentication
-    HttpSession session = request.getSession(false);
-    if (session == null || !Boolean.TRUE.equals(session.getAttribute("authenticated"))) {
-      response.sendRedirect(request.getContextPath() + "/login");
-      return;
-    }
-
+    // No need for authentication check - handled by AuthenticationFilter
     String action = getActionFromPath(request.getServletPath());
 
     switch (action) {
@@ -56,13 +50,7 @@ public class ProfileController extends HttpServlet {
   protected void doPost(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
 
-    // Check authentication
-    HttpSession session = request.getSession(false);
-    if (session == null || !Boolean.TRUE.equals(session.getAttribute("authenticated"))) {
-      response.sendRedirect(request.getContextPath() + "/login");
-      return;
-    }
-
+    // No need for authentication check - handled by AuthenticationFilter
     String action = getActionFromPath(request.getServletPath());
 
     if ("edit".equals(action)) {

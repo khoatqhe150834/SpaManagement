@@ -16,6 +16,12 @@ public class HomeController extends HttpServlet {
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
 
+    System.out.println("[HomeController] Reached the HomeController. Forwarding to home.jsp.");
+
+    // Additional diagnostic attributes
+    request.setAttribute("controller_reached", "HomeController");
+    request.setAttribute("timestamp", System.currentTimeMillis());
+
     // The JSP will have access to the session attributes for this request.
     // We don't need to do anything special here to pass them.
     // They will be removed from the session after this request cycle

@@ -22,24 +22,41 @@
 
     String fullName = "Guest User";
     String email = "guest@example.com";
-    String avatarUrl = ""; // Start with an empty avatar URL
+    String avatarUrl = null; // Initialize as null to handle empty case better
 
     if (userObject instanceof User) {
         User user = (User) userObject;
         userRole = RoleConstants.getUserTypeFromRole(user.getRoleId());
         fullName = user.getFullName();
         email = user.getEmail();
-        if (user.getAvatarUrl() != null && !user.getAvatarUrl().isEmpty()) {
-            avatarUrl = request.getContextPath() + user.getAvatarUrl();
+        String userAvatar = user.getAvatarUrl();
+        if (userAvatar != null && !userAvatar.trim().isEmpty()) {
+            // Handle both absolute URLs and relative paths
+            if (userAvatar.startsWith("http://") || userAvatar.startsWith("https://")) {
+                avatarUrl = userAvatar;
+            } else {
+                avatarUrl = request.getContextPath() + (userAvatar.startsWith("/") ? "" : "/") + userAvatar;
+            }
         }
     } else if (userObject instanceof Customer) {
         Customer customer = (Customer) userObject;
         userRole = "CUSTOMER";
         fullName = customer.getFullName();
         email = customer.getEmail();
-        if (customer.getAvatarUrl() != null && !customer.getAvatarUrl().isEmpty()) {
-            avatarUrl = request.getContextPath() + customer.getAvatarUrl();
+        String customerAvatar = customer.getAvatarUrl();
+        if (customerAvatar != null && !customerAvatar.trim().isEmpty()) {
+            // Handle both absolute URLs and relative paths
+            if (customerAvatar.startsWith("http://") || customerAvatar.startsWith("https://")) {
+                avatarUrl = customerAvatar;
+            } else {
+                avatarUrl = request.getContextPath() + (customerAvatar.startsWith("/") ? "" : "/") + customerAvatar;
+            }
         }
+    }
+
+    // Set default avatar if none is provided
+    if (avatarUrl == null || avatarUrl.trim().isEmpty()) {
+        avatarUrl = request.getContextPath() + "/assets/home/images/default-avatar.png";
     }
 
     pageContext.setAttribute("userRole", userRole);
@@ -70,7 +87,7 @@
 
     <!-- Navigation -->
     <nav class="flex-1 px-4 py-4 overflow-y-auto">
-        <h3 class="px-4 pb-2 text-xs font-semibold uppercase text-gray-400 tracking-wider">Tổng quan</h3>
+        <h3 class="px-4 pb-2 text-sm font-semibold uppercase text-gray-400 tracking-wider">Tổng quan</h3>
         <div class="space-y-1">
             <c:choose>
                 <c:when test="${userRole == 'CUSTOMER'}">
@@ -80,67 +97,67 @@
                                 data-item-id="customer-portal">
                             <div class="flex items-center">
                                 <i data-lucide="user" class="h-5 w-5 mr-3 text-gray-500 group-hover:text-[#D4AF37]"></i>
-                                <span class="font-medium text-sm">Khách hàng</span>
+                                <span class="font-medium text-base">Khách hàng</span>
                             </div>
-                            <i data-lucide="chevron-right" class="h-4 w-4 transition-transform duration-200"></i>
+                            <i data-lucide="chevron-right" class="h-5 w-5 transition-transform duration-200"></i>
                         </button>
                         
                         <div class="submenu ml-4 mt-1 space-y-1 pl-4 hidden">
-                            <a href="${contextPath}/customer/appointments" class="nav-button w-full flex items-center justify-between px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                            <a href="${contextPath}/customer/appointments" class="nav-button w-full flex items-center justify-between px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="my-appointments">
                                 <div class="flex items-center">
-                                    <i data-lucide="calendar" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                                    <i data-lucide="calendar" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                                     <span>Lịch hẹn của tôi</span>
                                 </div>
-                                <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-400 text-yellow-900">3</span>
+                                <span class="text-sm font-semibold px-2.5 py-1 rounded-full bg-yellow-400 text-yellow-900">3</span>
                             </a>
                             
-                            <a href="${contextPath}/booking" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                            <a href="${contextPath}/booking" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="book-services">
-                                <i data-lucide="calendar-plus" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                                <i data-lucide="calendar-plus" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                                 <span>Đặt dịch vụ</span>
                             </a>
                             
-                            <a href="${contextPath}/customer/history" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                            <a href="${contextPath}/customer/history" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="treatment-history">
-                                <i data-lucide="history" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                                <i data-lucide="history" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                                 <span>Lịch sử điều trị</span>
                             </a>
                             
-                            <a href="${contextPath}/customer/profile" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                            <a href="${contextPath}/customer/profile" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="personal-profile">
-                                <i data-lucide="user-cog" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                                <i data-lucide="user-cog" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                                 <span>Hồ sơ cá nhân</span>
                             </a>
                             
-                            <a href="${contextPath}/password/change" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                            <a href="${contextPath}/password/change" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="change-password">
-                                <i data-lucide="key" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                                <i data-lucide="key" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                                 <span>Đổi mật khẩu</span>
                             </a>
                             
-                            <a href="${contextPath}/customer/payments" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                            <a href="${contextPath}/customer/payments" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="payment-history">
-                                <i data-lucide="credit-card" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                                <i data-lucide="credit-card" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                                 <span>Lịch sử thanh toán</span>
                             </a>
                             
-                            <a href="${contextPath}/customer/loyalty" class="nav-button w-full flex items-center justify-between px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                            <a href="${contextPath}/customer/loyalty" class="nav-button w-full flex items-center justify-between px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="loyalty-points">
                                 <div class="flex items-center">
-                                    <i data-lucide="gift" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                                    <i data-lucide="gift" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                                     <span>Điểm tích lũy</span>
                                 </div>
-                                <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-400 text-yellow-900">2,450</span>
+                                <span class="text-sm font-semibold px-2.5 py-1 rounded-full bg-yellow-400 text-yellow-900">2,450</span>
                             </a>
                             
-                            <a href="${contextPath}/customer/offers" class="nav-button w-full flex items-center justify-between px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                            <a href="${contextPath}/customer/offers" class="nav-button w-full flex items-center justify-between px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="special-offers">
                                 <div class="flex items-center">
-                                    <i data-lucide="star" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                                    <i data-lucide="star" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                                     <span>Ưu đãi đặc biệt</span>
                                 </div>
-                                <span class="bg-red-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full animate-pulse">Mới</span>
+                                <span class="bg-red-500 text-white text-sm font-semibold px-2.5 py-1 rounded-full animate-pulse">Mới</span>
                             </a>
                         </div>
                     </div>
@@ -425,18 +442,17 @@
 
     <!-- User Profile & Logout -->
     <div class="border-t border-gray-200 p-2">
-        <a href="${contextPath}/profile" class="block w-full p-2 hover:bg-[#FFF8F0] rounded-lg mb-1">
+        <a href="${contextPath}/profile" class="block w-full p-2 hover:bg-[#FFF8F0] rounded-lg mb-1 group">
             <div class="flex items-center">
-                <img src="${not empty avatarUrl ? avatarUrl : 'https://via.placeholder.com/150'}" alt="${fullName}" class="h-10 w-10 rounded-full object-cover mr-3 border-2 border-[#D4AF37]">
                 <div class="flex-1 min-w-0">
-                    <p class="text-sm font-semibold text-gray-800 truncate">${fullName}</p>
-                    <p class="text-xs text-gray-500 capitalize">${userRole.toLowerCase()}</p>
+                    <p class="text-base font-semibold text-gray-800 truncate group-hover:text-[#D4AF37] transition-colors">${fullName}</p>
+                    <p class="text-sm text-gray-500 capitalize">${userRole.toLowerCase()}</p>
                 </div>
             </div>
         </a>
         
-        <button id="logout-btn" class="flex items-center w-full px-2 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group">
-            <i data-lucide="log-out" class="h-4 w-4 mr-3 group-hover:scale-110 transition-transform"></i>
+        <button id="logout-btn" class="flex items-center w-full px-2 py-2.5 text-base text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group">
+            <i data-lucide="log-out" class="h-5 w-5 mr-3 group-hover:scale-110 transition-transform"></i>
             <span class="font-medium">Đăng xuất</span>
         </button>
     </div>
