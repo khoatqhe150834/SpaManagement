@@ -70,18 +70,18 @@
 <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden"></div>
 
 <!-- Sidebar -->
-<aside id="main-sidebar" class="sticky top-16 h-[calc(100vh-4rem)] z-40 w-80 bg-white shadow-xl transform transition-transform duration-300 ease-in-out lg:translate-x-0 -translate-x-full flex flex-col">
+<aside id="main-sidebar" class="sticky top-[4.5rem] h-[calc(100vh-7rem)] my-4 z-40 w-80 bg-white shadow-xl transform transition-transform duration-300 ease-in-out lg:translate-x-0 -translate-x-full flex flex-col">
     <!-- Header -->
     <div class="flex items-center justify-between h-16 px-6 border-b border-gray-200 bg-[#D4AF37] flex-shrink-0">
         <a href="${contextPath}/dashboard" class="flex items-center" title="Go to Dashboard">
-            <i data-lucide="heart" class="h-8 w-8 text-white mr-3"></i>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="heart" class="lucide lucide-heart h-8 w-8 text-white mr-3"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>
             <div class="text-white">
                 <div class="text-lg font-bold font-serif">Spa Hương Sen</div>
                 <div class="text-xs opacity-90 uppercase tracking-wider">${userRole} PORTAL</div>
             </div>
         </a>
         <button id="close-sidebar-btn" class="lg:hidden text-white hover:text-gray-200 transition-colors">
-            <i data-lucide="x" class="h-6 w-6"></i>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="x" class="lucide lucide-x h-6 w-6"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
         </button>
     </div>
 
