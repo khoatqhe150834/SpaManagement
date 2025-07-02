@@ -17,14 +17,14 @@ let cartItems = [];
 let isLoading = false;
 
 // Initialize cart
-document.addEventListener('DOMContentLoaded', () => {
-    loadCart();
-    updateCartIcon();
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadCart();
+    await updateCartIcon();
 
     // Listen for cart updates
-    window.addEventListener('cartUpdated', () => {
-        loadCart();
-        updateCartIcon();
+    window.addEventListener('cartUpdated', async () => {
+        await loadCart();
+        await updateCartIcon();
     });
 
     // Setup cart icon click handler
@@ -79,7 +79,7 @@ async function saveCart(items) {
         localStorage.setItem(cartKey, JSON.stringify(items));
         
         // Update cart icon and trigger cart update event
-        updateCartIcon();
+        await updateCartIcon();
         window.dispatchEvent(new CustomEvent('cartUpdated'));
     } catch (error) {
         console.error('Failed to save cart:', error);
@@ -166,7 +166,7 @@ async function clearCart() {
     }
     
     updateCartDisplay();
-    updateCartIcon();
+    await updateCartIcon();
     window.dispatchEvent(new CustomEvent('cartUpdated'));
     showNotification('Đã xóa tất cả dịch vụ khỏi giỏ hàng', 'success');
 }
@@ -246,12 +246,24 @@ function updateCartDisplay() {
 }
 
 // Update cart icon in header
-function updateCartIcon() {
+async function updateCartIcon() {
     const badge = document.getElementById('cart-badge');
     if (badge) {
-        const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-        badge.textContent = itemCount;
-        badge.style.display = itemCount > 0 ? 'flex' : 'none';
+        try {
+            // Get current cart from localStorage
+            const user = await getCurrentUser();
+            const cartKey = user ? `cart_${user.id}` : 'session_cart';
+            const savedCart = localStorage.getItem(cartKey);
+            const currentCart = savedCart ? JSON.parse(savedCart) : [];
+            
+            const itemCount = currentCart.reduce((sum, item) => sum + item.quantity, 0);
+            badge.textContent = itemCount;
+            badge.style.display = itemCount > 0 ? 'flex' : 'none';
+        } catch (error) {
+            console.error('Failed to update cart icon:', error);
+            badge.textContent = '0';
+            badge.style.display = 'none';
+        }
     }
 }
 
@@ -343,6 +355,11 @@ document.addEventListener('keydown', (event) => {
 window.cart = {
     addToCart,
     openCart,
-    closeCart,
-    createAddToCartButton
-}; 
+    closeCart
+};
+
+// Make key functions available globally
+window.addToCart = addToCart;
+window.openCart = openCart;
+window.closeCart = closeCart;
+window.clearCart = clearCart; 

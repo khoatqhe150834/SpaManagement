@@ -386,5 +386,6 @@
     <!-- JavaScript -->
     <script src="<c:url value='/js/app.js'/>"></script>
     <script src="<c:url value='/js/services.js'/>"></script>
+    <script src="<c:url value='/js/cart-debug.js'/>"></script>
   </body>
 </html>

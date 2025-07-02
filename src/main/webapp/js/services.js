@@ -243,6 +243,32 @@ class ServicesPage {
             </div>
         `;
         div.querySelector('.view-details-btn').addEventListener('click', () => this.showModal(service.id));
+        
+        // Add event listener for add-to-cart button
+        div.querySelector('.add-to-cart-btn').addEventListener('click', async () => {
+            console.log('Add to cart button clicked for service:', service.name);
+            
+            // Transform service data to match cart requirements
+            const serviceData = {
+                serviceId: service.id,
+                serviceName: service.name,
+                serviceImage: service.image,
+                servicePrice: parseInt(service.price.replace(/\D/g, '')), // Convert "599.000đ" to 599000
+                serviceDuration: parseInt(service.duration.match(/\d+/)[0]) // Extract duration number from "90 phút"
+            };
+            
+            console.log('Service data prepared:', serviceData);
+            
+            // Call the cart's addToCart function
+            if (window.addToCart) {
+                console.log('Calling addToCart function...');
+                const result = await window.addToCart(serviceData);
+                console.log('AddToCart result:', result);
+            } else {
+                console.error('addToCart function not available');
+            }
+        });
+        
         return div;
     }
 

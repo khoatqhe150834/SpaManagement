@@ -194,8 +194,8 @@ contentType="text/html" pageEncoding="UTF-8"%>
 
             <!-- Cart Icon -->
             <button id="cart-icon-btn" class="relative p-2 text-spa-dark hover:text-primary transition-colors">
-              <i data-lucide="shopping-cart" class="w-6 h-6"></i>
-              <span id="cart-badge" class="absolute inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 border-2 border-white rounded-full -top-1 -right-1">0</span>
+              <i data-lucide="shopping-cart" class="w-6 h-6 pointer-events-none"></i>
+              <span id="cart-badge" class="absolute inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-red-600 border-2 border-white rounded-full -top-2 -right-2" style="display: none;">0</span>
             </button>
 
             <!-- Mobile menu button -->
