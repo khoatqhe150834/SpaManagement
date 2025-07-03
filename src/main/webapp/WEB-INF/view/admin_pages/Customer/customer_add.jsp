@@ -204,7 +204,7 @@ $(document).ready(function() {
             showError($('#password'), 'Password is required.');
             valid = false;
         } else if (password.length < 7) {
-            showError($('#password'), 'Password must be at least 7 characters.');
+            showError($('#password'), 'Mật khẩu phải có ít nhất 7 ký tự.');
             valid = false;
         } else {
             clearError($('#password'));

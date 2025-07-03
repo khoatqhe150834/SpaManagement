@@ -25,6 +25,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 import model.Promotion;
+import util.ImageUploadValidator;
 
 /**
  * Controller handling promotion-related requests URL Pattern: /promotion/*
@@ -297,31 +298,23 @@ public class PromotionController extends HttpServlet {
             String imageUrl = null;
             Part filePart = request.getPart("imageUrl");
             if (filePart != null && filePart.getSize() > 0) {
+                if (!ImageUploadValidator.isValidImage(filePart)) {
+                    errors.put("imageUrl", ImageUploadValidator.getErrorMessage(filePart));
+                } else {
                 String fileName = getSubmittedFileName(filePart);
                 if (fileName != null && !fileName.isEmpty()) {
-                    // Validate file type
-                    String contentType = filePart.getContentType();
-                    if (contentType != null && contentType.startsWith("image/")) {
-                        // Create upload directory if it doesn't exist
                         String uploadPath = getServletContext().getRealPath("/uploads/promotions/");
                         File uploadDir = new File(uploadPath);
                         if (!uploadDir.exists()) {
                             uploadDir.mkdirs();
                         }
-                        
-                        // Generate unique filename
                         String fileExtension = fileName.substring(fileName.lastIndexOf("."));
                         String uniqueFileName = System.currentTimeMillis() + "_" + fileName;
                         String filePath = uploadPath + uniqueFileName;
-                        
-                        // Save file
                         try (InputStream input = filePart.getInputStream()) {
                             Files.copy(input, Paths.get(filePath), StandardCopyOption.REPLACE_EXISTING);
                         }
-                        
                         imageUrl = request.getContextPath() + "/uploads/promotions/" + uniqueFileName;
-                    } else {
-                        errors.put("imageUrl", "Please select a valid image file");
                     }
                 }
             }
@@ -408,7 +401,7 @@ public class PromotionController extends HttpServlet {
      */
     private void handleUpdatePromotion(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
+        java.util.Map<String, String> errors = new java.util.HashMap<>();
         try {
             // Get and validate ID
             int promotionId = getIntParameter(request, "id", 0);
@@ -436,27 +429,21 @@ public class PromotionController extends HttpServlet {
             // Xử lý file upload
             Part filePart = request.getPart("imageUrl");
             if (filePart != null && filePart.getSize() > 0) {
+                if (!ImageUploadValidator.isValidImage(filePart)) {
+                    errors.put("imageUrl", ImageUploadValidator.getErrorMessage(filePart));
+                } else {
                 String fileName = getSubmittedFileName(filePart);
                 if (fileName != null && !fileName.isEmpty()) {
-                    // Validate file type
-                    String contentType = filePart.getContentType();
-                    if (contentType != null && contentType.startsWith("image/")) {
-                        // Create upload directory if it doesn't exist
                         String uploadPath = getServletContext().getRealPath("/uploads/promotions/");
                         File uploadDir = new File(uploadPath);
                         if (!uploadDir.exists()) {
                             uploadDir.mkdirs();
                         }
-                        
-                        // Generate unique filename
                         String uniqueFileName = System.currentTimeMillis() + "_" + fileName;
                         String filePath = uploadPath + uniqueFileName;
-                        
-                        // Save file
                         try (InputStream input = filePart.getInputStream()) {
                             Files.copy(input, Paths.get(filePath), StandardCopyOption.REPLACE_EXISTING);
                         }
-                        
                         // Update image URL
                         promotion.setImageUrl(request.getContextPath() + "/uploads/promotions/" + uniqueFileName);
                     }
