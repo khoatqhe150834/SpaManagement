@@ -252,7 +252,7 @@ class ServicesManager {
                         <button class="view-details-btn w-full bg-secondary text-spa-dark py-2.5 px-3 rounded-full hover:bg-primary hover:text-white transition-all duration-300 font-medium text-sm flex items-center justify-center" data-id="${service.serviceId}" onclick="servicesManager.viewServiceDetails(${service.serviceId})">
                             Xem chi tiết
                         </button>
-                        <button class="add-to-cart-btn w-full bg-primary text-white py-2.5 px-3 rounded-full hover:bg-primary-dark transition-all duration-300 font-medium text-sm flex items-center justify-center" data-id="${service.serviceId}" onclick="servicesManager.addToCart(${service.serviceId})">
+                        <button class="add-to-cart-btn w-full bg-primary text-white py-2.5 px-3 rounded-full hover:bg-primary-dark transition-all duration-300 font-medium text-sm flex items-center justify-center" data-id="${service.serviceId}" onclick='servicesManager.addToCart(${JSON.stringify(service)})'>
                             Thêm vào giỏ
                         </button>
                     </div>
@@ -840,13 +840,21 @@ class ServicesManager {
         alert(`Xem chi tiết dịch vụ ID: ${serviceId}`);
     }
 
-    addToCart(serviceId) {
+    addToCart(service) {
+        const serviceData = {
+            serviceId: service.serviceId,
+            serviceName: service.name,
+            serviceImage: service.imageUrl || this.beautyImages[Math.abs(service.serviceId * 7) % this.beautyImages.length],
+            servicePrice: service.price,
+            serviceDuration: service.durationMinutes
+        };
+
         // Integration with existing cart functionality
         if (typeof addToCart === 'function') {
-            addToCart(serviceId);
+            addToCart(serviceData);
         } else {
-            console.log('Add to cart for service ID:', serviceId);
-            alert(`Thêm dịch vụ ID: ${serviceId} vào giỏ hàng`);
+            console.error('Global addToCart function not found!');
+            alert(`Thêm dịch vụ ID: ${service.serviceId} vào giỏ hàng (Lỗi)`);
         }
     }
 
