@@ -62,18 +62,33 @@ public class MenuService {
   }
 
   /**
+   * Generate main navigation menu items
+   */
+  public static List<MenuItem> getMainNavigationMenuItems(String contextPath) {
+    List<MenuItem> menuItems = new ArrayList<>();
+    menuItems.add(new MenuItem("Trang chủ", contextPath + "/", null));
+    menuItems.add(new MenuItem("Giới thiệu", contextPath + "/about", null));
+    menuItems.add(new MenuItem("Blog", contextPath + "/blog", null));
+    menuItems.add(new MenuItem("Dịch vụ", contextPath + "/services", null));
+    menuItems.add(new MenuItem("Khuyến mãi", contextPath + "/promotions", null));
+    menuItems.add(new MenuItem("Đặt lịch", contextPath + "/booking", null));
+    menuItems.add(new MenuItem("Liên hệ", contextPath + "/contact", null));
+    return menuItems;
+  }
+
+  /**
    * Generate menu items for Customer role
    */
   public static List<MenuItem> getCustomerMenuItems(String contextPath) {
     List<MenuItem> menuItems = new ArrayList<>();
 
-    menuItems.add(new MenuItem("Hồ sơ của bạn", contextPath + "/customer-dashboard", "solar:user-outline"));
-    menuItems.add(new MenuItem("Lịch hẹn đã đặt", contextPath + "/appointment", "solar:calendar-outline"));
-    menuItems.add(new MenuItem("Lịch sử dịch vụ", contextPath + "/customer/service-history", "solar:history-outline"));
-    menuItems.add(new MenuItem("Đánh giá của tôi", contextPath + "/customer/reviews", "solar:star-outline"));
-    menuItems.add(new MenuItem("Cài đặt tài khoản", contextPath + "/profile/settings", "solar:settings-outline"));
+    menuItems.add(new MenuItem("Hồ sơ của bạn", contextPath + "/dashboard", "user"));
+    menuItems.add(new MenuItem("Lịch hẹn đã đặt", contextPath + "/appointment", "calendar"));
+    menuItems.add(new MenuItem("Lịch sử dịch vụ", contextPath + "/customer/service-history", "history"));
+    menuItems.add(new MenuItem("Đánh giá của tôi", contextPath + "/customer/reviews", "star"));
+    menuItems.add(new MenuItem("Cài đặt tài khoản", contextPath + "/profile/settings", "settings"));
     menuItems.add(new MenuItem()); // Divider
-    menuItems.add(new MenuItem("Đăng xuất", contextPath + "/logout", "solar:logout-outline"));
+    menuItems.add(new MenuItem("Đăng xuất", contextPath + "/logout", "log-out"));
 
     return menuItems;
   }
@@ -84,16 +99,16 @@ public class MenuService {
   public static List<MenuItem> getAdminMenuItems(String contextPath) {
     List<MenuItem> menuItems = new ArrayList<>();
 
-    menuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/profile", "solar:user-outline"));
-    menuItems.add(new MenuItem("Bảng điều khiển", contextPath + "/admin/dashboard", "solar:widget-outline"));
-    menuItems
-        .add(new MenuItem("Quản lý người dùng", contextPath + "/user/list", "solar:users-group-rounded-outline"));
-    // menuItems.add(new MenuItem("Quản lý dịch vụ", contextPath + "/admin/services", "solar:settings-outline"));
-    menuItems.add(new MenuItem("Báo cáo hệ thống", contextPath + "/admin/reports", "solar:chart-2-outline"));
-    menuItems.add(new MenuItem("Cài đặt hệ thống", contextPath + "/admin/settings", "solar:settings-outline"));
-    menuItems.add(new MenuItem("Quản lý khuyến mãi", contextPath + "/promotion/list", "solar:settings-outline"));
+    menuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/profile", "user"));
+    menuItems.add(new MenuItem("Bảng điều khiển", contextPath + "/admin/dashboard", "layout-dashboard"));
+    menuItems.add(new MenuItem("Quản lý người dùng", contextPath + "/user/list", "users"));
+    // menuItems.add(new MenuItem("Quản lý dịch vụ", contextPath +
+    // "/admin/services", "settings"));
+    menuItems.add(new MenuItem("Báo cáo hệ thống", contextPath + "/admin/reports", "bar-chart-2"));
+    menuItems.add(new MenuItem("Cài đặt hệ thống", contextPath + "/admin/settings", "settings"));
+    menuItems.add(new MenuItem("Quản lý khuyến mãi", contextPath + "/promotion/list", "tag"));
     menuItems.add(new MenuItem()); // Divider
-    menuItems.add(new MenuItem("Đăng xuất", contextPath + "/logout", "solar:logout-outline"));
+    menuItems.add(new MenuItem("Đăng xuất", contextPath + "/logout", "log-out"));
 
     return menuItems;
   }
@@ -104,16 +119,16 @@ public class MenuService {
   public static List<MenuItem> getManagerMenuItems(String contextPath) {
     List<MenuItem> menuItems = new ArrayList<>();
 
-    menuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/manager-dashboard", "solar:user-outline"));
-    menuItems.add(new MenuItem("Bảng điều khiển", contextPath + "/admin/dashboard", "solar:widget-outline"));
-    menuItems.add(new MenuItem("Quản lý nhân viên", contextPath + "/staff", "solar:users-group-rounded-outline"));
-    menuItems.add(new MenuItem("Quản lý lịch hẹn", contextPath + "/appointment", "solar:calendar-outline"));
-    menuItems.add(new MenuItem("Quản lý khách hàng", contextPath + "/customer/list","solar:users-group-rounded-outline"));
-    menuItems.add(new MenuItem("Quản lý dịch vụ", contextPath + "/servicetype", "solar:list-check-outline"));
-    menuItems.add(new MenuItem("Báo cáo doanh thu", contextPath + "/admin/revenue-reports", "solar:chart-outline"));
-    menuItems.add(new MenuItem("Cài đặt", contextPath + "/profile/settings", "solar:settings-outline"));
+    menuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/manager-dashboard", "user"));
+    menuItems.add(new MenuItem("Bảng điều khiển", contextPath + "/admin/dashboard", "layout-dashboard"));
+    menuItems.add(new MenuItem("Quản lý nhân viên", contextPath + "/staff", "users"));
+    menuItems.add(new MenuItem("Quản lý lịch hẹn", contextPath + "/appointment", "calendar"));
+    menuItems.add(new MenuItem("Quản lý khách hàng", contextPath + "/customer/list", "users"));
+    menuItems.add(new MenuItem("Quản lý dịch vụ", contextPath + "/servicetype", "list-checks"));
+    menuItems.add(new MenuItem("Báo cáo doanh thu", contextPath + "/admin/revenue-reports", "bar-chart"));
+    menuItems.add(new MenuItem("Cài đặt", contextPath + "/profile/settings", "settings"));
     menuItems.add(new MenuItem()); // Divider
-    menuItems.add(new MenuItem("Đăng xuất", contextPath + "/logout", "solar:logout-outline"));
+    menuItems.add(new MenuItem("Đăng xuất", contextPath + "/logout", "log-out"));
 
     return menuItems;
   }
@@ -124,15 +139,14 @@ public class MenuService {
   public static List<MenuItem> getTherapistMenuItems(String contextPath) {
     List<MenuItem> menuItems = new ArrayList<>();
 
-    menuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/therapist-dashboard", "solar:user-outline"));
-    menuItems.add(new MenuItem("Lịch làm việc", contextPath + "/therapist/schedule", "solar:calendar-outline"));
-    menuItems.add(
-        new MenuItem("Khách hàng của tôi", contextPath + "/therapist/clients", "solar:users-group-rounded-outline"));
-    menuItems.add(new MenuItem("Dịch vụ thực hiện", contextPath + "/therapist/services", "solar:heart-outline"));
-    menuItems.add(new MenuItem("Báo cáo hiệu suất", contextPath + "/therapist/performance", "solar:chart-2-outline"));
-    menuItems.add(new MenuItem("Cài đặt", contextPath + "/profile/settings", "solar:settings-outline"));
+    menuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/therapist-dashboard", "user"));
+    menuItems.add(new MenuItem("Lịch làm việc", contextPath + "/therapist/schedule", "calendar"));
+    menuItems.add(new MenuItem("Khách hàng của tôi", contextPath + "/therapist/clients", "users"));
+    menuItems.add(new MenuItem("Dịch vụ thực hiện", contextPath + "/therapist/services", "heart"));
+    menuItems.add(new MenuItem("Báo cáo hiệu suất", contextPath + "/therapist/performance", "bar-chart-2"));
+    menuItems.add(new MenuItem("Cài đặt", contextPath + "/profile/settings", "settings"));
     menuItems.add(new MenuItem()); // Divider
-    menuItems.add(new MenuItem("Đăng xuất", contextPath + "/logout", "solar:logout-outline"));
+    menuItems.add(new MenuItem("Đăng xuất", contextPath + "/logout", "log-out"));
 
     return menuItems;
   }
@@ -143,18 +157,14 @@ public class MenuService {
   public static List<MenuItem> getReceptionistMenuItems(String contextPath) {
     List<MenuItem> menuItems = new ArrayList<>();
 
-    menuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/profile", "solar:user-outline"));
-    menuItems
-        .add(new MenuItem("Quản lý lịch hẹn", contextPath + "/receptionist/appointments", "solar:calendar-outline"));
-    menuItems.add(
-        new MenuItem("Đăng ký khách hàng", contextPath + "/receptionist/customer-registration",
-            "solar:user-plus-outline"));
-    menuItems.add(new MenuItem("Thanh toán", contextPath + "/receptionist/payments", "solar:card-outline"));
-    menuItems
-        .add(new MenuItem("Liên hệ khách hàng", contextPath + "/receptionist/customer-contact", "solar:phone-outline"));
-    menuItems.add(new MenuItem("Cài đặt", contextPath + "/profile/settings", "solar:settings-outline"));
+    menuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/profile", "user"));
+    menuItems.add(new MenuItem("Quản lý lịch hẹn", contextPath + "/receptionist/appointments", "calendar"));
+    menuItems.add(new MenuItem("Đăng ký khách hàng", contextPath + "/receptionist/customer-registration", "user-plus"));
+    menuItems.add(new MenuItem("Thanh toán", contextPath + "/receptionist/payments", "credit-card"));
+    menuItems.add(new MenuItem("Liên hệ khách hàng", contextPath + "/receptionist/customer-contact", "phone"));
+    menuItems.add(new MenuItem("Cài đặt", contextPath + "/profile/settings", "settings"));
     menuItems.add(new MenuItem()); // Divider
-    menuItems.add(new MenuItem("Đăng xuất", contextPath + "/logout", "solar:logout-outline"));
+    menuItems.add(new MenuItem("Đăng xuất", contextPath + "/logout", "log-out"));
 
     return menuItems;
   }

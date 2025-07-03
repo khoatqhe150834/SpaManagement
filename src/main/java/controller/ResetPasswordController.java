@@ -22,6 +22,10 @@ import service.email.EmailService;
 import service.email.AsyncEmailService;
 import model.PasswordResetToken;
 import org.mindrot.jbcrypt.BCrypt;
+import com.google.gson.Gson;
+import java.util.HashMap;
+import java.util.Map;
+import model.FlashMessage;
 
 /**
  * Extended ResetPasswordController that handles both Customer and User account
@@ -29,8 +33,16 @@ import org.mindrot.jbcrypt.BCrypt;
  * 
  * @author quang
  */
-@WebServlet(name = "ResetPasswordController", urlPatterns = { "/reset-password", "/change-password",
-        "/verify-reset-token" })
+
+// password/reset: reset password get + post
+// password/change/request: send email to reset password
+@WebServlet(name = "ResetPasswordController", urlPatterns = {
+        "/password-reset/new",
+        "/password-reset/request",
+        "/password-reset/edit",
+        "/password-reset/update",
+        "/password-reset/test-email"
+})
 public class ResetPasswordController extends HttpServlet {
 
     private AccountDAO accountDAO;
@@ -69,15 +81,21 @@ public class ResetPasswordController extends HttpServlet {
         }
 
         switch (servletPath) {
-            case "/reset-password":
-                request.getRequestDispatcher("/WEB-INF/view/password/reset-password.jsp").forward(request, response);
+            case "/password-reset/new":
+                // Show the form to request a password reset
+                request.getRequestDispatcher("/WEB-INF/view/password/password-reset-new.jsp").forward(request,
+                        response);
                 break;
-            case "/change-password":
-                request.getRequestDispatcher("/WEB-INF/view/password/change-password.jsp").forward(request, response);
+
+            case "/password-reset/edit":
+                // Verify the token from the email link
+                handleVerifyTokenAndShowForm(request, response);
                 break;
-            case "/verify-reset-token":
-                handleVerifyResetToken(request, response);
+
+            case "/password-reset/test-email":
+                handleTestEmail(request, response);
                 break;
+
             default:
                 response.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
@@ -94,14 +112,16 @@ public class ResetPasswordController extends HttpServlet {
         }
 
         switch (servletPath) {
-            case "/reset-password":
-                handleResetPassword(request, response);
+            case "/password-reset/request":
+                // Handle the submission of the email to send the reset link
+                handleResetRequest(request, response);
                 break;
-            case "/change-password":
-                handleChangePassword(request, response);
+            case "/password-reset/update":
+                // Handle the submission of the new password
+                handlePasswordUpdate(request, response);
                 break;
             default:
-                throw new AssertionError();
+                response.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
     }
 
@@ -166,65 +186,90 @@ public class ResetPasswordController extends HttpServlet {
      * - Improved scalability (can handle more concurrent requests)
      * - Better error isolation (email failures don't affect user experience)
      */
-    private void handleResetPassword(HttpServletRequest request, HttpServletResponse response)
+    private void handleResetRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        // Read email from request parameter, which works for x-www-form-urlencoded
         String email = request.getParameter("email");
+        Gson gson = new Gson();
+        java.util.Map<String, String> jsonResponse = new java.util.HashMap<>();
+
+        // If it's null, it might be a raw JSON post, so we try reading the body.
+        if (email == null) {
+            try (java.io.BufferedReader reader = request.getReader()) {
+                java.util.Map<String, String> body = gson.fromJson(reader, java.util.Map.class);
+                if (body != null) {
+                    email = body.get("email");
+                }
+            } catch (Exception e) {
+                // Ignore parsing errors, we'll handle the null email case below
+            }
+        }
 
         if (email == null || email.trim().isEmpty()) {
-            request.setAttribute("error", "Vui lòng nhập địa chỉ email");
-            request.getRequestDispatcher("/WEB-INF/view/password/reset-password.jsp").forward(request, response);
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            jsonResponse.put("message", "Vui lòng nhập địa chỉ email.");
+            response.getWriter().write(gson.toJson(jsonResponse));
             return;
         }
 
         email = email.trim();
-
-        // Use AccountDAO to check if email exists in either table
         boolean isEmailTakenInSystem = accountDAO.isEmailTakenInSystem(email);
 
         if (isEmailTakenInSystem) {
             try {
+                // Fetch the user's full name for email personalization
+                String userName = accountDAO.getFullNameByEmail(email);
+
                 passwordResetTokenDao.deleteTokensByEmail(email);
                 PasswordResetToken passwordResetToken = new PasswordResetToken(email);
                 passwordResetTokenDao.save(passwordResetToken);
 
-                // Send email asynchronously to avoid blocking the request
+                // Pass the context path to the email service
+                String contextPath = request.getContextPath();
                 asyncEmailService.sendPasswordResetEmailFireAndForget(email, passwordResetToken.getToken(),
-                        request.getContextPath());
+                        contextPath);
 
-                // Immediately show success message to user without waiting for email
-                String successMessage = "Liên kết đặt lại mật khẩu đã được gửi đến email của bạn. " +
-                        "Vui lòng kiểm tra hộp thư và làm theo hướng dẫn. " +
-                        "Nếu không thấy email, vui lòng kiểm tra thư mục spam.";
-                request.setAttribute("success", successMessage);
+                response.setStatus(HttpServletResponse.SC_OK);
+                jsonResponse.put("message", "Liên kết đặt lại mật khẩu đã được gửi đến email của bạn.");
+                Logger.getLogger(ResetPasswordController.class.getName()).log(Level.INFO,
+                        "Password reset email queued for: " + email);
 
-                Logger.getLogger(ResetPasswordController.class.getName()).log(
-                        Level.INFO, "Password reset email queued for sending to: " + email);
             } catch (SQLException ex) {
-                Logger.getLogger(ResetPasswordController.class.getName()).log(Level.SEVERE,
-                        "Database error while processing password reset for email: " + email, ex);
-                request.setAttribute("error", "Có lỗi hệ thống xảy ra. Vui lòng thử lại sau.");
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                jsonResponse.put("message", "Lỗi cơ sở dữ liệu. Vui lòng thử lại sau.");
+                Logger.getLogger(ResetPasswordController.class.getName()).log(Level.SEVERE, "DB error for " + email,
+                        ex);
             } catch (Exception ex) {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                jsonResponse.put("message", "Lỗi hệ thống không xác định. Vui lòng thử lại sau.");
                 Logger.getLogger(ResetPasswordController.class.getName()).log(Level.SEVERE,
-                        "Unexpected error while processing password reset for email: " + email, ex);
-                request.setAttribute("error", "Có lỗi không xác định xảy ra. Vui lòng thử lại sau.");
+                        "Unexpected error for " + email, ex);
             }
         } else {
-            String error = "Email không tồn tại trong hệ thống. Vui lòng kiểm tra lại địa chỉ email.";
-            request.setAttribute("error", error);
-            Logger.getLogger(ResetPasswordController.class.getName()).log(
-                    Level.INFO, "Password reset attempted for non-existent email: " + email);
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            jsonResponse.put("message", "Email không tồn tại trong hệ thống.");
+            Logger.getLogger(ResetPasswordController.class.getName()).log(Level.INFO,
+                    "Reset attempt for non-existent email: " + email);
         }
 
-        request.getRequestDispatcher("/WEB-INF/view/password/reset-password.jsp").forward(request, response);
+        response.getWriter().write(gson.toJson(jsonResponse));
     }
 
-    private void handleVerifyResetToken(HttpServletRequest request, HttpServletResponse response)
+    /**
+     * Verifies the token from the email link and shows the password change form.
+     * Renamed from handleVerifyResetToken for clarity.
+     */
+    private void handleVerifyTokenAndShowForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String token = request.getParameter("token");
 
         if (token == null || token.trim().isEmpty()) {
             request.setAttribute("error", "Token không hợp lệ hoặc bị thiếu.");
-            request.getRequestDispatcher("/WEB-INF/view/password/reset-password.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/view/password/password-reset-new.jsp").forward(request,
+                    response);
             return;
         }
 
@@ -233,7 +278,8 @@ public class ResetPasswordController extends HttpServlet {
             PasswordResetToken resetToken = passwordResetTokenDao.findByToken(token.trim());
             if (resetToken == null || resetToken.isExpired()) {
                 request.setAttribute("error", "Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.");
-                request.getRequestDispatcher("/WEB-INF/view/password/reset-password.jsp").forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/view/password/password-reset-new.jsp").forward(request,
+                        response);
                 return;
             }
 
@@ -244,100 +290,149 @@ public class ResetPasswordController extends HttpServlet {
 
             if (!isEmailTakenInSystem) {
                 request.setAttribute("error", "Tài khoản không tồn tại trong hệ thống.");
-                request.getRequestDispatcher("/WEB-INF/view/password/reset-password.jsp").forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/view/password/password-reset-new.jsp").forward(request,
+                        response);
                 return;
             }
 
             // Store both email and account type in session
             request.getSession().setAttribute("resetEmail", email);
 
-            request.getRequestDispatcher("/WEB-INF/view/password/change-password.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/view/password/password-reset-edit.jsp").forward(request, response);
 
         } catch (SQLException ex) {
             Logger.getLogger(ResetPasswordController.class.getName()).log(Level.SEVERE,
                     "Database error while verifying token: " + token, ex);
             request.setAttribute("error", "Có lỗi hệ thống xảy ra. Vui lòng thử lại sau.");
-            request.getRequestDispatcher("/WEB-INF/view/password/reset-password.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/view/password/password-reset-new.jsp").forward(request,
+                    response);
         }
     }
 
-    private void handleChangePassword(HttpServletRequest request, HttpServletResponse response)
+    /**
+     * Handles the submission of the new password.
+     * Renamed from handleChangePassword for clarity.
+     */
+    private void handlePasswordUpdate(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        Gson gson = new Gson();
+        java.util.Map<String, String> jsonResponse = new java.util.HashMap<>();
+
         String email = (String) request.getSession().getAttribute("resetEmail");
         String newPassword = request.getParameter("newPassword");
         String confirmPassword = request.getParameter("confirmPassword");
 
         if (email == null) {
-            request.setAttribute("error", "Phiên đặt lại mật khẩu không hợp lệ. Vui lòng thử lại.");
-            request.getRequestDispatcher("/WEB-INF/view/password/reset-password.jsp").forward(request, response);
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            jsonResponse.put("error", "Phiên đặt lại mật khẩu không hợp lệ. Vui lòng thử lại.");
+            jsonResponse.put("redirect", "/spa/password/reset");
+            response.getWriter().write(gson.toJson(jsonResponse));
             return;
         }
 
         if (newPassword == null || confirmPassword == null || !newPassword.equals(confirmPassword)) {
-            request.setAttribute("error", "Mật khẩu mới và xác nhận mật khẩu không khớp.");
-            request.getRequestDispatcher("/WEB-INF/view/password/change-password.jsp").forward(request, response);
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            jsonResponse.put("error", "Mật khẩu mới và xác nhận mật khẩu không khớp.");
+            response.getWriter().write(gson.toJson(jsonResponse));
             return;
         }
 
         // Validate password length
         if (newPassword.length() < 6) {
-            request.setAttribute("error", "Mật khẩu phải có ít nhất 6 ký tự.");
-            request.getRequestDispatcher("/WEB-INF/view/password/change-password.jsp").forward(request, response);
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            jsonResponse.put("error", "Mật khẩu phải có ít nhất 6 ký tự.");
+            response.getWriter().write(gson.toJson(jsonResponse));
             return;
         }
 
         try {
             // Validate that new password is different from current password
-            String currentPasswordHash = null;
-            boolean isCustomer = false;
+            String currentPasswordHash = accountDAO.getPasswordHashByEmail(email);
 
-            if (accountDAO.isCustomerEmailExists(email)) {
-                currentPasswordHash = accountDAO.getCustomerPasswordHash(email);
-                isCustomer = true;
-            } else if (accountDAO.isUserEmailExists(email)) {
-                currentPasswordHash = accountDAO.getUserPasswordHash(email);
-                isCustomer = false;
+            if (currentPasswordHash != null && !currentPasswordHash.isEmpty()) {
+                if (BCrypt.checkpw(newPassword, currentPasswordHash)) {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    jsonResponse.put("error", "Mật khẩu mới phải khác với mật khẩu hiện tại.");
+                    response.getWriter().write(gson.toJson(jsonResponse));
+                    return;
+                }
             }
 
-            // Check if new password is the same as current password
-            if (currentPasswordHash != null && BCrypt.checkpw(newPassword, currentPasswordHash)) {
-                request.setAttribute("error",
-                        "Mật khẩu mới phải khác với mật khẩu hiện tại. Vui lòng chọn mật khẩu khác.");
-                request.getRequestDispatcher("/WEB-INF/view/password/change-password.jsp").forward(request, response);
-                return;
-            }
-
-            boolean updated = false;
-
-            // Update password based on account type
-            if (isCustomer) {
-                updated = accountDAO.updateCustomerPassword(email, newPassword);
-            } else {
-                updated = accountDAO.updateUserPassword(email, newPassword);
-            }
+            // Update password for the user. The DAO method should handle both customers and
+            // users.
+            boolean updated = accountDAO.updatePassword(email, newPassword);
 
             if (updated) {
-                // Clean up: remove tokens and session data
+                // Clean up: remove token and session attribute
                 passwordResetTokenDao.deleteTokensByEmail(email);
                 request.getSession().removeAttribute("resetEmail");
 
-                String successMessage = "Mật khẩu đã được thay đổi thành công. Vui lòng đăng nhập bằng mật khẩu mới.";
-                request.setAttribute("success", successMessage);
+                // Set the flash message for the next page
+                String successMessage = "Mật khẩu đã được thay đổi thành công. Vui lòng đăng nhập.";
+                FlashMessage flashMessage = new FlashMessage(successMessage, "success");
+                request.getSession().setAttribute("flash_notification", flashMessage);
 
-                Logger.getLogger(ResetPasswordController.class.getName()).log(
-                        Level.INFO, "Password successfully reset for email: " + email);
+                // Return JSON response for JavaScript to handle redirect
+                response.setStatus(HttpServletResponse.SC_OK);
+                jsonResponse.put("success", successMessage);
+                jsonResponse.put("redirect", request.getContextPath() + "/login");
+                jsonResponse.put("prefillEmail", email);
+                jsonResponse.put("prefillPassword", newPassword);
+                response.getWriter().write(gson.toJson(jsonResponse));
 
-                // Redirect to login page
-                request.getRequestDispatcher("/WEB-INF/view/auth/login.jsp").forward(request, response);
             } else {
-                request.setAttribute("error", "Có lỗi khi cập nhật mật khẩu. Vui lòng thử lại.");
-                request.getRequestDispatcher("/WEB-INF/view/password/change-password.jsp").forward(request, response);
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                jsonResponse.put("error", "Có lỗi khi cập nhật mật khẩu. Vui lòng thử lại.");
+                response.getWriter().write(gson.toJson(jsonResponse));
             }
         } catch (SQLException ex) {
             Logger.getLogger(ResetPasswordController.class.getName()).log(Level.SEVERE,
                     "Database error while changing password for email: " + email, ex);
-            request.setAttribute("error", "Có lỗi hệ thống xảy ra. Vui lòng thử lại sau.");
-            request.getRequestDispatcher("/WEB-INF/view/password/change-password.jsp").forward(request, response);
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            jsonResponse.put("error", "Có lỗi hệ thống xảy ra. Vui lòng thử lại sau.");
+            response.getWriter().write(gson.toJson(jsonResponse));
         }
+    }
+
+    private void handleTestEmail(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        Gson gson = new Gson();
+        java.util.Map<String, String> jsonResponse = new java.util.HashMap<>();
+
+        String testEmail = request.getParameter("email");
+        if (testEmail == null || testEmail.trim().isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            jsonResponse.put("error", "Please provide an 'email' parameter for testing.");
+            response.getWriter().write(gson.toJson(jsonResponse));
+            return;
+        }
+
+        try {
+            String userName = accountDAO.getFullNameByEmail(testEmail);
+            if (userName == null) {
+                userName = "Test User"; // Fallback name
+            }
+
+            // Use the synchronous service for direct feedback
+            boolean success = emailService.sendPasswordResetEmail(testEmail, "test-token-12345", userName);
+
+            if (success) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                jsonResponse.put("message", "Test email sent successfully to " + testEmail);
+            } else {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                jsonResponse.put("error", "Failed to send test email. Check server logs for details.");
+            }
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            jsonResponse.put("error", "An exception occurred: " + e.getMessage());
+            Logger.getLogger(ResetPasswordController.class.getName()).log(Level.SEVERE, "Error sending test email", e);
+        }
+
+        response.getWriter().write(gson.toJson(jsonResponse));
     }
 }

@@ -8,456 +8,233 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="vi" class="scroll-smooth">
 <head>
-    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
     <c:choose>
-        <c:when test="${sessionScope.userType == 'ADMIN'}">
-            <title>Admin Dashboard - Spa Management</title>
-        </c:when>
-        <c:when test="${sessionScope.userType == 'MANAGER'}">
-            <title>Manager Dashboard - Spa Management</title>
-        </c:when>
-        <c:when test="${sessionScope.userType == 'THERAPIST'}">
-            <title>Therapist Dashboard - Spa Management</title>
-        </c:when>
-        <c:when test="${sessionScope.userType == 'RECEPTIONIST'}">
-            <title>Receptionist Dashboard - Spa Management</title>
-        </c:when>
-        <c:when test="${sessionScope.userType == 'CUSTOMER'}">
-            <title>Customer Dashboard - Spa Management</title>
-        </c:when>
-        <c:otherwise>
-            <title>Dashboard - Spa Management</title>
-        </c:otherwise>
+        <c:when test="${sessionScope.userType == 'ADMIN'}"><title>Admin Dashboard - Spa Hương Sen</title></c:when>
+        <c:when test="${sessionScope.userType == 'MANAGER'}"><title>Manager Dashboard - Spa Hương Sen</title></c:when>
+        <c:when test="${sessionScope.userType == 'THERAPIST'}"><title>Therapist Dashboard - Spa Hương Sen</title></c:when>
+        <c:when test="${sessionScope.userType == 'CUSTOMER'}"><title>Customer Dashboard - Spa Hương Sen</title></c:when>
+        <c:otherwise><title>Dashboard - Spa Hương Sen</title></c:otherwise>
     </c:choose>
     
-    <link rel="icon" type="image/png" href="${pageContext.request.contextPath}/assets/admin/images/favicon.png" sizes="16x16">
-    <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp" />
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#D4AF37",
+              "primary-dark": "#B8941F",
+              secondary: "#FADADD",
+              "spa-cream": "#FFF8F0",
+              "spa-dark": "#333333",
+              "spa-gray": "#F3F4F6",
+            },
+            fontFamily: {
+              serif: ["Playfair Display", "serif"],
+              sans: ["Roboto", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Roboto:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="<c:url value='/css/style.css'/>" />
 </head>
-<body>
-    <!-- Include Sidebar (common for all roles but content differs based on userType) -->
-    <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
+<body class="bg-spa-gray font-sans">
     
-    <!-- Include Header (common for all roles) -->
-    <jsp:include page="/WEB-INF/view/common/admin/header.jsp" />
+    <jsp:include page="/WEB-INF/view/common/header.jsp" />
+    
+    <div class="flex pt-16">
+        <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
 
-    <!-- Conditional Dashboard Content Based on User Type -->
-    <c:choose>
-        <c:when test="${sessionScope.userType == 'ADMIN'}">
-            <!-- Admin Dashboard Content -->
-            <div class="dashboard-main-body">
-                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
-                    <h6 class="fw-semibold mb-0">Admin Dashboard</h6>
-                    <ul class="d-flex align-items-center gap-2">
-                        <li class="fw-medium">
-                            <a href="${pageContext.request.contextPath}/admin-dashboard" class="d-flex align-items-center gap-1 hover-text-primary">
-                                <iconify-icon icon="solar:home-smile-angle-outline" class="icon text-lg"></iconify-icon>
-                                Dashboard
-                            </a>
-                        </li>
-                        <li>-</li>
-                        <li class="fw-medium">Admin Overview</li>
-                    </ul>
-                </div>
-                
-                <!-- Admin-specific content -->
-                <div class="row gy-4 mb-24">
-                    <div class="col-xxl-3 col-sm-6">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="mb-0 w-48-px h-48-px bg-primary-600 flex-shrink-0 text-white d-flex justify-content-center align-items-center rounded-circle h6">
-                                        <iconify-icon icon="solar:users-group-rounded-outline"></iconify-icon>
-                                    </span>
+        <div class="flex-1">
+            <main class="p-8">
+                <c:choose>
+                    <%-- ============================ MANAGER DASHBOARD ============================ --%>
+                    <c:when test="${sessionScope.userType == 'MANAGER'}">
+                        <h1 class="text-3xl font-serif text-spa-dark mb-2">Manager Dashboard</h1>
+                        <p class="text-gray-600 mb-8">Welcome back! Here's your spa's performance overview.</p>
+                        
+                        <!-- Manager content here... -->
+                        
+                    </c:when>
+                    
+                    <%-- ============================ CUSTOMER DASHBOARD ============================ --%>
+                    <c:when test="${sessionScope.userType == 'CUSTOMER'}">
+                        <div class="space-y-8">
+                            <!-- Welcome Section -->
+                            <div class="bg-gradient-to-r from-[#D4AF37] to-[#B8941F] rounded-xl shadow-lg p-6 text-white">
+                                <div class="flex items-center justify-between">
                                     <div>
-                                        <span class="mb-2 fw-medium text-secondary-light text-sm">Total Users</span>
-                                        <h6 class="fw-semibold">1,247</h6>
+                                        <h1 class="text-2xl md:text-3xl font-serif mb-2">Chào mừng trở lại, Chị Hoàng Thị!</h1>
+                                        <p class="opacity-90">Hôm nay là ngày tuyệt vời để chăm sóc bản thân. Bạn có 2 lịch hẹn sắp tới.</p>
+                                    </div>
+                                    <i data-lucide="heart" class="h-12 w-12 opacity-80 hidden md:block"></i>
+                                </div>
+                            </div>
+
+                            <!-- Customer Metrics -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                <div class="bg-white p-5 rounded-xl shadow-md flex items-center space-x-4 transition-transform hover:scale-105">
+                                    <div class="bg-blue-100 p-3 rounded-full"><i data-lucide="calendar" class="h-6 w-6 text-blue-600"></i></div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">Lịch hẹn tháng này</p>
+                                        <p class="text-2xl font-semibold text-spa-dark">4</p>
                                     </div>
                                 </div>
-                                <p class="text-sm mb-0">
-                                    <span class="text-success-main fw-medium">+8%</span> this month
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Add more admin cards here -->
-                </div>
-            </div>
-        </c:when>
-        
-        <c:when test="${sessionScope.userType == 'MANAGER'}">
-            <!-- Manager Dashboard Content -->
-            <div class="dashboard-main-body">
-                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
-                    <h6 class="fw-semibold mb-0">Tổng Quan Manager</h6>
-                    <ul class="d-flex align-items-center gap-2">
-                        <li class="fw-medium">
-                            <a href="${pageContext.request.contextPath}/manager-dashboard" class="d-flex align-items-center gap-1 hover-text-primary">
-                                <iconify-icon icon="solar:home-smile-angle-outline" class="icon text-lg"></iconify-icon>
-                                Dashboard
-                            </a>
-                        </li>
-                        <li>-</li>
-                        <li class="fw-medium">Tổng Quan</li>
-                    </ul>
-                </div>
-
-                <!-- Revenue Overview Section -->
-                <div class="row gy-4 mb-24">
-                    <div class="col-xxl-3 col-sm-6">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="mb-0 w-48-px h-48-px bg-primary-600 flex-shrink-0 text-white d-flex justify-content-center align-items-center rounded-circle h6">
-                                        <iconify-icon icon="solar:dollar-outline"></iconify-icon>
-                                    </span>
+                                <div class="bg-white p-5 rounded-xl shadow-md flex items-center space-x-4 transition-transform hover:scale-105">
+                                    <div class="bg-primary/20 p-3 rounded-full"><i data-lucide="gift" class="h-6 w-6 text-primary"></i></div>
                                     <div>
-                                        <span class="mb-2 fw-medium text-secondary-light text-sm">Doanh Thu Hôm Nay</span>
-                                        <h6 class="fw-semibold">25,000,000 VNĐ</h6>
+                                        <p class="text-sm text-gray-500">Điểm tích lũy</p>
+                                        <p class="text-2xl font-semibold text-spa-dark">2,450</p>
                                     </div>
                                 </div>
-                                <p class="text-sm mb-0">
-                                    <span class="text-success-main fw-medium">+12%</span> so với hôm qua
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-xxl-3 col-sm-6">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="mb-0 w-48-px h-48-px bg-success-main flex-shrink-0 text-white d-flex justify-content-center align-items-center rounded-circle h6">
-                                        <iconify-icon icon="solar:calendar-outline"></iconify-icon>
-                                    </span>
+                                <div class="bg-white p-5 rounded-xl shadow-md flex items-center space-x-4 transition-transform hover:scale-105">
+                                    <div class="bg-green-100 p-3 rounded-full"><i data-lucide="trending-up" class="h-6 w-6 text-green-600"></i></div>
                                     <div>
-                                        <span class="mb-2 fw-medium text-secondary-light text-sm">Lịch Hẹn Hôm Nay</span>
-                                        <h6 class="fw-semibold">18</h6>
+                                        <p class="text-sm text-gray-500">Tiết kiệm được</p>
+                                        <p class="text-2xl font-semibold text-spa-dark">850K VNĐ</p>
                                     </div>
                                 </div>
-                                <p class="text-sm mb-0">
-                                    <span class="text-warning-main fw-medium">3</span> đang chờ xác nhận
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-xxl-3 col-sm-6">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="mb-0 w-48-px h-48-px bg-info-main flex-shrink-0 text-white d-flex justify-content-center align-items-center rounded-circle h6">
-                                        <iconify-icon icon="solar:users-group-rounded-outline"></iconify-icon>
-                                    </span>
+                                 <div class="bg-white p-5 rounded-xl shadow-md flex items-center space-x-4 transition-transform hover:scale-105">
+                                    <div class="bg-amber-100 p-3 rounded-full"><i data-lucide="award" class="h-6 w-6 text-amber-600"></i></div>
                                     <div>
-                                        <span class="mb-2 fw-medium text-secondary-light text-sm">Khách Hàng Mới</span>
-                                        <h6 class="fw-semibold">7</h6>
+                                        <p class="text-sm text-gray-500">Hạng thành viên</p>
+                                        <p class="text-2xl font-semibold text-spa-dark">Gold</p>
                                     </div>
                                 </div>
-                                <p class="text-sm mb-0">
-                                    <span class="text-success-main fw-medium">+23%</span> so với tuần trước
-                                </p>
                             </div>
-                        </div>
-                    </div>
-                    <div class="col-xxl-3 col-sm-6">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="mb-0 w-48-px h-48-px bg-warning-main flex-shrink-0 text-white d-flex justify-content-center align-items-center rounded-circle h6">
-                                        <iconify-icon icon="solar:star-outline"></iconify-icon>
-                                    </span>
-                                    <div>
-                                        <span class="mb-2 fw-medium text-secondary-light text-sm">Đánh Giá TB</span>
-                                        <h6 class="fw-semibold">4.8/5.0</h6>
+
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                <!-- Upcoming Appointments -->
+                                <div class="lg:col-span-2 bg-white rounded-xl shadow-md border border-gray-200 p-6">
+                                    <div class="flex items-center justify-between mb-6">
+                                        <h3 class="text-lg font-semibold text-spa-dark">Lịch hẹn sắp tới</h3>
+                                        <a href="#" class="text-primary hover:text-primary-dark font-medium text-sm">Xem tất cả</a>
                                     </div>
-                                </div>
-                                <p class="text-sm mb-0">
-                                    Từ <span class="text-success-main fw-medium">142</span> đánh giá
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Charts and Quick Actions Row -->
-                <div class="row gy-4 mb-24">
-                    <!-- Revenue Chart -->
-                    <div class="col-xxl-8">
-                        <div class="card h-100">
-                            <div class="card-header border-bottom bg-base py-16 px-24">
-                                <h6 class="text-lg fw-semibold mb-0">Biểu Đồ Doanh Thu 7 Ngày Qua</h6>
-                            </div>
-                            <div class="card-body p-24">
-                                <div class="d-flex justify-content-center align-items-center" style="height: 300px;">
-                                    <p class="text-secondary-light">Biểu đồ doanh thu sẽ được hiển thị tại đây</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Quick Actions -->
-                    <div class="col-xxl-4">
-                        <div class="card h-100">
-                            <div class="card-header border-bottom bg-base py-16 px-24">
-                                <h6 class="text-lg fw-semibold mb-0">Thao Tác Nhanh</h6>
-                            </div>
-                            <div class="card-body p-24">
-                                <div class="d-flex flex-column gap-3">
-                                    <a href="${pageContext.request.contextPath}/manager-dashboard/customers/list" class="btn btn-outline-primary d-flex align-items-center gap-2">
-                                        <iconify-icon icon="solar:users-group-two-rounded-outline"></iconify-icon>
-                                        Quản Lý Khách Hàng
-                                    </a>
-                                    <a href="${pageContext.request.contextPath}/manager-dashboard/services/packages" class="btn btn-outline-success d-flex align-items-center gap-2">
-                                        <iconify-icon icon="solar:spa-outline"></iconify-icon>
-                                        Quản Lý Dịch Vụ
-                                    </a>
-                                    <a href="${pageContext.request.contextPath}/manager-dashboard/staff/list" class="btn btn-outline-info d-flex align-items-center gap-2">
-                                        <iconify-icon icon="solar:users-group-rounded-outline"></iconify-icon>
-                                        Quản Lý Nhân Viên
-                                    </a>
-                                    <a href="${pageContext.request.contextPath}/manager-dashboard/reports/revenue" class="btn btn-outline-warning d-flex align-items-center gap-2">
-                                        <iconify-icon icon="solar:chart-2-outline"></iconify-icon>
-                                        Báo Cáo Doanh Thu
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Recent Activities and Notifications -->
-                <div class="row gy-4">
-                    <!-- Recent Appointments -->
-                    <div class="col-xxl-6">
-                        <div class="card h-100">
-                            <div class="card-header border-bottom bg-base py-16 px-24 d-flex align-items-center justify-content-between">
-                                <h6 class="text-lg fw-semibold mb-0">Lịch Hẹn Gần Đây</h6>
-                                <a href="${pageContext.request.contextPath}/manager-dashboard/dashboard/appointments" class="text-primary-600 hover-text-primary fw-medium">Xem Tất Cả</a>
-                            </div>
-                            <div class="card-body p-24">
-                                <div class="d-flex flex-column gap-3">
-                                    <div class="d-flex align-items-center justify-content-between p-16 border radius-8">
-                                        <div>
-                                            <h6 class="text-md fw-semibold mb-1">Nguyễn Thị Lan Anh</h6>
-                                            <span class="text-sm text-secondary-light">Massage Toàn Thân - 10:00</span>
+                                    <div class="space-y-4">
+                                        <div class="p-4 border border-gray-200 rounded-lg hover:border-primary transition-colors">
+                                            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                                                <div class="flex items-center space-x-3">
+                                                    <i data-lucide="calendar" class="h-5 w-5 text-primary"></i>
+                                                    <span class="font-medium text-gray-800">22/12/2024 - 14:00</span>
+                                                    <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full font-medium">Đã xác nhận</span>
+                                                </div>
+                                                <span class="font-bold text-primary">499,000 VNĐ</span>
+                                            </div>
+                                            <div class="space-y-1 ml-8">
+                                                <p class="font-medium text-gray-900">Massage thư giãn toàn thân</p>
+                                                <p class="text-sm text-gray-600">Nhân viên: Chị Nguyễn Thị Hương</p>
+                                            </div>
                                         </div>
-                                        <span class="badge text-sm fw-semibold text-success-600 bg-success-100 px-20 py-9 radius-4">Đã Xác Nhận</span>
-                                    </div>
-                                    <div class="d-flex align-items-center justify-content-between p-16 border radius-8">
-                                        <div>
-                                            <h6 class="text-md fw-semibold mb-1">Trần Văn Minh</h6>
-                                            <span class="text-sm text-secondary-light">Chăm Sóc Da Mặt - 14:30</span>
-                                        </div>
-                                        <span class="badge text-sm fw-semibold text-warning-600 bg-warning-100 px-20 py-9 radius-4">Chờ Xác Nhận</span>
-                                    </div>
-                                    <div class="d-flex align-items-center justify-content-between p-16 border radius-8">
-                                        <div>
-                                            <h6 class="text-md fw-semibold mb-1">Lê Thị Mai</h6>
-                                            <span class="text-sm text-secondary-light">Gói Spa Trọn Gói - 16:00</span>
-                                        </div>
-                                        <span class="badge text-sm fw-semibold text-success-600 bg-success-100 px-20 py-9 radius-4">Đã Xác Nhận</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Important Notifications -->
-                    <div class="col-xxl-6">
-                        <div class="card h-100">
-                            <div class="card-header border-bottom bg-base py-16 px-24 d-flex align-items-center justify-content-between">
-                                <h6 class="text-lg fw-semibold mb-0">Thông Báo Quan Trọng</h6>
-                                <a href="${pageContext.request.contextPath}/manager-dashboard/dashboard/notifications" class="text-primary-600 hover-text-primary fw-medium">Xem Tất Cả</a>
-                            </div>
-                            <div class="card-body p-24">
-                                <div class="d-flex flex-column gap-3">
-                                    <div class="d-flex align-items-start gap-3 p-16 border radius-8">
-                                        <iconify-icon icon="solar:bell-outline" class="text-warning-main text-xl mt-1"></iconify-icon>
-                                        <div>
-                                            <h6 class="text-md fw-semibold mb-1">Thiết Bị Cần Bảo Trì</h6>
-                                            <span class="text-sm text-secondary-light">Máy massage phòng VIP 2 cần được bảo trì định kỳ</span>
-                                            <p class="text-xs text-secondary-light mb-0 mt-1">2 giờ trước</p>
+                                        <div class="p-4 border border-gray-200 rounded-lg hover:border-primary transition-colors">
+                                            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                                                <div class="flex items-center space-x-3">
+                                                    <i data-lucide="calendar" class="h-5 w-5 text-primary"></i>
+                                                    <span class="font-medium text-gray-800">28/12/2024 - 10:30</span>
+                                                    <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full font-medium">Đã xác nhận</span>
+                                                </div>
+                                                <span class="font-bold text-primary">599,000 VNĐ</span>
+                                            </div>
+                                            <div class="space-y-1 ml-8">
+                                                <p class="font-medium text-gray-900">Chăm sóc da mặt cao cấp</p>
+                                                <p class="text-sm text-gray-600">Nhân viên: Chị Trần Thị Lan</p>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="d-flex align-items-start gap-3 p-16 border radius-8">
-                                        <iconify-icon icon="solar:info-circle-outline" class="text-info-main text-xl mt-1"></iconify-icon>
-                                        <div>
-                                            <h6 class="text-md fw-semibold mb-1">Nhân Viên Xin Nghỉ</h6>
-                                            <span class="text-sm text-secondary-light">Thu Hương xin nghỉ phép ngày mai</span>
-                                            <p class="text-xs text-secondary-light mb-0 mt-1">5 giờ trước</p>
+                                </div>
+
+                                <!-- Recent Activity -->
+                                <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
+                                    <h3 class="text-lg font-semibold text-spa-dark mb-6">Hoạt động gần đây</h3>
+                                    <div class="space-y-5">
+                                        <div class="flex items-start space-x-4">
+                                            <div class="flex-shrink-0 pt-1"><i data-lucide="check-circle" class="h-5 w-5 text-green-500"></i></div>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm font-medium text-gray-900">Hoàn thành dịch vụ Tắm trắng</p>
+                                                <p class="text-xs text-gray-500 mt-1">2 ngày trước</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="d-flex align-items-start gap-3 p-16 border radius-8">
-                                        <iconify-icon icon="solar:star-outline" class="text-success-main text-xl mt-1"></iconify-icon>
-                                        <div>
-                                            <h6 class="text-md fw-semibold mb-1">Đánh Giá 5 Sao</h6>
-                                            <span class="text-sm text-secondary-light">Khách hàng VIP đánh giá 5 sao dịch vụ massage</span>
-                                            <p class="text-xs text-secondary-light mb-0 mt-1">1 ngày trước</p>
+                                        <div class="flex items-start space-x-4">
+                                            <div class="flex-shrink-0 pt-1"><i data-lucide="gift" class="h-5 w-5 text-primary"></i></div>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm font-medium text-gray-900">Nhận 150 điểm tích lũy</p>
+                                                <p class="text-xs text-gray-500 mt-1">1 tuần trước</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start space-x-4">
+                                            <div class="flex-shrink-0 pt-1"><i data-lucide="star" class="h-5 w-5 text-blue-500"></i></div>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm font-medium text-gray-900">Ưu đãi đặc biệt cho thành viên Gold</p>
+                                                <p class="text-xs text-gray-500 mt-1">3 ngày trước</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </c:when>
-        
-        <c:when test="${sessionScope.userType == 'THERAPIST'}">
-            <!-- Therapist Dashboard Content -->
-            <div class="dashboard-main-body">
-                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
-                    <h6 class="fw-semibold mb-0">Therapist Dashboard</h6>
-                    <ul class="d-flex align-items-center gap-2">
-                        <li class="fw-medium">
-                            <a href="${pageContext.request.contextPath}/therapist-dashboard" class="d-flex align-items-center gap-1 hover-text-primary">
-                                <iconify-icon icon="solar:home-smile-angle-outline" class="icon text-lg"></iconify-icon>
-                                Dashboard
-                            </a>
-                        </li>
-                        <li>-</li>
-                        <li class="fw-medium">My Schedule</li>
-                    </ul>
-                </div>
-                
-                <!-- Therapist-specific content -->
-                <div class="row gy-4 mb-24">
-                    <div class="col-xxl-3 col-sm-6">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="mb-0 w-48-px h-48-px bg-success-main flex-shrink-0 text-white d-flex justify-content-center align-items-center rounded-circle h6">
-                                        <iconify-icon icon="solar:calendar-outline"></iconify-icon>
-                                    </span>
-                                    <div>
-                                        <span class="mb-2 fw-medium text-secondary-light text-sm">Today's Appointments</span>
-                                        <h6 class="fw-semibold">8</h6>
-                                    </div>
-                                </div>
-                                <p class="text-sm mb-0">
-                                    <span class="text-info-main fw-medium">2</span> upcoming
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Add more therapist cards here -->
-                </div>
-            </div>
-        </c:when>
-        
-        <c:when test="${sessionScope.userType == 'RECEPTIONIST'}">
-            <!-- Receptionist Dashboard Content -->
-            <div class="dashboard-main-body">
-                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
-                    <h6 class="fw-semibold mb-0">Receptionist Dashboard</h6>
-                    <ul class="d-flex align-items-center gap-2">
-                        <li class="fw-medium">
-                            <a href="${pageContext.request.contextPath}/receptionist-dashboard" class="d-flex align-items-center gap-1 hover-text-primary">
-                                <iconify-icon icon="solar:home-smile-angle-outline" class="icon text-lg"></iconify-icon>
-                                Dashboard
-                            </a>
-                        </li>
-                        <li>-</li>
-                        <li class="fw-medium">Front Desk</li>
-                    </ul>
-                </div>
-                
-                <!-- Receptionist-specific content -->
-                <div class="row gy-4 mb-24">
-                    <div class="col-xxl-3 col-sm-6">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="mb-0 w-48-px h-48-px bg-info-main flex-shrink-0 text-white d-flex justify-content-center align-items-center rounded-circle h6">
-                                        <iconify-icon icon="solar:user-check-rounded-outline"></iconify-icon>
-                                    </span>
-                                    <div>
-                                        <span class="mb-2 fw-medium text-secondary-light text-sm">Check-ins Today</span>
-                                        <h6 class="fw-semibold">15</h6>
-                                    </div>
-                                </div>
-                                <p class="text-sm mb-0">
-                                    <span class="text-warning-main fw-medium">3</span> waiting
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Add more receptionist cards here -->
-                </div>
-            </div>
-        </c:when>
-        
-        <c:when test="${sessionScope.userType == 'CUSTOMER'}">
-            <!-- Customer Dashboard Content -->
-            <div class="dashboard-main-body">
-                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
-                    <h6 class="fw-semibold mb-0">Welcome, ${userDisplayName}!</h6>
-                    <ul class="d-flex align-items-center gap-2">
-                        <li class="fw-medium">
-                            <a href="${pageContext.request.contextPath}/customer-dashboard" class="d-flex align-items-center gap-1 hover-text-primary">
-                                <iconify-icon icon="solar:home-smile-angle-outline" class="icon text-lg"></iconify-icon>
-                                Dashboard
-                            </a>
-                        </li>
-                        <li>-</li>
-                        <li class="fw-medium">My Account</li>
-                    </ul>
-                </div>
-                
-                <!-- Customer-specific content -->
-                <div class="row gy-4 mb-24">
-                    <div class="col-xxl-3 col-sm-6">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="mb-0 w-48-px h-48-px bg-primary-600 flex-shrink-0 text-white d-flex justify-content-center align-items-center rounded-circle h6">
-                                        <iconify-icon icon="solar:calendar-mark-outline"></iconify-icon>
-                                    </span>
-                                    <div>
-                                        <span class="mb-2 fw-medium text-secondary-light text-sm">Next Appointment</span>
-                                        <h6 class="fw-semibold">Tomorrow 2:00 PM</h6>
-                                    </div>
-                                </div>
-                                <p class="text-sm mb-0">
-                                    <span class="text-info-main fw-medium">Facial Treatment</span>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Add more customer cards here -->
-                </div>
-            </div>
-        </c:when>
-        
-        <c:otherwise>
-            <!-- Default/Guest Dashboard Content -->
-            <div class="dashboard-main-body">
-                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
-                    <h6 class="fw-semibold mb-0">Dashboard</h6>
-                </div>
-                
-                <div class="row gy-4">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-body text-center p-40">
-                                <iconify-icon icon="solar:user-outline" class="text-secondary-light" style="font-size: 4rem;"></iconify-icon>
-                                <h4 class="mt-3 mb-2">Access Denied</h4>
-                                <p class="text-secondary-light">You don't have permission to access this dashboard.</p>
-                                <a href="${pageContext.request.contextPath}/login" class="btn btn-primary">
-                                    Login to Continue
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </c:otherwise>
-    </c:choose>
 
-    <!-- Include common JavaScript -->
-    <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
+                            <!-- Quick Actions -->
+                            <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
+                                <h3 class="text-lg font-semibold text-spa-dark mb-6">Thao tác nhanh</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    <button class="p-4 border border-gray-200 rounded-lg hover:border-primary hover:bg-spa-cream transition-all text-center group">
+                                        <div class="mb-3 flex justify-center"><i data-lucide="calendar" class="h-8 w-8 text-primary"></i></div>
+                                        <h4 class="font-semibold text-gray-900 group-hover:text-primary transition-colors">Đặt lịch mới</h4>
+                                    </button>
+                                    <button class="p-4 border border-gray-200 rounded-lg hover:border-primary hover:bg-spa-cream transition-all text-center group">
+                                        <div class="mb-3 flex justify-center"><i data-lucide="file-text" class="h-8 w-8 text-blue-500"></i></div>
+                                        <h4 class="font-semibold text-gray-900 group-hover:text-primary transition-colors">Xem lịch sử</h4>
+                                    </button>
+                                    <button class="p-4 border border-gray-200 rounded-lg hover:border-primary hover:bg-spa-cream transition-all text-center group">
+                                        <div class="mb-3 flex justify-center"><i data-lucide="gift" class="h-8 w-8 text-green-500"></i></div>
+                                        <h4 class="font-semibold text-gray-900 group-hover:text-primary transition-colors">Đổi điểm thưởng</h4>
+                                    </button>
+                                    <button class="p-4 border border-gray-200 rounded-lg hover:border-primary hover:bg-spa-cream transition-all text-center group">
+                                        <div class="mb-3 flex justify-center"><i data-lucide="message-circle" class="h-8 w-8 text-purple-500"></i></div>
+                                        <h4 class="font-semibold text-gray-900 group-hover:text-primary transition-colors">Liên hệ hỗ trợ</h4>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </c:when>
+
+                    <%-- ============================ OTHER DASHBOARDS (Placeholders) ============================ --%>
+                    <c:otherwise>
+                        <div class="bg-white p-8 rounded-xl shadow-md text-center">
+                            <i data-lucide="layout-dashboard" class="h-16 w-16 text-primary mx-auto mb-4"></i>
+                            <h1 class="text-3xl font-serif text-spa-dark mb-2">Welcome to your Dashboard</h1>
+                            <p class="text-gray-600">Select an item from the sidebar to get started.</p>
+                            <c:if test="${sessionScope.userType == null or sessionScope.userType == 'GUEST'}">
+                                <p class="mt-4">Please <a href="${pageContext.request.contextPath}/login" class="text-primary hover:underline">log in</a> to access your dashboard.</p>
+                            </c:if>
+                        </div>
+                    </c:otherwise>
+                </c:choose>
+            </main>
+        </div>
+    </div>
+
+    <jsp:include page="/WEB-INF/view/common/footer.jsp" />
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if(window.lucide) {
+                lucide.createIcons();
+            }
+        });
+    </script>
 </body>
 </html>

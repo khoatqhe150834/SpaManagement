@@ -254,3 +254,6 @@
     </div>
   </div>
 </div>
+
+<!-- Include flash notification system -->
+<jsp:include page="/WEB-INF/view/common/flash-notification.jsp" />

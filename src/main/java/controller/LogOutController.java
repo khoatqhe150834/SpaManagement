@@ -13,6 +13,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
+import model.FlashMessage;
 
 /**
  *
@@ -61,13 +62,18 @@ public class LogOutController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // get infor from session
-
+        // Get information from session
         HttpSession session = request.getSession();
 
         if (session.getAttribute("customer") != null || session.getAttribute("user") != null) {
-
+            // Invalidate the current session (logs out the user)
             session.invalidate();
+
+            // Create a new session for the flash message
+            HttpSession newSession = request.getSession(true);
+            String logoutMessage = "Bạn đã đăng xuất thành công. Hẹn gặp lại!";
+            FlashMessage flashMessage = new FlashMessage(logoutMessage, "success");
+            newSession.setAttribute("flash_notification", flashMessage);
         }
 
         // Redirect to homepage
@@ -85,7 +91,8 @@ public class LogOutController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        // Handle POST the same way as GET
+        doGet(request, response);
     }
 
     /**

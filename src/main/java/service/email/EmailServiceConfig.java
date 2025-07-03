@@ -8,13 +8,13 @@ public class EmailServiceConfig {
 
   // Set to true for development (uses Mailtrap), false for production (uses
   // Gmail)
-  private static final boolean IS_DEVELOPMENT = true;
+  private static final boolean IS_DEVELOPMENT = false;
 
   // Production Gmail settings
   public static final String PROD_SMTP_HOST = "smtp.gmail.com";
   public static final String PROD_SMTP_PORT = "587";
   public static final String PROD_EMAIL_USERNAME = "quangkhoa5112@gmail.com";
-  public static final String PROD_EMAIL_PASSWORD = "yxjn zgbu grpu hnxv";
+  public static final String PROD_EMAIL_PASSWORD = "kuwp lhvv ahbk lvzu";
 
   // Development Mailtrap settings (configured)
   public static final String DEV_SMTP_HOST = "sandbox.smtp.mailtrap.io";

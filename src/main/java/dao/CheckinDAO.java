@@ -1,27 +1,33 @@
 package dao;
 
 import db.DBContext;
-import model.Checkin;
 import java.sql.*;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import model.Checkin;
 
 /**
  * DAO for managing check-in operations
  * 
  * @author quang
  */
-public class CheckinDAO extends DBContext implements BaseDAO<Checkin, Integer> {
+public class CheckinDAO implements BaseDAO<Checkin, Integer> {
+  private static final Logger LOGGER = Logger.getLogger(CheckinDAO.class.getName());
 
   @Override
   public <S extends Checkin> S save(S entity) {
     String sql = "INSERT INTO checkins (appointment_id, customer_id, checkin_time, status, notes) VALUES (?, ?, ?, ?, ?)";
 
+    Connection conn = null;
+    PreparedStatement stmt = null;
+    ResultSet rs = null;
+
     try {
-      Connection conn = DBContext.getConnection();
-      PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+      conn = getConnection();
+      stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
       stmt.setInt(1, entity.getAppointmentId());
       stmt.setInt(2, entity.getCustomerId());
@@ -31,17 +37,16 @@ public class CheckinDAO extends DBContext implements BaseDAO<Checkin, Integer> {
 
       int affectedRows = stmt.executeUpdate();
       if (affectedRows > 0) {
-        ResultSet rs = stmt.getGeneratedKeys();
+        rs = stmt.getGeneratedKeys();
         if (rs.next()) {
           entity.setCheckinId(rs.getInt(1));
           return entity;
         }
       }
     } catch (SQLException e) {
-      System.out.println("Error saving checkin: " + e.getMessage());
-      e.printStackTrace();
+      LOGGER.log(Level.SEVERE, "Error saving checkin", e);
     } finally {
-      closeConnection();
+      closeResources(rs, stmt, conn);
     }
 
     return null;
@@ -51,19 +56,23 @@ public class CheckinDAO extends DBContext implements BaseDAO<Checkin, Integer> {
   public Optional<Checkin> findById(Integer id) {
     String sql = "SELECT * FROM checkins WHERE checkin_id = ?";
 
+    Connection conn = null;
+    PreparedStatement stmt = null;
+    ResultSet rs = null;
+
     try {
-      Connection conn = DBContext.getConnection();
-      PreparedStatement stmt = conn.prepareStatement(sql);
+      conn = getConnection();
+      stmt = conn.prepareStatement(sql);
       stmt.setInt(1, id);
 
-      ResultSet rs = stmt.executeQuery();
+      rs = stmt.executeQuery();
       if (rs.next()) {
         return Optional.of(getFromResultSet(rs));
       }
     } catch (SQLException e) {
-      System.out.println("Error finding checkin by ID: " + e.getMessage());
+      LOGGER.log(Level.SEVERE, "Error finding checkin by ID: " + id, e);
     } finally {
-      closeConnection();
+      closeResources(rs, stmt, conn);
     }
 
     return Optional.empty();
@@ -72,19 +81,23 @@ public class CheckinDAO extends DBContext implements BaseDAO<Checkin, Integer> {
   public boolean existsByAppointmentId(Integer appointmentId) {
     String sql = "SELECT COUNT(*) FROM checkins WHERE appointment_id = ?";
 
+    Connection conn = null;
+    PreparedStatement stmt = null;
+    ResultSet rs = null;
+
     try {
-      Connection conn = DBContext.getConnection();
-      PreparedStatement stmt = conn.prepareStatement(sql);
+      conn = getConnection();
+      stmt = conn.prepareStatement(sql);
       stmt.setInt(1, appointmentId);
 
-      ResultSet rs = stmt.executeQuery();
+      rs = stmt.executeQuery();
       if (rs.next()) {
         return rs.getInt(1) > 0;
       }
     } catch (SQLException e) {
-      System.out.println("Error checking checkin existence: " + e.getMessage());
+      LOGGER.log(Level.SEVERE, "Error checking checkin existence for appointment: " + appointmentId, e);
     } finally {
-      closeConnection();
+      closeResources(rs, stmt, conn);
     }
 
     return false;
@@ -93,19 +106,23 @@ public class CheckinDAO extends DBContext implements BaseDAO<Checkin, Integer> {
   public Optional<Checkin> findByAppointmentId(Integer appointmentId) {
     String sql = "SELECT * FROM checkins WHERE appointment_id = ? ORDER BY checkin_time DESC LIMIT 1";
 
+    Connection conn = null;
+    PreparedStatement stmt = null;
+    ResultSet rs = null;
+
     try {
-      Connection conn = DBContext.getConnection();
-      PreparedStatement stmt = conn.prepareStatement(sql);
+      conn = getConnection();
+      stmt = conn.prepareStatement(sql);
       stmt.setInt(1, appointmentId);
 
-      ResultSet rs = stmt.executeQuery();
+      rs = stmt.executeQuery();
       if (rs.next()) {
         return Optional.of(getFromResultSet(rs));
       }
     } catch (SQLException e) {
-      System.out.println("Error finding checkin by appointment ID: " + e.getMessage());
+      LOGGER.log(Level.SEVERE, "Error finding checkin by appointment ID: " + appointmentId, e);
     } finally {
-      closeConnection();
+      closeResources(rs, stmt, conn);
     }
 
     return Optional.empty();
@@ -115,19 +132,23 @@ public class CheckinDAO extends DBContext implements BaseDAO<Checkin, Integer> {
     List<Checkin> checkins = new ArrayList<>();
     String sql = "SELECT * FROM checkins WHERE customer_id = ? ORDER BY checkin_time DESC";
 
+    Connection conn = null;
+    PreparedStatement stmt = null;
+    ResultSet rs = null;
+
     try {
-      Connection conn = DBContext.getConnection();
-      PreparedStatement stmt = conn.prepareStatement(sql);
+      conn = getConnection();
+      stmt = conn.prepareStatement(sql);
       stmt.setInt(1, customerId);
 
-      ResultSet rs = stmt.executeQuery();
+      rs = stmt.executeQuery();
       while (rs.next()) {
         checkins.add(getFromResultSet(rs));
       }
     } catch (SQLException e) {
-      System.out.println("Error finding checkins by customer ID: " + e.getMessage());
+      LOGGER.log(Level.SEVERE, "Error finding checkins by customer ID: " + customerId, e);
     } finally {
-      closeConnection();
+      closeResources(rs, stmt, conn);
     }
 
     return checkins;
@@ -138,18 +159,22 @@ public class CheckinDAO extends DBContext implements BaseDAO<Checkin, Integer> {
     List<Checkin> checkins = new ArrayList<>();
     String sql = "SELECT * FROM checkins ORDER BY checkin_time DESC";
 
-    try {
-      Connection conn = DBContext.getConnection();
-      PreparedStatement stmt = conn.prepareStatement(sql);
+    Connection conn = null;
+    PreparedStatement stmt = null;
+    ResultSet rs = null;
 
-      ResultSet rs = stmt.executeQuery();
+    try {
+      conn = getConnection();
+      stmt = conn.prepareStatement(sql);
+
+      rs = stmt.executeQuery();
       while (rs.next()) {
         checkins.add(getFromResultSet(rs));
       }
     } catch (SQLException e) {
-      System.out.println("Error finding all checkins: " + e.getMessage());
+      LOGGER.log(Level.SEVERE, "Error finding all checkins", e);
     } finally {
-      closeConnection();
+      closeResources(rs, stmt, conn);
     }
 
     return checkins;
@@ -159,19 +184,23 @@ public class CheckinDAO extends DBContext implements BaseDAO<Checkin, Integer> {
   public boolean existsById(Integer id) {
     String sql = "SELECT COUNT(*) FROM checkins WHERE checkin_id = ?";
 
+    Connection conn = null;
+    PreparedStatement stmt = null;
+    ResultSet rs = null;
+
     try {
-      Connection conn = DBContext.getConnection();
-      PreparedStatement stmt = conn.prepareStatement(sql);
+      conn = getConnection();
+      stmt = conn.prepareStatement(sql);
       stmt.setInt(1, id);
 
-      ResultSet rs = stmt.executeQuery();
+      rs = stmt.executeQuery();
       if (rs.next()) {
         return rs.getInt(1) > 0;
       }
     } catch (SQLException e) {
-      System.out.println("Error checking checkin existence by ID: " + e.getMessage());
+      LOGGER.log(Level.SEVERE, "Error checking checkin existence by ID: " + id, e);
     } finally {
-      closeConnection();
+      closeResources(rs, stmt, conn);
     }
 
     return false;
@@ -181,16 +210,19 @@ public class CheckinDAO extends DBContext implements BaseDAO<Checkin, Integer> {
   public void deleteById(Integer id) {
     String sql = "DELETE FROM checkins WHERE checkin_id = ?";
 
+    Connection conn = null;
+    PreparedStatement stmt = null;
+
     try {
-      Connection conn = DBContext.getConnection();
-      PreparedStatement stmt = conn.prepareStatement(sql);
+      conn = getConnection();
+      stmt = conn.prepareStatement(sql);
       stmt.setInt(1, id);
 
       stmt.executeUpdate();
     } catch (SQLException e) {
-      System.out.println("Error deleting checkin: " + e.getMessage());
+      LOGGER.log(Level.SEVERE, "Error deleting checkin with ID: " + id, e);
     } finally {
-      closeConnection();
+      closeResources(null, stmt, conn);
     }
   }
 
@@ -198,9 +230,12 @@ public class CheckinDAO extends DBContext implements BaseDAO<Checkin, Integer> {
   public <S extends Checkin> S update(S entity) {
     String sql = "UPDATE checkins SET appointment_id = ?, customer_id = ?, checkin_time = ?, status = ?, notes = ? WHERE checkin_id = ?";
 
+    Connection conn = null;
+    PreparedStatement stmt = null;
+
     try {
-      Connection conn = DBContext.getConnection();
-      PreparedStatement stmt = conn.prepareStatement(sql);
+      conn = getConnection();
+      stmt = conn.prepareStatement(sql);
 
       stmt.setInt(1, entity.getAppointmentId());
       stmt.setInt(2, entity.getCustomerId());
@@ -214,9 +249,9 @@ public class CheckinDAO extends DBContext implements BaseDAO<Checkin, Integer> {
         return entity;
       }
     } catch (SQLException e) {
-      System.out.println("Error updating checkin: " + e.getMessage());
+      LOGGER.log(Level.SEVERE, "Error updating checkin: " + entity.getCheckinId(), e);
     } finally {
-      closeConnection();
+      closeResources(null, stmt, conn);
     }
 
     return null;

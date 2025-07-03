@@ -1,879 +1,633 @@
-<%-- 
+<%--
     Document   : sidebar.jsp
-    Unified Dynamic Sidebar for All Roles - Matching Original Style
+    Refactored to match the main site's visual style (Tailwind CSS & Lucide Icons)
     Author     : G1_SpaManagement Team
 --%>
 
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ page import="model.User" %>
-<%@ page import="model.Customer" %>
-<%@ page import="model.RoleConstants" %>
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@ page import="model.User, model.Customer, model.RoleConstants, java.util.List, model.MenuService, model.MenuService.MenuItem" %>
 
 <%
-    // Determine user role and info
-    User user = (User) request.getAttribute("user");
-    Customer customer = (Customer) request.getAttribute("customer");
-    String userRole = (String) request.getAttribute("userRole");
+    // --- User and Role Detection ---
+    String userRole = "GUEST"; // Default role
+    Object userObject = null;
     
-    // Fallback to session if not in request
-    if (user == null && customer == null) {
-        user = (User) session.getAttribute("user");
-        customer = (Customer) session.getAttribute("customer");
+    // Fallback to session attributes if request attributes are not set
+    if (session.getAttribute("user") != null) {
+        userObject = session.getAttribute("user");
+    } else if (session.getAttribute("customer") != null) {
+        userObject = session.getAttribute("customer");
     }
-    
-    if (userRole == null) {
-        if (user != null) {
-            Integer roleId = user.getRoleId();
-            switch (roleId) {
-                case RoleConstants.ADMIN_ID: userRole = "ADMIN"; break;
-                case RoleConstants.MANAGER_ID: userRole = "MANAGER"; break;
-                case RoleConstants.THERAPIST_ID: userRole = "THERAPIST"; break;
-                case RoleConstants.RECEPTIONIST_ID: userRole = "RECEPTIONIST"; break;
-                default: userRole = "USER"; break;
+
+    String fullName = "Guest User";
+    String email = "guest@example.com";
+    String avatarUrl = null; // Initialize as null to handle empty case better
+
+    if (userObject instanceof User) {
+        User user = (User) userObject;
+        userRole = RoleConstants.getUserTypeFromRole(user.getRoleId());
+        fullName = user.getFullName();
+        email = user.getEmail();
+        String userAvatar = user.getAvatarUrl();
+        if (userAvatar != null && !userAvatar.trim().isEmpty()) {
+            // Handle both absolute URLs and relative paths
+            if (userAvatar.startsWith("http://") || userAvatar.startsWith("https://")) {
+                avatarUrl = userAvatar;
+            } else {
+                avatarUrl = request.getContextPath() + (userAvatar.startsWith("/") ? "" : "/") + userAvatar;
             }
-        } else if (customer != null) {
-            userRole = "CUSTOMER";
-        } else {
-            userRole = "GUEST";
+        }
+    } else if (userObject instanceof Customer) {
+        Customer customer = (Customer) userObject;
+        userRole = "CUSTOMER";
+        fullName = customer.getFullName();
+        email = customer.getEmail();
+        String customerAvatar = customer.getAvatarUrl();
+        if (customerAvatar != null && !customerAvatar.trim().isEmpty()) {
+            // Handle both absolute URLs and relative paths
+            if (customerAvatar.startsWith("http://") || customerAvatar.startsWith("https://")) {
+                avatarUrl = customerAvatar;
+            } else {
+                avatarUrl = request.getContextPath() + (customerAvatar.startsWith("/") ? "" : "/") + customerAvatar;
+            }
         }
     }
-    
-    // Set context path and dashboard base
-    String contextPath = request.getContextPath();
-    String dashboardBase = "/" + userRole.toLowerCase() + "-dashboard";
+
+    // Set default avatar if none is provided
+    if (avatarUrl == null || avatarUrl.trim().isEmpty()) {
+        avatarUrl = request.getContextPath() + "/assets/home/images/default-avatar.png";
+    }
+
+    pageContext.setAttribute("userRole", userRole);
+    pageContext.setAttribute("contextPath", request.getContextPath());
+    pageContext.setAttribute("fullName", fullName);
+    pageContext.setAttribute("email", email);
+    pageContext.setAttribute("avatarUrl", avatarUrl);
 %>
 
-<%-- Unified Sidebar Navigation - Using Admin Framework Styles --%>
-<aside class="sidebar">
-    <button type="button" class="sidebar-close-btn">
-        <iconify-icon icon="radix-icons:cross-2"></iconify-icon>
-    </button>
-    <div>
-        <a href="<%= contextPath + dashboardBase %>" class="sidebar-logo">
-            <img src="<%= contextPath %>/assets/admin/images/logo.png" alt="BeautyZone Spa" class="light-logo">
-            <img src="<%= contextPath %>/assets/admin/images/logo-light.png" alt="BeautyZone Spa" class="dark-logo">
-            <img src="<%= contextPath %>/assets/admin/images/logo-icon.png" alt="BeautyZone Spa" class="logo-icon">
+<!-- Mobile overlay -->
+<div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden"></div>
+
+<!-- Sidebar -->
+<aside id="main-sidebar" class="sticky top-[4.5rem] h-[calc(100vh-7rem)] my-4 z-40 w-80 bg-white shadow-xl transform transition-transform duration-300 ease-in-out lg:translate-x-0 -translate-x-full flex flex-col">
+    <!-- Header -->
+    <div class="flex items-center justify-between h-16 px-6 border-b border-gray-200 bg-[#D4AF37] flex-shrink-0">
+        <a href="${contextPath}/dashboard" class="flex items-center" title="Go to Dashboard">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="heart" class="lucide lucide-heart h-8 w-8 text-white mr-3"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>
+            <div class="text-white">
+                <div class="text-lg font-bold font-serif">Spa Hương Sen</div>
+                <div class="text-xs opacity-90 uppercase tracking-wider">${userRole} PORTAL</div>
+            </div>
         </a>
+        <button id="close-sidebar-btn" class="lg:hidden text-white hover:text-gray-200 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="x" class="lucide lucide-x h-6 w-6"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+        </button>
     </div>
-    <div class="sidebar-menu-area">
-        <ul class="sidebar-menu" id="sidebar-menu">
+
+    <!-- Navigation -->
+    <nav class="flex-1 px-4 py-4 overflow-y-auto">
+        <h3 class="px-4 pb-2 text-sm font-semibold uppercase text-gray-400 tracking-wider">Tổng quan</h3>
+        <div class="space-y-1">
+            <c:choose>
+                <c:when test="${userRole == 'CUSTOMER'}">
+                    <!-- Customer Portal -->
+                    <div class="nav-item">
+                        <button class="nav-button nav-expandable w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-all duration-200 group text-gray-700 hover:bg-[#FFF8F0]" 
+                                data-item-id="customer-portal">
+                            <div class="flex items-center">
+                                <i data-lucide="user" class="h-5 w-5 mr-3 text-gray-500 group-hover:text-[#D4AF37]"></i>
+                                <span class="font-medium text-base">Khách hàng</span>
+                            </div>
+                            <i data-lucide="chevron-right" class="h-5 w-5 transition-transform duration-200"></i>
+                        </button>
+                        
+                        <div class="submenu ml-4 mt-1 space-y-1 pl-4 hidden">
+                            <a href="${contextPath}/customer/appointments" class="nav-button w-full flex items-center justify-between px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                    data-item-id="my-appointments">
+                                <div class="flex items-center">
+                                    <i data-lucide="calendar" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                                    <span>Lịch hẹn của tôi</span>
+                                </div>
+                                <span class="text-sm font-semibold px-2.5 py-1 rounded-full bg-yellow-400 text-yellow-900">3</span>
+                            </a>
+                            
+                            <a href="${contextPath}/booking" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                    data-item-id="book-services">
+                                <i data-lucide="calendar-plus" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                                <span>Đặt dịch vụ</span>
+                            </a>
+                            
+                            <a href="${contextPath}/customer/history" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                    data-item-id="treatment-history">
+                                <i data-lucide="history" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                                <span>Lịch sử điều trị</span>
+                            </a>
+                            
+                            <a href="${contextPath}/customer/profile" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                    data-item-id="personal-profile">
+                                <i data-lucide="user-cog" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                                <span>Hồ sơ cá nhân</span>
+                            </a>
+                            
+                            <a href="${contextPath}/password/change" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                    data-item-id="change-password">
+                                <i data-lucide="key" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                                <span>Đổi mật khẩu</span>
+                            </a>
+                            
+                            <a href="${contextPath}/customer/payments" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                    data-item-id="payment-history">
+                                <i data-lucide="credit-card" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                                <span>Lịch sử thanh toán</span>
+                            </a>
+                            
+                            <a href="${contextPath}/customer/loyalty" class="nav-button w-full flex items-center justify-between px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                    data-item-id="loyalty-points">
+                                <div class="flex items-center">
+                                    <i data-lucide="gift" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                                    <span>Điểm tích lũy</span>
+                                </div>
+                                <span class="text-sm font-semibold px-2.5 py-1 rounded-full bg-yellow-400 text-yellow-900">2,450</span>
+                            </a>
+                            
+                            <a href="${contextPath}/customer/offers" class="nav-button w-full flex items-center justify-between px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                    data-item-id="special-offers">
+                                <div class="flex items-center">
+                                    <i data-lucide="star" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                                    <span>Ưu đãi đặc biệt</span>
+                                </div>
+                                <span class="bg-red-500 text-white text-sm font-semibold px-2.5 py-1 rounded-full animate-pulse">Mới</span>
+                            </a>
+                        </div>
+                    </div>
+                </c:when>
+
+                <c:when test="${userRole == 'MANAGER' || userRole == 'ADMIN'}">
+                    <!-- Manager Dashboard -->
+                    <a href="${contextPath}/dashboard" class="nav-button w-full flex items-center px-4 py-2.5 rounded-lg transition-all duration-200 group text-gray-700 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                        data-item-id="dashboard">
+                        <i data-lucide="layout-dashboard" class="h-5 w-5 mr-3 text-gray-500 group-hover:text-[#D4AF37]"></i>
+                        <span class="font-medium text-sm">Dashboard</span>
+                    </a>
+                    <div class="nav-item">
+                        <button class="nav-button nav-expandable w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-all duration-200 group text-gray-700 hover:bg-[#FFF8F0]" 
+                                data-item-id="manager-dashboard">
+                            <div class="flex items-center">
+                                <i data-lucide="briefcase" class="h-5 w-5 mr-3 text-gray-500 group-hover:text-[#D4AF37]"></i>
+                                <span class="font-medium text-sm">Quản lý</span>
+                            </div>
+                            <i data-lucide="chevron-right" class="h-4 w-4 transition-transform duration-200"></i>
+                        </button>
+                        
+                        <div class="submenu ml-4 mt-1 space-y-1 pl-4 hidden">
+                            <a href="${contextPath}/manager/overview" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                    data-item-id="manager-overview">
+                                <i data-lucide="bar-chart-3" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                                <span>Tổng quan & Phân tích</span>
+                            </a>
+                            
+                            <a href="${contextPath}/manager/staff" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                    data-item-id="staff-management">
+                                <i data-lucide="users" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                                <span>Quản lý nhân viên</span>
+                            </a>
+                            
+                            <a href="${contextPath}/manager/calendar" class="nav-button w-full flex items-center justify-between px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                    data-item-id="appointment-calendar">
+                                <div class="flex items-center">
+                                    <i data-lucide="calendar" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                                    <span>Lịch hẹn tổng thể</span>
+                                </div>
+                                <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-400 text-yellow-900">45</span>
+                            </a>
+                            
+                            <a href="${contextPath}/servicetype" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                    data-item-id="service-management">
+                                <i data-lucide="list-checks" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                                <span>Quản lý dịch vụ</span>
+                            </a>
+                            
+                            <a href="${contextPath}/manager/inventory" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                    data-item-id="inventory-control">
+                                <i data-lucide="package" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                                <span>Kiểm soát kho</span>
+                            </a>
+                            
+                            <a href="${contextPath}/manager/finance" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                    data-item-id="financial-reports">
+                                <i data-lucide="dollar-sign" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                                <span>Báo cáo tài chính</span>
+                            </a>
+                            
+                            <a href="${contextPath}/manager/feedback" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                    data-item-id="customer-feedback">
+                                <i data-lucide="message-circle" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                                <span>Phản hồi khách hàng</span>
+                            </a>
+                            
+                            <a href="${contextPath}/manager/metrics" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                    data-item-id="performance-metrics">
+                                <i data-lucide="trending-up" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                                <span>Chỉ số hiệu suất</span>
+                            </a>
+                        </div>
+                    </div>
+                </c:when>
+                
+                <c:when test="${userRole == 'MARKETING' || userRole == 'ADMIN' || userRole == 'MANAGER'}">
+                     <!-- Marketing Portal -->
+                    <div class="nav-item">
+                        <button class="nav-button nav-expandable w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-all duration-200 group text-gray-700 hover:bg-[#FFF8F0]" 
+                                data-item-id="marketing-portal">
+                            <div class="flex items-center">
+                                <i data-lucide="megaphone" class="h-5 w-5 mr-3 text-gray-500 group-hover:text-[#D4AF37]"></i>
+                                <span class="font-medium text-sm">Marketing</span>
+                            </div>
+                            <i data-lucide="chevron-right" class="h-4 w-4 transition-transform duration-200"></i>
+                        </button>
+                        
+                        <div class="submenu ml-4 mt-1 space-y-1 pl-4 hidden">
+                            <a href="${contextPath}/marketing/campaigns" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                    data-item-id="campaign-management">
+                                <i data-lucide="target" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                                <span>Quản lý chiến dịch</span>
+                            </a>
+                             <a href="${contextPath}/marketing/promotions" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                    data-item-id="promotion-creator">
+                                <i data-lucide="gift" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                                <span>Tạo khuyến mãi</span>
+                            </a>
+                            <a href="${contextPath}/marketing/emails" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                    data-item-id="email-templates">
+                                <i data-lucide="mail" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                                <span>Mẫu email</span>
+                            </a>
+                            <a href="${contextPath}/marketing/social" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                    data-item-id="social-media">
+                                <i data-lucide="share-2" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                                <span>Mạng xã hội</span>
+                            </a>
+                            <a href="${contextPath}/marketing/analytics" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                    data-item-id="customer-analytics">
+                                <i data-lucide="bar-chart-3" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                                <span>Phân tích khách hàng</span>
+                            </a>
+                            <a href="${contextPath}/marketing/loyalty" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                    data-item-id="loyalty-program">
+                                <i data-lucide="award" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                                <span>Chương trình thành viên</span>
+                            </a>
+                            <a href="${contextPath}/marketing/events" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                    data-item-id="event-calendar">
+                                <i data-lucide="calendar-days" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                                <span>Lịch sự kiện</span>
+                            </a>
+                        </div>
+                    </div>
+                </c:when>
+            </c:choose>
+
+            <c:if test="${userRole == 'ADMIN'}">
+                <!-- Admin Panel -->
+                <div class="nav-item">
+                    <button class="nav-button nav-expandable w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-all duration-200 group text-gray-700 hover:bg-[#FFF8F0]" 
+                            data-item-id="admin-panel">
+                        <div class="flex items-center">
+                            <i data-lucide="shield" class="h-5 w-5 mr-3 text-gray-500 group-hover:text-[#D4AF37]"></i>
+                            <span class="font-medium text-sm">Quản trị hệ thống</span>
+                        </div>
+                        <i data-lucide="chevron-right" class="h-4 w-4 transition-transform duration-200"></i>
+                    </button>
+                    
+                    <div class="submenu ml-4 mt-1 space-y-1 pl-4 hidden">
+                        <a href="${contextPath}/user/list" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                data-item-id="user-management">
+                            <i data-lucide="users" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                            <span>Quản lý người dùng</span>
+                        </a>
+                        
+                        <a href="${contextPath}/admin/settings" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                data-item-id="system-settings">
+                            <i data-lucide="settings" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                            <span>Cài đặt hệ thống</span>
+                        </a>
+                        
+                        <a href="${contextPath}/admin/security" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                data-item-id="security-controls">
+                            <i data-lucide="lock" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                            <span>Kiểm soát bảo mật</span>
+                        </a>
+                        
+                        <a href="${contextPath}/admin/backup" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                data-item-id="database-backup">
+                            <i data-lucide="hard-drive" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                            <span>Sao lưu dữ liệu</span>
+                        </a>
+
+                        <a href="${contextPath}/admin/logs" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                data-item-id="access-logs">
+                            <i data-lucide="eye" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                            <span>Nhật ký truy cập</span>
+                        </a>
+
+                        <a href="${contextPath}/admin/config" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                data-item-id="site-configuration">
+                            <i data-lucide="wrench" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                            <span>Cấu hình website</span>
+                        </a>
+
+                        <a href="${contextPath}/admin/integrations" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                data-item-id="integration-settings">
+                            <i data-lucide="plug" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                            <span>Cài đặt tích hợp</span>
+                        </a>
+                        
+                        <a href="${contextPath}/promotion/list" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                data-item-id="promotion-management">
+                            <i data-lucide="tag" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                            <span>Quản lý khuyến mãi</span>
+                        </a>
+                        
+                        <a href="${contextPath}/admin/reports" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                data-item-id="system-reports">
+                            <i data-lucide="bar-chart-2" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                            <span>Báo cáo hệ thống</span>
+                        </a>
+                    </div>
+                </div>
+            </c:if>
+
+            <c:if test="${userRole == 'THERAPIST' || userRole == 'MANAGER' || userRole == 'ADMIN'}">
+                <!-- Therapist Interface -->
+                <div class="nav-item">
+                    <button class="nav-button nav-expandable w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-all duration-200 group text-gray-700 hover:bg-[#FFF8F0]" 
+                            data-item-id="therapist-interface">
+                        <div class="flex items-center">
+                            <i data-lucide="user-round" class="h-5 w-5 mr-3 text-gray-500 group-hover:text-[#D4AF37]"></i>
+                            <span class="font-medium text-sm">Nhân viên</span>
+                        </div>
+                        <i data-lucide="chevron-right" class="h-4 w-4 transition-transform duration-200"></i>
+                    </button>
+                    
+                    <div class="submenu ml-4 mt-1 space-y-1 pl-4 hidden">
+                        <a href="${contextPath}/therapist/schedule" class="nav-button w-full flex items-center justify-between px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                data-item-id="daily-schedule">
+                            <div class="flex items-center">
+                                <i data-lucide="clock" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                                <span>Lịch làm việc hôm nay</span>
+                            </div>
+                            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-400 text-yellow-900">8</span>
+                        </a>
+                        
+                        <a href="${contextPath}/appointment" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                data-item-id="appointment-management">
+                            <i data-lucide="calendar" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                            <span>Quản lý lịch hẹn</span>
+                        </a>
+                        
+                        <a href="${contextPath}/therapist/clients" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                data-item-id="client-records">
+                            <i data-lucide="file-text" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                            <span>Hồ sơ khách hàng</span>
+                        </a>
+                        
+                        <a href="${contextPath}/therapist/notes" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                data-item-id="treatment-notes">
+                            <i data-lucide="book-open" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                            <span>Ghi chú điều trị</span>
+                        </a>
+
+                        <a href="${contextPath}/therapist/products" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                data-item-id="product-usage">
+                            <i data-lucide="package" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                            <span>Sử dụng sản phẩm</span>
+                        </a>
+
+                        <a href="${contextPath}/therapist/time" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                data-item-id="time-management">
+                            <i data-lucide="timer" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                            <span>Quản lý thời gian</span>
+                        </a>
+                        
+                        <a href="${contextPath}/therapist/performance" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                data-item-id="therapist-performance">
+                            <i data-lucide="bar-chart" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                            <span>Thống kê hiệu suất</span>
+                        </a>
+
+                        <a href="${contextPath}/therapist/leave" class="nav-button w-full flex items-center px-3 py-2 rounded-md transition-all duration-200 text-sm group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                                data-item-id="leave-requests">
+                            <i data-lucide="clipboard" class="h-4 w-4 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
+                            <span>Yêu cầu nghỉ phép</span>
+                        </a>
+                    </div>
+                </div>
+            </c:if>
+
+            <div class="px-4 pt-2 pb-2">
+                <div class="border-t border-gray-200"></div>
+            </div>
             
-            <% if ("ADMIN".equals(userRole)) { %>
-                <!-- ADMIN MENU -->
-                <li>
-                    <a href="<%= contextPath %>/admin-dashboard" class="active-page">
-                        <iconify-icon icon="solar:widget-6-outline" class="menu-icon"></iconify-icon>
-                        <span>Tổng Quan Hệ Thống</span>
-                    </a>
-                </li>
-                
-                <li class="sidebar-menu-group-title">Quản Lý Người Dùng</li>
-                
-                <li class="dropdown">
-                    <a href="javascript:void(0)">
-                        <iconify-icon icon="solar:users-group-two-rounded-outline" class="menu-icon"></iconify-icon>
-                        <span>Quản Lý Users</span>
-                    </a>
-                    <ul class="sidebar-submenu">
-                        <li>
-                            <a href="<%= contextPath %>/admin/users/list">
-                                <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Danh Sách Users
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/admin/users/create">
-                                <i class="ri-circle-fill circle-icon text-success-main w-auto"></i> Tạo User Mới
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/admin/users/roles">
-                                <i class="ri-circle-fill circle-icon text-warning-main w-auto"></i> Quản Lý Roles
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/admin/users/permissions">
-                                <i class="ri-circle-fill circle-icon text-info-main w-auto"></i> Phân Quyền
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                
-                <li class="dropdown">
-                    <a href="javascript:void(0)">
-                        <iconify-icon icon="solar:user-heart-outline" class="menu-icon"></iconify-icon>
-                        <span>Quản Lý Khách Hàng</span>
-                    </a>
-                    <ul class="sidebar-submenu">
-                        <li>
-                            <a href="<%= contextPath %>/admin/customers/list">
-                                <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Danh Sách Khách Hàng
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/admin/customers/analytics">
-                                <i class="ri-circle-fill circle-icon text-info-main w-auto"></i> Phân Tích Khách Hàng
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/admin/customers/loyalty">
-                                <i class="ri-circle-fill circle-icon text-warning-main w-auto"></i> Chương Trình Loyalty
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                
-                <li class="dropdown">
-                    <a href="javascript:void(0)">
-                        <iconify-icon icon="solar:users-group-rounded-outline" class="menu-icon"></iconify-icon>
-                        <span>Quản Lý Nhân Viên</span>
-                    </a>
-                    <ul class="sidebar-submenu">
-                        <li>
-                            <a href="<%= contextPath %>/admin/staff/list">
-                                <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Danh Sách Nhân Viên
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/admin/staff/roles">
-                                <i class="ri-circle-fill circle-icon text-warning-main w-auto"></i> Phân Quyền Staff
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/admin/staff/schedules">
-                                <i class="ri-circle-fill circle-icon text-info-main w-auto"></i> Lịch Làm Việc
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/admin/staff/payroll">
-                                <i class="ri-circle-fill circle-icon text-danger-main w-auto"></i> Quản Lý Lương
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                
-                <li class="sidebar-menu-group-title">Quản Lý Kinh Doanh</li>
-                
-                <li class="dropdown">
-                    <a href="javascript:void(0)">
-                        <iconify-icon icon="solar:spa-outline" class="menu-icon"></iconify-icon>
-                        <span>Quản Lý Dịch Vụ</span>
-                    </a>
-                    <ul class="sidebar-submenu">
-                        <li>
-                            <a href="<%= contextPath %>/admin/services/list">
-                                <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Danh Sách Dịch Vụ
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/admin/services/categories">
-                                <i class="ri-circle-fill circle-icon text-info-main w-auto"></i> Danh Mục Dịch Vụ
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/admin/services/pricing">
-                                <i class="ri-circle-fill circle-icon text-success-main w-auto"></i> Quản Lý Giá
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                
-                <li class="dropdown">
-                    <a href="javascript:void(0)">
-                        <iconify-icon icon="solar:calendar-outline" class="menu-icon"></iconify-icon>
-                        <span>Quản Lý Booking</span>
-                    </a>
-                    <ul class="sidebar-submenu">
-                        <li>
-                            <a href="<%= contextPath %>/admin/bookings/list">
-                                <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Tất Cả Booking
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/admin/bookings/calendar">
-                                <i class="ri-circle-fill circle-icon text-info-main w-auto"></i> Lịch Booking
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/admin/bookings/settings">
-                                <i class="ri-circle-fill circle-icon text-success-main w-auto"></i> Cài Đặt Booking
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                
-                <li class="dropdown">
-                    <a href="javascript:void(0)">
-                        <iconify-icon icon="solar:dollar-outline" class="menu-icon"></iconify-icon>
-                        <span>Tài Chính</span>
-                    </a>
-                    <ul class="sidebar-submenu">
-                        <li>
-                            <a href="<%= contextPath %>/admin/financial/overview">
-                                <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Tổng Quan Tài Chính
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/admin/financial/revenue">
-                                <i class="ri-circle-fill circle-icon text-success-main w-auto"></i> Doanh Thu
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/admin/financial/expenses">
-                                <i class="ri-circle-fill circle-icon text-danger-main w-auto"></i> Chi Phí
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/admin/financial/invoices">
-                                <i class="ri-circle-fill circle-icon text-warning-main w-auto"></i> Hóa Đơn
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                
-                <li class="sidebar-menu-group-title">Báo Cáo & Hệ Thống</li>
-                
-                <li class="dropdown">
-                    <a href="javascript:void(0)">
-                        <iconify-icon icon="solar:chart-2-outline" class="menu-icon"></iconify-icon>
-                        <span>Báo Cáo</span>
-                    </a>
-                    <ul class="sidebar-submenu">
-                        <li>
-                            <a href="<%= contextPath %>/admin/reports/dashboard">
-                                <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Dashboard Báo Cáo
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/admin/reports/revenue">
-                                <i class="ri-circle-fill circle-icon text-success-main w-auto"></i> Báo Cáo Doanh Thu
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/admin/reports/customers">
-                                <i class="ri-circle-fill circle-icon text-info-main w-auto"></i> Báo Cáo Khách Hàng
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                
-                <li class="dropdown">
-                    <a href="javascript:void(0)">
-                        <iconify-icon icon="solar:shield-check-outline" class="menu-icon"></iconify-icon>
-                        <span>Bảo Mật</span>
-                    </a>
-                    <ul class="sidebar-submenu">
-                        <li>
-                            <a href="<%= contextPath %>/admin/security/overview">
-                                <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Tổng Quan Bảo Mật
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/admin/security/access">
-                                <i class="ri-circle-fill circle-icon text-warning-main w-auto"></i> Kiểm Soát Truy Cập
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/admin/security/audit">
-                                <i class="ri-circle-fill circle-icon text-danger-main w-auto"></i> Nhật Ký Audit
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                
-                <li class="dropdown">
-                    <a href="javascript:void(0)">
-                        <iconify-icon icon="solar:settings-outline" class="menu-icon"></iconify-icon>
-                        <span>Hệ Thống</span>
-                    </a>
-                    <ul class="sidebar-submenu">
-                        <li>
-                            <a href="<%= contextPath %>/admin/system/settings">
-                                <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Cài Đặt Hệ Thống
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/admin/system/backup">
-                                <i class="ri-circle-fill circle-icon text-success-main w-auto"></i> Sao Lưu Dữ Liệu
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/admin/system/maintenance">
-                                <i class="ri-circle-fill circle-icon text-warning-main w-auto"></i> Bảo Trì Hệ Thống
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/admin/system/logs">
-                                <i class="ri-circle-fill circle-icon text-info-main w-auto"></i> Nhật Ký Hệ Thống
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                
-                <li>
-                    <a href="<%= contextPath %>/admin/inventory/products">
-                        <iconify-icon icon="solar:box-outline" class="menu-icon"></iconify-icon>
-                        <span>Quản Lý Kho</span>
-                    </a>
-                </li>
-                
-                <li>
-                    <a href="<%= contextPath %>/admin/communication/messages">
-                        <iconify-icon icon="solar:chat-round-outline" class="menu-icon"></iconify-icon>
-                        <span>Giao Tiếp</span>
-                    </a>
-                </li>
-                
-            <% } else if ("MANAGER".equals(userRole)) { %>
-                <!-- MANAGER MENU -->
-                <li>
-                    <a href="<%= contextPath %>/manager-dashboard" class="active-page">
-                        <iconify-icon icon="solar:widget-6-outline" class="menu-icon"></iconify-icon>
-                        <span>Tổng Quan</span>
-                    </a>
-                </li>
-                
-                <li class="sidebar-menu-group-title">Quản Lý Chính</li>
-                
-                <li class="dropdown">
-                    <a href="javascript:void(0)">
-                        <iconify-icon icon="solar:users-group-two-rounded-outline" class="menu-icon"></iconify-icon>
-                        <span>Quản Lý Khách Hàng</span>
-                    </a>
-                    <ul class="sidebar-submenu">
-                        <li>
-                            <a href="<%= contextPath %>/manager-dashboard/customers/list">
-                                <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Danh Sách Khách Hàng
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/manager-dashboard/customers/categories">
-                                <i class="ri-circle-fill circle-icon text-warning-main w-auto"></i> Phân Loại Khách Hàng
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/manager-dashboard/customers/history">
-                                <i class="ri-circle-fill circle-icon text-info-main w-auto"></i> Lịch Sử Sử Dụng
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/manager-dashboard/customers/notes">
-                                <i class="ri-circle-fill circle-icon text-success-main w-auto"></i> Ghi Chú Đặc Biệt
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                
-                <li class="dropdown">
-                    <a href="javascript:void(0)">
-                        <iconify-icon icon="solar:settings-outline" class="menu-icon"></iconify-icon>
-                        <span>Quản Lý Dịch Vụ</span>
-                    </a>
-                    <ul class="sidebar-submenu">
-                        <li>
-                            <a href="<%= contextPath %>/manager/servicetype">
-                                <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Quản lí loại dịch vụ
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/manager/service">
-                                <i class="ri-circle-fill circle-icon text-warning-main w-auto"></i> Quản lí dịch vụ
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/manager-dashboard/services/media">
-                                <i class="ri-circle-fill circle-icon text-info-main w-auto"></i> Hình Ảnh & Mô Tả
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/manager-dashboard/services/analytics">
-                                <i class="ri-circle-fill circle-icon text-success-main w-auto"></i> Phân Tích Dịch Vụ
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                
-                <li class="dropdown">
-                    <a href="javascript:void(0)">
-                        <iconify-icon icon="solar:users-group-rounded-outline" class="menu-icon"></iconify-icon>
-                        <span>Quản Lý Nhân Viên</span>
-                    </a>
-                    <ul class="sidebar-submenu">
-                        <li>
-                            <a href="<%= contextPath %>/manager-dashboard/staff/list">
-                                <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Danh Sách Nhân Viên
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/manager-dashboard/staff/schedules">
-                                <i class="ri-circle-fill circle-icon text-warning-main w-auto"></i> Lịch Làm Việc
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/manager-dashboard/staff/performance">
-                                <i class="ri-circle-fill circle-icon text-info-main w-auto"></i> Thống Kê Hiệu Suất
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/manager-dashboard/staff/assignments">
-                                <i class="ri-circle-fill circle-icon text-success-main w-auto"></i> Phân Công Công Việc
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                
-                <li class="sidebar-menu-group-title">Báo Cáo & Thống Kê</li>
-                
-                <li class="dropdown">
-                    <a href="javascript:void(0)">
-                        <iconify-icon icon="solar:chart-2-outline" class="menu-icon"></iconify-icon>
-                        <span>Báo Cáo Doanh Thu</span>
-                    </a>
-                    <ul class="sidebar-submenu">
-                        <li>
-                            <a href="<%= contextPath %>/manager-dashboard/reports/revenue">
-                                <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Báo Cáo Chi Tiết
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/manager-dashboard/dashboard/revenue">
-                                <i class="ri-circle-fill circle-icon text-warning-main w-auto"></i> Tổng Quan Doanh Thu
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                
-                <li class="dropdown">
-                    <a href="javascript:void(0)">
-                        <iconify-icon icon="solar:graph-up-outline" class="menu-icon"></iconify-icon>
-                        <span>Phân Tích & Thống Kê</span>
-                    </a>
-                    <ul class="sidebar-submenu">
-                        <li>
-                            <a href="<%= contextPath %>/manager-dashboard/reports/customers">
-                                <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Thống Kê Khách Hàng
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/manager-dashboard/reports/trends">
-                                <i class="ri-circle-fill circle-icon text-warning-main w-auto"></i> Xu Hướng Dịch Vụ
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/manager-dashboard/dashboard/appointments">
-                                <i class="ri-circle-fill circle-icon text-info-main w-auto"></i> Thống Kê Đặt Lịch
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                
-                <li>
-                    <a href="<%= contextPath %>/manager-dashboard/reports/reviews">
-                        <iconify-icon icon="solar:star-outline" class="menu-icon"></iconify-icon>
-                        <span>Đánh Giá Khách Hàng</span>
-                    </a>
-                </li>
-                
-                <li class="sidebar-menu-group-title">Hệ Thống</li>
-                
-                <li>
-                    <a href="<%= contextPath %>/manager-dashboard/dashboard/notifications">
-                        <iconify-icon icon="solar:bell-outline" class="menu-icon"></iconify-icon>
-                        <span>Thông Báo Quan Trọng</span>
-                    </a>
-                </li>
-                
-            <% } else if ("THERAPIST".equals(userRole)) { %>
-                <!-- THERAPIST MENU -->
-                <li>
-                    <a href="<%= contextPath %>/therapist-dashboard" class="active-page">
-                        <iconify-icon icon="solar:home-smile-angle-outline" class="menu-icon"></iconify-icon>
-                        <span>Bảng Điều Khiển</span>
-                    </a>
-                </li>
-                
-                <li class="dropdown">
-                    <a href="javascript:void(0)">
-                        <iconify-icon icon="solar:calendar-outline" class="menu-icon"></iconify-icon>
-                        <span>Lịch Hẹn</span>
-                    </a>
-                    <ul class="sidebar-submenu">
-                        <li>
-                            <a href="<%= contextPath %>/therapist-dashboard/appointments/today">
-                                <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Lịch Hôm Nay
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/therapist-dashboard/appointments/upcoming">
-                                <i class="ri-circle-fill circle-icon text-warning-main w-auto"></i> Lịch Sắp Tới
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/therapist-dashboard/appointments/history">
-                                <i class="ri-circle-fill circle-icon text-info-main w-auto"></i> Lịch Sử Lịch Hẹn
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                
-                <li class="dropdown">
-                    <a href="javascript:void(0)">
-                        <iconify-icon icon="solar:heart-outline" class="menu-icon"></iconify-icon>
-                        <span>Liệu Pháp</span>
-                    </a>
-                    <ul class="sidebar-submenu">
-                        <li>
-                            <a href="<%= contextPath %>/therapist-dashboard/treatments/active">
-                                <i class="ri-circle-fill circle-icon text-success-main w-auto"></i> Đang Thực Hiện
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/therapist-dashboard/treatments/completed">
-                                <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Đã Hoàn Thành
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/therapist-dashboard/treatments/notes">
-                                <i class="ri-circle-fill circle-icon text-warning-main w-auto"></i> Ghi Chú Liệu Pháp
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                
-                <li class="dropdown">
-                    <a href="javascript:void(0)">
-                        <iconify-icon icon="solar:users-group-rounded-outline" class="menu-icon"></iconify-icon>
-                        <span>Khách Hàng</span>
-                    </a>
-                    <ul class="sidebar-submenu">
-                        <li>
-                            <a href="<%= contextPath %>/therapist-dashboard/clients/assigned">
-                                <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Khách Được Phân
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/therapist-dashboard/clients/history">
-                                <i class="ri-circle-fill circle-icon text-info-main w-auto"></i> Lịch Sử Khách Hàng
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/therapist-dashboard/clients/notes">
-                                <i class="ri-circle-fill circle-icon text-success-main w-auto"></i> Ghi Chú Khách Hàng
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                
-                <li class="dropdown">
-                    <a href="javascript:void(0)">
-                        <iconify-icon icon="solar:clock-circle-outline" class="menu-icon"></iconify-icon>
-                        <span>Lịch Làm Việc</span>
-                    </a>
-                    <ul class="sidebar-submenu">
-                        <li>
-                            <a href="<%= contextPath %>/therapist-dashboard/schedule/daily">
-                                <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Lịch Hàng Ngày
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/therapist-dashboard/schedule/weekly">
-                                <i class="ri-circle-fill circle-icon text-warning-main w-auto"></i> Lịch Hàng Tuần
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/therapist-dashboard/schedule/requests">
-                                <i class="ri-circle-fill circle-icon text-info-main w-auto"></i> Yêu Cầu Thay Đổi
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                
-                <li class="sidebar-menu-group-title">Hiệu Suất & Phát Triển</li>
-                
-                <li class="dropdown">
-                    <a href="javascript:void(0)">
-                        <iconify-icon icon="solar:chart-outline" class="menu-icon"></iconify-icon>
-                        <span>Hiệu Suất Làm Việc</span>
-                    </a>
-                    <ul class="sidebar-submenu">
-                        <li>
-                            <a href="<%= contextPath %>/therapist-dashboard/performance/stats">
-                                <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Thống Kê Hiệu Suất
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/therapist-dashboard/performance/feedback">
-                                <i class="ri-circle-fill circle-icon text-success-main w-auto"></i> Phản Hồi Khách Hàng
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                
-                <li class="dropdown">
-                    <a href="javascript:void(0)">
-                        <iconify-icon icon="solar:book-outline" class="menu-icon"></iconify-icon>
-                        <span>Đào Tạo</span>
-                    </a>
-                    <ul class="sidebar-submenu">
-                        <li>
-                            <a href="<%= contextPath %>/therapist-dashboard/training/courses">
-                                <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Khóa Học
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/therapist-dashboard/training/certificates">
-                                <i class="ri-circle-fill circle-icon text-warning-main w-auto"></i> Chứng Chỉ
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                
-                <li class="dropdown">
-                    <a href="javascript:void(0)">
-                        <iconify-icon icon="solar:box-outline" class="menu-icon"></iconify-icon>
-                        <span>Vật Tư & Thiết Bị</span>
-                    </a>
-                    <ul class="sidebar-submenu">
-                        <li>
-                            <a href="<%= contextPath %>/therapist-dashboard/inventory/supplies">
-                                <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Tình Trạng Vật Tư
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/therapist-dashboard/inventory/requests">
-                                <i class="ri-circle-fill circle-icon text-warning-main w-auto"></i> Yêu Cầu Vật Tư
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                
-                <li class="sidebar-menu-group-title">Tài Khoản</li>
-                
-                <li>
-                    <a href="<%= contextPath %>/therapist-dashboard/dashboard/profile">
-                        <iconify-icon icon="solar:user-outline" class="menu-icon"></iconify-icon>
-                        <span>Thông Tin Cá Nhân</span>
-                    </a>
-                </li>
-                
-                <li>
-                    <a href="<%= contextPath %>/therapist-dashboard/dashboard/notifications">
-                        <iconify-icon icon="solar:bell-outline" class="menu-icon"></iconify-icon>
-                        <span>Thông Báo</span>
-                    </a>
-                </li>
-                
-            <% } else if ("CUSTOMER".equals(userRole)) { %>
-                <!-- CUSTOMER MENU -->
-                <li>
-                    <a href="<%= contextPath %>/customer-dashboard" class="active-page">
-                        <iconify-icon icon="solar:home-smile-angle-outline" class="menu-icon"></iconify-icon>
-                        <span>Bảng Điều Khiển</span>
-                    </a>
-                </li>
-                
-                <li class="dropdown">
-                    <a href="javascript:void(0)">
-                        <iconify-icon icon="solar:calendar-outline" class="menu-icon"></iconify-icon>
-                        <span>Lịch Hẹn</span>
-                    </a>
-                    <ul class="sidebar-submenu">
-                        <li>
-                            <a href="<%= contextPath %>/customer-dashboard/appointments/booking">
-                                <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Đặt Lịch Hẹn
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/customer-dashboard/appointments/upcoming">
-                                <i class="ri-circle-fill circle-icon text-warning-main w-auto"></i> Lịch Hẹn Sắp Tới
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/customer-dashboard/appointments/history">
-                                <i class="ri-circle-fill circle-icon text-info-main w-auto"></i> Lịch Sử Lịch Hẹn
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                
-                <li>
-                    <a href="<%= contextPath %>/customer-dashboard/treatments/history">
-                        <iconify-icon icon="solar:file-text-outline" class="menu-icon"></iconify-icon>
-                        <span>Lịch Sử Liệu Pháp</span>
-                    </a>
-                </li>
-                
-                <li class="dropdown">
-                    <a href="javascript:void(0)">
-                        <iconify-icon icon="solar:gift-outline" class="menu-icon"></iconify-icon>
-                        <span>Phần Thưởng & Điểm</span>
-                    </a>
-                    <ul class="sidebar-submenu">
-                        <li>
-                            <a href="<%= contextPath %>/customer-dashboard/rewards/points">
-                                <i class="ri-circle-fill circle-icon text-success-main w-auto"></i> Điểm Thưởng
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/customer-dashboard/rewards/rewards-list">
-                                <i class="ri-circle-fill circle-icon text-danger-main w-auto"></i> Đổi Thưởng
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                
-                <li>
-                    <a href="<%= contextPath %>/customer-dashboard/recommendations/services">
-                        <iconify-icon icon="solar:bag-smile-outline" class="menu-icon"></iconify-icon>
-                        <span>Đề Xuất Dành Cho Bạn</span>
-                    </a>
-                </li>
-                
-                <li>
-                    <a href="<%= contextPath %>/customer-dashboard/reviews/my-reviews">
-                        <iconify-icon icon="solar:star-outline" class="menu-icon"></iconify-icon>
-                        <span>Đánh Giá Của Tôi</span>
-                    </a>
-                </li>
-                
-                <li class="dropdown">
-                    <a href="javascript:void(0)">
-                        <iconify-icon icon="solar:card-outline" class="menu-icon"></iconify-icon>
-                        <span>Thanh Toán & Hóa Đơn</span>
-                    </a>
-                    <ul class="sidebar-submenu">
-                        <li>
-                            <a href="<%= contextPath %>/customer-dashboard/billing/payments">
-                                <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Lịch Sử Thanh Toán
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/customer-dashboard/billing/invoices">
-                                <i class="ri-circle-fill circle-icon text-success-main w-auto"></i> Hóa Đơn
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                
-                <li class="sidebar-menu-group-title">Tài Khoản</li>
-                
-                <li>
-                    <a href="<%= contextPath %>/customer-dashboard/dashboard/profile">
-                        <iconify-icon icon="solar:user-outline" class="menu-icon"></iconify-icon>
-                        <span>Thông Tin Cá Nhân</span>
-                    </a>
-                </li>
-                
-                <li>
-                    <a href="<%= contextPath %>/customer-dashboard/dashboard/notifications">
-                        <iconify-icon icon="solar:bell-outline" class="menu-icon"></iconify-icon>
-                        <span>Thông Báo</span>
-                    </a>
-                </li>
-                
-            <% } else if ("RECEPTIONIST".equals(userRole)) { %>
-                <!-- RECEPTIONIST MENU -->
-                <li>
-                    <a href="<%= contextPath %>/receptionist-dashboard" class="active-page">
-                        <iconify-icon icon="solar:home-smile-angle-outline" class="menu-icon"></iconify-icon>
-                        <span>Bảng Điều Khiển</span>
-                    </a>
-                </li>
-                
-                <li class="dropdown">
-                    <a href="javascript:void(0)">
-                        <iconify-icon icon="solar:calendar-outline" class="menu-icon"></iconify-icon>
-                        <span>Quản Lý Lịch Hẹn</span>
-                    </a>
-                    <ul class="sidebar-submenu">
-                        <li>
-                            <a href="<%= contextPath %>/receptionist-dashboard/appointments/today">
-                                <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Lịch Hôm Nay
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/receptionist-dashboard/appointments/upcoming">
-                                <i class="ri-circle-fill circle-icon text-warning-main w-auto"></i> Lịch Sắp Tới
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/receptionist-dashboard/appointments/booking">
-                                <i class="ri-circle-fill circle-icon text-success-main w-auto"></i> Đặt Lịch Mới
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                
-                <li class="dropdown">
-                    <a href="javascript:void(0)">
-                        <iconify-icon icon="solar:users-group-two-rounded-outline" class="menu-icon"></iconify-icon>
-                        <span>Dịch Vụ Khách Hàng</span>
-                    </a>
-                    <ul class="sidebar-submenu">
-                        <li>
-                            <a href="<%= contextPath %>/receptionist-dashboard/customers/checkin">
-                                <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Check-in Khách Hàng
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/receptionist-dashboard/customers/support">
-                                <i class="ri-circle-fill circle-icon text-info-main w-auto"></i> Hỗ Trợ Khách Hàng
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/receptionist-dashboard/customers/feedback">
-                                <i class="ri-circle-fill circle-icon text-warning-main w-auto"></i> Thu Thập Phản Hồi
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                
-                <li class="dropdown">
-                    <a href="javascript:void(0)">
-                        <iconify-icon icon="solar:card-outline" class="menu-icon"></iconify-icon>
-                        <span>Thanh Toán</span>
-                    </a>
-                    <ul class="sidebar-submenu">
-                        <li>
-                            <a href="<%= contextPath %>/receptionist-dashboard/billing/process">
-                                <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Xử Lý Thanh Toán
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<%= contextPath %>/receptionist-dashboard/billing/invoices">
-                                <i class="ri-circle-fill circle-icon text-success-main w-auto"></i> Tạo Hóa Đơn
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                
-                <li>
-                    <a href="<%= contextPath %>/receptionist-dashboard/communication/messages">
-                        <iconify-icon icon="solar:chat-round-outline" class="menu-icon"></iconify-icon>
-                        <span>Tin Nhắn & Thông Báo</span>
-                    </a>
-                </li>
-                
-            <% } %>
-            
-            <!-- Common Menu Items for All Roles -->
-            <li>
-                <a href="<%= contextPath %>/profile">
-                    <iconify-icon icon="solar:user-outline" class="menu-icon"></iconify-icon>
-                    <span>Thông Tin Cá Nhân</span>
+            <!-- Settings (All roles) -->
+            <div class="nav-item">
+                <a href="${contextPath}/profile/settings" class="nav-button w-full flex items-center px-4 py-2.5 rounded-lg transition-all duration-200 group text-gray-700 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                        data-item-id="settings">
+                    <i data-lucide="settings" class="h-5 w-5 mr-3 text-gray-500 group-hover:text-[#D4AF37]"></i>
+                    <span class="font-medium text-sm">Cài đặt</span>
                 </a>
-            </li>
-            
-            <li>
-                <a href="<%= contextPath %>/logout">
-                    <iconify-icon icon="solar:logout-2-outline" class="menu-icon"></iconify-icon>
-                    <span>Đăng Xuất</span>
-                </a>
-            </li>
-        </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- User Profile & Logout -->
+    <div class="border-t border-gray-200 p-2">
+        <a href="${contextPath}/profile" class="block w-full p-2 hover:bg-[#FFF8F0] rounded-lg mb-1 group">
+            <div class="flex items-center">
+                <div class="flex-1 min-w-0">
+                    <p class="text-base font-semibold text-gray-800 truncate group-hover:text-[#D4AF37] transition-colors">${fullName}</p>
+                    <p class="text-sm text-gray-500 capitalize">${userRole.toLowerCase()}</p>
+                </div>
+            </div>
+        </a>
+        
+        <button id="logout-btn" class="flex items-center w-full px-2 py-2.5 text-base text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group">
+            <i data-lucide="log-out" class="h-5 w-5 mr-3 group-hover:scale-110 transition-transform"></i>
+            <span class="font-medium">Đăng xuất</span>
+        </button>
     </div>
 </aside>
 
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        class SidebarManager {
+            constructor(userRole) {
+                this.sidebar = document.getElementById('main-sidebar');
+                if (!this.sidebar) {
+                    console.error("Sidebar element #main-sidebar not found.");
+                    return;
+                }
 
+                this.overlay = document.getElementById('sidebar-overlay');
+                this.closeSidebarBtn = document.getElementById('close-sidebar-btn');
+                this.logoutBtn = document.getElementById('logout-btn');
+                this.navButtons = this.sidebar.querySelectorAll('.nav-button');
+                
+                this.userRole = userRole;
+                this.activeItem = null;
+                this.expandedItems = new Set();
+                
+                this.init();
+            }
 
- 
+            init() {
+                this.autoExpandRoleMenu();
+                this.initEventListeners();
+                this.detectActiveItem();
+
+                // Make toggle function globally available
+                window.toggleSidebar = () => this.toggleSidebar();
+                
+                if (window.lucide) {
+                    lucide.createIcons();
+                }
+            }
+
+            autoExpandRoleMenu() {
+                let roleMenuId = '';
+                switch (this.userRole) {
+                    case 'CUSTOMER': roleMenuId = 'customer-portal'; break;
+                    case 'MANAGER': roleMenuId = 'manager-dashboard'; break;
+                    case 'ADMIN': roleMenuId = 'admin-panel'; break;
+                    case 'THERAPIST': roleMenuId = 'therapist-interface'; break;
+                    case 'MARKETING': roleMenuId = 'marketing-portal'; break;
+                }
+                
+                if (roleMenuId) {
+                    this.expandedItems.add(roleMenuId);
+                }
+            }
+            
+            detectActiveItem() {
+                const currentPath = window.location.pathname;
+                let bestMatch = null;
+
+                this.navButtons.forEach(button => {
+                    const buttonPath = button.getAttribute('href');
+                    if (buttonPath && currentPath.includes(buttonPath)) {
+                        if (!bestMatch || buttonPath.length > (bestMatch.getAttribute('href') || '').length) {
+                            bestMatch = button;
+                        }
+                    }
+                });
+                
+                if (bestMatch) {
+                    const itemId = bestMatch.dataset.itemId;
+                    this.setActiveItem(itemId);
+
+                    // Auto-expand parent menu if a child is active
+                    const parentMenu = bestMatch.closest('.submenu');
+                    if (parentMenu) {
+                        const parentButton = parentMenu.previousElementSibling;
+                        if(parentButton && parentButton.dataset.itemId) {
+                            this.expandedItems.add(parentButton.dataset.itemId);
+                        }
+                    }
+                } else if (currentPath.endsWith('/dashboard')) {
+                    this.setActiveItem('dashboard');
+                }
+                this.updateExpandedState();
+                this.updateActiveState();
+            }
+
+            initEventListeners() {
+                this.sidebar.addEventListener('click', (e) => {
+                    const button = e.target.closest('.nav-button');
+                    if (!button) return;
+
+                    // For expandable buttons, prevent navigation and toggle submenu
+                    if (button.classList.contains('nav-expandable')) {
+                        e.preventDefault();
+                        const itemId = button.dataset.itemId;
+                        this.toggleExpanded(itemId);
+                    }
+                });
+
+                this.closeSidebarBtn?.addEventListener('click', () => this.closeSidebar());
+                this.overlay?.addEventListener('click', () => this.closeSidebar());
+                
+                this.logoutBtn?.addEventListener('click', () => {
+                    if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+                        const contextPath = '${contextPath}';
+                        window.location.href = `${contextPath}/logout`;
+                    }
+                });
+            }
+
+            toggleSidebar() {
+                if (this.sidebar.classList.contains('-translate-x-full')) {
+                    this.openSidebar();
+                } else {
+                    this.closeSidebar();
+                }
+            }
+
+            openSidebar() {
+                this.sidebar.classList.remove('-translate-x-full');
+                this.overlay?.classList.remove('hidden');
+            }
+
+            closeSidebar() {
+                this.sidebar.classList.add('-translate-x-full');
+                this.overlay?.classList.add('hidden');
+            }
+
+            toggleExpanded(itemId) {
+                if (this.expandedItems.has(itemId)) {
+                    this.expandedItems.delete(itemId);
+                } else {
+                    this.expandedItems.add(itemId);
+                }
+                this.updateExpandedState();
+            }
+            
+            updateExpandedState() {
+                this.sidebar.querySelectorAll('.nav-expandable').forEach(button => {
+                    const itemId = button.dataset.itemId;
+                    const submenu = button.nextElementSibling;
+                    const chevron = button.querySelector('[data-lucide="chevron-right"]');
+
+                    if (this.expandedItems.has(itemId)) {
+                        submenu?.classList.remove('hidden');
+                        chevron?.classList.add('rotate-90');
+                        button.classList.add('bg-[#FFF8F0]', 'text-[#D4AF37]');
+                    } else {
+                        submenu?.classList.add('hidden');
+                        chevron?.classList.remove('rotate-90');
+                        button.classList.remove('bg-[#FFF8F0]', 'text-[#D4AF37]');
+                    }
+                });
+            }
+
+            setActiveItem(itemId) {
+                if (!itemId) return;
+                this.activeItem = itemId;
+                this.updateActiveState();
+            }
+
+            updateActiveState() {
+                this.navButtons.forEach(btn => {
+                    const icon = btn.querySelector('i[data-lucide]');
+                    if (btn.dataset.itemId === this.activeItem && !btn.classList.contains('nav-expandable')) {
+                        btn.classList.add('bg-[#D4AF37]', 'text-white', 'shadow-inner');
+                        btn.classList.remove('text-gray-600', 'hover:bg-[#FFF8F0]', 'hover:text-[#D4AF37]');
+                        icon?.classList.add('text-white');
+                        icon?.classList.remove('text-gray-400', 'text-gray-500');
+                    }
+                });
+            }
+        }
+
+        new SidebarManager('${userRole}');
+    });
+</script> 

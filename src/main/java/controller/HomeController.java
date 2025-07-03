@@ -1,34 +1,36 @@
 package controller;
 
-import dao.ServiceDAO;
-import model.Service;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.List;
 
 /**
  * Home Controller to handle the root path
  * Maps to "/" and "/index" to serve the main page
  */
-@WebServlet(name = "HomeController", urlPatterns = { "/", "/index" })
 public class HomeController extends HttpServlet {
 
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
 
-    // Fetch 6 services for the pricing section
-    ServiceDAO serviceDAO = new ServiceDAO();
-    List<Service> featuredServices = serviceDAO.findPaginated(0, 6);
+    System.out.println("[HomeController] Reached the HomeController. Forwarding to home.jsp.");
 
-    // Pass the services to the JSP
-    request.setAttribute("featuredServices", featuredServices);
+    // Additional diagnostic attributes
+    request.setAttribute("controller_reached", "HomeController");
+    request.setAttribute("timestamp", System.currentTimeMillis());
 
-    // Forward to the main index.jsp page
+    // The JSP will have access to the session attributes for this request.
+    // We don't need to do anything special here to pass them.
+    // They will be removed from the session after this request cycle
+    // if they were displayed. Let's try to remove the removal logic
+    // from footer.jsp and see if the toast appears.
+    // The previous analysis was a bit flawed. The scriptlet in the JSP
+    // does run, but it runs after the HTML is sent to the client, which is
+    // why the notification should have appeared.
+    // Let's re-examine app.js
     request.getRequestDispatcher("/index.jsp").forward(request, response);
   }
 

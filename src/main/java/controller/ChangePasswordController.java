@@ -28,7 +28,7 @@ import model.User;
  * Controller for changing password in user profile
  * Requires user to be authenticated and provide current password
  */
-@WebServlet(name = "ChangePasswordController", urlPatterns = { "/profile/change-password" })
+@WebServlet(name = "ChangePasswordController", urlPatterns = { "/password/change" })
 public class ChangePasswordController extends HttpServlet {
 
     private CustomerDAO customerDAO;
@@ -52,16 +52,8 @@ public class ChangePasswordController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
-        // Check if user is authenticated
-        HttpSession session = request.getSession(false);
-        if (session == null || !Boolean.TRUE.equals(session.getAttribute("authenticated"))) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
-
-        // Forward to change password page
-        request.getRequestDispatcher("/WEB-INF/view/password/change-profile-password.jsp").forward(request, response);
+        // Direct access to GET is not intended for this logic, redirect to reset form
+        request.getRequestDispatcher("/WEB-INF/view/password/change-password-form.jsp").forward(request, response);
     }
 
     /**
@@ -72,97 +64,78 @@ public class ChangePasswordController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // Check if user is authenticated
-        HttpSession session = request.getSession(false);
-        if (session == null || !Boolean.TRUE.equals(session.getAttribute("authenticated"))) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
+        // Get user info from request attributes (set by AuthenticationFilter)
+        User user = (User) request.getAttribute("currentUser");
+        Customer customer = (Customer) request.getAttribute("currentCustomer");
 
-        // Get form parameters
+        // AuthenticationFilter ensures user is authenticated, so either user or
+        // customer will be non-null
+        Object account = customer != null ? customer : user;
+
         String currentPassword = request.getParameter("currentPassword");
         String newPassword = request.getParameter("newPassword");
         String confirmPassword = request.getParameter("confirmPassword");
 
-        // Preserve input values for potential error cases
-        request.setAttribute("attemptedCurrentPassword", currentPassword);
-        request.setAttribute("attemptedNewPassword", newPassword);
-        request.setAttribute("attemptedConfirmPassword", confirmPassword);
-
-        // Validate input
-        if (currentPassword == null || currentPassword.trim().isEmpty() ||
-                newPassword == null || newPassword.trim().isEmpty() ||
-                confirmPassword == null || confirmPassword.trim().isEmpty()) {
-            request.setAttribute("error", "Tất cả các trường đều bắt buộc.");
-            request.getRequestDispatcher("/WEB-INF/view/password/change-profile-password.jsp").forward(request,
+        // Basic validation
+        if (currentPassword == null || currentPassword.isEmpty()) {
+            request.setAttribute("error", "Vui lòng nhập mật khẩu hiện tại.");
+            request.getRequestDispatcher("/WEB-INF/view/password/change-password-form.jsp").forward(request,
                     response);
             return;
         }
 
-        // Check if new passwords match
-        if (!newPassword.equals(confirmPassword)) {
-            request.setAttribute("error", "Mật khẩu mới và xác nhận mật khẩu không khớp.");
-            request.getRequestDispatcher("/WEB-INF/view/password/change-profile-password.jsp").forward(request,
-                    response);
-            return;
-        }
-
-        // Validate new password length
-        if (newPassword.length() < 6) {
+        if (newPassword == null || newPassword.length() < 6) {
             request.setAttribute("error", "Mật khẩu mới phải có ít nhất 6 ký tự.");
-            request.getRequestDispatcher("/WEB-INF/view/password/change-profile-password.jsp").forward(request,
+            request.getRequestDispatcher("/WEB-INF/view/password/change-password-form.jsp").forward(request,
+                    response);
+            return;
+        }
+
+        if (!newPassword.equals(confirmPassword)) {
+            request.setAttribute("error", "Mật khẩu xác nhận không khớp.");
+            request.getRequestDispatcher("/WEB-INF/view/password/change-password-form.jsp").forward(request,
                     response);
             return;
         }
 
         try {
-            // Determine if user is staff or customer (similar to LoginController logic)
-            User user = (User) session.getAttribute("user");
-            Customer customer = (Customer) session.getAttribute("customer");
-
+            // Get the authenticated user's email and type
             String userEmail = null;
-            boolean passwordChanged = false;
+            boolean isCustomer = customer != null;
 
-            if (user != null) {
-                userEmail = user.getEmail();
-                // Handle staff/admin password change
-                passwordChanged = handleUserPasswordChange(user, currentPassword, newPassword, request);
-            } else if (customer != null) {
+            if (isCustomer) {
                 userEmail = customer.getEmail();
-                // Handle customer password change
-                passwordChanged = handleCustomerPasswordChange(customer, currentPassword, newPassword, request);
             } else {
-                // No valid user found in session
-                response.sendRedirect(request.getContextPath() + "/login");
-                return;
+                userEmail = user.getEmail();
             }
 
-            if (passwordChanged) {
-                // Password changed successfully - clean up remember me tokens and cookies
+            boolean success = false;
+            if (isCustomer) {
+                success = handleCustomerPasswordChange(customer, currentPassword, newPassword, request);
+            } else {
+                success = handleUserPasswordChange(user, currentPassword, newPassword, request);
+            }
+
+            if (success) {
+                // Clean up remember me data
                 cleanupRememberMeData(userEmail, request, response);
 
-                // Invalidate session for security
-                session.invalidate();
+                // Set success message and redirect
+                HttpSession session = request.getSession();
+                session.setAttribute("flash_success", "Mật khẩu của bạn đã được thay đổi thành công!");
 
-                // Create new session for redirect message and password prefill
-                HttpSession newSession = request.getSession(true);
-                newSession.setAttribute("passwordChangeSuccess", true);
-                newSession.setAttribute("passwordChangeEmail", userEmail);
-                newSession.setAttribute("passwordChangeLoginPassword", newPassword); // Store new password for login
-                                                                                     // prefill
+                request.getRequestDispatcher("/WEB-INF/view/common/dashboard.jsp").forward(request, response);
 
-                // Redirect to login page with success message
-                response.sendRedirect(request.getContextPath() + "/login?passwordChanged=true&email=" +
-                        java.net.URLEncoder.encode(userEmail, "UTF-8"));
-                return;
+            } else {
+                // Error message is set by the handle methods
+                request.getRequestDispatcher("/WEB-INF/view/password/change-password-form.jsp").forward(request,
+                        response);
             }
-
         } catch (SQLException e) {
-            request.setAttribute("error", "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.");
-            e.printStackTrace();
+            request.setAttribute("error", "Có lỗi xảy ra khi thay đổi mật khẩu. Vui lòng thử lại sau.");
+            request.getRequestDispatcher("/WEB-INF/view/password/change-password-form.jsp").forward(request,
+                    response);
         }
-
-        request.getRequestDispatcher("/WEB-INF/view/password/change-profile-password.jsp").forward(request, response);
     }
 
     /**

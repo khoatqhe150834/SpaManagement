@@ -4,6 +4,8 @@
  */
 package controller;
 
+import com.google.gson.Gson;
+import dao.AccountDAO;
 import dao.CustomerDAO;
 import dao.EmailVerificationTokenDAO;
 import jakarta.servlet.ServletConfig;
@@ -15,7 +17,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URLEncoder;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -42,6 +47,8 @@ public class RegisterController extends HttpServlet {
     private CustomerDAO customerDAO;
     private AsyncEmailService asyncEmailService;
     private EmailVerificationTokenDAO verificationTokenDAO;
+    private Gson gson = new Gson();
+    private AccountDAO accountDAO;
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -49,6 +56,7 @@ public class RegisterController extends HttpServlet {
         this.customerDAO = new CustomerDAO();
         this.asyncEmailService = new AsyncEmailService();
         this.verificationTokenDAO = new EmailVerificationTokenDAO();
+        this.accountDAO = new AccountDAO();
     }
 
     /**
@@ -173,199 +181,152 @@ public class RegisterController extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        RegisterValidator validator = new RegisterValidator();
-        boolean isDuplicate = false;
-        String message = "";
+        Map<String, Object> jsonResponse = new HashMap<>();
 
-        try (PrintWriter out = response.getWriter()) {
-            if (value.trim().isEmpty()) {
-                out.print("{\"valid\": false, \"message\": \"Giá trị không được để trống\"}");
-                return;
+        try {
+            if (value == null || value.trim().isEmpty()) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                jsonResponse.put("valid", false);
+                jsonResponse.put("isDuplicate", false);
+                jsonResponse.put("message", "Giá trị không được để trống.");
+            } else {
+                RegisterValidator validator = new RegisterValidator();
+                boolean isDuplicate = false;
+                String message = "";
+                boolean supportedType = true;
+
+                switch (validateType.toLowerCase()) {
+                    case "email":
+                        isDuplicate = validator.isEmailDuplicate(value.trim());
+                        message = isDuplicate ? "Email đã tồn tại trong hệ thống." : "Email có thể sử dụng.";
+                        break;
+                    case "phone":
+                        isDuplicate = validator.isPhoneDuplicate(value.trim());
+                        message = isDuplicate ? "Số điện thoại đã tồn tại trong hệ thống."
+                                : "Số điện thoại có thể sử dụng.";
+                        break;
+                    default:
+                        supportedType = false;
+                        break;
+                }
+
+                if (supportedType) {
+                    jsonResponse.put("valid", !isDuplicate);
+                    jsonResponse.put("isDuplicate", isDuplicate);
+                    jsonResponse.put("message", message);
+                } else {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    jsonResponse.put("valid", false);
+                    jsonResponse.put("message", "Loại validation không hỗ trợ.");
+                }
             }
-
-            switch (validateType.toLowerCase()) {
-                case "email":
-                    isDuplicate = validator.isEmailDuplicate(value.trim());
-                    if (isDuplicate) {
-                        message = "Email đã tồn tại trong hệ thống.";
-                    } else {
-                        message = "Email có thể sử dụng.";
-                    }
-                    break;
-
-                case "phone":
-                    isDuplicate = validator.isPhoneDuplicate(value.trim());
-                    if (isDuplicate) {
-                        message = "Số điện thoại đã tồn tại trong hệ thống.";
-                    } else {
-                        message = "Số điện thoại có thể sử dụng.";
-                    }
-                    break;
-
-                default:
-                    out.print("{\"valid\": false, \"message\": \"Loại validation không hỗ trợ\"}");
-                    return;
-            }
-
-            // Return JSON response
-            out.print("{\"valid\": " + !isDuplicate + ", \"isDuplicate\": " + isDuplicate + ", \"message\": \""
-                    + message + "\"}");
-
         } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error during AJAX validation for type '" + validateType + "'", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            try (PrintWriter out = response.getWriter()) {
-                out.print("{\"valid\": false, \"message\": \"Lỗi hệ thống, vui lòng thử lại.\"}");
-            }
+            jsonResponse.clear();
+            jsonResponse.put("valid", false);
+            // Fail safe: assume it is a duplicate to prevent user from proceeding on error
+            jsonResponse.put("isDuplicate", true);
+            jsonResponse.put("message", "Lỗi hệ thống, vui lòng thử lại sau.");
         }
+
+        response.getWriter().write(gson.toJson(jsonResponse));
     }
 
     private void handleRegisterPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // retrieve form data and trim whitespace
-        String fullName = request.getParameter("fullName");
-        String phone = request.getParameter("phone");
-        String email = request.getParameter("email");
-        String password = request.getParameter("password");
-        String confirmPassword = request.getParameter("confirmPassword");
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
 
-        // Trim all input fields to remove leading/trailing spaces
-        if (fullName != null)
-            fullName = fullName.trim();
-        if (phone != null)
-            phone = phone.trim();
-        if (email != null)
-            email = email.trim();
-        // Note: Don't trim password as spaces might be intentional
-        if (confirmPassword != null)
-            confirmPassword = confirmPassword.trim();
-
-        // Create validator instance
-        RegisterValidator validator = new RegisterValidator();
-
-        // Validate full name (match JavaScript validation)
-        if (fullName == null || fullName.isBlank() || fullName.isEmpty()) {
-            request.setAttribute("error", "Họ tên không được để trống.");
-            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
-            return;
-        } else if (fullName.length() < 6) {
-            request.setAttribute("error", "Họ tên phải có ít nhất 6 ký tự.");
-            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
-            return;
-        } else if (fullName.length() > 100) {
-            request.setAttribute("error", "Họ tên không được vượt quá 100 ký tự.");
-            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
-            return;
-        } else if (!fullName.matches(
-                "^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂẾưăạảấầẩẫậắằẳẵặẹẻẽềềểếỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\\s]{6,100}$")) {
-            request.setAttribute("error", "Họ tên chỉ được chứa chữ cái và khoảng trắng.");
-            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
-            return;
-        }
-
-        // Validate phone
-        if (phone == null || !phone.matches("^0[1-9][0-9]{8}$")) {
-            request.setAttribute("error", "Số điện thoại phải bắt đầu bằng 0, và có đúng 10 chữ số.");
-            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
-            return;
-        }
-
-        // Validate email (match JavaScript validation)
-        if (email == null || email.trim().isEmpty()) {
-            request.setAttribute("error", "Email không được để trống.");
-            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
-            return;
-        } else if (!email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
-            request.setAttribute("error", "Định dạng email không hợp lệ.");
-            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
-            return;
-        } else if (email.length() > 255) {
-            request.setAttribute("error", "Email không được vượt quá 255 ký tự.");
-            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
-            return;
-        }
-
-        // Validate password (match JavaScript validation)
-        if (password == null || password.isEmpty()) {
-            request.setAttribute("error", "Mật khẩu không được để trống.");
-            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
-            return;
-        } else if (password.length() < 6) {
-            request.setAttribute("error", "Mật khẩu phải có ít nhất 6 ký tự.");
-            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
-            return;
-        } else if (password.length() > 30) {
-            request.setAttribute("error", "Mật khẩu không được vượt quá 30 ký tự.");
-            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
-            return;
-        }
-
-        // Validate confirm password (match JavaScript validation)
-        if (confirmPassword == null || confirmPassword.isEmpty()) {
-            request.setAttribute("error", "Vui lòng nhập lại mật khẩu.");
-            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
-            return;
-        } else if (!password.equals(confirmPassword)) {
-            request.setAttribute("error", "Mật khẩu nhập lại không khớp.");
-            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
-            return;
-        }
-
-        // Check for duplicate email
-        if (validator.isEmailDuplicate(email)) {
-            request.setAttribute("error", "Email đã tồn tại.");
-            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
-            return;
-        }
-
-        // Check for duplicate phone
-        if (validator.isPhoneDuplicate(phone)) {
-            request.setAttribute("error", "Số điện thoại đã tồn tại.");
-            request.getRequestDispatcher("/WEB-INF/view/auth/register.jsp").forward(request, response);
-            return;
-        }
-
-        // create new customer to store form data - pass plain password, it will be
-        // hashed in DAO
-        Customer newCustomer = new Customer(fullName, email, password, phone);
-
-        // Set default values
-        newCustomer.setIsActive(true);
-        newCustomer.setLoyaltyPoints(0);
-
-        // save data to database
-        customerDAO.save(newCustomer);
+        Map<String, Object> jsonResponse = new HashMap<>();
 
         try {
-            // Create verification token for email verification
-            EmailVerificationToken token = new EmailVerificationToken(email);
-            verificationTokenDAO.save(token);
+            String fullName = request.getParameter("fullName");
+            String phone = request.getParameter("phone");
+            String email = request.getParameter("email");
+            String password = request.getParameter("password");
+            String confirmPassword = request.getParameter("confirmPassword");
+            String agreeTerms = request.getParameter("agreeTerms");
 
-            // Send verification email asynchronously
-            asyncEmailService.sendVerificationEmailAsync(email, token.getToken(), fullName);
+            // --- Server-side validation ---
+            if (fullName == null || fullName.trim().isEmpty() ||
+                    phone == null || phone.trim().isEmpty() ||
+                    email == null || email.trim().isEmpty() ||
+                    password == null || password.isEmpty() ||
+                    !"on".equals(agreeTerms)) {
 
-            LOGGER.info("Verification email sent successfully for new registration: " + email);
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                jsonResponse.put("success", false);
+                jsonResponse.put("message", "Vui lòng điền đầy đủ thông tin bắt buộc.");
+                response.getWriter().write(gson.toJson(jsonResponse));
+                return;
+            }
 
-        } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "Error creating verification token for: " + email, ex);
-            // Continue with registration process even if email fails
-        } catch (Exception ex) {
-            LOGGER.log(Level.SEVERE, "Error sending verification email for: " + email, ex);
-            // Continue with registration process even if email fails
+            if (accountDAO.isEmailTakenInSystem(email)) {
+                response.setStatus(HttpServletResponse.SC_CONFLICT);
+                jsonResponse.put("success", false);
+                jsonResponse.put("message", "Email này đã được sử dụng.");
+                response.getWriter().write(gson.toJson(jsonResponse));
+                return;
+            }
+
+            if (accountDAO.isPhoneTakenInSystem(phone)) {
+                response.setStatus(HttpServletResponse.SC_CONFLICT);
+                jsonResponse.put("success", false);
+                jsonResponse.put("message", "Số điện thoại này đã được sử dụng.");
+                response.getWriter().write(gson.toJson(jsonResponse));
+                return;
+            }
+
+            // --- Create and save customer ---
+            Customer newCustomer = new Customer(fullName, email, password, phone);
+
+            customerDAO.save(newCustomer);
+
+            try {
+                // Create verification token for email verification
+                EmailVerificationToken token = new EmailVerificationToken(email);
+                verificationTokenDAO.save(token);
+
+                // Send verification email asynchronously
+                asyncEmailService.sendVerificationEmailAsync(email, token.getToken(), fullName);
+
+                // Store timestamp to prevent rapid resending
+                HttpSession session = request.getSession();
+                String lastSentKey = "lastVerificationSent_" + email;
+                session.setAttribute(lastSentKey, System.currentTimeMillis());
+
+                // Temporarily store the plain-text password for the post-verification prefill.
+                // This is a trade-off for user convenience. It will be cleared after use.
+                session.setAttribute("password_for_prefill_" + email, password);
+
+                LOGGER.info("Verification email sent successfully for new registration: " + email);
+
+            } catch (SQLException ex) {
+                LOGGER.log(Level.SEVERE, "Error creating verification token for: " + email, ex);
+                // Continue with registration process even if email fails
+            } catch (Exception ex) {
+                LOGGER.log(Level.SEVERE, "Error sending verification email for: " + email, ex);
+                // Continue with registration process even if email fails
+            }
+
+            // --- Set flash message and send success response ---
+            request.getSession().setAttribute("flash_success",
+                    "Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.");
+
+            jsonResponse.put("success", true);
+            jsonResponse.put("redirectUrl", request.getContextPath() + "/email-verification-required?email="
+                    + java.net.URLEncoder.encode(email, "UTF-8"));
+            response.getWriter().write(gson.toJson(jsonResponse));
+
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error during customer registration", e);
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            jsonResponse.put("success", false);
+            jsonResponse.put("message", "Đã có lỗi xảy ra phía máy chủ. Vui lòng thử lại sau.");
+            response.getWriter().write(gson.toJson(jsonResponse));
         }
-
-        // Use POST-redirect-GET pattern to prevent refresh issues
-        // Store success data in session temporarily
-        HttpSession session = request.getSession();
-        session.setAttribute("registrationEmail", email);
-        session.setAttribute("registrationFullName", fullName);
-        session.setAttribute("registrationPassword", password); // Store password for login pre-filling
-        session.setAttribute("registrationSuccess", true);
-
-        // Redirect to register success page with email parameter for refresh-proof
-        // access
-        response.sendRedirect(request.getContextPath() + "/register-success?email=" +
-                java.net.URLEncoder.encode(email, "UTF-8"));
     }
 
     // ==================== REGISTER SUCCESS HANDLERS ====================
@@ -454,7 +415,6 @@ public class RegisterController extends HttpServlet {
         }
 
         try {
-            // Find the token in database
             EmailVerificationToken verificationToken = verificationTokenDAO.findByToken(token);
 
             if (verificationToken == null) {
@@ -464,7 +424,6 @@ public class RegisterController extends HttpServlet {
                 return;
             }
 
-            // Check if token is valid (not expired and not used)
             if (!verificationTokenDAO.isValid(token)) {
                 LOGGER.warning("Invalid or expired token: " + token);
                 request.setAttribute("error",
@@ -473,7 +432,6 @@ public class RegisterController extends HttpServlet {
                 return;
             }
 
-            // Find the customer by email
             String userEmail = verificationToken.getUserEmail();
             Optional<Customer> customerOpt = customerDAO.findCustomerByEmail(userEmail);
             Customer customer = customerOpt.orElse(null);
@@ -485,7 +443,6 @@ public class RegisterController extends HttpServlet {
                 return;
             }
 
-            // Check if customer is already verified
             if (customer.getIsVerified() != null && customer.getIsVerified()) {
                 LOGGER.info("Customer already verified: " + userEmail);
                 request.setAttribute("success",
@@ -495,7 +452,6 @@ public class RegisterController extends HttpServlet {
                 return;
             }
 
-            // Update customer verification status
             boolean updateSuccess = customerDAO.updateCustomerVerificationStatus(userEmail, true);
 
             if (!updateSuccess) {
@@ -505,7 +461,6 @@ public class RegisterController extends HttpServlet {
                 return;
             }
 
-            // Mark token as used
             verificationTokenDAO.markAsUsed(token);
 
             LOGGER.info("Successfully verified email for customer: " + userEmail);
@@ -513,10 +468,16 @@ public class RegisterController extends HttpServlet {
                     "Email của bạn đã được xác thực thành công! Bạn có thể đăng nhập và sử dụng tất cả các dịch vụ của chúng tôi.");
             request.setAttribute("email", userEmail);
 
-            // Store login data in session for auto-prefill after verification
             HttpSession session = request.getSession();
             session.setAttribute("verificationLoginEmail", userEmail);
-            // Don't store password here as it's not available in verification flow
+
+            String tempPasswordKey = "password_for_prefill_" + userEmail;
+            String passwordForPrefill = (String) session.getAttribute(tempPasswordKey);
+
+            if (passwordForPrefill != null) {
+                session.setAttribute("verificationLoginPassword", passwordForPrefill);
+                session.removeAttribute(tempPasswordKey);
+            }
 
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Database error during email verification for token: " + token, e);
@@ -612,12 +573,17 @@ public class RegisterController extends HttpServlet {
 
     private void handleResendVerificationGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Handle resend verification from login page for unverified customers
+        // Handle resend verification from email verification page
         String email = request.getParameter("email");
 
         if (email == null || email.trim().isEmpty()) {
-            request.setAttribute("error", "Email không hợp lệ.");
-            response.sendRedirect(request.getContextPath() + "/login");
+            // Return JSON error response for AJAX requests
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            try (PrintWriter out = response.getWriter()) {
+                out.print("{\"success\": false, \"message\": \"Email không hợp lệ.\"}");
+            }
             return;
         }
 
@@ -626,15 +592,24 @@ public class RegisterController extends HttpServlet {
             Optional<Customer> customerOpt = customerDAO.findCustomerByEmail(email);
             Customer customer = customerOpt.orElse(null);
             if (customer == null) {
-                request.setAttribute("error", "Không tìm thấy tài khoản với email này.");
-                response.sendRedirect(request.getContextPath() + "/login");
+                response.setContentType("application/json");
+                response.setCharacterEncoding("UTF-8");
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                try (PrintWriter out = response.getWriter()) {
+                    out.print("{\"success\": false, \"message\": \"Không tìm thấy tài khoản với email này.\"}");
+                }
                 return;
             }
 
             // Check if customer is already verified
             if (customerDAO.isCustomerVerified(email)) {
-                request.setAttribute("error", "Email của bạn đã được xác thực. Vui lòng đăng nhập.");
-                response.sendRedirect(request.getContextPath() + "/login");
+                response.setContentType("application/json");
+                response.setCharacterEncoding("UTF-8");
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                try (PrintWriter out = response.getWriter()) {
+                    out.print(
+                            "{\"success\": false, \"message\": \"Email của bạn đã được xác thực. Vui lòng đăng nhập.\"}");
+                }
                 return;
             }
 
@@ -646,8 +621,13 @@ public class RegisterController extends HttpServlet {
                 long timeSinceLastSent = (System.currentTimeMillis() - lastSentTime) / 1000;
                 if (timeSinceLastSent < 60) {
                     long remainingTime = 60 - timeSinceLastSent;
-                    request.setAttribute("error", "Vui lòng đợi " + remainingTime + " giây trước khi gửi lại email.");
-                    response.sendRedirect(request.getContextPath() + "/login");
+                    response.setContentType("application/json");
+                    response.setCharacterEncoding("UTF-8");
+                    response.setStatus(429); // Too Many Requests
+                    try (PrintWriter out = response.getWriter()) {
+                        out.print("{\"success\": false, \"message\": \"Vui lòng đợi " + remainingTime
+                                + " giây trước khi gửi lại email.\"}");
+                    }
                     return;
                 }
             }
@@ -666,57 +646,30 @@ public class RegisterController extends HttpServlet {
             // Store timestamp to prevent rapid resending
             session.setAttribute(lastSentKey, System.currentTimeMillis());
 
-            // Check if this is an AJAX request (from register-success page)
-            String ajaxHeader = request.getHeader("X-Requested-With");
-            if ("XMLHttpRequest".equals(ajaxHeader) || request.getParameter("ajax") != null) {
-                // Return JSON response for AJAX
-                response.setContentType("application/json");
-                response.setCharacterEncoding("UTF-8");
-                try (PrintWriter out = response.getWriter()) {
-                    out.print("{\"success\": true, \"message\": \"Email xác thực đã được gửi thành công!\"}");
-                }
-                return;
+            // Return JSON success response
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            try (PrintWriter out = response.getWriter()) {
+                out.print("{\"success\": true, \"message\": \"Email xác thực đã được gửi thành công!\"}");
             }
-
-            // Redirect to login with success message (for non-AJAX requests)
-            response.sendRedirect(request.getContextPath() + "/login?resent=true");
 
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "Error resending verification email", ex);
-
-            // Check if this is an AJAX request
-            String ajaxHeader = request.getHeader("X-Requested-With");
-            if ("XMLHttpRequest".equals(ajaxHeader) || request.getParameter("ajax") != null) {
-                response.setContentType("application/json");
-                response.setCharacterEncoding("UTF-8");
-                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                try (PrintWriter out = response.getWriter()) {
-                    out.print(
-                            "{\"success\": false, \"message\": \"Có lỗi xảy ra khi gửi email. Vui lòng thử lại sau.\"}");
-                }
-                return;
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            try (PrintWriter out = response.getWriter()) {
+                out.print("{\"success\": false, \"message\": \"Có lỗi xảy ra khi gửi email. Vui lòng thử lại sau.\"}");
             }
-
-            request.setAttribute("error", "Có lỗi xảy ra khi gửi email. Vui lòng thử lại sau.");
-            response.sendRedirect(request.getContextPath() + "/login");
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, "Unexpected error resending verification email", ex);
-
-            // Check if this is an AJAX request
-            String ajaxHeader = request.getHeader("X-Requested-With");
-            if ("XMLHttpRequest".equals(ajaxHeader) || request.getParameter("ajax") != null) {
-                response.setContentType("application/json");
-                response.setCharacterEncoding("UTF-8");
-                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                try (PrintWriter out = response.getWriter()) {
-                    out.print(
-                            "{\"success\": false, \"message\": \"Có lỗi không mong muốn xảy ra. Vui lòng thử lại sau.\"}");
-                }
-                return;
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            try (PrintWriter out = response.getWriter()) {
+                out.print(
+                        "{\"success\": false, \"message\": \"Có lỗi không mong muốn xảy ra. Vui lòng thử lại sau.\"}");
             }
-
-            request.setAttribute("error", "Có lỗi không mong muốn xảy ra. Vui lòng thử lại sau.");
-            response.sendRedirect(request.getContextPath() + "/login");
         }
     }
 

@@ -4,8 +4,10 @@
  */
 package service.email;
 
+import dao.AccountDAO;
 import jakarta.mail.*;
 import jakarta.mail.internet.*;
+import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -33,48 +35,34 @@ public class EmailService {
   /**
    * Sends a password reset email to the specified user
    * 
-   * @param userEmail  The email address of the user
-   * @param resetToken The password reset token
-   * @param userName   The name of the user (optional, can be null)
+   * @param userEmail   The email address of the user
+   * @param resetToken  The password reset token
+   * @param contextPath The application context path to build the reset link
    * @return true if email was sent successfully, false otherwise
    */
-  public boolean sendPasswordResetEmail(String userEmail, String resetToken, String userName) {
+  public boolean sendPasswordResetEmail(String userEmail, String resetToken, String contextPath) {
+    String resetUrl = APP_BASE_URL + "/password-reset/edit?token=" + resetToken;
+    String subject = "Yêu Cầu Đặt Lại Mật Khẩu - Spa Hương Sen";
+
     try {
-      LOGGER.info("Attempting to send password reset email to: " + userEmail);
-      LOGGER.info("Using SMTP server: " + SMTP_HOST + ":" + SMTP_PORT);
-      LOGGER.info("From email: " + EMAIL_USERNAME);
+      // Get user's full name from database
+      AccountDAO accountDAO = new AccountDAO();
+      String userName = accountDAO.getFullNameByEmail(userEmail);
 
-      // Create email session
-      Session session = createEmailSession();
-      LOGGER.info("Email session created successfully");
+      Map<String, String> placeholders = Map.of(
+          "userName", userName != null ? userName : "bạn",
+          "resetLink", resetUrl);
 
-      // Create the email message
-      Message message = new MimeMessage(session);
-      message.setFrom(new InternetAddress(EMAIL_USERNAME, FROM_NAME)); // Use actual email as from
-      message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(userEmail));
-      message.setSubject("Password Reset Request - Spa Management System");
+      String emailContent = EmailTemplateUtil.loadAndPopulateTemplate("password-reset-email.html", placeholders);
 
-      // Create the email content
-      String emailContent = createPasswordResetEmailContent(resetToken, userName);
-      message.setContent(emailContent, "text/html; charset=utf-8");
+      if (emailContent == null) {
+        LOGGER.log(Level.SEVERE, "Could not load password reset email template.");
+        return false;
+      }
 
-      LOGGER.info("Email message prepared, attempting to send...");
-
-      // Send the email
-      Transport.send(message);
-
-      LOGGER.info("Password reset email sent successfully to: " + userEmail);
-      return true;
-
-    } catch (AuthenticationFailedException e) {
-      LOGGER.log(Level.SEVERE,
-          "Gmail authentication failed. Check email credentials and app password: " + e.getMessage(), e);
-      return false;
-    } catch (MessagingException e) {
-      LOGGER.log(Level.SEVERE, "Email messaging error for: " + userEmail + ". Error: " + e.getMessage(), e);
-      return false;
+      return sendEmail(userEmail, subject, emailContent);
     } catch (Exception e) {
-      LOGGER.log(Level.SEVERE, "Failed to send password reset email to: " + userEmail, e);
+      LOGGER.log(Level.SEVERE, "Error during password reset email preparation for " + userEmail, e);
       return false;
     }
   }
@@ -91,7 +79,7 @@ public class EmailService {
     props.put("mail.smtp.auth", "true");
     props.put("mail.smtp.host", SMTP_HOST);
     props.put("mail.smtp.port", SMTP_PORT);
-    props.put("mail.debug", "true"); // Enable debug mode for troubleshooting
+    props.put("mail.debug", "false"); // Disable debug mode for production
     props.put("mail.smtp.connectiontimeout", "10000"); // 10 seconds
     props.put("mail.smtp.timeout", "10000"); // 10 seconds
     props.put("mail.smtp.writetimeout", "10000"); // 10 seconds
@@ -111,75 +99,9 @@ public class EmailService {
     return Session.getInstance(props, new Authenticator() {
       @Override
       protected PasswordAuthentication getPasswordAuthentication() {
-        LOGGER.info("Authenticating with Gmail SMTP");
         return new PasswordAuthentication(EMAIL_USERNAME, EMAIL_PASSWORD);
       }
     });
-  }
-
-  /**
-   * Creates the HTML content for the password reset email
-   * 
-   * @param resetToken The password reset token
-   * @param userName   The user's name (can be null)
-   * @return HTML email content
-   */
-  private String createPasswordResetEmailContent(String resetToken, String userName) {
-    String resetUrl = APP_BASE_URL + "/verify-reset-token?token=" + resetToken;
-    String greeting = userName != null ? "Xin chào " + userName + "," : "Xin chào,";
-
-    return "<!DOCTYPE html>" +
-        "<html>" +
-        "<head>" +
-        "    <style>" +
-        "        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }" +
-        "        .container { max-width: 600px; margin: 0 auto; padding: 20px; }" +
-        "        .header { background-color: #4CAF50; color: white; padding: 20px; text-align: center; }" +
-        "        .content { padding: 20px; background-color: #f9f9f9; }" +
-        "        .button { display: inline-block; padding: 12px 24px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 4px; margin: 20px 0; }"
-        +
-        "        .footer { padding: 20px; text-align: center; font-size: 12px; color: #333; }" +
-        "        .warning { background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; margin: 15px 0; border-radius: 4px; color: #333; }"
-        +
-        "        .warning strong { color: #b8860b; }" +
-        "        .url-box { word-break: break-all; background-color: #f0f0f0; padding: 10px; border-radius: 4px; color: #333; }"
-        +
-        "    </style>" +
-        "</head>" +
-        "<body>" +
-        "    <div class=\"container\">" +
-        "        <div class=\"header\">" +
-        "            <h1>Yêu Cầu Đặt Lại Mật Khẩu</h1>" +
-        "        </div>" +
-        "        <div class=\"content\">" +
-        "            <p>" + greeting + "</p>" +
-        "            <p>Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn.</p>"
-        +
-        "            <p>Vui lòng nhấp vào nút bên dưới để đặt lại mật khẩu:</p>" +
-        "            <div style=\"text-align: center;\">" +
-        "                <a href=\"" + resetUrl + "\" class=\"button\">Đặt Lại Mật Khẩu</a>" +
-        "            </div>" +
-        "            <p>Hoặc sao chép và dán liên kết này vào trình duyệt của bạn:</p>" +
-        "            <p class=\"url-box\">" +
-        "                <a href=\"" + resetUrl + "\" style=\"color: #333; text-decoration: underline;\">" + resetUrl
-        + "</a>" +
-        "            </p>" +
-        "            <div class=\"warning\">" +
-        "                <strong>Quan trọng:</strong>" +
-        "                <ul>" +
-        "                    <li>Liên kết này sẽ hết hạn sau 1 giờ vì lý do bảo mật</li>" +
-        "                    <li>Nếu bạn không yêu cầu đặt lại mật khẩu này, vui lòng bỏ qua email này</li>" +
-        "                    <li>Mật khẩu của bạn sẽ không thay đổi trừ khi bạn nhấp vào liên kết trên</li>" +
-        "                </ul>" +
-        "            </div>" +
-        "        </div>" +
-        "        <div class=\"footer\">" +
-        "            <p>Email này được gửi từ Hệ Thống Quản Lý Spa.</p>" +
-        "            <p>Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với đội ngũ hỗ trợ của chúng tôi.</p>" +
-        "        </div>" +
-        "    </div>" +
-        "</body>" +
-        "</html>";
   }
 
   /**
@@ -268,136 +190,110 @@ public class EmailService {
    * @return true if email was sent successfully, false otherwise
    */
   public boolean sendVerificationEmail(String userEmail, String verificationToken, String userName) {
+    String verificationUrl = APP_BASE_URL + "/verify-email?token=" + verificationToken;
+    String subject = "Xác thực tài khoản - Spa Hương Sen";
+
+    Map<String, String> placeholders = Map.of(
+        "userName", userName != null ? userName : "bạn",
+        "verificationLink", verificationUrl);
+
+    String emailContent = EmailTemplateUtil.loadAndPopulateTemplate("verification-email.html", placeholders);
+
+    if (emailContent == null) {
+      LOGGER.log(Level.SEVERE, "Could not load verification email template.");
+      return false;
+    }
+
+    return sendEmail(userEmail, subject, emailContent);
+  }
+
+  private boolean sendEmail(String to, String subject, String htmlContent) {
     try {
-      LOGGER.info("Attempting to send verification email to: " + userEmail);
-      LOGGER.info("Using SMTP server: " + SMTP_HOST + ":" + SMTP_PORT);
-      LOGGER.info("From email: " + EMAIL_USERNAME);
-
-      // Create email session
       Session session = createEmailSession();
-      LOGGER.info("Email session created successfully");
-
-      // Create the email message
       Message message = new MimeMessage(session);
-      message.setFrom(new InternetAddress(EMAIL_USERNAME, FROM_NAME)); // Use actual email as from
-      message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(userEmail));
-      message.setSubject("Email Verification - Spa Management System");
+      message.setFrom(new InternetAddress(EMAIL_USERNAME, FROM_NAME));
+      message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
+      message.setSubject(subject);
+      message.setContent(htmlContent, "text/html; charset=utf-8");
 
-      // Create the email content
-      String emailContent = createVerificationEmailContent(verificationToken, userName);
-      message.setContent(emailContent, "text/html; charset=utf-8");
-
-      LOGGER.info("Email message prepared, attempting to send...");
-
-      // Send the email
+      LOGGER.info("Attempting to send email with subject '" + subject + "' to: " + to);
       Transport.send(message);
-
-      LOGGER.info("Verification email sent successfully to: " + userEmail);
+      LOGGER.info("Email sent successfully to: " + to);
       return true;
 
     } catch (AuthenticationFailedException e) {
-      LOGGER.log(Level.SEVERE,
-          "Gmail authentication failed. Check email credentials and app password: " + e.getMessage(), e);
+      LOGGER.log(Level.SEVERE, "Gmail authentication failed. Check email credentials and app password.", e);
       return false;
     } catch (MessagingException e) {
-      LOGGER.log(Level.SEVERE, "Email messaging error for: " + userEmail + ". Error: " + e.getMessage(), e);
+      LOGGER.log(Level.SEVERE, "Email messaging error for: " + to, e);
       return false;
     } catch (Exception e) {
-      LOGGER.log(Level.SEVERE, "Failed to send verification email to: " + userEmail, e);
+      LOGGER.log(Level.SEVERE, "Failed to send email to: " + to, e);
       return false;
     }
   }
 
   /**
-   * Creates the HTML content for the email verification email
-   * 
-   * @param verificationToken The verification token
-   * @param userName          The user's name (can be null)
-   * @return HTML email content
-   */
-  private String createVerificationEmailContent(String verificationToken, String userName) {
-    String verifyUrl = APP_BASE_URL + "/verify-email?token=" + verificationToken;
-    String greeting = userName != null ? "Xin chào " + userName + "," : "Xin chào,";
-
-    return "<!DOCTYPE html>" +
-        "<html>" +
-        "<head>" +
-        "    <style>" +
-        "        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }" +
-        "        .container { max-width: 600px; margin: 0 auto; padding: 20px; }" +
-        "        .header { background-color: #007bff; color: white; padding: 20px; text-align: center; }" +
-        "        .content { padding: 20px; background-color: #f9f9f9; }" +
-        "        .button { display: inline-block; padding: 12px 24px; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px; margin: 20px 0; }"
-        +
-        "        .footer { padding: 20px; text-align: center; font-size: 12px; color: #333; }" +
-        "        .warning { background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; margin: 15px 0; border-radius: 4px; color: #333; }"
-        +
-        "        .warning strong { color: #b8860b; }" +
-        "        .url-box { word-break: break-all; background-color: #f0f0f0; padding: 10px; border-radius: 4px; color: #333; }"
-        +
-        "    </style>" +
-        "</head>" +
-        "<body>" +
-        "    <div class=\"container\">" +
-        "        <div class=\"header\">" +
-        "            <h1>Xác Thực Email</h1>" +
-        "        </div>" +
-        "        <div class=\"content\">" +
-        "            <p>" + greeting + "</p>" +
-        "            <p>Cảm ơn bạn đã đăng ký tài khoản tại Spa Management System.</p>" +
-        "            <p>Vui lòng nhấp vào nút bên dưới để xác thực email của bạn:</p>" +
-        "            <div style=\"text-align: center;\">" +
-        "                <a href=\"" + verifyUrl + "\" class=\"button\">Xác Thực Email</a>" +
-        "            </div>" +
-        "            <p>Hoặc sao chép và dán liên kết này vào trình duyệt của bạn:</p>" +
-        "            <p class=\"url-box\">" +
-        "                <a href=\"" + verifyUrl + "\" style=\"color: #333; text-decoration: underline;\">" + verifyUrl
-        + "</a>" +
-        "            </p>" +
-        "            <div class=\"warning\">" +
-        "                <strong>Lưu ý:</strong> Liên kết xác thực này sẽ hết hạn sau 24 giờ vì lý do bảo mật." +
-        "            </div>" +
-        "        </div>" +
-        "        <div class=\"footer\">" +
-        "            <p>Email này được gửi từ Hệ Thống Quản Lý Spa.</p>" +
-        "            <p>Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với đội ngũ hỗ trợ của chúng tôi.</p>" +
-        "        </div>" +
-        "    </div>" +
-        "</body>" +
-        "</html>";
-  }
-
-  /**
-   * Test method to verify email configuration
-   * Note: Make sure to configure EMAIL_USERNAME and EMAIL_PASSWORD before testing
+   * Test method to verify email configuration.
+   * Sends both a password reset and a verification email.
+   * Note: Make sure to configure EMAIL_USERNAME and EMAIL_PASSWORD before
+   * testing.
    */
   public static void testEmailConfiguration() {
     EmailService emailService = new EmailService();
 
-    System.out.println("=== Testing Email Configuration ===");
+    System.out.println("=== Starting Email Service Test Suite ===");
+    System.out.println(
+        "Environment: " + (EmailServiceConfig.isDevelopment() ? "DEVELOPMENT (Mailtrap)" : "PRODUCTION (Gmail)"));
+    System.out.println("SMTP Host: " + EmailServiceConfig.getSmtpHost());
+    System.out.println("SMTP Port: " + EmailServiceConfig.getSmtpPort());
+    System.out.println("Sending From: " + EmailServiceConfig.getEmailUsername());
+    System.out.println("=========================================");
 
-    // Test with a sample email (change this to your test email)
-    String testEmail = "quangkhoa5112@gmail.com";
-    String testToken = "sample-token-12345";
-    String testUserName = "Test User";
+    // --- Test Parameters ---
+    String testEmail = "quangkhoa5112@gmail.com"; // The email address that will RECEIVE the tests.
+    String testResetToken = "test-reset-token-123456";
+    String testVerificationToken = "test-verification-token-789012";
+    String testUserName = "Test User Quang";
+    String testContextPath = "/G1_SpaManagement"; // Mimics the application's context path.
 
-    System.out.println("Attempting to send test password reset email...");
-    boolean success = emailService.sendPasswordResetEmail(testEmail, testToken, testUserName);
-
-    if (success) {
-      System.out.println("✓ Test email sent successfully!");
-      System.out.println("Check the email inbox for: " + testEmail);
+    // --- Test 1: Password Reset Email ---
+    System.out.println("\n--- Test 1: Sending Password Reset Email ---");
+    System.out.println("To: " + testEmail);
+    boolean resetSuccess = emailService.sendPasswordResetEmail(testEmail, testResetToken, testContextPath);
+    if (resetSuccess) {
+      System.out.println("✓ SUCCESS: Password reset email method completed without errors.");
+      System.out.println("ACTION: Please check the inbox for \"" + testEmail
+          + "\" for an email with the subject 'Password Reset Request'.");
     } else {
-      System.out.println("✗ Failed to send test email.");
-      System.out.println("Please check your email configuration:");
-      System.out.println("- EMAIL_USERNAME: " + EMAIL_USERNAME);
-      System.out.println("- SMTP_HOST: " + SMTP_HOST);
-      System.out.println("- SMTP_PORT: " + SMTP_PORT);
+      System.out.println(
+          "✗ FAILURE: Password reset email method returned false. Check logs above for detailed errors (e.g., authentication, connection).");
     }
+    System.out.println("------------------------------------------");
+
+    // --- Test 2: Account Verification Email ---
+    System.out.println("\n--- Test 2: Sending Account Verification Email ---");
+    System.out.println("To: " + testEmail);
+    boolean verificationSuccess = emailService.sendVerificationEmail(testEmail, testVerificationToken, testUserName);
+    if (verificationSuccess) {
+      System.out.println("✓ SUCCESS: Account verification email method completed without errors.");
+      System.out.println("ACTION: Please check the inbox for \"" + testEmail
+          + "\" for an email with the subject 'Xác thực tài khoản - Spa Hương Sen'.");
+    } else {
+      System.out.println(
+          "✗ FAILURE: Account verification email method returned false. Check logs above for detailed errors.");
+    }
+    System.out.println("----------------------------------------------");
+
+    System.out.println("\n=== Email Service Test Suite Finished ===\n");
   }
 
   public static void main(String[] args) {
-
+    // To run this test:
+    // 1. Right-click this file in your IDE (NetBeans/IntelliJ/VSCode)
+    // 2. Select "Run File" or a similar option.
+    // 3. Check the console output for success or failure messages.
+    // 4. Check the inbox of the `testEmail` address below.
     testEmailConfiguration();
   }
 }

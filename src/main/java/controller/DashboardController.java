@@ -5,11 +5,9 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
-import model.User;
 import model.Customer;
-import model.RoleConstants;
+import model.User;
 
 /**
  * Unified Dashboard Controller
@@ -19,11 +17,7 @@ import model.RoleConstants;
  * /receptionist-dashboard/*, /customer-dashboard/*
  */
 @WebServlet(name = "DashboardController", urlPatterns = {
-        "/admin-dashboard/*",
-        "/manager-dashboard/*",
-        "/therapist-dashboard/*",
-        "/receptionist-dashboard/*",
-        "/customer-dashboard/*"
+        "/dashboard/*"
 })
 public class DashboardController extends HttpServlet {
 
@@ -31,22 +25,10 @@ public class DashboardController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // Check authentication
-        HttpSession session = request.getSession(false);
-        if (session == null || !Boolean.TRUE.equals(session.getAttribute("authenticated"))) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
-
-        // Get user type from session (already set during login)
-        String userType = (String) session.getAttribute("userType");
-        User user = (User) session.getAttribute("user");
-        Customer customer = (Customer) session.getAttribute("customer");
-
-        if (userType == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
+        // Get user info from request attributes (set by AuthenticationFilter)
+        User user = (User) request.getAttribute("currentUser");
+        Customer customer = (Customer) request.getAttribute("currentCustomer");
+        String userType = (String) request.getAttribute("userType");
 
         // Set user display information
         if (user != null) {
@@ -55,20 +37,10 @@ public class DashboardController extends HttpServlet {
         } else if (customer != null) {
             request.setAttribute("customer", customer);
             request.setAttribute("userDisplayName", customer.getFullName());
-        } else {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
         }
 
         // Get servlet path to determine which dashboard
-        String servletPath = request.getServletPath();
         String pathInfo = request.getPathInfo();
-
-        // Validate user has access to this dashboard
-        if (!isAuthorizedForDashboard(servletPath, userType)) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền truy cập trang này");
-            return;
-        }
 
         try {
             // For main dashboard routes, use the common dashboard JSP
@@ -77,31 +49,8 @@ public class DashboardController extends HttpServlet {
                 request.getRequestDispatcher("/WEB-INF/view/common/dashboard.jsp").forward(request, response);
                 return;
             }
-
-            // For sub-routes, route to appropriate handler based on user type
-            switch (userType) {
-                case "ADMIN":
-                    handleAdminDashboard(request, response, pathInfo);
-                    break;
-                case "MANAGER":
-                    handleManagerDashboard(request, response, pathInfo);
-                    break;
-                case "THERAPIST":
-                    handleTherapistDashboard(request, response, pathInfo);
-                    break;
-                case "RECEPTIONIST":
-                    handleReceptionistDashboard(request, response, pathInfo);
-                    break;
-                case "CUSTOMER":
-                    handleCustomerDashboard(request, response, pathInfo);
-                    break;
-                default:
-                    response.sendError(HttpServletResponse.SC_FORBIDDEN, "Role không hợp lệ");
-                    return;
-            }
         } catch (Exception e) {
-            request.setAttribute("error", "Đã xảy ra lỗi khi tải trang: " + e.getMessage());
-            request.getRequestDispatcher("/WEB-INF/view/common/error.jsp").forward(request, response);
+            e.printStackTrace();
         }
     }
 
@@ -451,22 +400,6 @@ public class DashboardController extends HttpServlet {
     /**
      * Check if user is authorized to access specific dashboard
      */
-    private boolean isAuthorizedForDashboard(String servletPath, String userType) {
-        switch (servletPath) {
-            case "/admin-dashboard":
-                return "ADMIN".equals(userType);
-            case "/manager-dashboard":
-                return "MANAGER".equals(userType);
-            case "/therapist-dashboard":
-                return "THERAPIST".equals(userType);
-            case "/receptionist-dashboard":
-                return "RECEPTIONIST".equals(userType);
-            case "/customer-dashboard":
-                return "CUSTOMER".equals(userType);
-            default:
-                return false;
-        }
-    }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)

@@ -1,9 +1,0 @@
----
-description:
-globs:
-alwaysApply: true
----
-use colors from [color-palette.md](mdc:color-palette.md)
-always include header and footer from [header.jsp](mdc:src/main/webapp/WEB-INF/view/common/home/header.jsp) [footer.jsp](mdc:src/main/webapp/WEB-INF/view/common/home/footer.jsp)  and inner banner like in [login.jsp](mdc:src/main/webapp/WEB-INF/view/auth/login.jsp)
-always use styles from [stylesheet.jsp](mdc:src/main/webapp/WEB-INF/view/common/admin/stylesheet.jsp) [js.jsp](mdc:src/main/webapp/WEB-INF/view/common/admin/js.jsp) for body section in web page
-always use icons from [iconify-icon.min.js](mdc:src/main/webapp/assets/admin/js/lib/iconify-icon.min.js)

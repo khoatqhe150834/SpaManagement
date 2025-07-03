@@ -1,25 +1,25 @@
 package dao;
 
 import db.DBContext;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import model.BookingAppointment;
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.PreparedStatement;
-import java.time.LocalDateTime;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import model.BookingAppointment;
 
 /**
  * DAO for BookingAppointment entity using booking_appointments table
  * Based on the actual database structure from Dump20250617.sql
  */
-public class BookingAppointmentDAO extends DBContext implements BaseDAO<BookingAppointment, Integer> {
+public class BookingAppointmentDAO  implements BaseDAO<BookingAppointment, Integer> {
 
   @Override
   public <S extends BookingAppointment> S save(S entity) {
@@ -641,14 +641,14 @@ public class BookingAppointmentDAO extends DBContext implements BaseDAO<BookingA
     List<BookingAppointment> list = new ArrayList<>();
     String sql = "SELECT * FROM booking_appointments WHERE status = ?";
     try (Connection conn = DBContext.getConnection();
-         PreparedStatement stmt = conn.prepareStatement(sql)) {
-        stmt.setString(1, status);
-        ResultSet rs = stmt.executeQuery();
-        while (rs.next()) {
-            list.add(getFromResultSet(rs));
-        }
+        PreparedStatement stmt = conn.prepareStatement(sql)) {
+      stmt.setString(1, status);
+      ResultSet rs = stmt.executeQuery();
+      while (rs.next()) {
+        list.add(getFromResultSet(rs));
+      }
     } catch (Exception e) {
-        e.printStackTrace();
+      e.printStackTrace();
     }
     return list;
   }
