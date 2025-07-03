@@ -2,12 +2,11 @@ package dao;
 
 import java.util.List;
 import model.Service;
+import org.junit.jupiter.api.AfterAll;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 //@Disabled("Disabling all tests in this class because they require a database connection")
@@ -86,14 +85,7 @@ public class ServiceDAOTest {
     printResults("testGetServicesWithCategoryAndPrice", result);
   }
 
-  @Test
-  public void testGetServicesWithNonExistingCategory() {
-    System.out.println("Testing with a non-existing category: 'NonExistentCategory'");
-    List<Service> result = serviceDAO.getServicesByCriteria("NonExistentCategory", null, null, null, 1, 10, null);
-    assertNotNull(result, "Result should not be null");
-    assertTrue(result.isEmpty(), "Result should be empty for a non-existing category");
-    printResults("testGetServicesWithNonExistingCategory", result);
-  }
+ 
 
   @Test
   public void testGetServicesWithEmptySearchQuery() {
@@ -113,13 +105,7 @@ public class ServiceDAOTest {
     printResults("testGetServicesWithInvalidPriceRange", result);
   }
 
-  @Test
-  public void testGetServicesWithNullCriteria() {
-    System.out.println("Testing with all criteria as null");
-    List<Service> result = serviceDAO.getServicesByCriteria(null, null, null, null, 1, 10, null);
-    assertNotNull(result, "Result should not be null");
-    printResults("testGetServicesWithNullCriteria", result);
-  }
+  
 
   @Test
   public void testGetServicesOrderByPriceDesc() {

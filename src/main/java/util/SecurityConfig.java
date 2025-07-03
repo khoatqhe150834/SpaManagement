@@ -16,7 +16,7 @@ public class SecurityConfig {
       "/verify-email", "/email-verification-required", "/resend-verification",
       "/password/reset", "/password/reset-form", "/password/change-password",
       "/about", "/contact", "/services", "/blog",
-      "/test", "/api/booking-session", "/error", "/booking"));
+      "/test", "/api/booking-session", "/api/services", "/api/service-types", "/error", "/booking"));
 
   // File extensions that don't require authentication
   public static final Set<String> PUBLIC_EXTENSIONS = new HashSet<>(Arrays.asList(

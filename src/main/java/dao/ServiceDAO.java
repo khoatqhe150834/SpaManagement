@@ -497,33 +497,17 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
         }
 
         // Add sorting
-        if (order != null && !order.isEmpty()) {
-            switch (order.toLowerCase()) {
-                case "price_asc":
-                    sql.append(" ORDER BY price ASC");
-                    break;
-                case "price_desc":
-                    sql.append(" ORDER BY price DESC");
-                    break;
-                case "rating_asc":
-                    sql.append(" ORDER BY average_rating ASC");
-                    break;
-                case "rating_desc":
-                    sql.append(" ORDER BY average_rating DESC");
-                    break;
-                case "newest":
-                    sql.append(" ORDER BY created_at DESC");
-                    break;
-                case "oldest":
-                    sql.append(" ORDER BY created_at ASC");
-                    break;
-                default:
-                    sql.append(" ORDER BY created_at DESC"); // Default sorting
-                    break;
-            }
-        } else {
-            sql.append(" ORDER BY created_at DESC"); // Default sorting if order is null
-        }
+        // Whitelist valid sort columns to prevent SQL injection
+        Map<String, String> validSortColumns = new HashMap<>();
+        validSortColumns.put("name-asc", "name ASC");
+        validSortColumns.put("name-desc", "name DESC");
+        validSortColumns.put("price-asc", "price ASC");
+        validSortColumns.put("price-desc", "price DESC");
+        validSortColumns.put("rating-desc", "average_rating DESC");
+        validSortColumns.put("default", "created_at DESC");
+
+        String orderByClause = " ORDER BY " + validSortColumns.getOrDefault(order, "created_at DESC");
+        sql.append(orderByClause);
 
         // Add pagination
         sql.append(" LIMIT ? OFFSET ?");

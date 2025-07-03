@@ -119,126 +119,21 @@
                   </button>
                 </div>
 
-                <!-- Categories -->
+                <!-- Service Types -->
                 <div class="mb-6">
-                  <h4 class="font-medium text-spa-dark mb-3">Danh mục</h4>
-                  <div class="space-y-2">
-                    <label class="flex items-center">
-                      <input
-                        type="checkbox"
-                        value="Chăm sóc da mặt"
-                        class="category-filter rounded text-primary focus:ring-primary"
-                      />
-                      <span class="ml-2 text-sm">Chăm sóc da mặt</span>
-                    </label>
-                    <label class="flex items-center">
-                      <input
-                        type="checkbox"
-                        value="Massage thư giãn"
-                        class="category-filter rounded text-primary focus:ring-primary"
-                      />
-                      <span class="ml-2 text-sm">Massage thư giãn</span>
-                    </label>
-                    <label class="flex items-center">
-                      <input
-                        type="checkbox"
-                        value="Tắm trắng"
-                        class="category-filter rounded text-primary focus:ring-primary"
-                      />
-                      <span class="ml-2 text-sm">Tắm trắng</span>
-                    </label>
-                    <label class="flex items-center">
-                      <input
-                        type="checkbox"
-                        value="Chăm sóc body"
-                        class="category-filter rounded text-primary focus:ring-primary"
-                      />
-                      <span class="ml-2 text-sm">Chăm sóc body</span>
-                    </label>
-                    <label class="flex items-center">
-                      <input
-                        type="checkbox"
-                        value="Waxing"
-                        class="category-filter rounded text-primary focus:ring-primary"
-                      />
-                      <span class="ml-2 text-sm">Waxing</span>
-                    </label>
-                  </div>
+                  <h4 class="font-medium text-spa-dark mb-3">Loại dịch vụ</h4>
+                  <select 
+                    id="service-type-select" 
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                  >
+                    <option value="all">Tất cả dịch vụ</option>
+                    <!-- Service types will be loaded dynamically -->
+                  </select>
                 </div>
 
-                <!-- Price Range -->
-                <div class="mb-6">
-                  <h4 class="font-medium text-spa-dark mb-3">Khoảng giá</h4>
-                  <div class="space-y-2">
-                    <label class="flex items-center">
-                      <input
-                        type="radio"
-                        name="price-range"
-                        value="0-300"
-                        class="text-primary focus:ring-primary"
-                      />
-                      <span class="ml-2 text-sm">Dưới 300.000đ</span>
-                    </label>
-                    <label class="flex items-center">
-                      <input
-                        type="radio"
-                        name="price-range"
-                        value="300-500"
-                        class="text-primary focus:ring-primary"
-                      />
-                      <span class="ml-2 text-sm">300.000đ - 500.000đ</span>
-                    </label>
-                    <label class="flex items-center">
-                      <input
-                        type="radio"
-                        name="price-range"
-                        value="500-800"
-                        class="text-primary focus:ring-primary"
-                      />
-                      <span class="ml-2 text-sm">500.000đ - 800.000đ</span>
-                    </label>
-                    <label class="flex items-center">
-                      <input
-                        type="radio"
-                        name="price-range"
-                        value="800+"
-                        class="text-primary focus:ring-primary"
-                      />
-                      <span class="ml-2 text-sm">Trên 800.000đ</span>
-                    </label>
-                  </div>
-                </div>
+                <!-- Price Range - Dynamic double slider will be inserted here -->
 
-                <!-- Duration -->
-                <div class="mb-6">
-                  <h4 class="font-medium text-spa-dark mb-3">Thời gian</h4>
-                  <div class="space-y-2">
-                    <label class="flex items-center">
-                      <input
-                        type="checkbox"
-                        value="30-60"
-                        class="duration-filter rounded text-primary focus:ring-primary"
-                      />
-                      <span class="ml-2 text-sm">30-60 phút</span>
-                    </label>
-                    <label class="flex items-center">
-                      <input
-                        type="checkbox"
-                        value="60-90"
-                        class="duration-filter rounded text-primary focus:ring-primary"
-                      />
-                      <span class="ml-2 text-sm">60-90 phút</span>
-                    </label>
-                    <label class="flex items-center">
-                      <input
-                        type="checkbox"
-                        value="90+"
-                        class="duration-filter rounded text-primary focus:ring-primary"
-                      />
-                      <span class="ml-2 text-sm">Trên 90 phút</span>
-                    </label>
-                  </div>
-                </div>
+
               </div>
             </aside>
 
@@ -324,57 +219,24 @@
         </div>
 
         <div class="p-4">
-          <!-- Same filter content as sidebar -->
+          <!-- Mobile Service Type Filter -->
           <div class="mb-6">
-            <h4 class="font-medium text-spa-dark mb-3">Danh mục</h4>
-            <div class="space-y-2">
-              <label class="flex items-center">
-                <input
-                  type="checkbox"
-                  value="Chăm sóc da mặt"
-                  class="mobile-category-filter rounded text-primary focus:ring-primary"
-                />
-                <span class="ml-2 text-sm">Chăm sóc da mặt</span>
-              </label>
-              <label class="flex items-center">
-                <input
-                  type="checkbox"
-                  value="Massage thư giãn"
-                  class="mobile-category-filter rounded text-primary focus:ring-primary"
-                />
-                <span class="ml-2 text-sm">Massage thư giãn</span>
-              </label>
-              <label class="flex items-center">
-                <input
-                  type="checkbox"
-                  value="Tắm trắng"
-                  class="mobile-category-filter rounded text-primary focus:ring-primary"
-                />
-                <span class="ml-2 text-sm">Tắm trắng</span>
-              </label>
-              <label class="flex items-center">
-                <input
-                  type="checkbox"
-                  value="Chăm sóc body"
-                  class="mobile-category-filter rounded text-primary focus:ring-primary"
-                />
-                <span class="ml-2 text-sm">Chăm sóc body</span>
-              </label>
-            </div>
+            <h4 class="font-medium text-spa-dark mb-3">Loại dịch vụ</h4>
+            <select 
+              id="mobile-service-type-select" 
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+            >
+              <option value="all">Tất cả dịch vụ</option>
+              <!-- Service types will be loaded dynamically -->
+            </select>
           </div>
 
           <div class="flex gap-2 mt-6">
             <button
-              id="apply-mobile-filters"
-              class="flex-1 bg-primary text-white py-2 rounded-lg"
-            >
-              Áp dụng
-            </button>
-            <button
               id="clear-mobile-filters"
-              class="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg"
+              class="w-full border border-gray-300 text-gray-700 py-2 rounded-lg"
             >
-              Xóa
+              Xóa bộ lọc
             </button>
           </div>
         </div>
@@ -385,7 +247,7 @@
 
     <!-- JavaScript -->
     <script src="<c:url value='/js/app.js'/>"></script>
-    <script src="<c:url value='/js/services.js'/>"></script>
-    <script src="<c:url value='/js/cart-debug.js'/>"></script>
+    <script src="<c:url value='/js/services-api.js'/>"></script>
+    
   </body>
 </html>
