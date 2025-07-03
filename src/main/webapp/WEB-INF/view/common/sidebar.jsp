@@ -202,7 +202,7 @@
                                 <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-400 text-yellow-900">45</span>
                             </a>
                             
-                            <a href="${contextPath}/servicetype" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                            <a href="${contextPath}/manager/servicetype" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="service-management">
                                 <i data-lucide="list-checks" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                                 <span>Quản lý dịch vụ</span>

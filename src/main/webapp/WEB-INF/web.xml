@@ -111,16 +111,6 @@
         <url-pattern>*.ico</url-pattern>
     </servlet-mapping>
 
-    <servlet>
-        <servlet-name>ServiceTypeController</servlet-name>
-        <servlet-class>controller.ServiceTypeController</servlet-class>
-        <multipart-config>
-            <max-file-size>2097152</max-file-size> <!-- 2MB -->
-            <max-request-size>2097152</max-request-size>
-            <file-size-threshold>0</file-size-threshold>
-        </multipart-config>
-    </servlet>
-
     <!-- Add explicit servlet mappings -->
     <servlet>
         <servlet-name>HomeController</servlet-name>
