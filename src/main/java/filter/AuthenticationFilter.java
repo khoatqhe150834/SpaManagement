@@ -59,6 +59,13 @@ public class AuthenticationFilter implements Filter {
         " | Path: " + path + " | Context: " + contextPath +
         " | Dispatcher: " + httpRequest.getDispatcherType());
 
+    // Check if path is valid
+    if (!isValidPath(path)) {
+      System.out.println("[AuthenticationFilter] Invalid path detected, redirecting to homepage: " + path);
+      httpResponse.sendRedirect(contextPath + "/");
+      return;
+    }
+
     // Check if resource is public using SecurityConfig
     if (SecurityConfig.isPublicResource(path)) {
       System.out.println("[AuthenticationFilter] Public resource detected, skipping authentication: " + path);
@@ -115,6 +122,41 @@ public class AuthenticationFilter implements Filter {
 
     // Continue with the request
     chain.doFilter(request, response);
+  }
+
+  /**
+   * Check if the path is valid (exists in our application)
+   */
+  private boolean isValidPath(String path) {
+    // Root path is always valid
+    if (path.equals("/")) {
+      return true;
+    }
+
+    // Check if it's a static resource
+    if (path.matches(".*\\.(css|js|png|jpg|jpeg|gif|ico|woff|woff2|ttf|eot|svg)$")) {
+      return true;
+    }
+
+    // Check if it's a public URL
+    if (SecurityConfig.isPublicResource(path)) {
+      return true;
+    }
+
+    // Check common valid paths
+    String[] validPrefixes = {
+        "/admin", "/manager", "/therapist", "/reception", "/customer",
+        "/booking", "/profile", "/appointments", "/login", "/register",
+        "/about", "/contact", "/services", "/blog", "/api"
+    };
+
+    for (String prefix : validPrefixes) {
+      if (path.startsWith(prefix)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /**
