@@ -10,6 +10,7 @@ class LoginPage {
         this.togglePasswordBtn = document.getElementById('toggle-password');
         this.errorMessageContainer = document.getElementById('error-message');
         this.submitBtn = document.getElementById('submit-btn');
+        this.rememberMeCheckbox = document.getElementById('remember-me');
 
         this.demoUsers = {
             'admin@spahuongsen.vn': { password: 'password123', role: 'admin', redirect: 'admin-dashboard.html', name: 'Jane Admin' },
@@ -25,6 +26,7 @@ class LoginPage {
     init() {
         lucide.createIcons();
         this.initEventListeners();
+        this.handlePrefill();
     }
 
     initEventListeners() {
@@ -149,7 +151,7 @@ class LoginPage {
         this.setLoading(true);
 
         const formData = new FormData(this.form);
-        const rememberMe = document.getElementById('remember-me').checked;
+        const rememberMe = this.rememberMeCheckbox.checked;
         formData.set('rememberMe', rememberMe);
 
         try {
@@ -175,6 +177,39 @@ class LoginPage {
         } finally {
             this.setLoading(false);
         }
+    }
+
+    handlePrefill() {
+        // First try to prefill from remember-me cookie data
+        const rememberedEmail = this.form.dataset.rememberedEmail;
+        const rememberedPassword = this.form.dataset.rememberedPassword;
+        const rememberMeChecked = this.form.dataset.rememberMeChecked === 'true';
+
+        if (rememberedEmail) {
+            this.emailInput.value = rememberedEmail;
+            if (rememberedPassword) {
+                this.passwordInput.value = rememberedPassword;
+            }
+            if (rememberMeChecked) {
+                this.rememberMeCheckbox.checked = true;
+            }
+        }
+
+        // Then try session-based prefill (this will override cookie-based if present)
+        handlePrefillCredentials({
+            emailFieldSelector: '#email',
+            passwordFieldSelector: '#password',
+            rememberMeSelector: '#remember-me',
+            notificationCallback: (message, type) => {
+                const notification = document.getElementById('notification');
+                if (notification) {
+                    notification.textContent = message;
+                    notification.className = `notification ${type}`;
+                    notification.classList.add('show');
+                    setTimeout(() => notification.classList.remove('show'), 5000);
+                }
+            }
+        });
     }
 }
 

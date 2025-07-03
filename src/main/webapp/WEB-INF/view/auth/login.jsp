@@ -59,7 +59,14 @@ contentType="text/html" pageEncoding="UTF-8"%>
 
         <!-- Login Form -->
         <div class="bg-white rounded-lg shadow-lg p-8">
-          <form id="login-form" class="space-y-6" action="<c:url value='/login'/>" method="POST" novalidate>
+          <form id="login-form" 
+                class="space-y-6" 
+                action="<c:url value='/login'/>" 
+                method="POST" 
+                novalidate
+                data-remembered-email="<c:out value='${rememberedEmail}'/>"
+                data-remembered-password="<c:out value='${rememberedPassword}'/>"
+                data-remember-me-checked="${rememberMeChecked}">
             <div
               id="error-message"
               class="hidden bg-red-50 border border-red-200 rounded-lg p-3"

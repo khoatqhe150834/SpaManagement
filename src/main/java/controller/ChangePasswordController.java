@@ -18,11 +18,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import model.Customer;
 import model.User;
+import model.RememberMeToken;
 
 /**
  * Controller for changing password in user profile
@@ -117,8 +116,8 @@ public class ChangePasswordController extends HttpServlet {
             }
 
             if (success) {
-                // Clean up remember me data
-                cleanupRememberMeData(userEmail, request, response);
+                // update up remember me data
+                updateRememberMeData(userEmail, request, response);
 
                 // Set success message and redirect
                 HttpSession session = request.getSession();
@@ -180,34 +179,61 @@ public class ChangePasswordController extends HttpServlet {
     }
 
     /**
-     * Clean up remember me tokens and cookies when password is changed
-     * This prevents old passwords from being pre-filled on login
+     * Update or clean up remember me tokens and cookies when password is changed
+     * If user has Remember Me enabled, update the token with new password
+     * Otherwise, delete the token
      */
-    private void cleanupRememberMeData(String email, HttpServletRequest request, HttpServletResponse response) {
+    private void updateRememberMeData(String email, HttpServletRequest request, HttpServletResponse response) {
         try {
-            // Delete remember me tokens from database
-            rememberMeTokenDAO.deleteTokensByEmail(email);
+            Cookie rememberMeCookie = null;
+            String existingToken = null;
 
-            // Remove remember me cookie from browser
+            // Find existing remember me cookie
             Cookie[] cookies = request.getCookies();
             if (cookies != null) {
                 for (Cookie cookie : cookies) {
                     if ("rememberedUser".equals(cookie.getName())) {
-                        // Delete the cookie by setting maxAge to 0
-                        Cookie deleteCookie = new Cookie("rememberedUser", "");
-                        deleteCookie.setMaxAge(0);
-                        deleteCookie.setPath("/");
-                        deleteCookie.setHttpOnly(true);
-                        deleteCookie.setSecure(request.isSecure());
-                        response.addCookie(deleteCookie);
+                        rememberMeCookie = cookie;
+                        existingToken = cookie.getValue();
                         break;
                     }
                 }
             }
 
+            // If user has an active remember me cookie
+            if (rememberMeCookie != null && existingToken != null && !existingToken.isEmpty()) {
+                try {
+                    // Get the existing token from database
+                    RememberMeToken token = rememberMeTokenDAO.findToken(existingToken);
+                    if (token != null) {
+                        // Update the token with the new password
+                        token.setPassword(request.getParameter("newPassword"));
+                        rememberMeTokenDAO.deleteToken(existingToken); // Delete old token
+                        rememberMeTokenDAO.insertToken(token); // Insert updated token
+                        return; // Token updated successfully, no need to delete
+                    }
+                } catch (SQLException ex) {
+                    // Log error but continue with deletion as fallback
+                    System.out.println("Error updating remember me token: " + ex.getMessage());
+                }
+            }
+
+            // If no active token or update failed, delete all tokens
+            rememberMeTokenDAO.deleteTokensByEmail(email);
+
+            // Remove cookie if it exists
+            if (rememberMeCookie != null) {
+                Cookie deleteCookie = new Cookie("rememberedUser", "");
+                deleteCookie.setMaxAge(0);
+                deleteCookie.setPath("/");
+                deleteCookie.setHttpOnly(true);
+                deleteCookie.setSecure(request.isSecure());
+                response.addCookie(deleteCookie);
+            }
+
         } catch (Exception e) {
             // Log error but don't break the password change process
-            System.out.println("Error cleaning up remember me data: " + e.getMessage());
+            System.out.println("Error handling remember me data: " + e.getMessage());
         }
     }
 
