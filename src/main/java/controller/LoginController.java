@@ -121,8 +121,9 @@ public class LoginController extends HttpServlet {
                             java.net.URLEncoder.encode(customer.getEmail(), "UTF-8"));
                     return;
                 }
-                // Customer is verified, redirect to homepage
-                response.sendRedirect(request.getContextPath() + "/");
+                // Customer is verified, redirect using role-based logic
+                String redirectUrl = getRedirectUrlForRole(customer.getRoleId());
+                response.sendRedirect(request.getContextPath() + redirectUrl);
                 return;
             } else if (user != null) {
                 // Staff/Admin is logged in
@@ -275,23 +276,7 @@ public class LoginController extends HttpServlet {
         User user = userDAO.getUserByEmailAndPassword(email, password);
         if (user != null) {
             // Staff/Admin login successful
-            HttpSession session = request.getSession();
-            session.setAttribute("user", user);
-            session.setAttribute("authenticated", true);
-
-            String userType = RoleConstants.getUserTypeFromRole(user.getRoleId());
-            session.setAttribute("userType", userType);
-
-            handleRememberLogin(request, response, email, password);
-            String redirectUrl = getRedirectUrlForRole(user.getRoleId());
-
-            // Set a success flash message
-            FlashMessage flashMessage = new FlashMessage("Đăng nhập thành công!", "success");
-            session.setAttribute("flash_notification", flashMessage);
-
-            jsonResponse.put("success", true);
-            jsonResponse.put("redirectUrl", request.getContextPath() + redirectUrl);
-            response.getWriter().write(gson.toJson(jsonResponse));
+            handleSuccessfulLogin(request, response, user, email, password);
             return;
         }
 
@@ -319,22 +304,7 @@ public class LoginController extends HttpServlet {
             }
 
             // Customer login successful AND verified
-            HttpSession session = request.getSession();
-            session.setAttribute("customer", customer);
-            session.setAttribute("authenticated", true);
-
-            String userType = RoleConstants.getUserTypeFromRole(customer.getRoleId());
-            session.setAttribute("userType", userType);
-
-            handleRememberLogin(request, response, email, password);
-
-            // Set a success flash message
-            FlashMessage flashMessage = new FlashMessage("Đăng nhập thành công!", "success");
-            session.setAttribute("flash_notification", flashMessage);
-
-            jsonResponse.put("success", true);
-            jsonResponse.put("redirectUrl", request.getContextPath() + "/");
-            response.getWriter().write(gson.toJson(jsonResponse));
+            handleSuccessfulLogin(request, response, customer, email, password);
             return;
         }
 
@@ -345,27 +315,58 @@ public class LoginController extends HttpServlet {
         response.getWriter().write(gson.toJson(jsonResponse));
     }
 
+    private void handleSuccessfulLogin(HttpServletRequest request, HttpServletResponse response, Object account,
+            String email, String password)
+            throws IOException, ServletException {
+
+        HttpSession session = request.getSession();
+        session.setAttribute("authenticated", true);
+
+        Integer roleId;
+        String userType;
+
+        if (account instanceof User) {
+            User user = (User) account;
+            session.setAttribute("user", user);
+            roleId = user.getRoleId();
+            userType = RoleConstants.getUserTypeFromRole(roleId);
+        } else {
+            Customer customer = (Customer) account;
+            session.setAttribute("customer", customer);
+            roleId = customer.getRoleId();
+            userType = RoleConstants.getUserTypeFromRole(roleId);
+        }
+
+        session.setAttribute("userType", userType);
+
+        // Handle remember me cookie logic
+        handleRememberLogin(request, response, email, password);
+
+        // Use the unified flash message system
+        session.setAttribute("flash_success", "Đăng nhập thành công!");
+
+        // Prepare JSON response
+        String redirectUrl = getRedirectUrlForRole(roleId);
+        Map<String, Object> jsonResponse = new HashMap<>();
+        jsonResponse.put("success", true);
+        jsonResponse.put("redirectUrl", request.getContextPath() + redirectUrl);
+
+        response.getWriter().write(gson.toJson(jsonResponse));
+    }
+
     private String getRedirectUrlForRole(Integer roleId) {
         if (roleId == null) {
             return "/";
         }
 
-        switch (roleId) {
-            case RoleConstants.ADMIN_ID:
-                return "/admin-dashboard";
-
-            case RoleConstants.MANAGER_ID:
-                return "/manager-dashboard";
-
-            case RoleConstants.THERAPIST_ID:
-                return "/therapist-dashboard";
-
-            case RoleConstants.RECEPTIONIST_ID:
-                return "/receptionist-dashboard";
-
-            default:
-                return "/";
+        // Customer role - redirect to homepage
+        if (roleId.equals(RoleConstants.CUSTOMER_ID)) {
+            return "/";
         }
+
+        // All other roles (admin, manager, therapist, receptionist, marketing, etc.)
+        // redirect to dashboard
+        return "/dashboard";
     }
 
     /**

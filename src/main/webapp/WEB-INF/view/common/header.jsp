@@ -3,8 +3,8 @@
 <%@ page import="model.MenuService.MenuItem" %>
 <%@ page import="model.RoleConstants" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %> <%@ taglib
-prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %> <%@page
-contentType="text/html" pageEncoding="UTF-8"%>
+prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %> 
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
 
 <%
     // Determine the current page's path for active link highlighting
@@ -17,19 +17,25 @@ contentType="text/html" pageEncoding="UTF-8"%>
     // Get user-specific menu items if logged in
     List<MenuItem> userMenuItems = null;
     String userRole = null;
+    boolean showBookingFeatures = true; // Default to show for guests
+    
     if (session.getAttribute("authenticated") != null && (Boolean)session.getAttribute("authenticated")) {
         if (session.getAttribute("customer") != null) {
             userRole = "CUSTOMER";
+            showBookingFeatures = true; // Show for customers
         } else if (session.getAttribute("user") != null) {
             model.User user = (model.User) session.getAttribute("user");
             userRole = RoleConstants.getUserTypeFromRole(user.getRoleId());
+            showBookingFeatures = false; // Hide for staff/admin roles
         }
         if (userRole != null) {
             userMenuItems = MenuService.getMenuItemsByRole(userRole, request.getContextPath());
         }
     }
+    
     pageContext.setAttribute("userMenuItems", userMenuItems);
     pageContext.setAttribute("currentPath", currentPath);
+    pageContext.setAttribute("showBookingFeatures", showBookingFeatures);
 %>
 
 <!-- Header -->
@@ -49,10 +55,13 @@ contentType="text/html" pageEncoding="UTF-8"%>
           <!-- Navigation -->
           <nav class="hidden md:flex space-x-8">
             <c:forEach var="item" items="${mainNavItems}">
+              <!-- Hide booking link for staff users -->
+              <c:if test="${showBookingFeatures or item.label != 'Đặt lịch'}">
               <a
                 href="${item.url}"
                 class="text-spa-dark hover:text-primary transition-colors font-medium <c:if test='${item.url.endsWith(currentPath)}'>border-b-2 border-primary</c:if>"
                 >${item.label}</a>
+              </c:if>
             </c:forEach>
           </nav>
 
@@ -68,34 +77,39 @@ contentType="text/html" pageEncoding="UTF-8"%>
                       <span class="sr-only">Mở menu người dùng</span>
                       <!-- Avatar -->
                       <div class="relative">
-                        <c:choose>
-                          <%-- Check for customer avatar safely --%>
-                          <c:when test="${not empty sessionScope.customer and not empty sessionScope.customer.avatarUrl}">
-                            <img class="h-8 w-8 rounded-full object-cover border-2 border-primary" 
-                                 src="<c:url value='${sessionScope.customer.avatarUrl}'/>" 
-                                 alt="Avatar">
-                          </c:when>
-                          <%-- Check for user avatar safely --%>
-                          <c:when test="${not empty sessionScope.user and not empty sessionScope.user.avatarUrl}">
-                            <img class="h-8 w-8 rounded-full object-cover border-2 border-primary" 
-                                 src="<c:url value='${sessionScope.user.avatarUrl}'/>" 
-                                 alt="Avatar">
-                          </c:when>
-                          <%-- Otherwise, show default initial --%>
-                          <c:otherwise>
-                            <div class="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white font-semibold text-sm border-2 border-primary">
+                        <div class="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white border-2 border-primary">
+                          <c:choose>
+                            <%-- Customer icon --%>
+                            <c:when test="${not empty sessionScope.customer}">
+                              <i data-lucide="user" class="h-4 w-4"></i>
+                            </c:when>
+                            <%-- Staff icons based on role --%>
+                            <c:when test="${not empty sessionScope.user}">
+                              <c:set var="userRoleName" value="<%= RoleConstants.getUserTypeFromRole(((model.User)session.getAttribute(\"user\")).getRoleId()) %>" />
                               <c:choose>
-                                <c:when test="${not empty sessionScope.customer and not empty sessionScope.customer.fullName}">
-                                  ${sessionScope.customer.fullName.substring(0,1).toUpperCase()}
+                                <c:when test="${userRoleName == 'ADMIN'}">
+                                  <i data-lucide="shield" class="h-4 w-4"></i>
                                 </c:when>
-                                <c:when test="${not empty sessionScope.user and not empty sessionScope.user.fullName}">
-                                  ${sessionScope.user.fullName.substring(0,1).toUpperCase()}
+                                <c:when test="${userRoleName == 'MANAGER'}">
+                                  <i data-lucide="briefcase" class="h-4 w-4"></i>
                                 </c:when>
-                                <c:otherwise>U</c:otherwise>
+                                <c:when test="${userRoleName == 'THERAPIST'}">
+                                  <i data-lucide="heart-handshake" class="h-4 w-4"></i>
+                                </c:when>
+                                <c:when test="${userRoleName == 'MARKETING'}">
+                                  <i data-lucide="megaphone" class="h-4 w-4"></i>
+                                </c:when>
+                                <c:otherwise>
+                                  <i data-lucide="user-check" class="h-4 w-4"></i>
+                                </c:otherwise>
                               </c:choose>
-                            </div>
-                          </c:otherwise>
-                        </c:choose>
+                            </c:when>
+                            <%-- Default user icon --%>
+                            <c:otherwise>
+                              <i data-lucide="user" class="h-4 w-4"></i>
+                            </c:otherwise>
+                          </c:choose>
+                        </div>
                         <!-- Online status indicator -->
                         <span class="absolute bottom-0 right-0 block h-2 w-2 rounded-full bg-green-400 ring-2 ring-white"></span>
                       </div>
@@ -192,11 +206,13 @@ contentType="text/html" pageEncoding="UTF-8"%>
               </c:otherwise>
             </c:choose>
 
-            <!-- Cart Icon -->
+            <!-- Cart Icon - Only show for guests and customers -->
+            <c:if test="${showBookingFeatures}">
             <button id="cart-icon-btn" class="relative p-2 text-spa-dark hover:text-primary transition-colors">
               <i data-lucide="shopping-cart" class="w-6 h-6 pointer-events-none"></i>
               <span id="cart-badge" class="absolute inline-flex items-center justify-center w-6 h-6 text-sm font-bold text-white bg-red-600 border-2 border-white rounded-full -top-2 -right-2" style="display: none;">0</span>
             </button>
+            </c:if>
 
             <!-- Mobile menu button -->
             <button id="mobile-menu-btn" class="md:hidden">
@@ -212,7 +228,10 @@ contentType="text/html" pageEncoding="UTF-8"%>
         >
           <nav class="space-y-2">
             <c:forEach var="item" items="${mainNavItems}">
+              <!-- Hide booking link for staff users -->
+              <c:if test="${showBookingFeatures or item.label != 'Đặt lịch'}">
               <a href="${item.url}" class="block py-2 text-spa-dark hover:text-primary">${item.label}</a>
+              </c:if>
             </c:forEach>
             
             <div class="border-t border-gray-200 pt-4 mt-4 space-y-2">
@@ -221,34 +240,39 @@ contentType="text/html" pageEncoding="UTF-8"%>
                   <!-- Mobile User Info -->
                   <div class="px-2 py-2 border-b border-gray-200 mb-2">
                     <div class="flex items-center space-x-3">
-                      <c:choose>
-                        <%-- Check for customer avatar safely --%>
-                        <c:when test="${not empty sessionScope.customer and not empty sessionScope.customer.avatarUrl}">
-                          <img class="h-10 w-10 rounded-full object-cover border-2 border-primary" 
-                               src="<c:url value='${sessionScope.customer.avatarUrl}'/>" 
-                               alt="Avatar">
-                        </c:when>
-                        <%-- Check for user avatar safely --%>
-                        <c:when test="${not empty sessionScope.user and not empty sessionScope.user.avatarUrl}">
-                          <img class="h-10 w-10 rounded-full object-cover border-2 border-primary" 
-                               src="<c:url value='${sessionScope.user.avatarUrl}'/>" 
-                               alt="Avatar">
-                        </c:when>
-                        <%-- Otherwise, show default initial --%>
-                        <c:otherwise>
-                          <div class="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-white font-semibold border-2 border-primary">
+                      <div class="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-white border-2 border-primary">
+                        <c:choose>
+                          <%-- Customer icon --%>
+                          <c:when test="${not empty sessionScope.customer}">
+                            <i data-lucide="user" class="h-5 w-5"></i>
+                          </c:when>
+                          <%-- Staff icons based on role --%>
+                          <c:when test="${not empty sessionScope.user}">
+                            <c:set var="userRoleName" value="<%= RoleConstants.getUserTypeFromRole(((model.User)session.getAttribute(\"user\")).getRoleId()) %>" />
                             <c:choose>
-                              <c:when test="${not empty sessionScope.customer and not empty sessionScope.customer.fullName}">
-                                ${sessionScope.customer.fullName.substring(0,1).toUpperCase()}
+                              <c:when test="${userRoleName == 'ADMIN'}">
+                                <i data-lucide="shield" class="h-5 w-5"></i>
                               </c:when>
-                              <c:when test="${not empty sessionScope.user and not empty sessionScope.user.fullName}">
-                                ${sessionScope.user.fullName.substring(0,1).toUpperCase()}
+                              <c:when test="${userRoleName == 'MANAGER'}">
+                                <i data-lucide="briefcase" class="h-5 w-5"></i>
                               </c:when>
-                              <c:otherwise>U</c:otherwise>
+                              <c:when test="${userRoleName == 'THERAPIST'}">
+                                <i data-lucide="heart-handshake" class="h-5 w-5"></i>
+                              </c:when>
+                              <c:when test="${userRoleName == 'MARKETING'}">
+                                <i data-lucide="megaphone" class="h-5 w-5"></i>
+                              </c:when>
+                              <c:otherwise>
+                                <i data-lucide="user-check" class="h-5 w-5"></i>
+                              </c:otherwise>
                             </c:choose>
-                          </div>
-                        </c:otherwise>
-                      </c:choose>
+                          </c:when>
+                          <%-- Default user icon --%>
+                          <c:otherwise>
+                            <i data-lucide="user" class="h-5 w-5"></i>
+                          </c:otherwise>
+                        </c:choose>
+                      </div>
                       <div>
                         <p class="text-sm font-medium text-spa-dark">
                           <c:choose>
@@ -347,17 +371,16 @@ contentType="text/html" pageEncoding="UTF-8"%>
       });
     </script>
 
-<!-- Flash Notification System -->
-<jsp:include page="/WEB-INF/view/common/flash-notification.jsp" />
-
 <!-- Add the notification container here so it's available on all pages -->
 <div id="notification" class="notification"></div>
 
-<!-- Cart Modal -->
+<!-- Cart Modal - Only include for guests and customers -->
+<c:if test="${showBookingFeatures}">
 <jsp:include page="/WEB-INF/view/common/cart-modal.jsp" />
 
 <!-- Cart Script -->
 <script src="${pageContext.request.contextPath}/js/cart.js"></script>
+</c:if>
   </body>
 </html>
 

@@ -14,6 +14,7 @@ public class RoleConstants {
     public static final int THERAPIST_ID = 3;
     public static final int RECEPTIONIST_ID = 4;
     public static final int CUSTOMER_ID = 5;
+    public static final int MARKETING_ID = 6;
 
     public static String getUserTypeFromRole(Integer roleId) {
         if (roleId == null) {
@@ -31,6 +32,8 @@ public class RoleConstants {
                 return "RECEPTIONIST";
             case CUSTOMER_ID:
                 return "CUSTOMER";
+            case MARKETING_ID:
+                return "MARKETING";
             default:
                 return "CUSTOMER"; // Default to customer for unknown roles
         }
