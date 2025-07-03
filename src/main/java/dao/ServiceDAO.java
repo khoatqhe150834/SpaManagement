@@ -423,74 +423,6 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
      * @param maxPrice    Optional maximum price.
      * @return A list of services matching the filter criteria.
      */
-    public List<Service> getFilteredServices(String category, String searchQuery, Integer minPrice, Integer maxPrice) {
-        List<Service> services = new ArrayList<>();
-        StringBuilder sql = new StringBuilder("SELECT * FROM services WHERE is_active = 1");
-        List<Object> params = new ArrayList<>();
-
-        if (category != null) {
-            if (category.equals("all")) {
-                // do nothing
-            } else if (category.equals("featured")) {
-                sql.append(" AND average_rating >= 4.5");
-            } else if (category.equals("new")) {
-                sql.append(" AND created_at >= NOW() - INTERVAL 1 MONTH");
-            } else if (category.startsWith("type-")) {
-                sql.append(" AND service_type_id = ?");
-                params.add(Integer.parseInt(category.substring(5)));
-            }
-        }
-
-        if (searchQuery != null && !searchQuery.trim().isEmpty()) {
-            // Normalize search query: trim and handle multiple spaces
-            String normalizedQuery = searchQuery.trim().replaceAll("\\s+", " ").toLowerCase();
-            sql.append(" AND (LOWER(name) LIKE ? OR LOWER(description) LIKE ?)");
-            params.add("%" + normalizedQuery + "%");
-            params.add("%" + normalizedQuery + "%");
-        }
-
-        if (minPrice != null) {
-            sql.append(" AND price >= ?");
-            params.add(minPrice);
-        }
-
-        if (maxPrice != null) {
-            sql.append(" AND price <= ?");
-            params.add(maxPrice);
-        }
-
-        ServiceTypeDAO typeDAO = new ServiceTypeDAO();
-        Map<Integer, ServiceType> typeMap = new HashMap<>();
-        for (ServiceType type : typeDAO.findAll()) {
-            typeMap.put(type.getServiceTypeId(), type);
-        }
-
-        try (Connection conn = DBContext.getConnection();
-                PreparedStatement stm = conn.prepareStatement(sql.toString())) {
-            for (int i = 0; i < params.size(); i++) {
-                stm.setObject(i + 1, params.get(i));
-            }
-            try (ResultSet rs = stm.executeQuery()) {
-                while (rs.next()) {
-                    services.add(mapResultSet(rs, typeMap));
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return services;
-    }
-
-    // method to find all services types
-    public void activateById(int id) {
-        String sql = "UPDATE services SET is_active = 1 WHERE service_id = ?";
-        try (Connection conn = DBContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            stmt.executeUpdate();
-        } catch (SQLException ex) {
-            Logger.getLogger(ServiceDAO.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
 
     // Kiểm tra tên dịch vụ đã tồn tại (không phân biệt loại)
     public boolean existsByName(String name) {
@@ -526,4 +458,110 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
         }
         return false;
     }
+
+    public List<Service> getServicesByCriteria(String category, String searchQuery, Integer minPrice, Integer maxPrice,
+            int page, int pageSize, String order) {
+        List<Service> services = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT * FROM services WHERE is_active = 1");
+        List<Object> params = new ArrayList<>();
+
+        if (category != null) {
+            if (category.equals("all")) {
+                // do nothing
+            } else if (category.equals("featured")) {
+                sql.append(" AND average_rating >= 4.5");
+            } else if (category.equals("new")) {
+                sql.append(" AND created_at >= NOW() - INTERVAL 1 MONTH");
+            } else if (category.startsWith("type-")) {
+                sql.append(" AND service_type_id = ?");
+                params.add(Integer.parseInt(category.substring(5)));
+            }
+        }
+
+        if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+            // Normalize search query: trim and handle multiple spaces
+            String normalizedQuery = searchQuery.trim().replaceAll("\\s+", " ").toLowerCase();
+            sql.append(" AND (LOWER(name) LIKE ? OR LOWER(description) LIKE ?)");
+            params.add("%" + normalizedQuery + "%");
+            params.add("%" + normalizedQuery + "%");
+        }
+
+        if (minPrice != null) {
+            sql.append(" AND price >= ?");
+            params.add(minPrice);
+        }
+
+        if (maxPrice != null) {
+            sql.append(" AND price <= ?");
+            params.add(maxPrice);
+        }
+
+        // Add sorting
+        if (order != null && !order.isEmpty()) {
+            switch (order.toLowerCase()) {
+                case "price_asc":
+                    sql.append(" ORDER BY price ASC");
+                    break;
+                case "price_desc":
+                    sql.append(" ORDER BY price DESC");
+                    break;
+                case "rating_asc":
+                    sql.append(" ORDER BY average_rating ASC");
+                    break;
+                case "rating_desc":
+                    sql.append(" ORDER BY average_rating DESC");
+                    break;
+                case "newest":
+                    sql.append(" ORDER BY created_at DESC");
+                    break;
+                case "oldest":
+                    sql.append(" ORDER BY created_at ASC");
+                    break;
+                default:
+                    sql.append(" ORDER BY created_at DESC"); // Default sorting
+                    break;
+            }
+        } else {
+            sql.append(" ORDER BY created_at DESC"); // Default sorting if order is null
+        }
+
+        // Add pagination
+        sql.append(" LIMIT ? OFFSET ?");
+        params.add(pageSize);
+        params.add((page - 1) * pageSize);
+
+        ServiceTypeDAO typeDAO = new ServiceTypeDAO();
+        Map<Integer, ServiceType> typeMap = new HashMap<>();
+        for (ServiceType type : typeDAO.findAll()) {
+            typeMap.put(type.getServiceTypeId(), type);
+        }
+
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement stm = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                stm.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = stm.executeQuery()) {
+                while (rs.next()) {
+                    services.add(mapResultSet(rs, typeMap));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return services;
+    }
+
+    // method to find all services types
+    public void activateById(int id) {
+        String sql = "UPDATE services SET is_active = 1 WHERE service_id = ?";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            stmt.executeUpdate();
+        } catch (SQLException ex) {
+            Logger.getLogger(ServiceDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    // Kiểm tra tên dịch vụ đã tồn tại (không phân biệt loại)
 }
