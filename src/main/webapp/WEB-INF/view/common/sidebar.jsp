@@ -73,7 +73,7 @@
 <aside id="main-sidebar" class="sticky top-[4.5rem] h-[calc(100vh-7rem)] my-4 z-40 w-80 bg-white shadow-xl transform transition-transform duration-300 ease-in-out lg:translate-x-0 -translate-x-full flex flex-col">
     <!-- Header -->
     <div class="flex items-center justify-between h-16 px-6 border-b border-gray-200 bg-[#D4AF37] flex-shrink-0">
-        <a href="${contextPath}/dashboard" class="flex items-center" title="Go to Dashboard">
+        <a href="${pageContext.request.contextPath  }/dashboard" class="flex items-center" title="Go to Dashboard">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="heart" class="lucide lucide-heart h-8 w-8 text-white mr-3"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>
             <div class="text-white">
                 <div class="text-lg font-bold font-serif">Spa Hương Sen</div>
@@ -103,7 +103,7 @@
                         </button>
                         
                         <div class="submenu ml-4 mt-1 space-y-1 pl-4 hidden">
-                            <a href="${contextPath}/customer/appointments" class="nav-button w-full flex items-center justify-between px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                            <a href="${pageContext.request.contextPath}/customer/appointments" class="nav-button w-full flex items-center justify-between px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="my-appointments">
                                 <div class="flex items-center">
                                     <i data-lucide="calendar" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
@@ -112,37 +112,37 @@
                                 <span class="text-sm font-semibold px-2.5 py-1 rounded-full bg-yellow-400 text-yellow-900">3</span>
                             </a>
                             
-                            <a href="${contextPath}/booking" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                            <a href="${pageContext.request.contextPath}/booking" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="book-services">
                                 <i data-lucide="calendar-plus" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                                 <span>Đặt dịch vụ</span>
                             </a>
                             
-                            <a href="${contextPath}/customer/history" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                            <a href="${pageContext.request.contextPath}/customer/history" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="treatment-history">
                                 <i data-lucide="history" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                                 <span>Lịch sử điều trị</span>
                             </a>
                             
-                            <a href="${contextPath}/customer/profile" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                            <a href="${pageContext.request.contextPath}/customer/profile" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="personal-profile">
                                 <i data-lucide="user-cog" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                                 <span>Hồ sơ cá nhân</span>
                             </a>
                             
-                            <a href="${contextPath}/password/change" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                            <a href="${pageContext.request.contextPath}/password/change" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="change-password">
                                 <i data-lucide="key" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                                 <span>Đổi mật khẩu</span>
                             </a>
                             
-                            <a href="${contextPath}/customer/payments" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                            <a href="${pageContext.request.contextPath}/customer/payments" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="payment-history">
                                 <i data-lucide="credit-card" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                                 <span>Lịch sử thanh toán</span>
                             </a>
                             
-                            <a href="${contextPath}/customer/loyalty" class="nav-button w-full flex items-center justify-between px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                            <a href="${pageContext.request.contextPath}/customer/loyalty" class="nav-button w-full flex items-center justify-between px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="loyalty-points">
                                 <div class="flex items-center">
                                     <i data-lucide="gift" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
@@ -151,7 +151,7 @@
                                 <span class="text-sm font-semibold px-2.5 py-1 rounded-full bg-yellow-400 text-yellow-900">2,450</span>
                             </a>
                             
-                            <a href="${contextPath}/customer/offers" class="nav-button w-full flex items-center justify-between px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                            <a href="${pageContext.request.contextPath}/customer/offers" class="nav-button w-full flex items-center justify-between px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="special-offers">
                                 <div class="flex items-center">
                                     <i data-lucide="star" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
@@ -165,7 +165,7 @@
 
                 <c:when test="${userRole == 'MANAGER' || userRole == 'ADMIN'}">
                     <!-- Manager Dashboard -->
-                    <a href="${contextPath}/dashboard" class="nav-button w-full flex items-center px-4 py-2.5 rounded-lg transition-all duration-200 group text-gray-700 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                    <a href="${pageContext.request.contextPath}/dashboard" class="nav-button w-full flex items-center px-4 py-2.5 rounded-lg transition-all duration-200 group text-gray-700 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                         data-item-id="dashboard">
                         <i data-lucide="layout-dashboard" class="h-5 w-5 mr-3 text-gray-500 group-hover:text-[#D4AF37]"></i>
                         <span class="font-medium text-base">Dashboard</span>
@@ -181,19 +181,19 @@
                         </button>
                         
                         <div class="submenu ml-4 mt-1 space-y-1 pl-4 hidden">
-                            <a href="${contextPath}/manager/overview" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                            <a href="${pageContext.request.contextPath}/manager/service" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="manager-overview">
                                 <i data-lucide="bar-chart-3" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                                 <span>Tổng quan & Phân tích</span>
                             </a>
                             
-                            <a href="${contextPath}/manager/staff" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                            <a href="${pageContext.request.contextPath}/manager/staff" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="staff-management">
                                 <i data-lucide="users" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                                 <span>Quản lý nhân viên</span>
                             </a>
                             
-                            <a href="${contextPath}/manager/calendar" class="nav-button w-full flex items-center justify-between px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                            <a href="${pageContext.request.contextPath}/manager/calendar" class="nav-button w-full flex items-center justify-between px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="appointment-calendar">
                                 <div class="flex items-center">
                                     <i data-lucide="calendar" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
@@ -202,31 +202,31 @@
                                 <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-400 text-yellow-900">45</span>
                             </a>
                             
-                            <a href="${contextPath}/servicetype" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                            <a href="${pageContext.request.contextPath}/manager/servicetype" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="service-management">
                                 <i data-lucide="list-checks" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                                 <span>Quản lý dịch vụ</span>
                             </a>
                             
-                            <a href="${contextPath}/manager/inventory" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                            <a href="${pageContext.request.contextPath}/manager/inventory" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="inventory-control">
                                 <i data-lucide="package" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                                 <span>Kiểm soát kho</span>
                             </a>
                             
-                            <a href="${contextPath}/manager/finance" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                            <a href="${pageContext.request.contextPath}/manager/finance" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="financial-reports">
                                 <i data-lucide="dollar-sign" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                                 <span>Báo cáo tài chính</span>
                             </a>
                             
-                            <a href="${contextPath}/manager/feedback" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                            <a href="${pageContext.request.contextPath}/manager/feedback" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="customer-feedback">
                                 <i data-lucide="message-circle" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                                 <span>Phản hồi khách hàng</span>
                             </a>
                             
-                            <a href="${contextPath}/manager/metrics" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                            <a href="${pageContext.request.contextPath}/manager/metrics" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="performance-metrics">
                                 <i data-lucide="trending-up" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                                 <span>Chỉ số hiệu suất</span>
@@ -248,37 +248,37 @@
                         </button>
                         
                         <div class="submenu ml-4 mt-1 space-y-1 pl-4 hidden">
-                            <a href="${contextPath}/marketing/campaigns" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                            <a href="${pageContext.request.contextPath}/marketing/campaigns" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="campaign-management">
                                 <i data-lucide="target" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                                 <span>Quản lý chiến dịch</span>
                             </a>
-                             <a href="${contextPath}/marketing/promotions" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                             <a href="${pageContext.request.contextPath}/marketing/promotions" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="promotion-creator">
                                 <i data-lucide="gift" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                                 <span>Tạo khuyến mãi</span>
                             </a>
-                            <a href="${contextPath}/marketing/emails" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                            <a href="${pageContext.request.contextPath}/marketing/emails" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="email-templates">
                                 <i data-lucide="mail" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                                 <span>Mẫu email</span>
                             </a>
-                            <a href="${contextPath}/marketing/social" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                            <a href="${pageContext.request.contextPath}/marketing/social" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="social-media">
                                 <i data-lucide="share-2" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                                 <span>Mạng xã hội</span>
                             </a>
-                            <a href="${contextPath}/marketing/analytics" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                            <a href="${pageContext.request.contextPath}/marketing/analytics" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="customer-analytics">
                                 <i data-lucide="bar-chart-3" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                                 <span>Phân tích khách hàng</span>
                             </a>
-                            <a href="${contextPath}/marketing/loyalty" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                            <a href="${pageContext.request.contextPath}/marketing/loyalty" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="loyalty-program">
                                 <i data-lucide="award" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                                 <span>Chương trình thành viên</span>
                             </a>
-                            <a href="${contextPath}/marketing/events" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                            <a href="${pageContext.request.contextPath}/marketing/events" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="event-calendar">
                                 <i data-lucide="calendar-days" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                                 <span>Lịch sự kiện</span>
@@ -301,55 +301,55 @@
                     </button>
                     
                     <div class="submenu ml-4 mt-1 space-y-1 pl-4 hidden">
-                        <a href="${contextPath}/user/list" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                        <a href="${pageContext.request.contextPath}/customer/list" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                 data-item-id="user-management">
                             <i data-lucide="users" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                            <span>Quản lý người dùng</span>
+                            <span>Quản lý khách hàng </span>
                         </a>
                         
-                        <a href="${contextPath}/admin/settings" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                        <a href="${pageContext.request.contextPath}/admin/settings" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                 data-item-id="system-settings">
                             <i data-lucide="settings" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                             <span>Cài đặt hệ thống</span>
                         </a>
                         
-                        <a href="${contextPath}/admin/security" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                        <a href="${pageContext.request.contextPath}/admin/security" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                 data-item-id="security-controls">
                             <i data-lucide="lock" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                             <span>Kiểm soát bảo mật</span>
                         </a>
                         
-                        <a href="${contextPath}/admin/backup" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                        <a href="${pageContext.request.contextPath}/admin/backup" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                 data-item-id="database-backup">
                             <i data-lucide="hard-drive" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                             <span>Sao lưu dữ liệu</span>
                         </a>
 
-                        <a href="${contextPath}/admin/logs" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                        <a href="${pageContext.request.contextPath}/admin/logs" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                 data-item-id="access-logs">
                             <i data-lucide="eye" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                             <span>Nhật ký truy cập</span>
                         </a>
 
-                        <a href="${contextPath}/admin/config" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                        <a href="${pageContext.request.contextPath}/admin/config" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                 data-item-id="site-configuration">
                             <i data-lucide="wrench" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                             <span>Cấu hình website</span>
                         </a>
 
-                        <a href="${contextPath}/admin/integrations" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                        <a href="${pageContext.request.contextPath}/admin/integrations" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                 data-item-id="integration-settings">
                             <i data-lucide="plug" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                             <span>Cài đặt tích hợp</span>
                         </a>
                         
-                        <a href="${contextPath}/promotion/list" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                        <a href="${pageContext.request.contextPath}/promotion/list" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                 data-item-id="promotion-management">
                             <i data-lucide="tag" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                             <span>Quản lý khuyến mãi</span>
                         </a>
                         
-                        <a href="${contextPath}/admin/reports" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                        <a href="${pageContext.request.contextPath}/admin/reports" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                 data-item-id="system-reports">
                             <i data-lucide="bar-chart-2" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                             <span>Báo cáo hệ thống</span>
@@ -371,7 +371,7 @@
                     </button>
                     
                     <div class="submenu ml-4 mt-1 space-y-1 pl-4 hidden">
-                        <a href="${contextPath}/therapist/schedule" class="nav-button w-full flex items-center justify-between px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                        <a href="${pageContext.request.contextPath}/therapist/schedule" class="nav-button w-full flex items-center justify-between px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                 data-item-id="daily-schedule">
                             <div class="flex items-center">
                                 <i data-lucide="clock" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
@@ -380,43 +380,43 @@
                             <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-400 text-yellow-900">8</span>
                         </a>
                         
-                        <a href="${contextPath}/appointment" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                        <a href="${pageContext.request.contextPath}/appointment" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                 data-item-id="appointment-management">
                             <i data-lucide="calendar" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                             <span>Quản lý lịch hẹn</span>
                         </a>
                         
-                        <a href="${contextPath}/therapist/clients" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                        <a href="${pageContext.request.contextPath}/therapist/clients" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                 data-item-id="client-records">
                             <i data-lucide="file-text" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                             <span>Hồ sơ khách hàng</span>
                         </a>
                         
-                        <a href="${contextPath}/therapist/notes" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                        <a href="${pageContext.request.contextPath}/therapist/notes" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                 data-item-id="treatment-notes">
                             <i data-lucide="book-open" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                             <span>Ghi chú điều trị</span>
                         </a>
 
-                        <a href="${contextPath}/therapist/products" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                        <a href="${pageContext.request.contextPath}/therapist/products" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                 data-item-id="product-usage">
                             <i data-lucide="package" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                             <span>Sử dụng sản phẩm</span>
                         </a>
 
-                        <a href="${contextPath}/therapist/time" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                        <a href="${pageContext.request.contextPath}/therapist/time" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                 data-item-id="time-management">
                             <i data-lucide="timer" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                             <span>Quản lý thời gian</span>
                         </a>
                         
-                        <a href="${contextPath}/therapist/performance" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                        <a href="${pageContext.request.contextPath}/therapist/performance" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                 data-item-id="therapist-performance">
                             <i data-lucide="bar-chart" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                             <span>Thống kê hiệu suất</span>
                         </a>
 
-                        <a href="${contextPath}/therapist/leave" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                        <a href="${pageContext.request.contextPath}/therapist/leave" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                 data-item-id="leave-requests">
                             <i data-lucide="clipboard" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                             <span>Yêu cầu nghỉ phép</span>
@@ -431,7 +431,7 @@
             
             <!-- Settings (All roles) -->
             <div class="nav-item">
-                <a href="${contextPath}/profile/settings" class="nav-button w-full flex items-center px-4 py-2.5 rounded-lg transition-all duration-200 group text-gray-700 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                <a href="${pageContext.request.contextPath}/profile/settings" class="nav-button w-full flex items-center px-4 py-2.5 rounded-lg transition-all duration-200 group text-gray-700 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                         data-item-id="settings">
                     <i data-lucide="settings" class="h-5 w-5 mr-3 text-gray-500 group-hover:text-[#D4AF37]"></i>
                     <span class="font-medium text-base">Cài đặt</span>
@@ -442,7 +442,7 @@
 
     <!-- User Profile & Logout -->
     <div class="border-t border-gray-200 p-2">
-        <a href="${contextPath}/profile" class="block w-full p-2 hover:bg-[#FFF8F0] rounded-lg mb-1 group">
+        <a href="${pageContext.request.contextPath}/profile" class="block w-full p-2 hover:bg-[#FFF8F0] rounded-lg mb-1 group">
             <div class="flex items-center">
                 <div class="flex-1 min-w-0">
                     <p class="text-base font-semibold text-gray-800 truncate group-hover:text-[#D4AF37] transition-colors">${fullName}</p>
@@ -558,8 +558,8 @@
                 
                 this.logoutBtn?.addEventListener('click', () => {
                     if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
-                        const contextPath = '${contextPath}';
-                        window.location.href = `${contextPath}/logout`;
+                        const contextPath = '${pageContext.request.contextPath}';
+                        window.location.href = `${pageContext.request.contextPath}/logout`;
                     }
                 });
             }

@@ -41,7 +41,7 @@
         Rất tiếc, trang bạn đang tìm kiếm không tồn tại.
       </p>
       <a
-        href="index.html"
+        href="${pageContext.request.contextPath}/"
         class="mt-6 inline-block bg-primary text-white px-6 py-3 rounded-full hover:bg-primary-dark transition-colors"
       >
         Quay về trang chủ

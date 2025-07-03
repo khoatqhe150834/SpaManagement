@@ -3,6 +3,12 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_5_0.xsd"
     version="5.0">
+
+    <!-- Application Lifecycle Listener -->
+    <listener>
+        <listener-class>listener.ApplicationLifecycleListener</listener-class>
+    </listener>
+
     <!-- Security and Middleware Filters Configuration -->
 
     <!-- Authentication Filter - Runs First -->
@@ -69,6 +75,16 @@
         <exception-type>java.lang.Exception</exception-type>
         <location>/WEB-INF/view/common/error/500.jsp</location>
     </error-page>
+
+    <!-- Enable detailed error messages -->
+    <context-param>
+        <param-name>jakarta.servlet.jsp.errorpage.showErrorMessage</param-name>
+        <param-value>true</param-value>
+    </context-param>
+    <context-param>
+        <param-name>jakarta.servlet.jsp.errorpage.showStackTrace</param-name>
+        <param-value>true</param-value>
+    </context-param>
 
     <!-- Static resource mapping -->
     <servlet-mapping>
@@ -157,6 +173,18 @@
     <servlet-mapping>
         <servlet-name>LogOutController</servlet-name>
         <url-pattern>/logout</url-pattern>
+    </servlet-mapping>
+
+    <!-- Customer Controller Servlet -->
+    <servlet>
+        <servlet-name>CustomerController</servlet-name>
+        <servlet-class>controller.CustomerController</servlet-class>
+    </servlet>
+
+    <!-- Customer Controller Servlet Mapping -->
+    <servlet-mapping>
+        <servlet-name>CustomerController</servlet-name>
+        <url-pattern>/customer/*</url-pattern>
     </servlet-mapping>
 
     <!-- BookingSession API Servlet -->

@@ -55,7 +55,7 @@ public class AuthorizationFilter implements Filter {
   private static void initializeUrlRoleMappings() {
     // Admin-only areas
     URL_ROLE_MAPPINGS.put("/admin", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID)));
-    URL_ROLE_MAPPINGS.put("/users", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID)));
+    URL_ROLE_MAPPINGS.put("/user", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID)));
     URL_ROLE_MAPPINGS.put("/system", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID)));
 
     // Manager areas (Admin + Manager access)
@@ -63,6 +63,8 @@ public class AuthorizationFilter implements Filter {
     URL_ROLE_MAPPINGS.put("/reports", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
     URL_ROLE_MAPPINGS.put("/analytics", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
     URL_ROLE_MAPPINGS.put("/staff", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
+    URL_ROLE_MAPPINGS.put("/servicetype",
+        new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
 
     // Therapist areas (Admin + Manager + Therapist access)
     URL_ROLE_MAPPINGS.put("/therapist", new HashSet<>(Arrays.asList(
@@ -71,6 +73,9 @@ public class AuthorizationFilter implements Filter {
         RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID, RoleConstants.RECEPTIONIST_ID)));
     URL_ROLE_MAPPINGS.put("/treatments", new HashSet<>(Arrays.asList(
         RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID)));
+    URL_ROLE_MAPPINGS.put("/appointment", new HashSet<>(Arrays.asList(
+        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID,
+        RoleConstants.RECEPTIONIST_ID)));
 
     // Receptionist areas
     URL_ROLE_MAPPINGS.put("/reception", new HashSet<>(Arrays.asList(
@@ -81,16 +86,18 @@ public class AuthorizationFilter implements Filter {
 
     // Marketing areas
     URL_ROLE_MAPPINGS.put("/marketing", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
+        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.MARKETING_ID)));
     URL_ROLE_MAPPINGS.put("/blog", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
+        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.MARKETING_ID)));
     URL_ROLE_MAPPINGS.put("/promotions", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
+        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.MARKETING_ID)));
+    URL_ROLE_MAPPINGS.put("/promotion", new HashSet<>(Arrays.asList(
+        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.MARKETING_ID)));
 
     // Customer areas (all authenticated users can access)
-    URL_ROLE_MAPPINGS.put("/customer", new HashSet<>(Arrays.asList(
+    URL_ROLE_MAPPINGS.put("/customer/", new HashSet<>(Arrays.asList(
         RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID,
-        RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID)));
+        RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID, RoleConstants.MARKETING_ID)));
     URL_ROLE_MAPPINGS.put("/profile", new HashSet<>(Arrays.asList(
         RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID,
         RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID)));
@@ -106,12 +113,12 @@ public class AuthorizationFilter implements Filter {
     // Admin can access everything
     ROLE_HIERARCHY.put(RoleConstants.ADMIN_ID, new HashSet<>(Arrays.asList(
         RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID,
-        RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID)));
+        RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID, RoleConstants.MARKETING_ID)));
 
     // Manager can access manager, therapist, receptionist, and customer areas
     ROLE_HIERARCHY.put(RoleConstants.MANAGER_ID, new HashSet<>(Arrays.asList(
         RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID,
-        RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID)));
+        RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID, RoleConstants.MARKETING_ID)));
 
     // Therapist can access therapist and customer areas
     ROLE_HIERARCHY.put(RoleConstants.THERAPIST_ID, new HashSet<>(Arrays.asList(
@@ -120,6 +127,10 @@ public class AuthorizationFilter implements Filter {
     // Receptionist can access receptionist and customer areas
     ROLE_HIERARCHY.put(RoleConstants.RECEPTIONIST_ID, new HashSet<>(Arrays.asList(
         RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID)));
+
+    // Marketing can only access marketing areas
+    ROLE_HIERARCHY.put(RoleConstants.MARKETING_ID, new HashSet<>(Arrays.asList(
+        RoleConstants.MARKETING_ID)));
 
     // Customer can only access customer areas
     ROLE_HIERARCHY.put(RoleConstants.CUSTOMER_ID, new HashSet<>(Arrays.asList(
@@ -134,6 +145,9 @@ public class AuthorizationFilter implements Filter {
   @Override
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
       throws IOException, ServletException {
+
+    System.out
+        .println("--- [DEBUG] AuthorizationFilter is running! Path: " + ((HttpServletRequest) request).getRequestURI());
 
     HttpServletRequest httpRequest = (HttpServletRequest) request;
     HttpServletResponse httpResponse = (HttpServletResponse) response;

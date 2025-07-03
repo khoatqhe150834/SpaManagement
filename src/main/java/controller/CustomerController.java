@@ -20,6 +20,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Customer;
+import util.ErrorLogger;
 
 /**
  * Complete CustomerController with proper error handling and validation URL
@@ -27,7 +28,7 @@ import model.Customer;
  *
  * @author Admin
  */
-@WebServlet(urlPatterns = {"/customer/*"})
+// @WebServlet(urlPatterns = { "/customer/*" })
 public class CustomerController extends HttpServlet {
 
     private CustomerDAO customerDAO;
@@ -83,11 +84,13 @@ public class CustomerController extends HttpServlet {
                     break;
                 default:
                     logger.warning("Unknown GET action: " + action);
-                    response.sendError(HttpServletResponse.SC_NOT_FOUND, "Không tìm thấy trang cho hành động: " + action);
+                    response.sendError(HttpServletResponse.SC_NOT_FOUND,
+                            "Không tìm thấy trang cho hành động: " + action);
                     break;
             }
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error in CustomerController GET", e);
+            // Log the error with full context
+            util.ErrorLogger.logError(request, e, "Error in CustomerController GET - Path: " + request.getPathInfo());
             handleError(request, response, "Đã xảy ra lỗi: " + e.getMessage());
         }
     }
@@ -138,7 +141,8 @@ public class CustomerController extends HttpServlet {
         try {
             int page = getIntParameter(request, "page", 1);
             String pageSizeParam = request.getParameter("pageSize");
-            int pageSize = (pageSizeParam == null || pageSizeParam.isEmpty()) ? DEFAULT_PAGE_SIZE : Integer.parseInt(pageSizeParam);
+            int pageSize = (pageSizeParam == null || pageSizeParam.isEmpty()) ? DEFAULT_PAGE_SIZE
+                    : Integer.parseInt(pageSizeParam);
 
             String status = request.getParameter("status");
             String sortBy = Optional.ofNullable(request.getParameter("sortBy")).orElse("id");
@@ -153,7 +157,8 @@ public class CustomerController extends HttpServlet {
             }
             int actualPageSize = (pageSize == 9999) ? Integer.MAX_VALUE : pageSize;
 
-            List<Customer> customers = customerDAO.getPaginatedCustomers(page, actualPageSize, searchValue, status, sortBy, sortOrder);
+            List<Customer> customers = customerDAO.getPaginatedCustomers(page, actualPageSize, searchValue, status,
+                    sortBy, sortOrder);
             int totalCustomers = customerDAO.getTotalCustomerCount(searchValue, status);
 
             int totalPages = 0;
@@ -177,7 +182,8 @@ public class CustomerController extends HttpServlet {
             request.setAttribute("sortOrder", sortOrder);
             request.setAttribute("searchValue", searchValue);
 
-            request.getRequestDispatcher("/WEB-INF/view/admin_pages/Customer/customer_list.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/view/admin_pages/Customer/customer_list.jsp").forward(request,
+                    response);
 
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error loading customer list", e);
@@ -190,6 +196,7 @@ public class CustomerController extends HttpServlet {
      */
     private void handleViewCustomer(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
         try {
             int customerId = getIntParameter(request, "id", 0);
             if (customerId <= 0) {
@@ -200,7 +207,8 @@ public class CustomerController extends HttpServlet {
             Optional<Customer> customerOpt = customerDAO.findById(customerId);
             if (customerOpt.isPresent()) {
                 request.setAttribute("customer", customerOpt.get());
-                request.getRequestDispatcher("/WEB-INF/view/admin_pages/Customer/customer_details.jsp").forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/view/admin_pages/Customer/customer_details.jsp").forward(request,
+                        response);
             } else {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "Không tìm thấy khách hàng.");
             }
@@ -255,7 +263,8 @@ public class CustomerController extends HttpServlet {
         } else if (!trimmedName.contains(" ")) {
             errors.put("fullName", "Tên đầy đủ cần có ít nhất hai từ (ví dụ: An Nguyen).");
         } else if (!trimmedName.matches(namePattern)) {
-            errors.put("fullName", "Tên chỉ được chứa chữ cái và khoảng trắng, không được chứa số hoặc ký tự đặc biệt.");
+            errors.put("fullName",
+                    "Tên chỉ được chứa chữ cái và khoảng trắng, không được chứa số hoặc ký tự đặc biệt.");
         }
 
         // 2. Email
@@ -362,7 +371,8 @@ public class CustomerController extends HttpServlet {
 
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error saving new customer to database", e);
-            String userErrorMessage = "Đã có lỗi xảy ra khi lưu khách hàng. Vui lòng thử lại. Chi tiết lỗi: " + e.getMessage();
+            String userErrorMessage = "Đã có lỗi xảy ra khi lưu khách hàng. Vui lòng thử lại. Chi tiết lỗi: "
+                    + e.getMessage();
             request.setAttribute("error", userErrorMessage);
             request.setAttribute("customerInput", customerInput);
             request.getRequestDispatcher(formJspPath).forward(request, response);
@@ -384,7 +394,8 @@ public class CustomerController extends HttpServlet {
             Optional<Customer> customerOpt = customerDAO.findById(customerId);
             if (customerOpt.isPresent()) {
                 request.setAttribute("customer", customerOpt.get());
-                request.getRequestDispatcher("/WEB-INF/view/admin_pages/Customer/customer_edit.jsp").forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/view/admin_pages/Customer/customer_edit.jsp").forward(request,
+                        response);
             } else {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "Không tìm thấy khách hàng.");
             }
@@ -453,7 +464,8 @@ public class CustomerController extends HttpServlet {
             } else {
                 try {
                     List<Customer> emailList = customerDAO.findByEmailContain(email.trim());
-                    if (!emailList.isEmpty() && (emailList.size() > 1 || !emailList.get(0).getCustomerId().equals(customerId))) {
+                    if (!emailList.isEmpty()
+                            && (emailList.size() > 1 || !emailList.get(0).getCustomerId().equals(customerId))) {
                         errors.put("email", "Email này đã được đăng ký.");
                     }
                 } catch (Exception e) {
@@ -469,7 +481,8 @@ public class CustomerController extends HttpServlet {
                         AccountDAO accountDao = new AccountDAO();
                         if (accountDao.isPhoneTakenInSystem(phone.trim())) {
                             List<Customer> phoneList = customerDAO.findByPhoneContain(phone.trim());
-                            if (!phoneList.isEmpty() && (phoneList.size() > 1 || !phoneList.get(0).getCustomerId().equals(customerId))) {
+                            if (!phoneList.isEmpty()
+                                    && (phoneList.size() > 1 || !phoneList.get(0).getCustomerId().equals(customerId))) {
                                 errors.put("phoneNumber", "Số điện thoại này đã được đăng ký.");
                             }
                         }
@@ -517,7 +530,8 @@ public class CustomerController extends HttpServlet {
                 }
                 request.setAttribute("errors", errors);
                 request.setAttribute("customer", customer);
-                request.getRequestDispatcher("/WEB-INF/view/admin_pages/Customer/customer_edit.jsp").forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/view/admin_pages/Customer/customer_edit.jsp").forward(request,
+                        response);
                 return;
             }
             customer.setFullName(name);
@@ -607,7 +621,8 @@ public class CustomerController extends HttpServlet {
     /**
      * Handle activate customer
      */
-    private void handleActivateCustomer(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    private void handleActivateCustomer(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
 
         String redirectUrl = buildListRedirectUrl(request);
 
@@ -636,8 +651,21 @@ public class CustomerController extends HttpServlet {
     // UTILITY AND OTHER METHODS
     private void handleError(HttpServletRequest request, HttpServletResponse response, String errorMessage)
             throws ServletException, IOException {
-        request.setAttribute("error", errorMessage);
-        request.getRequestDispatcher("/WEB-INF/view/common/error.jsp").forward(request, response);
+        // Log the error with full context
+        Throwable error = (Throwable) request.getAttribute("jakarta.servlet.error.exception");
+        if (error != null) {
+            ErrorLogger.logError(request, error, "Customer Controller Error: " + errorMessage);
+        } else {
+            ErrorLogger.logError(new Exception(errorMessage), "Customer Controller Error (No Exception)");
+        }
+
+        // Set error attributes for the error page
+        request.setAttribute("jakarta.servlet.error.status_code", 500);
+        request.setAttribute("jakarta.servlet.error.message", errorMessage);
+        request.setAttribute("jakarta.servlet.error.request_uri", request.getRequestURI());
+
+        // Forward to error page
+        request.getRequestDispatcher("/WEB-INF/view/common/error/500.jsp").forward(request, response);
     }
 
     private int getIntParameter(HttpServletRequest request, String paramName, int defaultValue) {
