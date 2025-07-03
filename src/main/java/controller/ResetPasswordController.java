@@ -4,13 +4,16 @@
  */
 package controller;
 
+import com.google.gson.Gson;
 import dao.AccountDAO;
 import dao.CustomerDAO;
 import dao.PasswordResetTokenDAO;
+import dao.RememberMeTokenDAO;
 import dao.UserDAO;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -18,14 +21,11 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import service.email.EmailService;
-import service.email.AsyncEmailService;
+import model.FlashMessage;
 import model.PasswordResetToken;
 import org.mindrot.jbcrypt.BCrypt;
-import com.google.gson.Gson;
-import java.util.HashMap;
-import java.util.Map;
-import model.FlashMessage;
+import service.email.AsyncEmailService;
+import service.email.EmailService;
 
 /**
  * Extended ResetPasswordController that handles both Customer and User account
@@ -40,8 +40,7 @@ import model.FlashMessage;
         "/password-reset/new",
         "/password-reset/request",
         "/password-reset/edit",
-        "/password-reset/update",
-        "/password-reset/test-email"
+        "/password-reset/update"
 })
 public class ResetPasswordController extends HttpServlet {
 
@@ -51,6 +50,7 @@ public class ResetPasswordController extends HttpServlet {
     private PasswordResetTokenDAO passwordResetTokenDao;
     private EmailService emailService;
     private AsyncEmailService asyncEmailService;
+    private RememberMeTokenDAO rememberMeTokenDAO;
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -61,6 +61,7 @@ public class ResetPasswordController extends HttpServlet {
         emailService = new EmailService();
         asyncEmailService = new AsyncEmailService();
         userDAO = new UserDAO();
+        rememberMeTokenDAO = new RememberMeTokenDAO();
     }
 
     @Override
@@ -90,10 +91,6 @@ public class ResetPasswordController extends HttpServlet {
             case "/password-reset/edit":
                 // Verify the token from the email link
                 handleVerifyTokenAndShowForm(request, response);
-                break;
-
-            case "/password-reset/test-email":
-                handleTestEmail(request, response);
                 break;
 
             default:
@@ -368,6 +365,7 @@ public class ResetPasswordController extends HttpServlet {
             if (updated) {
                 // Clean up: remove token and session attribute
                 passwordResetTokenDao.deleteTokensByEmail(email);
+                cleanupRememberMeData(email, request, response);
                 request.getSession().removeAttribute("resetEmail");
 
                 // Set the flash message for the next page
@@ -397,42 +395,32 @@ public class ResetPasswordController extends HttpServlet {
         }
     }
 
-    private void handleTestEmail(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-        Gson gson = new Gson();
-        java.util.Map<String, String> jsonResponse = new java.util.HashMap<>();
-
-        String testEmail = request.getParameter("email");
-        if (testEmail == null || testEmail.trim().isEmpty()) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            jsonResponse.put("error", "Please provide an 'email' parameter for testing.");
-            response.getWriter().write(gson.toJson(jsonResponse));
-            return;
-        }
-
+    private void cleanupRememberMeData(String email, HttpServletRequest request, HttpServletResponse response) {
         try {
-            String userName = accountDAO.getFullNameByEmail(testEmail);
-            if (userName == null) {
-                userName = "Test User"; // Fallback name
+            // Delete remember me tokens from database
+            rememberMeTokenDAO.deleteTokensByEmail(email);
+
+            // Remove remember me cookie from browser
+            Cookie[] cookies = request.getCookies();
+            if (cookies != null) {
+                for (Cookie cookie : cookies) {
+                    if ("rememberedUser".equals(cookie.getName())) {
+                        // Delete the cookie by setting maxAge to 0
+                        Cookie deleteCookie = new Cookie("rememberedUser", "");
+                        deleteCookie.setMaxAge(0);
+                        deleteCookie.setPath("/");
+                        deleteCookie.setHttpOnly(true);
+                        deleteCookie.setSecure(request.isSecure());
+                        response.addCookie(deleteCookie);
+                        break;
+                    }
+                }
             }
 
-            // Use the synchronous service for direct feedback
-            boolean success = emailService.sendPasswordResetEmail(testEmail, "test-token-12345", userName);
-
-            if (success) {
-                response.setStatus(HttpServletResponse.SC_OK);
-                jsonResponse.put("message", "Test email sent successfully to " + testEmail);
-            } else {
-                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                jsonResponse.put("error", "Failed to send test email. Check server logs for details.");
-            }
         } catch (Exception e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            jsonResponse.put("error", "An exception occurred: " + e.getMessage());
-            Logger.getLogger(ResetPasswordController.class.getName()).log(Level.SEVERE, "Error sending test email", e);
+            // Log error but don't break the password change process
+            System.out.println("Error cleaning up remember me data: " + e.getMessage());
         }
-
-        response.getWriter().write(gson.toJson(jsonResponse));
     }
+
 }

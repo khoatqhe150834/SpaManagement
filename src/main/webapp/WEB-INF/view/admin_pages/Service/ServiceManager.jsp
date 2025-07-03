@@ -86,7 +86,7 @@
 
             <body>
                 <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
-                <jsp:include page="/WEB-INF/view/common/admin/header.jsp" />
+                <jsp:include page="/WEB-INF/view/common/header.jsp" />
 
                 <div class="dashboard-main-body">
                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">

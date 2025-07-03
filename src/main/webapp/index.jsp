@@ -1,7 +1,24 @@
 <%-- Document : index.jsp Created on : May 29, 2025, 10:45:37 AM Author : quang --%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ page import="model.RoleConstants" %>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+
+<%
+    // Determine if booking features should be shown
+    boolean showBookingFeatures = true; // Default to show for guests
+    
+    if (session.getAttribute("authenticated") != null && (Boolean)session.getAttribute("authenticated")) {
+        if (session.getAttribute("customer") != null) {
+            showBookingFeatures = true; // Show for customers
+        } else if (session.getAttribute("user") != null) {
+            showBookingFeatures = false; // Hide for staff/admin roles
+        }
+    }
+    
+    pageContext.setAttribute("showBookingFeatures", showBookingFeatures);
+%>
+
 <!DOCTYPE html>
 <html lang="vi" class="scroll-smooth">
   <head>
@@ -115,6 +132,9 @@
           Trải nghiệm không gian thư giãn đẳng cấp với các liệu pháp chăm sóc
           sắc đẹp dành riêng cho phụ nữ Việt Nam
         </p>
+        
+        <!-- Show booking buttons only for guests and customers -->
+        <c:if test="${showBookingFeatures}">
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
           <a
             href="<c:url value='/booking'/>"
@@ -129,6 +149,25 @@
             Xem dịch vụ
           </a>
         </div>
+        </c:if>
+        
+        <!-- For staff users, show different actions -->
+        <c:if test="${not showBookingFeatures}">
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a
+            href="<c:url value='/dashboard'/>"
+            class="px-8 py-4 bg-primary text-white rounded-full hover:bg-primary-dark transition-all duration-300 font-semibold text-lg transform hover:scale-105"
+          >
+            Vào Dashboard
+          </a>
+          <a
+            href="<c:url value='/services'/>"
+            class="px-8 py-4 border-2 border-white text-white rounded-full hover:bg-white hover:text-spa-dark transition-all duration-300 font-semibold text-lg transform hover:scale-105"
+          >
+            Xem dịch vụ
+          </a>
+        </div>
+        </c:if>
       </div>
 
       <!-- Slider Controls -->
@@ -511,6 +550,7 @@
     </section>
 
     <!-- CTA Section -->
+    <c:if test="${showBookingFeatures}">
     <section class="py-20 bg-primary fade-in">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h2 class="text-4xl md:text-5xl font-serif text-white mb-6">
@@ -521,13 +561,13 @@
         </p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
           <a
-            href="booking.html"
+            href="<c:url value='/booking'/>"
             class="px-8 py-4 bg-white text-primary rounded-full hover:bg-gray-100 transition-all duration-300 font-semibold text-lg"
           >
             Đặt lịch ngay
           </a>
           <a
-            href="promotions.html"
+            href="<c:url value='/services'/>"
             class="px-8 py-4 border-2 border-white text-white rounded-full hover:bg-white hover:text-primary transition-all duration-300 font-semibold text-lg"
           >
             Xem ưu đãi
@@ -535,6 +575,7 @@
         </div>
       </div>
     </section>
+    </c:if>
 
     <div id="notification" class="notification"></div>
     

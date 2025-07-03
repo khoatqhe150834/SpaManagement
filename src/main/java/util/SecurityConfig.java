@@ -15,7 +15,10 @@ public class SecurityConfig {
       "/login", "/register", "/logout", "/", "/index.jsp",
       "/verify-email", "/email-verification-required", "/resend-verification",
       "/password/reset", "/password/reset-form", "/password/change-password",
-      "/about", "/contact", "/services", "/blog",
+      "/about", "/contact", "/services", "/blog", "/password-reset/new", "/booking",
+      "/password-reset/request",
+      "/password-reset/edit",
+      "/password-reset/update",
       "/test", "/api/booking-session", "/api/services", "/api/service-types", "/error", "/booking"));
 
   // File extensions that don't require authentication

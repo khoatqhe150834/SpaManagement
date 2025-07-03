@@ -248,30 +248,37 @@ function updateCartDisplay() {
 // Update cart icon in header
 async function updateCartIcon() {
     const badge = document.getElementById('cart-badge');
-    if (badge) {
-        try {
-            // Get current cart from localStorage
-            const user = await getCurrentUser();
-            const cartKey = user ? `cart_${user.id}` : 'session_cart';
-            const savedCart = localStorage.getItem(cartKey);
-            const currentCart = savedCart ? JSON.parse(savedCart) : [];
-            
-            const itemCount = currentCart.reduce((sum, item) => sum + item.quantity, 0);
-            badge.textContent = itemCount;
-            badge.style.display = itemCount > 0 ? 'flex' : 'none';
-        } catch (error) {
-            console.error('Failed to update cart icon:', error);
-            badge.textContent = '0';
-            badge.style.display = 'none';
+    if (!badge) return;
+
+    // Calculate total items
+    let totalItems = 0;
+    try {
+        const user = await getCurrentUser();
+        const cartKey = user ? `cart_${user.id}` : 'session_cart';
+        const savedCart = localStorage.getItem(cartKey);
+        if (savedCart) {
+            const currentCart = JSON.parse(savedCart);
+            totalItems = currentCart.reduce((sum, item) => sum + item.quantity, 0);
         }
+    } catch (error) {
+        console.error('Error calculating cart total for icon:', error);
+    }
+
+    if (totalItems > 0) {
+        badge.textContent = totalItems > 99 ? '99+' : totalItems;
+        badge.style.display = 'flex';
+    } else {
+        badge.style.display = 'none';
     }
 }
 
 // Show/hide loading indicator
 function showLoading(show) {
+    const loadingOverlay = document.getElementById('cartLoadingOverlay');
     const loadingIndicator = document.getElementById('loadingIndicator');
     const cartContent = document.getElementById('cartContent');
-    if (loadingIndicator && cartContent) {
+    if (loadingOverlay && loadingIndicator && cartContent) {
+        loadingOverlay.style.display = show ? 'block' : 'none';
         loadingIndicator.style.display = show ? 'block' : 'none';
         cartContent.style.opacity = show ? '0.5' : '1';
     }

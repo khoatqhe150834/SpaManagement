@@ -29,7 +29,7 @@ class SpaApp {
     }
 
     async init() {
-        await this.loadSharedComponents(); // Load header/footer first
+        // await this.loadSharedComponents(); // Load header/footer first
         this.initDOM();
         this.initHeroSlider();
         this.initMobileMenu();
@@ -38,56 +38,56 @@ class SpaApp {
         this.initEventListeners();
     }
 
-    async loadSharedComponents() {
-        const headerContainer = document.getElementById('header-container');
-        const footerContainer = document.getElementById('footer-container');
+    // async loadSharedComponents() {
+    //     const headerContainer = document.getElementById('header-container');
+    //     const footerContainer = document.getElementById('footer-container');
 
-        try {
-            // Fetch and load header
-            if (headerContainer) {
-                const headerResponse = await fetch('components/header.html');
-                headerContainer.innerHTML = await headerResponse.text();
-            }
+    //     try {
+    //         // Fetch and load header
+    //         if (headerContainer) {
+    //             const headerResponse = await fetch('components/header.html');
+    //             headerContainer.innerHTML = await headerResponse.text();
+    //         }
 
-            // Fetch and load footer
-            if (footerContainer) {
-                const footerResponse = await fetch('components/footer.html');
-                footerContainer.innerHTML = await footerResponse.text();
-            }
+    //         // Fetch and load footer
+    //         if (footerContainer) {
+    //             const footerResponse = await fetch('components/footer.html');
+    //             footerContainer.innerHTML = await footerResponse.text();
+    //         }
             
-            this.updateAuthLinks();
-            this.setActiveNavLink();
+    //         this.updateAuthLinks();
+    //         this.setActiveNavLink();
 
-        } catch (error) {
-            console.error('Error loading shared components:', error);
-        }
-    }
+    //     } catch (error) {
+    //         console.error('Error loading shared components:', error);
+    //     }
+    // }
 
-    updateAuthLinks() {
-        const loggedOutLinks = document.getElementById('auth-links-logged-out');
-        const loggedInLinks = document.getElementById('auth-links-logged-in');
-        const dashboardLink = document.getElementById('dashboard-link');
+    // updateAuthLinks() {
+    //     const loggedOutLinks = document.getElementById('auth-links-logged-out');
+    //     const loggedInLinks = document.getElementById('auth-links-logged-in');
+    //     const dashboardLink = document.getElementById('dashboard-link');
 
-        if (Auth.isAuthenticated()) {
-            const user = Auth.getUser();
-            loggedOutLinks.classList.add('hidden');
-            loggedInLinks.classList.remove('hidden');
+    //     if (Auth.isAuthenticated()) {
+    //         const user = Auth.getUser();
+    //         loggedOutLinks.classList.add('hidden');
+    //         loggedInLinks.classList.remove('hidden');
             
-            // Set the correct dashboard link based on role
-            const roleToDashboardMap = {
-                'admin': 'admin-dashboard.html',
-                'manager': 'manager-dashboard.html',
-                'customer': 'customer-dashboard.html',
-                'therapist': 'therapist-dashboard.html',
-                'marketing': 'marketing-dashboard.html'
-            };
-            dashboardLink.href = roleToDashboardMap[user.role] || 'login.html';
+    //         // Set the correct dashboard link based on role
+    //         const roleToDashboardMap = {
+    //             'admin': 'admin-dashboard.html',
+    //             'manager': 'manager-dashboard.html',
+    //             'customer': 'customer-dashboard.html',
+    //             'therapist': 'therapist-dashboard.html',
+    //             'marketing': 'marketing-dashboard.html'
+    //         };
+    //         dashboardLink.href = roleToDashboardMap[user.role] || 'login.html';
 
-        } else {
-            loggedOutLinks.classList.remove('hidden');
-            loggedInLinks.classList.add('hidden');
-        }
-    }
+    //     } else {
+    //         loggedOutLinks.classList.remove('hidden');
+    //         loggedInLinks.classList.add('hidden');
+    //     }
+    // }
     
     setActiveNavLink() {
         const currentPage = window.location.pathname.split('/').pop();

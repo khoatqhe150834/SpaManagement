@@ -227,6 +227,11 @@
         </div>
     </div>
 
+    <div id="notification" class="notification"></div>
+
+    <!-- JavaScript -->
+    <script src="<c:url value='/js/app.js'/>"></script>
+
     <jsp:include page="/WEB-INF/view/common/footer.jsp" />
 
     <script>

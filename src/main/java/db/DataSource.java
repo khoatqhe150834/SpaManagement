@@ -17,7 +17,8 @@ public class DataSource {
       HikariConfig config = new HikariConfig();
 
       // --- Database Configuration ---
-      config.setJdbcUrl("jdbc:mysql://localhost:3306/spamanagement?useSSL=false&serverTimezone=UTC");
+      config.setJdbcUrl(
+          "jdbc:mysql://localhost:3306/spamanagement?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC");
       config.setUsername("root");
       config.setPassword("root");
 
