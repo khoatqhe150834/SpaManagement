@@ -486,6 +486,7 @@ class ServicesManager {
             style.id = 'slider-styles';
             style.textContent = `
                 .slider-input::-webkit-slider-thumb {
+                    -webkit-appearance: none;
                     appearance: none;
                     height: 22px;
                     width: 22px;
@@ -495,7 +496,8 @@ class ServicesManager {
                     box-shadow: 0 3px 6px rgba(0,0,0,0.2);
                     border: 3px solid white;
                     position: relative;
-                    z-index: 3;
+                    z-index: 10;
+                    margin-top: -7px; /* Center thumb on track */
                 }
                 
                 .slider-input::-moz-range-thumb {
@@ -506,7 +508,7 @@ class ServicesManager {
                     cursor: pointer;
                     border: 3px solid white;
                     box-shadow: 0 3px 6px rgba(0,0,0,0.2);
-                    z-index: 3;
+                    z-index: 10;
                 }
 
                 .slider-input:focus::-webkit-slider-thumb {
@@ -538,7 +540,10 @@ class ServicesManager {
         const maxDisplay = document.getElementById('max-price-display');
         const track = document.getElementById('slider-track');
 
-        if (!minSlider || !maxSlider) return;
+        if (!minSlider || !maxSlider || !minInput || !maxInput || !minDisplay || !maxDisplay) {
+            console.error("One or more price slider elements are missing.");
+            return;
+        }
         
         let sliderTimeout;
 
@@ -554,19 +559,41 @@ class ServicesManager {
             track.style.width = (maxPercent - minPercent) + '%';
         };
 
-        const updateValues = (minVal, maxVal) => {
-            // Ensure min is not greater than max
+        const updateValues = (source) => {
+            let minVal = parseInt(minSlider.value, 10);
+            let maxVal = parseInt(maxSlider.value, 10);
+
+            if (source === 'min-input') {
+                minVal = parseInt(minInput.value, 10);
+                if (isNaN(minVal) || minVal < this.priceRange.min) minVal = this.priceRange.min;
+                if (minVal > maxVal) minVal = maxVal;
+                minSlider.value = minVal;
+            } else if (source === 'max-input') {
+                maxVal = parseInt(maxInput.value, 10);
+                if (isNaN(maxVal) || maxVal > this.priceRange.max) maxVal = this.priceRange.max;
+                if (maxVal < minVal) maxVal = minVal;
+                maxSlider.value = maxVal;
+            }
+            
+            // Prevent sliders from crossing
             if (minVal > maxVal) {
-                [minVal, maxVal] = [maxVal, minVal];
+                if (source === 'min-slider') {
+                    maxSlider.value = minVal;
+                    maxVal = minVal;
+                } else {
+                    minSlider.value = maxVal;
+                    minVal = maxVal;
+                }
             }
 
             this.currentFilters.minPrice = minVal;
             this.currentFilters.maxPrice = maxVal;
 
-            minSlider.value = minVal;
-            maxSlider.value = maxVal;
+            // Always update inputs with the raw number
             minInput.value = minVal;
             maxInput.value = maxVal;
+            
+            // Update pretty display spans
             minDisplay.textContent = this.formatPriceShort(minVal);
             maxDisplay.textContent = this.formatPriceShort(maxVal);
 
@@ -577,40 +604,16 @@ class ServicesManager {
             sliderTimeout = setTimeout(() => {
                 this.currentPage = 1;
                 this.loadServices();
-            }, 500); // 500ms debounce
+            }, 500);
         };
 
-        // Slider events with logging
-        minSlider.addEventListener('input', () => {
-            console.log('🎚️ Min slider moved to:', minSlider.value);
-            updateValues(parseInt(minSlider.value), parseInt(maxSlider.value));
-        });
-
-        maxSlider.addEventListener('input', () => {
-            console.log('🎚️ Max slider moved to:', maxSlider.value);
-            // Ensure min slider value is not greater than max slider
-            if (parseInt(minSlider.value) > parseInt(maxSlider.value)) {
-                maxSlider.value = minSlider.value;
-            }
-            updateValues(parseInt(minSlider.value), parseInt(maxSlider.value));
-        });
-
+        // Slider events
+        minSlider.addEventListener('input', () => updateValues('min-slider'));
+        maxSlider.addEventListener('input', () => updateValues('max-slider'));
+        
         // Input events
-        minInput.addEventListener('change', () => {
-            const val = parseInt(minInput.value) || this.priceRange.min;
-            updateValues(
-                Math.max(this.priceRange.min, Math.min(val, this.priceRange.max)),
-                parseInt(maxSlider.value)
-            );
-        });
-
-        maxInput.addEventListener('change', () => {
-            const val = parseInt(maxInput.value) || this.priceRange.max;
-            updateValues(
-                parseInt(minSlider.value),
-                Math.max(this.priceRange.min, Math.min(val, this.priceRange.max))
-            );
-        });
+        minInput.addEventListener('change', () => updateValues('min-input'));
+        maxInput.addEventListener('change', () => updateValues('max-input'));
 
         // Initial track update
         updateTrack();
@@ -789,8 +792,8 @@ class ServicesManager {
         if (maxSlider) maxSlider.value = this.priceRange.max;
         if (minInput) minInput.value = this.priceRange.min;
         if (maxInput) maxInput.value = this.priceRange.max;
-        if (minDisplay) minDisplay.textContent = this.formatPrice(this.priceRange.min);
-        if (maxDisplay) maxDisplay.textContent = this.formatPrice(this.priceRange.max);
+        if (minDisplay) minDisplay.textContent = this.formatPriceShort(this.priceRange.min);
+        if (maxDisplay) maxDisplay.textContent = this.formatPriceShort(this.priceRange.max);
 
         // Update slider track
         const track = document.getElementById('slider-track');
