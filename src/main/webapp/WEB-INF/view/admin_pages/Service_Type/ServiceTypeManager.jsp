@@ -502,6 +502,8 @@
                 }
                 </script>
 
+                <jsp:include page="/WEB-INF/view/common/footer.jsp" />
+
             </body>
 
             </html>
