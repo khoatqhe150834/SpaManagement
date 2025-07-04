@@ -59,13 +59,6 @@ public class AuthenticationFilter implements Filter {
         " | Path: " + path + " | Context: " + contextPath +
         " | Dispatcher: " + httpRequest.getDispatcherType());
 
-    // Check if path is valid
-    if (!isValidPath(path)) {
-      System.out.println("[AuthenticationFilter] Invalid path detected, redirecting to homepage: " + path);
-      httpResponse.sendRedirect(contextPath + "/");
-      return;
-    }
-
     // Check if resource is public using SecurityConfig
     if (SecurityConfig.isPublicResource(path)) {
       System.out.println("[AuthenticationFilter] Public resource detected, skipping authentication: " + path);
@@ -125,38 +118,22 @@ public class AuthenticationFilter implements Filter {
   }
 
   /**
-   * Check if the path is valid (exists in our application)
+   * Check if the path is a static resource
    */
-  private boolean isValidPath(String path) {
-    // Root path is always valid
-    if (path.equals("/")) {
-      return true;
-    }
+  private boolean isStaticResource(String path) {
+    return path.matches(".+\\.(css|js|png|jpg|jpeg|gif|ico|woff|woff2|ttf|eot|svg|map)$");
+  }
 
-    // Check if it's a static resource
-    if (path.matches(".*\\.(css|js|png|jpg|jpeg|gif|ico|woff|woff2|ttf|eot|svg)$")) {
-      return true;
-    }
-
-    // Check if it's a public URL
-    if (SecurityConfig.isPublicResource(path)) {
-      return true;
-    }
-
-    // Check common valid paths
-    String[] validPrefixes = {
-        "/admin", "/manager", "/therapist", "/reception", "/customer",
-        "/booking", "/profile", "/appointments", "/login", "/register",
-        "/about", "/contact", "/services", "/blog", "/api"
-    };
-
-    for (String prefix : validPrefixes) {
-      if (path.startsWith(prefix)) {
-        return true;
-      }
-    }
-
-    return false;
+  /**
+   * Check if the path is an error page
+   */
+  private boolean isErrorPage(String path) {
+    return path.startsWith("/WEB-INF/view/common/error/") ||
+        path.startsWith("/error/") ||
+        path.equals("/404") ||
+        path.equals("/500") ||
+        path.equals("/403") ||
+        path.equals("/401");
   }
 
   /**

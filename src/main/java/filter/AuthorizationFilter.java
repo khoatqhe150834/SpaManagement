@@ -104,6 +104,13 @@ public class AuthorizationFilter implements Filter {
     URL_ROLE_MAPPINGS.put("/appointments", new HashSet<>(Arrays.asList(
         RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID,
         RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID)));
+
+    // Paths accessible to any authenticated user
+    Set<Integer> allAuthenticatedRoles = new HashSet<>(Arrays.asList(
+        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID,
+        RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID, RoleConstants.MARKETING_ID));
+    URL_ROLE_MAPPINGS.put("/dashboard", allAuthenticatedRoles);
+    URL_ROLE_MAPPINGS.put("/service-details", allAuthenticatedRoles);
   }
 
   /**
@@ -157,9 +164,16 @@ public class AuthorizationFilter implements Filter {
     String contextPath = httpRequest.getContextPath();
     String path = requestURI.substring(contextPath.length());
 
-    // Skip authorization for public resources
-    if (SecurityConfig.isPublicResource(path) || !requiresAuthorization(path)) {
+    // Skip authorization for public resources and error pages
+    if (SecurityConfig.isPublicResource(path) || isErrorPage(path)) {
       chain.doFilter(request, response);
+      return;
+    }
+
+    // If path requires no authorization and is not public, it's an unknown path
+    if (!requiresAuthorization(path)) {
+      System.out.println("[AuthorizationFilter] Path not found in authorization rules, forwarding to 404: " + path);
+      request.getRequestDispatcher("/WEB-INF/view/common/error/404.jsp").forward(request, response);
       return;
     }
 
@@ -327,6 +341,18 @@ public class AuthorizationFilter implements Filter {
         ", Path=" + path +
         ", IP=" + request.getRemoteAddr() +
         ", UserAgent=" + request.getHeader("User-Agent"));
+  }
+
+  /**
+   * Check if the path is an error page
+   */
+  private boolean isErrorPage(String path) {
+    return path.startsWith("/WEB-INF/view/common/error/") ||
+        path.startsWith("/error/") ||
+        path.equals("/404") ||
+        path.equals("/500") ||
+        path.equals("/403") ||
+        path.equals("/401");
   }
 
   @Override
