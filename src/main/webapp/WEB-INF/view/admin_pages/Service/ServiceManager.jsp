@@ -12,6 +12,8 @@
                 <title>Services - Admin Dashboard</title>
                 <link rel="icon" type="image/png" href="assets/images/favicon.png" sizes="16x16">
                 <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp" />
+                <!-- DataTables CSS -->
+                <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/admin/css/lib/dataTables.min.css">
 
                 <style>
                     .limit-description {
@@ -80,6 +82,30 @@
                     .table td.limit-description {
                         white-space: normal;
                         max-width: 350px;
+                    }
+
+                    th.sort-arrow {
+                        position: relative;
+                        cursor: pointer;
+                    }
+                    th.sort-arrow::after {
+                        content: '';
+                        display: inline-block;
+                        margin-left: 8px;
+                        width: 0;
+                        height: 0;
+                        border-left: 7px solid transparent;
+                        border-right: 7px solid transparent;
+                        border-top: 10px solid #bbb;
+                        opacity: 0.7;
+                    }
+                    th.sort-arrow.asc::after {
+                        border-top: none;
+                        border-bottom: 10px solid #333;
+                    }
+                    th.sort-arrow.desc::after {
+                        border-top: 10px solid #333;
+                        border-bottom: none;
                     }
                 </style>
             </head>
@@ -162,16 +188,16 @@
                             </c:if>
                             <div class="card-body p-24">
                                 <div class="table-responsive">
-                                    <table class="table bordered-table sm-table mb-0" style="table-layout: fixed;">
+                                    <table id="serviceTable" class="table bordered-table sm-table mb-0 responsive-table">
                                         <thead>
                                             <tr>
-                                                <th scope="col" style="width: 4%; text-align: center;">Mã</th>
+                                                <th style="width: 4%; text-align: left;">ID</th>
                                                 <th scope="col" style="width: 10%; text-align: center;">Hình Ảnh</th>
-                                                <th scope="col" style="width: 18%;">Tên Dịch Vụ</th>
-                                                <th scope="col" style="width: 16%;">Loại Dịch Vụ</th>
+                                                <th style="width: 18%;">Tên Dịch Vụ</th>
+                                                <th style="width: 16%;">Loại Dịch Vụ</th>
                                                 <th scope="col" style="width: 10%; text-align: center;">Thời Gian</th>
                                                 <th scope="col" style="width: 10%; text-align: center;">Đánh Giá</th>
-                                                <th scope="col" style="width: 10%; text-align: right;">Giá</th>
+                                                <th style="width: 10%; text-align: left;">Giá</th>
                                                 <th scope="col" style="width: 10%; text-align: center;">Trạng Thái</th>
                                                 <th scope="col" style="width: 12%; text-align: center;">Thao Tác</th>
                                             </tr>
@@ -179,7 +205,7 @@
                                         <tbody>
                                             <c:forEach var="service" items="${services}">
                                                 <tr>
-                                                    <td class="text-center">${service.serviceId}</td>
+                                                    <td style="text-align: left;">${service.serviceId}</td>
                                                     <td class="text-center">
                                                         <div class="service-img-wrapper">
                                                             <img src="${pageContext.request.contextPath}${serviceThumbnails[service.serviceId]}" alt="Service Image" style="width: 60px; height: 60px; object-fit: cover;">
@@ -203,7 +229,7 @@
                                                     <td class="text-center">
                                                         <span style="color: #ffc107; font-weight: 500;">(${service.averageRating})</span>
                                                     </td>
-                                                    <td style="text-align: right;">
+                                                    <td style="text-align: left;">
                                                         <fmt:formatNumber value="${service.price}" type="number"
                                                             maxFractionDigits="0" /> VND
                                                     </td>
@@ -446,6 +472,19 @@
                             return new bootstrap.Tooltip(tooltipTriggerEl, {
                                 trigger: 'hover'
                             });
+                        });
+                    });
+                </script>
+                <!-- DataTables JS -->
+                <script src="${pageContext.request.contextPath}/assets/admin/js/lib/dataTables.min.js"></script>
+                <script>
+                    document.addEventListener("DOMContentLoaded", function() {
+                        new DataTable('#serviceTable', {
+                            searching: false,   // Ẩn ô search
+                            paging: false,      // Ẩn phân trang
+                            info: false,        // Ẩn dòng info
+                            lengthChange: false,// Ẩn entries per page
+                            ordering: true      // Vẫn cho phép sort
                         });
                     });
                 </script>
