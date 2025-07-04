@@ -297,10 +297,10 @@ public class AuthorizationFilter implements Filter {
     // For regular requests, forward to appropriate error page
     if (userRoleId != null && userRoleId <= RoleConstants.RECEPTIONIST_ID) {
       // Staff error page
-      request.getRequestDispatcher("/WEB-INF/view/admin/error-403.jsp").forward(request, response);
+      request.getRequestDispatcher("/WEB-INF/view/common/error/403.jsp").forward(request, response);
     } else {
       // Customer error page
-      request.getRequestDispatcher("/WEB-INF/view/common/error-403.jsp").forward(request, response);
+      request.getRequestDispatcher("/WEB-INF/view/common/error/403.jsp").forward(request, response);
     }
   }
 
