@@ -157,6 +157,12 @@ public class AuthorizationFilter implements Filter {
     String contextPath = httpRequest.getContextPath();
     String path = requestURI.substring(contextPath.length());
 
+    // Skip authorization for error pages
+    if (isErrorPage(path)) {
+      chain.doFilter(request, response);
+      return;
+    }
+
     // Skip authorization for public resources
     if (SecurityConfig.isPublicResource(path) || !requiresAuthorization(path)) {
       chain.doFilter(request, response);
@@ -327,6 +333,18 @@ public class AuthorizationFilter implements Filter {
         ", Path=" + path +
         ", IP=" + request.getRemoteAddr() +
         ", UserAgent=" + request.getHeader("User-Agent"));
+  }
+
+  /**
+   * Check if the path is an error page
+   */
+  private boolean isErrorPage(String path) {
+    return path.startsWith("/WEB-INF/view/common/error/") ||
+        path.startsWith("/error/") ||
+        path.equals("/404") ||
+        path.equals("/500") ||
+        path.equals("/403") ||
+        path.equals("/401");
   }
 
   @Override
