@@ -107,13 +107,13 @@
                                             </td>
                                             <td class="px-6 py-4 text-center">
                                                 <div class="flex items-center justify-center gap-2">
-                                                    <a href="servicetype?service=pre-update&id=${stype.serviceTypeId}&page=${currentPage}&limit=${limit}${searchParams}" class="p-2 text-gray-500 rounded-full hover:bg-gray-100 hover:text-green-600" title="Chỉnh sửa loại dịch vụ">
+                                                    <a href="servicetype?service=pre-update&id=${stype.serviceTypeId}&page=${currentPage}&limit=${limit}${searchParams}" class="p-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-full" title="Chỉnh sửa loại dịch vụ">
                                                         <i data-lucide="edit" class="w-5 h-5"></i>
                                                     </a>
                                                     <c:choose>
                                                         <c:when test="${stype.active}">
-                                                            <a href="servicetype?service=deactiveById&id=${stype.serviceTypeId}&page=${currentPage}&limit=${limit}${searchParams}" class="p-2 text-gray-500 rounded-full hover:bg-gray-100 hover:text-orange-600" title="Vô hiệu hóa loại dịch vụ" onclick="return confirmAction('Bạn có chắc chắn muốn vô hiệu hóa loại dịch vụ này?')">
-                                                                <i data-lucide="user-x" class="w-5 h-5"></i>
+                                                            <a href="servicetype?service=deactiveById&id=${stype.serviceTypeId}&page=${currentPage}&limit=${limit}${searchParams}" class="p-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-full" title="Vô hiệu hóa loại dịch vụ" onclick="return confirmAction('Bạn có chắc chắn muốn vô hiệu hóa loại dịch vụ này?')">
+                                                                <i data-lucide="ban" class="w-5 h-5"></i>
                                                             </a>
                                                         </c:when>
                                                         <c:otherwise>
