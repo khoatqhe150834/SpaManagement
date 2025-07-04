@@ -178,11 +178,10 @@
                                                 <thead>
                                                     <tr>
                                                         <th scope="col" style="width: 8%; text-align: left;">ID</th>
+                                                        <th scope="col" style="width: 15%;" class="text-center align-middle">Hình Ảnh</th>
                                                         <th scope="col" style="width: 15%;">Tên Loại Dịch Vụ</th>
                                                         <th scope="col" style="width: 37%;" class="d-none d-md-table-cell">Mô Tả
                                                         </th>
-                                                        <th scope="col" style="width: 15%;" class="text-center align-middle">
-                                                            Hình Ảnh</th>
                                                         <th scope="col" style="width: 10%;" class="text-center">Trạng Thái</th>
                                                         <th scope="col" style="width: 10%;" class="text-center">Thao Tác</th>
                                                     </tr>
@@ -191,17 +190,19 @@
                                                     <c:forEach var="stype" items="${serviceTypes}" varStatus="loop">
                                                         <tr>
                                                             <td style="text-align: left;">${stype.serviceTypeId}</td>
+                                                            <td class="text-center align-middle">
+                                                                <div class="service-type-img-wrapper">
+                                                                    <img src="${pageContext.request.contextPath}${stype.imageUrl}" alt="Hình ảnh loại dịch vụ"
+                                                                        class="service-type-img"
+                                                                        style="cursor:pointer"
+                                                                        onclick="showImagePreview('${pageContext.request.contextPath}${stype.imageUrl}')"/>
+                                                                </div>
+                                                            </td>
                                                             <td>${stype.name}</td>
                                                             <td>
                                                                 <div class="limit-description" data-bs-toggle="tooltip"
                                                                     data-bs-title="${stype.description}">
                                                                     ${stype.description}
-                                                                </div>
-                                                            </td>
-                                                            <td class="text-center align-middle">
-                                                                <div class="service-type-img-wrapper">
-                                                                    <img src="${pageContext.request.contextPath}${stype.imageUrl}" alt="Hình ảnh loại dịch vụ"
-                                                                        class="service-type-img" />
                                                                 </div>
                                                             </td>
                                                             <td class="text-center">
@@ -486,6 +487,20 @@
                     }
                 </style>
 
+                <!-- Modal preview ảnh -->
+                <div id="imagePreviewModal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); align-items:center; justify-content:center;">
+                    <span style="position:absolute; top:30px; right:40px; font-size:40px; color:white; cursor:pointer;" onclick="closeImagePreview()">&times;</span>
+                    <img id="previewImg" src="" style="max-width:90vw; max-height:90vh; border-radius:12px; box-shadow:0 4px 32px #0008;">
+                </div>
+                <script>
+                function showImagePreview(src) {
+                    document.getElementById('previewImg').src = src;
+                    document.getElementById('imagePreviewModal').style.display = 'flex';
+                }
+                function closeImagePreview() {
+                    document.getElementById('imagePreviewModal').style.display = 'none';
+                }
+                </script>
 
             </body>
 
