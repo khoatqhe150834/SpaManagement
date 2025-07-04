@@ -59,16 +59,6 @@ public class AuthenticationFilter implements Filter {
         " | Path: " + path + " | Context: " + contextPath +
         " | Dispatcher: " + httpRequest.getDispatcherType());
 
-    // Skip 404 check for error pages and static resources
-    if (!isErrorPage(path) && !isStaticResource(path)) {
-      // Check if path is valid
-      if (!isValidPath(path)) {
-        System.out.println("[AuthenticationFilter] Invalid path detected, forwarding to 404: " + path);
-        httpRequest.getRequestDispatcher("/WEB-INF/view/common/error/404.jsp").forward(request, response);
-        return;
-      }
-    }
-
     // Check if resource is public using SecurityConfig
     if (SecurityConfig.isPublicResource(path)) {
       System.out.println("[AuthenticationFilter] Public resource detected, skipping authentication: " + path);
@@ -144,43 +134,6 @@ public class AuthenticationFilter implements Filter {
         path.equals("/500") ||
         path.equals("/403") ||
         path.equals("/401");
-  }
-
-  /**
-   * Check if the path is valid (exists in our application)
-   */
-  private boolean isValidPath(String path) {
-    // Root path is always valid
-    if (path.equals("/")) {
-      return true;
-    }
-
-    // Check if it's a public URL
-    if (SecurityConfig.isPublicResource(path)) {
-      return true;
-    }
-
-    // Check common valid paths
-    String[] validPrefixes = {
-        "/admin", "/manager", "/therapist", "/reception", "/customer",
-        "/booking", "/profile", "/appointments", "/login", "/register",
-        "/logout", "/about", "/contact", "/services", "/blog", "/api",
-        "/cart", "/checkout", "/search", "/password", "/verify",
-        "/email-verification", "/promotion", "/schedule", "/treatment"
-    };
-
-    for (String prefix : validPrefixes) {
-      if (path.startsWith(prefix)) {
-        return true;
-      }
-    }
-
-    // Check for specific API endpoints
-    if (path.matches("^/api/v\\d+/.*")) {
-      return true;
-    }
-
-    return false;
   }
 
   /**
