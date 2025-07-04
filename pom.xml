@@ -67,7 +67,7 @@
         <dependency>
             <groupId>org.glassfish.web</groupId>
             <artifactId>jakarta.servlet.jsp.jstl</artifactId>
-            <version>${jakarta.servlet.jstl.version}</version>
+            <version>3.0.1</version>
         </dependency>
 
         <!-- MySQL Connector -->
