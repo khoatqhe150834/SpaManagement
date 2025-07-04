@@ -1,4 +1,3 @@
-
 package filter;
 
 import java.io.IOException;
@@ -201,6 +200,12 @@ public class ExceptionHandlingFilter implements Filter {
     request.setAttribute("requestPath", getRequestPath(request));
     request.setAttribute("timestamp", LocalDateTime.now());
 
+    // Add detailed exception info for debugging on the error page
+    request.setAttribute("exception", exceptionInfo.getException());
+    StringWriter sw = new StringWriter();
+    exceptionInfo.getException().printStackTrace(new PrintWriter(sw));
+    request.setAttribute("stackTrace", sw.toString());
+
     // Set response status
     response.setStatus(exceptionInfo.getStatusCode());
 
@@ -219,25 +224,18 @@ public class ExceptionHandlingFilter implements Filter {
    * Get appropriate error page based on user context
    */
   private String getErrorPageForUser(HttpServletRequest request, ExceptionInfo exceptionInfo) {
-    HttpSession session = request.getSession(false);
-    Integer userRoleId = getUserRoleId(session);
+    // Standard error pages defined in web.xml
+    String page403 = "/WEB-INF/view/common/error/403.jsp";
+    String page404 = "/WEB-INF/view/common/error/404.jsp";
+    String page500 = "/WEB-INF/view/common/error/500.jsp";
 
-    // For security errors, always use 403 page
-    if (exceptionInfo.getStatusCode() == HttpServletResponse.SC_FORBIDDEN) {
-      if (userRoleId != null && !userRoleId.equals(RoleConstants.CUSTOMER_ID)) {
-        return "/WEB-INF/view/admin/error-403.jsp";
-      } else {
-        return "/WEB-INF/view/common/error-403.jsp";
-      }
-    }
-
-    // For other errors, use role-appropriate error page
-    if (userRoleId != null && !userRoleId.equals(RoleConstants.CUSTOMER_ID)) {
-      // Staff/Admin error page
-      return "/WEB-INF/view/admin/error.jsp";
-    } else {
-      // Customer/Public error page
-      return "/WEB-INF/view/common/error.jsp";
+    switch (exceptionInfo.getStatusCode()) {
+      case HttpServletResponse.SC_FORBIDDEN:
+        return page403;
+      case HttpServletResponse.SC_NOT_FOUND:
+        return page404;
+      default:
+        return page500;
     }
   }
 

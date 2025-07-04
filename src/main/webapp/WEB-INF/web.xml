@@ -3,6 +3,12 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_5_0.xsd"
     version="5.0">
+
+    <!-- Application Lifecycle Listener -->
+    <listener>
+        <listener-class>listener.ApplicationLifecycleListener</listener-class>
+    </listener>
+
     <!-- Security and Middleware Filters Configuration -->
 
     <!-- Authentication Filter - Runs First -->
@@ -70,6 +76,16 @@
         <location>/WEB-INF/view/common/error/500.jsp</location>
     </error-page>
 
+    <!-- Enable detailed error messages -->
+    <context-param>
+        <param-name>jakarta.servlet.jsp.errorpage.showErrorMessage</param-name>
+        <param-value>true</param-value>
+    </context-param>
+    <context-param>
+        <param-name>jakarta.servlet.jsp.errorpage.showStackTrace</param-name>
+        <param-value>true</param-value>
+    </context-param>
+
     <!-- Static resource mapping -->
     <servlet-mapping>
         <servlet-name>default</servlet-name>
@@ -111,6 +127,16 @@
         <url-pattern>*.ico</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>ServiceTypeController</servlet-name>
+        <servlet-class>controller.ServiceTypeController</servlet-class>
+        <multipart-config>
+            <max-file-size>2097152</max-file-size> <!-- 2MB -->
+            <max-request-size>2097152</max-request-size>
+            <file-size-threshold>0</file-size-threshold>
+        </multipart-config>
+    </servlet>
+
     <!-- Add explicit servlet mappings -->
     <servlet>
         <servlet-name>HomeController</servlet-name>
@@ -147,6 +173,18 @@
     <servlet-mapping>
         <servlet-name>LogOutController</servlet-name>
         <url-pattern>/logout</url-pattern>
+    </servlet-mapping>
+
+    <!-- Customer Controller Servlet -->
+    <servlet>
+        <servlet-name>CustomerController</servlet-name>
+        <servlet-class>controller.CustomerController</servlet-class>
+    </servlet>
+
+    <!-- Customer Controller Servlet Mapping -->
+    <servlet-mapping>
+        <servlet-name>CustomerController</servlet-name>
+        <url-pattern>/customer/*</url-pattern>
     </servlet-mapping>
 
     <!-- BookingSession API Servlet -->

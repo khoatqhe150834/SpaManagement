@@ -46,7 +46,7 @@
                 </span> 
                 <div>
                   <h6 class="text-md fw-semibold mb-4">Kathryn Murphy</h6>
-                  <p class="mb-0 text-sm text-secondary-light text-w-100-px">hey! there i’m...</p>
+                  <p class="mb-0 text-sm text-secondary-light text-w-100-px">hey! there i'm...</p>
                 </div>
               </div>
               <div class="d-flex flex-column align-items-end"> 
@@ -63,7 +63,7 @@
                 </span> 
                 <div>
                   <h6 class="text-md fw-semibold mb-4">Kathryn Murphy</h6>
-                  <p class="mb-0 text-sm text-secondary-light text-w-100-px">hey! there i’m...</p>
+                  <p class="mb-0 text-sm text-secondary-light text-w-100-px">hey! there i'm...</p>
                 </div>
               </div>
               <div class="d-flex flex-column align-items-end"> 
@@ -80,7 +80,7 @@
                 </span> 
                 <div>
                   <h6 class="text-md fw-semibold mb-4">Kathryn Murphy</h6>
-                  <p class="mb-0 text-sm text-secondary-light text-w-100-px">hey! there i’m...</p>
+                  <p class="mb-0 text-sm text-secondary-light text-w-100-px">hey! there i'm...</p>
                 </div>
               </div>
               <div class="d-flex flex-column align-items-end"> 
@@ -97,7 +97,7 @@
                 </span> 
                 <div>
                   <h6 class="text-md fw-semibold mb-4">Kathryn Murphy</h6>
-                  <p class="mb-0 text-sm text-secondary-light text-w-100-px">hey! there i’m...</p>
+                  <p class="mb-0 text-sm text-secondary-light text-w-100-px">hey! there i'm...</p>
                 </div>
               </div>
               <div class="d-flex flex-column align-items-end"> 
@@ -114,7 +114,7 @@
                 </span> 
                 <div>
                   <h6 class="text-md fw-semibold mb-4">Kathryn Murphy</h6>
-                  <p class="mb-0 text-sm text-secondary-light text-w-100-px">hey! there i’m...</p>
+                  <p class="mb-0 text-sm text-secondary-light text-w-100-px">hey! there i'm...</p>
                 </div>
               </div>
               <div class="d-flex flex-column align-items-end"> 
@@ -255,5 +255,4 @@
   </div>
 </div>
 
-<!-- Include flash notification system -->
-<jsp:include page="/WEB-INF/view/common/flash-notification.jsp" />
+</main>

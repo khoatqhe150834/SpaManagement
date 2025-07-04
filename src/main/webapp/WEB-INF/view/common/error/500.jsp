@@ -71,29 +71,14 @@
           </h3>
           <pre
             class="bg-gray-800 text-white p-4 rounded mt-2 font-mono text-sm"
-          ><c:out value="${pageContext.exception.message}" default="Không có thông báo lỗi."/></pre>
+          ><c:out value="${requestScope.exception.message}" default="Không có thông báo lỗi."/></pre>
 
           <h3 class="text-xl font-serif text-spa-dark mt-6">
             Nguồn gốc lỗi (Stack Trace):
           </h3>
           <pre
             class="bg-gray-800 text-white p-4 rounded mt-2 font-mono text-sm"
-          ><%
-            if (exception != null) {
-                StringWriter sw = new StringWriter();
-                PrintWriter pw = new PrintWriter(sw);
-                exception.printStackTrace(pw);
-                out.print(sw.toString().trim());
-            } else if (request.getAttribute("jakarta.servlet.error.exception") != null) {
-                Throwable e = (Throwable) request.getAttribute("jakarta.servlet.error.exception");
-                StringWriter sw = new StringWriter();
-                PrintWriter pw = new PrintWriter(sw);
-                e.printStackTrace(pw);
-                out.print(sw.toString().trim());
-            } else {
-                out.print("Không có thông tin exception.");
-            }
-        %></pre>
+          ><c:out value="${requestScope.stackTrace}" default="Không có thông tin stack trace."/></pre>
         </div>
       </div>
     </div>

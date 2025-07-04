@@ -16,15 +16,12 @@ import java.io.IOException;
 import java.util.List;
 import model.Service;
 
-@WebServlet(name = "ServiceTypeController", urlPatterns = {"/manager/servicetype"})
-@MultipartConfig(
-    fileSizeThreshold = 0,
-    maxFileSize = 2097152, // 2MB
-    maxRequestSize = 2097152
-)
+@WebServlet(name = "ServiceTypeController", urlPatterns = { "/manager/servicetype" })
+@MultipartConfig(fileSizeThreshold = 0, maxFileSize = 2097152, // 2MB
+        maxRequestSize = 2097152)
 public class ServiceTypeController extends HttpServlet {
 
-    private final String SERVICE_TYPE_URL = "WEB-INF/view/admin_pages/Service_Type/ServiceTypeManager.jsp";
+    private final String SERVICE_TYPE_URL = "/WEB-INF/view/admin_pages/Service_Type/ServiceTypeManager.jsp";
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -43,7 +40,8 @@ public class ServiceTypeController extends HttpServlet {
         if (limitParam != null && !limitParam.isEmpty()) {
             try {
                 limit = Integer.parseInt(limitParam);
-            } catch (NumberFormatException ignored) {}
+            } catch (NumberFormatException ignored) {
+            }
         }
 
         switch (service) {
@@ -52,7 +50,8 @@ public class ServiceTypeController extends HttpServlet {
                 if (request.getParameter("page") != null) {
                     try {
                         page = Integer.parseInt(request.getParameter("page"));
-                    } catch (NumberFormatException ignored) {}
+                    } catch (NumberFormatException ignored) {
+                    }
                 }
                 int offset = (page - 1) * limit;
 
@@ -78,7 +77,8 @@ public class ServiceTypeController extends HttpServlet {
                 request.setAttribute("limit", limit);
                 request.setAttribute("keyword", keyword);
                 request.setAttribute("status", status);
-                request.getRequestDispatcher("WEB-INF/view/admin_pages/Service_Type/AddServiceType.jsp").forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/view/admin_pages/Service_Type/AddServiceType.jsp")
+                        .forward(request, response);
                 break;
             }
 
@@ -93,7 +93,8 @@ public class ServiceTypeController extends HttpServlet {
                 request.setAttribute("limit", limit);
                 request.setAttribute("keyword", keyword);
                 request.setAttribute("status", status);
-                request.getRequestDispatcher("WEB-INF/view/admin_pages/Service_Type/UpdateServiceType.jsp").forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/view/admin_pages/Service_Type/UpdateServiceType.jsp")
+                        .forward(request, response);
                 break;
             }
 
@@ -107,7 +108,7 @@ public class ServiceTypeController extends HttpServlet {
             case "searchByKeywordAndStatus": {
                 String keyword = request.getParameter("keyword");
                 String status = request.getParameter("status");
-                
+
                 // Thêm phân trang cho kết quả tìm kiếm
                 int page = 1;
                 if (request.getParameter("page") != null) {
@@ -117,7 +118,7 @@ public class ServiceTypeController extends HttpServlet {
                     }
                 }
                 int offset = (page - 1) * limit;
-                
+
                 List<ServiceType> serviceTypes = dao.searchByKeywordAndStatus(keyword, status, offset, limit);
                 int totalRecords = dao.countSearchResult(keyword, status);
                 int totalPages = (int) Math.ceil((double) totalRecords / limit);
@@ -143,7 +144,8 @@ public class ServiceTypeController extends HttpServlet {
                     request.setAttribute("toastMessage", "Deactivate Service Type (Id = " + id + ") done!");
                 } else {
                     request.setAttribute("toastType", "error");
-                    request.setAttribute("toastMessage", "Failed to deactivate Service Type (Id = " + id + ") because it is associated with an order.");
+                    request.setAttribute("toastMessage", "Failed to deactivate Service Type (Id = " + id
+                            + ") because it is associated with an order.");
                 }
 
                 // Lấy tham số truy vấn để redirect giữ nguyên trang
@@ -151,10 +153,14 @@ public class ServiceTypeController extends HttpServlet {
                 String keyword = request.getParameter("keyword");
                 String status = request.getParameter("status");
                 StringBuilder redirectUrl = new StringBuilder("servicetype?service=list-all");
-                if (page != null) redirectUrl.append("&page=").append(page);
-                if (limitParam != null) redirectUrl.append("&limit=").append(limitParam);
-                if (keyword != null && !keyword.isEmpty()) redirectUrl.append("&keyword=").append(keyword);
-                if (status != null && !status.isEmpty()) redirectUrl.append("&status=").append(status);
+                if (page != null)
+                    redirectUrl.append("&page=").append(page);
+                if (limitParam != null)
+                    redirectUrl.append("&limit=").append(limitParam);
+                if (keyword != null && !keyword.isEmpty())
+                    redirectUrl.append("&keyword=").append(keyword);
+                if (status != null && !status.isEmpty())
+                    redirectUrl.append("&status=").append(status);
                 response.sendRedirect(redirectUrl.toString());
                 break;
             }
@@ -168,10 +174,14 @@ public class ServiceTypeController extends HttpServlet {
                 String keyword = request.getParameter("keyword");
                 String status = request.getParameter("status");
                 StringBuilder redirectUrl = new StringBuilder("servicetype?service=list-all");
-                if (page != null) redirectUrl.append("&page=").append(page);
-                if (limitParam != null) redirectUrl.append("&limit=").append(limitParam);
-                if (keyword != null && !keyword.isEmpty()) redirectUrl.append("&keyword=").append(keyword);
-                if (status != null && !status.isEmpty()) redirectUrl.append("&status=").append(status);
+                if (page != null)
+                    redirectUrl.append("&page=").append(page);
+                if (limitParam != null)
+                    redirectUrl.append("&limit=").append(limitParam);
+                if (keyword != null && !keyword.isEmpty())
+                    redirectUrl.append("&keyword=").append(keyword);
+                if (status != null && !status.isEmpty())
+                    redirectUrl.append("&status=").append(status);
                 response.sendRedirect(redirectUrl.toString());
                 break;
             }
