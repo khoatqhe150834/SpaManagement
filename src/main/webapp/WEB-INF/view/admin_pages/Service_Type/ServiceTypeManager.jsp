@@ -14,6 +14,7 @@
                 <link rel="icon" type="image/png" href="assets/images/favicon.png" sizes="16x16">
                 <!-- CSS here -->
                 <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp"></jsp:include>
+                <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/admin/css/lib/dataTables.min.css">
 
                 <style>
                     .limit-description {
@@ -173,10 +174,10 @@
                                 <c:if test="${not empty serviceTypes}">
                                     <div class="card-body p-24">
                                         <div class="table-responsive ">
-                                            <table class="table bordered-table sm-table mb-0 responsive-table">
+                                            <table id="serviceTypeTable" class="table bordered-table sm-table mb-0 responsive-table">
                                                 <thead>
                                                     <tr>
-                                                        <th scope="col" style="width: 8%;">ID</th>
+                                                        <th scope="col" style="width: 8%; text-align: left;">ID</th>
                                                         <th scope="col" style="width: 15%;">Tên Loại Dịch Vụ</th>
                                                         <th scope="col" style="width: 37%;" class="d-none d-md-table-cell">Mô Tả
                                                         </th>
@@ -189,7 +190,7 @@
                                                 <tbody>
                                                     <c:forEach var="stype" items="${serviceTypes}" varStatus="loop">
                                                         <tr>
-                                                            <td>${stype.serviceTypeId}</td>
+                                                            <td style="text-align: left;">${stype.serviceTypeId}</td>
                                                             <td>${stype.name}</td>
                                                             <td>
                                                                 <div class="limit-description" data-bs-toggle="tooltip"
@@ -371,6 +372,7 @@
 
                 <!-- JS here -->
                 <jsp:include page="/WEB-INF/view/common/admin/js.jsp"></jsp:include>
+                <script src="${pageContext.request.contextPath}/assets/admin/js/lib/dataTables.min.js"></script>
 
                 <c:if test="${not empty toastMessage}">
                     <script>
@@ -458,6 +460,16 @@
                         
                         window.location.href = currentUrl.pathname + '?' + searchParams.toString();
                     }
+
+                    document.addEventListener("DOMContentLoaded", function() {
+                        new DataTable('#serviceTypeTable', {
+                            searching: false, // Ẩn ô search
+                            paging: false,    // Ẩn phân trang
+                            info: false,      // Ẩn dòng info "Showing x to y..."
+                            lengthChange: false, // Ẩn entries per page
+                            ordering: true    // Vẫn cho phép sort
+                        });
+                    });
                 </script>
 
                 <!-- Thêm style cho tooltip -->
