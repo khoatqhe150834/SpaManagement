@@ -76,7 +76,7 @@
         <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
 
         <main class="flex-1 py-12 lg:py-20">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 content-centered-with-sidebar">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <!-- Page Header -->
                 <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
                     <h1 class="text-3xl font-serif text-spa-dark font-bold">Danh sách khách hàng</h1>
