@@ -32,7 +32,7 @@ import java.util.Optional;
 )
 public class ServiceController extends HttpServlet {
 
-    private final String SERVICE_MANAGER_URL = "WEB-INF/view/admin_pages/Service/ServiceManager.jsp";
+    private final String SERVICE_MANAGER_URL = "/WEB-INF/view/admin_pages/Service/ServiceManager.jsp";
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -109,7 +109,7 @@ public class ServiceController extends HttpServlet {
                 request.setAttribute("status", status);
                 request.setAttribute("serviceTypeId", serviceTypeIdParam);
                 request.setAttribute("limit", limit);
-                request.getRequestDispatcher("WEB-INF/view/admin_pages/Service/AddService.jsp").forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/view/admin_pages/Service/AddService.jsp").forward(request, response);
                 return;
             }
             case "pre-update": {
@@ -132,7 +132,7 @@ public class ServiceController extends HttpServlet {
                 request.setAttribute("serviceTypeId", serviceTypeIdParam);
                 request.setAttribute("limit", limit);
 
-                request.getRequestDispatcher("WEB-INF/view/admin_pages/Service/UpdateService.jsp").forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/view/admin_pages/Service/UpdateService.jsp").forward(request, response);
                 return;
             }
             case "delete": {
