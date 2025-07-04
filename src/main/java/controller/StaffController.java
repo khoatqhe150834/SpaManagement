@@ -16,12 +16,12 @@ import java.util.Optional;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-@WebServlet(name = "StaffController", urlPatterns = {"/staff"})
+@WebServlet(name = "StaffController", urlPatterns = {"/admin/staff"})
 public class StaffController extends HttpServlet {
 
-    private final String STAFF_MANAGER_VIEW = "WEB-INF/view/admin_pages/Staff/StaffManager.jsp";
-    private final String STAFF_UPDATE_VIEW = "WEB-INF/view/admin_pages/Staff/UpdateStaff.jsp";
-    private final String STAFF_INSERT_VIEW = "WEB-INF/view/admin_pages/Staff/AddStaff.jsp";
+    private final String STAFF_MANAGER_VIEW = "/WEB-INF/view/admin_pages/Staff/StaffManager.jsp";
+    private final String STAFF_UPDATE_VIEW = "/WEB-INF/view/admin_pages/Staff/UpdateStaff.jsp";
+    private final String STAFF_INSERT_VIEW = "/WEB-INF/view/admin_pages/Staff/AddStaff.jsp";
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -120,7 +120,7 @@ public class StaffController extends HttpServlet {
                 List<ServiceType> serviceTypes = new ServiceTypeDAO().findAll();
                 request.setAttribute("staff", staff);
                 request.setAttribute("serviceTypes", serviceTypes);
-                request.getRequestDispatcher("WEB-INF/view/admin_pages/Staff/ViewStaff.jsp").forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/view/admin_pages/Staff/ViewStaff.jsp").forward(request, response);
                 break;
             }
 
