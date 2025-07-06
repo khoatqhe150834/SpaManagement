@@ -1,509 +1,196 @@
-<%@page contentType="text/html" pageEncoding="UTF-8" %>
-    <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-        <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
-
-            <!-- meta tags and other links -->
-            <!DOCTYPE html>
-            <html lang="en" data-theme="light">
-
-            <head>
-                <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Danh Sách Loại Dịch Vụ - Admin Dashboard</title>
-                <link rel="icon" type="image/png" href="assets/images/favicon.png" sizes="16x16">
-                <!-- CSS here -->
-                <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp"></jsp:include>
-                <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/admin/css/lib/dataTables.min.css">
-
-                <style>
-                    .limit-description {
-                        display: -webkit-box;
-                        -webkit-box-orient: vertical;
-                        -webkit-line-clamp: 3;
-                        overflow: hidden;
-                        text-overflow: ellipsis;
-                        max-height: 4.8em;
-                        min-width: 0;
-                        width: 100%;
-                        line-height: 1.6em;
-                        word-break: break-word;
-                        white-space: normal;
-                    }
-
-                    .service-type-img-wrapper {
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                        height: 70px;
-                        /* hoặc 80px nếu muốn cao hơn */
-                    }
-
-                    .service-type-img {
-                        width: 64px;
-                        /* hoặc 72px nếu muốn to hơn nữa */
-                        height: 64px;
-                        object-fit: cover;
-                        border-radius: 12px;
-                        border: 1px solid #e0e0e0;
-                        background: #fafafa;
-                        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-                    }
-
-                    @media (min-width: 1024px) {
-
-                        .dashboard-main-body,
-                        .card-body,
-                        .table-responsive {
-                            overflow-x: visible !important;
-                            max-width: 100% !important;
-                        }
-
-                        .table {
-                            width: 100% !important;
-                            min-width: 900px;
-                            /* hoặc lớn hơn nếu cần */
-                            table-layout: auto !important;
-                        }
-                    }
-
-                    .table td,
-                    .table th {
-                        white-space: nowrap;
-                        text-overflow: ellipsis;
-                        overflow: hidden;
-                        max-width: 220px;
-                        /* hoặc giá trị phù hợp */
-                    }
-
-                    .table td.limit-description {
-                        white-space: normal;
-                        max-width: 350px;
-                    }
-
-                    /* Ẩn một số cột khi ở màn hình nhỏ (dưới 768px) */
-                    @media (max-width: 767.98px) {
-                        .responsive-table th:nth-child(3),
-                        .responsive-table td:nth-child(3),
-                        /* Mô tả */
-                        .responsive-table th:nth-child(4),
-                        .responsive-table td:nth-child(4),
-                        /* Hình ảnh */
-                        .responsive-table th:nth-child(5),
-                        .responsive-table td:nth-child(5)
-
-                        /* Trạng thái */
-                            {
-                            display: none;
-                        }
-
-                        .responsive-table td,
-                        .responsive-table th {
-                            font-size: 14px;
-                            padding: 8px;
-                        }
-                    }
-                </style>
-
-            </head>
-
-            <body class="bg-spa-cream font-sans">
-                <jsp:include page="/WEB-INF/view/common/header.jsp" />
-
-                <div class="flex">
-                    <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
-
-                    <main class="flex-1 py-12 lg:py-20">
-                        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 content-centered-with-sidebar">
-                            <!-- Page Header -->
-                            <div class="flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
-                                <h6 class="fw-semibold mb-0">Danh Sách Loại Dịch Vụ</h6>
-                                <ul class="d-flex align-items-center gap-2">
-                                    <li class="fw-medium">
-                                        <a href="index.html" class="d-flex align-items-center gap-1 hover-text-primary">
-                                            <iconify-icon icon="solar:home-smile-angle-outline"
-                                                class="icon text-lg"></iconify-icon>
-                                            Bảng Điều Khiển
-                                        </a>
-                                    </li>
-                                    <li>-</li>
-                                    <li class="fw-medium">Danh Sách Loại Dịch Vụ</li>
-                                </ul>
-                            </div>
-
-                            <div class="card h-100 p-0 radius-12">
-                                <div
-                                    class="card-header border-bottom bg-base py-16 px-24 d-flex align-items-center flex-wrap gap-3 justify-content-between">
-                                    <div class="d-flex align-items-center flex-wrap gap-3">
-                                        
-                                        <div class="d-flex align-items-center gap-2">
-                                            <span class="text-md fw-medium text-secondary-light mb-0">Hiển thị</span>
-                                            <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px" id="limitSelect" onchange="changeLimit(this.value)">
-                                                <c:forEach var="i" begin="1" end="10">
-                                                    <option value="${i}" ${limit == i ? 'selected' : ''}>${i}</option>
-                                                </c:forEach>
-                                            </select>
-                                            <span class="text-md fw-medium text-secondary-light mb-0">mục</span>
-                                        </div>
-                                        <form class="navbar-search d-flex gap-2 align-items-center" method="get"
-                                            action="servicetype">
-                                            <input type="text" class="bg-base h-40-px w-auto" name="keyword"
-                                                placeholder="Tìm kiếm" value="${keyword}">
-
-                                            <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px"
-                                                name="status">
-                                                <option value="">Trạng thái</option>
-                                                <option value="active" ${status=='active' ? 'selected' : '' }>Active</option>
-                                                <option value="inactive" ${status=='inactive' ? 'selected' : '' }>Inactive
-                                                </option>
-                                            </select>
-                                            <input type="hidden" name="service" value="searchByKeywordAndStatus">
-                                            <input type="hidden" name="limit" value="${limit}" />
-                                            <button type="submit" class="btn btn-primary h-40-px radius-12">Tìm kiếm</button>
-                                        </form>
-                                    </div>
-                                    <a href="servicetype?service=pre-insert&page=${currentPage}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}"
-                                        class="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2">
-                                        <iconify-icon icon="ic:baseline-plus" class="icon text-xl line-height-1"></iconify-icon>
-                                        Thêm Loại Dịch Vụ Mới
-                                    </a>
-                                </div>
-
-
-
-                                <c:if test="${not empty serviceTypes}">
-                                    <div class="card-body p-24">
-                                        <div class="table-responsive ">
-                                            <table id="serviceTypeTable" class="table bordered-table sm-table mb-0 responsive-table">
-                                                <thead>
-                                                    <tr>
-                                                        <th scope="col" style="width: 8%; text-align: left;">ID</th>
-                                                        <th scope="col" style="width: 15%;" class="text-center align-middle">Hình Ảnh</th>
-                                                        <th scope="col" style="width: 15%;">Tên Loại Dịch Vụ</th>
-                                                        <th scope="col" style="width: 37%;" class="d-none d-md-table-cell">Mô Tả
-                                                        </th>
-                                                        <th scope="col" style="width: 10%;" class="text-center">Trạng Thái</th>
-                                                        <th scope="col" style="width: 10%;" class="text-center">Thao Tác</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <c:forEach var="stype" items="${serviceTypes}" varStatus="loop">
-                                                        <tr>
-                                                            <td style="text-align: left;">${stype.serviceTypeId}</td>
-                                                            <td class="text-center align-middle">
-                                                                <div class="service-type-img-wrapper">
-                                                                    <img src="${pageContext.request.contextPath}${stype.imageUrl}" alt="Hình ảnh loại dịch vụ"
-                                                                        class="service-type-img"
-                                                                        style="cursor:pointer"
-                                                                        onclick="showImagePreview('${pageContext.request.contextPath}${stype.imageUrl}')"/>
-                                                                </div>
-                                                            </td>
-                                                            <td>${stype.name}</td>
-                                                            <td>
-                                                                <div class="limit-description" data-bs-toggle="tooltip"
-                                                                    data-bs-title="${stype.description}">
-                                                                    ${stype.description}
-                                                                </div>
-                                                            </td>
-                                                            <td class="text-center">
-                                                                <c:choose>
-                                                                    <c:when test="${stype.active}">
-                                                                        <span
-                                                                            class="bg-success-focus text-success-600 border border-success-main px-24 py-4 radius-4 fw-medium text-sm">Active
-                                                                            </span>
-                                                                    </c:when>
-                                                                    <c:otherwise>
-                                                                        <span
-                                                                            class="bg-neutral-200 text-neutral-600 border border-neutral-400 px-24 py-4 radius-4 fw-medium text-sm">Inactive
-                                                                            </span>
-                                                                    </c:otherwise>
-                                                                </c:choose>
-                                                            </td>
-                                                            <td class="text-center">
-                                                                <div
-                                                                    class="d-flex align-items-center gap-10 justify-content-center">
-
-                                                                    <!-- Edit button -->
-                                                                    <a href="servicetype?service=pre-update&id=${stype.serviceTypeId}&page=${currentPage}&limit=${limit}${searchParams}"
-                                                                        class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
-                                                                        data-bs-toggle="tooltip"
-                                                                        data-bs-title="Chỉnh sửa loại dịch vụ">
-                                                                        <iconify-icon icon="lucide:edit"
-                                                                            class="menu-icon"></iconify-icon>
-                                                                    </a>
-
-                                                                    <!-- Deactivate/Activate button -->
-                                                                    <c:choose>
-                                                                        <c:when test="${stype.active}">
-                                                                            <a href="servicetype?service=deactiveById&id=${stype.serviceTypeId}&page=${currentPage}&limit=${limit}${searchParams}"
-                                                                                class="bg-danger-focus bg-hover-danger-200 text-danger-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
-                                                                                data-bs-toggle="tooltip"
-                                                                                data-bs-title="Vô hiệu hóa loại dịch vụ"
-                                                                                onclick="return confirmAction('Bạn có chắc chắn muốn vô hiệu hóa loại dịch vụ này?')">
-                                                                                <iconify-icon icon="mdi:block-helper"
-                                                                                    class="menu-icon"></iconify-icon>
-                                                                            </a>
-                                                                        </c:when>
-                                                                        <c:otherwise>
-                                                                            <a href="servicetype?service=activateById&id=${stype.serviceTypeId}&page=${currentPage}&limit=${limit}${searchParams}"
-                                                                                class="bg-success-focus bg-hover-success-200 text-success-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
-                                                                                data-bs-toggle="tooltip"
-                                                                                data-bs-title="Kích hoạt lại loại dịch vụ"
-                                                                                onclick="return confirmAction('Bạn có chắc chắn muốn kích hoạt lại loại dịch vụ này?')">
-                                                                                <iconify-icon icon="mdi:check-circle-outline" class="menu-icon"></iconify-icon>
-                                                                            </a>
-                                                                        </c:otherwise>
-                                                                    </c:choose>
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                    </c:forEach>
-                                                </tbody>
-
-
-
-                                            </table>
-                                        </div>
-
-
-                                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-24">
-                                            <c:set var="start" value="${(currentPage - 1) * limit + 1}" />
-                                            <c:set var="end"
-                                                value="${currentPage * limit > totalEntries ? totalEntries : currentPage * limit}" />
-                                            <span>
-                                                Hiển thị ${start} đến ${end} của ${totalEntries} mục
-                                            </span>
-
-                                            <ul
-                                                class="pagination d-flex flex-wrap align-items-center gap-2 justify-content-center">
-                                                <!-- Previous -->
-                                                <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
+<%@ page contentType="text/html" pageEncoding="UTF-8" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh Sách Loại Dịch Vụ - Admin Dashboard</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#D4AF37",
+              "primary-dark": "#B8941F",
+              secondary: "#FADADD",
+              "spa-cream": "#FFF8F0",
+              "spa-dark": "#333333",
+            },
+            fontFamily: {
+              serif: ["Playfair Display", "serif"],
+              sans: ["Roboto", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Roboto:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="<c:url value='/css/style.css'/>" />
+</head>
+<body class="bg-spa-cream font-sans">
+    <jsp:include page="/WEB-INF/view/common/header.jsp" />
+    <div class="flex">
+        <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
+        <main class="flex-1 py-12 lg:py-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <!-- Page Header -->
+                <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
+                    <h1 class="text-3xl font-serif text-spa-dark font-bold">Danh Sách Loại Dịch Vụ</h1>
+                    <a href="servicetype?service=pre-insert&page=${currentPage}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}"
+                        class="inline-flex items-center gap-2 h-10 px-4 bg-primary text-white font-semibold rounded-lg hover:bg-primary-dark transition-colors">
+                        <i data-lucide="plus" class="w-5 h-5"></i>
+                        <span>Thêm Loại Dịch Vụ Mới</span>
+                    </a>
+                </div>
+                <!-- Card -->
+                <div class="bg-white rounded-2xl shadow-lg">
+                    <!-- Card Header: Filters & Actions -->
+                    <div class="p-6 border-b border-gray-200 flex flex-wrap items-center justify-between gap-4">
+                        <form class="flex flex-wrap items-center gap-3" method="get" action="servicetype">
+                            <select class="w-auto h-10 pl-3 pr-8 text-base placeholder-gray-600 border rounded-lg appearance-none focus:shadow-outline-blue focus:border-blue-300" id="limitSelect" name="limit" onchange="this.form.submit()">
+                                <c:forEach var="i" begin="1" end="10">
+                                    <option value="${i}" ${limit == i ? 'selected' : ''}>${i}</option>
+                                </c:forEach>
+                            </select>
+                            <input type="text" class="h-10 px-4 text-base placeholder-gray-600 border rounded-lg focus:shadow-outline" name="keyword" placeholder="Tìm kiếm" value="${keyword}">
+                            <select class="w-auto h-10 pl-3 pr-8 text-base placeholder-gray-600 border rounded-lg appearance-none focus:shadow-outline-blue focus:border-blue-300" name="status">
+                                <option value="">Trạng thái</option>
+                                <option value="active" ${status=='active' ? 'selected' : '' }>Active</option>
+                                <option value="inactive" ${status=='inactive' ? 'selected' : '' }>Inactive</option>
+                            </select>
+                            <input type="hidden" name="service" value="searchByKeywordAndStatus">
+                            <button type="submit" class="h-10 px-4 bg-primary text-white font-semibold rounded-lg hover:bg-primary-dark transition-colors">Tìm kiếm</button>
+                        </form>
+                    </div>
+                    <!-- Table -->
+                    <div class="p-6">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left text-gray-500">
+                                <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3">ID</th>
+                                        <th scope="col" class="px-6 py-3 text-center">Hình Ảnh</th>
+                                        <th scope="col" class="px-6 py-3">Tên Loại Dịch Vụ</th>
+                                        <th scope="col" class="px-6 py-3">Mô Tả</th>
+                                        <th scope="col" class="px-6 py-3 text-center">Trạng Thái</th>
+                                        <th scope="col" class="px-6 py-3 text-center">Thao Tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <c:forEach var="stype" items="${serviceTypes}" varStatus="loop">
+                                        <tr class="bg-white border-b hover:bg-gray-50">
+                                            <td class="px-6 py-4 font-medium text-gray-900">${stype.serviceTypeId}</td>
+                                            <td class="px-6 py-4 text-center">
+                                                <div class="flex justify-center items-center h-16">
+                                                    <img src="${pageContext.request.contextPath}${stype.imageUrl}" alt="Hình ảnh loại dịch vụ" class="w-16 h-16 object-cover rounded-xl border bg-gray-50 shadow" style="cursor:pointer" onclick="showImagePreview('${pageContext.request.contextPath}${stype.imageUrl}')"/>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4">${stype.name}</td>
+                                            <td class="px-6 py-4 max-w-xs truncate" title="${stype.description}">${stype.description}</td>
+                                            <td class="px-6 py-4 text-center">
+                                                <c:choose>
+                                                    <c:when test="${stype.active}">
+                                                        <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Active</span>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Inactive</span>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </td>
+                                            <td class="px-6 py-4 text-center">
+                                                <div class="flex items-center justify-center gap-2">
+                                                    <a href="servicetype?service=pre-update&id=${stype.serviceTypeId}&page=${currentPage}&limit=${limit}${searchParams}" class="p-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-full" title="Chỉnh sửa loại dịch vụ">
+                                                        <i data-lucide="edit" class="w-5 h-5"></i>
+                                                    </a>
                                                     <c:choose>
-                                                        <c:when test="${currentPage == 1}">
-                                                            <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px disabled">
-                                                                <iconify-icon icon="ep:d-arrow-left"></iconify-icon>
+                                                        <c:when test="${stype.active}">
+                                                            <a href="servicetype?service=deactiveById&id=${stype.serviceTypeId}&page=${currentPage}&limit=${limit}${searchParams}" class="p-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-full" title="Vô hiệu hóa loại dịch vụ" onclick="return confirmAction('Bạn có chắc chắn muốn vô hiệu hóa loại dịch vụ này?')">
+                                                                <i data-lucide="ban" class="w-5 h-5"></i>
                                                             </a>
                                                         </c:when>
                                                         <c:otherwise>
-                                                            <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px"
-                                                               href="servicetype?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${currentPage - 1}&limit=${limit}${searchParams}">
-                                                                <iconify-icon icon="ep:d-arrow-left"></iconify-icon>
+                                                            <a href="servicetype?service=activateById&id=${stype.serviceTypeId}&page=${currentPage}&limit=${limit}${searchParams}" class="p-2 text-gray-500 rounded-full hover:bg-gray-100 hover:text-green-600" title="Kích hoạt lại loại dịch vụ" onclick="return confirmAction('Bạn có chắc chắn muốn kích hoạt lại loại dịch vụ này?')">
+                                                                <i data-lucide="user-check" class="w-5 h-5"></i>
                                                             </a>
                                                         </c:otherwise>
                                                     </c:choose>
-                                                </li>
-
-                                                <!-- Page numbers -->
-                                                <c:forEach var="i" begin="1" end="${totalPages}">
-                                                    <c:choose>
-                                                        <%-- Hiển thị trang đầu tiên --%>
-                                                        <c:when test="${i == 1}">
-                                                            <li class="page-item ${i == currentPage ? 'active' : ''}">
-                                                                <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px
-                                                                    ${i == currentPage ? 'bg-primary-600 text-white' : 'bg-neutral-200 text-secondary-light'}"
-                                                                   href="servicetype?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${i}&limit=${limit}${searchParams}">
-                                                                    ${i}
-                                                                </a>
-                                                            </li>
-                                                        </c:when>
-                                                        
-                                                        <%-- Hiển thị trang cuối cùng --%>
-                                                        <c:when test="${i == totalPages}">
-                                                            <li class="page-item ${i == currentPage ? 'active' : ''}">
-                                                                <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px
-                                                                    ${i == currentPage ? 'bg-primary-600 text-white' : 'bg-neutral-200 text-secondary-light'}"
-                                                                   href="servicetype?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${i}&limit=${limit}${searchParams}">
-                                                                    ${i}
-                                                                </a>
-                                                            </li>
-                                                        </c:when>
-                                                        
-                                                        <%-- Hiển thị các trang xung quanh trang hiện tại --%>
-                                                        <c:when test="${i >= currentPage - 2 && i <= currentPage + 2}">
-                                                            <li class="page-item ${i == currentPage ? 'active' : ''}">
-                                                                <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px
-                                                                    ${i == currentPage ? 'bg-primary-600 text-white' : 'bg-neutral-200 text-secondary-light'}"
-                                                                   href="servicetype?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${i}&limit=${limit}${searchParams}">
-                                                                    ${i}
-                                                                </a>
-                                                            </li>
-                                                        </c:when>
-                                                        
-                                                        <%-- Hiển thị dấu ... khi cần --%>
-                                                        <c:when test="${i == currentPage - 3 || i == currentPage + 3}">
-                                                            <li class="page-item disabled">
-                                                                <span class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px bg-neutral-200 text-secondary-light">
-                                                                    ...
-                                                                </span>
-                                                            </li>
-                                                        </c:when>
-                                                    </c:choose>
-                                                </c:forEach>
-
-                                                <!-- Next -->
-                                                <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
-                                                    <c:choose>
-                                                        <c:when test="${currentPage == totalPages}">
-                                                            <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px disabled">
-                                                                <iconify-icon icon="ep:d-arrow-right"></iconify-icon>
-                                                            </a>
-                                                        </c:when>
-                                                        <c:otherwise>
-                                                            <a class="page-link radius-8 d-flex align-items-center justify-content-center h-32-px w-32-px"
-                                                               href="servicetype?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${currentPage + 1}&limit=${limit}${searchParams}">
-                                                                <iconify-icon icon="ep:d-arrow-right"></iconify-icon>
-                                                            </a>
-                                                        </c:otherwise>
-                                                    </c:choose>
-                                                </li>
-
-                                            </ul>
-
-                                        </div>
-                                    </div>
-
-
-                                </c:if>
-
-
-                            </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </c:forEach>
+                                </tbody>
+                            </table>
                         </div>
-                    </main>
+                    </div>
+                    <!-- Pagination -->
+                    <div class="flex items-center justify-between flex-wrap gap-2 p-6">
+                        <span>
+                            Hiển thị ${start} đến ${end} của ${totalEntries} mục
+                        </span>
+                        <ul class="inline-flex items-center -space-x-px text-sm">
+                            <li>
+                                <c:choose>
+                                    <c:when test="${currentPage == 1}">
+                                        <span class="px-3 py-2 ml-0 leading-tight text-gray-400 bg-white border border-gray-300 rounded-l-lg cursor-not-allowed">&lt;</span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <a class="px-3 py-2 ml-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700" href="servicetype?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${currentPage - 1}&limit=${limit}${searchParams}">&lt;</a>
+                                    </c:otherwise>
+                                </c:choose>
+                            </li>
+                            <c:forEach var="i" begin="1" end="${totalPages}">
+                                <li>
+                                    <c:choose>
+                                        <c:when test="${i == currentPage}">
+                                            <span class="px-3 py-2 leading-tight text-white bg-primary border border-gray-300">${i}</span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <a class="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700" href="servicetype?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${i}&limit=${limit}${searchParams}">${i}</a>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </li>
+                            </c:forEach>
+                            <li>
+                                <c:choose>
+                                    <c:when test="${currentPage == totalPages}">
+                                        <span class="px-3 py-2 leading-tight text-gray-400 bg-white border border-gray-300 rounded-r-lg cursor-not-allowed">&gt;</span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <a class="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700" href="servicetype?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${currentPage + 1}&limit=${limit}${searchParams}">&gt;</a>
+                                    </c:otherwise>
+                                </c:choose>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
-
-                <!-- JS here -->
-                <jsp:include page="/WEB-INF/view/common/admin/js.jsp"></jsp:include>
-                <script src="${pageContext.request.contextPath}/assets/admin/js/lib/dataTables.min.js"></script>
-
-                <c:if test="${not empty toastMessage}">
-                    <script>
-                        document.addEventListener("DOMContentLoaded", function () {
-                            const toast = document.createElement("div");
-                            toast.textContent = "${toastMessage}";
-                            toast.className = "toast-message ${toastType eq 'success' ? 'toast-success' : 'toast-error'}";
-
-                            document.body.appendChild(toast);
-
-                            setTimeout(() => {
-                                toast.classList.add("show");
-                            }, 100); // Show after small delay
-
-                            setTimeout(() => {
-                                toast.classList.remove("show");
-                                setTimeout(() => toast.remove(), 300); // remove after transition
-                            }, 4000); // auto hide after 4s
-                        });
-                    </script>
-                    <style>
-                        .toast-message {
-                            position: fixed;
-                            top: 20px;
-                            right: -300px;
-                            z-index: 9999;
-                            padding: 12px 20px;
-                            border-radius: 8px;
-                            font-weight: 500;
-                            color: white;
-                            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-                            transition: right 0.3s ease;
-                            max-width: 300px;
-                        }
-
-                        .toast-success {
-                            background-color: #4CAF50;
-                        }
-
-                        .toast-error {
-                            background-color: #f44336;
-                        }
-
-                        .toast-message.show {
-                            right: 20px;
-                        }
-                    </style>
-
-                </c:if>
-
-
-
-
-
-                <!-- Thêm script cho tooltip và xác nhận -->
-                <script>
-                    // Khởi tạo tooltips
-                    document.addEventListener('DOMContentLoaded', function () {
-                        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-                        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-                            return new bootstrap.Tooltip(tooltipTriggerEl, {
-                                trigger: 'hover'
-                            });
-                        });
-                    });
-
-                    // Hàm xác nhận thao tác
-                    function confirmAction(message) {
-                        return confirm(message);
-                    }
-
-                    function changeLimit(newLimit) {
-                        let currentUrl = new URL(window.location.href);
-                        let searchParams = currentUrl.searchParams;
-                        
-                        // Giữ lại các tham số tìm kiếm nếu có
-                        if (searchParams.has('keyword')) {
-                            searchParams.set('service', 'searchByKeywordAndStatus');
-                        } else {
-                            searchParams.set('service', 'list-all');
-                        }
-                        
-                        searchParams.set('limit', newLimit);
-                        searchParams.set('page', '1'); // Reset về trang 1
-                        
-                        window.location.href = currentUrl.pathname + '?' + searchParams.toString();
-                    }
-
-                    document.addEventListener("DOMContentLoaded", function() {
-                        new DataTable('#serviceTypeTable', {
-                            searching: false, // Ẩn ô search
-                            paging: false,    // Ẩn phân trang
-                            info: false,      // Ẩn dòng info "Showing x to y..."
-                            lengthChange: false, // Ẩn entries per page
-                            ordering: true    // Vẫn cho phép sort
-                        });
-                    });
-                </script>
-
-                <!-- Thêm style cho tooltip -->
-                <style>
-                    .tooltip {
-                        font-size: 0.875rem;
-                    }
-
-                    .tooltip-inner {
-                        max-width: 200px;
-                        padding: 0.5rem 1rem;
-                        background-color: #333;
-                        border-radius: 4px;
-                    }
-                </style>
-
-                <!-- Modal preview ảnh -->
-                <div id="imagePreviewModal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); align-items:center; justify-content:center;">
-                    <span style="position:absolute; top:30px; right:40px; font-size:40px; color:white; cursor:pointer;" onclick="closeImagePreview()">&times;</span>
-                    <img id="previewImg" src="" style="max-width:90vw; max-height:90vh; border-radius:12px; box-shadow:0 4px 32px #0008;">
-                </div>
-                <script>
-                function showImagePreview(src) {
-                    document.getElementById('previewImg').src = src;
-                    document.getElementById('imagePreviewModal').style.display = 'flex';
-                }
-                function closeImagePreview() {
-                    document.getElementById('imagePreviewModal').style.display = 'none';
-                }
-                </script>
-
-                <jsp:include page="/WEB-INF/view/common/footer.jsp" />
-
-            </body>
-
-            </html>
+            </div>
+        </main>
+    </div>
+    <jsp:include page="/WEB-INF/view/common/footer.jsp" />
+    <!-- Modal preview ảnh -->
+    <div id="imagePreviewModal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); align-items:center; justify-content:center;">
+        <span style="position:absolute; top:30px; right:40px; font-size:40px; color:white; cursor:pointer;" onclick="closeImagePreview()">&times;</span>
+        <img id="previewImg" src="" style="max-width:90vw; max-height:90vh; border-radius:12px; box-shadow:0 4px 32px #0008;">
+    </div>
+    <script>
+        function showImagePreview(src) {
+            document.getElementById('previewImg').src = src;
+            document.getElementById('imagePreviewModal').style.display = 'flex';
+        }
+        function closeImagePreview() {
+            document.getElementById('imagePreviewModal').style.display = 'none';
+        }
+        function confirmAction(message) {
+            return confirm(message);
+        }
+    </script>
+</body>
+</html>
