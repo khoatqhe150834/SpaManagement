@@ -233,13 +233,14 @@ pageEncoding="UTF-8"%> <% pageContext.setAttribute("showBookingFeatures", true);
               </div>
               <p class="text-gray-600">Các dịch vụ bạn đã xem gần đây</p>
             </div>
-            <button
+            <a
+              href="<c:url value='/recently-viewed'/>"
               id="view-all-services-btn"
-              class="flex items-center px-6 py-3 bg-primary text-white rounded-full hover:bg-primary-dark transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
+              class="flex items-center text-primary hover:text-primary-dark font-semibold transition-colors"
             >
               Xem tất cả
-              <i data-lucide="arrow-right" class="ml-2 h-5 w-5"></i>
-            </button>
+              <i data-lucide="arrow-right" class="ml-2 h-4 w-4"></i>
+            </a>
           </div>
 
           <!-- Responsive Grid: 4 cols desktop, 2 cols tablet, 1 col mobile -->

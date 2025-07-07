@@ -16,7 +16,7 @@ public class SecurityConfig {
       "/verify-email", "/email-verification-required", "/resend-verification",
       "/password/reset", "/password-reset-form", "/password/change-password",
       "/about", "/contact", "/services", "/service-details", "/blog", "/password-reset/new", "/booking",
-      "/password-reset/request",
+      "/password-reset/request", "/recently-viewed",
       "/password-reset/edit",
       "/password-reset/update",
       "/test", "/api/booking-session", "/api/services", "/api/service-types", "/error", "/booking", "/api/homepage"));

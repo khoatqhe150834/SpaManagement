@@ -128,6 +128,51 @@ public class ServiceApiServlet extends HttpServlet {
     }
   }
 
+  @Override
+  protected void doPost(HttpServletRequest request, HttpServletResponse response)
+      throws ServletException, IOException {
+    response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
+
+    String pathInfo = request.getPathInfo();
+
+    if ("/by-ids".equals(pathInfo)) {
+      handleGetServicesByIds(request, response);
+    } else {
+      response.sendError(HttpServletResponse.SC_NOT_FOUND, "API endpoint not found");
+    }
+  }
+
+  private void handleGetServicesByIds(HttpServletRequest request, HttpServletResponse response)
+      throws IOException {
+    try {
+      // Use a utility to read the request body to avoid issues with getReader() being
+      // called multiple times
+      String requestBody = request.getReader().lines().reduce("", (accumulator, actual) -> accumulator + actual);
+
+      // Use Gson to parse the JSON array of IDs from the request body
+      com.google.gson.reflect.TypeToken<List<Integer>> typeToken = new com.google.gson.reflect.TypeToken<>() {
+      };
+      List<Integer> serviceIds = gson.fromJson(requestBody, typeToken.getType());
+
+      if (serviceIds == null || serviceIds.isEmpty()) {
+        response.setStatus(HttpServletResponse.SC_OK); // Return OK with empty array
+        response.getWriter().write("[]");
+        return;
+      }
+
+      List<Service> services = serviceDAO.getServicesByIds(serviceIds);
+
+      String jsonResponse = gson.toJson(services);
+      response.getWriter().write(jsonResponse);
+
+    } catch (Exception e) {
+      LOGGER.log(Level.SEVERE, "Error fetching services by IDs", e);
+      response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      response.getWriter().write("{\"success\": false, \"error\": \"An internal error occurred.\"}");
+    }
+  }
+
   private int parseIntParameter(String param, int defaultValue) {
     if (param == null || param.trim().isEmpty()) {
       return defaultValue;
