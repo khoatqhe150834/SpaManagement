@@ -4,69 +4,326 @@
  */
 package dao;
 
-import model.ServiceImage;
-import db.DBContext;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import db.DBContext;
+import model.ServiceImage;
 
 /**
+ * Data Access Object for ServiceImage
+ * Provides CRUD operations for service_images table
  *
  * @author ADMIN
  */
-public class ServiceImageDAO {
-    public void save(ServiceImage img) {
-        String sql = "INSERT INTO service_images (service_id, image_url) VALUES (?, ?)";
+public class ServiceImageDAO implements BaseDAO<ServiceImage, Integer> {
+
+    private static final Logger LOGGER = Logger.getLogger(ServiceImageDAO.class.getName());
+
+    @Override
+    public <S extends ServiceImage> S save(S entity) {
+        String sql = "INSERT INTO service_images (service_id, url, alt_text, is_primary, sort_order, caption, is_active, file_size) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
         try (Connection conn = DBContext.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, img.getServiceId());
-            stmt.setString(2, img.getImageUrl());
-            stmt.executeUpdate();
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
+            stmt.setInt(1, entity.getServiceId());
+            stmt.setString(2, entity.getUrl());
+            stmt.setString(3, entity.getAltText());
+            stmt.setBoolean(4, entity.getIsPrimary() != null ? entity.getIsPrimary() : false);
+            stmt.setInt(5, entity.getSortOrder() != null ? entity.getSortOrder() : 0);
+            stmt.setString(6, entity.getCaption());
+            stmt.setBoolean(7, entity.getIsActive() != null ? entity.getIsActive() : true);
+            if (entity.getFileSize() != null) {
+                stmt.setInt(8, entity.getFileSize());
+            } else {
+                stmt.setNull(8, Types.INTEGER);
+            }
+
+            int affectedRows = stmt.executeUpdate();
+            if (affectedRows > 0) {
+                try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        entity.setImageId(generatedKeys.getInt(1));
+                    }
+                }
+            }
+            return entity;
         } catch (SQLException ex) {
-            ex.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error saving ServiceImage", ex);
+            return null;
         }
     }
 
-    public List<ServiceImage> findByServiceId(int serviceId) {
-        List<ServiceImage> images = new ArrayList<>();
-        String sql = "SELECT id, service_id, image_url FROM service_images WHERE service_id = ?";
+    @Override
+    public Optional<ServiceImage> findById(Integer id) {
+        String sql = "SELECT image_id, service_id, url, alt_text, is_primary, sort_order, caption, is_active, file_size, uploaded_at, updated_at FROM service_images WHERE image_id = ?";
+
         try (Connection conn = DBContext.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, serviceId);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                images.add(new ServiceImage(
-                    rs.getInt("id"),
-                    rs.getInt("service_id"),
-                    rs.getString("image_url")
-                ));
+
+            stmt.setInt(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapResultSetToServiceImage(rs));
+                }
             }
         } catch (SQLException ex) {
-            ex.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error finding ServiceImage by ID: " + id, ex);
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public List<ServiceImage> findAll() {
+        List<ServiceImage> images = new ArrayList<>();
+        String sql = "SELECT image_id, service_id, url, alt_text, is_primary, sort_order, caption, is_active, file_size, uploaded_at, updated_at FROM service_images ORDER BY service_id, sort_order";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                images.add(mapResultSetToServiceImage(rs));
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error finding all ServiceImages", ex);
         }
         return images;
     }
 
-    public void deleteByServiceId(int serviceId) {
-        String sql = "DELETE FROM service_images WHERE service_id = ?";
+    @Override
+    public <S extends ServiceImage> S update(S entity) {
+        String sql = "UPDATE service_images SET service_id = ?, url = ?, alt_text = ?, is_primary = ?, sort_order = ?, caption = ?, is_active = ?, file_size = ? WHERE image_id = ?";
+
         try (Connection conn = DBContext.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, serviceId);
-            stmt.executeUpdate();
+
+            stmt.setInt(1, entity.getServiceId());
+            stmt.setString(2, entity.getUrl());
+            stmt.setString(3, entity.getAltText());
+            stmt.setBoolean(4, entity.getIsPrimary() != null ? entity.getIsPrimary() : false);
+            stmt.setInt(5, entity.getSortOrder() != null ? entity.getSortOrder() : 0);
+            stmt.setString(6, entity.getCaption());
+            stmt.setBoolean(7, entity.getIsActive() != null ? entity.getIsActive() : true);
+            if (entity.getFileSize() != null) {
+                stmt.setInt(8, entity.getFileSize());
+            } else {
+                stmt.setNull(8, Types.INTEGER);
+            }
+            stmt.setInt(9, entity.getImageId());
+
+            int affectedRows = stmt.executeUpdate();
+            if (affectedRows > 0) {
+                return entity;
+            }
         } catch (SQLException ex) {
-            ex.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error updating ServiceImage", ex);
         }
+        return null;
     }
 
-    public void deleteById(int id) {
-        String sql = "DELETE FROM service_images WHERE id = ?";
+    @Override
+    public void deleteById(Integer id) {
+        String sql = "DELETE FROM service_images WHERE image_id = ?";
+
         try (Connection conn = DBContext.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setInt(1, id);
             stmt.executeUpdate();
         } catch (SQLException ex) {
-            ex.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error deleting ServiceImage by ID: " + id, ex);
         }
+    }
+
+    @Override
+    public void delete(ServiceImage entity) {
+        if (entity.getImageId() != null) {
+            deleteById(entity.getImageId());
+        }
+    }
+
+    @Override
+    public boolean existsById(Integer id) {
+        String sql = "SELECT 1 FROM service_images WHERE image_id = ?";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error checking existence of ServiceImage by ID: " + id, ex);
+        }
+        return false;
+    }
+
+    // Custom methods for ServiceImage-specific operations
+
+    /**
+     * Find all images for a specific service
+     * @param serviceId the service ID
+     * @return list of service images ordered by sort_order
+     */
+    public List<ServiceImage> findByServiceId(Integer serviceId) {
+        List<ServiceImage> images = new ArrayList<>();
+        String sql = "SELECT image_id, service_id, url, alt_text, is_primary, sort_order, caption, is_active, file_size, uploaded_at, updated_at FROM service_images WHERE service_id = ? AND is_active = 1 ORDER BY sort_order";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, serviceId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    images.add(mapResultSetToServiceImage(rs));
+                }
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error finding ServiceImages by service ID: " + serviceId, ex);
+        }
+        return images;
+    }
+
+    /**
+     * Find the primary image for a service
+     * @param serviceId the service ID
+     * @return Optional containing the primary image if found
+     */
+    public Optional<ServiceImage> findPrimaryByServiceId(Integer serviceId) {
+        String sql = "SELECT image_id, service_id, url, alt_text, is_primary, sort_order, caption, is_active, file_size, uploaded_at, updated_at FROM service_images WHERE service_id = ? AND is_primary = 1 AND is_active = 1";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, serviceId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapResultSetToServiceImage(rs));
+                }
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error finding primary ServiceImage by service ID: " + serviceId, ex);
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Delete all images for a specific service
+     * @param serviceId the service ID
+     */
+    public void deleteByServiceId(Integer serviceId) {
+        String sql = "DELETE FROM service_images WHERE service_id = ?";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, serviceId);
+            stmt.executeUpdate();
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error deleting ServiceImages by service ID: " + serviceId, ex);
+        }
+    }
+
+    /**
+     * Set an image as primary for a service (and unset others)
+     * @param imageId the image ID to set as primary
+     * @param serviceId the service ID
+     */
+    public void setPrimaryImage(Integer imageId, Integer serviceId) {
+        String unsetSql = "UPDATE service_images SET is_primary = 0 WHERE service_id = ?";
+        String setSql = "UPDATE service_images SET is_primary = 1 WHERE image_id = ? AND service_id = ?";
+
+        try (Connection conn = DBContext.getConnection()) {
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement unsetStmt = conn.prepareStatement(unsetSql);
+                 PreparedStatement setStmt = conn.prepareStatement(setSql)) {
+
+                // First, unset all primary flags for this service
+                unsetStmt.setInt(1, serviceId);
+                unsetStmt.executeUpdate();
+
+                // Then set the specified image as primary
+                setStmt.setInt(1, imageId);
+                setStmt.setInt(2, serviceId);
+                setStmt.executeUpdate();
+
+                conn.commit();
+            } catch (SQLException ex) {
+                conn.rollback();
+                throw ex;
+            } finally {
+                conn.setAutoCommit(true);
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error setting primary image: " + imageId + " for service: " + serviceId, ex);
+        }
+    }
+
+    /**
+     * Update sort order for multiple images
+     * @param imageIds list of image IDs in the desired order
+     */
+    public void updateSortOrder(List<Integer> imageIds) {
+        String sql = "UPDATE service_images SET sort_order = ? WHERE image_id = ?";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            conn.setAutoCommit(false);
+
+            for (int i = 0; i < imageIds.size(); i++) {
+                stmt.setInt(1, i);
+                stmt.setInt(2, imageIds.get(i));
+                stmt.addBatch();
+            }
+
+            stmt.executeBatch();
+            conn.commit();
+            conn.setAutoCommit(true);
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error updating sort order for images", ex);
+        }
+    }
+
+    /**
+     * Map ResultSet to ServiceImage object
+     * @param rs the ResultSet
+     * @return ServiceImage object
+     * @throws SQLException if database access error occurs
+     */
+    private ServiceImage mapResultSetToServiceImage(ResultSet rs) throws SQLException {
+        ServiceImage image = new ServiceImage();
+        image.setImageId(rs.getInt("image_id"));
+        image.setServiceId(rs.getInt("service_id"));
+        image.setUrl(rs.getString("url"));
+        image.setAltText(rs.getString("alt_text"));
+        image.setIsPrimary(rs.getBoolean("is_primary"));
+        image.setSortOrder(rs.getInt("sort_order"));
+        image.setCaption(rs.getString("caption"));
+        image.setIsActive(rs.getBoolean("is_active"));
+
+        // Handle nullable integer
+        int fileSize = rs.getInt("file_size");
+        if (!rs.wasNull()) {
+            image.setFileSize(fileSize);
+        }
+
+        image.setUploadedAt(rs.getTimestamp("uploaded_at"));
+        image.setUpdatedAt(rs.getTimestamp("updated_at"));
+
+        return image;
     }
 }

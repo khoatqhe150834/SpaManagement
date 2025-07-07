@@ -82,7 +82,7 @@ public class ServiceController extends HttpServlet {
                 for (Service s : services) {
                     List<ServiceImage> images = serviceImageDAO.findByServiceId(s.getServiceId());
                     if (!images.isEmpty()) {
-                        serviceThumbnails.put(s.getServiceId(), images.get(0).getImageUrl());
+                        serviceThumbnails.put(s.getServiceId(), images.get(0).getUrl());
                     } else {
                         serviceThumbnails.put(s.getServiceId(), "/assets/images/no-image.png");
                     }
