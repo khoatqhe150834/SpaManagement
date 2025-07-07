@@ -36,9 +36,9 @@ import util.ErrorHandler;
  * Supports both single service and batch upload functionality
  */
 @WebServlet(name = "ServiceImageUploadController", urlPatterns = { "/manager/service-images/*" })
-@MultipartConfig(fileSizeThreshold = 1024 * 1024, // 1MB
-        maxFileSize = 2 * 1024 * 1024, // 2MB
-        maxRequestSize = 10 * 1024 * 1024 // 10MB for batch uploads
+@MultipartConfig(fileSizeThreshold = 2 * 1024 * 1024, // 2 MB (memory threshold)
+        maxFileSize = 10 * 1024 * 1024, // 10 MB per file – servlet still runs for bigger files we validate later
+        maxRequestSize = 50 * 1024 * 1024 // 50 MB per request (batch)
 )
 public class ServiceImageUploadController extends HttpServlet {
 

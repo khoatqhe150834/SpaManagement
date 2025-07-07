@@ -200,7 +200,7 @@
                         <h6 class="text-md fw-semibold text-primary-light mb-8">Drag & Drop Images Here</h6>
                         <p class="text-sm text-secondary-light mb-16">or click to browse files</p>
                         <input type="file" id="imageInput" multiple accept="image/*" style="display: none;">
-                        <button type="button" class="btn btn-primary btn-sm" onclick="document.getElementById('imageInput').click()">
+                        <button id="chooseFilesBtn" type="button" class="btn btn-primary btn-sm">
                             Choose Files
                         </button>
                         <div class="mt-16">

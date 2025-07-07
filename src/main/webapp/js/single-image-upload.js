@@ -178,8 +178,18 @@
         }, delay);
     }
 
+    const MAX_SIZE = 2 * 1024 * 1024; // 2 MB – should match server-side validateFile
+
     function handleFileUpload(files) {
         if (!files.length) return;
+
+        // Client-side size validation before hitting network
+        const tooLarge = files.find(f => f.size > MAX_SIZE);
+        if (tooLarge) {
+            showMessage(`"${tooLarge.name}" is ${(tooLarge.size/1024/1024).toFixed(2)} MB — max allowed is 2 MB`, 'error');
+            return;
+        }
+
         const progressContainer = document.getElementById('progressContainer');
         const uploadProgress    = document.getElementById('uploadProgress');
         uploadProgress.style.display = 'block';
@@ -194,7 +204,14 @@
         });
 
         fetch(`${contextPath}/manager/service-images/upload-single`, { method:'POST', body: formData })
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) {
+                    return r.text().then(txt => {
+                        throw new Error(`${r.status} ${r.statusText}`);
+                    });
+                }
+                return r.json();
+            })
             .then(handleUploadResponse)
             .catch(err => { console.error(err); showMessage('Upload failed: ' + err.message, 'error'); });
     }
@@ -227,9 +244,56 @@
         if (uploadZone && imageInput) {
             uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('dragover'); });
             uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
-            uploadZone.addEventListener('drop', e => { e.preventDefault(); uploadZone.classList.remove('dragover'); handleFileUpload(Array.from(e.dataTransfer.files)); });
-            uploadZone.addEventListener('click', () => imageInput.click());
+            uploadZone.addEventListener('drop', async e => {
+                e.preventDefault();
+                uploadZone.classList.remove('dragover');
+
+                const fileList = Array.from(e.dataTransfer.files);
+                if (fileList.length) {
+                    handleFileUpload(fileList);
+                    return;
+                }
+
+                // No files – maybe a dragged image URL or HTML snippet
+                let url = e.dataTransfer.getData('text/uri-list');
+                if (!url) {
+                    const html = e.dataTransfer.getData('text/html');
+                    if (html) {
+                        const match = html.match(/<img[^>]*src=["']?([^"'>]+)["']?/i);
+                        if (match && match[1]) url = match[1];
+                    }
+                }
+
+                if (!url) {
+                    showMessage('Could not detect an image in the dragged data.', 'error');
+                    return;
+                }
+
+                try {
+                    const fetchedFile = await fetchImageAsFile(url);
+                    handleFileUpload([fetchedFile]);
+                } catch (err) {
+                    console.error(err);
+                    showMessage('Unable to fetch dragged image: ' + err.message, 'error');
+                }
+            });
+            // Only trigger file dialog when the zone itself (not its children) is clicked
+            uploadZone.addEventListener('click', e => {
+                if (e.target === uploadZone) {
+                    imageInput.click();
+                }
+            });
+
             imageInput.addEventListener('change', e => handleFileUpload(Array.from(e.target.files)));
+        }
+
+        // Handle dedicated choose button without bubbling to zone
+        const chooseBtn = document.getElementById('chooseFilesBtn');
+        if (chooseBtn) {
+            chooseBtn.addEventListener('click', e => {
+                e.stopPropagation();
+                imageInput.click();
+            });
         }
 
         // Sortable
@@ -240,5 +304,16 @@
 
         console.log('single-image-upload.js initialised');
     });
+
+    // helper to fetch external image and turn into File
+    async function fetchImageAsFile(url) {
+        const response = await fetch(url, { mode: 'cors' });
+        if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
+        const blob = await response.blob();
+        // Guess filename from URL
+        const name = url.split('/').pop().split('?')[0] || 'dragged-image';
+        const file = new File([blob], name, { type: blob.type });
+        return file;
+    }
 
 })(); 

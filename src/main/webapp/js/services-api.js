@@ -232,9 +232,12 @@ class ServicesManager {
         const rating = service.averageRating || 0;
         const featured = service.averageRating >= 4.5;
         
-        // Get random beauty image for each service
-        const randomImageIndex = Math.abs(service.serviceId * 7) % this.beautyImages.length;
-        const beautyImage = this.beautyImages[randomImageIndex];
+        const ctx = this.getContextPath();
+        const hasImage = service.imageUrl && service.imageUrl.trim() !== '';
+        const cardImage = hasImage ? (service.imageUrl.startsWith('/') ? ctx + service.imageUrl : service.imageUrl) : (() => {
+            const idx = Math.abs(service.serviceId * 7) % this.beautyImages.length;
+            return this.beautyImages[idx];
+        })();
 
         return `
             <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
@@ -244,7 +247,7 @@ class ServicesManager {
                 </div>` : ''}
                 <div class="relative">
                     <img 
-                        src="${beautyImage}" 
+                        src="${cardImage}" 
                         alt="${service.name}" 
                         class="w-full h-48 object-cover" 
                     />
