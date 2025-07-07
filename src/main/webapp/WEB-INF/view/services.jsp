@@ -247,6 +247,7 @@
 
     <!-- JavaScript -->
     <script src="<c:url value='/js/app.js'/>"></script>
+    <script src="<c:url value='/js/homepage-sections.js'/>"></script>
     <script src="<c:url value='/js/services-api.js'/>"></script>
     
   </body>

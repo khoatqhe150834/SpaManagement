@@ -840,7 +840,17 @@ class ServicesManager {
 
     viewServiceDetails(serviceId) {
         console.log('View service details:', serviceId);
+        
+        // Track service view for recently viewed section
+        if (typeof trackServiceView === 'function') {
+            trackServiceView(serviceId);
+        }
+        
+        // For now, show alert - can be replaced with modal or navigation later
         alert(`Xem chi tiết dịch vụ ID: ${serviceId}`);
+        
+        // TODO: Implement proper service details modal or page navigation
+        // Example: window.location.href = `/service-details?id=${serviceId}`;
     }
 
     addToCart(service) {

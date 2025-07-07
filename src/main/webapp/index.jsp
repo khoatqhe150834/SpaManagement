@@ -485,8 +485,94 @@
       </div>
     </section>
 
+    <!-- Recently Viewed Services Section -->
+    <c:if test="${showBookingFeatures}">
+    <section id="recently-viewed-section" class="py-20 bg-spa-cream fade-in" style="display: none;">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <h2 class="text-4xl md:text-5xl font-serif text-spa-dark mb-4">
+            Dịch vụ <span class="text-primary">đã xem</span>
+          </h2>
+          <p class="text-xl text-gray-600 mb-8">
+            Các dịch vụ bạn đã quan tâm gần đây
+          </p>
+        </div>
+        
+        <!-- Services Grid -->
+        <div id="recently-viewed-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+          <!-- Services will be loaded here -->
+        </div>
+        
+        <!-- View All Button -->
+        <div class="text-center">
+          <a href="<c:url value='/services'/>" 
+             class="inline-flex items-center px-8 py-4 bg-primary text-white rounded-full hover:bg-primary-dark transition-all duration-300 font-semibold text-lg">
+            Xem tất cả dịch vụ
+            <i data-lucide="arrow-right" class="ml-2 h-5 w-5"></i>
+          </a>
+        </div>
+      </div>
+    </section>
+    </c:if>
+
+    <!-- Promotional Services Section -->
+    <section id="promotional-section" class="py-20 bg-gradient-to-br from-red-50 to-pink-50 fade-in">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <h2 class="text-4xl md:text-5xl font-serif text-spa-dark mb-4">
+            Ưu đãi <span class="text-primary">đặc biệt</span>
+          </h2>
+          <p class="text-xl text-gray-600 mb-8">
+            Các dịch vụ đang có chương trình khuyến mãi hấp dẫn
+          </p>
+        </div>
+        
+        <!-- Services Grid -->
+        <div id="promotional-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+          <!-- Services will be loaded here -->
+        </div>
+        
+        <!-- View All Button -->
+        <div class="text-center">
+          <a href="<c:url value='/services'/>" 
+             class="inline-flex items-center px-8 py-4 bg-red-600 text-white rounded-full hover:bg-red-700 transition-all duration-300 font-semibold text-lg">
+            Xem tất cả ưu đãi
+            <i data-lucide="arrow-right" class="ml-2 h-5 w-5"></i>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Most Purchased Services Section -->
+    <section id="most-purchased-section" class="py-20 bg-white fade-in">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <h2 class="text-4xl md:text-5xl font-serif text-spa-dark mb-4">
+            Dịch vụ <span class="text-primary">phổ biến</span>
+          </h2>
+          <p class="text-xl text-gray-600 mb-8">
+            Những dịch vụ được khách hàng lựa chọn nhiều nhất
+          </p>
+        </div>
+        
+        <!-- Services Grid -->
+        <div id="most-purchased-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+          <!-- Services will be loaded here -->
+        </div>
+        
+        <!-- View All Button -->
+        <div class="text-center">
+          <a href="<c:url value='/services'/>" 
+             class="inline-flex items-center px-8 py-4 bg-primary text-white rounded-full hover:bg-primary-dark transition-all duration-300 font-semibold text-lg">
+            Xem tất cả dịch vụ
+            <i data-lucide="arrow-right" class="ml-2 h-5 w-5"></i>
+          </a>
+        </div>
+      </div>
+    </section>
+
     <!-- About Section -->
-    <section class="py-20 bg-white fade-in">
+    <section class="py-20 bg-spa-cream fade-in">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div>
@@ -534,7 +620,7 @@
     </section>
 
     <!-- Testimonials Section -->
-    <section class="py-20 bg-spa-cream fade-in">
+    <section class="py-20 bg-white fade-in">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
           <h2 class="text-4xl md:text-5xl font-serif text-spa-dark mb-4">
@@ -683,8 +769,7 @@
     
     <!-- JavaScript -->
     <script src="<c:url value='/js/app.js'/>"></script>
-    <script src="<c:url value='/js/recently-viewed-services.js'/>"></script>
-    <script src="<c:url value='/js/promotional-services.js'/>"></script>
+    <script src="<c:url value='/js/homepage-sections.js'/>"></script>
     
     <!-- Footer -->
     <jsp:include page="/WEB-INF/view/common/footer.jsp" />

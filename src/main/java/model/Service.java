@@ -26,11 +26,15 @@ public class Service {
     private boolean requiresConsultation;
     private Timestamp createdAt;
     private Timestamp updatedAt;
+    private int purchaseCount; // Transient field for popular services
 
     public Service() {
     }
 
-    public Service(int serviceId, ServiceType serviceTypeId, String name, String description, BigDecimal price, int durationMinutes, int bufferTimeAfterMinutes, String imageUrl, boolean isActive, BigDecimal averageRating, boolean bookableOnline, boolean requiresConsultation, Timestamp createdAt, Timestamp updatedAt) {
+    public Service(int serviceId, ServiceType serviceTypeId, String name, String description, BigDecimal price,
+            int durationMinutes, int bufferTimeAfterMinutes, String imageUrl, boolean isActive,
+            BigDecimal averageRating, boolean bookableOnline, boolean requiresConsultation, Timestamp createdAt,
+            Timestamp updatedAt) {
         this.serviceId = serviceId;
         this.serviceTypeId = serviceTypeId;
         this.name = name;
@@ -45,6 +49,14 @@ public class Service {
         this.requiresConsultation = requiresConsultation;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+    }
+
+    public int getPurchaseCount() {
+        return purchaseCount;
+    }
+
+    public void setPurchaseCount(int purchaseCount) {
+        this.purchaseCount = purchaseCount;
     }
 
     public int getServiceId() {
@@ -161,8 +173,12 @@ public class Service {
 
     @Override
     public String toString() {
-        return "Service{" + "serviceId=" + serviceId + ", serviceTypeId=" + serviceTypeId + ", name=" + name + ", description=" + description + ", price=" + price + ", durationMinutes=" + durationMinutes + ", bufferTimeAfterMinutes=" + bufferTimeAfterMinutes + ", imageUrl=" + imageUrl + ", isActive=" + isActive + ", averageRating=" + averageRating + ", bookableOnline=" + bookableOnline + ", requiresConsultation=" + requiresConsultation + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + '}';
+        return "Service{" + "serviceId=" + serviceId + ", serviceTypeId=" + serviceTypeId + ", name=" + name
+                + ", description=" + description + ", price=" + price + ", durationMinutes=" + durationMinutes
+                + ", bufferTimeAfterMinutes=" + bufferTimeAfterMinutes + ", imageUrl=" + imageUrl + ", isActive="
+                + isActive + ", averageRating=" + averageRating + ", bookableOnline=" + bookableOnline
+                + ", requiresConsultation=" + requiresConsultation + ", createdAt=" + createdAt + ", updatedAt="
+                + updatedAt + '}';
     }
-    
-    
+
 }
