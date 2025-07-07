@@ -358,10 +358,10 @@ class HomepageSectionsManager {
             // Save to localStorage
             localStorage.setItem(this.recentlyViewedKey, JSON.stringify(viewedServices));
 
-            console.log('🔍 Service tracked, refreshing sections:', numericServiceId);
+            console.log('🔍 Service tracked, refreshing recently viewed section:', numericServiceId);
 
-            // Asynchronously refresh sections to update UI
-            this.refresh();
+            // Asynchronously refresh just the recently viewed section to update the UI instantly.
+            this.refreshRecentlyViewedSection();
             
         } catch (error) {
             console.error('Error tracking service view:', error);
@@ -457,6 +457,45 @@ class HomepageSectionsManager {
     showErrorMessage(message) {
         console.error('Homepage Sections Error:', message);
         // You can implement a toast notification here if available
+    }
+
+    /**
+     * Refreshes just the "Recently Viewed" section for a faster, more targeted UI update.
+     */
+    async refreshRecentlyViewedSection() {
+        console.log('🔄 Refreshing just the recently viewed section...');
+        try {
+            const recentlyViewedIds = this.getRecentlyViewedIds();
+
+            if (recentlyViewedIds.length === 0) {
+                this.renderRecentlyViewed([]);
+                return;
+            }
+            
+            // We reuse the 'all-sections' action as it correctly returns data based on IDs.
+            // This is more efficient on the frontend as we only re-render one component.
+            const params = new URLSearchParams({
+                action: 'all-sections',
+                limit: '8' // Keep consistent with initial load
+            });
+            params.append('recentlyViewedIds', recentlyViewedIds.join(','));
+
+            const response = await fetch(`${this.contextPath}${this.apiUrl}?${params}`);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (data.success && data.sections && data.sections.recentlyViewed) {
+                this.renderRecentlyViewed(data.sections.recentlyViewed);
+            } else {
+                console.warn('Could not refresh recently viewed section via API.');
+            }
+        } catch (error) {
+            console.error('Error refreshing recently viewed section:', error);
+        }
     }
 
     /**
