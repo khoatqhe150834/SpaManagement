@@ -336,24 +336,33 @@ class HomepageSectionsManager {
                 console.warn('Invalid service ID provided for tracking:', serviceId);
                 return;
             }
-            
+
             let viewedServices = this.getRecentlyViewedIds();
             
+            // Optimization: if the service is already the first item, no change is needed.
+            if (viewedServices.length > 0 && viewedServices[0] === numericServiceId) {
+                return;
+            }
+
             // Remove if already exists (compare as numbers)
             viewedServices = viewedServices.filter(id => id !== numericServiceId);
-            
+
             // Add to beginning
             viewedServices.unshift(numericServiceId);
-            
+
             // Limit to max items
             if (viewedServices.length > this.maxRecentlyViewed) {
                 viewedServices = viewedServices.slice(0, this.maxRecentlyViewed);
             }
-            
+
             // Save to localStorage
             localStorage.setItem(this.recentlyViewedKey, JSON.stringify(viewedServices));
+
+            console.log('🔍 Service tracked, refreshing sections:', numericServiceId);
+
+            // Asynchronously refresh sections to update UI
+            this.refresh();
             
-            console.log('🔍 Service tracked:', numericServiceId);
         } catch (error) {
             console.error('Error tracking service view:', error);
         }
@@ -389,6 +398,9 @@ class HomepageSectionsManager {
      * Add service to cart
      */
     addToCart(service) {
+        // Track the service view when adding to cart
+        this.trackServiceView(service.serviceId);
+        
         const serviceData = {
             serviceId: service.serviceId,
             serviceName: service.name,
