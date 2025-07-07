@@ -59,6 +59,23 @@
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="<c:url value='/css/style.css'/>" />
+    
+    <!-- Custom styles for animations -->
+    <style>
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .animate-fadeIn {
+        animation: fadeIn 0.6s ease-out forwards;
+      }
+      .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+    </style>
   </head>
 
   <body class="bg-spa-cream">
@@ -206,6 +223,91 @@
         <i data-lucide="chevron-right" class="h-6 w-6 text-white"></i>
       </button>
     </section>
+
+    <!-- Recently Viewed Services Section -->
+    <c:if test="${showBookingFeatures}">
+    <section id="recently-viewed-section" class="py-16 bg-spa-cream opacity-0 translate-y-8 transition-all duration-1000 ease-out hidden">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between mb-12">
+          <div>
+            <div class="flex items-center mb-2">
+              <i data-lucide="history" class="h-8 w-8 text-primary mr-3"></i>
+              <h2 class="text-3xl md:text-4xl font-serif text-spa-dark">
+                Dịch vụ vừa xem
+              </h2>
+            </div>
+            <p class="text-gray-600">Các dịch vụ bạn đã xem gần đây</p>
+          </div>
+          <button 
+            id="view-all-services-btn"
+            class="flex items-center px-6 py-3 bg-primary text-white rounded-full hover:bg-primary-dark transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
+          >
+            Xem tất cả
+            <i data-lucide="arrow-right" class="ml-2 h-5 w-5"></i>
+          </button>
+        </div>
+        
+        <!-- Responsive Grid: 4 cols desktop, 2 cols tablet, 1 col mobile -->
+        <div id="recently-viewed-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <!-- Services will be dynamically inserted here -->
+        </div>
+      </div>
+    </section>
+    </c:if>
+
+    <!-- Promotional Services Section -->
+    <c:if test="${showBookingFeatures}">
+    <section id="promotional-services-section" class="py-16 bg-gradient-to-br from-spa-cream to-secondary">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between mb-12">
+          <div>
+            <h2 class="text-3xl md:text-4xl font-serif text-spa-dark mb-2">
+              Dịch vụ <span class="text-primary">khuyến mãi</span>
+            </h2>
+            <p class="text-gray-600">Ưu đãi đặc biệt có thời hạn</p>
+          </div>
+          <button 
+            id="view-all-promotions-btn"
+            class="flex items-center text-primary hover:text-primary-dark font-semibold transition-colors"
+          >
+            Xem tất cả
+            <i data-lucide="arrow-right" class="ml-2 h-4 w-4"></i>
+          </button>
+        </div>
+        
+        <div id="promotional-services-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <!-- Promotional services will be dynamically inserted here -->
+        </div>
+      </div>
+    </section>
+    </c:if>
+
+    <!-- Most Purchased Services Section -->
+    <c:if test="${showBookingFeatures}">
+    <section id="most-purchased-section" class="py-16 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between mb-12">
+          <div>
+            <h2 class="text-3xl md:text-4xl font-serif text-spa-dark mb-2">
+              Dịch vụ <span class="text-primary">đặt mua nhiều</span>
+            </h2>
+            <p class="text-gray-600">Những dịch vụ được khách hàng yêu thích nhất</p>
+          </div>
+          <button 
+            id="view-all-popular-btn"
+            class="flex items-center text-primary hover:text-primary-dark font-semibold transition-colors"
+          >
+            Xem tất cả
+            <i data-lucide="arrow-right" class="ml-2 h-4 w-4"></i>
+          </button>
+        </div>
+        
+        <div id="most-purchased-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <!-- Most purchased services will be dynamically inserted here -->
+        </div>
+      </div>
+    </section>
+    </c:if>
 
     <!-- Stats Section -->
     <section class="py-16 bg-white fade-in">
@@ -581,6 +683,8 @@
     
     <!-- JavaScript -->
     <script src="<c:url value='/js/app.js'/>"></script>
+    <script src="<c:url value='/js/recently-viewed-services.js'/>"></script>
+    <script src="<c:url value='/js/promotional-services.js'/>"></script>
     
     <!-- Footer -->
     <jsp:include page="/WEB-INF/view/common/footer.jsp" />
