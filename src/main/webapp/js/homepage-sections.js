@@ -7,7 +7,8 @@ class HomepageSectionsManager {
         this.apiUrl = '/api/homepage';
         this.contextPath = this.getContextPath();
         this.recentlyViewedKey = 'spa_recently_viewed_services';
-        this.maxRecentlyViewed = 8;
+        this.maxRecentlyViewed = 100;
+        this.homepageDisplayLimit = 8;
         this.isInitialized = false;
         
         // Beauty images array for fallbacks
@@ -82,7 +83,7 @@ class HomepageSectionsManager {
      */
     async loadAllSections() {
         try {
-            const recentlyViewedIds = this.getRecentlyViewedIds();
+            const recentlyViewedIds = this.getRecentlyViewedIds().slice(0, this.homepageDisplayLimit);
             const params = new URLSearchParams({
                 action: 'all-sections',
                 limit: '8'
@@ -465,7 +466,7 @@ class HomepageSectionsManager {
     async refreshRecentlyViewedSection() {
         console.log('🔄 Refreshing just the recently viewed section...');
         try {
-            const recentlyViewedIds = this.getRecentlyViewedIds();
+            const recentlyViewedIds = this.getRecentlyViewedIds().slice(0, this.homepageDisplayLimit);
 
             if (recentlyViewedIds.length === 0) {
                 this.renderRecentlyViewed([]);

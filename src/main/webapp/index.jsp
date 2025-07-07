@@ -216,6 +216,55 @@ pageEncoding="UTF-8"%> <% pageContext.setAttribute("showBookingFeatures", true);
       </button>
     </section>
 
+
+    <!-- About Section -->
+    <section class="py-20 bg-spa-cream fade-in">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div>
+            <h2 class="text-4xl md:text-5xl font-serif text-spa-dark mb-6">
+              Chào mừng đến với
+              <span class="text-primary"> Spa Hương Sen</span>
+            </h2>
+            <p class="text-lg text-gray-700 mb-6 leading-relaxed">
+              Spa Hương Sen là không gian dành riêng cho phụ nữ Việt Nam, nơi vẻ
+              đẹp tự nhiên được nâng niu và chăm sóc bằng những liệu pháp tinh
+              tế nhất.
+            </p>
+            <p class="text-lg text-gray-700 mb-8 leading-relaxed">
+              Chúng tôi kết hợp giữa truyền thống và hiện đại, mang đến trải
+              nghiệm thư giãn hoàn hảo trong không gian sang trọng và ấm cúng.
+            </p>
+            <a
+              href="${pageContext.request.contextPath}/about"
+              class="inline-flex items-center px-6 py-3 bg-primary text-white rounded-full hover:bg-primary-dark transition-all duration-300 font-semibold"
+            >
+              Tìm hiểu thêm
+              <i data-lucide="arrow-right" class="ml-2 h-5 w-5"></i>
+            </a>
+          </div>
+          <div class="relative">
+            <img
+              src="https://images.pexels.com/photos/3997991/pexels-photo-3997991.jpeg?auto=compress&cs=tinysrgb&w=800"
+              alt="Spa Interior"
+              class="rounded-lg shadow-2xl w-full h-auto"
+            />
+            <div
+              class="absolute -bottom-6 -left-6 bg-white p-6 rounded-lg shadow-lg"
+            >
+              <div class="flex items-center">
+                <i data-lucide="gift" class="h-8 w-8 text-primary mr-3"></i>
+                <div>
+                  <p class="font-semibold text-spa-dark">Ưu đãi đặc biệt</p>
+                  <p class="text-sm text-gray-600">Giảm 20% lần đầu</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Recently Viewed Services Section -->
     <c:if test="${showBookingFeatures}">
       <section
@@ -364,7 +413,7 @@ pageEncoding="UTF-8"%> <% pageContext.setAttribute("showBookingFeatures", true);
     </section>
 
     <!-- Services Section -->
-    <section class="py-20 bg-spa-cream fade-in">
+    <%-- <section class="py-20 bg-spa-cream fade-in">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
           <h2 class="text-4xl md:text-5xl font-serif text-spa-dark mb-4">
@@ -493,10 +542,10 @@ pageEncoding="UTF-8"%> <% pageContext.setAttribute("showBookingFeatures", true);
           </a>
         </div>
       </div>
-    </section>
+    </section> --%>
 
     <!-- Promotional Services Section -->
-    <section
+    <%-- <section
       id="promotional-section"
       class="py-20 bg-gradient-to-br from-red-50 to-pink-50 fade-in"
     >
@@ -529,10 +578,10 @@ pageEncoding="UTF-8"%> <% pageContext.setAttribute("showBookingFeatures", true);
           </a>
         </div>
       </div>
-    </section>
+    </section> --%>
 
     <!-- Most Purchased Services Section -->
-    <section id="most-purchased-section" class="py-20 bg-white fade-in">
+    <%-- <section id="most-purchased-section" class="py-20 bg-white fade-in">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-12">
           <h2 class="text-4xl md:text-5xl font-serif text-spa-dark mb-4">
@@ -562,10 +611,10 @@ pageEncoding="UTF-8"%> <% pageContext.setAttribute("showBookingFeatures", true);
           </a>
         </div>
       </div>
-    </section>
+    </section> --%>
 
     <!-- About Section -->
-    <section class="py-20 bg-spa-cream fade-in">
+    <%-- <section class="py-20 bg-spa-cream fade-in">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div>
@@ -610,7 +659,7 @@ pageEncoding="UTF-8"%> <% pageContext.setAttribute("showBookingFeatures", true);
           </div>
         </div>
       </div>
-    </section>
+    </section> --%>
 
     <!-- Testimonials Section -->
     <section class="py-20 bg-white fade-in">
