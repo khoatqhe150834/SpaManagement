@@ -1,5 +1,5 @@
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@page contentType="text/html" pageEncoding="UTF-8"%> <%@ taglib prefix="c"
+uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html lang="vi" class="scroll-smooth">
   <head>
@@ -122,8 +122,8 @@
                 <!-- Service Types -->
                 <div class="mb-6">
                   <h4 class="font-medium text-spa-dark mb-3">Loại dịch vụ</h4>
-                  <select 
-                    id="service-type-select" 
+                  <select
+                    id="service-type-select"
                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
                   >
                     <option value="all">Tất cả dịch vụ</option>
@@ -132,8 +132,6 @@
                 </div>
 
                 <!-- Price Range - Dynamic double slider will be inserted here -->
-
-
               </div>
             </aside>
 
@@ -222,8 +220,8 @@
           <!-- Mobile Service Type Filter -->
           <div class="mb-6">
             <h4 class="font-medium text-spa-dark mb-3">Loại dịch vụ</h4>
-            <select 
-              id="mobile-service-type-select" 
+            <select
+              id="mobile-service-type-select"
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
             >
               <option value="all">Tất cả dịch vụ</option>
@@ -247,8 +245,10 @@
 
     <!-- JavaScript -->
     <script src="<c:url value='/js/app.js'/>"></script>
+    <script src="<c:url value='/js/cart.js'/>"></script>
+    <script src="<c:url value='/js/service-tracker.js'/>"></script>
+    <script src="<c:url value='/js/recently-viewed-services.js'/>"></script>
     <script src="<c:url value='/js/homepage-sections.js'/>"></script>
     <script src="<c:url value='/js/services-api.js'/>"></script>
-    
   </body>
 </html>

@@ -11,6 +11,17 @@ class RecentlyViewedServices {
         this.section = null;
         this.grid = null;
         
+        this.beautyImages = [
+            'https://images.pexels.com/photos/3985254/pexels-photo-3985254.jpeg?auto=compress&cs=tinysrgb&w=400',
+            'https://images.pexels.com/photos/3997991/pexels-photo-3997991.jpeg?auto=compress&cs=tinysrgb&w=400',
+            'https://images.pexels.com/photos/3985263/pexels-photo-3985263.jpeg?auto=compress&cs=tinysrgb&w=400',
+            'https://images.pexels.com/photos/3997989/pexels-photo-3997989.jpeg?auto=compress&cs=tinysrgb&w=400',
+            'https://images.pexels.com/photos/3985330/pexels-photo-3985330.jpeg?auto=compress&cs=tinysrgb&w=400',
+            'https://images.pexels.com/photos/3985331/pexels-photo-3985331.jpeg?auto=compress&cs=tinysrgb&w=400',
+            'https://images.pexels.com/photos/3997992/pexels-photo-3997992.jpeg?auto=compress&cs=tinysrgb&w=400',
+            'https://images.pexels.com/photos/3985337/pexels-photo-3985337.jpeg?auto=compress&cs=tinysrgb&w=400'
+        ];
+        
         this.init();
     }
 
@@ -26,7 +37,7 @@ class RecentlyViewedServices {
     setup() {
         this.section = document.getElementById('recently-viewed-section');
         this.grid = document.getElementById('recently-viewed-grid');
-        
+
         if (!this.section || !this.grid) {
             console.warn('Recently viewed services elements not found');
             return;
@@ -34,12 +45,9 @@ class RecentlyViewedServices {
 
         // Load and display services
         this.loadRecentlyViewedServices();
-        
+
         // Set up event listeners
         this.setupEventListeners();
-        
-        // Initialize with demo data if empty (for testing - remove in production)
-        this.initializeDemoData();
     }
 
     setupEventListeners() {
@@ -97,21 +105,21 @@ class RecentlyViewedServices {
             price: servicePrice,
             viewedAt: new Date().toISOString()
         };
-        
+
         // Remove if already exists and add to beginning
         this.recentlyViewed = this.recentlyViewed.filter(s => s.id !== serviceId);
         this.recentlyViewed.unshift(newService);
-        
+
         // Keep only max items
         this.recentlyViewed = this.recentlyViewed.slice(0, this.maxItems);
-        
+
         // Save to localStorage
         localStorage.setItem(this.storageKey, JSON.stringify(this.recentlyViewed));
-        
+
         // Update display
         const displayServices = this.recentlyViewed.slice(0, this.displayItems);
         this.renderServices(displayServices);
-        
+
         // Show section if it wasn't visible before
         if (this.section && this.section.classList.contains('hidden')) {
             this.showSection();
@@ -136,93 +144,141 @@ class RecentlyViewedServices {
 
     createServiceHTML(service, index) {
         const contextPath = this.getContextPath();
-        const formattedPrice = new Intl.NumberFormat('vi-VN').format(service.price);
-        const viewedDate = new Date(service.viewedAt).toLocaleDateString('vi-VN');
-        
+        const formattedPrice = new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND'
+        }).format(service.price);
+
+        const imageUrl = service.image || this.getFallbackImage(service.id);
+
+        // Assume average rating for recently viewed services (could be enhanced to store actual ratings)
+        const rating = 4.5;
+        const featured = rating >= 4.5;
+
         return `
-            <div class="service-item group cursor-pointer bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 transform hover:scale-105 animate-fadeIn"
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
                  style="animation-delay: ${index * 150}ms"
                  data-service-id="${service.id}"
                  data-service-name="${service.name}"
                  data-service-image="${service.image}"
                  data-service-price="${service.price}">
-                
-                <div class="relative overflow-hidden">
-                    <img src="${service.image}"
+
+                ${featured ? `
+                <div class="bg-primary text-white text-xs font-semibold px-3 py-1 absolute z-10 rounded-br-lg">
+                    Đã xem
+                </div>` : ''}
+
+                <div class="relative">
+                    <img src="${imageUrl}"
                          alt="${service.name}"
-                         class="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
-                         onerror="this.src='${contextPath}/assets/home/images/placeholder-service.jpg'">
-                    
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    
-                    <div class="absolute top-3 right-3 bg-primary/90 backdrop-blur-sm rounded-full p-2 transform scale-0 group-hover:scale-100 transition-transform duration-300">
-                        <i data-lucide="eye" class="h-4 w-4 text-white"></i>
-                    </div>
-                    
-                    <div class="absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <span class="text-xs font-medium text-spa-dark">Đã xem</span>
+                         class="w-full h-48 object-cover"
+                         onerror="this.onerror=null; this.src='${this.beautyImages[0]}'">
+
+                    <div class="absolute top-3 right-3 bg-white/90 px-2 py-1 rounded-full">
+                        <div class="flex items-center">
+                            <i data-lucide="star" class="h-3 w-3 text-primary fill-current mr-1"></i>
+                            <span class="text-xs font-medium">${rating.toFixed(1)}</span>
+                        </div>
                     </div>
                 </div>
-                
+
                 <div class="p-5">
-                    <h3 class="font-semibold text-spa-dark text-lg mb-3 line-clamp-2 group-hover:text-primary transition-colors duration-300 leading-tight">
-                        ${service.name}
-                    </h3>
-                    
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="text-2xl font-bold text-primary">
-                            ${formattedPrice}đ
-                        </div>
-                        <div class="text-xs text-gray-500">
-                            ${viewedDate}
-                        </div>
+                    <div class="mb-2">
+                        <span class="text-xs text-primary font-medium bg-secondary px-2 py-1 rounded-full">Đã xem gần đây</span>
                     </div>
-                    
-                    <button class="book-service-btn w-full bg-gradient-to-r from-primary to-primary-dark text-white py-3 rounded-lg hover:from-primary-dark hover:to-primary transition-all duration-300 font-semibold text-sm flex items-center justify-center shadow-md hover:shadow-lg transform hover:scale-105">
-                        <i data-lucide="calendar" class="h-4 w-4 mr-2"></i>
-                        Đặt ngay
-                    </button>
+                    <h3 class="text-lg font-semibold text-spa-dark mb-2 truncate">${service.name}</h3>
+                    <p class="text-gray-600 text-sm mb-4 h-12 overflow-hidden">Dịch vụ bạn đã xem gần đây</p>
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center text-gray-500">
+                            <i data-lucide="clock" class="h-4 w-4 mr-1"></i>
+                            <span class="text-sm">60 phút</span>
+                        </div>
+                        <div class="text-xl font-bold text-primary">${formattedPrice}</div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button class="view-details-btn w-full bg-secondary text-spa-dark py-2.5 px-3 rounded-full hover:bg-primary hover:text-white transition-all duration-300 font-medium text-sm flex items-center justify-center" data-id="${service.id}">
+                            Xem chi tiết
+                        </button>
+                        <button class="add-to-cart-btn w-full bg-primary text-white py-2.5 px-3 rounded-full hover:bg-primary-dark transition-all duration-300 font-medium text-sm flex items-center justify-center" data-id="${service.id}">
+                            Thêm vào giỏ
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
     }
 
+    getFallbackImage(serviceId) {
+        if (!serviceId) return this.beautyImages[0];
+        const imageIndex = Math.abs(parseInt(serviceId, 10) * 7) % this.beautyImages.length;
+        return this.beautyImages[imageIndex];
+    }
+
     addServiceEventListeners() {
-        // Service item click handlers
-        const serviceItems = this.grid.querySelectorAll('.service-item');
-        serviceItems.forEach(item => {
-            item.addEventListener('click', (e) => {
-                // Don't navigate if clicking on book button
-                if (e.target.closest('.book-service-btn')) {
-                    return;
+        // View details button handlers
+        const viewDetailsButtons = this.grid.querySelectorAll('.view-details-btn');
+        viewDetailsButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const serviceId = button.dataset.id;
+
+                // Track the service view
+                const serviceItem = button.closest('[data-service-id]');
+                if (serviceItem) {
+                    const serviceName = serviceItem.dataset.serviceName;
+                    const serviceImage = serviceItem.dataset.serviceImage;
+                    const servicePrice = parseInt(serviceItem.dataset.servicePrice);
+
+                    this.trackServiceView(serviceId, serviceName, serviceImage, servicePrice);
                 }
-                
-                // Track the service view and navigate to services
-                const serviceId = item.dataset.serviceId;
-                const serviceName = item.dataset.serviceName;
-                const serviceImage = item.dataset.serviceImage;
-                const servicePrice = parseInt(item.dataset.servicePrice);
-                
-                this.trackServiceView(serviceId, serviceName, serviceImage, servicePrice);
-                window.location.href = this.getContextPath() + '/services';
+
+                // Navigate to service details page
+                window.location.href = this.getContextPath() + '/service-details?id=' + serviceId;
             });
         });
 
-        // Book service button handlers
-        const bookButtons = this.grid.querySelectorAll('.book-service-btn');
-        bookButtons.forEach(button => {
+        // Add to cart button handlers
+        const addToCartButtons = this.grid.querySelectorAll('.add-to-cart-btn');
+        addToCartButtons.forEach(button => {
             button.addEventListener('click', (e) => {
                 e.stopPropagation();
-                window.location.href = this.getContextPath() + '/booking';
+                const serviceId = button.dataset.id;
+                const serviceItem = button.closest('[data-service-id]');
+
+                if (serviceItem) {
+                    const serviceName = serviceItem.dataset.serviceName;
+                    const serviceImage = serviceItem.dataset.serviceImage;
+                    const servicePrice = parseInt(serviceItem.dataset.servicePrice);
+
+                    // Track the service view when adding to cart
+                    this.trackServiceView(serviceId, serviceName, serviceImage, servicePrice);
+
+                    // Create service data for cart
+                    const serviceData = {
+                        serviceId: parseInt(serviceId),
+                        serviceName: serviceName,
+                        serviceImage: serviceImage,
+                        servicePrice: servicePrice,
+                        serviceDuration: 60 // Default duration
+                    };
+
+                    // Add to cart using global function
+                    if (typeof window.addToCart === 'function') {
+                        window.addToCart(serviceData);
+                    } else {
+                        console.error('Global addToCart function not found!');
+                        alert('Không thể thêm vào giỏ hàng. Vui lòng thử lại.');
+                    }
+                }
             });
         });
     }
 
     showSection() {
         if (!this.section) return;
-        
+
         this.section.classList.remove('hidden');
-        
+
         // Trigger animation after a short delay
         setTimeout(() => {
             this.section.classList.remove('opacity-0', 'translate-y-8');
@@ -245,44 +301,6 @@ class RecentlyViewedServices {
         this.recentlyViewed = [];
         localStorage.removeItem(this.storageKey);
         this.hideSection();
-    }
-
-    // Demo data initialization (remove in production)
-    initializeDemoData() {
-        const existingServices = JSON.parse(localStorage.getItem(this.storageKey) || '[]');
-        if (existingServices.length === 0) {
-            const demoServices = [
-                {
-                    id: '1',
-                    name: 'Massage thư giãn toàn thân',
-                    image: 'https://images.pexels.com/photos/3997989/pexels-photo-3997989.jpeg?auto=compress&cs=tinysrgb&w=400',
-                    price: 500000,
-                    viewedAt: new Date(Date.now() - 1000 * 60 * 30).toISOString() // 30 minutes ago
-                },
-                {
-                    id: '2',
-                    name: 'Chăm sóc da mặt cao cấp',
-                    image: 'https://images.pexels.com/photos/3985263/pexels-photo-3985263.jpeg?auto=compress&cs=tinysrgb&w=400',
-                    price: 800000,
-                    viewedAt: new Date(Date.now() - 1000 * 60 * 60).toISOString() // 1 hour ago
-                },
-                {
-                    id: '3',
-                    name: 'Tắm trắng collagen',
-                    image: 'https://images.pexels.com/photos/3985254/pexels-photo-3985254.jpeg?auto=compress&cs=tinysrgb&w=400',
-                    price: 300000,
-                    viewedAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString() // 2 hours ago
-                }
-            ];
-            
-            localStorage.setItem(this.storageKey, JSON.stringify(demoServices));
-            this.recentlyViewed = demoServices;
-            
-            // Show demo services
-            const displayServices = this.recentlyViewed.slice(0, this.displayItems);
-            this.renderServices(displayServices);
-            this.showSection();
-        }
     }
 
     // Public API methods

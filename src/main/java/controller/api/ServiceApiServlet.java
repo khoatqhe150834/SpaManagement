@@ -1,17 +1,5 @@
 package controller.api;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import dao.ServiceDAO;
-import dao.ServiceTypeDAO;
-import model.Service;
-import model.ServiceType;
-
-import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -20,7 +8,20 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-@WebServlet(name = "ServiceApiServlet", urlPatterns = { "/api/services" })
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import dao.ServiceDAO;
+import dao.ServiceTypeDAO;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import model.Service;
+import model.ServiceType;
+
+@WebServlet(name = "ServiceApiServlet", urlPatterns = { "/api/services", "/api/services/*" })
 public class ServiceApiServlet extends HttpServlet {
 
   private static final Logger LOGGER = Logger.getLogger(ServiceApiServlet.class.getName());
@@ -37,8 +38,18 @@ public class ServiceApiServlet extends HttpServlet {
     response.setContentType("application/json");
     response.setCharacterEncoding("UTF-8");
     response.setHeader("Cache-Control", "no-cache");
+    response.setHeader("Access-Control-Allow-Origin", "*");
+    response.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+    response.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
     try {
+      // Check if this is a request for a specific service by ID
+      String pathInfo = request.getPathInfo();
+      if (pathInfo != null && !pathInfo.equals("/")) {
+        handleGetServiceById(pathInfo, response);
+        return;
+      }
+
       // Check if this is a price range request
       String action = request.getParameter("action");
       if ("price-range".equals(action)) {
@@ -194,6 +205,62 @@ public class ServiceApiServlet extends HttpServlet {
     } catch (Exception e) {
       LOGGER.log(Level.WARNING, "Error getting total count", e);
       return 0;
+    }
+  }
+
+  private void handleGetServiceById(String pathInfo, HttpServletResponse response) throws IOException {
+    try {
+      LOGGER.info("Handling get service by ID request. PathInfo: " + pathInfo);
+
+      // Extract service ID from path (e.g., "/123" -> "123")
+      String serviceIdStr = pathInfo.substring(1); // Remove leading "/"
+      LOGGER.info("Extracted service ID string: " + serviceIdStr);
+
+      int serviceId = Integer.parseInt(serviceIdStr);
+      LOGGER.info("Parsed service ID: " + serviceId);
+
+      Service service = serviceDAO.findById(serviceId).orElse(null);
+
+      if (service != null) {
+        // Create response object with service details
+        Map<String, Object> result = new HashMap<>();
+        result.put("serviceId", service.getServiceId());
+        result.put("name", service.getName());
+        result.put("description", service.getDescription());
+        result.put("price", service.getPrice());
+        result.put("durationMinutes", service.getDurationMinutes());
+        result.put("bufferTimeAfterMinutes", service.getBufferTimeAfterMinutes());
+        result.put("isActive", service.isIsActive());
+        result.put("bookableOnline", service.isBookableOnline());
+        result.put("requiresConsultation", service.isRequiresConsultation());
+        result.put("averageRating", service.getAverageRating());
+        result.put("serviceTypeId", service.getServiceTypeId());
+        result.put("createdAt", service.getCreatedAt());
+        result.put("updatedAt", service.getUpdatedAt());
+
+        response.getWriter().write(gson.toJson(result));
+      } else {
+        // Service not found
+        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        Map<String, Object> error = new HashMap<>();
+        error.put("error", true);
+        error.put("message", "Service not found");
+        response.getWriter().write(gson.toJson(error));
+      }
+    } catch (NumberFormatException e) {
+      // Invalid service ID format
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+      Map<String, Object> error = new HashMap<>();
+      error.put("error", true);
+      error.put("message", "Invalid service ID format");
+      response.getWriter().write(gson.toJson(error));
+    } catch (Exception e) {
+      LOGGER.log(Level.SEVERE, "Error fetching service by ID", e);
+      response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      Map<String, Object> error = new HashMap<>();
+      error.put("error", true);
+      error.put("message", "Internal server error");
+      response.getWriter().write(gson.toJson(error));
     }
   }
 

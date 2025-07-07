@@ -13,6 +13,17 @@ class ServicesManager {
         this.serviceTypes = [];
         this.priceRange = { min: 0, max: 10000000 };
 
+        this.beautyImages = [
+            'https://images.pexels.com/photos/3985254/pexels-photo-3985254.jpeg?auto=compress&cs=tinysrgb&w=400',
+            'https://images.pexels.com/photos/3997991/pexels-photo-3997991.jpeg?auto=compress&cs=tinysrgb&w=400',
+            'https://images.pexels.com/photos/3985263/pexels-photo-3985263.jpeg?auto=compress&cs=tinysrgb&w=400',
+            'https://images.pexels.com/photos/3997989/pexels-photo-3997989.jpeg?auto=compress&cs=tinysrgb&w=400',
+            'https://images.pexels.com/photos/3985330/pexels-photo-3985330.jpeg?auto=compress&cs=tinysrgb&w=400',
+            'https://images.pexels.com/photos/3985331/pexels-photo-3985331.jpeg?auto=compress&cs=tinysrgb&w=400',
+            'https://images.pexels.com/photos/3997992/pexels-photo-3997992.jpeg?auto=compress&cs=tinysrgb&w=400',
+            'https://images.pexels.com/photos/3985337/pexels-photo-3985337.jpeg?auto=compress&cs=tinysrgb&w=400'
+        ];
+
         this.init();
     }
 
@@ -137,15 +148,16 @@ class ServicesManager {
 
         const rating = service.averageRating || 0;
         const stars = this.generateStars(rating);
+        const imageUrl = service.imageUrl || this.getServiceImage(service.serviceId);
 
         return `
             <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
             <div class="relative">
                     <img 
-                        src="${service.imageUrl || '/assets/home/images/our-services/default-service.jpg'}" 
+                        src="${imageUrl}" 
                         alt="${service.name}"
                         class="w-full h-48 object-cover"
-                        onerror="this.src='/assets/home/images/our-services/default-service.jpg'"
+                        onerror="this.src='${this.beautyImages[0]}'"
                     />
                     ${service.averageRating >= 4.5 ? '<div class="absolute top-2 right-2 bg-primary text-white px-2 py-1 rounded-full text-xs font-medium">Phổ biến</div>' : ''}
                 </div>
@@ -204,6 +216,12 @@ class ServicesManager {
         }
         
         return stars;
+    }
+
+    getServiceImage(serviceId) {
+        // Simple hash function to get a consistent image based on service ID
+        const imageIndex = Math.abs(serviceId * 7) % this.beautyImages.length;
+        return this.beautyImages[imageIndex];
     }
 
     renderPagination(pagination) {

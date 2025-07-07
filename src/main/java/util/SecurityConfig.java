@@ -14,8 +14,8 @@ public class SecurityConfig {
   public static final Set<String> PUBLIC_URLS = new HashSet<>(Arrays.asList(
       "/login", "/register", "/logout", "/", "/index.jsp",
       "/verify-email", "/email-verification-required", "/resend-verification",
-      "/password/reset", "/password/reset-form", "/password/change-password",
-      "/about", "/contact", "/services", "/blog", "/password-reset/new", "/booking",
+      "/password/reset", "/password-reset-form", "/password/change-password",
+      "/about", "/contact", "/services", "/service-details", "/blog", "/password-reset/new", "/booking",
       "/password-reset/request",
       "/password-reset/edit",
       "/password-reset/update",
@@ -28,7 +28,7 @@ public class SecurityConfig {
 
   // URL patterns that don't require authentication
   public static final Set<String> PUBLIC_PATTERNS = new HashSet<>(Arrays.asList(
-      "/assets/", "/uploads/", "/css/", "/js/", "/images/", "/favicon"));
+      "/assets/", "/uploads/", "/css/", "/js/", "/images/", "/favicon", "/api/"));
 
   /**
    * Check if the given path is a public resource

@@ -110,7 +110,6 @@ public class AuthorizationFilter implements Filter {
         RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID,
         RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID, RoleConstants.MARKETING_ID));
     URL_ROLE_MAPPINGS.put("/dashboard", allAuthenticatedRoles);
-    URL_ROLE_MAPPINGS.put("/service-details", allAuthenticatedRoles);
   }
 
   /**

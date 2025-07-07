@@ -329,15 +329,21 @@ class HomepageSectionsManager {
      */
     trackServiceView(serviceId) {
         if (!serviceId) return;
-        
+
         try {
+            const numericServiceId = parseInt(serviceId, 10);
+            if (isNaN(numericServiceId)) {
+                console.warn('Invalid service ID provided for tracking:', serviceId);
+                return;
+            }
+            
             let viewedServices = this.getRecentlyViewedIds();
             
-            // Remove if already exists
-            viewedServices = viewedServices.filter(id => id !== serviceId);
+            // Remove if already exists (compare as numbers)
+            viewedServices = viewedServices.filter(id => id !== numericServiceId);
             
             // Add to beginning
-            viewedServices.unshift(serviceId);
+            viewedServices.unshift(numericServiceId);
             
             // Limit to max items
             if (viewedServices.length > this.maxRecentlyViewed) {
@@ -347,7 +353,7 @@ class HomepageSectionsManager {
             // Save to localStorage
             localStorage.setItem(this.recentlyViewedKey, JSON.stringify(viewedServices));
             
-            console.log('🔍 Service tracked:', serviceId);
+            console.log('🔍 Service tracked:', numericServiceId);
         } catch (error) {
             console.error('Error tracking service view:', error);
         }
@@ -359,7 +365,9 @@ class HomepageSectionsManager {
     getRecentlyViewedIds() {
         try {
             const stored = localStorage.getItem(this.recentlyViewedKey);
-            return stored ? JSON.parse(stored) : [];
+            const viewed = stored ? JSON.parse(stored) : [];
+            // Sanitize to ensure all IDs are numbers
+            return viewed.map(id => parseInt(id, 10)).filter(id => !isNaN(id));
         } catch (error) {
             console.error('Error getting recently viewed services:', error);
             return [];
@@ -374,7 +382,7 @@ class HomepageSectionsManager {
         this.trackServiceView(serviceId);
         
         // Navigate to service details (implement based on your routing)
-        window.location.href = `${this.contextPath}/services?id=${serviceId}`;
+        window.location.href = `${this.contextPath}/service-details?id=${serviceId}`;
     }
 
     /**

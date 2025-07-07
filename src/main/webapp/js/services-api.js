@@ -27,6 +27,23 @@ class ServicesManager {
         this.init();
     }
 
+    getContextPath() {
+        // Get the context path from the current URL or a meta tag
+        const metaContextPath = document.querySelector('meta[name="context-path"]');
+        if (metaContextPath) {
+            return metaContextPath.getAttribute('content');
+        }
+
+        // Fallback: extract from current path
+        const path = window.location.pathname;
+        const segments = path.split('/');
+        if (segments.length > 1 && segments[1]) {
+            return '/' + segments[1];
+        }
+
+        return '';
+    }
+
     async init() {
         try {
             console.log('🚀 ServicesManager initializing...');
@@ -69,7 +86,8 @@ class ServicesManager {
 
     async loadPriceRange() {
         try {
-            const response = await fetch('/spa/api/services?action=price-range');
+            const contextPath = this.getContextPath();
+            const response = await fetch(`${contextPath}/api/services?action=price-range`);
             const data = await response.json();
             
             if (data.success) {
@@ -85,7 +103,8 @@ class ServicesManager {
 
     async loadServiceTypes() {
         try {
-            const response = await fetch('/spa/api/service-types');
+            const contextPath = this.getContextPath();
+            const response = await fetch(`${contextPath}/api/service-types`);
             const data = await response.json();
             
             if (data.success) {
@@ -139,7 +158,8 @@ class ServicesManager {
                 console.log('🔀 Added order:', this.currentFilters.order);
             }
 
-            const apiUrl = `/spa/api/services?${params}`;
+            const contextPath = this.getContextPath();
+            const apiUrl = `${contextPath}/api/services?${params}`;
             console.log('🌐 API URL:', apiUrl);
             console.log('📊 Full current filters:', JSON.stringify(this.currentFilters, null, 2));
 
@@ -838,22 +858,68 @@ class ServicesManager {
         }
     }
 
-    viewServiceDetails(serviceId) {
+    async viewServiceDetails(serviceId) {
         console.log('View service details:', serviceId);
-        
-        // Track service view for recently viewed section
-        if (typeof trackServiceView === 'function') {
-            trackServiceView(serviceId);
+
+        try {
+            // Try to find the service in already loaded services first
+            let service = null;
+            if (this.allServices && Array.isArray(this.allServices)) {
+                service = this.allServices.find(s => s.serviceId === serviceId);
+            }
+
+            // If service not found in loaded services, fetch it from API
+            if (!service) {
+                console.log('Service not found in loaded services, fetching from API...');
+                try {
+                    const contextPath = this.getContextPath();
+                    const response = await fetch(`${contextPath}/api/services/${serviceId}`);
+                    if (response.ok) {
+                        service = await response.json();
+                    }
+                } catch (fetchError) {
+                    console.warn('Could not fetch service details for tracking:', fetchError);
+                }
+            }
+
+            // Track service view if we have service data
+            if (service && typeof window.trackServiceView === 'function') {
+                // Get service image - use the same logic as in createServiceCard
+                const randomImageIndex = Math.abs(service.serviceId * 7) % this.beautyImages.length;
+                const serviceImage = service.imageUrl || this.beautyImages[randomImageIndex];
+
+                window.trackServiceView(
+                    service.serviceId.toString(),
+                    service.name,
+                    serviceImage,
+                    service.price
+                );
+            }
+
+            // Navigate to service details page
+            const contextPath = this.getContextPath();
+            window.location.href = `${contextPath}/service-details?id=${serviceId}`;
+
+        } catch (error) {
+            console.error('Error in viewServiceDetails:', error);
+            // Still navigate to service details page even if tracking fails
+            const contextPath = this.getContextPath();
+            window.location.href = `${contextPath}/service-details?id=${serviceId}`;
         }
-        
-        // For now, show alert - can be replaced with modal or navigation later
-        alert(`Xem chi tiết dịch vụ ID: ${serviceId}`);
-        
-        // TODO: Implement proper service details modal or page navigation
-        // Example: window.location.href = `/service-details?id=${serviceId}`;
     }
 
     addToCart(service) {
+        // Track service view when adding to cart
+        if (typeof window.trackServiceView === 'function') {
+            const serviceImage = service.imageUrl || this.beautyImages[Math.abs(service.serviceId * 7) % this.beautyImages.length];
+            window.trackServiceView(
+                service.serviceId.toString(),
+                service.name,
+                serviceImage,
+                service.price
+            );
+        }
+
         const serviceData = {
             serviceId: service.serviceId,
             serviceName: service.name,
