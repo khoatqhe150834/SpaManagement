@@ -100,13 +100,15 @@ public class MenuService {
     List<MenuItem> menuItems = new ArrayList<>();
 
     menuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/profile", "user"));
-    menuItems.add(new MenuItem("Bảng điều khiển", contextPath + "/admin/dashboard", "layout-dashboard"));
+    menuItems.add(new MenuItem("Bảng điều khiển", contextPath + "/dashboard", "layout-dashboard"));
     menuItems.add(new MenuItem("Quản lý người dùng", contextPath + "/user/list", "users"));
     // menuItems.add(new MenuItem("Quản lý dịch vụ", contextPath +
     // "/admin/services", "settings"));
     menuItems.add(new MenuItem("Báo cáo hệ thống", contextPath + "/admin/reports", "bar-chart-2"));
-    menuItems.add(new MenuItem("Cài đặt hệ thống", contextPath + "/admin/settings", "settings"));
-    menuItems.add(new MenuItem("Quản lý khuyến mãi", contextPath + "/promotion/list", "tag"));
+    // menuItems.add(new MenuItem("Cài đặt hệ thống", contextPath +
+    // "/admin/settings", "settings"));
+    // menuItems.add(new MenuItem("Quản lý khuyến mãi", contextPath +
+    // "/promotion/list", "tag"));
     menuItems.add(new MenuItem()); // Divider
     menuItems.add(new MenuItem("Đăng xuất", contextPath + "/logout", "log-out"));
 

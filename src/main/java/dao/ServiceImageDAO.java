@@ -15,6 +15,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.HashMap;
 
 import db.DBContext;
 import model.ServiceImage;
@@ -340,4 +344,85 @@ public class ServiceImageDAO implements BaseDAO<ServiceImage, Integer> {
 
         return image;
     }
+
+    /**
+     * Get the first available image for each service (primary first, then by
+     * sort_order/image_id)
+     * 
+     * @param serviceIds list of service IDs to get images for
+     * @return Map of service ID to first available image URL
+     */
+    public Map<Integer, String> getFirstImageUrlsByServiceIds(List<Integer> serviceIds) {
+        Map<Integer, String> imageMap = new HashMap<>();
+
+        if (serviceIds == null || serviceIds.isEmpty()) {
+            return imageMap;
+        }
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT si.service_id, si.url ");
+        sql.append("FROM service_images si ");
+        sql.append("WHERE si.service_id IN (");
+
+        // Build placeholders for IN clause
+        for (int i = 0; i < serviceIds.size(); i++) {
+            sql.append("?");
+            if (i < serviceIds.size() - 1) {
+                sql.append(",");
+            }
+        }
+
+        sql.append(") AND si.is_active = 1 ");
+        sql.append("ORDER BY si.service_id, si.is_primary DESC, si.sort_order ASC, si.image_id ASC");
+
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+
+            // Set the service ID parameters
+            for (int i = 0; i < serviceIds.size(); i++) {
+                stmt.setInt(i + 1, serviceIds.get(i));
+            }
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Integer serviceId = rs.getInt("service_id");
+                    String imageUrl = rs.getString("url");
+
+                    // Only add the first image for each service (due to ordering)
+                    if (!imageMap.containsKey(serviceId)) {
+                        imageMap.put(serviceId, imageUrl);
+                    }
+                }
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error getting first image URLs by service IDs", ex);
+        }
+
+        return imageMap;
+    }
+
+    /**
+     * Get the first available image for a single service
+     * 
+     * @param serviceId the service ID
+     * @return Optional containing the first image URL if found
+     */
+    public Optional<String> getFirstImageUrlByServiceId(Integer serviceId) {
+        String sql = "SELECT url FROM service_images WHERE service_id = ? AND is_active = 1 ORDER BY is_primary DESC, sort_order ASC, image_id ASC LIMIT 1";
+
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, serviceId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(rs.getString("url"));
+                }
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error getting first image URL by service ID: " + serviceId, ex);
+        }
+        return Optional.empty();
+    }
+
 }

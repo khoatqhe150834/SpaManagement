@@ -181,7 +181,7 @@
                         </button>
                         
                         <div class="submenu ml-4 mt-1 space-y-1 pl-4 hidden">
-                            <a href="${pageContext.request.contextPath}/manager/service" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                            <%-- <a href="${pageContext.request.contextPath}/manager/service" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="service-management">
                                 <i data-lucide="list-checks" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                                 <span>Quản lý dịch vụ</span>
@@ -191,13 +191,13 @@
                                     data-item-id="servicetype-management">
                                 <i data-lucide="tag" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                                 <span>Quản lý loại dịch vụ</span>
-                            </a>
+                            </a> --%>
                             
-                            <a href="${pageContext.request.contextPath}/staff" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                            <%-- <a href="${pageContext.request.contextPath}/staff" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="staff-management">
                                 <i data-lucide="users" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                                 <span>Quản lý nhân viên</span>
-                            </a>
+                            </a> --%>
                             
                             <a href="${pageContext.request.contextPath}/user/list" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="user-management">
@@ -205,17 +205,17 @@
                                 <span>Quản lý người dùng</span>
                             </a>
                             
-                            <a href="${pageContext.request.contextPath}/category/list" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                            <%-- <a href="${pageContext.request.contextPath}/category/list" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="category-management">
                                 <i data-lucide="folder" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                                 <span>Quản lý danh mục</span>
-                            </a>
+                            </a> --%>
                             
-                            <a href="${pageContext.request.contextPath}/blog" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
+                            <%-- <a href="${pageContext.request.contextPath}/blog" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="blog-management">
                                 <i data-lucide="edit" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
                                 <span>Quản lý blog</span>
-                            </a>
+                            </a> --%>
                             
                             <a href="${pageContext.request.contextPath}/spa-info" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
                                     data-item-id="spa-info">
@@ -267,47 +267,9 @@
                 </c:when>
             </c:choose>
 
-            <c:if test="${userRole == 'ADMIN'}">
-                <!-- Admin Panel -->
-                <div class="nav-item">
-                    <button class="nav-button nav-expandable w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-all duration-200 group text-gray-700 hover:bg-[#FFF8F0]" 
-                            data-item-id="admin-panel">
-                        <div class="flex items-center">
-                            <i data-lucide="shield" class="h-5 w-5 mr-3 text-gray-500 group-hover:text-[#D4AF37]"></i>
-                            <span class="font-medium text-base">Quản trị hệ thống</span>
-                        </div>
-                        <i data-lucide="chevron-right" class="h-5 w-5 transition-transform duration-200"></i>
-                    </button>
-                    
-                    <div class="submenu ml-4 mt-1 space-y-1 pl-4 hidden">
-                        <a href="${pageContext.request.contextPath}/customer/list" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                data-item-id="customer-management">
-                            <i data-lucide="users" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                            <span>Quản lý khách hàng</span>
-                        </a>
-                        
-                        <a href="${pageContext.request.contextPath}/test" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                data-item-id="system-test">
-                            <i data-lucide="test-tube" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                            <span>Kiểm tra hệ thống</span>
-                        </a>
-                        
-                        <a href="${pageContext.request.contextPath}/autocheckin" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                data-item-id="auto-checkin">
-                            <i data-lucide="clock" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                            <span>Tự động check-in</span>
-                        </a>
-                        
-                        <a href="${pageContext.request.contextPath}/admin/settings" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                data-item-id="system-settings">
-                            <i data-lucide="settings" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                            <span>Cài đặt hệ thống</span>
-                        </a>
-                    </div>
-                </div>
-            </c:if>
+            
 
-            <c:if test="${userRole == 'THERAPIST' || userRole == 'MANAGER' || userRole == 'ADMIN'}">
+            <c:if test="${userRole == 'THERAPIST' || userRole == 'MANAGER'}">
                 <!-- Therapist Interface -->
                 <div class="nav-item">
                     <button class="nav-button nav-expandable w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-all duration-200 group text-gray-700 hover:bg-[#FFF8F0]" 
@@ -355,29 +317,7 @@
             </div>
             
             <!-- Common Pages (All roles) -->
-            <div class="nav-item">
-                <a href="${pageContext.request.contextPath}/services" class="nav-button w-full flex items-center px-4 py-2.5 rounded-lg transition-all duration-200 group text-gray-700 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                        data-item-id="services">
-                    <i data-lucide="sparkles" class="h-5 w-5 mr-3 text-gray-500 group-hover:text-[#D4AF37]"></i>
-                    <span class="font-medium text-base">Dịch vụ</span>
-                </a>
-            </div>
             
-            <div class="nav-item">
-                <a href="${pageContext.request.contextPath}/about" class="nav-button w-full flex items-center px-4 py-2.5 rounded-lg transition-all duration-200 group text-gray-700 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                        data-item-id="about">
-                    <i data-lucide="info" class="h-5 w-5 mr-3 text-gray-500 group-hover:text-[#D4AF37]"></i>
-                    <span class="font-medium text-base">Về chúng tôi</span>
-                </a>
-            </div>
-            
-            <div class="nav-item">
-                <a href="${pageContext.request.contextPath}/contact" class="nav-button w-full flex items-center px-4 py-2.5 rounded-lg transition-all duration-200 group text-gray-700 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                        data-item-id="contact">
-                    <i data-lucide="phone" class="h-5 w-5 mr-3 text-gray-500 group-hover:text-[#D4AF37]"></i>
-                    <span class="font-medium text-base">Liên hệ</span>
-                </a>
-            </div>
             
             <!-- Settings (All roles) -->
             <div class="nav-item">

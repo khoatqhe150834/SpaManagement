@@ -48,8 +48,8 @@ public class ServiceImage {
 
     // Full constructor
     public ServiceImage(Integer imageId, Integer serviceId, String url, String altText,
-                       Boolean isPrimary, Integer sortOrder, String caption,
-                       Boolean isActive, Integer fileSize, Timestamp uploadedAt, Timestamp updatedAt) {
+            Boolean isPrimary, Integer sortOrder, String caption,
+            Boolean isActive, Integer fileSize, Timestamp uploadedAt, Timestamp updatedAt) {
         this.imageId = imageId;
         this.serviceId = serviceId;
         this.url = url;

@@ -318,7 +318,7 @@ public class ServiceImageUploadController extends HttpServlet {
             }
 
             // Process and save image files
-            ProcessedImageResult processedResult = ImageUploadUtil.processAndSaveImage(
+            ProcessedImageResult processedResult = ImageUploadUtil.processAndSaveFullSizeImageOnly(
                     filePart, webappPath, serviceId, savedImage.getImageId());
 
             // Update the ServiceImage with the actual URL and metadata
@@ -330,7 +330,7 @@ public class ServiceImageUploadController extends HttpServlet {
             result.addProperty("imageId", savedImage.getImageId());
             result.addProperty("fileName", processedResult.getFileName());
             result.addProperty("fullSizeUrl", processedResult.getFullSizeUrl());
-            result.addProperty("thumbnailUrl", processedResult.getThumbnailUrl());
+            result.addProperty("thumbnailUrl", ""); // Return empty string for thumbnail
             result.addProperty("fileSize", processedResult.getFileSize());
 
         } catch (Exception e) {

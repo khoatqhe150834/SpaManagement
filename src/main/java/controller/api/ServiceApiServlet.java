@@ -92,8 +92,9 @@ public class ServiceApiServlet extends HttpServlet {
           "Service API request - searchQuery: %s, category: %s, minPrice: %s, maxPrice: %s, page: %d, size: %d, order: %s",
           searchQuery, category, minPrice, maxPrice, page, size, order));
 
-      // Get services using the DAO method
-      List<Service> services = serviceDAO.getServicesByCriteria(category, searchQuery, minPrice, maxPrice, page, size,
+      // Get services using the DAO method with images
+      List<Service> services = serviceDAO.getServicesByCriteriaWithImages(category, searchQuery, minPrice, maxPrice,
+          page, size,
           order);
 
       // Calculate total count for pagination (you might need to add this method to
