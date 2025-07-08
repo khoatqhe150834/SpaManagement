@@ -247,7 +247,10 @@ public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
 
     public List<ServiceType> searchByKeywordAndStatus(String keyword, String status, int offset, int limit) {
         List<ServiceType> serviceTypes = new ArrayList<>();
-        String sql = "SELECT * FROM Service_Types WHERE (name LIKE ? OR description LIKE ?)";
+        String sql = "SELECT * FROM Service_Types WHERE 1=1";
+        if (keyword != null && !keyword.isEmpty()) {
+            sql += " AND (name LIKE ? OR description LIKE ?)";
+        }
         if (status != null && !status.isEmpty()) {
             sql += " AND is_active = ?";
         }
@@ -255,9 +258,11 @@ public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
 
         try (Connection connection = DBContext.getConnection();
                 PreparedStatement stm = connection.prepareStatement(sql)) {
-            stm.setString(1, "%" + keyword + "%");
-            stm.setString(2, "%" + keyword + "%");
-            int paramIndex = 3;
+            int paramIndex = 1;
+            if (keyword != null && !keyword.isEmpty()) {
+                stm.setString(paramIndex++, "%" + keyword + "%");
+                stm.setString(paramIndex++, "%" + keyword + "%");
+            }
             if (status != null && !status.isEmpty()) {
                 stm.setBoolean(paramIndex++, status.equalsIgnoreCase("active"));
             }
@@ -285,16 +290,22 @@ public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
 
     public int countSearchResult(String keyword, String status) {
         int count = 0;
-        String sql = "SELECT COUNT(*) FROM Service_Types WHERE (name LIKE ? OR description LIKE ?)";
+        String sql = "SELECT COUNT(*) FROM Service_Types WHERE 1=1";
+        if (keyword != null && !keyword.isEmpty()) {
+            sql += " AND (name LIKE ? OR description LIKE ?)";
+        }
         if (status != null && !status.isEmpty()) {
             sql += " AND is_active = ?";
         }
         try (Connection connection = DBContext.getConnection();
                 PreparedStatement stm = connection.prepareStatement(sql)) {
-            stm.setString(1, "%" + keyword + "%");
-            stm.setString(2, "%" + keyword + "%");
+            int paramIndex = 1;
+            if (keyword != null && !keyword.isEmpty()) {
+                stm.setString(paramIndex++, "%" + keyword + "%");
+                stm.setString(paramIndex++, "%" + keyword + "%");
+            }
             if (status != null && !status.isEmpty()) {
-                stm.setBoolean(3, status.equalsIgnoreCase("active"));
+                stm.setBoolean(paramIndex++, status.equalsIgnoreCase("active"));
             }
             try (ResultSet rs = stm.executeQuery()) {
                 if (rs.next()) {

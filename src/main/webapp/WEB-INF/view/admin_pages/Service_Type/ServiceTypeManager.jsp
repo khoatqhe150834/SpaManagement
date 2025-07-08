@@ -36,6 +36,7 @@
     <link rel="stylesheet" href="<c:url value='/css/style.css'/>" />
 </head>
 <body class="bg-spa-cream font-sans">
+    <c:set var="searchParams" value="&keyword=${keyword != null ? keyword : ''}&status=${status != null ? status : ''}"/>
     <jsp:include page="/WEB-INF/view/common/header.jsp" />
     <div class="flex">
         <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
@@ -44,7 +45,7 @@
                 <!-- Page Header -->
                 <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
                     <h1 class="text-3xl font-serif text-spa-dark font-bold">Danh Sách Loại Dịch Vụ</h1>
-                    <a href="servicetype?service=pre-insert&page=${currentPage}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}"
+                    <a href="servicetype?service=pre-insert&page=${currentPage}&limit=${limit}${searchParams}"
                         class="inline-flex items-center gap-2 h-10 px-4 bg-primary text-white font-semibold rounded-lg hover:bg-primary-dark transition-colors">
                         <i data-lucide="plus" class="w-5 h-5"></i>
                         <span>Thêm Loại Dịch Vụ Mới</span>
@@ -67,6 +68,7 @@
                                 <option value="inactive" ${status=='inactive' ? 'selected' : '' }>Inactive</option>
                             </select>
                             <input type="hidden" name="service" value="searchByKeywordAndStatus">
+                            <input type="hidden" name="page" value="${currentPage}">
                             <button type="submit" class="h-10 px-4 bg-primary text-white font-semibold rounded-lg hover:bg-primary-dark transition-colors">Tìm kiếm</button>
                         </form>
                     </div>
