@@ -168,11 +168,37 @@
                                     <button type="submit" class="btn btn-primary h-40-px radius-12">Tìm Kiếm</button>
                                 </form>
                             </div>
-                            <a href="service?service=pre-insert&page=${currentPage}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}${not empty serviceTypeId ? '&serviceTypeId='.concat(serviceTypeId) : ''}"
-                                class="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2">
-                                <iconify-icon icon="ic:baseline-plus" class="icon text-xl line-height-1"></iconify-icon>
-                                Thêm Dịch Vụ Mới
-                            </a>
+                            <div class="d-flex align-items-center gap-2">
+                                <!-- Image Management Dropdown -->
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2 dropdown-toggle"
+                                            type="button" data-bs-toggle="dropdown">
+                                        <iconify-icon icon="solar:gallery-outline" class="icon text-xl line-height-1"></iconify-icon>
+                                        Quản Lý Hình Ảnh
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a class="dropdown-item" href="${pageContext.request.contextPath}/manager/service-images/manage">
+                                                <iconify-icon icon="solar:settings-outline" class="me-2"></iconify-icon>
+                                                Quản Lý Tất Cả
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="${pageContext.request.contextPath}/manager/service-images/batch-upload">
+                                                <iconify-icon icon="solar:cloud-upload-outline" class="me-2"></iconify-icon>
+                                                Tải Lên Hàng Loạt
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <!-- Add Service Button -->
+                                <a href="service?service=pre-insert&page=${currentPage}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}${not empty serviceTypeId ? '&serviceTypeId='.concat(serviceTypeId) : ''}"
+                                    class="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2">
+                                    <iconify-icon icon="ic:baseline-plus" class="icon text-xl line-height-1"></iconify-icon>
+                                    Thêm Dịch Vụ Mới
+                                </a>
+                            </div>
                         </div>
 
                         <c:if test="${not empty services}">
@@ -264,6 +290,15 @@
                                                                 data-bs-toggle="tooltip"
                                                                 data-bs-title="Chỉnh sửa dịch vụ">
                                                                 <iconify-icon icon="lucide:edit"
+                                                                    class="menu-icon"></iconify-icon>
+                                                            </a>
+
+                                                            <!-- Image Management button -->
+                                                            <a href="${pageContext.request.contextPath}/manager/service-images/single-upload?serviceId=${service.serviceId}"
+                                                                class="bg-warning-focus text-warning-600 bg-hover-warning-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
+                                                                data-bs-toggle="tooltip"
+                                                                data-bs-title="Quản lý hình ảnh">
+                                                                <iconify-icon icon="solar:gallery-outline"
                                                                     class="menu-icon"></iconify-icon>
                                                             </a>
 

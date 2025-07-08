@@ -243,11 +243,11 @@ class WishlistManager {
         
         // Example: Send to cart API or add to cart localStorage
         try {
-            const cartItems = JSON.parse(localStorage.getItem('cart') || '[]');
-            const existingCartItem = cartItems.find(cartItem => cartItem.serviceId === item.serviceId);
-            
+            const currentCartItems = JSON.parse(localStorage.getItem('cart') || '[]');
+            const existingCartItem = currentCartItems.find(cartItem => cartItem.serviceId === item.serviceId);
+
             if (!existingCartItem) {
-                cartItems.push({
+                currentCartItems.push({
                     serviceId: item.serviceId,
                     serviceName: item.serviceName,
                     serviceImage: item.serviceImage,
@@ -255,7 +255,7 @@ class WishlistManager {
                     quantity: 1,
                     addedAt: new Date().toISOString()
                 });
-                localStorage.setItem('cart', JSON.stringify(cartItems));
+                localStorage.setItem('cart', JSON.stringify(currentCartItems));
             }
         } catch (error) {
             console.error('Failed to add to cart:', error);

@@ -548,4 +548,180 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
     }
 
     // Kiểm tra tên dịch vụ đã tồn tại (không phân biệt loại)
+
+    /**
+     * Get services with active promotions for homepage promotional section
+     * 
+     * @param limit Maximum number of services to return
+     * @return List of services with promotions
+     */
+    public List<Service> getPromotionalServices(int limit) {
+        List<Service> services = new ArrayList<>();
+        String sql = "SELECT DISTINCT s.*, p.discount_type, p.discount_value " +
+                "FROM services s " +
+                "INNER JOIN promotions p ON (p.applicable_service_ids_json LIKE CONCAT('%', s.service_id, '%') " +
+                "    OR p.applicable_scope = 'ALL_SERVICES' " +
+                "    OR p.applies_to_service_id = s.service_id) " +
+                "WHERE s.is_active = 1 " +
+                "    AND p.status = 'ACTIVE' " +
+                "    AND p.start_date <= NOW() " +
+                "    AND p.end_date >= NOW() " +
+                "ORDER BY p.discount_value DESC, s.average_rating DESC " +
+                "LIMIT ?";
+
+        ServiceTypeDAO typeDAO = new ServiceTypeDAO();
+        Map<Integer, ServiceType> typeMap = new HashMap<>();
+        for (ServiceType type : typeDAO.findAll()) {
+            typeMap.put(type.getServiceTypeId(), type);
+        }
+
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, limit);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    services.add(mapResultSet(rs, typeMap));
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ServiceDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return services;
+    }
+
+    /**
+     * Get most purchased services based on booking count for homepage most
+     * purchased section
+     * 
+     * @param limit Maximum number of services to return
+     * @return List of most purchased services
+     */
+    public List<Service> getMostPurchasedServices(int limit) {
+        if (limit <= 0) {
+            throw new IllegalArgumentException("Limit must be positive");
+        }
+
+        List<Service> services = new ArrayList<>();
+        String sql = "SELECT s.*, COUNT(ba.appointment_id) as purchase_count " +
+                "FROM services s " +
+                "LEFT JOIN booking_appointments ba ON s.service_id = ba.service_id AND ba.status IN ('COMPLETED', 'IN_PROGRESS') "
+                +
+                "WHERE s.is_active = 1 " +
+                "GROUP BY s.service_id " +
+                "ORDER BY purchase_count DESC, s.average_rating DESC " +
+                "LIMIT ?";
+
+        // Fetch service types
+        ServiceTypeDAO typeDAO = new ServiceTypeDAO();
+        Map<Integer, ServiceType> typeMap = new HashMap<>();
+        try {
+            for (ServiceType type : typeDAO.findAll()) {
+                typeMap.put(type.getServiceTypeId(), type);
+            }
+        } catch (Exception e) {
+            Logger.getLogger(ServiceDAO.class.getName()).log(Level.WARNING,
+                    "Failed to load service types, proceeding with empty type map", e);
+        }
+
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, limit);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Service service = mapResultSet(rs, typeMap);
+                    // Check if the purchase_count column exists before reading it
+                    if (hasColumn(rs, "purchase_count")) {
+                        service.setPurchaseCount(rs.getInt("purchase_count"));
+                    }
+                    services.add(service);
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ServiceDAO.class.getName()).log(Level.SEVERE,
+                    "Failed to retrieve most purchased services", ex);
+            throw new RuntimeException("Database error while retrieving services", ex);
+        }
+
+        return services;
+    }
+
+    /**
+     * Utility method to check if a ResultSet contains a specific column.
+     * 
+     * @param rs         The ResultSet to check.
+     * @param columnName The name of the column.
+     * @return true if the column exists, false otherwise.
+     * @throws SQLException
+     */
+    private boolean hasColumn(ResultSet rs, String columnName) throws SQLException {
+        ResultSetMetaData rsmd = rs.getMetaData();
+        int columns = rsmd.getColumnCount();
+        for (int x = 1; x <= columns; x++) {
+            if (columnName.equals(rsmd.getColumnName(x))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Get services by their IDs for recently viewed section
+     * 
+     * @param serviceIds List of service IDs to retrieve
+     * @return List of services matching the IDs
+     */
+    public List<Service> getServicesByIds(List<Integer> serviceIds) {
+        if (serviceIds == null || serviceIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<Service> services = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT * FROM services WHERE service_id IN (");
+
+        // Build placeholders for IN clause
+        for (int i = 0; i < serviceIds.size(); i++) {
+            sql.append("?");
+            if (i < serviceIds.size() - 1) {
+                sql.append(",");
+            }
+        }
+        sql.append(") AND is_active = 1");
+
+        ServiceTypeDAO typeDAO = new ServiceTypeDAO();
+        Map<Integer, ServiceType> typeMap = new HashMap<>();
+        for (ServiceType type : typeDAO.findAll()) {
+            typeMap.put(type.getServiceTypeId(), type);
+        }
+
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+
+            // Set the service ID parameters
+            for (int i = 0; i < serviceIds.size(); i++) {
+                stmt.setInt(i + 1, serviceIds.get(i));
+            }
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                Map<Integer, Service> serviceMap = new HashMap<>();
+                while (rs.next()) {
+                    Service service = mapResultSet(rs, typeMap);
+                    serviceMap.put(service.getServiceId(), service);
+                }
+
+                // Maintain the order from the input list
+                for (Integer id : serviceIds) {
+                    if (serviceMap.containsKey(id)) {
+                        services.add(serviceMap.get(id));
+                    }
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ServiceDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return services;
+    }
 }
