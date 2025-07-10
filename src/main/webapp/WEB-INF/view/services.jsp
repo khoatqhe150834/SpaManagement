@@ -404,6 +404,93 @@
                 id="services-grid"
                 class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"
               >
+                <!-- Skeleton Loading -->
+                <div id="skeleton-loading" class="contents">
+                  <!-- Skeleton card 1 -->
+                  <div class="bg-white rounded-lg shadow-lg overflow-hidden animate-pulse">
+                    <div class="h-48 bg-gray-300"></div>
+                    <div class="p-6">
+                      <div class="h-4 bg-gray-300 rounded mb-3"></div>
+                      <div class="h-6 bg-gray-300 rounded mb-4"></div>
+                      <div class="h-4 bg-gray-300 rounded w-3/4 mb-4"></div>
+                      <div class="flex justify-between items-center">
+                        <div class="h-6 bg-gray-300 rounded w-20"></div>
+                        <div class="h-10 bg-gray-300 rounded w-24"></div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Skeleton card 2 -->
+                  <div class="bg-white rounded-lg shadow-lg overflow-hidden animate-pulse">
+                    <div class="h-48 bg-gray-300"></div>
+                    <div class="p-6">
+                      <div class="h-4 bg-gray-300 rounded mb-3"></div>
+                      <div class="h-6 bg-gray-300 rounded mb-4"></div>
+                      <div class="h-4 bg-gray-300 rounded w-3/4 mb-4"></div>
+                      <div class="flex justify-between items-center">
+                        <div class="h-6 bg-gray-300 rounded w-20"></div>
+                        <div class="h-10 bg-gray-300 rounded w-24"></div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Skeleton card 3 -->
+                  <div class="bg-white rounded-lg shadow-lg overflow-hidden animate-pulse">
+                    <div class="h-48 bg-gray-300"></div>
+                    <div class="p-6">
+                      <div class="h-4 bg-gray-300 rounded mb-3"></div>
+                      <div class="h-6 bg-gray-300 rounded mb-4"></div>
+                      <div class="h-4 bg-gray-300 rounded w-3/4 mb-4"></div>
+                      <div class="flex justify-between items-center">
+                        <div class="h-6 bg-gray-300 rounded w-20"></div>
+                        <div class="h-10 bg-gray-300 rounded w-24"></div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Skeleton card 4 -->
+                  <div class="bg-white rounded-lg shadow-lg overflow-hidden animate-pulse">
+                    <div class="h-48 bg-gray-300"></div>
+                    <div class="p-6">
+                      <div class="h-4 bg-gray-300 rounded mb-3"></div>
+                      <div class="h-6 bg-gray-300 rounded mb-4"></div>
+                      <div class="h-4 bg-gray-300 rounded w-3/4 mb-4"></div>
+                      <div class="flex justify-between items-center">
+                        <div class="h-6 bg-gray-300 rounded w-20"></div>
+                        <div class="h-10 bg-gray-300 rounded w-24"></div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Skeleton card 5 -->
+                  <div class="bg-white rounded-lg shadow-lg overflow-hidden animate-pulse">
+                    <div class="h-48 bg-gray-300"></div>
+                    <div class="p-6">
+                      <div class="h-4 bg-gray-300 rounded mb-3"></div>
+                      <div class="h-6 bg-gray-300 rounded mb-4"></div>
+                      <div class="h-4 bg-gray-300 rounded w-3/4 mb-4"></div>
+                      <div class="flex justify-between items-center">
+                        <div class="h-6 bg-gray-300 rounded w-20"></div>
+                        <div class="h-10 bg-gray-300 rounded w-24"></div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Skeleton card 6 -->
+                  <div class="bg-white rounded-lg shadow-lg overflow-hidden animate-pulse">
+                    <div class="h-48 bg-gray-300"></div>
+                    <div class="p-6">
+                      <div class="h-4 bg-gray-300 rounded mb-3"></div>
+                      <div class="h-6 bg-gray-300 rounded mb-4"></div>
+                      <div class="h-4 bg-gray-300 rounded w-3/4 mb-4"></div>
+                      <div class="flex justify-between items-center">
+                        <div class="h-6 bg-gray-300 rounded w-20"></div>
+                        <div class="h-10 bg-gray-300 rounded w-24"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
                 <!-- Services will be loaded dynamically by JavaScript -->
 
                 <!-- Error message -->

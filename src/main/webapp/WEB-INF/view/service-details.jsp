@@ -53,28 +53,7 @@ uri="http://java.sun.com/jsp/jstl/fmt" %>
 
     <!-- Main Content -->
     <main class="pt-20">
-      <!-- Breadcrumb -->
-      <section class="bg-white py-4 border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <nav class="flex items-center space-x-2 text-sm">
-            <a
-              href="<c:url value='/'/>"
-              class="text-gray-500 hover:text-primary"
-              >Trang chủ</a
-            >
-            <i data-lucide="chevron-right" class="h-4 w-4 text-gray-400"></i>
-            <a
-              href="<c:url value='/services'/>"
-              class="text-gray-500 hover:text-primary"
-              >Dịch vụ</a
-            >
-            <i data-lucide="chevron-right" class="h-4 w-4 text-gray-400"></i>
-            <span class="text-spa-dark font-medium" id="breadcrumb-service-name"
-              >Chi tiết dịch vụ</span
-            >
-          </nav>
-        </div>
-      </section>
+
 
       <!-- Service Details -->
       <section class="py-12">

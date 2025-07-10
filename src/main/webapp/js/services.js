@@ -2,7 +2,7 @@
 class ServicesPageManager {
     constructor() {
         this.currentPage = 1;
-        this.pageSize = 12;
+        this.pageSize = this.getPageSize(); // Dynamic page size
         this.currentFilters = {
             searchQuery: '',
             category: 'all',
@@ -15,6 +15,82 @@ class ServicesPageManager {
         this.serviceDetailsUrl = null;
 
         this.init();
+    }
+
+    getPageSize() {
+        // Check if page size is set from server-side data
+        if (window.servicesPageData && window.servicesPageData.pageSize) {
+            return parseInt(window.servicesPageData.pageSize);
+        }
+        
+        // Check for URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const pageSizeParam = urlParams.get('pageSize');
+        if (pageSizeParam) {
+            const pageSize = parseInt(pageSizeParam);
+            if (pageSize > 0 && pageSize <= 100) { // Reasonable limits
+                return pageSize;
+            }
+        }
+        
+        // Check localStorage for user preference
+        const savedPageSize = localStorage.getItem('servicesPageSize');
+        if (savedPageSize) {
+            const pageSize = parseInt(savedPageSize);
+            if (pageSize > 0 && pageSize <= 100) {
+                return pageSize;
+            }
+        }
+        
+        // Dynamic based on screen size
+        return this.calculateDynamicPageSize();
+    }
+
+    calculateDynamicPageSize() {
+        const screenWidth = window.innerWidth;
+        const screenHeight = window.innerHeight;
+        
+        // Mobile devices
+        if (screenWidth < 768) {
+            return 8; // Smaller page size for mobile
+        }
+        // Tablet devices
+        else if (screenWidth < 1024) {
+            return 12;
+        }
+        // Desktop - calculate based on screen size
+        else {
+            // Estimate how many cards can fit on screen
+            const cardHeight = 450; // Approximate card height
+            const headerHeight = 200; // Approximate header/filter height
+            const availableHeight = screenHeight - headerHeight;
+            const cardsPerColumn = Math.floor(availableHeight / cardHeight);
+            
+            // Cards per row (responsive grid)
+            let cardsPerRow = 4; // Default for large screens
+            if (screenWidth < 1280) cardsPerRow = 3;
+            if (screenWidth < 1024) cardsPerRow = 2;
+            
+            // Calculate total cards that fit on screen + 1 row for scrolling
+            const calculatedSize = Math.max(8, (cardsPerColumn + 1) * cardsPerRow);
+            
+            // Cap at reasonable maximum
+            return Math.min(calculatedSize, 24);
+        }
+    }
+
+    setPageSize(newPageSize) {
+        if (newPageSize > 0 && newPageSize <= 100) {
+            this.pageSize = newPageSize;
+            // Save user preference
+            localStorage.setItem('servicesPageSize', newPageSize.toString());
+            // Trigger reload if using API
+            if (window.servicesManager && typeof window.servicesManager.loadServices === 'function') {
+                window.servicesManager.pageSize = newPageSize;
+                window.servicesManager.currentPage = 1; // Reset to first page
+                window.servicesManager.loadServices();
+            }
+        }
     }
 
     init() {
@@ -36,6 +112,7 @@ class ServicesPageManager {
             this.initializeEventListeners();
             this.initializePriceSlider();
             this.stabilizeCardLayout();
+            this.initializeResponsivePageSize();
 
         } catch (error) {
             console.error('ServicesPageManager initialization error:', error);
@@ -146,9 +223,19 @@ class ServicesPageManager {
             maxInput.placeholder = initialMax.toString();
         }
 
-        // Update display
+        // Update display with proper formatting
         this.updatePriceDisplay(initialMin, initialMax);
         this.updateSliderRange(initialMin, initialMax, initialMin, initialMax);
+        
+        // Update price limit displays with proper formatting
+        const priceMinLimit = document.getElementById('price-min-limit');
+        const priceMaxLimit = document.getElementById('price-max-limit');
+        if (priceMinLimit) {
+            priceMinLimit.textContent = this.formatPrice(initialMin);
+        }
+        if (priceMaxLimit) {
+            priceMaxLimit.textContent = this.formatPrice(initialMax);
+        }
 
         // Add event listeners
         const updatePriceRange = () => {
@@ -203,6 +290,30 @@ class ServicesPageManager {
         console.log('✅ Price slider initialized successfully!');
     }
 
+    initializeResponsivePageSize() {
+        // Recalculate page size on window resize (debounced)
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                const newPageSize = this.calculateDynamicPageSize();
+                if (newPageSize !== this.pageSize) {
+                    console.log(`📱 Responsive page size changed: ${this.pageSize} → ${newPageSize}`);
+                    this.pageSize = newPageSize;
+                    
+                    // Update API manager if available
+                    if (window.servicesManager && typeof window.servicesManager.loadServices === 'function') {
+                        window.servicesManager.pageSize = newPageSize;
+                        window.servicesManager.currentPage = 1; // Reset to first page
+                        window.servicesManager.loadServices();
+                    }
+                }
+            }, 300);
+        });
+        
+        console.log(`📏 Initial dynamic page size: ${this.pageSize}`);
+    }
+
     updatePriceDisplay(minVal, maxVal) {
         const minDisplay = document.getElementById('min-price-display');
         const maxDisplay = document.getElementById('max-price-display');
@@ -228,13 +339,11 @@ class ServicesPageManager {
     }
 
     formatPrice(price) {
-        if (price >= 1000000) {
-            return (price / 1000000).toFixed(1) + 'M ₫';
-        } else if (price >= 1000) {
-            return (price / 1000).toFixed(0) + 'K ₫';
-        } else {
-            return price.toLocaleString('vi-VN') + ' ₫';
-        }
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'decimal',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(price) + ' ₫';
     }
 
     stabilizeCardLayout() {
@@ -261,6 +370,20 @@ class ServicesPageManager {
                 img.style.transition = 'transform 0.3s ease'; // Only transform for hover
             });
         });
+    }
+
+    showSkeletonLoading() {
+        const skeletonLoading = document.getElementById('skeleton-loading');
+        if (skeletonLoading) {
+            skeletonLoading.style.display = 'contents';
+        }
+    }
+
+    hideSkeletonLoading() {
+        const skeletonLoading = document.getElementById('skeleton-loading');
+        if (skeletonLoading) {
+            skeletonLoading.style.display = 'none';
+        }
     }
 
     applyFilters() {
@@ -422,6 +545,16 @@ class ServicesPageManager {
 
         this.updatePriceDisplay(initialMin, initialMax);
         this.updateSliderRange(initialMin, initialMax, initialMin, initialMax);
+        
+        // Update price limit displays with proper formatting
+        const priceMinLimit = document.getElementById('price-min-limit');
+        const priceMaxLimit = document.getElementById('price-max-limit');
+        if (priceMinLimit) {
+            priceMinLimit.textContent = this.formatPrice(initialMin);
+        }
+        if (priceMaxLimit) {
+            priceMaxLimit.textContent = this.formatPrice(initialMax);
+        }
     }
 
     initializeMobileFilters() {

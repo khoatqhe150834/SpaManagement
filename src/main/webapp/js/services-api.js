@@ -192,6 +192,12 @@ class ServicesManager {
 
     renderServices(services) {
         const container = document.getElementById('services-grid');
+        const skeletonLoading = document.getElementById('skeleton-loading');
+        
+        // Hide skeleton loading
+        if (skeletonLoading) {
+            skeletonLoading.style.display = 'none';
+        }
         
         if (!services || services.length === 0) {
             container.innerHTML = `
@@ -224,10 +230,7 @@ class ServicesManager {
     }
 
     createServiceCard(service) {
-        const formattedPrice = new Intl.NumberFormat('vi-VN', {
-            style: 'currency',
-            currency: 'VND'
-        }).format(service.price);
+        const formattedPrice = this.formatPrice(service.price);
 
         const rating = service.averageRating || 0;
         const featured = service.averageRating >= 4.5;
@@ -550,13 +553,13 @@ class ServicesManager {
     }
 
     initializeRangeSlider() {
-        const minSlider = document.getElementById('min-price-range');
-        const maxSlider = document.getElementById('max-price-range');
+        const minSlider = document.getElementById('min-price-slider');
+        const maxSlider = document.getElementById('max-price-slider');
         const minInput = document.getElementById('min-price-input');
         const maxInput = document.getElementById('max-price-input');
         const minDisplay = document.getElementById('min-price-display');
         const maxDisplay = document.getElementById('max-price-display');
-        const track = document.getElementById('slider-track');
+        const track = document.getElementById('slider-range');
 
         if (!minSlider || !maxSlider || !minInput || !maxInput || !minDisplay || !maxDisplay) {
             console.error("One or more price slider elements are missing.");
@@ -990,23 +993,22 @@ class ServicesManager {
     }
 
     formatPrice(price) {
-        // Format price with full Vietnamese currency formatting
+        // Format price with full Vietnamese number formatting and thousand separators
         return new Intl.NumberFormat('vi-VN', {
-            style: 'currency',
-            currency: 'VND',
+            style: 'decimal',
             minimumFractionDigits: 0,
             maximumFractionDigits: 0
-        }).format(price);
+        }).format(price) + ' ₫';
     }
 
     formatPriceShort(price) {
-        // Short format for slider display
+        // Short format for slider display with thousand separators
         if (price >= 1000000) {
-            return (price / 1000000).toFixed(1) + 'M đ';
+            return (price / 1000000).toFixed(1) + 'M ₫';
         } else if (price >= 1000) {
-            return (price / 1000).toFixed(0) + 'K đ';
+            return (price / 1000).toFixed(0) + 'K ₫';
         }
-        return price + 'đ';
+        return new Intl.NumberFormat('vi-VN').format(price) + ' ₫';
     }
 }
 
