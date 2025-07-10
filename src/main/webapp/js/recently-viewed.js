@@ -349,7 +349,7 @@ class RecentlyViewedPageManager {
                 return serviceType && serviceType.serviceTypeId == typeId;
             });
         }
-
+        
         // 3. Filter by Price Range
         if (this.currentFilters.minPrice !== null) {
             services = services.filter(s => s.price >= this.currentFilters.minPrice);
@@ -439,9 +439,9 @@ class RecentlyViewedPageManager {
         return `
             <div class="service-card bg-white rounded-lg shadow-lg overflow-hidden flex flex-col">
                 <div class="relative h-48">
-                    <a href="${this.contextPath}/service-details?id=${service.serviceId}" class="block">
+                <a href="${this.contextPath}/service-details?id=${service.serviceId}" class="block">
                         <img src="${imageUrl}" alt="${service.name}" class="w-full h-48 object-cover">
-                    </a>
+                </a>
                 </div>
                 <div class="p-5">
                     <div class="mb-2">
@@ -465,9 +465,9 @@ class RecentlyViewedPageManager {
                             Xem chi tiết
                         </button>
                         <button class="add-to-cart-btn w-full bg-primary text-white py-2.5 px-3 rounded-full hover:bg-primary-dark transition-all duration-300 font-medium text-sm flex items-center justify-center"
-                                onclick='window.cartManager.addToCart(${escapedService})'>
-                            Thêm vào giỏ
-                        </button>
+                            onclick='window.cartManager.addToCart(${escapedService})'>
+                        Thêm vào giỏ
+                    </button>
                     </div>
                 </div>
             </div>`;
