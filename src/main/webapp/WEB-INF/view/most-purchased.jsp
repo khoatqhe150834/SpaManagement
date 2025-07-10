@@ -141,6 +141,43 @@
             background: transparent;
             border: none;
         }
+        
+        /* Booking count badge styles - blue theme with icon */
+        .service-card .booking-count-badge {
+            background-color: #3b82f6 !important; /* bg-blue-500 */
+            color: white !important;
+            font-size: 0.75rem !important; /* text-xs */
+            font-weight: 600 !important; /* font-semibold */
+            padding: 4px 8px !important; /* px-2 py-1 */
+            position: absolute !important;
+            z-index: 9999 !important; /* Higher than z-10 for safety */
+            border-radius: 9999px !important; /* rounded-full */
+            top: 12px !important; /* top-3 */
+            right: 12px !important; /* right-3 */
+            display: flex !important;
+            align-items: center !important;
+            pointer-events: none !important;
+            white-space: nowrap !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+        }
+        
+        /* Icon styling within badge */
+        .service-card .booking-count-badge svg {
+            height: 0.75rem !important; /* h-3 w-3 */
+            width: 0.75rem !important;
+            margin-right: 4px !important; /* mr-1 */
+            stroke: currentColor !important;
+            stroke-width: 2 !important;
+        }
+        
+        /* Ensure image doesn't cover the badge */
+        .service-card .relative.h-48 {
+            z-index: 1 !important;
+        }
+        
+        .service-card img {
+            z-index: 1 !important;
+        }
     </style>
 </head>
 <body class="bg-spa-cream">

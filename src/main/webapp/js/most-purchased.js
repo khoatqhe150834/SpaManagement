@@ -447,9 +447,18 @@ class MostPurchasedPageManager {
         const description = service.description || '';
         const truncatedDescription = description.length > 60 ? description.substring(0, 60) + '...' : description;
 
-        // Show purchase count if available
+        // Show purchase count badge only if there are actual purchases
         const purchaseCount = service.purchaseCount || 0;
-        const purchaseText = purchaseCount > 0 ? `${purchaseCount} lượt đặt` : 'Mới';
+        const purchaseBadge = purchaseCount > 0 ? `
+            <div class="booking-count-badge">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="user-check" class="lucide lucide-user-check">
+                    <path d="m16 11 2 2 4-4"></path>
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                </svg>
+                <span>${purchaseCount} lượt đặt</span>
+            </div>
+        ` : '';
         
         return `
             <div class="service-card bg-white rounded-lg shadow-lg overflow-hidden flex flex-col">
@@ -457,9 +466,7 @@ class MostPurchasedPageManager {
                     <a href="${this.contextPath}/service-details?id=${service.serviceId}" class="block">
                         <img src="${imageUrl}" alt="${service.name}" class="w-full h-48 object-cover">
                     </a>
-                    <div class="absolute top-2 right-2">
-                        <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-medium">${purchaseText}</span>
-                    </div>
+                    ${purchaseBadge}
                 </div>
                 <div class="p-5">
                     <div class="mb-2">
