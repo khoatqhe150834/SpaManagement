@@ -102,7 +102,13 @@ class ServiceDetailsManager {
         // Use the service's imageUrl from database if available
         if (this.service.imageUrl && this.service.imageUrl.trim() !== '' && this.service.imageUrl !== '/services/default.jpg') {
             // Ensure the URL has proper context path
-            const imageUrl = this.service.imageUrl.startsWith('/') ? `${this.contextPath}${this.service.imageUrl}` : this.service.imageUrl;
+            let imageUrl = this.service.imageUrl;
+            
+            // Only add context path if the URL starts with / and doesn't already include context path
+            if (imageUrl.startsWith('/') && !imageUrl.startsWith(this.contextPath)) {
+                imageUrl = `${this.contextPath}${imageUrl}`;
+            }
+            
             console.log('🖼️ Using database image for service:', this.service.serviceId, '→', imageUrl);
             return imageUrl;
         }
@@ -112,6 +118,83 @@ class ServiceDetailsManager {
         const placeholderUrl = `https://placehold.co/800x600/FFB6C1/333333?text=${serviceName}`;
         console.log('🖼️ Using placeholder image for service:', this.service.serviceId, '→', placeholderUrl);
         return placeholderUrl;
+    }
+
+    loadServiceImage() {
+        const imageElement = document.getElementById('service-image');
+        if (!imageElement) return;
+
+        // Set alt text immediately
+        imageElement.alt = this.service.name;
+        
+        // Show loading placeholder initially
+        const serviceName = encodeURIComponent(this.service.name || 'Service');
+        const loadingPlaceholder = `https://placehold.co/800x600/E5E7EB/9CA3AF?text=Loading...`;
+        imageElement.src = loadingPlaceholder;
+
+        // Get the optimal image URL
+        const serviceImage = this.getServiceImageUrl();
+
+        // If it's already a placeholder, load it directly (fast)
+        if (serviceImage.includes('placehold.co')) {
+            imageElement.src = serviceImage;
+            return;
+        }
+
+        // For database images, try loading with a timeout and fallback
+        const loadWithFallback = (imageUrl, isRetry = false) => {
+            // Create a new image to test loading
+            const testImage = new Image();
+            
+            testImage.onload = () => {
+                // Image loaded successfully, apply it
+                imageElement.src = imageUrl;
+                console.log('🖼️ Successfully loaded image for service:', this.service.serviceId);
+            };
+            
+            testImage.onerror = () => {
+                if (!isRetry) {
+                    console.log('🖼️ Database image failed, using placeholder for service:', this.service.serviceId);
+                    // Use placeholder as fallback
+                    const serviceName = encodeURIComponent(this.service.name || 'Service');
+                    const fallbackUrl = `https://placehold.co/800x600/FFB6C1/333333?text=${serviceName}`;
+                    imageElement.src = fallbackUrl;
+                } else {
+                    console.error('🖼️ Both database image and placeholder failed for service:', this.service.serviceId);
+                }
+            };
+
+            // Set a timeout for slow loading images
+            const timeoutId = setTimeout(() => {
+                if (!testImage.complete) {
+                    console.log('🖼️ Image loading timeout, using placeholder for service:', this.service.serviceId);
+                    testImage.onerror(); // Trigger fallback
+                }
+            }, 3000); // 3 second timeout
+
+            // Clear timeout when image loads or fails
+            testImage.onload = () => {
+                clearTimeout(timeoutId);
+                imageElement.src = imageUrl;
+                console.log('🖼️ Successfully loaded image for service:', this.service.serviceId);
+            };
+
+            testImage.onerror = () => {
+                clearTimeout(timeoutId);
+                if (!isRetry) {
+                    console.log('🖼️ Database image failed, using placeholder for service:', this.service.serviceId);
+                    const serviceName = encodeURIComponent(this.service.name || 'Service');
+                    const fallbackUrl = `https://placehold.co/800x600/FFB6C1/333333?text=${serviceName}`;
+                    imageElement.src = fallbackUrl;
+                }
+            };
+
+            // Start loading the test image
+            testImage.src = imageUrl;
+        };
+
+        // Start the loading process
+        loadWithFallback(serviceImage);
     }
 
     displayServiceDetails() {
@@ -126,22 +209,8 @@ class ServiceDetailsManager {
         // Update page title
         document.title = `${this.service.name} - Spa Hương Sen`;
 
-        // Update service information
-        const serviceImage = this.getServiceImageUrl();
-        const imageElement = document.getElementById('service-image');
-        imageElement.src = serviceImage;
-        imageElement.alt = this.service.name;
-        
-        // Add error handler for image fallback
-        imageElement.onerror = () => {
-            if (!imageElement.src.includes('placehold.co')) {
-                const serviceName = encodeURIComponent(this.service.name || 'Service');
-                const fallbackUrl = `https://placehold.co/800x600/FFB6C1/333333?text=${serviceName}`;
-                console.log('🖼️ Image failed, using placeholder for service:', this.service.serviceId, '→', fallbackUrl);
-                imageElement.src = fallbackUrl;
-                imageElement.onerror = null; // Prevent infinite loop
-            }
-        };
+        // Update service information with optimized image loading
+        this.loadServiceImage();
         
         document.getElementById('service-name').textContent = this.service.name;
         document.getElementById('service-description').textContent = this.service.description || 'Dịch vụ chăm sóc sắc đẹp chuyên nghiệp';

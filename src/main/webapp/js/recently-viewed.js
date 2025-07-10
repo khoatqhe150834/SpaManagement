@@ -63,6 +63,14 @@ class RecentlyViewedPageManager {
         }
     }
 
+    /**
+     * Helper method to get ServiceType from a service object
+     * The Service model uses confusing naming: serviceTypeId field actually contains ServiceType object
+     */
+    getServiceType(service) {
+        return service.serviceTypeId || service.serviceType;
+    }
+
     async loadInitialData() {
         this.showLoading();
         const serviceIds = this.getRecentlyViewedIds().slice(0, this.maxDisplay);
@@ -73,6 +81,7 @@ class RecentlyViewedPageManager {
         }
 
         try {
+            console.log('🌐 Fetching services from API with IDs:', serviceIds);
             const response = await fetch(`${this.contextPath}${this.apiEndpoint}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -82,6 +91,8 @@ class RecentlyViewedPageManager {
             if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
             
             this.allServices = await response.json();
+            console.log('📦 Received services from API:', this.allServices.length);
+            console.log('📦 Sample service data:', this.allServices[0]);
             
             if (this.allServices && this.allServices.length > 0) {
                 this.extractServiceTypes();
@@ -91,6 +102,7 @@ class RecentlyViewedPageManager {
                 this.applyFiltersAndRender();
                 this.hideLoading();
             } else {
+                console.log('❌ No services returned from API');
                 this.showNoResults();
             }
         } catch (error) {
@@ -100,11 +112,26 @@ class RecentlyViewedPageManager {
     }
 
     extractServiceTypes() {
+        console.log('🔍 Extracting service types from', this.allServices.length, 'services');
+        this.serviceTypes.clear(); // Clear existing service types
+        
         this.allServices.forEach(service => {
-            if (service.serviceType && !this.serviceTypes.has(service.serviceType.serviceTypeId)) {
-                this.serviceTypes.set(service.serviceType.serviceTypeId, service.serviceType.name);
+            console.log('📋 Processing service:', service.name, 'with serviceTypeId:', service.serviceTypeId);
+            
+            const serviceType = this.getServiceType(service);
+            
+            if (serviceType && serviceType.serviceTypeId && serviceType.name) {
+                if (!this.serviceTypes.has(serviceType.serviceTypeId)) {
+                    this.serviceTypes.set(serviceType.serviceTypeId, serviceType.name);
+                    console.log('✅ Added service type:', serviceType.serviceTypeId, '→', serviceType.name);
+                }
+            } else {
+                console.log('⚠️ Service has no valid serviceType:', service.name, 'serviceTypeId field:', service.serviceTypeId);
             }
         });
+        
+        console.log('📊 Total unique service types found:', this.serviceTypes.size);
+        console.log('📊 Service types map:', Array.from(this.serviceTypes.entries()));
     }
 
     calculatePriceRange() {
@@ -119,10 +146,37 @@ class RecentlyViewedPageManager {
 
     populateFilterOptions() {
         const select = this.elements.serviceTypeSelect;
+        
+        if (!select) {
+            console.error('❌ Service type select element not found!');
+            return;
+        }
+        
+        console.log('🔧 Starting to populate filter options...');
+        console.log('🔧 Current select options count:', select.options.length);
+        
+        // Clear existing options except "Tất cả dịch vụ"
+        while (select.options.length > 1) {
+            select.remove(1);
+        }
+        
+        console.log('🔧 After clearing, select options count:', select.options.length);
+        console.log('🔧 Available service types to add:', this.serviceTypes.size);
+        
+        // Only add service types that have services in the recently viewed list
         this.serviceTypes.forEach((name, id) => {
+            console.log('🔧 Adding option:', id, '→', name);
             const option = new Option(name, id);
             select.add(option);
         });
+        
+        console.log('🔧 Final select options count:', select.options.length);
+        console.log(`✅ Populated ${this.serviceTypes.size} service types that have recently viewed services`);
+        
+        // Log all options for debugging
+        for (let i = 0; i < select.options.length; i++) {
+            console.log(`🔧 Option ${i}: "${select.options[i].text}" (value: ${select.options[i].value})`);
+        }
     }
     
     setupEventListeners() {
@@ -268,7 +322,10 @@ class RecentlyViewedPageManager {
         // 2. Filter by Service Type
         const typeId = this.currentFilters.serviceTypeId;
         if (typeId !== 'all') {
-            services = services.filter(s => s.serviceType && s.serviceType.serviceTypeId == typeId);
+            services = services.filter(s => {
+                const serviceType = this.getServiceType(s);
+                return serviceType && serviceType.serviceTypeId == typeId;
+            });
         }
 
         // 3. Filter by Price Range

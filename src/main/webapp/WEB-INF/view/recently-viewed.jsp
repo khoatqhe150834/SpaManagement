@@ -137,7 +137,10 @@
                                 </div>
                                 <div class="mb-6">
                                     <h4 class="font-medium text-spa-dark mb-3">Loại dịch vụ</h4>
-                                    <select id="service-type-select" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"><option value="all">Tất cả</option></select>
+                                    <select id="service-type-select" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm">
+                                        <option value="all">Tất cả dịch vụ</option>
+                                        <!-- Service types will be populated dynamically by JavaScript based on actual recently viewed services -->
+                                    </select>
                                 </div>
                                 
                                 <!-- Price Range -->

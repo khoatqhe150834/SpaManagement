@@ -96,8 +96,8 @@ class ServicesPageManager {
     init() {
         try {
             // Initialize Lucide icons
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
+        if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
             }
 
             // Get data from window object set by JSP
