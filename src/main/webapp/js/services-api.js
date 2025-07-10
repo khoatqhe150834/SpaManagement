@@ -65,7 +65,7 @@ class ServicesManager {
             
             // Setup UI components
             console.log('🎚️ Setting up UI components...');
-            // this.setupPriceRangeSlider(); // Disabled - using services.js slider instead
+            // Price slider handled by services.js - just initialize event listeners
             
             // Small delay to ensure DOM is ready
             setTimeout(() => {
@@ -232,12 +232,7 @@ class ServicesManager {
         const rating = service.averageRating || 0;
         const featured = service.averageRating >= 4.5;
         
-        const ctx = this.getContextPath();
-        const hasImage = service.imageUrl && service.imageUrl.trim() !== '';
-        const cardImage = hasImage ? (service.imageUrl.startsWith('/') ? ctx + service.imageUrl : service.imageUrl) : (() => {
-            const idx = Math.abs(service.serviceId * 7) % this.beautyImages.length;
-            return this.beautyImages[idx];
-        })();
+        const cardImage = this.getServiceImageUrl(service);
 
         return `
             <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
@@ -914,7 +909,7 @@ class ServicesManager {
     addToCart(service) {
         // Track service view when adding to cart
         if (typeof window.trackServiceView === 'function') {
-            const serviceImage = service.imageUrl || this.beautyImages[Math.abs(service.serviceId * 7) % this.beautyImages.length];
+            const serviceImage = this.getServiceImageUrl(service);
             window.trackServiceView(
                 service.serviceId.toString(),
                 service.name,
@@ -926,10 +921,12 @@ class ServicesManager {
         const serviceData = {
             serviceId: service.serviceId,
             serviceName: service.name,
-            serviceImage: service.imageUrl || this.beautyImages[Math.abs(service.serviceId * 7) % this.beautyImages.length],
+            serviceImage: this.getServiceImageUrl(service),
             servicePrice: service.price,
             serviceDuration: service.durationMinutes
         };
+
+        console.log('Adding to cart:', serviceData); // Debug log
 
         // Integration with existing cart functionality
         if (typeof addToCart === 'function') {
@@ -938,6 +935,25 @@ class ServicesManager {
             console.error('Global addToCart function not found!');
             alert(`Thêm dịch vụ ID: ${service.serviceId} vào giỏ hàng (Lỗi)`);
         }
+    }
+
+    getServiceImageUrl(service) {
+        // Get context path from current page data or determine it
+        const contextPath = window.servicesPageData?.contextPath || this.getContextPath();
+        
+        // Use the service's imageUrl from database if available
+        if (service.imageUrl && service.imageUrl.trim() !== '' && service.imageUrl !== '/services/default.jpg') {
+            // Ensure the URL has proper context path
+            const imageUrl = service.imageUrl.startsWith('/') ? `${contextPath}${service.imageUrl}` : service.imageUrl;
+            console.log('🖼️ Using database image for service:', service.serviceId, '→', imageUrl);
+            return imageUrl;
+        }
+        
+        // Fallback to placehold.co placeholder with service name
+        const serviceName = encodeURIComponent(service.name || 'Service');
+        const placeholderUrl = `https://placehold.co/300x200/FFB6C1/333333?text=${serviceName}`;
+        console.log('🖼️ Using placeholder image for service:', service.serviceId, '→', placeholderUrl);
+        return placeholderUrl;
     }
 
     showLoadingState() {
@@ -974,8 +990,13 @@ class ServicesManager {
     }
 
     formatPrice(price) {
-        // Format price without currency symbol for better display
-        return new Intl.NumberFormat('vi-VN').format(price) + 'đ';
+        // Format price with full Vietnamese currency formatting
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(price);
     }
 
     formatPriceShort(price) {
@@ -993,6 +1014,8 @@ class ServicesManager {
 let servicesManager;
 document.addEventListener('DOMContentLoaded', () => {
     servicesManager = new ServicesManager();
+    // Make it available globally for other scripts
+    window.servicesManager = servicesManager;
 });
 
 // Add CSS for the enhanced components

@@ -222,7 +222,7 @@
   </head>
 
   <body class="bg-spa-cream" 
-        data-default-image-url="<c:url value='/services/default.jpg'/>" 
+ 
         data-service-details-url="<c:url value='/service-details'/>">
     <jsp:include page="/WEB-INF/view/common/header.jsp" />
 
@@ -526,7 +526,6 @@
       // Pass server-side data to JavaScript (avoiding EL expression issues)
       window.servicesPageData = {
         contextPath: '<c:url value="/"/>',
-        defaultImageUrl: '<c:url value="/services/default.jpg"/>',
         serviceDetailsUrl: '<c:url value="/service-details"/>',
         priceRange: {
           min: 100000,

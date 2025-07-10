@@ -206,9 +206,13 @@ function updateCartDisplay() {
     cartFooter.style.display = 'block';
 
     // Render cart items
-    cartItemsContainer.innerHTML = cartItems.map(item => `
+    cartItemsContainer.innerHTML = cartItems.map(item => {
+        // Use placehold.co placeholder if no image
+        const imageUrl = item.serviceImage || `https://placehold.co/300x200/FFB6C1/333333?text=${encodeURIComponent(item.serviceName || 'Service')}`;
+        
+        return `
         <div class="flex items-start space-x-4 p-4 bg-white rounded-lg border border-gray-200">
-            <img src="${item.serviceImage}" alt="${item.serviceName}" class="w-20 h-20 object-cover rounded-lg">
+            <img src="${imageUrl}" alt="${item.serviceName}" class="w-20 h-20 object-cover rounded-lg">
             <div class="flex-1">
                 <h3 class="font-medium text-gray-900">${item.serviceName}</h3>
                 <p class="text-[#D4AF37] font-medium mt-1">
@@ -231,7 +235,8 @@ function updateCartDisplay() {
                 </button>
             </div>
         </div>
-    `).join('');
+        `;
+    }).join('');
 
     // Update totals
     const totalPrice = cartItems.reduce((sum, item) => sum + (item.servicePrice * item.quantity), 0);
@@ -329,6 +334,8 @@ function proceedToCheckout() {
     // Redirect to booking page with cart items
     window.location.href = '/booking?from=cart';
 }
+
+
 
 // Format currency
 function formatCurrency(amount) {

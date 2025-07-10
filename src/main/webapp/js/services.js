@@ -12,7 +12,6 @@ class ServicesPageManager {
         };
         this.serviceTypes = [];
         this.priceRange = { min: 0, max: 10000000 };
-        this.defaultImageUrl = null;
         this.serviceDetailsUrl = null;
 
         this.init();
@@ -27,7 +26,6 @@ class ServicesPageManager {
 
             // Get data from window object set by JSP
             if (window.servicesPageData) {
-                this.defaultImageUrl = window.servicesPageData.defaultImageUrl;
                 this.serviceDetailsUrl = window.servicesPageData.serviceDetailsUrl;
                 if (window.servicesPageData.priceRange) {
                     this.priceRange = window.servicesPageData.priceRange;
@@ -266,7 +264,37 @@ class ServicesPageManager {
     }
 
     applyFilters() {
-        // Filter the existing server-rendered services
+        // Delegate to services-api.js if it exists and has filtering capability
+        if (window.servicesManager && typeof window.servicesManager.loadServices === 'function') {
+            // Update the API manager's filters
+            if (window.servicesManager.currentFilters) {
+                window.servicesManager.currentFilters.minPrice = this.currentFilters.minPrice;
+                window.servicesManager.currentFilters.maxPrice = this.currentFilters.maxPrice;
+                window.servicesManager.currentFilters.searchQuery = this.currentFilters.searchQuery;
+                window.servicesManager.currentFilters.category = this.currentFilters.category;
+                window.servicesManager.currentFilters.order = this.currentFilters.order;
+            }
+            // Trigger API filtering
+            window.servicesManager.loadServices();
+            return;
+        }
+        
+        // Also try the global servicesManager variable
+        if (typeof servicesManager !== 'undefined' && servicesManager && typeof servicesManager.loadServices === 'function') {
+            // Update the API manager's filters
+            if (servicesManager.currentFilters) {
+                servicesManager.currentFilters.minPrice = this.currentFilters.minPrice;
+                servicesManager.currentFilters.maxPrice = this.currentFilters.maxPrice;
+                servicesManager.currentFilters.searchQuery = this.currentFilters.searchQuery;
+                servicesManager.currentFilters.category = this.currentFilters.category;
+                servicesManager.currentFilters.order = this.currentFilters.order;
+            }
+            // Trigger API filtering
+            servicesManager.loadServices();
+            return;
+        }
+
+        // Fallback: Filter existing server-rendered services (if any)
         const serviceCards = document.querySelectorAll('.service-card');
         let visibleCount = 0;
 
