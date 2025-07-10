@@ -16,10 +16,10 @@ public class SecurityConfig {
       "/verify-email", "/email-verification-required", "/resend-verification",
       "/password/reset", "/password-reset-form", "/password/change-password",
       "/about", "/contact", "/services", "/service-details", "/blog", "/password-reset/new", "/booking",
-      "/password-reset/request", "/recently-viewed",
+      "/password-reset/request", "/recently-viewed", "/most-purchased",
       "/password-reset/edit",
       "/password-reset/update",
-      "/test", "/api/booking-session", "/api/services",
+      "/test", "/api/booking-session", "/api/services", "/api/most-purchased",
       "/api/service-types", "/error", "/booking", "/api/homepage"));
 
   // File extensions that don't require authentication

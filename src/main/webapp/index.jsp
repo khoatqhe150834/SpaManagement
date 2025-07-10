@@ -348,13 +348,14 @@ pageEncoding="UTF-8"%> <% pageContext.setAttribute("showBookingFeatures", true);
                 Những dịch vụ được khách hàng yêu thích nhất
               </p>
             </div>
-            <button
+            <a
+              href="${pageContext.request.contextPath}/most-purchased"
               id="view-all-popular-btn"
               class="flex items-center text-primary hover:text-primary-dark font-semibold transition-colors"
             >
               Xem tất cả
               <i data-lucide="arrow-right" class="ml-2 h-4 w-4"></i>
-            </button>
+            </a>
           </div>
 
           <div

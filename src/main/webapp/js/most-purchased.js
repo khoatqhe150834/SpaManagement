@@ -1,8 +1,8 @@
 /**
- * recently-viewed.js
- * Manages the dedicated "Recently Viewed" page with client-side filtering, searching, and pagination.
+ * most-purchased.js
+ * Manages the "Most Purchased Services" page with client-side filtering, searching, and pagination.
  */
-class RecentlyViewedPageManager {
+class MostPurchasedPageManager {
     constructor() {
         this.allServices = [];
         this.filteredServices = [];
@@ -16,13 +16,12 @@ class RecentlyViewedPageManager {
             serviceTypeId: 'all',
             minPrice: null,
             maxPrice: null,
-            order: 'default'
+            order: 'purchase-desc'
         };
         
         this.priceRange = { min: 100000, max: 15000000 };
         
-        this.storageKey = 'spa_recently_viewed_services';
-        this.apiEndpoint = '/api/services/by-ids';
+        this.apiEndpoint = '/api/most-purchased';
         this.contextPath = document.querySelector('meta[name="context-path"]')?.getAttribute('content') || '';
         this.maxDisplay = 100;
 
@@ -38,8 +37,6 @@ class RecentlyViewedPageManager {
             clearFiltersBtn: document.getElementById('clear-filters'),
             pagination: document.getElementById('pagination')
         };
-        
-        // Remove beauty images - using placeholder fallback instead
     }
 
     async init() {
@@ -50,17 +47,6 @@ class RecentlyViewedPageManager {
         await this.loadInitialData();
         this.setupEventListeners();
         lucide.createIcons();
-    }
-
-    getRecentlyViewedIds() {
-        try {
-            const stored = localStorage.getItem(this.storageKey) || '[]';
-            const viewed = JSON.parse(stored);
-            return viewed.map(id => parseInt(id, 10)).filter(id => !isNaN(id));
-        } catch (error) {
-            console.error('Error reading recently viewed IDs from localStorage', error);
-            return [];
-        }
     }
 
     /**
@@ -90,51 +76,40 @@ class RecentlyViewedPageManager {
 
     async loadInitialData() {
         this.showLoading();
-        const serviceIds = this.getRecentlyViewedIds().slice(0, this.maxDisplay);
-
-        if (serviceIds.length === 0) {
-            this.showNoResults();
-            return;
-        }
 
         try {
-            console.log('🌐 Fetching services from API with IDs:', serviceIds);
-            const response = await fetch(`${this.contextPath}${this.apiEndpoint}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                body: JSON.stringify(serviceIds)
+            console.log('🌐 Fetching most purchased services from API...');
+            const response = await fetch(`${this.contextPath}${this.apiEndpoint}?limit=${this.maxDisplay}`, {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' }
             });
 
             if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
             
-            this.allServices = await response.json();
+            const data = await response.json();
+            this.allServices = data.services || [];
             console.log('📦 Received services from API:', this.allServices.length);
-            console.log('📦 Sample service data:', this.allServices[0]);
             
             if (this.allServices && this.allServices.length > 0) {
                 this.extractServiceTypes();
                 this.calculatePriceRange();
-                this.populateFilterOptions();
                 this.initializePriceSlider();
                 this.applyFiltersAndRender();
                 this.hideLoading();
             } else {
-                console.log('❌ No services returned from API');
                 this.showNoResults();
             }
         } catch (error) {
-            this.showError(`Không thể tải các dịch vụ đã xem.`);
-            console.error('Failed to fetch recently viewed services:', error);
+            this.showError(`Không thể tải danh sách dịch vụ phổ biến.`);
+            console.error('Failed to fetch most purchased services:', error);
         }
     }
 
     extractServiceTypes() {
         console.log('🔍 Extracting service types from', this.allServices.length, 'services');
-        this.serviceTypes.clear(); // Clear existing service types
+        this.serviceTypes.clear();
         
         this.allServices.forEach(service => {
-            console.log('📋 Processing service:', service.name, 'with serviceTypeId:', service.serviceTypeId);
-            
             const serviceType = this.getServiceType(service);
             
             if (serviceType && serviceType.serviceTypeId && serviceType.name) {
@@ -142,13 +117,10 @@ class RecentlyViewedPageManager {
                     this.serviceTypes.set(serviceType.serviceTypeId, serviceType.name);
                     console.log('✅ Added service type:', serviceType.serviceTypeId, '→', serviceType.name);
                 }
-            } else {
-                console.log('⚠️ Service has no valid serviceType:', service.name, 'serviceTypeId field:', service.serviceTypeId);
             }
         });
         
         console.log('📊 Total unique service types found:', this.serviceTypes.size);
-        console.log('📊 Service types map:', Array.from(this.serviceTypes.entries()));
     }
 
     calculatePriceRange() {
@@ -158,41 +130,6 @@ class RecentlyViewedPageManager {
         if (prices.length > 0) {
             this.priceRange.min = Math.min(...prices);
             this.priceRange.max = Math.max(...prices);
-        }
-    }
-
-    populateFilterOptions() {
-        const select = this.elements.serviceTypeSelect;
-        
-        if (!select) {
-            console.error('❌ Service type select element not found!');
-            return;
-        }
-        
-        console.log('🔧 Starting to populate filter options...');
-        console.log('🔧 Current select options count:', select.options.length);
-        
-        // Clear existing options except "Tất cả dịch vụ"
-        while (select.options.length > 1) {
-            select.remove(1);
-        }
-        
-        console.log('🔧 After clearing, select options count:', select.options.length);
-        console.log('🔧 Available service types to add:', this.serviceTypes.size);
-        
-        // Only add service types that have services in the recently viewed list
-        this.serviceTypes.forEach((name, id) => {
-            console.log('🔧 Adding option:', id, '→', name);
-            const option = new Option(name, id);
-            select.add(option);
-        });
-        
-        console.log('🔧 Final select options count:', select.options.length);
-        console.log(`✅ Populated ${this.serviceTypes.size} service types that have recently viewed services`);
-        
-        // Log all options for debugging
-        for (let i = 0; i < select.options.length; i++) {
-            console.log(`🔧 Option ${i}: "${select.options[i].text}" (value: ${select.options[i].value})`);
         }
     }
     
@@ -360,18 +297,24 @@ class RecentlyViewedPageManager {
         
         // 4. Sort
         const order = this.currentFilters.order;
-        if (order !== 'default') {
-            services.sort((a, b) => {
-                switch (order) {
-                    case 'name-asc': return a.name.localeCompare(b.name);
-                    case 'name-desc': return b.name.localeCompare(a.name);
-                    case 'price-asc': return a.price - b.price;
-                    case 'price-desc': return b.price - a.price;
-                    case 'rating-desc': return (b.averageRating || 0) - (a.averageRating || 0);
-                    default: return 0;
-                }
-            });
-        }
+        services.sort((a, b) => {
+            switch (order) {
+                case 'purchase-desc': 
+                    // Primary sort by purchase count, secondary by rating
+                    const aPurchases = a.purchaseCount || 0;
+                    const bPurchases = b.purchaseCount || 0;
+                    if (aPurchases !== bPurchases) {
+                        return bPurchases - aPurchases;
+                    }
+                    return (b.averageRating || 0) - (a.averageRating || 0);
+                case 'name-asc': return a.name.localeCompare(b.name);
+                case 'name-desc': return b.name.localeCompare(a.name);
+                case 'price-asc': return a.price - b.price;
+                case 'price-desc': return b.price - a.price;
+                case 'rating-desc': return (b.averageRating || 0) - (a.averageRating || 0);
+                default: return (b.purchaseCount || 0) - (a.purchaseCount || 0);
+            }
+        });
         
         this.filteredServices = services;
         this.renderPage();
@@ -435,6 +378,10 @@ class RecentlyViewedPageManager {
         // Truncate description to fit layout
         const description = service.description || '';
         const truncatedDescription = description.length > 60 ? description.substring(0, 60) + '...' : description;
+
+        // Show purchase count if available
+        const purchaseCount = service.purchaseCount || 0;
+        const purchaseText = purchaseCount > 0 ? `${purchaseCount} lượt đặt` : 'Mới';
         
         return `
             <div class="service-card bg-white rounded-lg shadow-lg overflow-hidden flex flex-col">
@@ -442,6 +389,9 @@ class RecentlyViewedPageManager {
                     <a href="${this.contextPath}/service-details?id=${service.serviceId}" class="block">
                         <img src="${imageUrl}" alt="${service.name}" class="w-full h-48 object-cover">
                     </a>
+                    <div class="absolute top-2 right-2">
+                        <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-medium">${purchaseText}</span>
+                    </div>
                 </div>
                 <div class="p-5">
                     <div class="mb-2">
@@ -476,24 +426,21 @@ class RecentlyViewedPageManager {
     getServiceImageUrl(service) {
         // Use the service's imageUrl from database if available
         if (service.imageUrl && service.imageUrl.trim() !== '' && service.imageUrl !== '/services/default.jpg') {
-            // Ensure the URL has proper context path
             const imageUrl = service.imageUrl.startsWith('/') ? `${this.contextPath}${service.imageUrl}` : service.imageUrl;
-            console.log('🖼️ Using database image for service:', service.serviceId, '→', imageUrl);
             return imageUrl;
         }
         
         // Fallback to placehold.co placeholder with service name
         const serviceName = encodeURIComponent(service.name || 'Service');
         const placeholderUrl = `https://placehold.co/300x200/FFB6C1/333333?text=${serviceName}`;
-        console.log('🖼️ Using placeholder image for service:', service.serviceId, '→', placeholderUrl);
         return placeholderUrl;
     }
     
     clearAllFilters() {
-        this.currentFilters = { searchQuery: '', serviceTypeId: 'all', minPrice: null, maxPrice: null, order: 'default' };
+        this.currentFilters = { searchQuery: '', serviceTypeId: 'all', minPrice: null, maxPrice: null, order: 'purchase-desc' };
         this.elements.searchInput.value = '';
         this.elements.serviceTypeSelect.value = 'all';
-        this.elements.sortSelect.value = 'default';
+        this.elements.sortSelect.value = 'purchase-desc';
         this.resetPriceSlider();
         this.currentPage = 1;
         this.applyFiltersAndRender();
@@ -547,7 +494,7 @@ class RecentlyViewedPageManager {
 
 document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('services-grid')) {
-        const manager = new RecentlyViewedPageManager();
+        const manager = new MostPurchasedPageManager();
         manager.init();
     }
 }); 
