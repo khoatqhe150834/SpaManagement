@@ -97,3 +97,9 @@
       <% session.removeAttribute("flash_error"); %>
   </c:if>
 </footer>
+
+<!-- Chatbot Widget - Included globally -->
+<jsp:include page="/WEB-INF/includes/chatbot.jsp" />
+
+<!-- Load chatbot functionality -->
+<script src="${pageContext.request.contextPath}/js/chatbot.js"></script>

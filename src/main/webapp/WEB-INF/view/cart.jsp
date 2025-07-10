@@ -112,7 +112,6 @@
 
     <!-- Scripts -->
     <jsp:include page="/WEB-INF/view/common/home/scripts.jsp" />
-    <script src="${pageContext.request.contextPath}/js/cart.js"></script>
     <script>
         // Initialize Lucide icons
         lucide.createIcons();

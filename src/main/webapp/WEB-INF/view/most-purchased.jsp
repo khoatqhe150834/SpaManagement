@@ -303,13 +303,13 @@
     <jsp:include page="/WEB-INF/view/common/footer.jsp" />
     
     <!-- AI Chatbot -->
-    <jsp:include page="/WEB-INF/includes/chatbot.jsp" />
+    
     
     <div id="notification" class="notification"></div>
     
     <!-- JavaScript -->
     <script src="<c:url value='/js/app.js'/>"></script>
-    <script src="<c:url value='/js/cart.js'/>"></script>
+
     <script src="<c:url value='/js/most-purchased.js'/>"></script>
 </body>
 </html> 

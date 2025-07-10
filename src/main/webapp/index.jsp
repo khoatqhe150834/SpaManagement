@@ -820,14 +820,10 @@ pageEncoding="UTF-8"%> <% pageContext.setAttribute("showBookingFeatures", true);
 
     <!-- JavaScript -->
     <script src="<c:url value='/js/app.js'/>"></script>
-    <script src="<c:url value='/js/cart.js'/>"></script>
     <script src="<c:url value='/js/service-tracker.js'/>"></script>
     <script src="<c:url value='/js/recently-viewed-services.js'/>"></script>
     <script src="<c:url value='/js/homepage-sections.js'/>"></script>
-    <script src="<c:url value='/js/chatbot.js'/>"></script>
 
-    <!-- AI Chatbot -->
-    <jsp:include page="/WEB-INF/includes/chatbot.jsp" />
 
     <!-- Footer -->
     <jsp:include page="/WEB-INF/view/common/footer.jsp" />
