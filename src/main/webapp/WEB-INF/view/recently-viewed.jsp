@@ -31,6 +31,58 @@
     <link rel="stylesheet" href="<c:url value='/css/style.css'/>" />
     
     <style>
+        /* Service card hover effects and stability */
+        .service-card {
+            transition: box-shadow 0.3s ease, transform 0.2s ease;
+            min-height: 450px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+        .service-card:hover {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            transform: translateY(-2px);
+        }
+        
+        /* Image container stability */
+        .service-card .relative.h-48 {
+            background-color: #f9fafb;
+            height: 192px !important;
+            min-height: 192px !important;
+            max-height: 192px;
+            overflow: hidden;
+            position: relative;
+            flex-shrink: 0;
+        }
+        
+        /* Image stability */
+        .service-card img {
+            opacity: 1;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: relative;
+            z-index: 2;
+            transition: transform 0.3s ease;
+        }
+        
+        /* Service content area stability */
+        .service-card .p-5 {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        /* Price formatting */
+        .price-display {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 700;
+        }
+        
         /* Price Range Slider Styles */
         .slider-track {
             position: relative;

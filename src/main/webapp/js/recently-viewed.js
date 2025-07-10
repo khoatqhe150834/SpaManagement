@@ -393,7 +393,7 @@ class RecentlyViewedPageManager {
 
     createServiceCard(service) {
         const imageUrl = this.getServiceImageUrl(service);
-        const rating = service.averageRating || 0;
+        const serviceType = this.getServiceType(service);
         const escapedService = JSON.stringify(service).replace(/"/g, "&quot;");
         
         // Format price with proper thousand separators
@@ -403,18 +403,50 @@ class RecentlyViewedPageManager {
             maximumFractionDigits: 0
         }).format(service.price) + ' ₫';
         
+        // Get service type name for badge
+        const serviceTypeName = serviceType ? serviceType.name : 'Dịch vụ';
+        
+        // Format duration
+        const duration = service.durationMinutes || 60;
+        const durationText = duration >= 60 ? `${Math.floor(duration / 60)} giờ${duration % 60 ? ` ${duration % 60} phút` : ''}` : `${duration} phút`;
+        
+        // Truncate description to fit layout
+        const description = service.description || '';
+        const truncatedDescription = description.length > 60 ? description.substring(0, 60) + '...' : description;
+        
         return `
-            <div class="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col">
-                <a href="${this.contextPath}/service-details?id=${service.serviceId}" class="block">
-                    <img src="${imageUrl}" alt="${service.name}" class="w-full h-48 object-cover">
-                </a>
-                <div class="p-5 flex-grow flex flex-col">
-                    <h3 class="text-lg font-semibold text-spa-dark mb-2 flex-grow">${service.name}</h3>
-                    <div class="text-xl font-bold text-primary my-2">${formattedPrice}</div>
-                    <button class="w-full mt-auto bg-primary text-white py-2.5 rounded-full hover:bg-primary-dark transition-colors font-medium text-sm" 
-                            onclick='window.cartManager.addToCart(${escapedService})'>
-                        Thêm vào giỏ
-                    </button>
+            <div class="service-card bg-white rounded-lg shadow-lg overflow-hidden flex flex-col">
+                <div class="relative h-48">
+                    <a href="${this.contextPath}/service-details?id=${service.serviceId}" class="block">
+                        <img src="${imageUrl}" alt="${service.name}" class="w-full h-48 object-cover">
+                    </a>
+                </div>
+                <div class="p-5">
+                    <div class="mb-2">
+                        <span class="text-xs text-primary font-medium bg-secondary px-2 py-1 rounded-full">${serviceTypeName}</span>
+                    </div>
+                    <h3 class="text-lg font-semibold text-spa-dark mb-2 truncate">${service.name}</h3>
+                    <p class="text-gray-600 text-sm mb-4 h-12 overflow-hidden">${truncatedDescription}</p>
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center text-gray-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 mr-1">
+                                <path d="M12 6v6l4 2"></path>
+                                <circle cx="12" cy="12" r="10"></circle>
+                            </svg>
+                            <span class="text-sm">${durationText}</span>
+                        </div>
+                        <div class="text-xl font-bold text-primary">${formattedPrice}</div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button class="view-details-btn w-full bg-secondary text-spa-dark py-2.5 px-3 rounded-full hover:bg-primary hover:text-white transition-all duration-300 font-medium text-sm flex items-center justify-center"
+                                onclick="window.location.href='${this.contextPath}/service-details?id=${service.serviceId}'">
+                            Xem chi tiết
+                        </button>
+                        <button class="add-to-cart-btn w-full bg-primary text-white py-2.5 px-3 rounded-full hover:bg-primary-dark transition-all duration-300 font-medium text-sm flex items-center justify-center"
+                                onclick='window.cartManager.addToCart(${escapedService})'>
+                            Thêm vào giỏ
+                        </button>
+                    </div>
                 </div>
             </div>`;
     }
