@@ -128,8 +128,20 @@ class ServiceDetailsManager {
 
         // Update service information
         const serviceImage = this.getServiceImageUrl();
-        document.getElementById('service-image').src = serviceImage;
-        document.getElementById('service-image').alt = this.service.name;
+        const imageElement = document.getElementById('service-image');
+        imageElement.src = serviceImage;
+        imageElement.alt = this.service.name;
+        
+        // Add error handler for image fallback
+        imageElement.onerror = () => {
+            if (!imageElement.src.includes('placehold.co')) {
+                const serviceName = encodeURIComponent(this.service.name || 'Service');
+                const fallbackUrl = `https://placehold.co/800x600/FFB6C1/333333?text=${serviceName}`;
+                console.log('🖼️ Image failed, using placeholder for service:', this.service.serviceId, '→', fallbackUrl);
+                imageElement.src = fallbackUrl;
+                imageElement.onerror = null; // Prevent infinite loop
+            }
+        };
         
         document.getElementById('service-name').textContent = this.service.name;
         document.getElementById('service-description').textContent = this.service.description || 'Dịch vụ chăm sóc sắc đẹp chuyên nghiệp';

@@ -29,6 +29,67 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Roboto:wght@300;400;500;600&display=swap" rel="stylesheet"/>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <link rel="stylesheet" href="<c:url value='/css/style.css'/>" />
+    
+    <style>
+        /* Price Range Slider Styles */
+        .slider-track {
+            position: relative;
+            background: #e5e7eb;
+            border-radius: 9999px;
+            height: 8px;
+        }
+        
+        .slider-range {
+            position: absolute;
+            background: #D4AF37;
+            border-radius: 9999px;
+            height: 8px;
+            top: 0;
+        }
+        
+        .slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            pointer-events: none;
+            height: 8px;
+            background: transparent;
+            border: none;
+            outline: none;
+        }
+        
+        .slider-thumb::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            pointer-events: auto;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #D4AF37;
+            border: 2px solid white;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .slider-thumb::-moz-range-thumb {
+            pointer-events: auto;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #D4AF37;
+            border: 2px solid white;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            border: none;
+            outline: none;
+        }
+        
+        .slider-thumb::-moz-range-track {
+            background: transparent;
+            border: none;
+        }
+    </style>
 </head>
 <body class="bg-spa-cream">
     <jsp:include page="/WEB-INF/view/common/header.jsp" />
@@ -78,7 +139,43 @@
                                     <h4 class="font-medium text-spa-dark mb-3">Loại dịch vụ</h4>
                                     <select id="service-type-select" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"><option value="all">Tất cả</option></select>
                                 </div>
-                                <!-- Price range slider will be inserted here by JS -->
+                                
+                                <!-- Price Range -->
+                                <div class="mb-6">
+                                    <h4 class="font-medium text-spa-dark mb-3">Khoảng giá</h4>
+                                    
+                                    <!-- Price input fields -->
+                                    <div class="flex gap-2 mb-4">
+                                        <input type="number" id="min-price-input" placeholder="100000" class="w-full px-3 py-2 text-center border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
+                                        <span class="self-center text-gray-500">-</span>
+                                        <input type="number" id="max-price-input" placeholder="15000000" class="w-full px-3 py-2 text-center border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
+                                    </div>
+                                    
+                                    <!-- Price display -->
+                                    <div class="text-sm text-gray-600 text-center mb-3">
+                                        Giá từ <span id="min-price-display">100.000 ₫</span> - <span id="max-price-display">15.000.000 ₫</span>
+                                    </div>
+                                    
+                                    <!-- Dual range slider -->
+                                    <div class="relative mt-4">
+                                        <div class="slider-track h-2 bg-gray-200 rounded-full relative">
+                                            <div id="slider-range" class="slider-range h-2 bg-primary rounded-full absolute" style="left: 0%; width: 100%;"></div>
+                                            <input type="range" id="min-price-slider" min="100000" max="15000000" value="100000" step="50000" class="slider-thumb absolute w-full h-2 bg-transparent appearance-none cursor-pointer">
+                                            <input type="range" id="max-price-slider" min="100000" max="15000000" value="15000000" step="50000" class="slider-thumb absolute w-full h-2 bg-transparent appearance-none cursor-pointer">
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Price range limits -->
+                                    <div class="flex justify-between text-xs text-gray-500 mt-2">
+                                        <span>Giá tối thiểu</span>
+                                        <span>Giá tối đa</span>
+                                    </div>
+                                    
+                                    <div class="flex justify-between text-xs text-gray-500">
+                                        <span id="price-min-limit">100.000 ₫</span>
+                                        <span id="price-max-limit">15.000.000 ₫</span>
+                                    </div>
+                                </div>
                             </div>
                         </aside>
 

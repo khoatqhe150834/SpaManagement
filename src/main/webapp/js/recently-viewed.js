@@ -14,8 +14,12 @@ class RecentlyViewedPageManager {
         this.currentFilters = {
             searchQuery: '',
             serviceTypeId: 'all',
+            minPrice: null,
+            maxPrice: null,
             order: 'default'
         };
+        
+        this.priceRange = { min: 100000, max: 15000000 };
         
         this.storageKey = 'spa_recently_viewed_services';
         this.apiEndpoint = '/api/services/by-ids';
@@ -35,10 +39,7 @@ class RecentlyViewedPageManager {
             pagination: document.getElementById('pagination')
         };
         
-        this.beautyImages = [
-            'https://images.pexels.com/photos/3985254/pexels-photo-3985254.jpeg?auto=compress&cs=tinysrgb&w=400',
-            'https://images.pexels.com/photos/3997991/pexels-photo-3997991.jpeg?auto=compress&cs=tinysrgb&w=400'
-        ];
+        // Remove beauty images - using placeholder fallback instead
     }
 
     async init() {
@@ -84,7 +85,9 @@ class RecentlyViewedPageManager {
             
             if (this.allServices && this.allServices.length > 0) {
                 this.extractServiceTypes();
+                this.calculatePriceRange();
                 this.populateFilterOptions();
+                this.initializePriceSlider();
                 this.applyFiltersAndRender();
                 this.hideLoading();
             } else {
@@ -104,6 +107,16 @@ class RecentlyViewedPageManager {
         });
     }
 
+    calculatePriceRange() {
+        if (this.allServices.length === 0) return;
+        
+        const prices = this.allServices.map(service => service.price).filter(price => price > 0);
+        if (prices.length > 0) {
+            this.priceRange.min = Math.min(...prices);
+            this.priceRange.max = Math.max(...prices);
+        }
+    }
+
     populateFilterOptions() {
         const select = this.elements.serviceTypeSelect;
         this.serviceTypes.forEach((name, id) => {
@@ -117,6 +130,117 @@ class RecentlyViewedPageManager {
         this.elements.serviceTypeSelect.addEventListener('change', (e) => this.handleFilterChange('serviceTypeId', e.target.value));
         this.elements.sortSelect.addEventListener('change', (e) => this.handleFilterChange('order', e.target.value));
         this.elements.clearFiltersBtn.addEventListener('click', () => this.clearAllFilters());
+    }
+
+    initializePriceSlider() {
+        const minSlider = document.getElementById('min-price-slider');
+        const maxSlider = document.getElementById('max-price-slider');
+        const minInput = document.getElementById('min-price-input');
+        const maxInput = document.getElementById('max-price-input');
+        const minDisplay = document.getElementById('min-price-display');
+        const maxDisplay = document.getElementById('max-price-display');
+        const sliderRange = document.getElementById('slider-range');
+        const priceMinLimit = document.getElementById('price-min-limit');
+        const priceMaxLimit = document.getElementById('price-max-limit');
+
+        if (!minSlider || !maxSlider) return;
+
+        const initialMin = this.priceRange.min;
+        const initialMax = this.priceRange.max;
+        
+        minSlider.min = initialMin;
+        minSlider.max = initialMax;
+        minSlider.value = initialMin;
+        
+        maxSlider.min = initialMin;
+        maxSlider.max = initialMax;
+        maxSlider.value = initialMax;
+
+        if (minInput) {
+            minInput.value = initialMin;
+            minInput.placeholder = initialMin.toString();
+        }
+        if (maxInput) {
+            maxInput.value = initialMax;
+            maxInput.placeholder = initialMax.toString();
+        }
+
+        this.updatePriceDisplay(initialMin, initialMax);
+        this.updateSliderRange(initialMin, initialMax, initialMin, initialMax);
+        
+        if (priceMinLimit) priceMinLimit.textContent = this.formatPrice(initialMin);
+        if (priceMaxLimit) priceMaxLimit.textContent = this.formatPrice(initialMax);
+
+        const updatePriceRange = () => {
+            let minVal = parseInt(minSlider.value);
+            let maxVal = parseInt(maxSlider.value);
+
+            if (minVal >= maxVal) {
+                minVal = maxVal - 50000;
+                minSlider.value = minVal;
+            }
+
+            if (minInput) minInput.value = minVal;
+            if (maxInput) maxInput.value = maxVal;
+
+            this.updatePriceDisplay(minVal, maxVal);
+            this.updateSliderRange(minVal, maxVal, initialMin, initialMax);
+
+            this.currentFilters.minPrice = minVal;
+            this.currentFilters.maxPrice = maxVal;
+            
+            clearTimeout(this.priceFilterTimeout);
+            this.priceFilterTimeout = setTimeout(() => {
+                this.applyFiltersAndRender();
+            }, 500);
+        };
+
+        minSlider.addEventListener('input', updatePriceRange);
+        maxSlider.addEventListener('input', updatePriceRange);
+
+        if (minInput) {
+            minInput.addEventListener('blur', () => {
+                const value = parseInt(minInput.value) || initialMin;
+                minSlider.value = Math.max(initialMin, Math.min(value, parseInt(maxSlider.value) - 50000));
+                updatePriceRange();
+            });
+        }
+
+        if (maxInput) {
+            maxInput.addEventListener('blur', () => {
+                const value = parseInt(maxInput.value) || initialMax;
+                maxSlider.value = Math.max(parseInt(minSlider.value) + 50000, Math.min(value, initialMax));
+                updatePriceRange();
+            });
+        }
+    }
+
+    updatePriceDisplay(minVal, maxVal) {
+        const minDisplay = document.getElementById('min-price-display');
+        const maxDisplay = document.getElementById('max-price-display');
+        
+        if (minDisplay) minDisplay.textContent = this.formatPrice(minVal);
+        if (maxDisplay) maxDisplay.textContent = this.formatPrice(maxVal);
+    }
+
+    updateSliderRange(minVal, maxVal, rangeMin, rangeMax) {
+        const sliderRange = document.getElementById('slider-range');
+        if (!sliderRange) return;
+
+        const rangeWidth = rangeMax - rangeMin;
+        const leftPercent = ((minVal - rangeMin) / rangeWidth) * 100;
+        const rightPercent = ((maxVal - rangeMin) / rangeWidth) * 100;
+        
+        sliderRange.style.left = leftPercent + '%';
+        sliderRange.style.width = (rightPercent - leftPercent) + '%';
+    }
+
+    formatPrice(price) {
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'decimal',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(price) + ' ₫';
     }
 
     handleSearch() {
@@ -146,8 +270,16 @@ class RecentlyViewedPageManager {
         if (typeId !== 'all') {
             services = services.filter(s => s.serviceType && s.serviceType.serviceTypeId == typeId);
         }
+
+        // 3. Filter by Price Range
+        if (this.currentFilters.minPrice !== null) {
+            services = services.filter(s => s.price >= this.currentFilters.minPrice);
+        }
+        if (this.currentFilters.maxPrice !== null) {
+            services = services.filter(s => s.price <= this.currentFilters.maxPrice);
+        }
         
-        // 3. Sort
+        // 4. Sort
         const order = this.currentFilters.order;
         if (order !== 'default') {
             services.sort((a, b) => {
@@ -203,18 +335,25 @@ class RecentlyViewedPageManager {
     }
 
     createServiceCard(service) {
-        const imageUrl = service.imageUrl || this.getServiceImage(service.serviceId);
+        const imageUrl = this.getServiceImageUrl(service);
         const rating = service.averageRating || 0;
         const escapedService = JSON.stringify(service).replace(/"/g, "&quot;");
+        
+        // Format price with proper thousand separators
+        const formattedPrice = new Intl.NumberFormat('vi-VN', {
+            style: 'decimal',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(service.price) + ' ₫';
         
         return `
             <div class="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col">
                 <a href="${this.contextPath}/service-details?id=${service.serviceId}" class="block">
-                    <img src="${imageUrl}" alt="${service.name}" class="w-full h-48 object-cover" onerror="this.src='${this.beautyImages[0]}'">
+                    <img src="${imageUrl}" alt="${service.name}" class="w-full h-48 object-cover">
                 </a>
                 <div class="p-5 flex-grow flex flex-col">
                     <h3 class="text-lg font-semibold text-spa-dark mb-2 flex-grow">${service.name}</h3>
-                    <div class="text-xl font-bold text-primary my-2">${service.formattedPrice}</div>
+                    <div class="text-xl font-bold text-primary my-2">${formattedPrice}</div>
                     <button class="w-full mt-auto bg-primary text-white py-2.5 rounded-full hover:bg-primary-dark transition-colors font-medium text-sm" 
                             onclick='window.cartManager.addToCart(${escapedService})'>
                         Thêm vào giỏ
@@ -223,18 +362,53 @@ class RecentlyViewedPageManager {
             </div>`;
     }
 
-    getServiceImage(serviceId) {
-        const imageIndex = Math.abs(serviceId * 7) % this.beautyImages.length;
-        return this.beautyImages[imageIndex];
+    getServiceImageUrl(service) {
+        // Use the service's imageUrl from database if available
+        if (service.imageUrl && service.imageUrl.trim() !== '' && service.imageUrl !== '/services/default.jpg') {
+            // Ensure the URL has proper context path
+            const imageUrl = service.imageUrl.startsWith('/') ? `${this.contextPath}${service.imageUrl}` : service.imageUrl;
+            console.log('🖼️ Using database image for service:', service.serviceId, '→', imageUrl);
+            return imageUrl;
+        }
+        
+        // Fallback to placehold.co placeholder with service name
+        const serviceName = encodeURIComponent(service.name || 'Service');
+        const placeholderUrl = `https://placehold.co/300x200/FFB6C1/333333?text=${serviceName}`;
+        console.log('🖼️ Using placeholder image for service:', service.serviceId, '→', placeholderUrl);
+        return placeholderUrl;
     }
     
     clearAllFilters() {
-        this.currentFilters = { searchQuery: '', serviceTypeId: 'all', order: 'default' };
+        this.currentFilters = { searchQuery: '', serviceTypeId: 'all', minPrice: null, maxPrice: null, order: 'default' };
         this.elements.searchInput.value = '';
         this.elements.serviceTypeSelect.value = 'all';
         this.elements.sortSelect.value = 'default';
+        this.resetPriceSlider();
         this.currentPage = 1;
         this.applyFiltersAndRender();
+    }
+
+    resetPriceSlider() {
+        const minSlider = document.getElementById('min-price-slider');
+        const maxSlider = document.getElementById('max-price-slider');
+        const minInput = document.getElementById('min-price-input');
+        const maxInput = document.getElementById('max-price-input');
+
+        const initialMin = this.priceRange.min;
+        const initialMax = this.priceRange.max;
+
+        if (minSlider) minSlider.value = initialMin;
+        if (maxSlider) maxSlider.value = initialMax;
+        if (minInput) minInput.value = initialMin;
+        if (maxInput) maxInput.value = initialMax;
+
+        this.updatePriceDisplay(initialMin, initialMax);
+        this.updateSliderRange(initialMin, initialMax, initialMin, initialMax);
+        
+        const priceMinLimit = document.getElementById('price-min-limit');
+        const priceMaxLimit = document.getElementById('price-max-limit');
+        if (priceMinLimit) priceMinLimit.textContent = this.formatPrice(initialMin);
+        if (priceMaxLimit) priceMaxLimit.textContent = this.formatPrice(initialMax);
     }
 
     showLoading() {
