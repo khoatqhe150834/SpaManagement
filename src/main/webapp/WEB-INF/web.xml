@@ -93,6 +93,8 @@
         <url-pattern>/assets/*</url-pattern>
     </servlet-mapping>
 
+    <!-- Service images directory mapping is now handled by StaticImageController -->
+
     <servlet-mapping>
         <servlet-name>default</servlet-name>
         <url-pattern>*.css</url-pattern>

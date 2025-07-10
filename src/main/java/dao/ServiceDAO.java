@@ -394,14 +394,24 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
 
     // method to find min price of services
     public double findMinPrice() {
-
-        return 0;
+        double minPrice = 0;
+        String sql = "SELECT MIN(price) FROM services WHERE is_active = 1";
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement stm = conn.prepareStatement(sql);
+                ResultSet rs = stm.executeQuery()) {
+            if (rs.next()) {
+                minPrice = rs.getDouble(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return minPrice;
     }
 
     // method to find max price of services
     public double findMaxPrice() {
         double maxPrice = 0;
-        String sql = "SELECT MAX(price) FROM services";
+        String sql = "SELECT MAX(price) FROM services WHERE is_active = 1";
         try (Connection conn = DBContext.getConnection();
                 PreparedStatement stm = conn.prepareStatement(sql);
                 ResultSet rs = stm.executeQuery()) {

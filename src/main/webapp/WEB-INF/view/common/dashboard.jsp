@@ -350,7 +350,7 @@
                             </a>
                         </div>
                     </div>
-                </c:when>
+                    </c:when>
                     
                     <%-- ============================ CUSTOMER DASHBOARD ============================ --%>
                     <c:when test="${sessionScope.userType == 'CUSTOMER'}">

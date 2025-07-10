@@ -19,7 +19,8 @@ public class SecurityConfig {
       "/password-reset/request", "/recently-viewed",
       "/password-reset/edit",
       "/password-reset/update",
-      "/test", "/api/booking-session", "/api/services", "/api/service-types", "/error", "/booking", "/api/homepage"));
+      "/test", "/api/booking-session", "/api/services",
+      "/api/service-types", "/error", "/booking", "/api/homepage"));
 
   // File extensions that don't require authentication
   public static final Set<String> PUBLIC_EXTENSIONS = new HashSet<>(Arrays.asList(
@@ -28,7 +29,7 @@ public class SecurityConfig {
 
   // URL patterns that don't require authentication
   public static final Set<String> PUBLIC_PATTERNS = new HashSet<>(Arrays.asList(
-      "/assets/", "/uploads/", "/css/", "/js/", "/images/", "/favicon", "/api/"));
+      "/assets/", "/uploads/", "/services/", "/css/", "/js/", "/images/", "/favicon", "/api/"));
 
   /**
    * Check if the given path is a public resource

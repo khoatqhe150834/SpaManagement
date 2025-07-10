@@ -425,4 +425,62 @@ public class ServiceImageDAO implements BaseDAO<ServiceImage, Integer> {
         return Optional.empty();
     }
 
+    /**
+     * Get image counts for multiple services in a single query for better
+     * performance
+     * 
+     * @param serviceIds list of service IDs to get image counts for
+     * @return Map of service ID to image count
+     */
+    public Map<Integer, Integer> getImageCountsByServiceIds(List<Integer> serviceIds) {
+        Map<Integer, Integer> imageCounts = new HashMap<>();
+
+        if (serviceIds == null || serviceIds.isEmpty()) {
+            return imageCounts;
+        }
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT service_id, COUNT(*) as image_count ");
+        sql.append("FROM service_images ");
+        sql.append("WHERE service_id IN (");
+
+        // Build placeholders for IN clause
+        for (int i = 0; i < serviceIds.size(); i++) {
+            sql.append("?");
+            if (i < serviceIds.size() - 1) {
+                sql.append(",");
+            }
+        }
+
+        sql.append(") AND is_active = 1 ");
+        sql.append("GROUP BY service_id");
+
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+
+            // Set the service ID parameters
+            for (int i = 0; i < serviceIds.size(); i++) {
+                stmt.setInt(i + 1, serviceIds.get(i));
+            }
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Integer serviceId = rs.getInt("service_id");
+                    Integer imageCount = rs.getInt("image_count");
+                    imageCounts.put(serviceId, imageCount);
+                }
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error getting image counts by service IDs", ex);
+        }
+
+        // Ensure all service IDs have a count (default to 0 for services with no
+        // images)
+        for (Integer serviceId : serviceIds) {
+            imageCounts.putIfAbsent(serviceId, 0);
+        }
+
+        return imageCounts;
+    }
+
 }

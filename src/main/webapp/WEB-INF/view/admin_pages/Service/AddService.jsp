@@ -324,6 +324,10 @@
                 // ================================================ Upload Multiple image js End here  ================================================
                 
 
+                // Debug: Check upload endpoint and directory
+                console.log('Context Path:', contextPath);
+                console.log('Upload URL will be:', contextPath + '/manager/service');
+                
                 //REAL-Time Validation
                 let isSubmitting = false;
                 let nameCheckTimeout = null;

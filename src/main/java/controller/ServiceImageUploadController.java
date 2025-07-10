@@ -203,8 +203,12 @@ public class ServiceImageUploadController extends HttpServlet {
                 return;
             }
 
-            // Ensure upload directories exist
-            String webappPath = getServletContext().getRealPath("");
+            // Save to D: drive spa-uploads directory
+            String webappPath = "D:/spa-uploads";
+            LOGGER.info("WebApp path set to spa-uploads directory: " + webappPath);
+            LOGGER.info("Upload endpoint called for service ID: " + serviceId);
+
+            // Ensure upload directories exist in source
             ImageUploadUtil.ensureDirectoriesExist(webappPath);
 
             Collection<Part> fileParts = request.getParts();
@@ -231,7 +235,7 @@ public class ServiceImageUploadController extends HttpServlet {
                 LOGGER.info("Processing file: " + fileName + " with sort order: " + (baseSortOrder + sortOrderOffset));
 
                 JsonObject result = processImageUpload(filePart, serviceId, webappPath,
-                        baseSortOrder + sortOrderOffset);
+                        baseSortOrder + sortOrderOffset, request);
                 results.add(result);
 
                 // Count successes and failures
@@ -275,14 +279,16 @@ public class ServiceImageUploadController extends HttpServlet {
     /**
      * Processes a single image upload
      */
-    private JsonObject processImageUpload(Part filePart, Integer serviceId, String webappPath) {
-        return processImageUpload(filePart, serviceId, webappPath, null);
+    private JsonObject processImageUpload(Part filePart, Integer serviceId, String webappPath,
+            HttpServletRequest request) {
+        return processImageUpload(filePart, serviceId, webappPath, null, request);
     }
 
     /**
      * Processes a single image upload with specified sort order
      */
-    private JsonObject processImageUpload(Part filePart, Integer serviceId, String webappPath, Integer sortOrder) {
+    private JsonObject processImageUpload(Part filePart, Integer serviceId, String webappPath, Integer sortOrder,
+            HttpServletRequest request) {
         JsonObject result = new JsonObject();
 
         try {
@@ -317,9 +323,13 @@ public class ServiceImageUploadController extends HttpServlet {
                 return result;
             }
 
-            // Process and save image files
+            // Process and save image files to source directory only
+            LOGGER.info(
+                    "About to process image file for service " + serviceId + ", image ID " + savedImage.getImageId());
+
             ProcessedImageResult processedResult = ImageUploadUtil.processAndSaveFullSizeImageOnly(
                     filePart, webappPath, serviceId, savedImage.getImageId());
+            LOGGER.info("Image processing completed (source save). URL: " + processedResult.getFullSizeUrl());
 
             // Update the ServiceImage with the actual URL and metadata
             savedImage.setUrl(processedResult.getFullSizeUrl());
@@ -358,8 +368,8 @@ public class ServiceImageUploadController extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
 
         try {
-            // Ensure upload directories exist
-            String webappPath = getServletContext().getRealPath("");
+            // Save to D: drive spa-uploads directory
+            String webappPath = "D:/spa-uploads";
             ImageUploadUtil.ensureDirectoriesExist(webappPath);
 
             Collection<Part> fileParts = request.getParts();
@@ -407,7 +417,7 @@ public class ServiceImageUploadController extends HttpServlet {
                     }
 
                     // Process the image upload
-                    JsonObject uploadResult = processImageUpload(filePart, serviceId, webappPath);
+                    JsonObject uploadResult = processImageUpload(filePart, serviceId, webappPath, request);
                     uploadResult.addProperty("serviceName", serviceOpt.get().getName());
                     results.add(uploadResult);
 

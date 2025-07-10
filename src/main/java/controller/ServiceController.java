@@ -13,6 +13,7 @@ import model.Service;
 import model.ServiceType;
 import model.ServiceImage;
 import dao.ServiceImageDAO;
+import util.ImageUploadUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,12 +25,9 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Optional;
 
-@WebServlet(name = "ServiceController", urlPatterns = {"/manager/service"})
-@MultipartConfig(
-    fileSizeThreshold = 0,
-    maxFileSize = 2097152, // 2MB
-    maxRequestSize = 2097152
-)
+@WebServlet(name = "ServiceController", urlPatterns = { "/manager/service" })
+@MultipartConfig(fileSizeThreshold = 0, maxFileSize = 2097152, // 2MB
+        maxRequestSize = 2097152)
 public class ServiceController extends HttpServlet {
 
     private final String SERVICE_MANAGER_URL = "/WEB-INF/view/admin_pages/Service/ServiceManager.jsp";
@@ -53,13 +51,15 @@ public class ServiceController extends HttpServlet {
         if (limitParam != null && !limitParam.isEmpty()) {
             try {
                 limit = Integer.parseInt(limitParam);
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
         int page = 1;
         if (request.getParameter("page") != null) {
             try {
                 page = Integer.parseInt(request.getParameter("page"));
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
         int offset = (page - 1) * limit;
 
@@ -109,7 +109,8 @@ public class ServiceController extends HttpServlet {
                 request.setAttribute("status", status);
                 request.setAttribute("serviceTypeId", serviceTypeIdParam);
                 request.setAttribute("limit", limit);
-                request.getRequestDispatcher("/WEB-INF/view/admin_pages/Service/AddService.jsp").forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/view/admin_pages/Service/AddService.jsp").forward(request,
+                        response);
                 return;
             }
             case "pre-update": {
@@ -132,7 +133,8 @@ public class ServiceController extends HttpServlet {
                 request.setAttribute("serviceTypeId", serviceTypeIdParam);
                 request.setAttribute("limit", limit);
 
-                request.getRequestDispatcher("/WEB-INF/view/admin_pages/Service/UpdateService.jsp").forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/view/admin_pages/Service/UpdateService.jsp").forward(request,
+                        response);
                 return;
             }
             case "delete": {
@@ -150,11 +152,16 @@ public class ServiceController extends HttpServlet {
                 String status = request.getParameter("status");
                 String serviceTypeIdStr = request.getParameter("serviceTypeId");
                 StringBuilder redirectUrl = new StringBuilder("service?service=list-all");
-                if (pageParam != null) redirectUrl.append("&page=").append(pageParam);
-                if (limitParam != null) redirectUrl.append("&limit=").append(limitParam);
-                if (keyword != null && !keyword.isEmpty()) redirectUrl.append("&keyword=").append(keyword);
-                if (status != null && !status.isEmpty()) redirectUrl.append("&status=").append(status);
-                if (serviceTypeIdStr != null && !serviceTypeIdStr.isEmpty()) redirectUrl.append("&serviceTypeId=").append(serviceTypeIdStr);
+                if (pageParam != null)
+                    redirectUrl.append("&page=").append(pageParam);
+                if (limitParam != null)
+                    redirectUrl.append("&limit=").append(limitParam);
+                if (keyword != null && !keyword.isEmpty())
+                    redirectUrl.append("&keyword=").append(keyword);
+                if (status != null && !status.isEmpty())
+                    redirectUrl.append("&status=").append(status);
+                if (serviceTypeIdStr != null && !serviceTypeIdStr.isEmpty())
+                    redirectUrl.append("&serviceTypeId=").append(serviceTypeIdStr);
                 response.sendRedirect(redirectUrl.toString());
                 return;
             }
@@ -167,11 +174,16 @@ public class ServiceController extends HttpServlet {
                 String status = request.getParameter("status");
                 String serviceTypeIdStr = request.getParameter("serviceTypeId");
                 StringBuilder redirectUrl = new StringBuilder("service?service=list-all");
-                if (pageParam != null) redirectUrl.append("&page=").append(pageParam);
-                if (limitParam != null) redirectUrl.append("&limit=").append(limitParam);
-                if (keyword != null && !keyword.isEmpty()) redirectUrl.append("&keyword=").append(keyword);
-                if (status != null && !status.isEmpty()) redirectUrl.append("&status=").append(status);
-                if (serviceTypeIdStr != null && !serviceTypeIdStr.isEmpty()) redirectUrl.append("&serviceTypeId=").append(serviceTypeIdStr);
+                if (pageParam != null)
+                    redirectUrl.append("&page=").append(pageParam);
+                if (limitParam != null)
+                    redirectUrl.append("&limit=").append(limitParam);
+                if (keyword != null && !keyword.isEmpty())
+                    redirectUrl.append("&keyword=").append(keyword);
+                if (status != null && !status.isEmpty())
+                    redirectUrl.append("&status=").append(status);
+                if (serviceTypeIdStr != null && !serviceTypeIdStr.isEmpty())
+                    redirectUrl.append("&serviceTypeId=").append(serviceTypeIdStr);
                 response.sendRedirect(redirectUrl.toString());
                 return;
             }
@@ -210,15 +222,18 @@ public class ServiceController extends HttpServlet {
 
                         request.setAttribute("service", serviceDetail);
                         request.setAttribute("serviceImages", serviceImages);
-                        request.getRequestDispatcher("/WEB-INF/view/admin_pages/Service/ViewDetailService.jsp").forward(request, response);
+                        request.getRequestDispatcher("/WEB-INF/view/admin_pages/Service/ViewDetailService.jsp")
+                                .forward(request, response);
                     } else {
-                        response.sendRedirect("service?service=list-all&toastType=error&toastMessage=Service+not+found");
+                        response.sendRedirect(
+                                "service?service=list-all&toastType=error&toastMessage=Service+not+found");
                     }
                 } catch (NumberFormatException e) {
                     response.sendRedirect("service?service=list-all&toastType=error&toastMessage=Invalid+service+ID");
                 } catch (Exception e) {
                     e.printStackTrace();
-                    response.sendRedirect("service?service=list-all&toastType=error&toastMessage=An+unexpected+error+occurred");
+                    response.sendRedirect(
+                            "service?service=list-all&toastType=error&toastMessage=An+unexpected+error+occurred");
                 }
                 return;
             }
@@ -276,40 +291,20 @@ public class ServiceController extends HttpServlet {
         s.setRequiresConsultation(requiresConsultation);
         s.setAverageRating(BigDecimal.ZERO);
 
-        // Xử lý upload nhiều ảnh
-        List<String> imageUrls = new ArrayList<>();
-        for (Part part : request.getParts()) {
-            if (part.getName().equals("images") && part.getSize() > 0) {
-                String originalFileName = getSubmittedFileName(part);
-                String fileName = System.currentTimeMillis() + "_" + originalFileName;
-                String uploadPath = getServletContext().getRealPath("/assets/uploads/services/");
-                File uploadDir = new File(uploadPath);
-                if (!uploadDir.exists()) uploadDir.mkdirs();
-                try {
-                    part.write(uploadPath + File.separator + fileName);
-                    System.out.println("Saved file: " + uploadPath + File.separator + fileName);
-                    String imageUrl = "/assets/uploads/services/" + fileName;
-                    imageUrls.add(imageUrl);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    System.out.println("Error saving file: " + fileName);
-                }
-            }
-        }
-
         if (service.equals("insert")) {
+            // Save service first to get the service ID
             serviceDAO.save(s);
             int serviceId = s.getServiceId();
-            ServiceImageDAO serviceImageDAO = new ServiceImageDAO();
-            for (String url : imageUrls) {
-                serviceImageDAO.save(new ServiceImage(serviceId, url));
-            }
+
+            // Process image uploads using modern approach
+            processServiceImages(request, serviceId);
+
         } else if (service.equals("update")) {
             int id = Integer.parseInt(request.getParameter("id").trim());
             s.setServiceId(id);
             serviceDAO.update(s);
-            
-            // Xử lý xóa ảnh cũ
+
+            // Handle image deletion
             String[] deleteImageIds = request.getParameterValues("delete_image_ids");
             if (deleteImageIds != null) {
                 ServiceImageDAO serviceImageDAO = new ServiceImageDAO();
@@ -317,26 +312,102 @@ public class ServiceController extends HttpServlet {
                     try {
                         int imgId = Integer.parseInt(imgIdStr);
                         serviceImageDAO.deleteById(imgId);
-                    } catch (NumberFormatException ignored) {}
+                    } catch (NumberFormatException ignored) {
+                    }
                 }
             }
 
-            // Thêm ảnh mới
-            if (!imageUrls.isEmpty()) {
-                ServiceImageDAO serviceImageDAO = new ServiceImageDAO();
-                for (String url : imageUrls) {
-                    serviceImageDAO.save(new ServiceImage(id, url));
-                }
-            }
+            // Process new image uploads
+            processServiceImages(request, id);
         }
 
         response.sendRedirect("service");
     }
 
+    /**
+     * Process image uploads using the modern ImageUploadUtil approach
+     */
+    private void processServiceImages(HttpServletRequest request, int serviceId) throws IOException, ServletException {
+        // Save to D: drive spa-uploads directory
+        String webappPath = "D:/spa-uploads";
+        ImageUploadUtil.ensureDirectoriesExist(webappPath);
+
+        ServiceImageDAO serviceImageDAO = new ServiceImageDAO();
+        int sortOrder = getNextSortOrder(serviceId);
+
+        // Process each uploaded image
+        Collection<Part> fileParts = request.getParts();
+        for (Part filePart : fileParts) {
+            if (!"images".equals(filePart.getName()) || filePart.getSize() == 0) {
+                continue;
+            }
+
+            try {
+                // Validate file
+                ImageUploadUtil.ValidationResult validation = ImageUploadUtil.validateFile(filePart);
+                if (!validation.isValid()) {
+                    System.err.println("Image validation failed: " + validation.getErrors());
+                    continue;
+                }
+
+                // Validate image dimensions
+                ImageUploadUtil.ValidationResult dimensionValidation = ImageUploadUtil
+                        .validateImageDimensions(filePart.getInputStream());
+                if (!dimensionValidation.isValid()) {
+                    System.err.println("Image dimension validation failed: " + dimensionValidation.getErrors());
+                    continue;
+                }
+
+                // Create ServiceImage entity first to get ID
+                ServiceImage serviceImage = new ServiceImage();
+                serviceImage.setServiceId(serviceId);
+                serviceImage.setUrl(""); // Temporary, will be updated after processing
+                serviceImage.setAltText("Service image");
+                serviceImage.setIsPrimary(sortOrder == 0); // First image is primary
+                serviceImage.setSortOrder(sortOrder);
+                serviceImage.setIsActive(true);
+
+                // Save to get the image ID
+                ServiceImage savedImage = serviceImageDAO.save(serviceImage);
+                if (savedImage == null || savedImage.getImageId() == null) {
+                    System.err.println("Failed to save image record");
+                    continue;
+                }
+
+                // Process and save image files using ImageUploadUtil
+                ImageUploadUtil.ProcessedImageResult processedResult = ImageUploadUtil.processAndSaveFullSizeImageOnly(
+                        filePart, webappPath, serviceId, savedImage.getImageId());
+
+                // Update the ServiceImage with the actual URL and metadata
+                savedImage.setUrl(processedResult.getFullSizeUrl());
+                savedImage.setFileSize(processedResult.getFileSize());
+                serviceImageDAO.update(savedImage);
+
+                System.out.println("Successfully saved image: " + processedResult.getFullSizeUrl());
+                sortOrder++;
+
+            } catch (Exception e) {
+                System.err.println("Error processing image upload: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Gets the next sort order for images of a service
+     */
+    private int getNextSortOrder(int serviceId) {
+        ServiceImageDAO serviceImageDAO = new ServiceImageDAO();
+        List<ServiceImage> existingImages = serviceImageDAO.findByServiceId(serviceId);
+        return existingImages.size();
+    }
+
     private String getSubmittedFileName(Part part) {
-        if (part == null) return "";
+        if (part == null)
+            return "";
         String contentDisp = part.getHeader("content-disposition");
-        if (contentDisp == null) return "";
+        if (contentDisp == null)
+            return "";
         String[] tokens = contentDisp.split(";");
         for (String token : tokens) {
             if (token.trim().startsWith("filename")) {
