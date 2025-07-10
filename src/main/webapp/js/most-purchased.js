@@ -344,15 +344,83 @@ class MostPurchasedPageManager {
         this.elements.pagination.innerHTML = '';
         if (totalPages <= 1) return;
 
-        for (let i = 1; i <= totalPages; i++) {
-            const button = document.createElement('button');
-            button.textContent = i;
-            button.className = `px-3 py-1 text-sm rounded-md ${this.currentPage === i ? 'bg-primary text-white' : 'bg-white text-gray-700 hover:bg-gray-100'}`;
-            button.onclick = () => {
-                this.currentPage = i;
-                this.renderPage();
-            };
-            this.elements.pagination.appendChild(button);
+        let paginationHTML = '';
+        const hasPrevious = this.currentPage > 1;
+        const hasNext = this.currentPage < totalPages;
+
+        // Previous button
+        if (hasPrevious) {
+            paginationHTML += `
+                <button onclick="window.mostPurchasedManager.goToPage(${this.currentPage - 1})" 
+                        class="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50 transition-colors">
+                    Trước
+                </button>
+            `;
+        }
+
+        // Page numbers with smart ellipsis
+        const startPage = Math.max(1, this.currentPage - 2);
+        const endPage = Math.min(totalPages, this.currentPage + 2);
+
+        // First page (if not in range)
+        if (startPage > 1) {
+            paginationHTML += `
+                <button onclick="window.mostPurchasedManager.goToPage(1)" 
+                        class="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors">
+                    1
+                </button>
+            `;
+            if (startPage > 2) {
+                paginationHTML += `<span class="px-3 py-2 text-sm text-gray-500 border border-gray-300 bg-white">...</span>`;
+            }
+        }
+
+        // Page numbers
+        for (let i = startPage; i <= endPage; i++) {
+            const isActive = i === this.currentPage;
+            paginationHTML += `
+                <button onclick="window.mostPurchasedManager.goToPage(${i})" 
+                        class="px-3 py-2 text-sm font-medium ${isActive 
+                            ? 'text-white bg-primary border-primary' 
+                            : 'text-gray-700 bg-white border-gray-300 hover:bg-gray-50'} 
+                        border transition-colors">
+                    ${i}
+                </button>
+            `;
+        }
+
+        // Last page (if not in range)
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                paginationHTML += `<span class="px-3 py-2 text-sm text-gray-500 border border-gray-300 bg-white">...</span>`;
+            }
+            paginationHTML += `
+                <button onclick="window.mostPurchasedManager.goToPage(${totalPages})" 
+                        class="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors">
+                    ${totalPages}
+                </button>
+            `;
+        }
+
+        // Next button
+        if (hasNext) {
+            paginationHTML += `
+                <button onclick="window.mostPurchasedManager.goToPage(${this.currentPage + 1})" 
+                        class="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50 transition-colors">
+                    Sau
+                </button>
+            `;
+        }
+
+        this.elements.pagination.innerHTML = `<div class="inline-flex -space-x-px">${paginationHTML}</div>`;
+    }
+
+    goToPage(page) {
+        if (page >= 1 && page <= Math.ceil(this.filteredServices.length / this.pageSize)) {
+            this.currentPage = page;
+            this.renderPage();
+            // Scroll to top of services grid
+            document.getElementById('services-grid').scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     }
 
@@ -494,7 +562,7 @@ class MostPurchasedPageManager {
 
 document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('services-grid')) {
-        const manager = new MostPurchasedPageManager();
-        manager.init();
+        window.mostPurchasedManager = new MostPurchasedPageManager();
+        window.mostPurchasedManager.init();
     }
 }); 
