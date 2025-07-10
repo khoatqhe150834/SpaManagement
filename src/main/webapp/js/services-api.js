@@ -65,7 +65,7 @@ class ServicesManager {
             
             // Setup UI components
             console.log('🎚️ Setting up UI components...');
-            this.setupPriceRangeSlider();
+            // this.setupPriceRangeSlider(); // Disabled - using services.js slider instead
             
             // Small delay to ensure DOM is ready
             setTimeout(() => {

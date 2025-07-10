@@ -71,7 +71,7 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
     @Override
     public List<Service> findAll() {
         List<Service> services = new ArrayList<>();
-        String sql = "SELECT * FROM services";
+        String sql = "SELECT * FROM services WHERE is_active = 1 ORDER BY service_id ASC";
 
         ServiceTypeDAO typeDAO = new ServiceTypeDAO();
         Map<Integer, ServiceType> typeMap = new HashMap<>();

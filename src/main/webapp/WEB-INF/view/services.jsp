@@ -57,20 +57,96 @@
         overflow: hidden;
       }
       
-      /* Service card hover effects */
+      /* Service card hover effects and stability */
       .service-card {
-        transition: all 0.3s ease;
+        transition: box-shadow 0.3s ease, transform 0.2s ease;
+        min-height: 450px; /* Increased for better stability */
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        background: white;
+        border-radius: 0.5rem;
+        overflow: hidden;
       }
       .service-card:hover {
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        transform: translateY(-2px);
       }
       
-      /* Image loading skeleton */
+      /* Image container stability */
+      .service-card .relative.h-48 {
+        background-color: #f9fafb; /* Slightly lighter gray */
+        height: 192px !important; /* Force fixed height */
+        min-height: 192px !important; /* Ensure minimum height */
+        max-height: 192px; /* Prevent overflow */
+        overflow: hidden;
+        position: relative;
+        flex-shrink: 0; /* Prevent shrinking */
+      }
+      
+      /* Image stability - no transitions needed */
       .service-card img {
+        opacity: 1; /* Always visible */
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        position: relative;
+        z-index: 2;
+        transition: transform 0.3s ease; /* Only transition for hover effects */
+      }
+      .service-card img.loaded {
+        opacity: 1; /* Ensure always visible */
+      }
+      
+      /* Fallback and default image styles */
+      .service-card .fallback-image {
+        opacity: 1 !important; /* Always show fallback images */
+      }
+      .service-card .default-image {
+        opacity: 1 !important; /* Always show default images */
+      }
+      
+      /* Loading indicator enhancement */
+      .image-loading {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 15;
+        background-color: #f9fafb;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        opacity: 1;
         transition: opacity 0.3s ease;
       }
-      .service-card img[src=""] {
+      .image-loading.hidden {
         opacity: 0;
+        pointer-events: none;
+      }
+      
+      /* Gradient placeholder */
+      .service-card .bg-gradient-to-br {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 5;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      .service-card .bg-gradient-to-br.show {
+        opacity: 1;
+      }
+      
+      /* Service content area stability */
+      .service-card .p-6 {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
       }
       
       /* Price formatting */
@@ -78,10 +154,76 @@
         font-family: 'Roboto', sans-serif;
         font-weight: 700;
       }
+      
+      /* Price Range Slider Styles */
+      .slider-track {
+        position: relative;
+        background: #e5e7eb;
+        border-radius: 9999px;
+        height: 8px;
+      }
+      
+      .slider-range {
+        position: absolute;
+        background: #D4AF37;
+        border-radius: 9999px;
+        height: 8px;
+        top: 0;
+      }
+      
+      .slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        pointer-events: none;
+        height: 8px;
+        background: transparent;
+        border: none;
+        outline: none;
+      }
+      
+      .slider-thumb::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        pointer-events: auto;
+        height: 20px;
+        width: 20px;
+        border-radius: 50%;
+        background: #D4AF37;
+        border: 2px solid white;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        cursor: pointer;
+        position: relative;
+        z-index: 10;
+      }
+      
+      .slider-thumb::-moz-range-thumb {
+        pointer-events: auto;
+        height: 20px;
+        width: 20px;
+        border-radius: 50%;
+        background: #D4AF37;
+        border: 2px solid white;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        cursor: pointer;
+        border: none;
+        outline: none;
+      }
+      
+      .slider-thumb::-moz-range-track {
+        background: transparent;
+        border: none;
+      }
+      
+      /* Debug styles */
+      .service-card[data-load-order] {
+        border: 1px solid transparent; /* Maintain consistent border spacing */
+      }
     </style>
   </head>
 
-  <body class="bg-spa-cream">
+  <body class="bg-spa-cream" 
+        data-default-image-url="<c:url value='/services/default.jpg'/>" 
+        data-service-details-url="<c:url value='/service-details'/>">
     <jsp:include page="/WEB-INF/view/common/header.jsp" />
 
     <!-- Main Content -->
@@ -132,7 +274,7 @@
 
             <!-- Results Info -->
             <div class="text-gray-600">
-              <span id="results-count">Hiển thị ${services != null ? services.size() : 0} kết quả</span>
+              <span id="results-count">Đang tải...</span>
             </div>
           </div>
         </div>
@@ -172,7 +314,68 @@
                   </select>
                 </div>
 
-                <!-- Price Range - Dynamic double slider will be inserted here -->
+                <!-- Price Range -->
+                <div class="mb-6">
+                  <h4 class="font-medium text-spa-dark mb-3">Khoảng giá</h4>
+                  
+                  <!-- Price input fields -->
+                  <div class="flex gap-2 mb-4">
+                    <input
+                      type="number"
+                      id="min-price-input"
+                      placeholder="100000"
+                      class="w-full px-3 py-2 text-center border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                    />
+                    <span class="self-center text-gray-500">-</span>
+                    <input
+                      type="number"
+                      id="max-price-input"
+                      placeholder="1500000"
+                      class="w-full px-3 py-2 text-center border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                    />
+                  </div>
+                  
+                  <!-- Price display -->
+                  <div class="text-sm text-gray-600 text-center mb-3">
+                    Giá từ <span id="min-price-display">100.000 ₫</span> - <span id="max-price-display">15.000.000 ₫</span>
+                  </div>
+                  
+                  <!-- Dual range slider -->
+                  <div class="relative mt-4">
+                    <div class="slider-track h-2 bg-gray-200 rounded-full relative">
+                      <div id="slider-range" class="slider-range h-2 bg-primary rounded-full absolute"></div>
+                      <input
+                        type="range"
+                        id="min-price-slider"
+                        min="100000"
+                        max="15000000"
+                        value="100000"
+                        step="50000"
+                        class="slider-thumb absolute w-full h-2 bg-transparent appearance-none cursor-pointer"
+                      />
+                      <input
+                        type="range"
+                        id="max-price-slider"
+                        min="100000"
+                        max="15000000"
+                        value="15000000"
+                        step="50000"
+                        class="slider-thumb absolute w-full h-2 bg-transparent appearance-none cursor-pointer"
+                      />
+                    </div>
+                  </div>
+                  
+                  <!-- Price range limits -->
+                  <div class="flex justify-between text-xs text-gray-500 mt-2">
+                    <span>Giá tối thiểu</span>
+                    <span>Giá tối đa</span>
+                  </div>
+                  
+                  <div class="flex justify-between text-xs text-gray-500">
+                    <span id="price-min-limit">100K ₫</span>
+                    <span id="price-max-limit">15.0M ₫</span>
+                  </div>
+                </div>
               </div>
             </aside>
 
@@ -201,112 +404,7 @@
                 id="services-grid"
                 class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"
               >
-                <!-- Server-side rendered services -->
-                <c:forEach var="service" items="${services}">
-                  <div class="bg-white rounded-lg shadow-lg overflow-hidden transition-transform hover:scale-105 service-card" 
-                       data-service-id="${service.serviceId}"
-                       data-service-name="${service.name}"
-                       data-service-price="${service.price}"
-                       data-service-type="${service.serviceTypeId.serviceTypeId}">
-                    
-                    <!-- Service Image -->
-                    <div class="relative h-48 overflow-hidden">
-                      <c:choose>
-                        <c:when test="${not empty service.imageUrl}">
-                          <img 
-                            src="<c:url value='${service.imageUrl}'/>" 
-                            alt="${service.name}"
-                            class="w-full h-full object-cover transition-transform hover:scale-110"
-                            loading="lazy"
-                            onerror="this.src='<c:url value='/services/default.jpg'/>'; this.onerror=null;"
-                          />
-                        </c:when>
-                        <c:otherwise>
-                          <!-- Default image for services without images -->
-                          <img 
-                            src="<c:url value='/services/default.jpg'/>" 
-                            alt="Default service image"
-                            class="w-full h-full object-cover transition-transform hover:scale-110"
-                            loading="lazy"
-                            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-                          />
-                          <!-- Ultimate fallback: gradient placeholder -->
-                          <div class="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/30 flex items-center justify-center" style="display: none;">
-                            <i data-lucide="image" class="h-12 w-12 text-primary/50"></i>
-                          </div>
-                        </c:otherwise>
-                      </c:choose>
-                      
-                      <!-- Image count badge for multiple images -->
-                      <c:if test="${serviceImageCounts[service.serviceId] > 1}">
-                        <div class="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
-                          <i data-lucide="images" class="h-3 w-3 inline mr-1"></i>
-                          ${serviceImageCounts[service.serviceId]}
-                        </div>
-                      </c:if>
-                    </div>
-
-                    <!-- Service Content -->
-                    <div class="p-6">
-                      <!-- Service Category -->
-                      <div class="text-primary text-sm font-medium mb-2">
-                        ${service.serviceTypeId.name}
-                      </div>
-
-                      <!-- Service Name -->
-                      <h3 class="font-serif font-bold text-lg text-spa-dark mb-2 line-clamp-2">
-                        ${service.name}
-                      </h3>
-
-                      <!-- Service Description -->
-                      <p class="text-gray-600 text-sm mb-4 line-clamp-3">
-                        ${service.description}
-                      </p>
-
-                      <!-- Service Details -->
-                      <div class="flex items-center justify-between mb-4">
-                        <!-- Duration -->
-                        <div class="flex items-center text-gray-500 text-sm">
-                          <i data-lucide="clock" class="h-4 w-4 mr-1"></i>
-                          ${service.durationMinutes} phút
-                        </div>
-                        
-                        <!-- Rating -->
-                        <div class="flex items-center">
-                          <div class="flex text-yellow-400">
-                            <c:forEach begin="1" end="5" var="star">
-                              <c:choose>
-                                <c:when test="${star <= service.averageRating}">
-                                  <i data-lucide="star" class="h-4 w-4 fill-current"></i>
-                                </c:when>
-                                <c:otherwise>
-                                  <i data-lucide="star" class="h-4 w-4"></i>
-                                </c:otherwise>
-                              </c:choose>
-                            </c:forEach>
-                          </div>
-                          <span class="text-gray-600 text-sm ml-1">
-                            (<fmt:formatNumber value="${service.averageRating}" maxFractionDigits="1"/>)
-                          </span>
-                        </div>
-                      </div>
-
-                      <!-- Price and Action -->
-                      <div class="flex items-center justify-between">
-                        <div class="text-primary font-bold text-xl">
-                          <fmt:formatNumber value="${service.price}" type="currency" currencyCode="VND" pattern="###,###" />₫
-                        </div>
-                        
-                        <button 
-                          class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors service-detail-btn"
-                          data-service-id="${service.serviceId}"
-                        >
-                          Chi tiết
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </c:forEach>
+                <!-- Services will be loaded dynamically by JavaScript -->
 
                 <!-- Error message -->
                 <c:if test="${not empty errorMessage}">
@@ -391,12 +489,14 @@
               id="mobile-service-type-select"
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
             >
-                                  <option value="all">Tất cả dịch vụ</option>
+              <option value="all">Tất cả dịch vụ</option>
                     <c:forEach var="serviceType" items="${serviceTypes}">
                       <option value="${serviceType.serviceTypeId}">${serviceType.name}</option>
                     </c:forEach>
             </select>
           </div>
+
+
 
           <div class="flex gap-2 mt-6">
             <button
@@ -414,112 +514,36 @@
 
     <!-- JavaScript -->
     <script src="<c:url value='/js/app.js'/>"></script>
-    <script src="<c:url value='/js/cart.js'/>"></script>
+    <!-- cart.js is already included in header.jsp -->
     <script src="<c:url value='/js/service-tracker.js'/>"></script>
     <script src="<c:url value='/js/recently-viewed-services.js'/>"></script>
     <script src="<c:url value='/js/homepage-sections.js'/>"></script>
     <script src="<c:url value='/js/services-api.js'/>"></script>
+    <script src="<c:url value='/js/services.js'/>"></script>
     
+    <!-- Pass server-side data to JavaScript -->
     <script>
-      // Initialize services page with server-side data
+      // Pass server-side data to JavaScript (avoiding EL expression issues)
+      window.servicesPageData = {
+        contextPath: '<c:url value="/"/>',
+        defaultImageUrl: '<c:url value="/services/default.jpg"/>',
+        serviceDetailsUrl: '<c:url value="/service-details"/>',
+        priceRange: {
+          min: 100000,
+          max: 15000000
+        },
+        totalServices: 0
+      };
+
+      // Initialize Services Page Manager when DOM is ready
       document.addEventListener('DOMContentLoaded', function() {
-        // Initialize Lucide icons
-        if (typeof lucide !== 'undefined') {
-          lucide.createIcons();
+        console.log('Services page loading...');
+        try {
+          window.servicesManager = new ServicesPageManager();
+          console.log('Services page loaded successfully');
+        } catch (error) {
+          console.error('Failed to initialize ServicesPageManager:', error);
         }
-        
-        // Handle service detail buttons
-        document.querySelectorAll('.service-detail-btn').forEach(button => {
-          button.addEventListener('click', function(e) {
-            e.preventDefault();
-            const serviceId = this.getAttribute('data-service-id');
-            window.location.href = '<c:url value="/service-details"/>?id=' + serviceId;
-          });
-        });
-        
-        // Handle filtering (client-side for now, can be enhanced with AJAX)
-        const searchInput = document.getElementById('search-input');
-        const serviceTypeSelect = document.getElementById('service-type-select');
-        const sortSelect = document.getElementById('sort-select');
-        const serviceCards = document.querySelectorAll('.service-card');
-        
-        function filterServices() {
-          const searchTerm = searchInput.value.toLowerCase();
-          const selectedType = serviceTypeSelect.value;
-          
-          let visibleCount = 0;
-          
-          serviceCards.forEach(card => {
-            const serviceName = card.getAttribute('data-service-name').toLowerCase();
-            const serviceType = card.getAttribute('data-service-type');
-            
-            const matchesSearch = !searchTerm || serviceName.includes(searchTerm);
-            const matchesType = selectedType === 'all' || serviceType === selectedType;
-            
-            if (matchesSearch && matchesType) {
-              card.style.display = 'block';
-              visibleCount++;
-            } else {
-              card.style.display = 'none';
-            }
-          });
-          
-          // Update results count
-          document.getElementById('results-count').textContent = `Hiển thị ${visibleCount} kết quả`;
-        }
-        
-        function sortServices() {
-          const sortValue = sortSelect.value;
-          const servicesGrid = document.getElementById('services-grid');
-          const cards = Array.from(serviceCards);
-          
-          if (sortValue === 'default') return;
-          
-          cards.sort((a, b) => {
-            const nameA = a.getAttribute('data-service-name');
-            const nameB = b.getAttribute('data-service-name');
-            const priceA = parseFloat(a.getAttribute('data-service-price'));
-            const priceB = parseFloat(b.getAttribute('data-service-price'));
-            
-            switch (sortValue) {
-              case 'name-asc':
-                return nameA.localeCompare(nameB);
-              case 'name-desc':
-                return nameB.localeCompare(nameA);
-              case 'price-asc':
-                return priceA - priceB;
-              case 'price-desc':
-                return priceB - priceA;
-              default:
-                return 0;
-            }
-          });
-          
-          // Re-append sorted cards
-          cards.forEach(card => servicesGrid.appendChild(card));
-        }
-        
-        // Event listeners
-        if (searchInput) {
-          searchInput.addEventListener('input', filterServices);
-        }
-        
-        if (serviceTypeSelect) {
-          serviceTypeSelect.addEventListener('change', filterServices);
-        }
-        
-        if (sortSelect) {
-          sortSelect.addEventListener('change', sortServices);
-        }
-        
-        // Initialize filter placeholders if price range data exists
-        <c:if test="${priceRange != null}">
-          const priceRange = {
-            min: ${priceRange.min},
-            max: ${priceRange.max}
-          };
-          console.log('Price range:', priceRange);
-        </c:if>
       });
     </script>
   </body>
