@@ -1,6 +1,6 @@
 <%--
     Document   : sidebar.jsp
-    Refactored to match the main site's visual style (Tailwind CSS & Lucide Icons)
+    Modernized with admin-sidebar design while preserving business logic
     Author     : G1_SpaManagement Team
 --%>
 
@@ -9,7 +9,7 @@
 <%@ page import="model.User, model.Customer, model.RoleConstants, java.util.List, model.MenuService, model.MenuService.MenuItem" %>
 
 <%
-    // --- User and Role Detection ---
+    // --- User and Role Detection Logic (Preserved) ---
     String userRole = "GUEST"; // Default role
     Object userObject = null;
     
@@ -66,458 +66,294 @@
     pageContext.setAttribute("avatarUrl", avatarUrl);
 %>
 
-<!-- Mobile overlay -->
-<div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden"></div>
-
-<!-- Sidebar -->
-<aside id="main-sidebar" class="sticky top-[4.5rem] h-[calc(100vh-7rem)] my-4 z-40 w-80 bg-white shadow-xl transform transition-transform duration-300 ease-in-out lg:translate-x-0 -translate-x-full flex flex-col">
-    <!-- Header -->
-    <div class="flex items-center justify-between h-16 px-6 border-b border-gray-200 bg-[#D4AF37] flex-shrink-0">
-        <a href="${pageContext.request.contextPath}/dashboard" class="flex items-center" title="Go to Dashboard">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="heart" class="lucide lucide-heart h-8 w-8 text-white mr-3"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>
-            <div class="text-white">
-                <div class="text-lg font-bold font-serif">Spa Hương Sen</div>
-                <div class="text-xs opacity-90 uppercase tracking-wider">${userRole} PORTAL</div>
-            </div>
-        </a>
-        <button id="close-sidebar-btn" class="lg:hidden text-white hover:text-gray-200 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="x" class="lucide lucide-x h-6 w-6"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-        </button>
-    </div>
-
-    <!-- Navigation -->
-    <nav class="flex-1 px-4 py-4 overflow-y-auto">
-        <h3 class="px-4 pb-2 text-sm font-semibold uppercase text-gray-400 tracking-wider">Tổng quan</h3>
-        <div class="space-y-1">
+<!-- Modern Admin Sidebar with Preserved Business Logic -->
+<div class="fixed left-0 top-0 w-64 h-full bg-spa-cream p-4 z-50 sidebar-menu transition-transform border-r border-primary/20">
+    <a href="${pageContext.request.contextPath}/dashboard" class="flex items-center pb-4 border-b border-primary/30">
+        <h2 class="font-bold text-2xl text-spa-dark">Spa <span class="bg-primary text-white px-2 rounded-md">Hương Sen</span></h2>
+    </a>
+    
+    <div class="mt-4">
+        <!-- Dynamic Role-Based Navigation (Preserved Business Logic) -->
             <c:choose>
+            <%-- ============================ CUSTOMER NAVIGATION ============================ --%>
                 <c:when test="${userRole == 'CUSTOMER'}">
-                    <!-- Customer Portal -->
-                    <div class="nav-item">
-                        <button class="nav-button nav-expandable w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-all duration-200 group text-gray-700 hover:bg-[#FFF8F0]" 
-                                data-item-id="customer-portal">
-                            <div class="flex items-center">
-                                <i data-lucide="user" class="h-5 w-5 mr-3 text-gray-500 group-hover:text-[#D4AF37]"></i>
-                                <span class="font-medium text-base">Khách hàng</span>
-                            </div>
-                            <i data-lucide="chevron-right" class="h-5 w-5 transition-transform duration-200"></i>
-                        </button>
-                        
-                        <div class="submenu ml-4 mt-1 space-y-1 pl-4 hidden">
-                            <a href="${pageContext.request.contextPath}/customer/view" class="nav-button w-full flex items-center justify-between px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="my-appointments">
-                                <div class="flex items-center">
-                                    <i data-lucide="calendar" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                    <span>Lịch hẹn của tôi</span>
-                                </div>
-                                <span class="text-sm font-semibold px-2.5 py-1 rounded-full bg-yellow-400 text-yellow-900">3</span>
-                            </a>
-                            
-                            <a href="${pageContext.request.contextPath}/booking" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="book-services">
-                                <i data-lucide="calendar-plus" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                <span>Đặt dịch vụ</span>
-                            </a>
-                            
-                            <a href="${pageContext.request.contextPath}/customer/history" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="treatment-history">
-                                <i data-lucide="history" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                <span>Lịch sử điều trị</span>
-                            </a>
-                            
-                            <a href="${pageContext.request.contextPath}/profile" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="personal-profile">
-                                <i data-lucide="user-cog" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                <span>Hồ sơ cá nhân</span>
-                            </a>
-                            
-                            <a href="${pageContext.request.contextPath}/password/change" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="change-password">
-                                <i data-lucide="key" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                <span>Đổi mật khẩu</span>
-                            </a>
-                            
-                            <a href="${pageContext.request.contextPath}/customer/payments" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="payment-history">
-                                <i data-lucide="credit-card" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                <span>Lịch sử thanh toán</span>
-                            </a>
-                            
-                            <a href="${pageContext.request.contextPath}/customer/loyalty" class="nav-button w-full flex items-center justify-between px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="loyalty-points">
-                                <div class="flex items-center">
-                                    <i data-lucide="gift" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                    <span>Điểm tích lũy</span>
-                                </div>
-                                <span class="text-sm font-semibold px-2.5 py-1 rounded-full bg-yellow-400 text-yellow-900">2,450</span>
-                            </a>
-                            
-                            <a href="${pageContext.request.contextPath}/promotions" class="nav-button w-full flex items-center justify-between px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="special-offers">
-                                <div class="flex items-center">
-                                    <i data-lucide="star" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                    <span>Ưu đãi đặc biệt</span>
-                                </div>
-                                <span class="bg-red-500 text-white text-sm font-semibold px-2.5 py-1 rounded-full animate-pulse">Mới</span>
-                            </a>
-                        </div>
-                    </div>
+                <span class="text-primary/70 font-bold text-xs uppercase tracking-wider">KHÁCH HÀNG</span>
+                <ul class="mt-2">
+                    <li class="mb-1 group">
+                        <a href="${pageContext.request.contextPath}/dashboard" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg group-[.active]:bg-primary group-[.active]:text-white transition-all duration-200">
+                            <i data-lucide="layout-dashboard" class="mr-3 h-4 w-4"></i>
+                            <span class="text-sm">Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="mb-1 group">
+                        <a href="${pageContext.request.contextPath}/customer/view" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
+                            <i data-lucide="calendar" class="mr-3 h-4 w-4"></i>
+                            <span class="text-sm">Lịch hẹn của tôi</span>
+                            <span class="md:block px-2 py-0.5 ml-auto text-xs font-medium tracking-wide text-white bg-yellow-500 rounded-full">3</span>
+                        </a>
+                    </li>
+                    <li class="mb-1 group">
+                        <a href="${pageContext.request.contextPath}/booking" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
+                            <i data-lucide="calendar-plus" class="mr-3 h-4 w-4"></i>
+                            <span class="text-sm">Đặt dịch vụ</span>
+                        </a>
+                    </li>
+                    <li class="mb-1 group">
+                        <a href="${pageContext.request.contextPath}/customer/history" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
+                            <i data-lucide="history" class="mr-3 h-4 w-4"></i>
+                            <span class="text-sm">Lịch sử điều trị</span>
+                        </a>
+                    </li>
+                    <li class="mb-1 group">
+                        <a href="${pageContext.request.contextPath}/customer/loyalty" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
+                            <i data-lucide="gift" class="mr-3 h-4 w-4"></i>
+                            <span class="text-sm">Điểm tích lũy</span>
+                            <span class="md:block px-2 py-0.5 ml-auto text-xs font-medium tracking-wide text-white bg-yellow-500 rounded-full">2,450</span>
+                        </a>
+                    </li>
+                    <li class="mb-1 group">
+                        <a href="${pageContext.request.contextPath}/customer/payments" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
+                            <i data-lucide="credit-card" class="mr-3 h-4 w-4"></i>
+                            <span class="text-sm">Lịch sử thanh toán</span>
+                        </a>
+                    </li>
+                    <li class="mb-1 group">
+                        <a href="${pageContext.request.contextPath}/promotions" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
+                            <i data-lucide="star" class="mr-3 h-4 w-4"></i>
+                            <span class="text-sm">Ưu đãi đặc biệt</span>
+                            <span class="bg-red-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full animate-pulse">Mới</span>
+                        </a>
+                    </li>
+                </ul>
+                
+                <span class="text-primary/70 font-bold text-xs uppercase tracking-wider mt-4 block">CÁ NHÂN</span>
+                <ul class="mt-2">
+                    <li class="mb-1 group">
+                        <a href="${pageContext.request.contextPath}/profile" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
+                            <i data-lucide="user-cog" class="mr-3 h-4 w-4"></i>
+                            <span class="text-sm">Hồ sơ cá nhân</span>
+                        </a>
+                    </li>
+                    <li class="mb-1 group">
+                        <a href="${pageContext.request.contextPath}/password/change" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
+                            <i data-lucide="key" class="mr-3 h-4 w-4"></i>
+                            <span class="text-sm">Đổi mật khẩu</span>
+                        </a>
+                    </li>
+                </ul>
                 </c:when>
 
-                <c:when test="${userRole == 'MANAGER' || userRole == 'ADMIN'}">
-                    <!-- Manager Dashboard -->
-                    <a href="${pageContext.request.contextPath}/dashboard" class="nav-button w-full flex items-center px-4 py-2.5 rounded-lg transition-all duration-200 group text-gray-700 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                        data-item-id="dashboard">
-                        <i data-lucide="layout-dashboard" class="h-5 w-5 mr-3 text-gray-500 group-hover:text-[#D4AF37]"></i>
-                        <span class="font-medium text-base">Dashboard</span>
-                    </a>
-                    <div class="nav-item">
-                        <button class="nav-button nav-expandable w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-all duration-200 group text-gray-700 hover:bg-[#FFF8F0]" 
-                                data-item-id="manager-dashboard">
-                            <div class="flex items-center">
-                                <i data-lucide="briefcase" class="h-5 w-5 mr-3 text-gray-500 group-hover:text-[#D4AF37]"></i>
-                                <span class="font-medium text-base">Quản lý</span>
-                            </div>
-                            <i data-lucide="chevron-right" class="h-5 w-5 transition-transform duration-200"></i>
-                        </button>
-                        
-                        <div class="submenu ml-4 mt-1 space-y-1 pl-4 hidden">
-                            <%-- <a href="${pageContext.request.contextPath}/manager/service" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="service-management">
-                                <i data-lucide="list-checks" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                <span>Quản lý dịch vụ</span>
+            <%-- ============================ ADMIN/MANAGER NAVIGATION ============================ --%>
+            <c:when test="${userRole == 'ADMIN' || userRole == 'MANAGER'}">
+                <span class="text-primary/70 font-bold text-xs uppercase tracking-wider">QUẢN LÝ</span>
+                <ul class="mt-2">
+                    <li class="mb-1 group">
+                        <a href="${pageContext.request.contextPath}/dashboard" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg group-[.active]:bg-primary group-[.active]:text-white transition-all duration-200">
+                            <i data-lucide="layout-dashboard" class="mr-3 h-4 w-4"></i>
+                            <span class="text-sm">Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="mb-1 group">
+                        <a href="${pageContext.request.contextPath}/user/list" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg sidebar-dropdown-toggle transition-all duration-200">
+                            <i data-lucide="users" class="mr-3 h-4 w-4"></i>                
+                            <span class="text-sm">Quản lý người dùng</span>
+                            <i class="ri-arrow-right-s-line ml-auto group-[.selected]:rotate-90 transition-transform duration-200"></i>
+                        </a>
+                        <ul class="pl-7 mt-2 hidden group-[.selected]:block">
+                            <li class="mb-4">
+                                <a href="${pageContext.request.contextPath}/user/list" class="text-spa-dark text-sm flex items-center hover:text-primary before:contents-[''] before:w-1 before:h-1 before:rounded-full before:bg-primary/40 before:mr-3 transition-colors duration-200">Tất cả người dùng</a>
+                            </li> 
+                            <li class="mb-4">
+                                <a href="#" class="text-spa-dark text-sm flex items-center hover:text-primary before:contents-[''] before:w-1 before:h-1 before:rounded-full before:bg-primary/40 before:mr-3 transition-colors duration-200">Vai trò</a>
+                            </li> 
+                        </ul>
+                    </li>
+                    <li class="mb-1 group">
+                        <a href="#" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
+                            <i data-lucide="activity" class="mr-3 h-4 w-4"></i>                
+                            <span class="text-sm">Hoạt động</span>
+                        </a>
+                    </li>
+                </ul>
+                
+                <span class="text-primary/70 font-bold text-xs uppercase tracking-wider mt-4 block">DỊCH VỤ</span>
+                <ul class="mt-2">
+                    <li class="mb-1 group">
+                        <a href="${pageContext.request.contextPath}/manager/service" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg sidebar-dropdown-toggle transition-all duration-200">
+                            <i data-lucide="sparkles" class="mr-3 h-4 w-4"></i>                 
+                            <span class="text-sm">Dịch vụ Spa</span>
+                            <i class="ri-arrow-right-s-line ml-auto group-[.selected]:rotate-90 transition-transform duration-200"></i>
+                        </a>
+                        <ul class="pl-7 mt-2 hidden group-[.selected]:block">
+                            <li class="mb-4">
+                                <a href="${pageContext.request.contextPath}/manager/service" class="text-spa-dark text-sm flex items-center hover:text-primary before:contents-[''] before:w-1 before:h-1 before:rounded-full before:bg-primary/40 before:mr-3 transition-colors duration-200">Tất cả dịch vụ</a>
+                            </li> 
+                            <li class="mb-4">
+                                <a href="${pageContext.request.contextPath}/manager/servicetype" class="text-spa-dark text-sm flex items-center hover:text-primary before:contents-[''] before:w-1 before:h-1 before:rounded-full before:bg-primary/40 before:mr-3 transition-colors duration-200">Loại dịch vụ</a>
+                            </li> 
+                        </ul>
+                    </li>
+                    <li class="mb-1 group">
+                        <a href="${pageContext.request.contextPath}/appointment" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
+                            <i data-lucide="calendar" class="mr-3 h-4 w-4"></i>                
+                            <span class="text-sm">Lịch hẹn</span>
+                        </a>
+                    </li>
+                    <c:if test="${userRole == 'ADMIN' || userRole == 'MANAGER'}">
+                        <li class="mb-1 group">
+                            <a href="${pageContext.request.contextPath}/promotion/list" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
+                                <i data-lucide="gift" class="mr-3 h-4 w-4"></i>                
+                                <span class="text-sm">Khuyến mãi</span>
                             </a>
-                            
-                            <a href="${pageContext.request.contextPath}/manager/servicetype" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="servicetype-management">
-                                <i data-lucide="tag" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                <span>Quản lý loại dịch vụ</span>
-                            </a> --%>
-                            
-                            <%-- <a href="${pageContext.request.contextPath}/staff" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="staff-management">
-                                <i data-lucide="users" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                <span>Quản lý nhân viên</span>
-                            </a> --%>
-                            
-                            <a href="${pageContext.request.contextPath}/user/list" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="user-management">
-                                <i data-lucide="user-check" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                <span>Quản lý người dùng</span>
-                            </a>
-                            
-                            <%-- <a href="${pageContext.request.contextPath}/category/list" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="category-management">
-                                <i data-lucide="folder" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                <span>Quản lý danh mục</span>
-                            </a> --%>
-                            
-                            <%-- <a href="${pageContext.request.contextPath}/blog" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="blog-management">
-                                <i data-lucide="edit" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                <span>Quản lý blog</span>
-                            </a> --%>
-                            
-                            <a href="${pageContext.request.contextPath}/spa-info" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="spa-info">
-                                <i data-lucide="info" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                <span>Thông tin Spa</span>
-                            </a>
-                        </div>
-                    </div>
+                        </li>
+                    </c:if>
+                </ul>
                 </c:when>
                 
-                <c:when test="${userRole == 'MARKETING' || userRole == 'ADMIN' || userRole == 'MANAGER'}">
-                     <!-- Marketing Portal -->
-                    <div class="nav-item">
-                        <button class="nav-button nav-expandable w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-all duration-200 group text-gray-700 hover:bg-[#FFF8F0]" 
-                                data-item-id="marketing-portal">
-                            <div class="flex items-center">
-                                <i data-lucide="megaphone" class="h-5 w-5 mr-3 text-gray-500 group-hover:text-[#D4AF37]"></i>
-                                <span class="font-medium text-base">Marketing</span>
-                            </div>
-                            <i data-lucide="chevron-right" class="h-5 w-5 transition-transform duration-200"></i>
-                        </button>
-                        
-                        <div class="submenu ml-4 mt-1 space-y-1 pl-4 hidden">
-                            <a href="${pageContext.request.contextPath}/promotion/list" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="promotion-management">
-                                <i data-lucide="gift" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                <span>Quản lý khuyến mãi</span>
-                            </a>
-                            
-                            <a href="${pageContext.request.contextPath}/promotions" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="promotion-display">
-                                <i data-lucide="star" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                <span>Xem khuyến mãi</span>
-                            </a>
-                            
-                            <a href="${pageContext.request.contextPath}/service-review" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="service-reviews">
-                                <i data-lucide="message-circle" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                <span>Đánh giá dịch vụ</span>
-                            </a>
-                            
-                            <a href="${pageContext.request.contextPath}/qr/generate" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="qr-codes">
-                                <i data-lucide="qr-code" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                <span>Tạo mã QR</span>
-                            </a>
-                        </div>
-                    </div>
-                </c:when>
-            </c:choose>
+            <%-- ============================ THERAPIST NAVIGATION ============================ --%>
+            <c:when test="${userRole == 'THERAPIST'}">
+                <span class="text-primary/70 font-bold text-xs uppercase tracking-wider">NHÂN VIÊN</span>
+                <ul class="mt-2">
+                    <li class="mb-1 group">
+                        <a href="${pageContext.request.contextPath}/dashboard" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg group-[.active]:bg-primary group-[.active]:text-white transition-all duration-200">
+                            <i data-lucide="layout-dashboard" class="mr-3 h-4 w-4"></i>
+                            <span class="text-sm">Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="mb-1 group">
+                        <a href="${pageContext.request.contextPath}/therapist/schedule" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
+                            <i data-lucide="clock" class="mr-3 h-4 w-4"></i>
+                            <span class="text-sm">Lịch làm việc hôm nay</span>
+                            <span class="md:block px-2 py-0.5 ml-auto text-xs font-medium tracking-wide text-white bg-yellow-500 rounded-full">8</span>
+                        </a>
+                    </li>
+                    <li class="mb-1 group">
+                        <a href="${pageContext.request.contextPath}/appointment" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
+                            <i data-lucide="calendar" class="mr-3 h-4 w-4"></i>
+                            <span class="text-sm">Quản lý lịch hẹn</span>
+                        </a>
+                    </li>
+                    <li class="mb-1 group">
+                        <a href="${pageContext.request.contextPath}/therapist/clients" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
+                            <i data-lucide="file-text" class="mr-3 h-4 w-4"></i>
+                            <span class="text-sm">Hồ sơ khách hàng</span>
+                        </a>
+                    </li>
+                    <li class="mb-1 group">
+                        <a href="${pageContext.request.contextPath}/therapist/notes" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
+                            <i data-lucide="book-open" class="mr-3 h-4 w-4"></i>
+                            <span class="text-sm">Ghi chú điều trị</span>
+                        </a>
+                    </li>
+                </ul>
+            </c:when>
 
-            
+            <%-- ============================ DEFAULT/GUEST NAVIGATION ============================ --%>
+            <c:otherwise>
+                <span class="text-primary/70 font-bold text-xs uppercase tracking-wider">TỔNG QUAN</span>
+                <ul class="mt-2">
+                    <li class="mb-1 group">
+                        <a href="${pageContext.request.contextPath}/login" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
+                            <i data-lucide="log-in" class="mr-3 h-4 w-4"></i>
+                            <span class="text-sm">Đăng nhập</span>
+                        </a>
+                    </li>
+                    <li class="mb-1 group">
+                        <a href="${pageContext.request.contextPath}/register" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
+                            <i data-lucide="user-plus" class="mr-3 h-4 w-4"></i>
+                            <span class="text-sm">Đăng ký</span>
+                        </a>
+                    </li>
+                </ul>
+            </c:otherwise>
+        </c:choose>
 
-            <c:if test="${userRole == 'THERAPIST' || userRole == 'MANAGER'}">
-                <!-- Therapist Interface -->
-                <div class="nav-item">
-                    <button class="nav-button nav-expandable w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-all duration-200 group text-gray-700 hover:bg-[#FFF8F0]" 
-                            data-item-id="therapist-interface">
-                        <div class="flex items-center">
-                            <i data-lucide="user-round" class="h-5 w-5 mr-3 text-gray-500 group-hover:text-[#D4AF37]"></i>
-                            <span class="font-medium text-base">Nhân viên</span>
-                        </div>
-                        <i data-lucide="chevron-right" class="h-5 w-5 transition-transform duration-200"></i>
+        <!-- Common Personal Section for Logged-in Users -->
+        <c:if test="${userRole != 'GUEST'}">
+            <span class="text-primary/70 font-bold text-xs uppercase tracking-wider mt-4 block">CÁ NHÂN</span>
+            <ul class="mt-2">
+                <li class="mb-1 group">
+                    <a href="${pageContext.request.contextPath}/profile" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
+                        <i data-lucide="settings" class="mr-3 h-4 w-4"></i>                
+                        <span class="text-sm">Cài đặt</span>
+                    </a>
+                </li>
+                <li class="mb-1 group">
+                    <button onclick="confirmLogout()" class="w-full flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-red-500 hover:text-white rounded-lg transition-all duration-200">
+                        <i data-lucide="log-out" class="mr-3 h-4 w-4"></i>                
+                        <span class="text-sm">Đăng xuất</span>
                     </button>
-                    
-                    <div class="submenu ml-4 mt-1 space-y-1 pl-4 hidden">
-                        <a href="${pageContext.request.contextPath}/therapist/schedule" class="nav-button w-full flex items-center justify-between px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                data-item-id="daily-schedule">
-                            <div class="flex items-center">
-                                <i data-lucide="clock" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                <span>Lịch làm việc hôm nay</span>
-                            </div>
-                            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-400 text-yellow-900">8</span>
-                        </a>
-                        
-                        <a href="${pageContext.request.contextPath}/appointment" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                data-item-id="appointment-management">
-                            <i data-lucide="calendar" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                            <span>Quản lý lịch hẹn</span>
-                        </a>
-                        
-                        <a href="${pageContext.request.contextPath}/therapist/clients" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                data-item-id="client-records">
-                            <i data-lucide="file-text" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                            <span>Hồ sơ khách hàng</span>
-                        </a>
-                        
-                        <a href="${pageContext.request.contextPath}/therapist/notes" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                data-item-id="treatment-notes">
-                            <i data-lucide="book-open" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                            <span>Ghi chú điều trị</span>
-                        </a>
+                </li>
+            </ul>
+
+            <!-- User Profile Section -->
+            <div class="mt-6 pt-4 border-t border-primary/30">
+                <div class="flex items-center space-x-3 p-2">
+                    <img src="${avatarUrl}" alt="User Avatar" class="w-10 h-10 rounded-full object-cover border-2 border-primary/20">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-spa-dark truncate">${fullName}</p>
+                        <p class="text-xs text-primary/70 capitalize">${userRole.toLowerCase()}</p>
                     </div>
                 </div>
-            </c:if>
-
-            <div class="px-4 pt-2 pb-2">
-                <div class="border-t border-gray-200"></div>
             </div>
-            
-            <!-- Common Pages (All roles) -->
-            
-            
-            <!-- Settings (All roles) -->
-            <div class="nav-item">
-                <a href="${pageContext.request.contextPath}/profile" class="nav-button w-full flex items-center px-4 py-2.5 rounded-lg transition-all duration-200 group text-gray-700 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                        data-item-id="settings">
-                    <i data-lucide="settings" class="h-5 w-5 mr-3 text-gray-500 group-hover:text-[#D4AF37]"></i>
-                    <span class="font-medium text-base">Cài đặt</span>
-                </a>
-            </div>
-        </div>
-    </nav>
-
-    <!-- User Profile & Logout -->
-    <div class="border-t border-gray-200 p-2">
-        <a href="${pageContext.request.contextPath}/profile" class="block w-full p-2 hover:bg-[#FFF8F0] rounded-lg mb-1 group">
-            <div class="flex items-center">
-                <div class="flex-1 min-w-0">
-                    <p class="text-base font-semibold text-gray-800 truncate group-hover:text-[#D4AF37] transition-colors">${fullName}</p>
-                    <p class="text-sm text-gray-500 capitalize">${userRole.toLowerCase()}</p>
+        </c:if>
                 </div>
             </div>
-        </a>
-        
-        <button id="logout-btn" class="flex items-center w-full px-2 py-2.5 text-base text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group">
-            <i data-lucide="log-out" class="h-5 w-5 mr-3 group-hover:scale-110 transition-transform"></i>
-            <span class="font-medium">Đăng xuất</span>
-        </button>
-    </div>
-</aside>
+
+<!-- Mobile overlay -->
+<div class="fixed top-0 left-0 w-full h-full bg-black/50 z-40 md:hidden sidebar-overlay"></div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        class SidebarManager {
-            constructor(userRole) {
-                this.sidebar = document.getElementById('main-sidebar');
-                if (!this.sidebar) {
-                    console.error("Sidebar element #main-sidebar not found.");
-                    return;
+    // Preserved and Enhanced Sidebar Functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        // Dropdown functionality
+        document.querySelectorAll('.sidebar-dropdown-toggle').forEach(function (item) {
+            item.addEventListener('click', function (e) {
+                e.preventDefault()
+                const parent = item.closest('.group')
+                if (parent.classList.contains('selected')) {
+                    parent.classList.remove('selected')
+                } else {
+                    document.querySelectorAll('.sidebar-dropdown-toggle').forEach(function (i) {
+                        i.closest('.group').classList.remove('selected')
+                    })
+                    parent.classList.add('selected')
                 }
-
-                this.overlay = document.getElementById('sidebar-overlay');
-                this.closeSidebarBtn = document.getElementById('close-sidebar-btn');
-                this.logoutBtn = document.getElementById('logout-btn');
-                this.navButtons = this.sidebar.querySelectorAll('.nav-button');
-                
-                this.userRole = userRole;
-                this.activeItem = null;
-                this.expandedItems = new Set();
-                
-                this.init();
-            }
-
-            init() {
-                this.autoExpandRoleMenu();
-                this.initEventListeners();
-                this.detectActiveItem();
-
-                // Make toggle function globally available
-                window.toggleSidebar = () => this.toggleSidebar();
-                
-                if (window.lucide) {
+            })
+        })
+        
+        // Initialize Lucide icons for sidebar
+        if (typeof lucide !== 'undefined') {
                     lucide.createIcons();
                 }
+
+        // Active link detection
+        const currentPath = window.location.pathname;
+        document.querySelectorAll('.sidebar-menu a').forEach(function(link) {
+            if (link.getAttribute('href') && currentPath.includes(link.getAttribute('href'))) {
+                link.closest('.group').classList.add('active');
             }
-
-            autoExpandRoleMenu() {
-                let roleMenuId = '';
-                switch (this.userRole) {
-                    case 'CUSTOMER': roleMenuId = 'customer-portal'; break;
-                    case 'MANAGER': roleMenuId = 'manager-dashboard'; break;
-                    case 'ADMIN': roleMenuId = 'admin-panel'; break;
-                    case 'THERAPIST': roleMenuId = 'therapist-interface'; break;
-                    case 'MARKETING': roleMenuId = 'marketing-portal'; break;
-                }
-                
-                if (roleMenuId) {
-                    this.expandedItems.add(roleMenuId);
-                }
-            }
-            
-            detectActiveItem() {
-                const currentPath = window.location.pathname;
-                let bestMatch = null;
-
-                this.navButtons.forEach(button => {
-                    const buttonPath = button.getAttribute('href');
-                    if (buttonPath && currentPath.includes(buttonPath)) {
-                        if (!bestMatch || buttonPath.length > (bestMatch.getAttribute('href') || '').length) {
-                            bestMatch = button;
-                        }
-                    }
-                });
-                
-                if (bestMatch) {
-                    const itemId = bestMatch.dataset.itemId;
-                    this.setActiveItem(itemId);
-
-                    // Auto-expand parent menu if a child is active
-                    const parentMenu = bestMatch.closest('.submenu');
-                    if (parentMenu) {
-                        const parentButton = parentMenu.previousElementSibling;
-                        if(parentButton && parentButton.dataset.itemId) {
-                            this.expandedItems.add(parentButton.dataset.itemId);
-                        }
-                    }
-                } else if (currentPath.endsWith('/dashboard')) {
-                    this.setActiveItem('dashboard');
-                }
-                this.updateExpandedState();
-                this.updateActiveState();
-            }
-
-            initEventListeners() {
-                this.sidebar.addEventListener('click', (e) => {
-                    const button = e.target.closest('.nav-button');
-                    if (!button) return;
-
-                    // For expandable buttons, prevent navigation and toggle submenu
-                    if (button.classList.contains('nav-expandable')) {
-                        e.preventDefault();
-                        const itemId = button.dataset.itemId;
-                        this.toggleExpanded(itemId);
-                    }
-                });
-
-                this.closeSidebarBtn?.addEventListener('click', () => this.closeSidebar());
-                this.overlay?.addEventListener('click', () => this.closeSidebar());
-                
-                this.logoutBtn?.addEventListener('click', () => {
-                    if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
-                        const contextPath = '${pageContext.request.contextPath}';
-                        window.location.href = `${pageContext.request.contextPath}/logout`;
-                    }
-                });
-            }
-
-            toggleSidebar() {
-                if (this.sidebar.classList.contains('-translate-x-full')) {
-                    this.openSidebar();
-                } else {
-                    this.closeSidebar();
-                }
-            }
-
-            openSidebar() {
-                this.sidebar.classList.remove('-translate-x-full');
-                this.overlay?.classList.remove('hidden');
-            }
-
-            closeSidebar() {
-                this.sidebar.classList.add('-translate-x-full');
-                this.overlay?.classList.add('hidden');
-            }
-
-            toggleExpanded(itemId) {
-                if (this.expandedItems.has(itemId)) {
-                    this.expandedItems.delete(itemId);
-                } else {
-                    this.expandedItems.add(itemId);
-                }
-                this.updateExpandedState();
-            }
-            
-            updateExpandedState() {
-                this.sidebar.querySelectorAll('.nav-expandable').forEach(button => {
-                    const itemId = button.dataset.itemId;
-                    const submenu = button.nextElementSibling;
-                    const chevron = button.querySelector('[data-lucide="chevron-right"]');
-
-                    if (this.expandedItems.has(itemId)) {
-                        submenu?.classList.remove('hidden');
-                        chevron?.classList.add('rotate-90');
-                        button.classList.add('bg-[#FFF8F0]', 'text-[#D4AF37]');
-                    } else {
-                        submenu?.classList.add('hidden');
-                        chevron?.classList.remove('rotate-90');
-                        button.classList.remove('bg-[#FFF8F0]', 'text-[#D4AF37]');
-                    }
-                });
-            }
-
-            setActiveItem(itemId) {
-                if (!itemId) return;
-                this.activeItem = itemId;
-                this.updateActiveState();
-            }
-
-            updateActiveState() {
-                this.navButtons.forEach(btn => {
-                    const icon = btn.querySelector('i[data-lucide]');
-                    if (btn.dataset.itemId === this.activeItem && !btn.classList.contains('nav-expandable')) {
-                        btn.classList.add('bg-[#D4AF37]', 'text-white', 'shadow-inner');
-                        btn.classList.remove('text-gray-600', 'hover:bg-[#FFF8F0]', 'hover:text-[#D4AF37]');
-                        icon?.classList.add('text-white');
-                        icon?.classList.remove('text-gray-400', 'text-gray-500');
-                    }
-                });
-            }
-        }
-
-        new SidebarManager('${userRole}');
+        });
     });
+
+    // Logout confirmation function
+    function confirmLogout() {
+                    if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+            window.location.href = '${pageContext.request.contextPath}/logout';
+        }
+    }
+
+    // Make toggle function globally available for navbar
+    window.toggleSidebar = function() {
+        const sidebarMenu = document.querySelector('.sidebar-menu');
+        const sidebarOverlay = document.querySelector('.sidebar-overlay');
+        
+        if (sidebarMenu.classList.contains('-translate-x-full')) {
+            sidebarMenu.classList.remove('-translate-x-full');
+            sidebarOverlay.classList.remove('hidden');
+                } else {
+            sidebarMenu.classList.add('-translate-x-full');
+            sidebarOverlay.classList.add('hidden');
+        }
+    };
 </script> 

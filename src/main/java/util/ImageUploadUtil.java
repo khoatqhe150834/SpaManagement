@@ -30,8 +30,8 @@ public class ImageUploadUtil {
     public static final int MIN_IMAGE_HEIGHT = 150;
 
     // Directory paths (relative to webapp)
-    public static final String UPLOADS_BASE_PATH = "/uploads/services";
-    public static final String FULL_SIZE_PATH = UPLOADS_BASE_PATH + "/full-size";
+    public static final String UPLOADS_BASE_PATH = "/services";
+    public static final String FULL_SIZE_PATH = UPLOADS_BASE_PATH;
     public static final String THUMBNAILS_PATH = UPLOADS_BASE_PATH + "/thumbnails";
     public static final String TEMP_PATH = UPLOADS_BASE_PATH + "/temp";
 

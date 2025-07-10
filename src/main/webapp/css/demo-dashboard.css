@@ -1,0 +1,248 @@
+/* Demo Dashboard Custom CSS */
+
+/* Custom gradient for radial effect */
+.bg-gradient-radial {
+    background: radial-gradient(ellipse 50% 50% at 50% 50%, white 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+/* Smooth transitions for interactive elements */
+.nav-item,
+.customer-item,
+.action-btn,
+.chat-avatar-container,
+.deal-tag,
+.footer-link,
+.sort-dropdown,
+.time-selector {
+    transition: all 0.2s ease-in-out;
+}
+
+/* Hover effects */
+.nav-item:hover {
+    background-color: #FFE4D6; /* light-orange */
+}
+
+.customer-item:hover:not(.bg-light-orange) {
+    background-color: #FFE4D6; /* light-orange */
+}
+
+.action-btn:hover {
+    background-color: white;
+    transform: scale(1.05);
+}
+
+.chat-avatar-container:hover:not(.bg-light-orange) {
+    background-color: #FFE4D6; /* light-orange */
+}
+
+.deal-tag:hover {
+    background-color: #FFA366; /* mid-orange */
+    transform: translateY(-2px);
+}
+
+.footer-link:hover {
+    color: #FF4500; /* dark-orange */
+}
+
+.footer-link:hover .link-text {
+    text-decoration: underline;
+}
+
+/* Progress chart styles */
+.progress-chart {
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-bg {
+    border-radius: 105px 105px 0 0;
+}
+
+.progress-fill {
+    border-radius: 95px 95px 0 0;
+    left: 10px;
+}
+
+/* State bar animations */
+.state-bar {
+    transition: transform 0.2s ease-in-out;
+}
+
+.state-bar:hover {
+    transform: translateX(4px);
+}
+
+/* Notification dot animation */
+.notification-dot {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Logo animation */
+.logomark {
+    transition: transform 0.3s ease-in-out;
+}
+
+.logomark:hover {
+    transform: scale(1.1);
+}
+
+/* Collapse button */
+.collapse-btn {
+    transition: all 0.2s ease-in-out;
+}
+
+.collapse-btn:hover {
+    background-color: #E5E7EB; /* light-gray */
+    transform: scale(1.1);
+}
+
+/* Chart placeholder styling */
+.chart-placeholder {
+    position: relative;
+}
+
+.chart-placeholder::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 80%;
+    height: 60%;
+    background: linear-gradient(45deg, #10B981, #FF6B35);
+    opacity: 0.2;
+    border-radius: 8px;
+    transform: translate(-50%, -50%);
+}
+
+/* Responsive adjustments */
+@media (max-width: 1440px) {
+    .demo-main-container {
+        width: 100%;
+        max-width: 1440px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .demo-main-container {
+        height: auto;
+        min-height: 100vh;
+        flex-direction: column;
+    }
+    
+    .demo-sidebar {
+        max-width: none;
+        min-width: 100%;
+        height: auto;
+    }
+    
+    .right-column {
+        width: 100%;
+    }
+    
+    .bottom-stats {
+        flex-direction: column;
+    }
+    
+    .mini-stat {
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .demo-main-container {
+        padding: 1rem;
+        gap: 1rem;
+    }
+    
+    .stats-row,
+    .middle-row,
+    .bottom-row {
+        flex-direction: column;
+    }
+    
+    .stat-widget,
+    .customers-widget,
+    .chats-widget,
+    .states-widget,
+    .deals-widget {
+        min-width: 100%;
+        width: 100%;
+    }
+    
+    .deals-container {
+        flex-direction: column;
+    }
+    
+    .deal-tag {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}
+
+/* Dark mode support (optional) */
+@media (prefers-color-scheme: dark) {
+    .demo-main-container {
+        background-color: #1F2937;
+    }
+    
+    .demo-sidebar,
+    .stat-widget,
+    .customers-widget,
+    .growth-widget,
+    .mini-stat,
+    .chats-widget,
+    .states-widget,
+    .deals-widget {
+        background-color: #374151;
+        color: white;
+    }
+    
+    .heading-text,
+    .nav-text,
+    .customer-name,
+    .number-text,
+    .user-name {
+        color: white;
+    }
+    
+    .description-text,
+    .customer-company,
+    .mini-heading {
+        color: #D1D5DB;
+    }
+}
+
+/* Accessibility improvements */
+.nav-item:focus,
+.customer-item:focus,
+.action-btn:focus,
+.deal-tag:focus,
+.footer-link:focus {
+    outline: 2px solid #FF6B35;
+    outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+    .demo-main-container {
+        width: 100%;
+        height: auto;
+        background: white;
+        color: black;
+    }
+    
+    .collapse-btn,
+    .action-btn,
+    .notification-dot {
+        display: none;
+    }
+} 
