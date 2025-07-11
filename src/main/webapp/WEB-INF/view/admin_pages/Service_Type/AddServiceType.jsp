@@ -1,215 +1,207 @@
 <%@page contentType="text/html" pageEncoding="UTF-8" %>
     <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
         <!DOCTYPE html>
-        <html lang="en" data-theme="light">
+        <html lang="vi" class="scroll-smooth">
 
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Add Service Type</title>
-            <link rel="icon" type="image/png" href="assets/images/favicon.png" sizes="16x16">
-            <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp" />
-            <style>
-                .switch {
-                    position: relative;
-                    display: inline-block;
-                    width: 48px;
-                    height: 24px;
-                    vertical-align: middle;
-                }
-
-                .switch input {
-                    display: none;
-                }
-
-                .slider {
-                    position: absolute;
-                    cursor: pointer;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background-color: #ccc;
-                    transition: .4s;
-                    border-radius: 24px;
-                }
-
-                .slider:before {
-                    position: absolute;
-                    content: "";
-                    height: 18px;
-                    width: 18px;
-                    left: 3px;
-                    bottom: 3px;
-                    background-color: white;
-                    transition: .4s;
-                    border-radius: 50%;
-                }
-
-                input:checked+.slider {
-                    background-color: #2196F3;
-                }
-
-                input:checked+.slider:before {
-                    transform: translateX(24px);
-                }
-
-                .invalid-feedback {
-                    color: red;
-                    display: block;
-                }
-            </style>
+            <title>Thêm Loại Dịch Vụ</title>
+            <!-- Tailwind CSS -->
+            <script src="https://cdn.tailwindcss.com"></script>
+            <script>
+              tailwind.config = {
+                theme: {
+                  extend: {
+                    colors: {
+                      primary: "#D4AF37",
+                      "primary-dark": "#B8941F",
+                      secondary: "#FADADD",
+                      "spa-cream": "#FFF8F0",
+                      "spa-dark": "#333333",
+                    },
+                    fontFamily: {
+                      serif: ["Playfair Display", "serif"],
+                      sans: ["Roboto", "sans-serif"],
+                    },
+                  },
+                },
+              };
+            </script>
+            <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Roboto:wght@300;400;500;600&display=swap" rel="stylesheet" />
+            <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+            <link rel="stylesheet" href="<c:url value='/css/style.css'/>" />
         </head>
 
-        <body>
-
-            <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
+        <body class="bg-spa-cream font-sans min-h-screen">
             <jsp:include page="/WEB-INF/view/common/header.jsp" />
-
-            <div class="dashboard-main-body">
-                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
-                    <h6 class="fw-semibold mb-0">Add Service Type</h6>
-                    <ul class="d-flex align-items-center gap-2">
-                        <li class="fw-medium">
-                            <a href="servicetype" class="d-flex align-items-center gap-1 hover-text-primary">
-                                <iconify-icon icon="solar:home-smile-angle-outline" class="icon text-lg"></iconify-icon>
-                                Back to List
+            <div class="flex">
+                <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
+                <main class="flex-1 py-12 lg:py-20 ml-64">
+                    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div class="mb-8 flex items-center justify-between">
+                            <h1 class="text-2xl font-serif text-spa-dark font-bold">Thêm Loại Dịch Vụ</h1>
+                            <a href="servicetype?service=list-all&page=${page}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}"
+                               class="inline-flex items-center gap-2 h-10 px-4 bg-gray-200 text-spa-dark font-semibold rounded-lg hover:bg-gray-300 transition-colors">
+                                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                                <span>Quay lại</span>
                             </a>
-                        </li>
-                        <li>-</li>
-                        <li class="fw-medium">Create New Service Type</li>
-                    </ul>
-                </div>
-
-                <div class="card h-100 p-0 radius-12">
-                    <div class="card-body p-24">
-                        <div class="row justify-content-center">
-                            <div class="col-xxl-6 col-xl-8 col-lg-10">
-                                <div class="card border">
-                                    <div class="card-body">
-                                        <form action="servicetype" method="post" enctype="multipart/form-data"
-                                            id="serviceTypeForm" novalidate>
-                                            <input type="hidden" name="service" value="insert" />
-
-                                            <!-- Name -->
-                                            <div class="mb-20">
-                                                <label for="name"
-                                                    class="form-label fw-semibold text-primary-light text-sm mb-8">
-                                                    Service Type Name <span class="text-danger-600">*</span>
-                                                </label>
-                                                <input type="text" name="name" class="form-control radius-8" id="name"
-                                                    placeholder="Enter service type name" required maxlength="200"
-                                                    data-bs-toggle="tooltip" data-bs-placement="right"
-                                                    title="Tên không được để trống, tối đa 200 ký tự, không chứa ký tự đặc biệt, cho phép tiếng Việt, không trùng tên đã có." />
-                                                <div class="invalid-feedback" id="nameError"></div>
-                                            </div>
-
-                                            <!-- Description -->
-                                            <div class="mb-20">
-                                                <label for="description"
-                                                    class="form-label fw-semibold text-primary-light text-sm mb-8">Mô tả
-                                                    <span class="text-danger-600">*</span></label>
-                                                <textarea name="description" id="description"
-                                                    class="form-control radius-8" placeholder="Nhập mô tả..." rows="7"
-                                                    oninput="validateDescription(this)"></textarea>
-                                                <div class="invalid-feedback" id="descriptionError"></div>
-                                                <small class="text-muted">Tối thiểu 20 ký tự, tối đa 500 ký tự</small>
-                                            </div>
-
-                                            <!-- Image -->
-                                            <div class="mb-20">
-                                                <label for="image"
-                                                    class="form-label fw-semibold text-primary-light text-sm mb-8">Hình
-                                                    Ảnh</label>
-                                                <div class="d-flex gap-3 align-items-center">
-                                                    <input type="file" name="image" class="form-control radius-8"
-                                                        id="image" accept="image/jpeg,image/png,image/gif"
-                                                        onchange="validateImageAsync(this);">
-                                                    <div id="imagePreview" class="d-none">
-                                                        <img src="" alt="Preview" class="w-100-px h-100-px rounded"
-                                                            id="previewImg" onclick="showImageModal(this.src)"
-                                                            style="cursor: pointer;">
-                                                    </div>
-                                                </div>
-                                                <div class="invalid-feedback" id="imageError"></div>
-                                                <small class="text-danger" id="imageSizeHint"
-                                                    style="display:none;">Không được upload ảnh quá 2MB.</small>
-                                                <small class="text-muted">
-                                                    Chấp nhận: JPG, PNG, GIF. Kích thước tối đa: 2MB. Kích thước tối
-                                                    thiểu: 200x200px
-                                                </small>
-                                            </div>
-
-                                            <!-- Status -->
-                                            <div class="mb-20">
-                                                <label
-                                                    class="form-label fw-semibold text-primary-light text-sm mb-8 d-block">Trạng
-                                                    thái</label>
-                                                <label class="switch">
-                                                    <input type="checkbox" name="is_active" id="is_active" checked>
-                                                    <span class="slider"></span>
-                                                </label>
-                                                <span class="ms-2">Đang hoạt động</span>
-                                            </div>
-
-                                            <!-- Action Buttons -->
-                                            <div class="d-flex align-items-center justify-content-center gap-3">
-                                                <a href="servicetype?service=list-all&page=${page}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}"
-                                                    class="btn btn-outline-danger border border-danger-600 px-56 py-11 radius-8">Cancel</a>
-                                                <button type="submit"
-                                                    class="btn btn-primary border border-primary-600 text-md px-56 py-12 radius-8">Save</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
+                        <form action="servicetype" method="post" enctype="multipart/form-data" id="serviceTypeForm" novalidate class="bg-white rounded-2xl shadow-lg p-8 space-y-6">
+                            <input type="hidden" name="service" value="insert" />
+                            <!-- Name -->
+                            <div>
+                                <label for="name" class="block text-sm font-medium text-spa-dark mb-2">Tên Loại Dịch Vụ <span class="text-red-500">*</span></label>
+                                <input type="text" name="name" id="name" maxlength="200" required placeholder="Nhập tên loại dịch vụ" class="block w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary" />
+                                <div class="text-red-500 text-xs mt-1" id="nameError"></div>
+                            </div>
+                            <!-- Description -->
+                            <div>
+                                <label for="description" class="block text-sm font-medium text-spa-dark mb-2">Mô tả <span class="text-red-500">*</span></label>
+                                <textarea name="description" id="description" rows="5" placeholder="Nhập mô tả..." class="block w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"></textarea>
+                                <div class="text-red-500 text-xs mt-1" id="descriptionError"></div>
+                                <small class="text-gray-500">Tối thiểu 20 ký tự, tối đa 500 ký tự</small>
+                            </div>
+                            <!-- Image -->
+                            <div>
+                                <label for="image" class="block text-sm font-medium text-spa-dark mb-2">Hình Ảnh</label>
+                                <input type="file" name="image" id="image" accept="image/jpeg,image/png,image/gif" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-dark" onchange="validateImageAsync(this);">
+                                <div id="imagePreview" class="mt-2 hidden">
+                                    <img src="" alt="Preview" class="w-32 h-32 object-cover rounded-lg border" id="previewImg" onclick="showImageModal(this.src)" style="cursor:pointer;">
+                                </div>
+                                <div class="text-red-500 text-xs mt-1" id="imageError"></div>
+                                <small class="text-gray-500">Chấp nhận: JPG, PNG, GIF. Kích thước tối đa: 2MB. Kích thước tối thiểu: 200x200px</small>
+                            </div>
+                            <!-- Status -->
+                            <div>
+                                <label class="block text-sm font-medium text-spa-dark mb-2">Trạng thái</label>
+                                <label class="inline-flex items-center cursor-pointer select-none">
+                                    <input type="checkbox" name="is_active" id="is_active" class="sr-only peer" checked>
+                                    <div class="w-11 h-6 bg-gray-200 rounded-full transition-colors duration-300 relative peer-checked:bg-primary">
+                                        <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-300 peer-checked:translate-x-[20px]"></span>
+                                    </div>
+                                    <span class="ml-3 text-sm text-spa-dark">Đang hoạt động</span>
+                                </label>
+                            </div>
+                            <!-- Action Buttons -->
+                            <div class="flex items-center justify-center gap-4 mt-6">
+                                <a href="servicetype?service=list-all&page=${page}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}"
+                                   class="inline-flex items-center justify-center px-6 py-2 border border-gray-300 rounded-lg text-gray-700 bg-gray-100 hover:bg-gray-200 font-semibold">Cancel</a>
+                                <button type="submit" class="inline-flex items-center justify-center px-6 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors">Save</button>
+                            </div>
+                        </form>
                     </div>
-                </div>
+                </main>
             </div>
-
+            <jsp:include page="/WEB-INF/view/common/footer.jsp" />
             <!-- Modal hiển thị ảnh lớn -->
-            <div id="imageModal"
-                style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); align-items:center; justify-content:center;">
-                <img id="modalImg" src=""
-                    style="max-width:90vw; max-height:90vh; border:4px solid #fff; border-radius:8px;">
+            <div id="imageModal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); align-items:center; justify-content:center;">
+                <img id="modalImg" src="" style="max-width:90vw; max-height:90vh; border:4px solid #fff; border-radius:8px;">
             </div>
-
-            <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
             <script>
                 var contextPath = "${pageContext.request.contextPath}";
 
-                const vietnameseDescPattern = /^[a-zA-Z0-9ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂẾưăạảấầẩẫậắằẳẵặẹẻẽềềểếỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s.,\-()!?:;"'\n\r]+$/;
+                // --- Helper functions for Tailwind border color ---
+                function setInvalid(input, errorDiv, msg) {
+                    input.classList.remove('border-green-500', 'focus:ring-green-500', 'border-gray-300', 'focus:ring-primary');
+                    input.classList.add('border-red-500', 'focus:ring-red-500');
+                    errorDiv.textContent = msg;
+                    errorDiv.style.color = 'red';
+                }
+                function setValid(input, errorDiv, msg) {
+                    input.classList.remove('border-red-500', 'focus:ring-red-500', 'border-gray-300', 'focus:ring-primary');
+                    input.classList.add('border-green-500', 'focus:ring-green-500');
+                    errorDiv.textContent = msg;
+                    errorDiv.style.color = 'green';
+                }
+                function setDefault(input, errorDiv) {
+                    input.classList.remove('border-red-500', 'focus:ring-red-500', 'border-green-500', 'focus:ring-green-500');
+                    input.classList.add('border-gray-300', 'focus:ring-primary');
+                    errorDiv.textContent = '';
+                }
 
-                let isSubmitting = false;
-                let nameCheckTimeout = null;
-                let isNameDuplicateError = false;
-
-                // Validation functions
-                function validateDescription(input) {
-                    const descriptionError = document.getElementById('descriptionError');
-                    let value = input.value.trim();
-                    if (value.length < 20) {
-                        descriptionError.textContent = 'Mô tả phải có ít nhất 20 ký tự';
-                        descriptionError.style.color = 'red';
-                        input.classList.add('is-invalid');
-                        input.classList.remove('is-valid');
+                // --- Validate Name ---
+                function validateName(input) {
+                    const vietnameseNamePattern = /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂẾưăạảấầẩẫậắằẳẵặẹẻẽềềểếỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s]+$/;
+                    const value = input.value.trim();
+                    const errorDiv = document.getElementById('nameError');
+                    if (value === '') {
+                        setInvalid(input, errorDiv, 'Tên không được để trống');
                         return false;
                     }
-                    if (value.length > 500) {
-                        descriptionError.textContent = 'Mô tả không được vượt quá 500 ký tự';
-                        descriptionError.style.color = 'red';
-                        input.classList.add('is-invalid');
-                        input.classList.remove('is-valid');
+                    if (value.length < 2) {
+                        setInvalid(input, errorDiv, 'Tên phải có ít nhất 2 ký tự');
                         return false;
                     }
-                    descriptionError.textContent = 'Mô tả hợp lệ';
-                    descriptionError.style.color = 'green';
-                    input.classList.remove('is-invalid');
-                    input.classList.add('is-valid');
+                    if (value.length > 200) {
+                        setInvalid(input, errorDiv, 'Tên không được vượt quá 200 ký tự');
+                        return false;
+                    }
+                    if (!vietnameseNamePattern.test(value)) {
+                        setInvalid(input, errorDiv, 'Tên chỉ được chứa chữ cái và khoảng trắng (cho phép tiếng Việt có dấu)');
+                        return false;
+                    }
+                    setValid(input, errorDiv, 'Tên hợp lệ');
                     return true;
                 }
 
+                // --- Validate Description ---
+                function validateDescription(input) {
+                    const errorDiv = document.getElementById('descriptionError');
+                    let value = input.value.trim();
+                    if (value.length < 20) {
+                        setInvalid(input, errorDiv, 'Mô tả phải có ít nhất 20 ký tự');
+                        return false;
+                    }
+                    if (value.length > 500) {
+                        setInvalid(input, errorDiv, 'Mô tả không được vượt quá 500 ký tự');
+                        return false;
+                    }
+                    setValid(input, errorDiv, 'Mô tả hợp lệ');
+                    return true;
+                }
+
+                // --- Validate Image (giữ nguyên logic, chỉ update class nếu có lỗi) ---
+                async function validateImageAsync(input) {
+                    return new Promise((resolve) => {
+                        const imageError = document.getElementById('imageError');
+                        const file = input.files[0];
+                        if (!file) {
+                            setDefault(input, imageError);
+                            resolve(true);
+                            return;
+                        }
+                        if (file.size > 2 * 1024 * 1024) {
+                            setInvalid(input, imageError, 'Không được upload ảnh quá 2MB.');
+                            resolve(false);
+                            return;
+                        }
+                        const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+                        if (!validTypes.includes(file.type)) {
+                            setInvalid(input, imageError, 'Chỉ chấp nhận file JPG, PNG hoặc GIF.');
+                            resolve(false);
+                            return;
+                        }
+                        const img = new Image();
+                        img.onload = function () {
+                            if (this.width < 200 || this.height < 200) {
+                                setInvalid(input, imageError, 'Kích thước ảnh phải tối thiểu 200x200px. Ảnh bạn chọn là ' + this.width + 'x' + this.height + 'px.');
+                                resolve(false);
+                                return;
+                            }
+                            setValid(input, imageError, '');
+                            previewImage(input);
+                            resolve(true);
+                        };
+                        img.onerror = () => {
+                            setInvalid(input, imageError, 'Ảnh không hợp lệ hoặc bị lỗi');
+                            resolve(false);
+                        };
+                        img.src = URL.createObjectURL(file);
+                    });
+                }
+
+                // --- Preview Image (giữ nguyên) ---
                 function previewImage(input) {
                     const preview = document.getElementById('imagePreview');
                     const previewImg = document.getElementById('previewImg');
@@ -217,252 +209,51 @@
                         const reader = new FileReader();
                         reader.onload = function (e) {
                             previewImg.src = e.target.result;
-                            preview.classList.remove('d-none');
+                            preview.classList.remove('hidden');
                         }
                         reader.readAsDataURL(input.files[0]);
                     } else {
-                        preview.classList.add('d-none');
+                        preview.classList.add('hidden');
                     }
                 }
 
+                // --- Show Image Modal (giữ nguyên) ---
                 function showImageModal(src) {
                     const modal = document.getElementById('imageModal');
                     const modalImg = document.getElementById('modalImg');
                     modal.style.display = 'flex';
                     modalImg.src = src;
                 }
-
-                // Close modal when clicking outside the image
                 document.getElementById('imageModal').onclick = function () {
                     this.style.display = 'none';
                 };
 
-                // Thêm hàm validateImageAsync
-                async function validateImageAsync(input) {
-                    return new Promise((resolve) => {
-                        const imageError = document.getElementById('imageError');
-                        const imageSizeHint = document.getElementById('imageSizeHint');
-                        const file = input.files[0];
+                // --- Real-time validate event binding ---
+                document.addEventListener('DOMContentLoaded', function () {
+                    const nameInput = document.getElementById('name');
+                    const descInput = document.getElementById('description');
+                    const imageInput = document.getElementById('image');
 
-                        if (!file) {
-                            // Nếu không có file mới, coi như hợp lệ
-                            resolve(true);
-                            return;
-                        }
-
-                        // Check file size
-                        if (file.size > 2 * 1024 * 1024) {
-                            imageError.textContent = 'Không được upload ảnh quá 2MB.';
-                            imageError.style.display = 'block';
-                            imageError.style.color = 'red';
-                            input.classList.add('is-invalid');
-                            resolve(false);
-                            return;
-                        }
-
-                        // Check file type
-                        const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
-                        if (!validTypes.includes(file.type)) {
-                            imageError.textContent = 'Chỉ chấp nhận file JPG, PNG hoặc GIF.';
-                            imageError.style.display = 'block';
-                            imageError.style.color = 'red';
-                            input.classList.add('is-invalid');
-                            resolve(false);
-                            return;
-                        }
-
-                        // Check image dimensions
-                        const img = new Image();
-                        img.onload = function () {
-                            if (this.width < 200 || this.height < 200) {
-                                imageError.textContent = 'Kích thước ảnh phải tối thiểu 200x200px. Ảnh bạn chọn là ' + this.width + 'x' + this.height + 'px.';
-                                imageError.style.display = 'block';
-                                imageError.style.color = 'red';
-                                input.classList.add('is-invalid');
-                                resolve(false);
-                                return;
-                            }
-                            // Nếu hợp lệ
-                            imageError.textContent = '';
-                            imageError.style.display = 'none';
-                            input.classList.remove('is-invalid');
-                            input.classList.add('is-valid');
-                            previewImage(input);
-                            resolve(true);
-                        };
-                        img.onerror = () => {
-                            imageError.textContent = 'Ảnh không hợp lệ hoặc bị lỗi';
-                            imageError.style.color = 'red';
-                            imageError.style.display = 'block';
-                            input.classList.add('is-invalid');
-                            resolve(false);
-                        };
-                        img.src = URL.createObjectURL(file);
+                    nameInput.addEventListener('input', function () {
+                        validateName(this);
                     });
-                }
-
-                function validateName(input) {
-                    const vietnameseNamePattern = /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂẾưăạảấầẩẫậắằẳẵặẹẻẽềềểếỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s]+$/;
-                    const value = input.value.trim();
-                    const errorDiv = document.getElementById('nameError');
-
-                    if (value === '') {
-                        input.classList.remove('is-valid');
-                        input.classList.add('is-invalid');
-                        errorDiv.textContent = 'Tên không được để trống';
-                        errorDiv.style.color = 'red';
-                        return false;
-                    }
-                    if (value.length < 2) {
-                        input.classList.remove('is-valid');
-                        input.classList.add('is-invalid');
-                        errorDiv.textContent = 'Tên phải có ít nhất 2 ký tự';
-                        errorDiv.style.color = 'red';
-                        return false;
-                    }
-                    if (value.length > 200) {
-                        input.classList.remove('is-valid');
-                        input.classList.add('is-invalid');
-                        errorDiv.textContent = 'Tên không được vượt quá 200 ký tự';
-                        errorDiv.style.color = 'red';
-                        return false;
-                    }
-                    if (!vietnameseNamePattern.test(value)) {
-                        input.classList.remove('is-valid');
-                        input.classList.add('is-invalid');
-                        errorDiv.textContent = 'Tên chỉ được chứa chữ cái và khoảng trắng (cho phép tiếng Việt có dấu)';
-                        errorDiv.style.color = 'red';
-                        return false;
-                    }
-                    if (!isNameDuplicateError) {
-                        input.classList.remove('is-invalid');
-                        input.classList.add('is-valid');
-                        errorDiv.textContent = 'Tên hợp lệ';
-                        errorDiv.style.color = 'green';
-                    }
-                    return true;
-                }
-
-                // Sửa lại form submit để đợi validate ảnh
-                $('form').on('submit', async function (e) {
-                    e.preventDefault();
-                    isSubmitting = true;
-                    clearTimeout(nameCheckTimeout);
-
-                    // Chuẩn hóa khoảng trắng
-                    let nameValue = $('#name').val();
-                    nameValue = nameValue.replace(/\s+/g, ' ').trim();
-                    $('#name').val(nameValue);
-
-                    // Validate các trường
-                    const nameValid = validateName(document.getElementById('name'));
-                    const descValid = validateDescription(document.getElementById('description'));
-                    const imageValid = await validateImageAsync(document.getElementById('image'));
-
-                    // Nếu các trường cơ bản hợp lệ, kiểm tra trùng tên (bắt buộc phải chờ AJAX)
-                    if (nameValid && descValid && imageValid) {
-                        checkNameDuplicate(nameValue, function (isDuplicate, msg) {
-                            if (isDuplicate) {
-                                isNameDuplicateError = true;
-                                $('#name').removeClass('is-valid').addClass('is-invalid');
-                                $('#nameError').text(msg || 'Tên này đã tồn tại trong hệ thống').css('color', 'red');
-                                isSubmitting = false;
-                                return;
-                            } else {
-                                isNameDuplicateError = false;
-                                isSubmitting = false;
-                                e.target.submit();
-                            }
-                        });
-                    } else {
-                        isSubmitting = false;
-                    }
-                });
-
-                $(document).ready(function () {
-                    const vietnameseNamePattern = /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂẾưăạảấầẩẫậắằẳẵặẹẻẽềềểếỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s]+$/;
-
-                    $('#name').on('input', function () {
-                        isNameDuplicateError = false;
-                        clearTimeout(nameCheckTimeout);
-                        let value = $(this).val();
-                        const errorDiv = $('#nameError');
-
-                        if (value === '') {
-                            setInvalid('Tên không được để trống');
-                            return;
-                        }
-                        if (value.length < 2) {
-                            setInvalid('Tên phải có ít nhất 2 ký tự');
-                            return;
-                        }
-                        if (value.length > 200) {
-                            setInvalid('Tên không được vượt quá 200 ký tự');
-                            return;
-                        }
-                        if (!vietnameseNamePattern.test(value)) {
-                            setInvalid('Tên chỉ được chứa chữ cái và khoảng trắng (cho phép tiếng Việt có dấu)');
-                            return;
-                        }
-
-                        if (!isNameDuplicateError) setValid('Tên hợp lệ');
-                        nameCheckTimeout = setTimeout(() => {
-                            checkNameDuplicate(value, function (isDuplicate, msg) {
-                                if (isSubmitting) return;
-                                if (isDuplicate) {
-                                    isNameDuplicateError = true;
-                                    setInvalid(msg || 'Tên này đã tồn tại trong hệ thống');
-                                } else {
-                                    isNameDuplicateError = false;
-                                    setValid('Tên hợp lệ');
-                                }
-                            });
-                        }, 400);
-
-                        function setInvalid(msg) {
-                            $('#name').removeClass('is-valid').addClass('is-invalid');
-                            errorDiv.text(msg).css('color', 'red');
-                        }
-
-                        function setValid(msg) {
-                            if (!isNameDuplicateError) {
-                                $('#name').removeClass('is-invalid').addClass('is-valid');
-                                errorDiv.text(msg).css('color', 'green');
-                            }
-                        }
+                    nameInput.addEventListener('blur', function () {
+                        this.value = this.value.replace(/\s+/g, ' ').trim();
+                        validateName(this);
                     });
-
-                    // Khi blur (rời khỏi input), chuẩn hóa khoảng trắng
-                    $('#name').on('blur', function () {
-                        let value = $(this).val();
-                        // Chuẩn hóa: xóa khoảng trắng đầu/cuối và chuyển nhiều khoảng trắng liên tiếp thành 1 khoảng trắng
-                        value = value.replace(/\s+/g, ' ').trim();
-                        $(this).val(value).trigger('input');
-                    });
-
-                    // Khi submit form, chuẩn hóa khoảng trắng
-                    $('#serviceTypeForm').on('submit', function (e) {
-                        let nameValue = $('#name').val();
-                        // Chuẩn hóa: xóa khoảng trắng đầu/cuối và chuyển nhiều khoảng trắng liên tiếp thành 1 khoảng trắng
-                        nameValue = nameValue.replace(/\s+/g, ' ').trim();
-                        $('#name').val(nameValue);
-                    });
-
-                    // Description
-                    $('#description').on('input', function () {
+                    descInput.addEventListener('input', function () {
                         validateDescription(this);
                     });
-                    $('#description').on('blur', function () {
+                    descInput.addEventListener('blur', function () {
                         this.value = this.value.replace(/\s+/g, ' ').trim();
                         validateDescription(this);
                     });
-
-                    // Image
-                    $('#image').on('change', async function () {
+                    imageInput.addEventListener('change', async function () {
                         await validateImageAsync(this);
                     });
                 });
 
+                // --- AJAX checkNameDuplicate giữ nguyên, chỉ gọi sau khi validateName ok ---
                 function checkNameDuplicate(name, callback) {
                     $.ajax({
                         url: contextPath + '/servicetype',
@@ -477,6 +268,28 @@
                         }
                     });
                 }
+
+                // --- Form submit giữ nguyên, chỉ validate lại class ---
+                $('form').on('submit', async function (e) {
+                    e.preventDefault();
+                    let nameValue = $('#name').val();
+                    nameValue = nameValue.replace(/\s+/g, ' ').trim();
+                    $('#name').val(nameValue);
+                    const nameValid = validateName(document.getElementById('name'));
+                    const descValid = validateDescription(document.getElementById('description'));
+                    const imageValid = await validateImageAsync(document.getElementById('image'));
+                    if (nameValid && descValid && imageValid) {
+                        checkNameDuplicate(nameValue, function (isDuplicate, msg) {
+                            if (isDuplicate) {
+                                setInvalid(document.getElementById('name'), document.getElementById('nameError'), msg || 'Tên này đã tồn tại trong hệ thống');
+                                return;
+                            } else {
+                                setValid(document.getElementById('name'), document.getElementById('nameError'), 'Tên hợp lệ');
+                                e.target.submit();
+                            }
+                        });
+                    }
+                });
 
                 var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
                 tooltipTriggerList.map(function (tooltipTriggerEl) {
