@@ -127,9 +127,15 @@
                                             </td>
                                             <td class="px-6 py-4 text-center">
                                                 <div class="flex items-center justify-center gap-2">
+                                                    <!-- Nút xem chi tiết -->
+                                                    <a href="service?service=view-detail&id=${service.serviceId}&page=${currentPage}&limit=${limit}" class="p-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-full" title="Xem chi tiết dịch vụ">
+                                                        <i data-lucide="eye" class="w-5 h-5"></i>
+                                                    </a>
+                                                    <!-- Nút chỉnh sửa dịch vụ -->
                                                     <a href="service?service=pre-update&id=${service.serviceId}&page=${currentPage}&limit=${limit}" class="p-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-full" title="Chỉnh sửa dịch vụ">
                                                         <i data-lucide="edit" class="w-5 h-5"></i>
                                                     </a>
+                                                    <!-- Nút quản lý hình ảnh -->
                                                     <a href="${pageContext.request.contextPath}/manager/service-images/single-upload?serviceId=${service.serviceId}" class="p-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 rounded-full" title="Quản lý hình ảnh">
                                                         <i data-lucide="image" class="w-5 h-5"></i>
                                                     </a>
