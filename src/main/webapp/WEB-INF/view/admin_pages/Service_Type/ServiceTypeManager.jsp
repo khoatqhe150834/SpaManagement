@@ -40,7 +40,7 @@
     <jsp:include page="/WEB-INF/view/common/header.jsp" />
     <div class="flex">
         <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
-        <main class="flex-1 py-12 lg:py-20">
+        <main class="flex-1 py-12 lg:py-20 ml-64">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <!-- Page Header -->
                 <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
@@ -135,7 +135,14 @@
                     <!-- Pagination -->
                     <div class="flex items-center justify-between flex-wrap gap-2 p-6">
                         <span>
-                            Hiển thị ${start} đến ${end} của ${totalEntries} mục
+                            <c:choose>
+                                <c:when test="${totalEntries == 0}">
+                                    Hiển thị 0 mục
+                                </c:when>
+                                <c:otherwise>
+                                    Hiển thị ${start} đến ${end} của ${totalEntries} mục
+                                </c:otherwise>
+                            </c:choose>
                         </span>
                         <ul class="inline-flex items-center -space-x-px text-sm">
                             <li>

@@ -41,7 +41,7 @@ prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <!-- Header -->
     <header
       id="header"
-      class="fixed top-0 left-0 w-full bg-white/95 backdrop-blur-sm border-b border-gray-200 z-50 transition-all duration-300"
+      class="fixed top-0 left-0 w-full bg-white/95 backdrop-blur-sm border-b border-gray-200 z-50 transition-all duration-300 pl-64"
     >
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center py-4">
