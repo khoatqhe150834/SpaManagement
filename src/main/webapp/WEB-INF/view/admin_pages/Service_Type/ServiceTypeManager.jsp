@@ -36,7 +36,6 @@
     <link rel="stylesheet" href="<c:url value='/css/style.css'/>" />
 </head>
 <body class="bg-spa-cream font-sans">
-    <c:set var="searchParams" value="&keyword=${keyword != null ? keyword : ''}&status=${status != null ? status : ''}"/>
     <jsp:include page="/WEB-INF/view/common/header.jsp" />
     <div class="flex">
         <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
