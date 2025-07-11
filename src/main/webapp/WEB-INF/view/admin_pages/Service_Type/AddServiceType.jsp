@@ -7,6 +7,8 @@
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Thêm Loại Dịch Vụ</title>
+            <!-- jQuery CDN -->
+            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
             <!-- Tailwind CSS -->
             <script src="https://cdn.tailwindcss.com"></script>
             <script>
@@ -235,11 +237,27 @@
                     const imageInput = document.getElementById('image');
 
                     nameInput.addEventListener('input', function () {
-                        validateName(this);
+                        if (validateName(this)) {
+                            checkNameDuplicate(this.value.trim(), function (isDuplicate, msg) {
+                                if (isDuplicate) {
+                                    setInvalid(nameInput, document.getElementById('nameError'), msg || 'Tên này đã tồn tại trong hệ thống');
+                                } else {
+                                    setValid(nameInput, document.getElementById('nameError'), 'Tên hợp lệ');
+                                }
+                            });
+                        }
                     });
                     nameInput.addEventListener('blur', function () {
                         this.value = this.value.replace(/\s+/g, ' ').trim();
-                        validateName(this);
+                        if (validateName(this)) {
+                            checkNameDuplicate(this.value.trim(), function (isDuplicate, msg) {
+                                if (isDuplicate) {
+                                    setInvalid(nameInput, document.getElementById('nameError'), msg || 'Tên này đã tồn tại trong hệ thống');
+                                } else {
+                                    setValid(nameInput, document.getElementById('nameError'), 'Tên hợp lệ');
+                                }
+                            });
+                        }
                     });
                     descInput.addEventListener('input', function () {
                         validateDescription(this);
@@ -256,7 +274,7 @@
                 // --- AJAX checkNameDuplicate giữ nguyên, chỉ gọi sau khi validateName ok ---
                 function checkNameDuplicate(name, callback) {
                     $.ajax({
-                        url: contextPath + '/servicetype',
+                        url: contextPath + '/manager/servicetype',
                         type: 'GET',
                         data: { service: 'check-duplicate-name', name: name },
                         dataType: 'json',
