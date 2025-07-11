@@ -32,20 +32,20 @@
     />
   </head>
   <body class="bg-spa-cream min-h-screen flex items-center justify-center">
-    <div class="text-center">
-      <h1 class="text-9xl font-bold text-primary">401</h1>
-      <h2 class="text-4xl font-serif text-spa-dark mt-4">
-        Yêu cầu xác thực
-      </h2>
-      <p class="text-gray-600 mt-2">
-        Rất tiếc, bạn cần phải đăng nhập để xem trang này.
-      </p>
-      <a
-        href="${pageContext.request.contextPath}/login"
-        class="mt-6 inline-block bg-primary text-white px-6 py-3 rounded-full hover:bg-primary-dark transition-colors"
-      >
-        Đi đến trang đăng nhập
-      </a>
-    </div>
+      <div class="text-center">
+        <h1 class="text-9xl font-bold text-primary">401</h1>
+        <h2 class="text-4xl font-serif text-spa-dark mt-4">
+          Yêu cầu xác thực
+        </h2>
+        <p class="text-gray-600 mt-2">
+          Rất tiếc, bạn cần phải đăng nhập để xem trang này.
+        </p>
+        <a
+          href="${pageContext.request.contextPath}/login"
+          class="mt-6 inline-block bg-primary text-white px-6 py-3 rounded-full hover:bg-primary-dark transition-colors"
+        >
+          Đi đến trang đăng nhập
+        </a>
+      </div>
   </body>
 </html> 
