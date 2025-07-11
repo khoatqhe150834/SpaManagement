@@ -94,6 +94,10 @@ public class ServiceController extends HttpServlet {
                 request.setAttribute("totalPages", totalPages);
                 request.setAttribute("totalEntries", totalRecords);
                 request.setAttribute("limit", limit);
+                int start = totalRecords == 0 ? 0 : offset + 1;
+                int end = Math.min(offset + services.size(), totalRecords);
+                request.setAttribute("start", start);
+                request.setAttribute("end", end);
                 break;
             }
             case "pre-insert": {
@@ -203,6 +207,10 @@ public class ServiceController extends HttpServlet {
                 request.setAttribute("totalPages", totalPages);
                 request.setAttribute("totalEntries", totalRecords);
                 request.setAttribute("limit", limit);
+                int start = totalRecords == 0 ? 0 : offset + 1;
+                int end = Math.min(offset + services.size(), totalRecords);
+                request.setAttribute("start", start);
+                request.setAttribute("end", end);
                 break;
             }
             case "view-detail": {
