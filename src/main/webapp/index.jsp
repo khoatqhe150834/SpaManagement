@@ -2,7 +2,20 @@
 --%> <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %> <%@ taglib
 prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %> <%@ page
 import="model.RoleConstants" %> <%@page contentType="text/html"
-pageEncoding="UTF-8"%> <% pageContext.setAttribute("showBookingFeatures", true);
+pageEncoding="UTF-8"%> 
+<%
+// Set showBookingFeatures based on user role
+boolean showBookingFeatures = true; // Default to show for guests
+
+if (session.getAttribute("authenticated") != null && (Boolean)session.getAttribute("authenticated")) {
+    if (session.getAttribute("customer") != null) {
+        showBookingFeatures = true; // Show for customers
+    } else if (session.getAttribute("user") != null) {
+        showBookingFeatures = false; // Hide for staff/admin roles
+    }
+}
+
+pageContext.setAttribute("showBookingFeatures", showBookingFeatures);
 %>
 
 <!DOCTYPE html>

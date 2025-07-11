@@ -55,8 +55,8 @@ prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
           <!-- Navigation -->
           <nav class="hidden md:flex space-x-8">
             <c:forEach var="item" items="${mainNavItems}">
-              <!-- Hide booking link for staff users -->
-              <c:if test="${showBookingFeatures or item.label != 'Đặt lịch'}">
+              <!-- Hide booking and services links for staff users -->
+              <c:if test="${showBookingFeatures or (item.label != 'Đặt lịch' and item.label != 'Dịch vụ')}">
               <a
                 href="${item.url}"
                 class="text-spa-dark hover:text-primary transition-colors font-medium <c:if test='${item.url.endsWith(currentPath)}'>border-b-2 border-primary</c:if>"
@@ -245,8 +245,8 @@ prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
         >
           <nav class="space-y-2">
             <c:forEach var="item" items="${mainNavItems}">
-              <!-- Hide booking link for staff users -->
-              <c:if test="${showBookingFeatures or item.label != 'Đặt lịch'}">
+              <!-- Hide booking and services links for staff users -->
+              <c:if test="${showBookingFeatures or (item.label != 'Đặt lịch' and item.label != 'Dịch vụ')}">
               <a href="${item.url}" class="block py-2 text-spa-dark hover:text-primary">${item.label}</a>
               </c:if>
             </c:forEach>
