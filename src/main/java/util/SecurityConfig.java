@@ -14,7 +14,7 @@ public class SecurityConfig {
   public static final Set<String> PUBLIC_URLS = new HashSet<>(Arrays.asList(
       "/login", "/register", "/logout", "/", "/index.jsp",
       "/verify-email", "/email-verification-required", "/resend-verification",
-      "/password/reset", "/password-reset-form", "/password/change-password",
+      "/password/reset", "/password-reset-form",
       "/about", "/contact", "/services", "/service-details", "/blog", "/password-reset/new", "/booking",
       "/password-reset/request", "/recently-viewed", "/most-purchased",
       "/password-reset/edit",

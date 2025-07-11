@@ -31,30 +31,21 @@
       rel="stylesheet"
     />
   </head>
-  <body class="bg-spa-cream min-h-screen flex flex-col">
-    <!-- Include Header -->
-    <jsp:include page="/WEB-INF/view/common/header.jsp" />
-
-    <!-- Main Content -->
-    <main class="flex-grow flex items-center justify-center">
-      <div class="text-center">
-        <h1 class="text-9xl font-bold text-primary">401</h1>
-        <h2 class="text-4xl font-serif text-spa-dark mt-4">
-          Yêu cầu xác thực
-        </h2>
-        <p class="text-gray-600 mt-2">
-          Rất tiếc, bạn cần phải đăng nhập để xem trang này.
-        </p>
-        <a
-          href="${pageContext.request.contextPath}/login"
-          class="mt-6 inline-block bg-primary text-white px-6 py-3 rounded-full hover:bg-primary-dark transition-colors"
-        >
-          Đi đến trang đăng nhập
-        </a>
-      </div>
-    </main>
-
-    <!-- Include Footer -->
-    <jsp:include page="/WEB-INF/view/common/footer.jsp" />
+  <body class="bg-spa-cream min-h-screen flex items-center justify-center">
+    <div class="text-center">
+      <h1 class="text-9xl font-bold text-primary">401</h1>
+      <h2 class="text-4xl font-serif text-spa-dark mt-4">
+        Yêu cầu xác thực
+      </h2>
+      <p class="text-gray-600 mt-2">
+        Rất tiếc, bạn cần phải đăng nhập để xem trang này.
+      </p>
+      <a
+        href="${pageContext.request.contextPath}/login"
+        class="mt-6 inline-block bg-primary text-white px-6 py-3 rounded-full hover:bg-primary-dark transition-colors"
+      >
+        Đi đến trang đăng nhập
+      </a>
+    </div>
   </body>
 </html> 

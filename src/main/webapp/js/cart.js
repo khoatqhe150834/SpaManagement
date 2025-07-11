@@ -289,20 +289,15 @@ function showLoading(show) {
     }
 }
 
-// Show notification
+// Show notification using global SpaApp system
 function showNotification(message, type = 'success') {
-    const notification = document.getElementById('notification');
-    if (!notification) return;
-
-    notification.textContent = message;
-    notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg text-white font-medium ${
-        type === 'success' ? 'bg-green-500' : 'bg-red-500'
-    }`;
-    notification.style.display = 'block';
-
-    setTimeout(() => {
-        notification.style.display = 'none';
-    }, 3000);
+    // Use the global SpaApp notification system for consistency
+    if (window.SpaApp && typeof window.SpaApp.showNotification === 'function') {
+        window.SpaApp.showNotification(message, type);
+    } else {
+        // Fallback to console if SpaApp is not available
+        console.log(`[Cart ${type.toUpperCase()}]: ${message}`);
+    }
 }
 
 // Open cart modal

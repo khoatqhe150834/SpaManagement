@@ -180,17 +180,34 @@ prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
                             <c:when test="${item.divider}">
                               <div class="border-t border-gray-200 my-1"></div>
                             </c:when>
-                            <c:otherwise>
+                            <%-- Skip section headers (items with null URL) and only show actual menu items --%>
+                            <c:when test="${not empty item.url and not empty item.label}">
                               <a href="${item.url}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
                                 <i data-lucide="${item.icon}" class="mr-3 h-4 w-4"></i>
                                 ${item.label}
                               </a>
-                            </c:otherwise>
+                            </c:when>
                           </c:choose>
                         </c:forEach>
+                        
+                        <!-- Logout button -->
+                        <div class="border-t border-gray-200 my-1"></div>
+                        <button onclick="confirmLogout()" class="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50" role="menuitem">
+                            <i data-lucide="log-out" class="mr-3 h-4 w-4"></i>
+                            Đăng xuất
+                        </button>
                       </div>
                     </div>
       </div>
+
+                <!-- Logout confirmation script -->
+                <script>
+                    function confirmLogout() {
+                        if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+                            window.location.href = '${pageContext.request.contextPath}/logout';
+                        }
+                    }
+                </script>
               </c:when>
               <c:otherwise>
                 <a
@@ -306,7 +323,8 @@ prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
                   </div>
                   
                   <c:forEach var="item" items="${userMenuItems}">
-                    <c:if test="${not item.divider}">
+                    <%-- Skip dividers and section headers (items with null URL) --%>
+                    <c:if test="${not item.divider and not empty item.url and not empty item.label}">
                       <a href="${item.url}" class="block py-2 text-spa-dark hover:text-primary">${item.label}</a>
                     </c:if>
                   </c:forEach>

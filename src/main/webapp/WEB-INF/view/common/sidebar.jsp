@@ -54,9 +54,10 @@
         }
     }
 
-    // Set default avatar if none is provided
+    // Set default avatar if none is provided for any user type (admin, manager, customer, etc.)
     if (avatarUrl == null || avatarUrl.trim().isEmpty()) {
-        avatarUrl = request.getContextPath() + "/assets/home/images/default-avatar.png";
+        // Default blank profile picture from Pixabay for all users without avatars
+        avatarUrl = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
     }
 
     // Generate role-based menu items using MenuService
@@ -77,7 +78,7 @@
     </a>
     
     <div class="mt-4">
-        <c:choose>
+            <c:choose>
             <%-- ============================ DYNAMIC ROLE-BASED NAVIGATION ============================ --%>
             <c:when test="${userRole != 'GUEST'}">
                 <div class="space-y-1">
@@ -103,8 +104,8 @@
                                 </c:if>
                                 <span class="text-primary/70 font-bold text-xs uppercase tracking-wider block mt-4">${sectionTitle}</span>
                                 <c:set var="currentSection" value="${sectionTitle}" />
-                            </c:when>
-                            
+                </c:when>
+
                             <%-- Regular Menu Item --%>
                             <c:otherwise>
                                 <div class="mb-1 group">
@@ -132,8 +133,8 @@
                                                         </c:choose>
                                                         rounded-full">${menuItem.notificationText}</span>
                                                 </c:if>
-                                                <i class="ri-arrow-right-s-line ml-auto group-[.selected]:rotate-90 transition-transform duration-200"></i>
-                                            </a>
+                            <i class="ri-arrow-right-s-line ml-auto group-[.selected]:rotate-90 transition-transform duration-200"></i>
+                        </a>
                                             <div class="pl-7 mt-2 hidden group-[.selected]:block list-none">
                                                 <c:forEach var="subItem" items="${subItems}">
                                                     <div class="mb-4">
@@ -143,8 +144,8 @@
                                                     </div>
                                                 </c:forEach>
                                             </div>
-                                        </c:when>
-                                        
+                </c:when>
+                
                                         <%-- Regular menu item --%>
                                         <c:otherwise>
                                             <a href="${menuItem.url}" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
@@ -191,8 +192,31 @@
             </c:otherwise>
         </c:choose>
 
-        <!-- Common Personal Section for Logged-in Users -->
+        <!-- Account Management Section for All Roles -->
         <c:if test="${userRole != 'GUEST'}">
+            <span class="text-primary/70 font-bold text-xs uppercase tracking-wider mt-6 block">TÀI KHOẢN</span>
+            <div class="mt-2">
+                <div class="mb-1 group">
+                    <a href="${pageContext.request.contextPath}/account/profile" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
+                        <i data-lucide="user-circle" class="mr-3 h-4 w-4"></i>                
+                        <span class="text-sm">Thông tin cá nhân</span>
+                    </a>
+                </div>
+                <div class="mb-1 group">
+                    <a href="${pageContext.request.contextPath}/password/change" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
+                        <i data-lucide="key" class="mr-3 h-4 w-4"></i>                
+                        <span class="text-sm">Đổi mật khẩu</span>
+                    </a>
+                </div>
+                <div class="mb-1 group">
+                    <a href="${pageContext.request.contextPath}/account/security" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
+                        <i data-lucide="shield-check" class="mr-3 h-4 w-4"></i>                
+                        <span class="text-sm">Bảo mật</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Common Personal Section for Logged-in Users -->
             <span class="text-primary/70 font-bold text-xs uppercase tracking-wider mt-6 block">CÁ NHÂN</span>
             <div class="mt-2">
                 <div class="mb-1 group">
@@ -230,8 +254,8 @@
                 </div>
             </div>
         </c:if>
-    </div>
-</div>
+                </div>
+            </div>
 
 <!-- Mobile overlay -->
 <div class="fixed top-0 left-0 w-full h-full bg-black/50 z-40 md:hidden sidebar-overlay"></div>
@@ -258,8 +282,8 @@
         
         // Initialize Lucide icons for sidebar
         if (typeof lucide !== 'undefined') {
-            lucide.createIcons();
-        }
+                    lucide.createIcons();
+                }
 
         // Enhanced active link detection based on current URL
         const currentPath = window.location.pathname;
@@ -267,7 +291,7 @@
         
         // Clear previous active states
         function clearActiveStates() {
-            document.querySelectorAll('.sidebar-menu a').forEach(function(link) {
+        document.querySelectorAll('.sidebar-menu a').forEach(function(link) {
                 link.classList.remove('bg-primary', 'text-white');
                 link.classList.add('text-spa-dark');
                 link.closest('.group')?.classList.remove('active');
@@ -304,14 +328,14 @@
                     this.classList.remove('text-spa-dark');
                     this.classList.add('bg-primary', 'text-white');
                     this.closest('.group')?.classList.add('active');
-                }
+            }
             });
         });
     });
 
     // Logout confirmation function
     function confirmLogout() {
-        if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+                    if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
             window.location.href = '${pageContext.request.contextPath}/logout';
         }
     }
@@ -324,7 +348,7 @@
         if (sidebarMenu.classList.contains('-translate-x-full')) {
             sidebarMenu.classList.remove('-translate-x-full');
             sidebarOverlay.classList.remove('hidden');
-        } else {
+                } else {
             sidebarMenu.classList.add('-translate-x-full');
             sidebarOverlay.classList.add('hidden');
         }
