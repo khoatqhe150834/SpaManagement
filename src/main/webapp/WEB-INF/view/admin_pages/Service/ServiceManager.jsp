@@ -45,11 +45,21 @@
                 <!-- Page Header -->
                 <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
                     <h1 class="text-3xl font-serif text-spa-dark font-bold">Danh Sách Dịch Vụ</h1>
-                    <a href="service?service=pre-insert&page=${currentPage}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}${not empty serviceTypeId ? '&serviceTypeId='.concat(serviceTypeId) : ''}"
-                        class="inline-flex items-center gap-2 h-10 px-4 bg-primary text-white font-semibold rounded-lg hover:bg-primary-dark transition-colors">
-                        <i data-lucide="plus" class="w-5 h-5"></i>
-                        <span>Thêm Dịch Vụ Mới</span>
-                    </a>
+                    <div class="flex gap-2">
+                        <a href="${pageContext.request.contextPath}/manager/service-images/manage" class="inline-flex items-center gap-2 h-10 px-4 bg-blue-100 text-blue-800 font-semibold rounded-lg hover:bg-blue-200 transition-colors" title="Quản Lý Ảnh Dịch Vụ">
+                            <i data-lucide="gallery-horizontal" class="w-5 h-5"></i>
+                            <span class="hidden sm:inline">Quản Lý Ảnh</span>
+                        </a>
+                        <a href="${pageContext.request.contextPath}/manager/service-images/batch-upload" class="inline-flex items-center gap-2 h-10 px-4 bg-purple-100 text-purple-800 font-semibold rounded-lg hover:bg-purple-200 transition-colors" title="Batch Upload Ảnh">
+                            <i data-lucide="cloud-upload" class="w-5 h-5"></i>
+                            <span class="hidden sm:inline">Batch Upload Ảnh</span>
+                        </a>
+                        <a href="service?service=pre-insert&page=${currentPage}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}${not empty serviceTypeId ? '&serviceTypeId='.concat(serviceTypeId) : ''}"
+                            class="inline-flex items-center gap-2 h-10 px-4 bg-primary text-white font-semibold rounded-lg hover:bg-primary-dark transition-colors">
+                            <i data-lucide="plus" class="w-5 h-5"></i>
+                            <span>Thêm Dịch Vụ Mới</span>
+                        </a>
+                    </div>
                 </div>
                 <!-- Card -->
                 <div class="bg-white rounded-2xl shadow-lg">
