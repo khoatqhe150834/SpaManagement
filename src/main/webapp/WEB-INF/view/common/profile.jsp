@@ -22,7 +22,7 @@
         <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
         <jsp:include page="/WEB-INF/view/common/admin/header.jsp" />
             
-        <div class="dashboard-main-body">
+        <div class="dashboard-main-body ml-64">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
                 <h6 class="fw-semibold mb-0">Thông Tin Cá Nhân</h6>
                 <ul class="d-flex align-items-center gap-2">

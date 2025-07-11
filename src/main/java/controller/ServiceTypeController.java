@@ -59,11 +59,16 @@ public class ServiceTypeController extends HttpServlet {
                 int totalRecords = dao.countAll();
                 int totalPages = (int) Math.ceil((double) totalRecords / limit);
 
+                int start = totalRecords == 0 ? 0 : offset + 1;
+                int end = Math.min(offset + serviceTypes.size(), totalRecords);
+
                 request.setAttribute("limit", limit);
                 request.setAttribute("serviceTypes", serviceTypes);
                 request.setAttribute("currentPage", page);
                 request.setAttribute("totalPages", totalPages);
                 request.setAttribute("totalEntries", totalRecords);
+                request.setAttribute("start", start);
+                request.setAttribute("end", end);
 
                 request.getRequestDispatcher(SERVICE_TYPE_URL).forward(request, response);
                 break;
@@ -123,6 +128,9 @@ public class ServiceTypeController extends HttpServlet {
                 int totalRecords = dao.countSearchResult(keyword, status);
                 int totalPages = (int) Math.ceil((double) totalRecords / limit);
 
+                int start = totalRecords == 0 ? 0 : offset + 1;
+                int end = Math.min(offset + serviceTypes.size(), totalRecords);
+
                 request.setAttribute("keyword", keyword);
                 request.setAttribute("status", status);
                 request.setAttribute("serviceTypes", serviceTypes);
@@ -130,6 +138,8 @@ public class ServiceTypeController extends HttpServlet {
                 request.setAttribute("currentPage", page);
                 request.setAttribute("totalPages", totalPages);
                 request.setAttribute("totalEntries", totalRecords);
+                request.setAttribute("start", start);
+                request.setAttribute("end", end);
 
                 request.getRequestDispatcher(SERVICE_TYPE_URL).forward(request, response);
                 break;
