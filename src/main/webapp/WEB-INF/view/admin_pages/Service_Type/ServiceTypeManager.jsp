@@ -154,17 +154,26 @@
                                     </c:otherwise>
                                 </c:choose>
                             </li>
+                            <c:set var="lastPage" value="0" />
                             <c:forEach var="i" begin="1" end="${totalPages}">
-                                <li>
-                                    <c:choose>
-                                        <c:when test="${i == currentPage}">
-                                            <span class="px-3 py-2 leading-tight text-white bg-primary border border-gray-300">${i}</span>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <a class="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700" href="servicetype?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${i}&limit=${limit}${searchParams}">${i}</a>
-                                        </c:otherwise>
-                                    </c:choose>
-                                </li>
+                                <c:choose>
+                                    <c:when test="${i == 1 || i == 2 || i == totalPages || i == totalPages-1 || (i >= currentPage-1 && i <= currentPage+1)}">
+                                        <c:if test="${lastPage + 1 != i}">
+                                            <li><span class="px-3 py-2 leading-tight text-gray-400 bg-white border border-gray-300">...</span></li>
+                                        </c:if>
+                                        <li>
+                                            <c:choose>
+                                                <c:when test="${i == currentPage}">
+                                                    <span class="px-3 py-2 leading-tight text-white bg-primary border border-gray-300">${i}</span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <a class="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700" href="servicetype?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${i}&limit=${limit}${searchParams}">${i}</a>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </li>
+                                        <c:set var="lastPage" value="${i}" />
+                                    </c:when>
+                                </c:choose>
                             </c:forEach>
                             <li>
                                 <c:choose>
