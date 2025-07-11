@@ -119,8 +119,8 @@
                                                             </a>
                                                         </c:when>
                                                         <c:otherwise>
-                                                            <a href="servicetype?service=activateById&id=${stype.serviceTypeId}&page=${currentPage}&limit=${limit}${searchParams}" class="p-2 text-gray-500 rounded-full hover:bg-gray-100 hover:text-green-600" title="Kích hoạt lại loại dịch vụ" onclick="return confirmAction('Bạn có chắc chắn muốn kích hoạt lại loại dịch vụ này?')">
-                                                                <i data-lucide="user-check" class="w-5 h-5"></i>
+                                                            <a href="servicetype?service=activateById&id=${stype.serviceTypeId}&page=${currentPage}&limit=${limit}${searchParams}" class="p-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-full hover:text-green-800 transition-colors" title="Kích hoạt lại loại dịch vụ" onclick="return confirmAction('Bạn có chắc chắn muốn kích hoạt lại loại dịch vụ này?')">
+                                                                <i data-lucide="refresh-ccw" class="w-5 h-5"></i>
                                                             </a>
                                                         </c:otherwise>
                                                     </c:choose>
