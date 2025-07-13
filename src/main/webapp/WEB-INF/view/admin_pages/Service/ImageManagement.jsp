@@ -111,9 +111,9 @@
                                             <img src="${pageContext.request.contextPath}${image.url}" alt="${image.altText}" class="w-full h-36 object-cover cursor-pointer" onclick="viewImageFullSize('${pageContext.request.contextPath}${image.url}')">
                                             <div class="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition">
                                                 <c:if test="${!image.isPrimary}">
-                                                    <button type="button" class="bg-green-500 hover:bg-green-600 text-white rounded-full p-1" onclick="setPrimaryImage(${image.imageId}, ${service.serviceId})" title="Đặt làm chính"><i data-lucide="star" class="w-4 h-4"></i></button>
+                                                    <button type="button" class="bg-green-500 hover:bg-green-600 text-white rounded-full p-1" onclick="setPrimaryImage('${image.imageId}', '${service.serviceId}')" title="Đặt làm chính"><i data-lucide="star" class="w-4 h-4"></i></button>
                                                 </c:if>
-                                                <button type="button" class="bg-red-500 hover:bg-red-600 text-white rounded-full p-1" onclick="deleteImage(${image.imageId})" title="Xóa ảnh"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                                <button type="button" class="bg-red-500 hover:bg-red-600 text-white rounded-full p-1" onclick="deleteImage('${image.imageId}')" title="Xóa ảnh"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                                             </div>
                                             <div class="px-2 py-1 text-xs text-gray-500 flex justify-between">
                                                 <span><c:if test="${image.fileSize != null}"><fmt:formatNumber value="${image.fileSize / 1024}" maxFractionDigits="1" />KB</c:if></span>
@@ -221,7 +221,7 @@
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: `imageId=${imageId}&serviceId=${serviceId}`
+            body: `imageId=${encodeURIComponent(imageId)}&serviceId=${encodeURIComponent(serviceId)}`
         })
         .then(response => response.json())
         .then(data => {
@@ -248,7 +248,7 @@
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: `imageId=${imageId}`
+            body: `imageId=${encodeURIComponent(imageId)}`
         })
         .then(response => response.json())
         .then(data => {

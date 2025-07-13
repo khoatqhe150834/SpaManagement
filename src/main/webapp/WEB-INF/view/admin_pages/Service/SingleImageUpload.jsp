@@ -33,6 +33,8 @@
 
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <!-- Iconify Icons -->
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 
     <!-- Site-wide custom CSS -->
     <link rel="stylesheet" href="<c:url value='/css/style.css'/>" />
