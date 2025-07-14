@@ -4,10 +4,15 @@
  */
 package dao;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import model.Role;
 
+import model.Role;
 
 
 /**
@@ -28,7 +33,23 @@ public class RoleDAO implements BaseDAO<Role, Integer>{
 
     @Override
     public List<Role> findAll() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        List<Role> roles = new ArrayList<>();
+        String sql = "SELECT role_id, name, display_name, description FROM roles";
+        try (Connection conn = db.DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Role role = new Role();
+                role.setRoleId(rs.getInt("role_id"));
+                role.setName(rs.getString("name"));
+                role.setDisplayName(rs.getString("display_name"));
+                role.setDescription(rs.getString("description"));
+                roles.add(role);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roles;
     }
 
     @Override
