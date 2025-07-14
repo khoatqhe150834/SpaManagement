@@ -479,6 +479,7 @@ uri="http://java.sun.com/jsp/jstl/functions" %>
 
     <!-- JavaScript -->
     <script src="<c:url value='/js/app.js'/>"></script>
+    <script src="<c:url value='/js/cart.js'/>"></script>
 
     <script src="<c:url value='/js/service-tracker.js'/>"></script>
     <script src="<c:url value='/js/recently-viewed-services.js'/>"></script>

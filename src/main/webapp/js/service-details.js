@@ -29,14 +29,19 @@ class ServiceDetailsManager {
     }
 
     setup() {
+        console.log('[SERVICE_DETAILS] Setup called, checking for data...');
+        console.log('[SERVICE_DETAILS] window.serviceDetailsData:', window.serviceDetailsData);
+
         // Check if we have data from JSP (enhanced mode)
         if (window.serviceDetailsData) {
             this.serviceData = window.serviceDetailsData.serviceData;
             this.serviceImages = window.serviceDetailsData.serviceImages;
             console.log('[SERVICE_DETAILS] Using JSP data:', this.serviceData, this.serviceImages);
+            console.log('[SERVICE_DETAILS] Service images count:', this.serviceImages ? this.serviceImages.length : 0);
 
             this.setupEnhancedMode();
         } else {
+            console.log('[SERVICE_DETAILS] No JSP data found, falling back to API mode');
             // Fallback to API mode
             this.serviceId = this.getServiceIdFromUrl();
 
@@ -58,6 +63,11 @@ class ServiceDetailsManager {
         this.initializeImageCarousel();
         this.loadRelatedServices();
         this.setupImageErrorHandling();
+
+        // Initialize Lucide icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
     }
 
     getServiceIdFromUrl() {
@@ -277,24 +287,50 @@ class ServiceDetailsManager {
     }
 
     setupEventListeners() {
+        console.log('[SERVICE_DETAILS] Setting up event listeners...');
+
         // Image navigation
         const prevBtn = document.getElementById('prev-btn');
         const nextBtn = document.getElementById('next-btn');
-        if (prevBtn) prevBtn.addEventListener('click', () => this.prevImage());
-        if (nextBtn) nextBtn.addEventListener('click', () => this.nextImage());
+        console.log('[SERVICE_DETAILS] Navigation buttons found:', { prevBtn: !!prevBtn, nextBtn: !!nextBtn });
+
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                console.log('[SERVICE_DETAILS] Previous button clicked');
+                this.prevImage();
+            });
+        }
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                console.log('[SERVICE_DETAILS] Next button clicked');
+                this.nextImage();
+            });
+        }
 
         // Thumbnail clicks
-        document.querySelectorAll('.thumbnail-item').forEach((thumb, index) => {
-            thumb.addEventListener('click', () => this.goToImage(index));
+        const thumbnails = document.querySelectorAll('.thumbnail-item');
+        console.log('[SERVICE_DETAILS] Thumbnails found:', thumbnails.length);
+
+        thumbnails.forEach((thumb, index) => {
+            thumb.addEventListener('click', () => {
+                console.log('[SERVICE_DETAILS] Thumbnail clicked:', index);
+                this.goToImage(index);
+            });
         });
 
         // Main image click for zoom
         const mainImage = document.getElementById('main-service-image');
+        console.log('[SERVICE_DETAILS] Main image found:', !!mainImage);
+
         if (mainImage) {
             mainImage.addEventListener('click', () => {
+                console.log('[SERVICE_DETAILS] Main image clicked for zoom');
                 const currentImage = this.serviceImages[this.currentImageIndex];
                 if (currentImage) {
+                    console.log('[SERVICE_DETAILS] Opening zoom for image:', currentImage.url);
                     this.openImageZoom(currentImage.url, currentImage.altText);
+                } else {
+                    console.warn('[SERVICE_DETAILS] No current image found for zoom');
                 }
             });
         }
@@ -328,7 +364,8 @@ class ServiceDetailsManager {
         console.log('[ServiceDetails] Event listeners setup complete');
     }
 
-    addToCart() {
+    // Legacy addToCart method for API-based loading
+    addToCartLegacy() {
         if (!this.service) return;
 
         const serviceData = {
@@ -548,88 +585,7 @@ class ServiceDetailsManager {
         }
     }
 
-    // Cart Management Functions
-    addToCart(serviceId) {
-        console.log('[CART] addToCart function called with serviceId:', serviceId);
-        console.log('[CART] Current timestamp:', new Date().toISOString());
 
-        // Prevent multiple simultaneous calls
-        if (this.isAddingToCart) {
-            console.warn('[CART] Already adding to cart, ignoring duplicate call');
-            return;
-        }
-
-        const button = document.getElementById('add-to-cart-btn');
-        if (!button) {
-            console.error('[CART] Add to cart button not found');
-            return;
-        }
-
-        // Check if button is already disabled
-        if (button.disabled) {
-            console.warn('[CART] Button is disabled, ignoring click');
-            return;
-        }
-
-        console.log('[CART] Button state before processing:', {
-            disabled: button.disabled,
-            innerHTML: button.innerHTML.substring(0, 50) + '...'
-        });
-
-        // Set debounce flag and button state
-        this.isAddingToCart = true;
-        const originalText = button.innerHTML;
-
-        // Show loading state
-        button.innerHTML = '<i data-lucide="loader-2" class="h-5 w-5 mr-2 animate-spin"></i>Đang thêm...';
-        button.disabled = true;
-
-        console.log('[CART] Button updated to loading state');
-
-        // Simulate API call (replace with actual cart API)
-        fetch('/spa/api/cart/add', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                serviceId: serviceId,
-                quantity: 1
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Show success state
-                button.innerHTML = '<i data-lucide="check" class="h-5 w-5 mr-2"></i>Đã thêm vào giỏ';
-                button.classList.remove('bg-primary', 'hover:bg-primary-dark');
-                button.classList.add('bg-green-500', 'hover:bg-green-600');
-
-                // Show notification
-                this.showNotification('Đã thêm dịch vụ vào giỏ hàng!', 'success');
-
-                // Reset button after 2 seconds
-                setTimeout(() => {
-                    button.innerHTML = originalText;
-                    button.classList.remove('bg-green-500', 'hover:bg-green-600');
-                    button.classList.add('bg-primary', 'hover:bg-primary-dark');
-                    button.disabled = false;
-                    this.isAddingToCart = false;
-                    if (typeof lucide !== 'undefined') lucide.createIcons();
-                }, 2000);
-            } else {
-                throw new Error(data.message || 'Không thể thêm vào giỏ hàng');
-            }
-        })
-        .catch(error => {
-            console.error('Cart error:', error);
-            button.innerHTML = originalText;
-            button.disabled = false;
-            this.isAddingToCart = false;
-            this.showNotification('Lỗi: ' + error.message, 'error');
-            if (typeof lucide !== 'undefined') lucide.createIcons();
-        });
-    }
 
     // Wishlist Management Functions
     addToWishlist(serviceId) {
@@ -865,23 +821,35 @@ class ServiceDetailsManager {
 
     // Image carousel methods
     prevImage() {
+        console.log('[IMAGE_CAROUSEL] prevImage called, current index:', this.currentImageIndex);
         if (this.currentImageIndex > 0) {
             this.currentImageIndex--;
+            console.log('[IMAGE_CAROUSEL] Moving to previous image, new index:', this.currentImageIndex);
             this.updateMainImage();
+        } else {
+            console.log('[IMAGE_CAROUSEL] Already at first image');
         }
     }
 
     nextImage() {
+        console.log('[IMAGE_CAROUSEL] nextImage called, current index:', this.currentImageIndex);
         if (this.currentImageIndex < this.serviceImages.length - 1) {
             this.currentImageIndex++;
+            console.log('[IMAGE_CAROUSEL] Moving to next image, new index:', this.currentImageIndex);
             this.updateMainImage();
+        } else {
+            console.log('[IMAGE_CAROUSEL] Already at last image');
         }
     }
 
     goToImage(index) {
+        console.log('[IMAGE_CAROUSEL] goToImage called with index:', index);
         if (index >= 0 && index < this.serviceImages.length) {
             this.currentImageIndex = index;
+            console.log('[IMAGE_CAROUSEL] Moving to image index:', this.currentImageIndex);
             this.updateMainImage();
+        } else {
+            console.log('[IMAGE_CAROUSEL] Invalid image index:', index);
         }
     }
 
@@ -920,6 +888,8 @@ class ServiceDetailsManager {
 
     // Image zoom functions
     openImageZoom(imageUrl, altText) {
+        console.log('[IMAGE_ZOOM] Opening zoom modal for image:', imageUrl);
+
         const modal = document.getElementById('image-zoom-modal');
         const zoomImage = document.getElementById('zoom-image');
         const zoomCounter = document.getElementById('zoom-counter');
@@ -927,6 +897,16 @@ class ServiceDetailsManager {
         const zoomTotal = document.getElementById('zoom-total');
         const zoomPrevBtn = document.getElementById('zoom-prev-btn');
         const zoomNextBtn = document.getElementById('zoom-next-btn');
+
+        console.log('[IMAGE_ZOOM] Modal elements found:', {
+            modal: !!modal,
+            zoomImage: !!zoomImage,
+            zoomCounter: !!zoomCounter,
+            zoomCurrent: !!zoomCurrent,
+            zoomTotal: !!zoomTotal,
+            zoomPrevBtn: !!zoomPrevBtn,
+            zoomNextBtn: !!zoomNextBtn
+        });
 
         // Find the index of the clicked image
         this.zoomImageIndex = this.serviceImages.findIndex(img => img.url === imageUrl);
@@ -999,6 +979,38 @@ class ServiceDetailsManager {
         }
     }
 
+    // Get service image URL with fallback
+    getServiceImageUrl() {
+        // For enhanced mode, use the first image from serviceImages array
+        if (this.serviceImages && this.serviceImages.length > 0) {
+            const primaryImage = this.serviceImages.find(img => img.isPrimary) || this.serviceImages[0];
+            if (primaryImage && primaryImage.url && primaryImage.url.trim() !== '') {
+                console.log('🖼️ Using service image from serviceImages:', primaryImage.url);
+                return primaryImage.url;
+            }
+        }
+
+        // For legacy mode, use the service object
+        if (this.service && this.service.imageUrl && this.service.imageUrl.trim() !== '' && this.service.imageUrl !== '/services/default.jpg') {
+            // Ensure the URL has proper context path
+            let imageUrl = this.service.imageUrl;
+
+            // Only add context path if the URL starts with / and doesn't already include context path
+            if (imageUrl.startsWith('/') && !imageUrl.startsWith(this.contextPath)) {
+                imageUrl = `${this.contextPath}${imageUrl}`;
+            }
+
+            console.log('🖼️ Using database image for service:', this.service.serviceId, '→', imageUrl);
+            return imageUrl;
+        }
+
+        // Fallback to placehold.co placeholder with service name
+        const serviceName = (this.serviceData && this.serviceData.name) || (this.service && this.service.name) || 'Service';
+        const placeholderUrl = `https://placehold.co/800x600/FFB6C1/333333?text=${encodeURIComponent(serviceName)}`;
+        console.log('🖼️ Using placeholder image for service:', placeholderUrl);
+        return placeholderUrl;
+    }
+
     // Utility methods
     formatCurrency(amount) {
         try {
@@ -1058,11 +1070,6 @@ class ServiceDetailsManager {
             return;
         }
 
-        console.log('[CART] Button state before processing:', {
-            disabled: button.disabled,
-            innerHTML: button.innerHTML.substring(0, 50) + '...'
-        });
-
         // Set debounce flag and button state
         this.isAddingToCart = true;
         const originalText = button.innerHTML;
@@ -1071,29 +1078,26 @@ class ServiceDetailsManager {
         button.innerHTML = '<i data-lucide="loader-2" class="h-5 w-5 mr-2 animate-spin"></i>Đang thêm...';
         button.disabled = true;
 
-        console.log('[CART] Button updated to loading state');
+        // Prepare service data with proper image URL
+        const serviceData = {
+            serviceId: parseInt(serviceId),
+            serviceName: this.serviceData ? this.serviceData.name : 'Service',
+            serviceImage: this.getServiceImageUrl(),
+            servicePrice: this.serviceData ? this.serviceData.price : 0,
+            serviceDuration: 60 // Default duration
+        };
 
-        // Simulate API call (replace with actual cart API)
-        fetch('/spa/api/cart/add', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                serviceId: serviceId,
-                quantity: 1
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
+        console.log('[CART] Service data prepared:', serviceData);
+
+        // Use the global cart function instead of API call
+        if (typeof window.addToCart === 'function') {
+            try {
+                window.addToCart(serviceData);
+
                 // Show success state
                 button.innerHTML = '<i data-lucide="check" class="h-5 w-5 mr-2"></i>Đã thêm vào giỏ';
                 button.classList.remove('bg-primary', 'hover:bg-primary-dark');
                 button.classList.add('bg-green-500', 'hover:bg-green-600');
-
-                // Show notification
-                this.showNotification('Đã thêm dịch vụ vào giỏ hàng!', 'success');
 
                 // Reset button after 2 seconds
                 setTimeout(() => {
@@ -1104,18 +1108,23 @@ class ServiceDetailsManager {
                     this.isAddingToCart = false;
                     if (typeof lucide !== 'undefined') lucide.createIcons();
                 }, 2000);
-            } else {
-                throw new Error(data.message || 'Không thể thêm vào giỏ hàng');
+
+            } catch (error) {
+                console.error('Cart error:', error);
+                button.innerHTML = originalText;
+                button.disabled = false;
+                this.isAddingToCart = false;
+                this.showNotification('Lỗi: ' + error.message, 'error');
+                if (typeof lucide !== 'undefined') lucide.createIcons();
             }
-        })
-        .catch(error => {
-            console.error('Cart error:', error);
+        } else {
+            console.error('Global addToCart function not found!');
             button.innerHTML = originalText;
             button.disabled = false;
             this.isAddingToCart = false;
-            this.showNotification('Lỗi: ' + error.message, 'error');
+            this.showNotification('Không thể thêm vào giỏ hàng. Vui lòng thử lại.', 'error');
             if (typeof lucide !== 'undefined') lucide.createIcons();
-        });
+        }
     }
 
     addToWishlist(serviceId) {
