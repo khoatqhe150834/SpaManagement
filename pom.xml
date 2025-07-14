@@ -113,6 +113,13 @@
             <version>${jakarta.mail.version}</version>
         </dependency>
 
+        <!-- Cloudinary for image upload -->
+        <dependency>
+            <groupId>com.cloudinary</groupId>
+            <artifactId>cloudinary-http45</artifactId>
+            <version>1.39.0</version>
+        </dependency>
+
         <!-- Angus Mail Implementation -->
         <dependency>
             <groupId>org.eclipse.angus</groupId>

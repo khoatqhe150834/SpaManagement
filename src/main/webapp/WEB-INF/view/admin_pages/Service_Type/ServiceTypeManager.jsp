@@ -39,12 +39,12 @@
     <jsp:include page="/WEB-INF/view/common/header.jsp" />
     <div class="flex">
         <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
-        <main class="flex-1 py-12 lg:py-20">
+        <main class="flex-1 py-12 lg:py-20 ml-64">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <!-- Page Header -->
                 <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
                     <h1 class="text-3xl font-serif text-spa-dark font-bold">Danh Sách Loại Dịch Vụ</h1>
-                    <a href="servicetype?service=pre-insert&page=${currentPage}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}"
+                    <a href="servicetype?service=pre-insert&page=${currentPage}&limit=${limit}${searchParams}"
                         class="inline-flex items-center gap-2 h-10 px-4 bg-primary text-white font-semibold rounded-lg hover:bg-primary-dark transition-colors">
                         <i data-lucide="plus" class="w-5 h-5"></i>
                         <span>Thêm Loại Dịch Vụ Mới</span>
@@ -67,6 +67,7 @@
                                 <option value="inactive" ${status=='inactive' ? 'selected' : '' }>Inactive</option>
                             </select>
                             <input type="hidden" name="service" value="searchByKeywordAndStatus">
+                            <input type="hidden" name="page" value="${currentPage}">
                             <button type="submit" class="h-10 px-4 bg-primary text-white font-semibold rounded-lg hover:bg-primary-dark transition-colors">Tìm kiếm</button>
                         </form>
                     </div>
@@ -117,8 +118,8 @@
                                                             </a>
                                                         </c:when>
                                                         <c:otherwise>
-                                                            <a href="servicetype?service=activateById&id=${stype.serviceTypeId}&page=${currentPage}&limit=${limit}${searchParams}" class="p-2 text-gray-500 rounded-full hover:bg-gray-100 hover:text-green-600" title="Kích hoạt lại loại dịch vụ" onclick="return confirmAction('Bạn có chắc chắn muốn kích hoạt lại loại dịch vụ này?')">
-                                                                <i data-lucide="user-check" class="w-5 h-5"></i>
+                                                            <a href="servicetype?service=activateById&id=${stype.serviceTypeId}&page=${currentPage}&limit=${limit}${searchParams}" class="p-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-full hover:text-green-800 transition-colors" title="Kích hoạt lại loại dịch vụ" onclick="return confirmAction('Bạn có chắc chắn muốn kích hoạt lại loại dịch vụ này?')">
+                                                                <i data-lucide="refresh-ccw" class="w-5 h-5"></i>
                                                             </a>
                                                         </c:otherwise>
                                                     </c:choose>
@@ -133,7 +134,14 @@
                     <!-- Pagination -->
                     <div class="flex items-center justify-between flex-wrap gap-2 p-6">
                         <span>
-                            Hiển thị ${start} đến ${end} của ${totalEntries} mục
+                            <c:choose>
+                                <c:when test="${totalEntries == 0}">
+                                    Hiển thị 0 mục
+                                </c:when>
+                                <c:otherwise>
+                                    Hiển thị ${start} đến ${end} của ${totalEntries} mục
+                                </c:otherwise>
+                            </c:choose>
                         </span>
                         <ul class="inline-flex items-center -space-x-px text-sm">
                             <li>
@@ -146,17 +154,26 @@
                                     </c:otherwise>
                                 </c:choose>
                             </li>
+                            <c:set var="lastPage" value="0" />
                             <c:forEach var="i" begin="1" end="${totalPages}">
-                                <li>
-                                    <c:choose>
-                                        <c:when test="${i == currentPage}">
-                                            <span class="px-3 py-2 leading-tight text-white bg-primary border border-gray-300">${i}</span>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <a class="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700" href="servicetype?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${i}&limit=${limit}${searchParams}">${i}</a>
-                                        </c:otherwise>
-                                    </c:choose>
-                                </li>
+                                <c:choose>
+                                    <c:when test="${i == 1 || i == 2 || i == totalPages || i == totalPages-1 || (i >= currentPage-1 && i <= currentPage+1)}">
+                                        <c:if test="${lastPage + 1 != i}">
+                                            <li><span class="px-3 py-2 leading-tight text-gray-400 bg-white border border-gray-300">...</span></li>
+                                        </c:if>
+                                        <li>
+                                            <c:choose>
+                                                <c:when test="${i == currentPage}">
+                                                    <span class="px-3 py-2 leading-tight text-white bg-primary border border-gray-300">${i}</span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <a class="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700" href="servicetype?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${i}&limit=${limit}${searchParams}">${i}</a>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </li>
+                                        <c:set var="lastPage" value="${i}" />
+                                    </c:when>
+                                </c:choose>
                             </c:forEach>
                             <li>
                                 <c:choose>

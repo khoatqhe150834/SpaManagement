@@ -71,7 +71,7 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
     @Override
     public List<Service> findAll() {
         List<Service> services = new ArrayList<>();
-        String sql = "SELECT * FROM services";
+        String sql = "SELECT * FROM services WHERE is_active = 1 ORDER BY service_id ASC";
 
         ServiceTypeDAO typeDAO = new ServiceTypeDAO();
         Map<Integer, ServiceType> typeMap = new HashMap<>();
@@ -394,14 +394,24 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
 
     // method to find min price of services
     public double findMinPrice() {
-
-        return 0;
+        double minPrice = 0;
+        String sql = "SELECT MIN(price) FROM services WHERE is_active = 1";
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement stm = conn.prepareStatement(sql);
+                ResultSet rs = stm.executeQuery()) {
+            if (rs.next()) {
+                minPrice = rs.getDouble(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return minPrice;
     }
 
     // method to find max price of services
     public double findMaxPrice() {
         double maxPrice = 0;
-        String sql = "SELECT MAX(price) FROM services";
+        String sql = "SELECT MAX(price) FROM services WHERE is_active = 1";
         try (Connection conn = DBContext.getConnection();
                 PreparedStatement stm = conn.prepareStatement(sql);
                 ResultSet rs = stm.executeQuery()) {
@@ -722,6 +732,99 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
             Logger.getLogger(ServiceDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
 
+        // Load first available images for all services
+        loadFirstAvailableImages(services);
+
+        return services;
+    }
+
+    /**
+     * Load the first available image for each service in the list
+     * This method enhances services with images from the service_images table
+     * 
+     * @param services List of services to enhance with images
+     */
+    private void loadFirstAvailableImages(List<Service> services) {
+        if (services == null || services.isEmpty()) {
+            return;
+        }
+
+        // Extract service IDs
+        List<Integer> serviceIds = new ArrayList<>();
+        for (Service service : services) {
+            serviceIds.add(service.getServiceId());
+        }
+
+        // Get first image URLs for all services
+        ServiceImageDAO imageDAO = new ServiceImageDAO();
+        Map<Integer, String> imageMap = imageDAO.getFirstImageUrlsByServiceIds(serviceIds);
+
+        // Update services with their first available images
+        for (Service service : services) {
+            String firstImageUrl = imageMap.get(service.getServiceId());
+            if (firstImageUrl != null && !firstImageUrl.trim().isEmpty()) {
+                // Override the image_url from database with the first available image from
+                // service_images
+                service.setImageUrl(firstImageUrl);
+            }
+            // If no image found in service_images table, keep the original image_url from
+            // services table
+        }
+    }
+
+    /**
+     * Enhanced findAll method that loads first available images for services
+     * 
+     * @return List of all active services with their first available images
+     */
+    public List<Service> findAllWithImages() {
+        List<Service> services = findAll();
+        loadFirstAvailableImages(services);
+        return services;
+    }
+
+    /**
+     * Enhanced getServicesByCriteria method that loads first available images
+     * 
+     * @param category    Category filter
+     * @param searchQuery Search query
+     * @param minPrice    Minimum price
+     * @param maxPrice    Maximum price
+     * @param page        Page number
+     * @param pageSize    Page size
+     * @param order       Sort order
+     * @return List of services with their first available images
+     */
+    public List<Service> getServicesByCriteriaWithImages(String category, String searchQuery, Integer minPrice,
+            Integer maxPrice,
+            int page, int pageSize, String order) {
+        List<Service> services = getServicesByCriteria(category, searchQuery, minPrice, maxPrice, page, pageSize,
+                order);
+        loadFirstAvailableImages(services);
+        return services;
+    }
+
+    /**
+     * Enhanced getPromotionalServices method that loads first available images
+     * 
+     * @param limit Maximum number of services to return
+     * @return List of promotional services with their first available images
+     */
+    public List<Service> getPromotionalServicesWithImages(int limit) {
+        List<Service> services = getPromotionalServices(limit);
+        loadFirstAvailableImages(services);
+        return services;
+    }
+
+    /**
+     * Enhanced getMostPurchasedServices method that loads first available images
+     * 
+     * @param limit Maximum number of services to return
+     * @return List of most purchased services with their first available images
+     */
+    public List<Service> getMostPurchasedServicesWithImages(int limit) {
+        List<Service> services = getMostPurchasedServices(limit);
+        loadFirstAvailableImages(services);
         return services;
     }
 }

@@ -145,9 +145,10 @@ class RecentlyViewedServices {
     createServiceHTML(service, index) {
         const contextPath = this.getContextPath();
         const formattedPrice = new Intl.NumberFormat('vi-VN', {
-            style: 'currency',
-            currency: 'VND'
-        }).format(service.price);
+            style: 'decimal',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(service.price) + ' ₫';
 
         const imageUrl = service.image || this.getFallbackImage(service.id);
 

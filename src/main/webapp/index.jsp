@@ -2,7 +2,20 @@
 --%> <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %> <%@ taglib
 prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %> <%@ page
 import="model.RoleConstants" %> <%@page contentType="text/html"
-pageEncoding="UTF-8"%> <% pageContext.setAttribute("showBookingFeatures", true);
+pageEncoding="UTF-8"%> 
+<%
+// Set showBookingFeatures based on user role
+boolean showBookingFeatures = true; // Default to show for guests
+
+if (session.getAttribute("authenticated") != null && (Boolean)session.getAttribute("authenticated")) {
+    if (session.getAttribute("customer") != null) {
+        showBookingFeatures = true; // Show for customers
+    } else if (session.getAttribute("user") != null) {
+        showBookingFeatures = false; // Hide for staff/admin roles
+    }
+}
+
+pageContext.setAttribute("showBookingFeatures", showBookingFeatures);
 %>
 
 <!DOCTYPE html>
@@ -216,7 +229,6 @@ pageEncoding="UTF-8"%> <% pageContext.setAttribute("showBookingFeatures", true);
       </button>
     </section>
 
-
     <!-- About Section -->
     <section class="py-20 bg-spa-cream fade-in">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -349,13 +361,14 @@ pageEncoding="UTF-8"%> <% pageContext.setAttribute("showBookingFeatures", true);
                 Những dịch vụ được khách hàng yêu thích nhất
               </p>
             </div>
-            <button
+            <a
+              href="${pageContext.request.contextPath}/most-purchased"
               id="view-all-popular-btn"
               class="flex items-center text-primary hover:text-primary-dark font-semibold transition-colors"
             >
               Xem tất cả
               <i data-lucide="arrow-right" class="ml-2 h-4 w-4"></i>
-            </button>
+            </a>
           </div>
 
           <div
@@ -413,7 +426,8 @@ pageEncoding="UTF-8"%> <% pageContext.setAttribute("showBookingFeatures", true);
     </section>
 
     <!-- Services Section -->
-    <%-- <section class="py-20 bg-spa-cream fade-in">
+    <%--
+    <section class="py-20 bg-spa-cream fade-in">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
           <h2 class="text-4xl md:text-5xl font-serif text-spa-dark mb-4">
@@ -542,10 +556,12 @@ pageEncoding="UTF-8"%> <% pageContext.setAttribute("showBookingFeatures", true);
           </a>
         </div>
       </div>
-    </section> --%>
+    </section>
+    --%>
 
     <!-- Promotional Services Section -->
-    <%-- <section
+    <%--
+    <section
       id="promotional-section"
       class="py-20 bg-gradient-to-br from-red-50 to-pink-50 fade-in"
     >
@@ -578,10 +594,12 @@ pageEncoding="UTF-8"%> <% pageContext.setAttribute("showBookingFeatures", true);
           </a>
         </div>
       </div>
-    </section> --%>
+    </section>
+    --%>
 
     <!-- Most Purchased Services Section -->
-    <%-- <section id="most-purchased-section" class="py-20 bg-white fade-in">
+    <%--
+    <section id="most-purchased-section" class="py-20 bg-white fade-in">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-12">
           <h2 class="text-4xl md:text-5xl font-serif text-spa-dark mb-4">
@@ -611,10 +629,12 @@ pageEncoding="UTF-8"%> <% pageContext.setAttribute("showBookingFeatures", true);
           </a>
         </div>
       </div>
-    </section> --%>
+    </section>
+    --%>
 
     <!-- About Section -->
-    <%-- <section class="py-20 bg-spa-cream fade-in">
+    <%--
+    <section class="py-20 bg-spa-cream fade-in">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div>
@@ -659,7 +679,8 @@ pageEncoding="UTF-8"%> <% pageContext.setAttribute("showBookingFeatures", true);
           </div>
         </div>
       </div>
-    </section> --%>
+    </section>
+    --%>
 
     <!-- Testimonials Section -->
     <section class="py-20 bg-white fade-in">
@@ -812,10 +833,10 @@ pageEncoding="UTF-8"%> <% pageContext.setAttribute("showBookingFeatures", true);
 
     <!-- JavaScript -->
     <script src="<c:url value='/js/app.js'/>"></script>
-    <script src="<c:url value='/js/cart.js'/>"></script>
     <script src="<c:url value='/js/service-tracker.js'/>"></script>
     <script src="<c:url value='/js/recently-viewed-services.js'/>"></script>
     <script src="<c:url value='/js/homepage-sections.js'/>"></script>
+
 
     <!-- Footer -->
     <jsp:include page="/WEB-INF/view/common/footer.jsp" />

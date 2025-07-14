@@ -87,6 +87,3 @@
         </div>
     </div>
 </div>
-
-<!-- Add to cart notification -->
-<div id="notification" class="fixed top-4 right-4 z-50 p-4 rounded-lg text-white font-medium" style="display: none;"></div> 

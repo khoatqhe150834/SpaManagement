@@ -5,7 +5,7 @@
 <%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="java.util.Date" %>
 
-<footer class="bg-[#333333] text-white">
+<footer class="bg-[#333333] text-white pl-64">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
       <!-- Logo and Description -->
@@ -97,3 +97,9 @@
       <% session.removeAttribute("flash_error"); %>
   </c:if>
 </footer>
+
+<!-- Chatbot Widget - Included globally -->
+<jsp:include page="/WEB-INF/includes/chatbot.jsp" />
+
+<!-- Load chatbot functionality -->
+<script src="${pageContext.request.contextPath}/js/chatbot.js"></script>

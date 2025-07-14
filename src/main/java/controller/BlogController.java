@@ -22,7 +22,7 @@ import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
-@WebServlet(name = "BlogController", urlPatterns = {"/blog"})
+@WebServlet(name = "BlogController", urlPatterns = {"/blog", "/manager/blog", "/marketing/blog"})
 @MultipartConfig(
     fileSizeThreshold = 0,
     maxFileSize = 5 * 1024 * 1024, // 5MB
@@ -41,6 +41,12 @@ public class BlogController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
+        String servletPath = request.getServletPath();
+        String rolePrefix = "";
+        if (servletPath.startsWith("/manager")) rolePrefix = "/manager";
+        else if (servletPath.startsWith("/marketing")) rolePrefix = "/marketing";
+        request.setAttribute("rolePrefix", rolePrefix);
 
         String action = request.getParameter("action");
         String idStr = request.getParameter("id");
@@ -65,7 +71,7 @@ public class BlogController extends HttpServlet {
         if ("edit".equals(action) && user != null && user.getRoleId() == 6 && id != null) {
             Blog blog = blogDAO.findById(id);
             if (blog == null) {
-                response.sendRedirect(request.getContextPath() + "/blog?action=list");
+                response.sendRedirect(request.getContextPath() + rolePrefix + "/blog?action=list");
                 return;
             }
             List<Category> categories = blogDAO.findCategoriesHavingBlogs();
@@ -95,12 +101,13 @@ public class BlogController extends HttpServlet {
         if (action == null || action.equals("list")) {
             // Check user role and redirect accordingly
             if (user != null && user.getRoleId() == 6) { // Marketing role
-                listMarketingBlogs(request, response);
+                listMarketingBlogs(request, response, rolePrefix);
             } else if (user != null && user.getRoleId() == 2) { // Manager role
-                listManagerBlogs(request, response);
+                listManagerBlogs(request, response, rolePrefix);
             } else { // Customer or Guest
                 listWithFilters(request, response);
             }
+            return;
         }
 
         // AJAX check title duplicate
@@ -122,6 +129,11 @@ public class BlogController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        String servletPath = request.getServletPath();
+        String rolePrefix = "";
+        if (servletPath.startsWith("/manager")) rolePrefix = "/manager";
+        else if (servletPath.startsWith("/marketing")) rolePrefix = "/marketing";
+        request.setAttribute("rolePrefix", rolePrefix);
         String action = request.getParameter("action");
         String idStr = request.getParameter("id");
         Integer id = null;
@@ -131,19 +143,19 @@ public class BlogController extends HttpServlet {
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
         if ("add".equals(action) && user != null && user.getRoleId() == 6) {
-            handleAddBlog(request, response, user);
+            handleAddBlog(request, response, user, rolePrefix);
             return;
         }
         if ("edit".equals(action) && user != null && user.getRoleId() == 6 && id != null) {
-            handleEditBlog(request, response, user, id);
+            handleEditBlog(request, response, user, id, rolePrefix);
             return;
         }
         if ("rejectComment".equals(action)) {
-            handleRejectComment(request, response);
+            handleRejectComment(request, response, rolePrefix);
             return;
         }
         if ("updateBlogStatus".equals(action)) {
-            handleUpdateBlogStatus(request, response);
+            handleUpdateBlogStatus(request, response, rolePrefix);
             return;
         }
         if ("submitComment".equals(action)) {
@@ -153,7 +165,7 @@ public class BlogController extends HttpServlet {
         doGet(request, response);
     }
 
-    private void handleAddBlog(HttpServletRequest request, HttpServletResponse response, User user)
+    private void handleAddBlog(HttpServletRequest request, HttpServletResponse response, User user, String rolePrefix)
             throws ServletException, IOException {
         String title = request.getParameter("title");
         String summary = request.getParameter("summary");
@@ -193,7 +205,7 @@ public class BlogController extends HttpServlet {
         }
         int blogId = blogDAO.addBlog(blog, catIds);
         if (blogId > 0) {
-            response.sendRedirect(request.getContextPath() + "/blog?action=list");
+            response.sendRedirect(request.getContextPath() + rolePrefix + "/blog?action=list");
         } else {
             request.setAttribute("error", "Failed to add blog. Please try again.");
             List<Category> categories = blogDAO.findCategoriesHavingBlogs();
@@ -202,11 +214,11 @@ public class BlogController extends HttpServlet {
         }
     }
 
-    private void handleEditBlog(HttpServletRequest request, HttpServletResponse response, User user, int id)
+    private void handleEditBlog(HttpServletRequest request, HttpServletResponse response, User user, int id, String rolePrefix)
             throws ServletException, IOException {
         Blog oldBlog = blogDAO.findById(id);
         if (oldBlog == null) {
-            response.sendRedirect(request.getContextPath() + "/blog?action=list");
+            response.sendRedirect(request.getContextPath() + rolePrefix + "/blog?action=list");
             return;
         }
         String title = request.getParameter("title");
@@ -263,7 +275,7 @@ public class BlogController extends HttpServlet {
         }
     }
 
-    private void listMarketingBlogs(HttpServletRequest request, HttpServletResponse response)
+    private void listMarketingBlogs(HttpServletRequest request, HttpServletResponse response, String rolePrefix)
             throws ServletException, IOException {
 
         String searchFilter = request.getParameter("search");
@@ -315,7 +327,7 @@ public class BlogController extends HttpServlet {
         request.getRequestDispatcher("/WEB-INF/view/admin_pages/Blog/blog_list.jsp").forward(request, response);
     }
 
-    private void listManagerBlogs(HttpServletRequest request, HttpServletResponse response)
+    private void listManagerBlogs(HttpServletRequest request, HttpServletResponse response, String rolePrefix)
             throws ServletException, IOException {
 
         String searchFilter = request.getParameter("search");
@@ -494,7 +506,7 @@ public class BlogController extends HttpServlet {
     }
 
     // Xử lý reject comment (chỉ cho marketing)
-    private void handleRejectComment(HttpServletRequest request, HttpServletResponse response)
+    private void handleRejectComment(HttpServletRequest request, HttpServletResponse response, String rolePrefix)
             throws ServletException, IOException {
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
@@ -505,7 +517,7 @@ public class BlogController extends HttpServlet {
         String commentIdStr = request.getParameter("commentId");
         String id = request.getParameter("id"); // lấy tham số id để kiểm tra redirect
         if (commentIdStr == null) {
-            response.sendRedirect(request.getContextPath() + "/blog");
+            response.sendRedirect(request.getContextPath() + rolePrefix + "/blog");
             return;
         }
         try {
@@ -515,13 +527,13 @@ public class BlogController extends HttpServlet {
         }
         if (id != null && !id.isEmpty()) {
             // Nếu có id, redirect về trang chi tiết blog
-            response.sendRedirect(request.getContextPath() + "/blog?id=" + id + "#comments");
+            response.sendRedirect(request.getContextPath() + rolePrefix + "/blog?id=" + id + "#comments");
         } else {
-            response.sendRedirect(request.getContextPath() + "/blog");
+            response.sendRedirect(request.getContextPath() + rolePrefix + "/blog");
         }
     }
 
-    private void handleUpdateBlogStatus(HttpServletRequest request, HttpServletResponse response)
+    private void handleUpdateBlogStatus(HttpServletRequest request, HttpServletResponse response, String rolePrefix)
             throws ServletException, IOException {
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
@@ -534,7 +546,7 @@ public class BlogController extends HttpServlet {
         String page = request.getParameter("page");
         String id = request.getParameter("id"); // lấy tham số id để kiểm tra redirect
         if (blogIdStr == null || status == null) {
-            response.sendRedirect(request.getContextPath() + "/blog");
+            response.sendRedirect(request.getContextPath() + rolePrefix + "/blog");
             return;
         }
         try {
@@ -543,10 +555,10 @@ public class BlogController extends HttpServlet {
             if (ok) {
                 if (id != null && !id.isEmpty()) {
                     // Nếu có id, redirect về trang chi tiết blog
-                    response.sendRedirect(request.getContextPath() + "/blog?id=" + id);
+                    response.sendRedirect(request.getContextPath() + rolePrefix + "/blog?id=" + id);
                     return;
                 }
-                String redirectUrl = request.getContextPath() + "/blog?action=list";
+                String redirectUrl = request.getContextPath() + rolePrefix + "/blog?action=list";
                 if (page != null && !page.isEmpty()) {
                     redirectUrl += "&page=" + page;
                 }

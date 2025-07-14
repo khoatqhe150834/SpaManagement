@@ -15,6 +15,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.HashMap;
 
 import db.DBContext;
 import model.ServiceImage;
@@ -34,7 +38,7 @@ public class ServiceImageDAO implements BaseDAO<ServiceImage, Integer> {
         String sql = "INSERT INTO service_images (service_id, url, alt_text, is_primary, sort_order, caption, is_active, file_size) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DBContext.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             stmt.setInt(1, entity.getServiceId());
             stmt.setString(2, entity.getUrl());
@@ -69,7 +73,7 @@ public class ServiceImageDAO implements BaseDAO<ServiceImage, Integer> {
         String sql = "SELECT image_id, service_id, url, alt_text, is_primary, sort_order, caption, is_active, file_size, uploaded_at, updated_at FROM service_images WHERE image_id = ?";
 
         try (Connection conn = DBContext.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -89,8 +93,8 @@ public class ServiceImageDAO implements BaseDAO<ServiceImage, Integer> {
         String sql = "SELECT image_id, service_id, url, alt_text, is_primary, sort_order, caption, is_active, file_size, uploaded_at, updated_at FROM service_images ORDER BY service_id, sort_order";
 
         try (Connection conn = DBContext.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+                PreparedStatement stmt = conn.prepareStatement(sql);
+                ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
                 images.add(mapResultSetToServiceImage(rs));
@@ -106,7 +110,7 @@ public class ServiceImageDAO implements BaseDAO<ServiceImage, Integer> {
         String sql = "UPDATE service_images SET service_id = ?, url = ?, alt_text = ?, is_primary = ?, sort_order = ?, caption = ?, is_active = ?, file_size = ? WHERE image_id = ?";
 
         try (Connection conn = DBContext.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, entity.getServiceId());
             stmt.setString(2, entity.getUrl());
@@ -137,7 +141,7 @@ public class ServiceImageDAO implements BaseDAO<ServiceImage, Integer> {
         String sql = "DELETE FROM service_images WHERE image_id = ?";
 
         try (Connection conn = DBContext.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, id);
             stmt.executeUpdate();
@@ -158,7 +162,7 @@ public class ServiceImageDAO implements BaseDAO<ServiceImage, Integer> {
         String sql = "SELECT 1 FROM service_images WHERE image_id = ?";
 
         try (Connection conn = DBContext.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -174,6 +178,7 @@ public class ServiceImageDAO implements BaseDAO<ServiceImage, Integer> {
 
     /**
      * Find all images for a specific service
+     * 
      * @param serviceId the service ID
      * @return list of service images ordered by sort_order
      */
@@ -182,7 +187,7 @@ public class ServiceImageDAO implements BaseDAO<ServiceImage, Integer> {
         String sql = "SELECT image_id, service_id, url, alt_text, is_primary, sort_order, caption, is_active, file_size, uploaded_at, updated_at FROM service_images WHERE service_id = ? AND is_active = 1 ORDER BY sort_order";
 
         try (Connection conn = DBContext.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, serviceId);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -198,6 +203,7 @@ public class ServiceImageDAO implements BaseDAO<ServiceImage, Integer> {
 
     /**
      * Find the primary image for a service
+     * 
      * @param serviceId the service ID
      * @return Optional containing the primary image if found
      */
@@ -205,7 +211,7 @@ public class ServiceImageDAO implements BaseDAO<ServiceImage, Integer> {
         String sql = "SELECT image_id, service_id, url, alt_text, is_primary, sort_order, caption, is_active, file_size, uploaded_at, updated_at FROM service_images WHERE service_id = ? AND is_primary = 1 AND is_active = 1";
 
         try (Connection conn = DBContext.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, serviceId);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -221,13 +227,14 @@ public class ServiceImageDAO implements BaseDAO<ServiceImage, Integer> {
 
     /**
      * Delete all images for a specific service
+     * 
      * @param serviceId the service ID
      */
     public void deleteByServiceId(Integer serviceId) {
         String sql = "DELETE FROM service_images WHERE service_id = ?";
 
         try (Connection conn = DBContext.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, serviceId);
             stmt.executeUpdate();
@@ -238,7 +245,8 @@ public class ServiceImageDAO implements BaseDAO<ServiceImage, Integer> {
 
     /**
      * Set an image as primary for a service (and unset others)
-     * @param imageId the image ID to set as primary
+     * 
+     * @param imageId   the image ID to set as primary
      * @param serviceId the service ID
      */
     public void setPrimaryImage(Integer imageId, Integer serviceId) {
@@ -249,7 +257,7 @@ public class ServiceImageDAO implements BaseDAO<ServiceImage, Integer> {
             conn.setAutoCommit(false);
 
             try (PreparedStatement unsetStmt = conn.prepareStatement(unsetSql);
-                 PreparedStatement setStmt = conn.prepareStatement(setSql)) {
+                    PreparedStatement setStmt = conn.prepareStatement(setSql)) {
 
                 // First, unset all primary flags for this service
                 unsetStmt.setInt(1, serviceId);
@@ -259,6 +267,14 @@ public class ServiceImageDAO implements BaseDAO<ServiceImage, Integer> {
                 setStmt.setInt(1, imageId);
                 setStmt.setInt(2, serviceId);
                 setStmt.executeUpdate();
+
+                // Update services table with this primary image URL
+                try (PreparedStatement urlStmt = conn.prepareStatement(
+                        "UPDATE services SET image_url = (SELECT url FROM service_images WHERE image_id = ?) WHERE service_id = ?")) {
+                    urlStmt.setInt(1, imageId);
+                    urlStmt.setInt(2, serviceId);
+                    urlStmt.executeUpdate();
+                }
 
                 conn.commit();
             } catch (SQLException ex) {
@@ -274,13 +290,14 @@ public class ServiceImageDAO implements BaseDAO<ServiceImage, Integer> {
 
     /**
      * Update sort order for multiple images
+     * 
      * @param imageIds list of image IDs in the desired order
      */
     public void updateSortOrder(List<Integer> imageIds) {
         String sql = "UPDATE service_images SET sort_order = ? WHERE image_id = ?";
 
         try (Connection conn = DBContext.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             conn.setAutoCommit(false);
 
@@ -300,6 +317,7 @@ public class ServiceImageDAO implements BaseDAO<ServiceImage, Integer> {
 
     /**
      * Map ResultSet to ServiceImage object
+     * 
      * @param rs the ResultSet
      * @return ServiceImage object
      * @throws SQLException if database access error occurs
@@ -326,4 +344,143 @@ public class ServiceImageDAO implements BaseDAO<ServiceImage, Integer> {
 
         return image;
     }
+
+    /**
+     * Get the first available image for each service (primary first, then by
+     * sort_order/image_id)
+     * 
+     * @param serviceIds list of service IDs to get images for
+     * @return Map of service ID to first available image URL
+     */
+    public Map<Integer, String> getFirstImageUrlsByServiceIds(List<Integer> serviceIds) {
+        Map<Integer, String> imageMap = new HashMap<>();
+
+        if (serviceIds == null || serviceIds.isEmpty()) {
+            return imageMap;
+        }
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT si.service_id, si.url ");
+        sql.append("FROM service_images si ");
+        sql.append("WHERE si.service_id IN (");
+
+        // Build placeholders for IN clause
+        for (int i = 0; i < serviceIds.size(); i++) {
+            sql.append("?");
+            if (i < serviceIds.size() - 1) {
+                sql.append(",");
+            }
+        }
+
+        sql.append(") AND si.is_active = 1 ");
+        sql.append("ORDER BY si.service_id, si.is_primary DESC, si.sort_order ASC, si.image_id ASC");
+
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+
+            // Set the service ID parameters
+            for (int i = 0; i < serviceIds.size(); i++) {
+                stmt.setInt(i + 1, serviceIds.get(i));
+            }
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Integer serviceId = rs.getInt("service_id");
+                    String imageUrl = rs.getString("url");
+
+                    // Only add the first image for each service (due to ordering)
+                    if (!imageMap.containsKey(serviceId)) {
+                        imageMap.put(serviceId, imageUrl);
+                    }
+                }
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error getting first image URLs by service IDs", ex);
+        }
+
+        return imageMap;
+    }
+
+    /**
+     * Get the first available image for a single service
+     * 
+     * @param serviceId the service ID
+     * @return Optional containing the first image URL if found
+     */
+    public Optional<String> getFirstImageUrlByServiceId(Integer serviceId) {
+        String sql = "SELECT url FROM service_images WHERE service_id = ? AND is_active = 1 ORDER BY is_primary DESC, sort_order ASC, image_id ASC LIMIT 1";
+
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, serviceId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(rs.getString("url"));
+                }
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error getting first image URL by service ID: " + serviceId, ex);
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Get image counts for multiple services in a single query for better
+     * performance
+     * 
+     * @param serviceIds list of service IDs to get image counts for
+     * @return Map of service ID to image count
+     */
+    public Map<Integer, Integer> getImageCountsByServiceIds(List<Integer> serviceIds) {
+        Map<Integer, Integer> imageCounts = new HashMap<>();
+
+        if (serviceIds == null || serviceIds.isEmpty()) {
+            return imageCounts;
+        }
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT service_id, COUNT(*) as image_count ");
+        sql.append("FROM service_images ");
+        sql.append("WHERE service_id IN (");
+
+        // Build placeholders for IN clause
+        for (int i = 0; i < serviceIds.size(); i++) {
+            sql.append("?");
+            if (i < serviceIds.size() - 1) {
+                sql.append(",");
+            }
+        }
+
+        sql.append(") AND is_active = 1 ");
+        sql.append("GROUP BY service_id");
+
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+
+            // Set the service ID parameters
+            for (int i = 0; i < serviceIds.size(); i++) {
+                stmt.setInt(i + 1, serviceIds.get(i));
+            }
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Integer serviceId = rs.getInt("service_id");
+                    Integer imageCount = rs.getInt("image_count");
+                    imageCounts.put(serviceId, imageCount);
+                }
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error getting image counts by service IDs", ex);
+        }
+
+        // Ensure all service IDs have a count (default to 0 for services with no
+        // images)
+        for (Integer serviceId : serviceIds) {
+            imageCounts.putIfAbsent(serviceId, 0);
+        }
+
+        return imageCounts;
+    }
+
 }

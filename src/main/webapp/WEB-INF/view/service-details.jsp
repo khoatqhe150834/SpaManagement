@@ -53,29 +53,6 @@ uri="http://java.sun.com/jsp/jstl/fmt" %>
 
     <!-- Main Content -->
     <main class="pt-20">
-      <!-- Breadcrumb -->
-      <section class="bg-white py-4 border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <nav class="flex items-center space-x-2 text-sm">
-            <a
-              href="<c:url value='/'/>"
-              class="text-gray-500 hover:text-primary"
-              >Trang chủ</a
-            >
-            <i data-lucide="chevron-right" class="h-4 w-4 text-gray-400"></i>
-            <a
-              href="<c:url value='/services'/>"
-              class="text-gray-500 hover:text-primary"
-              >Dịch vụ</a
-            >
-            <i data-lucide="chevron-right" class="h-4 w-4 text-gray-400"></i>
-            <span class="text-spa-dark font-medium" id="breadcrumb-service-name"
-              >Chi tiết dịch vụ</span
-            >
-          </nav>
-        </div>
-      </section>
-
       <!-- Service Details -->
       <section class="py-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -111,18 +88,82 @@ uri="http://java.sun.com/jsp/jstl/fmt" %>
           <!-- Service Content -->
           <div id="service-content" class="hidden">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-              <!-- Service Image -->
+              <!-- Service Images -->
               <div class="space-y-4">
-                <div
-                  class="aspect-w-4 aspect-h-3 rounded-lg overflow-hidden shadow-lg"
-                >
-                  <img
-                    id="service-image"
-                    src=""
-                    alt=""
-                    class="w-full h-96 object-cover"
-                  />
+                <!-- Main Image Display -->
+                <div class="relative rounded-lg overflow-hidden shadow-lg">
+                  <c:choose>
+                    <c:when test="${not empty serviceImages}">
+                      <!-- Display first image (primary or first in sort order) -->
+                      <c:set var="primaryImage" value="${serviceImages[0]}" />
+                      <img
+                        id="main-service-image"
+                        src="${primaryImage.url}"
+                        alt="${primaryImage.altText != null ? primaryImage.altText : service.name}"
+                        class="w-full h-96 object-cover"
+                        onerror="this.src='https://placehold.co/800x600/FFB6C1/333333?text=${service.name}'"
+                      />
+
+                      <!-- Image Navigation (if multiple images) -->
+                      <c:if test="${serviceImages.size() > 1}">
+                        <button
+                          id="prev-btn"
+                          class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition-all"
+                          onclick="previousImage()"
+                        >
+                          <i data-lucide="chevron-left" class="h-5 w-5"></i>
+                        </button>
+                        <button
+                          id="next-btn"
+                          class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition-all"
+                          onclick="nextImage()"
+                        >
+                          <i data-lucide="chevron-right" class="h-5 w-5"></i>
+                        </button>
+
+                        <!-- Image Counter -->
+                        <div
+                          class="absolute bottom-4 right-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm"
+                        >
+                          <span id="current-image">1</span> /
+                          ${serviceImages.size()}
+                        </div>
+                      </c:if>
+                    </c:when>
+                    <c:otherwise>
+                      <!-- Fallback placeholder image -->
+                      <img
+                        id="main-service-image"
+                        src="https://placehold.co/800x600/FFB6C1/333333?text=${service.name}"
+                        alt="${service.name}"
+                        class="w-full h-96 object-cover"
+                      />
+                    </c:otherwise>
+                  </c:choose>
                 </div>
+
+                <!-- Thumbnail Gallery (if multiple images) -->
+                <c:if test="${serviceImages.size() > 1}">
+                  <div class="flex space-x-2 overflow-x-auto pb-2">
+                    <c:forEach
+                      var="image"
+                      items="${serviceImages}"
+                      varStatus="status"
+                    >
+                      <button
+                        class="thumbnail-item flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 ${status.index == 0 ? 'border-primary' : 'border-transparent'} hover:border-primary transition-all"
+                        onclick="goToImage(${status.index})"
+                      >
+                        <img
+                          src="${image.url}"
+                          alt="${image.altText != null ? image.altText : service.name}"
+                          class="w-full h-full object-cover"
+                          onerror="this.src='https://placehold.co/80x80/FFB6C1/333333?text=${status.index + 1}'"
+                        />
+                      </button>
+                    </c:forEach>
+                  </div>
+                </c:if>
               </div>
 
               <!-- Service Information -->
@@ -267,10 +308,101 @@ uri="http://java.sun.com/jsp/jstl/fmt" %>
 
     <!-- JavaScript -->
     <script src="<c:url value='/js/app.js'/>"></script>
-    <script src="<c:url value='/js/cart.js'/>"></script>
+
     <script src="<c:url value='/js/service-tracker.js'/>"></script>
     <script src="<c:url value='/js/recently-viewed-services.js'/>"></script>
     <script src="<c:url value='/js/service-details.js'/>"></script>
+
+    <!-- Image Carousel JavaScript -->
+    <script>
+      // Image carousel functionality for service details
+      let currentImageIndex = 0;
+      const serviceImages = [
+        <c:forEach var="image" items="${serviceImages}" varStatus="status">
+          {
+            url: '${image.url}',
+            altText: '${image.altText != null ? image.altText : service.name}',
+            isPrimary: ${image.isPrimary}
+          }<c:if test="${!status.last}">,</c:if>
+        </c:forEach>
+      ];
+
+      function previousImage() {
+        if (currentImageIndex > 0) {
+          currentImageIndex--;
+          updateMainImage();
+        }
+      }
+
+      function nextImage() {
+        if (currentImageIndex < serviceImages.length - 1) {
+          currentImageIndex++;
+          updateMainImage();
+        }
+      }
+
+      function goToImage(index) {
+        if (index >= 0 && index < serviceImages.length) {
+          currentImageIndex = index;
+          updateMainImage();
+        }
+      }
+
+      function updateMainImage() {
+        const mainImage = document.getElementById('main-service-image');
+        const currentImageSpan = document.getElementById('current-image');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+
+        if (mainImage && serviceImages[currentImageIndex]) {
+          const currentImage = serviceImages[currentImageIndex];
+          mainImage.src = currentImage.url;
+          mainImage.alt = currentImage.altText;
+
+          // Update counter
+          if (currentImageSpan) {
+            currentImageSpan.textContent = currentImageIndex + 1;
+          }
+
+          // Update navigation buttons
+          if (prevBtn) prevBtn.disabled = currentImageIndex === 0;
+          if (nextBtn) nextBtn.disabled = currentImageIndex === serviceImages.length - 1;
+
+          // Update active thumbnail
+          document.querySelectorAll('.thumbnail-item').forEach((thumb, index) => {
+            if (index === currentImageIndex) {
+              thumb.classList.add('border-primary');
+              thumb.classList.remove('border-transparent');
+            } else {
+              thumb.classList.remove('border-primary');
+              thumb.classList.add('border-transparent');
+            }
+          });
+        }
+      }
+
+      // Initialize carousel on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        // Show service content immediately since we have server-side data
+        const serviceContent = document.getElementById('service-content');
+        const loadingState = document.getElementById('loading-state');
+
+        if (serviceContent && loadingState) {
+          loadingState.classList.add('hidden');
+          serviceContent.classList.remove('hidden');
+        }
+
+        // Initialize carousel if we have images
+        if (serviceImages.length > 0) {
+          updateMainImage();
+        }
+
+        // Initialize Lucide icons
+        if (typeof lucide !== 'undefined') {
+          lucide.createIcons();
+        }
+      });
+    </script>
 
     <jsp:include page="/WEB-INF/view/common/footer.jsp" />
   </body>

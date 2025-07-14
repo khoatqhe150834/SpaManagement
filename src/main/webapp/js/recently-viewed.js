@@ -14,8 +14,12 @@ class RecentlyViewedPageManager {
         this.currentFilters = {
             searchQuery: '',
             serviceTypeId: 'all',
+            minPrice: null,
+            maxPrice: null,
             order: 'default'
         };
+        
+        this.priceRange = { min: 100000, max: 15000000 };
         
         this.storageKey = 'spa_recently_viewed_services';
         this.apiEndpoint = '/api/services/by-ids';
@@ -35,10 +39,7 @@ class RecentlyViewedPageManager {
             pagination: document.getElementById('pagination')
         };
         
-        this.beautyImages = [
-            'https://images.pexels.com/photos/3985254/pexels-photo-3985254.jpeg?auto=compress&cs=tinysrgb&w=400',
-            'https://images.pexels.com/photos/3997991/pexels-photo-3997991.jpeg?auto=compress&cs=tinysrgb&w=400'
-        ];
+        // Remove beauty images - using placeholder fallback instead
     }
 
     async init() {
@@ -62,6 +63,31 @@ class RecentlyViewedPageManager {
         }
     }
 
+    /**
+     * Helper method to get ServiceType from a service object
+     * The Service model uses confusing naming: serviceTypeId field actually contains ServiceType object
+     */
+    getServiceType(service) {
+        return service.serviceTypeId || service.serviceType;
+    }
+
+    /**
+     * Normalize Vietnamese text for case-insensitive search
+     * Converts accented characters to their base forms and handles case
+     * Example: "Sữa" -> "sua", "Chăm sóc" -> "cham soc"
+     */
+    normalizeVietnameseText(text) {
+        if (!text) return '';
+        
+        return text
+            .toLowerCase()
+            .normalize('NFD') // Decompose accented characters
+            .replace(/[\u0300-\u036f]/g, '') // Remove diacritical marks
+            .replace(/đ/g, 'd') // Replace đ with d
+            .replace(/Đ/g, 'd') // Replace Đ with d
+            .trim();
+    }
+
     async loadInitialData() {
         this.showLoading();
         const serviceIds = this.getRecentlyViewedIds().slice(0, this.maxDisplay);
@@ -72,6 +98,7 @@ class RecentlyViewedPageManager {
         }
 
         try {
+            console.log('🌐 Fetching services from API with IDs:', serviceIds);
             const response = await fetch(`${this.contextPath}${this.apiEndpoint}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -81,13 +108,18 @@ class RecentlyViewedPageManager {
             if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
             
             this.allServices = await response.json();
+            console.log('📦 Received services from API:', this.allServices.length);
+            console.log('📦 Sample service data:', this.allServices[0]);
             
             if (this.allServices && this.allServices.length > 0) {
                 this.extractServiceTypes();
+                this.calculatePriceRange();
                 this.populateFilterOptions();
+                this.initializePriceSlider();
                 this.applyFiltersAndRender();
                 this.hideLoading();
             } else {
+                console.log('❌ No services returned from API');
                 this.showNoResults();
             }
         } catch (error) {
@@ -97,19 +129,71 @@ class RecentlyViewedPageManager {
     }
 
     extractServiceTypes() {
+        console.log('🔍 Extracting service types from', this.allServices.length, 'services');
+        this.serviceTypes.clear(); // Clear existing service types
+        
         this.allServices.forEach(service => {
-            if (service.serviceType && !this.serviceTypes.has(service.serviceType.serviceTypeId)) {
-                this.serviceTypes.set(service.serviceType.serviceTypeId, service.serviceType.name);
+            console.log('📋 Processing service:', service.name, 'with serviceTypeId:', service.serviceTypeId);
+            
+            const serviceType = this.getServiceType(service);
+            
+            if (serviceType && serviceType.serviceTypeId && serviceType.name) {
+                if (!this.serviceTypes.has(serviceType.serviceTypeId)) {
+                    this.serviceTypes.set(serviceType.serviceTypeId, serviceType.name);
+                    console.log('✅ Added service type:', serviceType.serviceTypeId, '→', serviceType.name);
+                }
+            } else {
+                console.log('⚠️ Service has no valid serviceType:', service.name, 'serviceTypeId field:', service.serviceTypeId);
             }
         });
+        
+        console.log('📊 Total unique service types found:', this.serviceTypes.size);
+        console.log('📊 Service types map:', Array.from(this.serviceTypes.entries()));
+    }
+
+    calculatePriceRange() {
+        if (this.allServices.length === 0) return;
+        
+        const prices = this.allServices.map(service => service.price).filter(price => price > 0);
+        if (prices.length > 0) {
+            this.priceRange.min = Math.min(...prices);
+            this.priceRange.max = Math.max(...prices);
+        }
     }
 
     populateFilterOptions() {
         const select = this.elements.serviceTypeSelect;
+        
+        if (!select) {
+            console.error('❌ Service type select element not found!');
+            return;
+        }
+        
+        console.log('🔧 Starting to populate filter options...');
+        console.log('🔧 Current select options count:', select.options.length);
+        
+        // Clear existing options except "Tất cả dịch vụ"
+        while (select.options.length > 1) {
+            select.remove(1);
+        }
+        
+        console.log('🔧 After clearing, select options count:', select.options.length);
+        console.log('🔧 Available service types to add:', this.serviceTypes.size);
+        
+        // Only add service types that have services in the recently viewed list
         this.serviceTypes.forEach((name, id) => {
+            console.log('🔧 Adding option:', id, '→', name);
             const option = new Option(name, id);
             select.add(option);
         });
+        
+        console.log('🔧 Final select options count:', select.options.length);
+        console.log(`✅ Populated ${this.serviceTypes.size} service types that have recently viewed services`);
+        
+        // Log all options for debugging
+        for (let i = 0; i < select.options.length; i++) {
+            console.log(`🔧 Option ${i}: "${select.options[i].text}" (value: ${select.options[i].value})`);
+        }
     }
     
     setupEventListeners() {
@@ -117,6 +201,117 @@ class RecentlyViewedPageManager {
         this.elements.serviceTypeSelect.addEventListener('change', (e) => this.handleFilterChange('serviceTypeId', e.target.value));
         this.elements.sortSelect.addEventListener('change', (e) => this.handleFilterChange('order', e.target.value));
         this.elements.clearFiltersBtn.addEventListener('click', () => this.clearAllFilters());
+    }
+
+    initializePriceSlider() {
+        const minSlider = document.getElementById('min-price-slider');
+        const maxSlider = document.getElementById('max-price-slider');
+        const minInput = document.getElementById('min-price-input');
+        const maxInput = document.getElementById('max-price-input');
+        const minDisplay = document.getElementById('min-price-display');
+        const maxDisplay = document.getElementById('max-price-display');
+        const sliderRange = document.getElementById('slider-range');
+        const priceMinLimit = document.getElementById('price-min-limit');
+        const priceMaxLimit = document.getElementById('price-max-limit');
+
+        if (!minSlider || !maxSlider) return;
+
+        const initialMin = this.priceRange.min;
+        const initialMax = this.priceRange.max;
+        
+        minSlider.min = initialMin;
+        minSlider.max = initialMax;
+        minSlider.value = initialMin;
+        
+        maxSlider.min = initialMin;
+        maxSlider.max = initialMax;
+        maxSlider.value = initialMax;
+
+        if (minInput) {
+            minInput.value = initialMin;
+            minInput.placeholder = initialMin.toString();
+        }
+        if (maxInput) {
+            maxInput.value = initialMax;
+            maxInput.placeholder = initialMax.toString();
+        }
+
+        this.updatePriceDisplay(initialMin, initialMax);
+        this.updateSliderRange(initialMin, initialMax, initialMin, initialMax);
+        
+        if (priceMinLimit) priceMinLimit.textContent = this.formatPrice(initialMin);
+        if (priceMaxLimit) priceMaxLimit.textContent = this.formatPrice(initialMax);
+
+        const updatePriceRange = () => {
+            let minVal = parseInt(minSlider.value);
+            let maxVal = parseInt(maxSlider.value);
+
+            if (minVal >= maxVal) {
+                minVal = maxVal - 50000;
+                minSlider.value = minVal;
+            }
+
+            if (minInput) minInput.value = minVal;
+            if (maxInput) maxInput.value = maxVal;
+
+            this.updatePriceDisplay(minVal, maxVal);
+            this.updateSliderRange(minVal, maxVal, initialMin, initialMax);
+
+            this.currentFilters.minPrice = minVal;
+            this.currentFilters.maxPrice = maxVal;
+            
+            clearTimeout(this.priceFilterTimeout);
+            this.priceFilterTimeout = setTimeout(() => {
+                this.applyFiltersAndRender();
+            }, 500);
+        };
+
+        minSlider.addEventListener('input', updatePriceRange);
+        maxSlider.addEventListener('input', updatePriceRange);
+
+        if (minInput) {
+            minInput.addEventListener('blur', () => {
+                const value = parseInt(minInput.value) || initialMin;
+                minSlider.value = Math.max(initialMin, Math.min(value, parseInt(maxSlider.value) - 50000));
+                updatePriceRange();
+            });
+        }
+
+        if (maxInput) {
+            maxInput.addEventListener('blur', () => {
+                const value = parseInt(maxInput.value) || initialMax;
+                maxSlider.value = Math.max(parseInt(minSlider.value) + 50000, Math.min(value, initialMax));
+                updatePriceRange();
+            });
+        }
+    }
+
+    updatePriceDisplay(minVal, maxVal) {
+        const minDisplay = document.getElementById('min-price-display');
+        const maxDisplay = document.getElementById('max-price-display');
+        
+        if (minDisplay) minDisplay.textContent = this.formatPrice(minVal);
+        if (maxDisplay) maxDisplay.textContent = this.formatPrice(maxVal);
+    }
+
+    updateSliderRange(minVal, maxVal, rangeMin, rangeMax) {
+        const sliderRange = document.getElementById('slider-range');
+        if (!sliderRange) return;
+
+        const rangeWidth = rangeMax - rangeMin;
+        const leftPercent = ((minVal - rangeMin) / rangeWidth) * 100;
+        const rightPercent = ((maxVal - rangeMin) / rangeWidth) * 100;
+        
+        sliderRange.style.left = leftPercent + '%';
+        sliderRange.style.width = (rightPercent - leftPercent) + '%';
+    }
+
+    formatPrice(price) {
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'decimal',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(price) + ' ₫';
     }
 
     handleSearch() {
@@ -136,18 +331,34 @@ class RecentlyViewedPageManager {
         let services = [...this.allServices];
 
         // 1. Filter by Search Query
-        const query = this.currentFilters.searchQuery.toLowerCase().trim();
+        const query = this.currentFilters.searchQuery.trim();
         if (query) {
-            services = services.filter(s => s.name.toLowerCase().includes(query) || (s.description && s.description.toLowerCase().includes(query)));
+            const normalizedQuery = this.normalizeVietnameseText(query);
+            services = services.filter(s => {
+                const normalizedName = this.normalizeVietnameseText(s.name);
+                const normalizedDescription = this.normalizeVietnameseText(s.description || '');
+                return normalizedName.includes(normalizedQuery) || normalizedDescription.includes(normalizedQuery);
+            });
         }
 
         // 2. Filter by Service Type
         const typeId = this.currentFilters.serviceTypeId;
         if (typeId !== 'all') {
-            services = services.filter(s => s.serviceType && s.serviceType.serviceTypeId == typeId);
+            services = services.filter(s => {
+                const serviceType = this.getServiceType(s);
+                return serviceType && serviceType.serviceTypeId == typeId;
+            });
         }
         
-        // 3. Sort
+        // 3. Filter by Price Range
+        if (this.currentFilters.minPrice !== null) {
+            services = services.filter(s => s.price >= this.currentFilters.minPrice);
+        }
+        if (this.currentFilters.maxPrice !== null) {
+            services = services.filter(s => s.price <= this.currentFilters.maxPrice);
+        }
+        
+        // 4. Sort
         const order = this.currentFilters.order;
         if (order !== 'default') {
             services.sort((a, b) => {
@@ -190,51 +401,193 @@ class RecentlyViewedPageManager {
         this.elements.pagination.innerHTML = '';
         if (totalPages <= 1) return;
 
-        for (let i = 1; i <= totalPages; i++) {
-            const button = document.createElement('button');
-            button.textContent = i;
-            button.className = `px-3 py-1 text-sm rounded-md ${this.currentPage === i ? 'bg-primary text-white' : 'bg-white text-gray-700 hover:bg-gray-100'}`;
-            button.onclick = () => {
-                this.currentPage = i;
-                this.renderPage();
-            };
-            this.elements.pagination.appendChild(button);
+        let paginationHTML = '';
+        const hasPrevious = this.currentPage > 1;
+        const hasNext = this.currentPage < totalPages;
+
+        // Previous button
+        if (hasPrevious) {
+            paginationHTML += `
+                <button onclick="window.recentlyViewedManager.goToPage(${this.currentPage - 1})" 
+                        class="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50 transition-colors">
+                    Trước
+                </button>
+            `;
+        }
+
+        // Page numbers with smart ellipsis
+        const startPage = Math.max(1, this.currentPage - 2);
+        const endPage = Math.min(totalPages, this.currentPage + 2);
+
+        // First page (if not in range)
+        if (startPage > 1) {
+            paginationHTML += `
+                <button onclick="window.recentlyViewedManager.goToPage(1)" 
+                        class="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors">
+                    1
+                </button>
+            `;
+            if (startPage > 2) {
+                paginationHTML += `<span class="px-3 py-2 text-sm text-gray-500 border border-gray-300 bg-white">...</span>`;
+            }
+        }
+
+        // Page numbers
+        for (let i = startPage; i <= endPage; i++) {
+            const isActive = i === this.currentPage;
+            paginationHTML += `
+                <button onclick="window.recentlyViewedManager.goToPage(${i})" 
+                        class="px-3 py-2 text-sm font-medium ${isActive 
+                            ? 'text-white bg-primary border-primary' 
+                            : 'text-gray-700 bg-white border-gray-300 hover:bg-gray-50'} 
+                        border transition-colors">
+                    ${i}
+                </button>
+            `;
+        }
+
+        // Last page (if not in range)
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                paginationHTML += `<span class="px-3 py-2 text-sm text-gray-500 border border-gray-300 bg-white">...</span>`;
+            }
+            paginationHTML += `
+                <button onclick="window.recentlyViewedManager.goToPage(${totalPages})" 
+                        class="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors">
+                    ${totalPages}
+                </button>
+            `;
+        }
+
+        // Next button
+        if (hasNext) {
+            paginationHTML += `
+                <button onclick="window.recentlyViewedManager.goToPage(${this.currentPage + 1})" 
+                        class="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50 transition-colors">
+                    Sau
+                </button>
+            `;
+        }
+
+        this.elements.pagination.innerHTML = `<div class="inline-flex -space-x-px">${paginationHTML}</div>`;
+    }
+
+    goToPage(page) {
+        if (page >= 1 && page <= Math.ceil(this.filteredServices.length / this.pageSize)) {
+            this.currentPage = page;
+            this.renderPage();
+            // Scroll to top of services grid
+            document.getElementById('services-grid').scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     }
 
     createServiceCard(service) {
-        const imageUrl = service.imageUrl || this.getServiceImage(service.serviceId);
-        const rating = service.averageRating || 0;
+        const imageUrl = this.getServiceImageUrl(service);
+        const serviceType = this.getServiceType(service);
         const escapedService = JSON.stringify(service).replace(/"/g, "&quot;");
         
+        // Format price with proper thousand separators
+        const formattedPrice = new Intl.NumberFormat('vi-VN', {
+            style: 'decimal',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(service.price) + ' ₫';
+        
+        // Get service type name for badge
+        const serviceTypeName = serviceType ? serviceType.name : 'Dịch vụ';
+        
+        // Format duration
+        const duration = service.durationMinutes || 60;
+        const durationText = duration >= 60 ? `${Math.floor(duration / 60)} giờ${duration % 60 ? ` ${duration % 60} phút` : ''}` : `${duration} phút`;
+        
+        // Truncate description to fit layout
+        const description = service.description || '';
+        const truncatedDescription = description.length > 60 ? description.substring(0, 60) + '...' : description;
+        
         return `
-            <div class="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col">
+            <div class="service-card bg-white rounded-lg shadow-lg overflow-hidden flex flex-col">
+                <div class="relative h-48">
                 <a href="${this.contextPath}/service-details?id=${service.serviceId}" class="block">
-                    <img src="${imageUrl}" alt="${service.name}" class="w-full h-48 object-cover" onerror="this.src='${this.beautyImages[0]}'">
+                        <img src="${imageUrl}" alt="${service.name}" class="w-full h-48 object-cover">
                 </a>
-                <div class="p-5 flex-grow flex flex-col">
-                    <h3 class="text-lg font-semibold text-spa-dark mb-2 flex-grow">${service.name}</h3>
-                    <div class="text-xl font-bold text-primary my-2">${service.formattedPrice}</div>
-                    <button class="w-full mt-auto bg-primary text-white py-2.5 rounded-full hover:bg-primary-dark transition-colors font-medium text-sm" 
+                </div>
+                <div class="p-5">
+                    <div class="mb-2">
+                        <span class="text-xs text-primary font-medium bg-secondary px-2 py-1 rounded-full">${serviceTypeName}</span>
+                    </div>
+                    <h3 class="text-lg font-semibold text-spa-dark mb-2 truncate">${service.name}</h3>
+                    <p class="text-gray-600 text-sm mb-4 h-12 overflow-hidden">${truncatedDescription}</p>
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center text-gray-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 mr-1">
+                                <path d="M12 6v6l4 2"></path>
+                                <circle cx="12" cy="12" r="10"></circle>
+                            </svg>
+                            <span class="text-sm">${durationText}</span>
+                        </div>
+                        <div class="text-xl font-bold text-primary">${formattedPrice}</div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button class="view-details-btn w-full bg-secondary text-spa-dark py-2.5 px-3 rounded-full hover:bg-primary hover:text-white transition-all duration-300 font-medium text-sm flex items-center justify-center"
+                                onclick="window.location.href='${this.contextPath}/service-details?id=${service.serviceId}'">
+                            Xem chi tiết
+                        </button>
+                        <button class="add-to-cart-btn w-full bg-primary text-white py-2.5 px-3 rounded-full hover:bg-primary-dark transition-all duration-300 font-medium text-sm flex items-center justify-center"
                             onclick='window.cartManager.addToCart(${escapedService})'>
                         Thêm vào giỏ
                     </button>
+                    </div>
                 </div>
             </div>`;
     }
 
-    getServiceImage(serviceId) {
-        const imageIndex = Math.abs(serviceId * 7) % this.beautyImages.length;
-        return this.beautyImages[imageIndex];
+    getServiceImageUrl(service) {
+        // Use the service's imageUrl from database if available
+        if (service.imageUrl && service.imageUrl.trim() !== '' && service.imageUrl !== '/services/default.jpg') {
+            // Ensure the URL has proper context path
+            const imageUrl = service.imageUrl.startsWith('/') ? `${this.contextPath}${service.imageUrl}` : service.imageUrl;
+            console.log('🖼️ Using database image for service:', service.serviceId, '→', imageUrl);
+            return imageUrl;
+        }
+        
+        // Fallback to placehold.co placeholder with service name
+        const serviceName = encodeURIComponent(service.name || 'Service');
+        const placeholderUrl = `https://placehold.co/300x200/FFB6C1/333333?text=${serviceName}`;
+        console.log('🖼️ Using placeholder image for service:', service.serviceId, '→', placeholderUrl);
+        return placeholderUrl;
     }
     
     clearAllFilters() {
-        this.currentFilters = { searchQuery: '', serviceTypeId: 'all', order: 'default' };
+        this.currentFilters = { searchQuery: '', serviceTypeId: 'all', minPrice: null, maxPrice: null, order: 'default' };
         this.elements.searchInput.value = '';
         this.elements.serviceTypeSelect.value = 'all';
         this.elements.sortSelect.value = 'default';
+        this.resetPriceSlider();
         this.currentPage = 1;
         this.applyFiltersAndRender();
+    }
+
+    resetPriceSlider() {
+        const minSlider = document.getElementById('min-price-slider');
+        const maxSlider = document.getElementById('max-price-slider');
+        const minInput = document.getElementById('min-price-input');
+        const maxInput = document.getElementById('max-price-input');
+
+        const initialMin = this.priceRange.min;
+        const initialMax = this.priceRange.max;
+
+        if (minSlider) minSlider.value = initialMin;
+        if (maxSlider) maxSlider.value = initialMax;
+        if (minInput) minInput.value = initialMin;
+        if (maxInput) maxInput.value = initialMax;
+
+        this.updatePriceDisplay(initialMin, initialMax);
+        this.updateSliderRange(initialMin, initialMax, initialMin, initialMax);
+        
+        const priceMinLimit = document.getElementById('price-min-limit');
+        const priceMaxLimit = document.getElementById('price-max-limit');
+        if (priceMinLimit) priceMinLimit.textContent = this.formatPrice(initialMin);
+        if (priceMaxLimit) priceMaxLimit.textContent = this.formatPrice(initialMax);
     }
 
     showLoading() {
@@ -262,7 +615,7 @@ class RecentlyViewedPageManager {
 
 document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('services-grid')) {
-        const manager = new RecentlyViewedPageManager();
-        manager.init();
+        window.recentlyViewedManager = new RecentlyViewedPageManager();
+        window.recentlyViewedManager.init();
     }
 }); 

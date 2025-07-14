@@ -2,276 +2,122 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
-
+<html lang="vi" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
-    <title>Batch Image Upload</title>
-    <link rel="icon" type="image/png" href="${pageContext.request.contextPath}/assets/images/favicon.png" sizes="16x16">
-    <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp" />
-    <style>
-        .batch-upload-zone {
-            border: 2px dashed #ddd;
-            border-radius: 8px;
-            padding: 40px;
-            text-align: center;
-            background: #fafafa;
-            transition: all 0.3s ease;
-            cursor: pointer;
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batch Upload Ảnh Dịch Vụ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#D4AF37",
+              "primary-dark": "#B8941F",
+              secondary: "#FADADD",
+              "spa-cream": "#FFF8F0",
+              "spa-dark": "#333333"
+            },
+            fontFamily: {
+              serif: ["Playfair Display", "serif"],
+              sans: ["Roboto", "sans-serif"]
+            }
+          }
         }
-        
-        .batch-upload-zone:hover {
-            border-color: #007bff;
-            background: #f0f8ff;
-        }
-        
-        .batch-upload-zone.dragover {
-            border-color: #007bff;
-            background: #e3f2fd;
-        }
-        
-        .file-mapping-container {
-            max-height: 400px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 15px;
-            background: white;
-        }
-        
-        .file-mapping-item {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-            margin-bottom: 10px;
-        }
-        
-        .file-mapping-item:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-        }
-        
-        .file-preview {
-            width: 60px;
-            height: 60px;
-            object-fit: cover;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-        }
-        
-        .file-info {
-            flex: 1;
-            min-width: 0;
-        }
-        
-        .file-name {
-            font-weight: 500;
-            margin-bottom: 4px;
-            word-break: break-all;
-        }
-        
-        .file-size {
-            font-size: 12px;
-            color: #666;
-        }
-        
-        .service-select {
-            min-width: 200px;
-        }
-        
-        .batch-progress {
-            display: none;
-            margin-top: 20px;
-        }
-        
-        .progress-summary {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            margin-bottom: 15px;
-        }
-        
-        .progress-details {
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        
-        .progress-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 12px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .progress-item:last-child {
-            border-bottom: none;
-        }
-        
-        .status-icon {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            color: white;
-        }
-        
-        .status-success { background: #28a745; }
-        .status-error { background: #dc3545; }
-        .status-processing { background: #007bff; }
-        
-        .auto-detect-section {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        
-        .naming-convention {
-            background: #e3f2fd;
-            border-left: 4px solid #2196f3;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-    </style>
+      };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Roboto:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <link rel="stylesheet" href="<c:url value='/css/style.css'/>" />
 </head>
-
-<body>
-    <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
-    <jsp:include page="/WEB-INF/view/common/header.jsp" />
-
-    <div class="dashboard-main-body">
-        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
-            <h6 class="fw-semibold mb-0">Batch Image Upload</h6>
-            <ul class="d-flex align-items-center gap-2">
-                <li class="fw-medium">
-                    <a href="${pageContext.request.contextPath}/manager/service" class="d-flex align-items-center gap-1 hover-text-primary">
-                        <iconify-icon icon="solar:home-smile-angle-outline" class="icon text-lg"></iconify-icon>
-                        Service Management
-                    </a>
-                </li>
-                <li>-</li>
-                <li class="fw-medium">Batch Upload</li>
+<body class="bg-spa-cream font-sans min-h-screen">
+<jsp:include page="/WEB-INF/view/common/header.jsp" />
+<div class="flex">
+<jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
+<main class="flex-1 py-12 lg:py-20 ml-64">
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex flex-wrap items-center gap-2 mb-8 text-gray-500 text-sm">
+        <a href="${pageContext.request.contextPath}/manager/service-images/manage" class="flex items-center gap-1 hover:text-primary">
+            <i data-lucide="gallery-horizontal" class="w-4 h-4"></i>
+            Quản lý ảnh dịch vụ
+        </a>
+        <span>-</span>
+        <span class="text-primary font-semibold">Batch Upload Ảnh</span>
+    </div>
+    <div class="bg-white rounded-2xl shadow-lg p-8">
+        <h1 class="text-2xl font-serif font-bold text-spa-dark mb-6 flex items-center gap-2"><i data-lucide="cloud-upload" class="w-6 h-6"></i> Batch Upload Ảnh Dịch Vụ</h1>
+        <!-- Naming Convention Info -->
+        <div class="bg-blue-50 border-l-4 border-blue-400 rounded-lg p-4 mb-6">
+            <h2 class="font-semibold text-blue-700 mb-2 flex items-center gap-2"><i data-lucide="info" class="w-5 h-5"></i> Quy tắc đặt tên file (tùy chọn)</h2>
+            <p class="mb-2 text-sm text-blue-700">Để tự động nhận diện dịch vụ, hãy đặt tên file như:</p>
+            <ul class="list-disc pl-6 text-blue-700 text-sm">
+                <li><code>service_1_image1.jpg</code> - Gán cho dịch vụ ID 1</li>
+                <li><code>massage_therapy_photo.png</code> - Thử khớp theo tên dịch vụ</li>
+                <li><code>facial_treatment_main.jpg</code> - Thử khớp theo tên dịch vụ</li>
             </ul>
         </div>
-
-        <div class="row">
-            <!-- Upload Section -->
-            <div class="col-12">
-                <div class="card p-0 radius-12 mb-24">
-                    <div class="card-header border-bottom bg-base py-16 px-24">
-                        <h6 class="text-lg fw-semibold mb-0">Upload Multiple Images</h6>
-                    </div>
-                    <div class="card-body p-24">
-                        <!-- Naming Convention Info -->
-                        <div class="naming-convention">
-                            <h6 class="fw-semibold mb-8">
-                                <iconify-icon icon="solar:info-circle-outline" class="me-2"></iconify-icon>
-                                File Naming Convention (Optional)
-                            </h6>
-                            <p class="mb-8">For automatic service detection, name your files like:</p>
-                            <ul class="mb-0">
-                                <li><code>service_1_image1.jpg</code> - Will be assigned to service with ID 1</li>
-                                <li><code>massage_therapy_photo.png</code> - Will try to match service by name</li>
-                                <li><code>facial_treatment_main.jpg</code> - Will try to match service by name</li>
-                            </ul>
-                        </div>
-
-                        <!-- Auto-detect Section -->
-                        <div class="auto-detect-section">
-                            <div class="d-flex justify-content-between align-items-center mb-16">
-                                <h6 class="fw-semibold mb-0">Auto-detect Services</h6>
-                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="autoDetectServices()">
-                                    <iconify-icon icon="solar:magic-stick-3-outline" class="me-1"></iconify-icon>
-                                    Auto-detect
-                                </button>
-                            </div>
-                            <p class="text-sm text-muted mb-0">
-                                Click "Auto-detect" after selecting files to automatically assign services based on file names.
-                            </p>
-                        </div>
-
-                        <!-- Upload Zone -->
-                        <div class="batch-upload-zone" id="batchUploadZone">
-                            <iconify-icon icon="solar:cloud-upload-outline" class="text-primary text-6xl mb-16"></iconify-icon>
-                            <h6 class="text-md fw-semibold text-primary-light mb-8">Drag & Drop Multiple Images Here</h6>
-                            <p class="text-sm text-secondary-light mb-16">or click to browse files</p>
-                            <input type="file" id="batchImageInput" multiple accept="image/*" style="display: none;">
-                            <button type="button" class="btn btn-primary btn-sm" onclick="document.getElementById('batchImageInput').click()">
-                                Choose Files
-                            </button>
-                            <div class="mt-16">
-                                <small class="text-muted">
-                                    Supported formats: JPG, PNG, WebP<br>
-                                    Maximum size: 2MB per file<br>
-                                    You can upload multiple files at once
-                                </small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        <!-- Auto-detect Section -->
+        <div class="bg-gray-50 rounded-lg p-4 mb-6 flex flex-wrap items-center justify-between gap-2">
+            <div class="font-semibold text-gray-700 flex items-center gap-2"><i data-lucide="wand" class="w-5 h-5"></i> Tự động nhận diện dịch vụ</div>
+            <button type="button" class="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition text-sm" onclick="autoDetectServices()">
+                <i data-lucide="wand" class="w-4 h-4"></i> Auto-detect
+            </button>
+        </div>
+        <!-- Upload Zone -->
+        <div class="border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 p-8 text-center mb-6 cursor-pointer" id="batchUploadZone">
+            <i data-lucide="cloud-upload" class="text-primary w-12 h-12 mx-auto mb-4"></i>
+            <h2 class="text-lg font-semibold text-primary mb-2">Kéo & thả nhiều ảnh vào đây</h2>
+            <p class="text-sm text-gray-500 mb-4">hoặc click để chọn file</p>
+            <input type="file" id="batchImageInput" multiple accept="image/*" style="display: none;">
+            <button type="button" class="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition text-sm" onclick="document.getElementById('batchImageInput').click()">
+                <i data-lucide="file-plus" class="w-4 h-4"></i> Chọn file
+            </button>
+            <div class="mt-4 text-xs text-gray-400">
+                Định dạng: JPG, PNG, WebP. Tối đa 2MB/file. Có thể chọn nhiều file cùng lúc.
             </div>
-
-            <!-- File Mapping Section -->
-            <div class="col-12" id="fileMappingSection" style="display: none;">
-                <div class="card p-0 radius-12 mb-24">
-                    <div class="card-header border-bottom bg-base py-16 px-24 d-flex justify-content-between align-items-center">
-                        <h6 class="text-lg fw-semibold mb-0">Map Files to Services</h6>
-                        <div class="d-flex gap-2">
-                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearAllMappings()">
-                                Clear All
-                            </button>
-                            <button type="button" class="btn btn-primary btn-sm" onclick="startBatchUpload()" id="uploadButton" disabled>
-                                <iconify-icon icon="solar:upload-outline" class="me-1"></iconify-icon>
-                                Upload All
-                            </button>
-                        </div>
-                    </div>
-                    <div class="card-body p-24">
-                        <div class="file-mapping-container" id="fileMappingContainer">
-                            <!-- File mapping items will be inserted here -->
-                        </div>
+        </div>
+        <!-- File Mapping Section -->
+        <div id="fileMappingSection" style="display: none;" class="mb-6">
+            <div class="bg-gray-50 rounded-lg shadow p-4 mb-4">
+                <div class="flex flex-wrap items-center justify-between mb-2">
+                    <div class="font-semibold text-gray-700">Gán file cho dịch vụ</div>
+                    <div class="flex gap-2">
+                        <button type="button" class="inline-flex items-center gap-2 px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition text-sm" onclick="clearAllMappings()">
+                            Xóa tất cả
+                        </button>
+                        <button type="button" class="inline-flex items-center gap-2 px-3 py-1 bg-primary text-white rounded hover:bg-primary-dark transition text-sm" onclick="startBatchUpload()" id="uploadButton" disabled>
+                            <i data-lucide="upload" class="w-4 h-4"></i> Upload tất cả
+                        </button>
                     </div>
                 </div>
+                <div id="fileMappingContainer" class="divide-y divide-gray-200"></div>
             </div>
-
-            <!-- Progress Section -->
-            <div class="col-12">
-                <div class="card p-0 radius-12" id="batchProgressSection" style="display: none;">
-                    <div class="card-header border-bottom bg-base py-16 px-24">
-                        <h6 class="text-lg fw-semibold mb-0">Upload Progress</h6>
-                    </div>
-                    <div class="card-body p-24">
-                        <div class="progress-summary" id="progressSummary">
-                            <div>
-                                <span class="fw-semibold">Status: </span>
-                                <span id="uploadStatus">Preparing...</span>
-                            </div>
-                            <div>
-                                <span class="text-success fw-semibold" id="successCount">0</span> successful, 
-                                <span class="text-danger fw-semibold" id="errorCount">0</span> failed
-                            </div>
-                        </div>
-                        <div class="progress-details" id="progressDetails">
-                            <!-- Progress items will be inserted here -->
-                        </div>
+        </div>
+        <!-- Progress Section -->
+        <div id="batchProgressSection" style="display: none;" class="mb-6">
+            <div class="bg-gray-50 rounded-lg shadow p-4 mb-4">
+                <div class="flex flex-wrap items-center justify-between mb-2">
+                    <div class="font-semibold text-gray-700">Tiến trình upload</div>
+                    <div class="flex gap-2 text-sm">
+                        <span class="text-green-600 font-semibold" id="successCount">0</span> thành công,
+                        <span class="text-red-600 font-semibold" id="errorCount">0</span> thất bại
                     </div>
                 </div>
+                <div id="progressSummary" class="mb-2 text-sm text-gray-500"><span class="font-semibold">Trạng thái:</span> <span id="uploadStatus">Đang chuẩn bị...</span></div>
+                <div id="progressDetails"></div>
             </div>
         </div>
     </div>
-
-    <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
-    
-    <script>
+</div>
+</main>
+</div>
+<jsp:include page="/WEB-INF/view/common/footer.jsp" />
+<jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
+<script>if (window.lucide) lucide.createIcons();</script>
+<!-- Giữ lại toàn bộ script upload, mapping, progress như cũ -->
+<script>
         const contextPath = '${pageContext.request.contextPath}';
         const services = [
             <c:forEach var="service" items="${services}" varStatus="status">
@@ -574,5 +420,4 @@
         }
     </script>
 </body>
-
 </html>

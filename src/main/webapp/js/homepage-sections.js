@@ -33,9 +33,6 @@ class HomepageSectionsManager {
         console.log('🏠 Initializing Homepage Sections Manager...');
         
         try {
-            // Initialize demo data for development/testing
-            this.initDemoData();
-            
             // Load all sections data
             await this.loadAllSections();
             
@@ -49,21 +46,7 @@ class HomepageSectionsManager {
         }
     }
 
-    /**
-     * Initialize demo data for development/testing
-     */
-    initDemoData() {
-        // Add some demo service IDs to recently viewed for testing
-        const demoServiceIds = [1, 2, 3];
-        if (this.getRecentlyViewedIds().length === 0) {
-            try {
-                localStorage.setItem(this.recentlyViewedKey, JSON.stringify(demoServiceIds));
-                console.log('📝 Demo recently viewed data initialized');
-            } catch (error) {
-                console.warn('Could not initialize demo data:', error);
-            }
-        }
-    }
+
 
     /**
      * Get context path for URL construction
@@ -221,7 +204,7 @@ class HomepageSectionsManager {
         const rating = service.averageRating || 0;
         
         // Get image with fallback
-        const imageUrl = service.imageUrl || this.getServiceImage(service.serviceId);
+        const imageUrl = this.getServiceImageUrl(service);
         
         // Create promotional badge for promotional section
         let promotionalBadge = '';
@@ -267,7 +250,7 @@ class HomepageSectionsManager {
                     src="${imageUrl}" 
                     alt="${service.name}" 
                     class="w-full h-48 object-cover" 
-                    onerror="this.src='${this.beautyImages[0]}'"
+
                 />
                 <div class="absolute top-3 right-3 bg-white/90 px-2 py-1 rounded-full">
                     <div class="flex items-center">
@@ -313,6 +296,28 @@ class HomepageSectionsManager {
     getServiceImage(serviceId) {
         const imageIndex = Math.abs(serviceId * 7) % this.beautyImages.length;
         return this.beautyImages[imageIndex];
+    }
+
+    /**
+     * Get service image URL with proper fallback
+     */
+    getServiceImageUrl(service) {
+        // Get context path for proper URL construction
+        const contextPath = this.contextPath || '';
+        
+        // Use the service's imageUrl from database if available
+        if (service.imageUrl && service.imageUrl.trim() !== '' && service.imageUrl !== '/services/default.jpg') {
+            // Ensure the URL has proper context path
+            const imageUrl = service.imageUrl.startsWith('/') ? `${contextPath}${service.imageUrl}` : service.imageUrl;
+            console.log('🖼️ Using database image for service (homepage):', service.serviceId, '→', imageUrl);
+            return imageUrl;
+        }
+        
+        // Fallback to placehold.co placeholder with service name
+        const serviceName = encodeURIComponent(service.name || 'Service');
+        const placeholderUrl = `https://placehold.co/300x200/FFB6C1/333333?text=${serviceName}`;
+        console.log('🖼️ Using placeholder image for service (homepage):', service.serviceId, '→', placeholderUrl);
+        return placeholderUrl;
     }
 
     /**
@@ -405,7 +410,7 @@ class HomepageSectionsManager {
         const serviceData = {
             serviceId: service.serviceId,
             serviceName: service.name,
-            serviceImage: service.imageUrl || this.getServiceImage(service.serviceId),
+            serviceImage: this.getServiceImageUrl(service),
             servicePrice: service.price,
             serviceDuration: service.durationMinutes
         };

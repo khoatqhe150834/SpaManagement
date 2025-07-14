@@ -67,14 +67,15 @@
                                     <c:when test="${menuItem.divider}">
                                         <div class="dropdown-divider-admin"></div>
                                     </c:when>
-                                    <c:otherwise>
+                                    <%-- Skip section headers (items with null URL) and only show actual menu items --%>
+                                    <c:when test="${not empty menuItem.url and not empty menuItem.label}">
                                         <a href="${menuItem.url}" class="dropdown-item-admin">
                                             <div class="d-flex align-items-center gap-3">
                                                 <iconify-icon icon="${menuItem.icon}" class="text-lg text-secondary-light"></iconify-icon>
                                                 <span class="fw-medium text-neutral-900">${menuItem.label}</span>
                                             </div>
                                         </a>
-                                    </c:otherwise>
+                                    </c:when>
                                 </c:choose>
                             </c:forEach>
                         </div>
@@ -171,14 +172,15 @@
                                     <c:when test="${menuItem.divider}">
                                         <div class="dropdown-divider-admin"></div>
                                     </c:when>
-                                    <c:otherwise>
+                                    <%-- Skip section headers (items with null URL) and only show actual menu items --%>
+                                    <c:when test="${not empty menuItem.url and not empty menuItem.label}">
                                         <a href="${menuItem.url}" class="dropdown-item-admin">
                                             <div class="d-flex align-items-center gap-3">
                                                 <iconify-icon icon="${menuItem.icon}" class="text-lg text-secondary-light"></iconify-icon>
                                                 <span class="fw-medium text-neutral-900">${menuItem.label}</span>
                                             </div>
                                         </a>
-                                    </c:otherwise>
+                                    </c:when>
                                 </c:choose>
                             </c:forEach>
                         </div>

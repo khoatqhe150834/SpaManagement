@@ -1,10 +1,14 @@
 package controller;
 
+import java.io.IOException;
+import java.util.List;
+
+import dao.ServiceDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import model.Service;
 
 /**
  * Home Controller to handle the root path
@@ -16,21 +20,33 @@ public class HomeController extends HttpServlet {
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
 
-    System.out.println("[HomeController] Reached the HomeController. Forwarding to home.jsp.");
+    System.out.println("[HomeController] Reached the HomeController. Loading services with images.");
+
+    try {
+      // Load services with images for homepage sections
+      ServiceDAO serviceDAO = new ServiceDAO();
+
+      // Load featured services (limit to 8 for homepage)
+      List<Service> featuredServices = serviceDAO.getPromotionalServicesWithImages(8);
+      List<Service> mostPurchasedServices = serviceDAO.getMostPurchasedServicesWithImages(8);
+
+      // Set attributes for JSP
+      request.setAttribute("featuredServices", featuredServices);
+      request.setAttribute("mostPurchasedServices", mostPurchasedServices);
+
+      System.out.println("[HomeController] Loaded " + featuredServices.size() + " featured services and " +
+                        mostPurchasedServices.size() + " most purchased services");
+
+    } catch (Exception e) {
+      System.err.println("[HomeController] Error loading services: " + e.getMessage());
+      e.printStackTrace();
+      // Continue without services data - JavaScript will handle loading
+    }
 
     // Additional diagnostic attributes
     request.setAttribute("controller_reached", "HomeController");
     request.setAttribute("timestamp", System.currentTimeMillis());
 
-    // The JSP will have access to the session attributes for this request.
-    // We don't need to do anything special here to pass them.
-    // They will be removed from the session after this request cycle
-    // if they were displayed. Let's try to remove the removal logic
-    // from footer.jsp and see if the toast appears.
-    // The previous analysis was a bit flawed. The scriptlet in the JSP
-    // does run, but it runs after the HTML is sent to the client, which is
-    // why the notification should have appeared.
-    // Let's re-examine app.js
     request.getRequestDispatcher("/index.jsp").forward(request, response);
   }
 

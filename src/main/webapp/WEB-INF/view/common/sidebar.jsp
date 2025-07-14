@@ -1,6 +1,6 @@
 <%--
     Document   : sidebar.jsp
-    Refactored to match the main site's visual style (Tailwind CSS & Lucide Icons)
+    Enhanced role-based sidebar with MenuService integration
     Author     : G1_SpaManagement Team
 --%>
 
@@ -9,7 +9,7 @@
 <%@ page import="model.User, model.Customer, model.RoleConstants, java.util.List, model.MenuService, model.MenuService.MenuItem" %>
 
 <%
-    // --- User and Role Detection ---
+    // --- User and Role Detection Logic (Preserved) ---
     String userRole = "GUEST"; // Default role
     Object userObject = null;
     
@@ -54,530 +54,312 @@
         }
     }
 
-    // Set default avatar if none is provided
+    // Set default avatar if none is provided for any user type (admin, manager, customer, etc.)
     if (avatarUrl == null || avatarUrl.trim().isEmpty()) {
-        avatarUrl = request.getContextPath() + "/assets/home/images/default-avatar.png";
+        // Default blank profile picture from Pixabay for all users without avatars
+        avatarUrl = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
     }
+
+    // Generate role-based menu items using MenuService
+    List<MenuItem> menuItems = MenuService.getMenuItemsByRole(userRole, request.getContextPath());
 
     pageContext.setAttribute("userRole", userRole);
     pageContext.setAttribute("contextPath", request.getContextPath());
     pageContext.setAttribute("fullName", fullName);
     pageContext.setAttribute("email", email);
     pageContext.setAttribute("avatarUrl", avatarUrl);
+    pageContext.setAttribute("menuItems", menuItems);
 %>
 
-<!-- Mobile overlay -->
-<div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden"></div>
-
-<!-- Sidebar -->
-<aside id="main-sidebar" class="sticky top-[4.5rem] h-[calc(100vh-7rem)] my-4 z-40 w-80 bg-white shadow-xl transform transition-transform duration-300 ease-in-out lg:translate-x-0 -translate-x-full flex flex-col">
-    <!-- Header -->
-    <div class="flex items-center justify-between h-16 px-6 border-b border-gray-200 bg-[#D4AF37] flex-shrink-0">
-        <a href="${pageContext.request.contextPath}/dashboard" class="flex items-center" title="Go to Dashboard">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="heart" class="lucide lucide-heart h-8 w-8 text-white mr-3"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>
-            <div class="text-white">
-                <div class="text-lg font-bold font-serif">Spa Hương Sen</div>
-                <div class="text-xs opacity-90 uppercase tracking-wider">${userRole} PORTAL</div>
-            </div>
-        </a>
-        <button id="close-sidebar-btn" class="lg:hidden text-white hover:text-gray-200 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="x" class="lucide lucide-x h-6 w-6"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-        </button>
-    </div>
-
-    <!-- Navigation -->
-    <nav class="flex-1 px-4 py-4 overflow-y-auto">
-        <h3 class="px-4 pb-2 text-sm font-semibold uppercase text-gray-400 tracking-wider">Tổng quan</h3>
-        <div class="space-y-1">
+<!-- Enhanced Role-Based Sidebar with MenuService Integration -->
+<div class="fixed left-0 top-0 w-64 h-full bg-spa-cream p-4 z-50 sidebar-menu transition-transform border-r border-primary/20">
+    <a href="${pageContext.request.contextPath}/dashboard" class="flex items-center pb-4 border-b border-primary/30">
+        <h2 class="font-bold text-2xl text-spa-dark">Spa <span class="bg-primary text-white px-2 rounded-md">Hương Sen</span></h2>
+    </a>
+    
+    <div class="mt-4">
             <c:choose>
-                <c:when test="${userRole == 'CUSTOMER'}">
-                    <!-- Customer Portal -->
-                    <div class="nav-item">
-                        <button class="nav-button nav-expandable w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-all duration-200 group text-gray-700 hover:bg-[#FFF8F0]" 
-                                data-item-id="customer-portal">
-                            <div class="flex items-center">
-                                <i data-lucide="user" class="h-5 w-5 mr-3 text-gray-500 group-hover:text-[#D4AF37]"></i>
-                                <span class="font-medium text-base">Khách hàng</span>
-                            </div>
-                            <i data-lucide="chevron-right" class="h-5 w-5 transition-transform duration-200"></i>
-                        </button>
+            <%-- ============================ DYNAMIC ROLE-BASED NAVIGATION ============================ --%>
+            <c:when test="${userRole != 'GUEST'}">
+                <div class="space-y-1">
+                    <c:set var="currentSection" value="" />
+                    <c:forEach var="menuItem" items="${menuItems}">
+                        <%
+                            MenuItem item = (MenuItem) pageContext.getAttribute("menuItem");
+                            // Check if this is a section header
+                            if (item.getSection() != null && !item.getSection().isEmpty() && item.getUrl() == null) {
+                                pageContext.setAttribute("isSection", true);
+                                pageContext.setAttribute("sectionTitle", item.getSection());
+                            } else {
+                                pageContext.setAttribute("isSection", false);
+                            }
+                        %>
                         
-                        <div class="submenu ml-4 mt-1 space-y-1 pl-4 hidden">
-                            <a href="${pageContext.request.contextPath}/customer/view" class="nav-button w-full flex items-center justify-between px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="my-appointments">
-                                <div class="flex items-center">
-                                    <i data-lucide="calendar" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                    <span>Lịch hẹn của tôi</span>
-                                </div>
-                                <span class="text-sm font-semibold px-2.5 py-1 rounded-full bg-yellow-400 text-yellow-900">3</span>
-                            </a>
-                            
-                            <a href="${pageContext.request.contextPath}/booking" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="book-services">
-                                <i data-lucide="calendar-plus" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                <span>Đặt dịch vụ</span>
-                            </a>
-                            
-                            <a href="${pageContext.request.contextPath}/customer/history" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="treatment-history">
-                                <i data-lucide="history" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                <span>Lịch sử điều trị</span>
-                            </a>
-                            
-                            <a href="${pageContext.request.contextPath}/profile" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="personal-profile">
-                                <i data-lucide="user-cog" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                <span>Hồ sơ cá nhân</span>
-                            </a>
-                            
-                            <a href="${pageContext.request.contextPath}/password/change" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="change-password">
-                                <i data-lucide="key" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                <span>Đổi mật khẩu</span>
-                            </a>
-                            
-                            <a href="${pageContext.request.contextPath}/customer/payments" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="payment-history">
-                                <i data-lucide="credit-card" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                <span>Lịch sử thanh toán</span>
-                            </a>
-                            
-                            <a href="${pageContext.request.contextPath}/customer/loyalty" class="nav-button w-full flex items-center justify-between px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="loyalty-points">
-                                <div class="flex items-center">
-                                    <i data-lucide="gift" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                    <span>Điểm tích lũy</span>
-                                </div>
-                                <span class="text-sm font-semibold px-2.5 py-1 rounded-full bg-yellow-400 text-yellow-900">2,450</span>
-                            </a>
-                            
-                            <a href="${pageContext.request.contextPath}/promotions" class="nav-button w-full flex items-center justify-between px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="special-offers">
-                                <div class="flex items-center">
-                                    <i data-lucide="star" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                    <span>Ưu đãi đặc biệt</span>
-                                </div>
-                                <span class="bg-red-500 text-white text-sm font-semibold px-2.5 py-1 rounded-full animate-pulse">Mới</span>
-                            </a>
-                        </div>
-                    </div>
+                        <c:choose>
+                            <%-- Section Header --%>
+                            <c:when test="${isSection}">
+                                <c:if test="${not empty currentSection}">
+                                    <!-- Add spacing between sections -->
+                                    <div class="mt-4"></div>
+                                </c:if>
+                                <span class="text-primary/70 font-bold text-xs uppercase tracking-wider block mt-4">${sectionTitle}</span>
+                                <c:set var="currentSection" value="${sectionTitle}" />
                 </c:when>
 
-                <c:when test="${userRole == 'MANAGER' || userRole == 'ADMIN'}">
-                    <!-- Manager Dashboard -->
-                    <a href="${pageContext.request.contextPath}/dashboard" class="nav-button w-full flex items-center px-4 py-2.5 rounded-lg transition-all duration-200 group text-gray-700 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                        data-item-id="dashboard">
-                        <i data-lucide="layout-dashboard" class="h-5 w-5 mr-3 text-gray-500 group-hover:text-[#D4AF37]"></i>
-                        <span class="font-medium text-base">Dashboard</span>
-                    </a>
-                    <div class="nav-item">
-                        <button class="nav-button nav-expandable w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-all duration-200 group text-gray-700 hover:bg-[#FFF8F0]" 
-                                data-item-id="manager-dashboard">
-                            <div class="flex items-center">
-                                <i data-lucide="briefcase" class="h-5 w-5 mr-3 text-gray-500 group-hover:text-[#D4AF37]"></i>
-                                <span class="font-medium text-base">Quản lý</span>
-                            </div>
-                            <i data-lucide="chevron-right" class="h-5 w-5 transition-transform duration-200"></i>
-                        </button>
-                        
-                        <div class="submenu ml-4 mt-1 space-y-1 pl-4 hidden">
-                            <a href="${pageContext.request.contextPath}/manager/service" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="service-management">
-                                <i data-lucide="list-checks" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                <span>Quản lý dịch vụ</span>
-                            </a>
-                            
-                            <a href="${pageContext.request.contextPath}/manager/servicetype" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="servicetype-management">
-                                <i data-lucide="tag" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                <span>Quản lý loại dịch vụ</span>
-                            </a>
-                            
-                            <a href="${pageContext.request.contextPath}/staff" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="staff-management">
-                                <i data-lucide="users" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                <span>Quản lý nhân viên</span>
-                            </a>
-                            
-                            <a href="${pageContext.request.contextPath}/user/list" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="user-management">
-                                <i data-lucide="user-check" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                <span>Quản lý người dùng</span>
-                            </a>
-                            
-                            <a href="${pageContext.request.contextPath}/category/list" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="category-management">
-                                <i data-lucide="folder" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                <span>Quản lý danh mục</span>
-                            </a>
-                            
-                            <a href="${pageContext.request.contextPath}/blog" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="blog-management">
-                                <i data-lucide="edit" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                <span>Quản lý blog</span>
-                            </a>
-                            
-                            <a href="${pageContext.request.contextPath}/spa-info" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="spa-info">
-                                <i data-lucide="info" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                <span>Thông tin Spa</span>
-                            </a>
-                        </div>
-                    </div>
+                            <%-- Regular Menu Item --%>
+                            <c:otherwise>
+                                <div class="mb-1 group">
+                                    <%
+                                        MenuItem menuItem = (MenuItem) pageContext.getAttribute("menuItem");
+                                        boolean hasSubItems = menuItem.getSubItems() != null && !menuItem.getSubItems().isEmpty();
+                                        pageContext.setAttribute("hasSubItems", hasSubItems);
+                                        pageContext.setAttribute("subItems", menuItem.getSubItems());
+                                    %>
+                                    
+                                    <c:choose>
+                                        <%-- Menu item with dropdown --%>
+                                        <c:when test="${hasSubItems}">
+                                            <a href="#" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg sidebar-dropdown-toggle transition-all duration-200">
+                                                <i data-lucide="${menuItem.icon}" class="mr-3 h-4 w-4"></i>
+                                                <span class="text-sm">${menuItem.label}</span>
+                                                <c:if test="${menuItem.hasNotification}">
+                                                    <span class="md:block px-2 py-0.5 ml-auto text-xs font-medium tracking-wide text-white 
+                                                        <c:choose>
+                                                            <c:when test='${menuItem.notificationColor == "red"}'>bg-red-500</c:when>
+                                                            <c:when test='${menuItem.notificationColor == "yellow"}'>bg-yellow-500</c:when>
+                                                            <c:when test='${menuItem.notificationColor == "green"}'>bg-green-500</c:when>
+                                                            <c:when test='${menuItem.notificationColor == "blue"}'>bg-blue-500</c:when>
+                                                            <c:otherwise>bg-primary</c:otherwise>
+                                                        </c:choose>
+                                                        rounded-full">${menuItem.notificationText}</span>
+                                                </c:if>
+                            <i class="ri-arrow-right-s-line ml-auto group-[.selected]:rotate-90 transition-transform duration-200"></i>
+                        </a>
+                                            <div class="pl-7 mt-2 hidden group-[.selected]:block list-none">
+                                                <c:forEach var="subItem" items="${subItems}">
+                                                    <div class="mb-4">
+                                                        <a href="${subItem.url}" class="text-spa-dark text-sm flex items-center hover:text-primary before:contents-[''] before:w-1 before:h-1 before:rounded-full before:bg-primary/40 before:mr-3 transition-colors duration-200">
+                                                            ${subItem.label}
+                                                        </a>
+                                                    </div>
+                                                </c:forEach>
+                                            </div>
                 </c:when>
                 
-                <c:when test="${userRole == 'MARKETING' || userRole == 'ADMIN' || userRole == 'MANAGER'}">
-                     <!-- Marketing Portal -->
-                    <div class="nav-item">
-                        <button class="nav-button nav-expandable w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-all duration-200 group text-gray-700 hover:bg-[#FFF8F0]" 
-                                data-item-id="marketing-portal">
-                            <div class="flex items-center">
-                                <i data-lucide="megaphone" class="h-5 w-5 mr-3 text-gray-500 group-hover:text-[#D4AF37]"></i>
-                                <span class="font-medium text-base">Marketing</span>
-                            </div>
-                            <i data-lucide="chevron-right" class="h-5 w-5 transition-transform duration-200"></i>
-                        </button>
-                        
-                        <div class="submenu ml-4 mt-1 space-y-1 pl-4 hidden">
-                            <a href="${pageContext.request.contextPath}/promotion/list" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="promotion-management">
-                                <i data-lucide="gift" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                <span>Quản lý khuyến mãi</span>
-                            </a>
-                            
-                            <a href="${pageContext.request.contextPath}/promotions" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="promotion-display">
-                                <i data-lucide="star" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                <span>Xem khuyến mãi</span>
-                            </a>
-                            
-                            <a href="${pageContext.request.contextPath}/service-review" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="service-reviews">
-                                <i data-lucide="message-circle" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                <span>Đánh giá dịch vụ</span>
-                            </a>
-                            
-                            <a href="${pageContext.request.contextPath}/qr/generate" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                    data-item-id="qr-codes">
-                                <i data-lucide="qr-code" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                <span>Tạo mã QR</span>
-                            </a>
-                        </div>
-                    </div>
-                </c:when>
-            </c:choose>
+                                        <%-- Regular menu item --%>
+                                        <c:otherwise>
+                                            <a href="${menuItem.url}" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
+                                                <i data-lucide="${menuItem.icon}" class="mr-3 h-4 w-4"></i>
+                                                <span class="text-sm">${menuItem.label}</span>
+                                                <c:if test="${menuItem.hasNotification}">
+                                                    <span class="md:block px-2 py-0.5 ml-auto text-xs font-medium tracking-wide text-white 
+                                                        <c:choose>
+                                                            <c:when test='${menuItem.notificationColor == "red"}'>bg-red-500 animate-pulse</c:when>
+                                                            <c:when test='${menuItem.notificationColor == "yellow"}'>bg-yellow-500</c:when>
+                                                            <c:when test='${menuItem.notificationColor == "green"}'>bg-green-500</c:when>
+                                                            <c:when test='${menuItem.notificationColor == "blue"}'>bg-blue-500</c:when>
+                                                            <c:otherwise>bg-primary</c:otherwise>
+                                                        </c:choose>
+                                                        rounded-full">${menuItem.notificationText}</span>
+                                                </c:if>
+                                            </a>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </div>
+                            </c:otherwise>
+                        </c:choose>
+                    </c:forEach>
+                </div>
+            </c:when>
 
-            <c:if test="${userRole == 'ADMIN'}">
-                <!-- Admin Panel -->
-                <div class="nav-item">
-                    <button class="nav-button nav-expandable w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-all duration-200 group text-gray-700 hover:bg-[#FFF8F0]" 
-                            data-item-id="admin-panel">
-                        <div class="flex items-center">
-                            <i data-lucide="shield" class="h-5 w-5 mr-3 text-gray-500 group-hover:text-[#D4AF37]"></i>
-                            <span class="font-medium text-base">Quản trị hệ thống</span>
-                        </div>
-                        <i data-lucide="chevron-right" class="h-5 w-5 transition-transform duration-200"></i>
+            <%-- ============================ GUEST/UNAUTHENTICATED NAVIGATION ============================ --%>
+            <c:otherwise>
+                <span class="text-primary/70 font-bold text-xs uppercase tracking-wider">TỔNG QUAN</span>
+                <div class="mt-2">
+                    <div class="mb-1 group">
+                        <a href="${pageContext.request.contextPath}/login" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
+                            <i data-lucide="log-in" class="mr-3 h-4 w-4"></i>
+                            <span class="text-sm">Đăng nhập</span>
+                        </a>
+                    </div>
+                    <div class="mb-1 group">
+                        <a href="${pageContext.request.contextPath}/register" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
+                            <i data-lucide="user-plus" class="mr-3 h-4 w-4"></i>
+                            <span class="text-sm">Đăng ký</span>
+                        </a>
+                    </div>
+                </div>
+            </c:otherwise>
+        </c:choose>
+
+        <!-- Account Management Section for All Roles -->
+        <c:if test="${userRole != 'GUEST'}">
+            <span class="text-primary/70 font-bold text-xs uppercase tracking-wider mt-6 block">TÀI KHOẢN</span>
+            <div class="mt-2">
+                <div class="mb-1 group">
+                    <a href="${pageContext.request.contextPath}/account/profile" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
+                        <i data-lucide="user-circle" class="mr-3 h-4 w-4"></i>                
+                        <span class="text-sm">Thông tin cá nhân</span>
+                    </a>
+                </div>
+                <div class="mb-1 group">
+                    <a href="${pageContext.request.contextPath}/password/change" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
+                        <i data-lucide="key" class="mr-3 h-4 w-4"></i>                
+                        <span class="text-sm">Đổi mật khẩu</span>
+                    </a>
+                </div>
+                <div class="mb-1 group">
+                    <a href="${pageContext.request.contextPath}/account/security" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
+                        <i data-lucide="shield-check" class="mr-3 h-4 w-4"></i>                
+                        <span class="text-sm">Bảo mật</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Common Personal Section for Logged-in Users -->
+            <span class="text-primary/70 font-bold text-xs uppercase tracking-wider mt-6 block">CÁ NHÂN</span>
+            <div class="mt-2">
+                <div class="mb-1 group">
+                    <a href="${pageContext.request.contextPath}/profile" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
+                        <i data-lucide="settings" class="mr-3 h-4 w-4"></i>                
+                        <span class="text-sm">Cài đặt</span>
+                    </a>
+                </div>
+                <div class="mb-1 group">
+                    <button onclick="confirmLogout()" class="w-full flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-red-500 hover:text-white rounded-lg transition-all duration-200">
+                        <i data-lucide="log-out" class="mr-3 h-4 w-4"></i>                
+                        <span class="text-sm">Đăng xuất</span>
                     </button>
-                    
-                    <div class="submenu ml-4 mt-1 space-y-1 pl-4 hidden">
-                        <a href="${pageContext.request.contextPath}/customer/list" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                data-item-id="customer-management">
-                            <i data-lucide="users" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                            <span>Quản lý khách hàng</span>
-                        </a>
-                        
-                        <a href="${pageContext.request.contextPath}/test" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                data-item-id="system-test">
-                            <i data-lucide="test-tube" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                            <span>Kiểm tra hệ thống</span>
-                        </a>
-                        
-                        <a href="${pageContext.request.contextPath}/autocheckin" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                data-item-id="auto-checkin">
-                            <i data-lucide="clock" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                            <span>Tự động check-in</span>
-                        </a>
-                        
-                        <a href="${pageContext.request.contextPath}/admin/settings" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                data-item-id="system-settings">
-                            <i data-lucide="settings" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                            <span>Cài đặt hệ thống</span>
-                        </a>
+                </div>
+            </div>
+
+            <!-- Enhanced User Profile Section -->
+            <div class="mt-6 pt-4 border-t border-primary/30">
+                <div class="flex items-center space-x-3 p-2">
+                    <img src="${avatarUrl}" alt="User Avatar" class="w-10 h-10 rounded-full object-cover border-2 border-primary/20">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-spa-dark truncate">${fullName}</p>
+                        <p class="text-xs text-primary/70 capitalize">
+                            <c:choose>
+                                <c:when test="${userRole == 'ADMIN'}">Quản trị viên</c:when>
+                                <c:when test="${userRole == 'MANAGER'}">Quản lý</c:when>
+                                <c:when test="${userRole == 'THERAPIST'}">Nhân viên</c:when>
+                                <c:when test="${userRole == 'RECEPTIONIST'}">Lễ tân</c:when>
+                                <c:when test="${userRole == 'MARKETING'}">Marketing</c:when>
+                                <c:when test="${userRole == 'CUSTOMER'}">Khách hàng</c:when>
+                                <c:otherwise>${userRole.toLowerCase()}</c:otherwise>
+                            </c:choose>
+                        </p>
                     </div>
                 </div>
-            </c:if>
-
-            <c:if test="${userRole == 'THERAPIST' || userRole == 'MANAGER' || userRole == 'ADMIN'}">
-                <!-- Therapist Interface -->
-                <div class="nav-item">
-                    <button class="nav-button nav-expandable w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-all duration-200 group text-gray-700 hover:bg-[#FFF8F0]" 
-                            data-item-id="therapist-interface">
-                        <div class="flex items-center">
-                            <i data-lucide="user-round" class="h-5 w-5 mr-3 text-gray-500 group-hover:text-[#D4AF37]"></i>
-                            <span class="font-medium text-base">Nhân viên</span>
-                        </div>
-                        <i data-lucide="chevron-right" class="h-5 w-5 transition-transform duration-200"></i>
-                    </button>
-                    
-                    <div class="submenu ml-4 mt-1 space-y-1 pl-4 hidden">
-                        <a href="${pageContext.request.contextPath}/therapist/schedule" class="nav-button w-full flex items-center justify-between px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                data-item-id="daily-schedule">
-                            <div class="flex items-center">
-                                <i data-lucide="clock" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                                <span>Lịch làm việc hôm nay</span>
-                            </div>
-                            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-400 text-yellow-900">8</span>
-                        </a>
-                        
-                        <a href="${pageContext.request.contextPath}/appointment" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                data-item-id="appointment-management">
-                            <i data-lucide="calendar" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                            <span>Quản lý lịch hẹn</span>
-                        </a>
-                        
-                        <a href="${pageContext.request.contextPath}/therapist/clients" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                data-item-id="client-records">
-                            <i data-lucide="file-text" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                            <span>Hồ sơ khách hàng</span>
-                        </a>
-                        
-                        <a href="${pageContext.request.contextPath}/therapist/notes" class="nav-button w-full flex items-center px-3 py-2.5 rounded-md transition-all duration-200 text-base group text-gray-600 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                                data-item-id="treatment-notes">
-                            <i data-lucide="book-open" class="h-5 w-5 mr-3 text-gray-400 group-hover:text-[#D4AF37]"></i>
-                            <span>Ghi chú điều trị</span>
-                        </a>
-                    </div>
-                </div>
-            </c:if>
-
-            <div class="px-4 pt-2 pb-2">
-                <div class="border-t border-gray-200"></div>
             </div>
-            
-            <!-- Common Pages (All roles) -->
-            <div class="nav-item">
-                <a href="${pageContext.request.contextPath}/services" class="nav-button w-full flex items-center px-4 py-2.5 rounded-lg transition-all duration-200 group text-gray-700 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                        data-item-id="services">
-                    <i data-lucide="sparkles" class="h-5 w-5 mr-3 text-gray-500 group-hover:text-[#D4AF37]"></i>
-                    <span class="font-medium text-base">Dịch vụ</span>
-                </a>
-            </div>
-            
-            <div class="nav-item">
-                <a href="${pageContext.request.contextPath}/about" class="nav-button w-full flex items-center px-4 py-2.5 rounded-lg transition-all duration-200 group text-gray-700 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                        data-item-id="about">
-                    <i data-lucide="info" class="h-5 w-5 mr-3 text-gray-500 group-hover:text-[#D4AF37]"></i>
-                    <span class="font-medium text-base">Về chúng tôi</span>
-                </a>
-            </div>
-            
-            <div class="nav-item">
-                <a href="${pageContext.request.contextPath}/contact" class="nav-button w-full flex items-center px-4 py-2.5 rounded-lg transition-all duration-200 group text-gray-700 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                        data-item-id="contact">
-                    <i data-lucide="phone" class="h-5 w-5 mr-3 text-gray-500 group-hover:text-[#D4AF37]"></i>
-                    <span class="font-medium text-base">Liên hệ</span>
-                </a>
-            </div>
-            
-            <!-- Settings (All roles) -->
-            <div class="nav-item">
-                <a href="${pageContext.request.contextPath}/profile" class="nav-button w-full flex items-center px-4 py-2.5 rounded-lg transition-all duration-200 group text-gray-700 hover:bg-[#FFF8F0] hover:text-[#D4AF37]" 
-                        data-item-id="settings">
-                    <i data-lucide="settings" class="h-5 w-5 mr-3 text-gray-500 group-hover:text-[#D4AF37]"></i>
-                    <span class="font-medium text-base">Cài đặt</span>
-                </a>
-            </div>
-        </div>
-    </nav>
-
-    <!-- User Profile & Logout -->
-    <div class="border-t border-gray-200 p-2">
-        <a href="${pageContext.request.contextPath}/profile" class="block w-full p-2 hover:bg-[#FFF8F0] rounded-lg mb-1 group">
-            <div class="flex items-center">
-                <div class="flex-1 min-w-0">
-                    <p class="text-base font-semibold text-gray-800 truncate group-hover:text-[#D4AF37] transition-colors">${fullName}</p>
-                    <p class="text-sm text-gray-500 capitalize">${userRole.toLowerCase()}</p>
+        </c:if>
                 </div>
             </div>
-        </a>
-        
-        <button id="logout-btn" class="flex items-center w-full px-2 py-2.5 text-base text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group">
-            <i data-lucide="log-out" class="h-5 w-5 mr-3 group-hover:scale-110 transition-transform"></i>
-            <span class="font-medium">Đăng xuất</span>
-        </button>
-    </div>
-</aside>
+
+<!-- Mobile overlay -->
+<div class="fixed top-0 left-0 w-full h-full bg-black/50 z-40 md:hidden sidebar-overlay"></div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        class SidebarManager {
-            constructor(userRole) {
-                this.sidebar = document.getElementById('main-sidebar');
-                if (!this.sidebar) {
-                    console.error("Sidebar element #main-sidebar not found.");
-                    return;
+    // Enhanced Sidebar Functionality with MenuService Integration
+    document.addEventListener('DOMContentLoaded', function() {
+        // Dropdown functionality for menu items with sub-items
+        document.querySelectorAll('.sidebar-dropdown-toggle').forEach(function (item) {
+            item.addEventListener('click', function (e) {
+                e.preventDefault()
+                const parent = item.closest('.group')
+                if (parent.classList.contains('selected')) {
+                    parent.classList.remove('selected')
+                } else {
+                    // Close other open dropdowns
+                    document.querySelectorAll('.sidebar-dropdown-toggle').forEach(function (i) {
+                        i.closest('.group').classList.remove('selected')
+                    })
+                    parent.classList.add('selected')
                 }
-
-                this.overlay = document.getElementById('sidebar-overlay');
-                this.closeSidebarBtn = document.getElementById('close-sidebar-btn');
-                this.logoutBtn = document.getElementById('logout-btn');
-                this.navButtons = this.sidebar.querySelectorAll('.nav-button');
-                
-                this.userRole = userRole;
-                this.activeItem = null;
-                this.expandedItems = new Set();
-                
-                this.init();
-            }
-
-            init() {
-                this.autoExpandRoleMenu();
-                this.initEventListeners();
-                this.detectActiveItem();
-
-                // Make toggle function globally available
-                window.toggleSidebar = () => this.toggleSidebar();
-                
-                if (window.lucide) {
+            })
+        })
+        
+        // Initialize Lucide icons for sidebar
+        if (typeof lucide !== 'undefined') {
                     lucide.createIcons();
                 }
-            }
 
-            autoExpandRoleMenu() {
-                let roleMenuId = '';
-                switch (this.userRole) {
-                    case 'CUSTOMER': roleMenuId = 'customer-portal'; break;
-                    case 'MANAGER': roleMenuId = 'manager-dashboard'; break;
-                    case 'ADMIN': roleMenuId = 'admin-panel'; break;
-                    case 'THERAPIST': roleMenuId = 'therapist-interface'; break;
-                    case 'MARKETING': roleMenuId = 'marketing-portal'; break;
-                }
-                
-                if (roleMenuId) {
-                    this.expandedItems.add(roleMenuId);
-                }
-            }
-            
-            detectActiveItem() {
-                const currentPath = window.location.pathname;
-                let bestMatch = null;
-
-                this.navButtons.forEach(button => {
-                    const buttonPath = button.getAttribute('href');
-                    if (buttonPath && currentPath.includes(buttonPath)) {
-                        if (!bestMatch || buttonPath.length > (bestMatch.getAttribute('href') || '').length) {
-                            bestMatch = button;
-                        }
-                    }
-                });
-                
-                if (bestMatch) {
-                    const itemId = bestMatch.dataset.itemId;
-                    this.setActiveItem(itemId);
-
-                    // Auto-expand parent menu if a child is active
-                    const parentMenu = bestMatch.closest('.submenu');
-                    if (parentMenu) {
-                        const parentButton = parentMenu.previousElementSibling;
-                        if(parentButton && parentButton.dataset.itemId) {
-                            this.expandedItems.add(parentButton.dataset.itemId);
-                        }
-                    }
-                } else if (currentPath.endsWith('/dashboard')) {
-                    this.setActiveItem('dashboard');
-                }
-                this.updateExpandedState();
-                this.updateActiveState();
-            }
-
-            initEventListeners() {
-                this.sidebar.addEventListener('click', (e) => {
-                    const button = e.target.closest('.nav-button');
-                    if (!button) return;
-
-                    // For expandable buttons, prevent navigation and toggle submenu
-                    if (button.classList.contains('nav-expandable')) {
-                        e.preventDefault();
-                        const itemId = button.dataset.itemId;
-                        this.toggleExpanded(itemId);
-                    }
-                });
-
-                this.closeSidebarBtn?.addEventListener('click', () => this.closeSidebar());
-                this.overlay?.addEventListener('click', () => this.closeSidebar());
-                
-                this.logoutBtn?.addEventListener('click', () => {
-                    if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
-                        const contextPath = '${pageContext.request.contextPath}';
-                        window.location.href = `${pageContext.request.contextPath}/logout`;
-                    }
-                });
-            }
-
-            toggleSidebar() {
-                if (this.sidebar.classList.contains('-translate-x-full')) {
-                    this.openSidebar();
-                } else {
-                    this.closeSidebar();
-                }
-            }
-
-            openSidebar() {
-                this.sidebar.classList.remove('-translate-x-full');
-                this.overlay?.classList.remove('hidden');
-            }
-
-            closeSidebar() {
-                this.sidebar.classList.add('-translate-x-full');
-                this.overlay?.classList.add('hidden');
-            }
-
-            toggleExpanded(itemId) {
-                if (this.expandedItems.has(itemId)) {
-                    this.expandedItems.delete(itemId);
-                } else {
-                    this.expandedItems.add(itemId);
-                }
-                this.updateExpandedState();
-            }
-            
-            updateExpandedState() {
-                this.sidebar.querySelectorAll('.nav-expandable').forEach(button => {
-                    const itemId = button.dataset.itemId;
-                    const submenu = button.nextElementSibling;
-                    const chevron = button.querySelector('[data-lucide="chevron-right"]');
-
-                    if (this.expandedItems.has(itemId)) {
-                        submenu?.classList.remove('hidden');
-                        chevron?.classList.add('rotate-90');
-                        button.classList.add('bg-[#FFF8F0]', 'text-[#D4AF37]');
-                    } else {
-                        submenu?.classList.add('hidden');
-                        chevron?.classList.remove('rotate-90');
-                        button.classList.remove('bg-[#FFF8F0]', 'text-[#D4AF37]');
-                    }
-                });
-            }
-
-            setActiveItem(itemId) {
-                if (!itemId) return;
-                this.activeItem = itemId;
-                this.updateActiveState();
-            }
-
-            updateActiveState() {
-                this.navButtons.forEach(btn => {
-                    const icon = btn.querySelector('i[data-lucide]');
-                    if (btn.dataset.itemId === this.activeItem && !btn.classList.contains('nav-expandable')) {
-                        btn.classList.add('bg-[#D4AF37]', 'text-white', 'shadow-inner');
-                        btn.classList.remove('text-gray-600', 'hover:bg-[#FFF8F0]', 'hover:text-[#D4AF37]');
-                        icon?.classList.add('text-white');
-                        icon?.classList.remove('text-gray-400', 'text-gray-500');
-                    }
-                });
-            }
+        // Enhanced active link detection based on current URL
+        const currentPath = window.location.pathname;
+        const currentParams = window.location.search;
+        
+        // Clear previous active states
+        function clearActiveStates() {
+        document.querySelectorAll('.sidebar-menu a').forEach(function(link) {
+                link.classList.remove('bg-primary', 'text-white');
+                link.classList.add('text-spa-dark');
+                link.closest('.group')?.classList.remove('active');
+            });
         }
 
-        new SidebarManager('${userRole}');
+        // Set active state for matching links
+        document.querySelectorAll('.sidebar-menu a[href]').forEach(function(link) {
+            const linkPath = link.getAttribute('href');
+            const linkUrl = new URL(linkPath, window.location.origin);
+            
+            // Exact match or path contains check
+            if (currentPath === linkUrl.pathname || 
+                (linkUrl.pathname !== '/' && currentPath.includes(linkUrl.pathname))) {
+                clearActiveStates();
+                link.classList.remove('text-spa-dark');
+                link.classList.add('bg-primary', 'text-white');
+                link.closest('.group')?.classList.add('active');
+                
+                // If this is a sub-item, also open its parent dropdown
+                const parentDropdown = link.closest('ul.hidden')?.previousElementSibling;
+                if (parentDropdown && parentDropdown.classList.contains('sidebar-dropdown-toggle')) {
+                    parentDropdown.closest('.group').classList.add('selected');
+                }
+            }
+        });
+
+        // Handle click events for better active state management
+        document.querySelectorAll('.sidebar-menu a[href]').forEach(function(link) {
+            link.addEventListener('click', function() {
+                // Don't clear active states for dropdown toggles
+                if (!this.classList.contains('sidebar-dropdown-toggle')) {
+                    clearActiveStates();
+                    this.classList.remove('text-spa-dark');
+                    this.classList.add('bg-primary', 'text-white');
+                    this.closest('.group')?.classList.add('active');
+            }
+            });
+        });
     });
+
+    // Logout confirmation function
+    function confirmLogout() {
+                    if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+            window.location.href = '${pageContext.request.contextPath}/logout';
+        }
+    }
+
+    // Make toggle function globally available for navbar
+    window.toggleSidebar = function() {
+        const sidebarMenu = document.querySelector('.sidebar-menu');
+        const sidebarOverlay = document.querySelector('.sidebar-overlay');
+        
+        if (sidebarMenu.classList.contains('-translate-x-full')) {
+            sidebarMenu.classList.remove('-translate-x-full');
+            sidebarOverlay.classList.remove('hidden');
+                } else {
+            sidebarMenu.classList.add('-translate-x-full');
+            sidebarOverlay.classList.add('hidden');
+        }
+    };
+
+    // Enhanced role-based feature access helper
+    window.hasRoleAccess = function(feature) {
+        const userRole = '${userRole}';
+        // This can be extended to call backend MenuService.hasAccess method
+        return true; // Placeholder - implement as needed
+    };
+
+    console.log('Enhanced Role-Based Sidebar Loaded Successfully for role: ${userRole}');
 </script> 

@@ -65,7 +65,7 @@ class ServicesManager {
             
             // Setup UI components
             console.log('🎚️ Setting up UI components...');
-            this.setupPriceRangeSlider();
+            // Price slider handled by services.js - just initialize event listeners
             
             // Small delay to ensure DOM is ready
             setTimeout(() => {
@@ -192,6 +192,12 @@ class ServicesManager {
 
     renderServices(services) {
         const container = document.getElementById('services-grid');
+        const skeletonLoading = document.getElementById('skeleton-loading');
+        
+        // Hide skeleton loading
+        if (skeletonLoading) {
+            skeletonLoading.style.display = 'none';
+        }
         
         if (!services || services.length === 0) {
             container.innerHTML = `
@@ -224,17 +230,12 @@ class ServicesManager {
     }
 
     createServiceCard(service) {
-        const formattedPrice = new Intl.NumberFormat('vi-VN', {
-            style: 'currency',
-            currency: 'VND'
-        }).format(service.price);
+        const formattedPrice = this.formatPrice(service.price);
 
         const rating = service.averageRating || 0;
         const featured = service.averageRating >= 4.5;
         
-        // Get random beauty image for each service
-        const randomImageIndex = Math.abs(service.serviceId * 7) % this.beautyImages.length;
-        const beautyImage = this.beautyImages[randomImageIndex];
+        const cardImage = this.getServiceImageUrl(service);
 
         return `
             <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
@@ -244,7 +245,7 @@ class ServicesManager {
                 </div>` : ''}
                 <div class="relative">
                     <img 
-                        src="${beautyImage}" 
+                        src="${cardImage}" 
                         alt="${service.name}" 
                         class="w-full h-48 object-cover" 
                     />
@@ -552,13 +553,13 @@ class ServicesManager {
     }
 
     initializeRangeSlider() {
-        const minSlider = document.getElementById('min-price-range');
-        const maxSlider = document.getElementById('max-price-range');
+        const minSlider = document.getElementById('min-price-slider');
+        const maxSlider = document.getElementById('max-price-slider');
         const minInput = document.getElementById('min-price-input');
         const maxInput = document.getElementById('max-price-input');
         const minDisplay = document.getElementById('min-price-display');
         const maxDisplay = document.getElementById('max-price-display');
-        const track = document.getElementById('slider-track');
+        const track = document.getElementById('slider-range');
 
         if (!minSlider || !maxSlider || !minInput || !maxInput || !minDisplay || !maxDisplay) {
             console.error("One or more price slider elements are missing.");
@@ -911,7 +912,7 @@ class ServicesManager {
     addToCart(service) {
         // Track service view when adding to cart
         if (typeof window.trackServiceView === 'function') {
-            const serviceImage = service.imageUrl || this.beautyImages[Math.abs(service.serviceId * 7) % this.beautyImages.length];
+            const serviceImage = this.getServiceImageUrl(service);
             window.trackServiceView(
                 service.serviceId.toString(),
                 service.name,
@@ -923,10 +924,12 @@ class ServicesManager {
         const serviceData = {
             serviceId: service.serviceId,
             serviceName: service.name,
-            serviceImage: service.imageUrl || this.beautyImages[Math.abs(service.serviceId * 7) % this.beautyImages.length],
+            serviceImage: this.getServiceImageUrl(service),
             servicePrice: service.price,
             serviceDuration: service.durationMinutes
         };
+
+        console.log('Adding to cart:', serviceData); // Debug log
 
         // Integration with existing cart functionality
         if (typeof addToCart === 'function') {
@@ -935,6 +938,25 @@ class ServicesManager {
             console.error('Global addToCart function not found!');
             alert(`Thêm dịch vụ ID: ${service.serviceId} vào giỏ hàng (Lỗi)`);
         }
+    }
+
+    getServiceImageUrl(service) {
+        // Get context path from current page data or determine it
+        const contextPath = window.servicesPageData?.contextPath || this.getContextPath();
+        
+        // Use the service's imageUrl from database if available
+        if (service.imageUrl && service.imageUrl.trim() !== '' && service.imageUrl !== '/services/default.jpg') {
+            // Ensure the URL has proper context path
+            const imageUrl = service.imageUrl.startsWith('/') ? `${contextPath}${service.imageUrl}` : service.imageUrl;
+            console.log('🖼️ Using database image for service:', service.serviceId, '→', imageUrl);
+            return imageUrl;
+        }
+        
+        // Fallback to placehold.co placeholder with service name
+        const serviceName = encodeURIComponent(service.name || 'Service');
+        const placeholderUrl = `https://placehold.co/300x200/FFB6C1/333333?text=${serviceName}`;
+        console.log('🖼️ Using placeholder image for service:', service.serviceId, '→', placeholderUrl);
+        return placeholderUrl;
     }
 
     showLoadingState() {
@@ -971,18 +993,22 @@ class ServicesManager {
     }
 
     formatPrice(price) {
-        // Format price without currency symbol for better display
-        return new Intl.NumberFormat('vi-VN').format(price) + 'đ';
+        // Format price with full Vietnamese number formatting and thousand separators
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'decimal',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(price) + ' ₫';
     }
 
     formatPriceShort(price) {
-        // Short format for slider display
+        // Short format for slider display with thousand separators
         if (price >= 1000000) {
-            return (price / 1000000).toFixed(1) + 'M đ';
+            return (price / 1000000).toFixed(1) + 'M ₫';
         } else if (price >= 1000) {
-            return (price / 1000).toFixed(0) + 'K đ';
+            return (price / 1000).toFixed(0) + 'K ₫';
         }
-        return price + 'đ';
+        return new Intl.NumberFormat('vi-VN').format(price) + ' ₫';
     }
 }
 
@@ -990,6 +1016,8 @@ class ServicesManager {
 let servicesManager;
 document.addEventListener('DOMContentLoaded', () => {
     servicesManager = new ServicesManager();
+    // Make it available globally for other scripts
+    window.servicesManager = servicesManager;
 });
 
 // Add CSS for the enhanced components

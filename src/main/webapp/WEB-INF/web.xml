@@ -9,10 +9,39 @@
         <listener-class>listener.ApplicationLifecycleListener</listener-class>
     </listener>
 
+    <!-- Cloudinary Initialization Listener -->
+    <listener>
+        <listener-class>listener.CloudinaryInitListener</listener-class>
+    </listener>
+
+    <!-- Cloudinary Configuration Parameters -->
+    <context-param>
+        <param-name>cloudinary.cloud_name</param-name>
+        <param-value>your_cloud_name</param-value>
+    </context-param>
+    <context-param>
+        <param-name>cloudinary.api_key</param-name>
+        <param-value>your_api_key</param-value>
+    </context-param>
+    <context-param>
+        <param-name>cloudinary.api_secret</param-name>
+        <param-value>your_api_secret</param-value>
+    </context-param>
+
     <!-- Security and Middleware Filters Configuration -->
 
     <!-- Authentication Filter - Runs First -->
+    <filter>
+        <filter-name>AuthenticationFilter</filter-name>
+        <filter-class>filter.AuthenticationFilter</filter-class>
+    </filter>
 
+    <filter-mapping>
+        <filter-name>AuthenticationFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+        <dispatcher>FORWARD</dispatcher>
+    </filter-mapping>
 
     <!-- Authorization Filter - Runs After Authentication -->
     <filter>
@@ -93,6 +122,8 @@
         <url-pattern>/assets/*</url-pattern>
     </servlet-mapping>
 
+    <!-- Service images directory mapping is now handled by StaticImageController -->
+
     <servlet-mapping>
         <servlet-name>default</servlet-name>
         <url-pattern>*.css</url-pattern>
@@ -144,10 +175,7 @@
         <servlet-class>controller.HomeController</servlet-class>
     </servlet>
 
-    <servlet>
-        <servlet-name>TestController</servlet-name>
-        <servlet-class>controller.TestController</servlet-class>
-    </servlet>
+    <!-- TestController configuration moved to @WebServlet annotation -->
 
     <servlet>
         <servlet-name>RegisterController</servlet-name>
@@ -165,10 +193,7 @@
     </servlet-mapping>
 
 
-    <servlet-mapping>
-        <servlet-name>TestController</servlet-name>
-        <url-pattern>/test</url-pattern>
-    </servlet-mapping>
+    <!-- TestController mapping moved to @WebServlet annotation -->
 
 
     <servlet-mapping>
@@ -199,4 +224,19 @@
         <servlet-name>BookingSessionApiServlet</servlet-name>
         <url-pattern>/api/booking-session</url-pattern>
     </servlet-mapping>
+
+
+    <context-param>
+        <param-name>cloudinary.cloud_name</param-name>
+        <param-value>dj5wpyfvh</param-value>
+    </context-param>
+    <context-param>
+        <param-name>cloudinary.api_key</param-name>
+        <param-value>961397322237811</param-value>
+    </context-param>
+    <context-param>
+        <param-name>cloudinary.api_secret</param-name>
+        <param-value>ABahQ3j9UOU245iSBmlAwqCCN0Q</param-value>
+    </context-param>
+
 </web-app>

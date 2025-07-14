@@ -389,7 +389,7 @@
     <jsp:include page="/WEB-INF/view/common/footer.jsp" />
 
     <script src="<c:url value='/js/app.js'/>"></script>
-    <script src="<c:url value='/js/cart.js'/>"></script>
+
     <script src="<c:url value='/js/multi-step-booking.js'/>"></script>
     
     <script>

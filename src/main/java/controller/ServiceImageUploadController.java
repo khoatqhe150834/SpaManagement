@@ -35,33 +35,32 @@ import util.ErrorHandler;
  * Controller for handling service image uploads
  * Supports both single service and batch upload functionality
  */
-@WebServlet(name = "ServiceImageUploadController", urlPatterns = {"/manager/service-images/*"})
-@MultipartConfig(
-    fileSizeThreshold = 1024 * 1024,     // 1MB
-    maxFileSize = 2 * 1024 * 1024,       // 2MB
-    maxRequestSize = 10 * 1024 * 1024    // 10MB for batch uploads
+@WebServlet(name = "ServiceImageUploadController", urlPatterns = { "/manager/service-images/*" })
+@MultipartConfig(fileSizeThreshold = 2 * 1024 * 1024, // 2 MB (memory threshold)
+        maxFileSize = 10 * 1024 * 1024, // 10 MB per file – servlet still runs for bigger files we validate later
+        maxRequestSize = 50 * 1024 * 1024 // 50 MB per request (batch)
 )
 public class ServiceImageUploadController extends HttpServlet {
-    
+
     private static final Logger LOGGER = Logger.getLogger(ServiceImageUploadController.class.getName());
     private ServiceDAO serviceDAO;
     private ServiceImageDAO serviceImageDAO;
     private Gson gson;
-    
+
     @Override
     public void init() throws ServletException {
         serviceDAO = new ServiceDAO();
         serviceImageDAO = new ServiceImageDAO();
         gson = new Gson();
     }
-    
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         String pathInfo = request.getPathInfo();
         String action = pathInfo != null ? pathInfo.substring(1) : "";
-        
+
         switch (action) {
             case "single-upload":
                 showSingleUploadPage(request, response);
@@ -77,14 +76,14 @@ public class ServiceImageUploadController extends HttpServlet {
                 break;
         }
     }
-    
+
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         String pathInfo = request.getPathInfo();
         String action = pathInfo != null ? pathInfo.substring(1) : "";
-        
+
         switch (action) {
             case "upload-single":
                 handleSingleUpload(request, response);
@@ -106,88 +105,88 @@ public class ServiceImageUploadController extends HttpServlet {
                 break;
         }
     }
-    
+
     /**
      * Shows the single service image upload page
      */
     private void showSingleUploadPage(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         String serviceIdParam = request.getParameter("serviceId");
         if (serviceIdParam == null) {
             response.sendRedirect(request.getContextPath() + "/manager/service");
             return;
         }
-        
+
         try {
             Integer serviceId = Integer.parseInt(serviceIdParam);
             Optional<Service> serviceOpt = serviceDAO.findById(serviceId);
-            
+
             if (!serviceOpt.isPresent()) {
                 response.sendRedirect(request.getContextPath() + "/manager/service");
                 return;
             }
-            
+
             Service service = serviceOpt.get();
             List<ServiceImage> existingImages = serviceImageDAO.findByServiceId(serviceId);
-            
+
             request.setAttribute("service", service);
             request.setAttribute("existingImages", existingImages);
             request.getRequestDispatcher("/WEB-INF/view/admin_pages/Service/SingleImageUpload.jsp")
-                   .forward(request, response);
-            
+                    .forward(request, response);
+
         } catch (NumberFormatException e) {
             response.sendRedirect(request.getContextPath() + "/manager/service");
         }
     }
-    
+
     /**
      * Shows the batch upload page
      */
     private void showBatchUploadPage(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         List<Service> services = serviceDAO.findAll();
         request.setAttribute("services", services);
         request.getRequestDispatcher("/WEB-INF/view/admin_pages/Service/BatchImageUpload.jsp")
-               .forward(request, response);
+                .forward(request, response);
     }
-    
+
     /**
      * Shows the image management page
      */
     private void showImageManagementPage(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         String serviceIdParam = request.getParameter("serviceId");
         if (serviceIdParam != null) {
             try {
                 Integer serviceId = Integer.parseInt(serviceIdParam);
                 Optional<Service> serviceOpt = serviceDAO.findById(serviceId);
                 List<ServiceImage> images = serviceImageDAO.findByServiceId(serviceId);
-                
+
                 request.setAttribute("service", serviceOpt.orElse(null));
                 request.setAttribute("images", images);
             } catch (NumberFormatException e) {
                 // Invalid service ID
             }
         }
-        
+
         List<Service> services = serviceDAO.findAll();
         request.setAttribute("services", services);
         request.getRequestDispatcher("/WEB-INF/view/admin_pages/Service/ImageManagement.jsp")
-               .forward(request, response);
+                .forward(request, response);
     }
-    
+
     /**
      * Handles single service image upload
      */
     private void handleSingleUpload(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-        
+
         try {
             String serviceIdParam = request.getParameter("serviceId");
             JsonObject paramError = ErrorHandler.validateRequiredParameter(serviceIdParam, "Service ID");
@@ -195,19 +194,23 @@ public class ServiceImageUploadController extends HttpServlet {
                 sendJsonErrorResponse(response, paramError);
                 return;
             }
-            
+
             Integer serviceId = Integer.parseInt(serviceIdParam);
             Optional<Service> serviceOpt = serviceDAO.findById(serviceId);
-            
+
             if (!serviceOpt.isPresent()) {
                 sendErrorResponse(response, "Service not found");
                 return;
             }
-            
-            // Ensure upload directories exist
-            String webappPath = getServletContext().getRealPath("");
+
+            // Save to D: drive spa-uploads directory
+            String webappPath = "D:/spa-uploads";
+            LOGGER.info("WebApp path set to spa-uploads directory: " + webappPath);
+            LOGGER.info("Upload endpoint called for service ID: " + serviceId);
+
+            // Ensure upload directories exist in source
             ImageUploadUtil.ensureDirectoriesExist(webappPath);
-            
+
             Collection<Part> fileParts = request.getParts();
             List<JsonObject> results = new ArrayList<>();
             int successCount = 0;
@@ -231,7 +234,8 @@ public class ServiceImageUploadController extends HttpServlet {
                 String fileName = ImageUploadUtil.getSubmittedFileName(filePart);
                 LOGGER.info("Processing file: " + fileName + " with sort order: " + (baseSortOrder + sortOrderOffset));
 
-                JsonObject result = processImageUpload(filePart, serviceId, webappPath, baseSortOrder + sortOrderOffset);
+                JsonObject result = processImageUpload(filePart, serviceId, webappPath,
+                        baseSortOrder + sortOrderOffset, request);
                 results.add(result);
 
                 // Count successes and failures
@@ -261,43 +265,47 @@ public class ServiceImageUploadController extends HttpServlet {
             response_obj.addProperty("errorCount", errorCount);
             response_obj.addProperty("totalFiles", results.size());
             response_obj.add("results", gson.toJsonTree(results));
-            
+
             PrintWriter out = response.getWriter();
             out.print(gson.toJson(response_obj));
             out.flush();
-            
+
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error in single upload", e);
             sendErrorResponse(response, "Upload failed: " + e.getMessage());
         }
     }
-    
+
     /**
      * Processes a single image upload
      */
-    private JsonObject processImageUpload(Part filePart, Integer serviceId, String webappPath) {
-        return processImageUpload(filePart, serviceId, webappPath, null);
+    private JsonObject processImageUpload(Part filePart, Integer serviceId, String webappPath,
+            HttpServletRequest request) {
+        return processImageUpload(filePart, serviceId, webappPath, null, request);
     }
 
     /**
      * Processes a single image upload with specified sort order
      */
-    private JsonObject processImageUpload(Part filePart, Integer serviceId, String webappPath, Integer sortOrder) {
+    private JsonObject processImageUpload(Part filePart, Integer serviceId, String webappPath, Integer sortOrder,
+            HttpServletRequest request) {
         JsonObject result = new JsonObject();
-        
+
         try {
             // Validate file
             ValidationResult validation = ImageUploadUtil.validateFile(filePart);
             if (!validation.isValid()) {
-                return ErrorHandler.handleFileValidationError(validation, ImageUploadUtil.getSubmittedFileName(filePart));
+                return ErrorHandler.handleFileValidationError(validation,
+                        ImageUploadUtil.getSubmittedFileName(filePart));
             }
-            
+
             // Validate image dimensions
             ValidationResult dimensionValidation = ImageUploadUtil.validateImageDimensions(filePart.getInputStream());
             if (!dimensionValidation.isValid()) {
-                return ErrorHandler.handleFileValidationError(dimensionValidation, ImageUploadUtil.getSubmittedFileName(filePart));
+                return ErrorHandler.handleFileValidationError(dimensionValidation,
+                        ImageUploadUtil.getSubmittedFileName(filePart));
             }
-            
+
             // Create ServiceImage entity first to get ID
             ServiceImage serviceImage = new ServiceImage();
             serviceImage.setServiceId(serviceId);
@@ -306,7 +314,7 @@ public class ServiceImageUploadController extends HttpServlet {
             serviceImage.setIsPrimary(false);
             serviceImage.setSortOrder(sortOrder != null ? sortOrder : getNextSortOrder(serviceId));
             serviceImage.setIsActive(true);
-            
+
             // Save to get the image ID
             ServiceImage savedImage = serviceImageDAO.save(serviceImage);
             if (savedImage == null || savedImage.getImageId() == null) {
@@ -314,31 +322,34 @@ public class ServiceImageUploadController extends HttpServlet {
                 result.addProperty("error", "Failed to save image record");
                 return result;
             }
-            
-            // Process and save image files
-            ProcessedImageResult processedResult = ImageUploadUtil.processAndSaveImage(
-                filePart, webappPath, serviceId, savedImage.getImageId()
-            );
-            
+
+            // Process and save image files to source directory only
+            LOGGER.info(
+                    "About to process image file for service " + serviceId + ", image ID " + savedImage.getImageId());
+
+            ProcessedImageResult processedResult = ImageUploadUtil.processAndSaveFullSizeImageOnly(
+                    filePart, webappPath, serviceId, savedImage.getImageId());
+            LOGGER.info("Image processing completed (source save). URL: " + processedResult.getFullSizeUrl());
+
             // Update the ServiceImage with the actual URL and metadata
             savedImage.setUrl(processedResult.getFullSizeUrl());
             savedImage.setFileSize(processedResult.getFileSize());
             serviceImageDAO.update(savedImage);
-            
+
             result.addProperty("success", true);
             result.addProperty("imageId", savedImage.getImageId());
             result.addProperty("fileName", processedResult.getFileName());
             result.addProperty("fullSizeUrl", processedResult.getFullSizeUrl());
-            result.addProperty("thumbnailUrl", processedResult.getThumbnailUrl());
+            result.addProperty("thumbnailUrl", ""); // Return empty string for thumbnail
             result.addProperty("fileSize", processedResult.getFileSize());
-            
+
         } catch (Exception e) {
             return ErrorHandler.handleUploadError(e, ImageUploadUtil.getSubmittedFileName(filePart));
         }
-        
+
         return result;
     }
-    
+
     /**
      * Gets the next sort order for images of a service
      */
@@ -346,7 +357,7 @@ public class ServiceImageUploadController extends HttpServlet {
         List<ServiceImage> existingImages = serviceImageDAO.findByServiceId(serviceId);
         return existingImages.size();
     }
-    
+
     /**
      * Handles batch upload for multiple services
      */
@@ -357,8 +368,8 @@ public class ServiceImageUploadController extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
 
         try {
-            // Ensure upload directories exist
-            String webappPath = getServletContext().getRealPath("");
+            // Save to D: drive spa-uploads directory
+            String webappPath = "D:/spa-uploads";
             ImageUploadUtil.ensureDirectoriesExist(webappPath);
 
             Collection<Part> fileParts = request.getParts();
@@ -406,7 +417,7 @@ public class ServiceImageUploadController extends HttpServlet {
                     }
 
                     // Process the image upload
-                    JsonObject uploadResult = processImageUpload(filePart, serviceId, webappPath);
+                    JsonObject uploadResult = processImageUpload(filePart, serviceId, webappPath, request);
                     uploadResult.addProperty("serviceName", serviceOpt.get().getName());
                     results.add(uploadResult);
 
@@ -423,7 +434,8 @@ public class ServiceImageUploadController extends HttpServlet {
 
             JsonObject response_obj = new JsonObject();
             response_obj.addProperty("success", true);
-            response_obj.addProperty("message", String.format("Batch upload completed: %d successful, %d failed", successCount, errorCount));
+            response_obj.addProperty("message",
+                    String.format("Batch upload completed: %d successful, %d failed", successCount, errorCount));
             response_obj.addProperty("successCount", successCount);
             response_obj.addProperty("errorCount", errorCount);
             response_obj.add("results", gson.toJsonTree(results));
@@ -437,125 +449,144 @@ public class ServiceImageUploadController extends HttpServlet {
             sendErrorResponse(response, "Batch upload failed: " + e.getMessage());
         }
     }
-    
+
     /**
      * Handles setting primary image
      */
     private void handleSetPrimary(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         response.setContentType("application/json");
-        
+
         try {
             String imageIdParam = request.getParameter("imageId");
             String serviceIdParam = request.getParameter("serviceId");
-            
-            if (imageIdParam == null || serviceIdParam == null) {
-                sendErrorResponse(response, "Image ID and Service ID are required");
+
+            LOGGER.info("Set primary request - imageId: " + imageIdParam + ", serviceId: " + serviceIdParam);
+
+            if (imageIdParam == null || imageIdParam.trim().isEmpty()) {
+                LOGGER.warning("Missing imageId parameter");
+                sendErrorResponse(response, "Image ID is required and cannot be empty");
                 return;
             }
-            
-            Integer imageId = Integer.parseInt(imageIdParam);
-            Integer serviceId = Integer.parseInt(serviceIdParam);
-            
+
+            if (serviceIdParam == null || serviceIdParam.trim().isEmpty()) {
+                LOGGER.warning("Missing serviceId parameter");
+                sendErrorResponse(response, "Service ID is required and cannot be empty");
+                return;
+            }
+
+            Integer imageId;
+            Integer serviceId;
+
+            try {
+                imageId = Integer.parseInt(imageIdParam);
+                serviceId = Integer.parseInt(serviceIdParam);
+            } catch (NumberFormatException e) {
+                LOGGER.warning("Invalid number format - imageId: " + imageIdParam + ", serviceId: " + serviceIdParam);
+                sendErrorResponse(response, "Invalid image ID or service ID format");
+                return;
+            }
+
+            LOGGER.info("Setting primary image: " + imageId + " for service: " + serviceId);
             serviceImageDAO.setPrimaryImage(imageId, serviceId);
-            
+
             JsonObject result = new JsonObject();
             result.addProperty("success", true);
             result.addProperty("message", "Primary image updated successfully");
-            
+
             PrintWriter out = response.getWriter();
             out.print(gson.toJson(result));
             out.flush();
-            
+
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error setting primary image", e);
             sendErrorResponse(response, "Failed to set primary image: " + e.getMessage());
         }
     }
-    
+
     /**
      * Handles updating image order
      */
     private void handleUpdateOrder(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         response.setContentType("application/json");
-        
+
         try {
             String orderParam = request.getParameter("order");
             if (orderParam == null) {
                 sendErrorResponse(response, "Order parameter is required");
                 return;
             }
-            
+
             // Parse the order array (comma-separated image IDs)
             String[] imageIdStrings = orderParam.split(",");
             List<Integer> imageIds = new ArrayList<>();
-            
+
             for (String idStr : imageIdStrings) {
                 imageIds.add(Integer.parseInt(idStr.trim()));
             }
-            
+
             serviceImageDAO.updateSortOrder(imageIds);
-            
+
             JsonObject result = new JsonObject();
             result.addProperty("success", true);
             result.addProperty("message", "Image order updated successfully");
-            
+
             PrintWriter out = response.getWriter();
             out.print(gson.toJson(result));
             out.flush();
-            
+
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error updating image order", e);
             sendErrorResponse(response, "Failed to update image order: " + e.getMessage());
         }
     }
-    
+
     /**
      * Handles image deletion
      */
     private void handleDeleteImage(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         response.setContentType("application/json");
-        
+
         try {
             String imageIdParam = request.getParameter("imageId");
             if (imageIdParam == null) {
                 sendErrorResponse(response, "Image ID is required");
                 return;
             }
-            
+
             Integer imageId = Integer.parseInt(imageIdParam);
             Optional<ServiceImage> imageOpt = serviceImageDAO.findById(imageId);
-            
+
             if (imageOpt.isPresent()) {
                 ServiceImage image = imageOpt.get();
-                
+
                 // Delete physical files
                 String webappPath = getServletContext().getRealPath("");
                 ImageUploadUtil.deleteImageFiles(webappPath, image.getUrl());
-                
+
                 // Delete database record
                 serviceImageDAO.deleteById(imageId);
             }
-            
+
             JsonObject result = new JsonObject();
             result.addProperty("success", true);
             result.addProperty("message", "Image deleted successfully");
-            
+
             PrintWriter out = response.getWriter();
             out.print(gson.toJson(result));
             out.flush();
-            
+
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error deleting image", e);
             sendErrorResponse(response, "Failed to delete image: " + e.getMessage());
         }
     }
-    
+
     /**
      * Sends an error response in JSON format
      */

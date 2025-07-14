@@ -143,7 +143,7 @@ public class HomepageApiServlet extends HttpServlet {
       String limitParam = request.getParameter("limit");
       int limit = limitParam != null ? Integer.parseInt(limitParam) : 8;
 
-      List<Service> services = serviceDAO.getPromotionalServices(limit);
+      List<Service> services = serviceDAO.getPromotionalServicesWithImages(limit);
       JsonArray servicesArray = convertServicesToJson(services);
 
       JsonObject jsonResponse = new JsonObject();
@@ -171,7 +171,7 @@ public class HomepageApiServlet extends HttpServlet {
       String limitParam = request.getParameter("limit");
       int limit = limitParam != null ? Integer.parseInt(limitParam) : 8;
 
-      List<Service> services = serviceDAO.getMostPurchasedServices(limit);
+      List<Service> services = serviceDAO.getMostPurchasedServicesWithImages(limit);
       JsonArray servicesArray = convertServicesToJson(services);
 
       JsonObject jsonResponse = new JsonObject();
@@ -202,10 +202,10 @@ public class HomepageApiServlet extends HttpServlet {
       String serviceIdsParam = request.getParameter("recentlyViewedIds");
 
       // Get promotional services
-      List<Service> promotionalServices = serviceDAO.getPromotionalServices(limit);
+      List<Service> promotionalServices = serviceDAO.getPromotionalServicesWithImages(limit);
 
       // Get most purchased services
-      List<Service> mostPurchasedServices = serviceDAO.getMostPurchasedServices(limit);
+      List<Service> mostPurchasedServices = serviceDAO.getMostPurchasedServicesWithImages(limit);
 
       // Get recently viewed services
       List<Service> recentlyViewedServices = new ArrayList<>();
