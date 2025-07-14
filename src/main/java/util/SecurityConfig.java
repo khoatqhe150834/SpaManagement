@@ -20,7 +20,8 @@ public class SecurityConfig {
       "/password-reset/edit",
       "/password-reset/update",
       "/test", "/TestController", "/api/booking-session", "/api/services", "/api/most-purchased",
-      "/api/service-types", "/error", "/booking", "/api/homepage", "/result.jsp", "/test.jsp"));
+      "/api/service-types", "/error", "/booking", "/api/homepage", "/result.jsp", "/test.jsp",
+      "/chatbot", "/chat", "/api/chat", "/api/chatbot", "/test-chatbot.jsp", "/debug-chatbot.jsp", "/test-security.jsp", "/test-direct-api.jsp", "/simple-api-test.jsp"));
 
   // File extensions that don't require authentication
   public static final Set<String> PUBLIC_EXTENSIONS = new HashSet<>(Arrays.asList(

@@ -1,7 +1,5 @@
 package model;
 
-import model.User;
-import model.Customer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -152,6 +150,7 @@ public class MenuService {
     menuItems.add(new MenuItem("Dịch vụ", contextPath + "/services", "sparkles"));
     menuItems.add(new MenuItem("Khuyến mãi", contextPath + "/promotions", "gift"));
     menuItems.add(new MenuItem("Đặt lịch", contextPath + "/booking", "calendar-plus"));
+    menuItems.add(new MenuItem("Trợ lý AI", contextPath + "/chatbot", "bot"));
     menuItems.add(new MenuItem("Liên hệ", contextPath + "/contact", "phone"));
     return menuItems;
   }
