@@ -1,7 +1,5 @@
 package model;
 
-import model.User;
-import model.Customer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -168,11 +166,10 @@ public class MenuService {
     menuItems.add(new MenuItem("Dashboard", contextPath + "/dashboard", "layout-dashboard", "management"));
 
     // User Management with sub-items
-    MenuItem userMgmt = new MenuItem("Quản lý người dùng", contextPath + "/user/list", "users", "management");
-    userMgmt.addSubItem(new MenuItem("Tất cả người dùng", contextPath + "/user/list", "users"));
-    userMgmt.addSubItem(new MenuItem("Vai trò & Quyền", contextPath + "/user/roles", "shield"));
-    userMgmt.addSubItem(new MenuItem("Thêm người dùng", contextPath + "/user/add", "user-plus"));
-    menuItems.add(userMgmt);
+    MenuItem userAccountMgmt = new MenuItem("Quản lí tài khoản người dùng", contextPath + "/user/list", "users", "management");
+    userAccountMgmt.addSubItem(new MenuItem("Tài khoản nhân viên", contextPath + "/user/list", "users"));
+    userAccountMgmt.addSubItem(new MenuItem("Tài khoản khách hàng", contextPath + "/admin/customer-account", "user"));
+    menuItems.add(userAccountMgmt);
 
     // System Management
     menuItems.add(new MenuItem("Cài đặt hệ thống", contextPath + "/admin/settings", "settings", "management"));
@@ -207,7 +204,10 @@ public class MenuService {
     staffMgmt.addSubItem(new MenuItem("Đào tạo", contextPath + "/manager/staff/training", "book-open"));
     staffMgmt.addSubItem(new MenuItem("Lịch làm việc", contextPath + "/manager/staff/schedules", "calendar"));
     menuItems.add(staffMgmt);
-
+    // Thêm sidebar Quản lý khách hàng ngay dưới Quản lý nhân viên
+    MenuItem customerMgmt = new MenuItem("Quản lý khách hàng", contextPath + "/manager/customers", "users", "management");
+    customerMgmt.addSubItem(new MenuItem("Tất cả khách hàng", contextPath + "/manager/customers", "users"));
+    menuItems.add(customerMgmt);
     // Service Management Section
     menuItems.add(new MenuItem("DỊCH VỤ & VẬN HÀNH", true));
 
