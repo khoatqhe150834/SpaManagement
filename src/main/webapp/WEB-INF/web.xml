@@ -175,15 +175,7 @@
         <servlet-class>controller.HomeController</servlet-class>
     </servlet>
 
-    <servlet>
-        <servlet-name>TestController</servlet-name>
-        <servlet-class>controller.TestController</servlet-class>
-        <multipart-config>
-            <max-file-size>10485760</max-file-size> <!-- 10MB -->
-            <max-request-size>20971520</max-request-size> <!-- 20MB -->
-            <file-size-threshold>1048576</file-size-threshold> <!-- 1MB -->
-        </multipart-config>
-    </servlet>
+    <!-- TestController configuration moved to @WebServlet annotation -->
 
     <servlet>
         <servlet-name>RegisterController</servlet-name>
@@ -201,10 +193,7 @@
     </servlet-mapping>
 
 
-    <servlet-mapping>
-        <servlet-name>TestController</servlet-name>
-        <url-pattern>/test</url-pattern>
-    </servlet-mapping>
+    <!-- TestController mapping moved to @WebServlet annotation -->
 
 
     <servlet-mapping>
