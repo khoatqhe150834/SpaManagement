@@ -5,8 +5,8 @@ import java.sql.Timestamp;
 public class InventoryItem {
     private int inventoryItemId;
     private String name;
-    private int inventoryCategoryId;
-    private int supplierId;
+    private Integer inventoryCategoryId;
+    private Integer supplierId;
     private String unit;
     private int quantity;
     private int minQuantity;
@@ -16,7 +16,7 @@ public class InventoryItem {
 
     public InventoryItem() {}
 
-    public InventoryItem(int inventoryItemId, String name, int inventoryCategoryId, int supplierId, String unit, int quantity, int minQuantity, String description, Timestamp createdAt, Timestamp updatedAt) {
+    public InventoryItem(int inventoryItemId, String name, Integer inventoryCategoryId, Integer supplierId, String unit, int quantity, int minQuantity, String description, Timestamp createdAt, Timestamp updatedAt) {
         this.inventoryItemId = inventoryItemId;
         this.name = name;
         this.inventoryCategoryId = inventoryCategoryId;
@@ -33,10 +33,10 @@ public class InventoryItem {
     public void setInventoryItemId(int inventoryItemId) { this.inventoryItemId = inventoryItemId; }
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
-    public int getInventoryCategoryId() { return inventoryCategoryId; }
-    public void setInventoryCategoryId(int inventoryCategoryId) { this.inventoryCategoryId = inventoryCategoryId; }
-    public int getSupplierId() { return supplierId; }
-    public void setSupplierId(int supplierId) { this.supplierId = supplierId; }
+    public Integer getInventoryCategoryId() { return inventoryCategoryId; }
+    public void setInventoryCategoryId(Integer inventoryCategoryId) { this.inventoryCategoryId = inventoryCategoryId; }
+    public Integer getSupplierId() { return supplierId; }
+    public void setSupplierId(Integer supplierId) { this.supplierId = supplierId; }
     public String getUnit() { return unit; }
     public void setUnit(String unit) { this.unit = unit; }
     public int getQuantity() { return quantity; }
