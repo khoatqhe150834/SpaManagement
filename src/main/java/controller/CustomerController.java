@@ -28,7 +28,7 @@ import util.ErrorLogger;
  *
  * @author Admin
  */
-// @WebServlet(urlPatterns = { "/customer/*" })
+ @WebServlet(urlPatterns = { "/customer/*" })
 public class CustomerController extends HttpServlet {
 
     private CustomerDAO customerDAO;
