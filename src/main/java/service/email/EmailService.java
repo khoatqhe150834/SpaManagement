@@ -4,13 +4,21 @@
  */
 package service.email;
 
-import dao.AccountDAO;
-import jakarta.mail.*;
-import jakarta.mail.internet.*;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import dao.AccountDAO;
+import jakarta.mail.AuthenticationFailedException;
+import jakarta.mail.Authenticator;
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
+import jakarta.mail.PasswordAuthentication;
+import jakarta.mail.Session;
+import jakarta.mail.Transport;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
 
 /**
  * Service class for sending emails, particularly for password reset
@@ -231,6 +239,53 @@ public class EmailService {
       LOGGER.log(Level.SEVERE, "Failed to send email to: " + to, e);
       return false;
     }
+  }
+
+  // Gửi email tài khoản mới cho user
+  public boolean sendAccountInfoEmail(String to, String fullName, String password) {
+      String subject = "Tài khoản mới tại Spa Management";
+      String content = "<p>Xin chào <b>" + fullName + "</b>,</p>"
+          + "<p>Tài khoản của bạn đã được tạo thành công trên hệ thống Spa Management.</p>"
+          + "<p><b>Email đăng nhập:</b> " + to + "<br>"
+          + "<b>Mật khẩu:</b> " + password + "</p>"
+          + "<p>Vui lòng đăng nhập và đổi mật khẩu sau khi nhận được email này.</p>";
+      return sendEmailInternal(to, subject, content);
+  }
+
+  /**
+   * Gửi email thông báo tài khoản mới với mật khẩu tự động cho user
+   * @param to Email người nhận
+   * @param fullName Tên người nhận
+   * @param password Mật khẩu tự động
+   * @return true nếu gửi thành công, false nếu thất bại
+   */
+  public boolean sendAutoPasswordEmail(String to, String fullName, String password) {
+      String subject = "Tài khoản mới tại Spa Hương Sen";
+      String content = "<p>Xin chào <b>" + fullName + "</b>,</p>"
+          + "<p>Tài khoản của bạn đã được tạo thành công trên hệ thống Spa Hương Sen.</p>"
+          + "<p><b>Email đăng nhập:</b> " + to + "<br>"
+          + "<b>Mật khẩu tạm thời:</b> " + password + "</p>"
+          + "<p>Vui lòng đăng nhập và đổi mật khẩu ngay sau khi nhận được email này để đảm bảo an toàn.</p>"
+          + "<p>Nếu bạn không thực hiện yêu cầu này, vui lòng liên hệ với quản trị viên.</p>";
+      return sendEmailInternal(to, subject, content);
+  }
+
+  // Wrapper public cho sendEmail
+  private boolean sendEmailInternal(String to, String subject, String htmlContent) {
+      try {
+          Session session = createEmailSession();
+          Message message = new MimeMessage(session);
+          message.setFrom(new InternetAddress(EMAIL_USERNAME, FROM_NAME));
+          message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
+          message.setSubject(subject);
+          message.setContent(htmlContent, "text/html; charset=utf-8");
+          Transport.send(message);
+          LOGGER.info("Email sent successfully to: " + to);
+          return true;
+      } catch (Exception e) {
+          LOGGER.log(Level.SEVERE, "Failed to send email to: " + to, e);
+          return false;
+      }
   }
 
   /**
