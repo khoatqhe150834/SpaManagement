@@ -235,7 +235,7 @@ public class MenuService {
     menuItems.add(new MenuItem("Kho & Vật tư", contextPath + "/manager/inventory", "package", "operations"));
     menuItems.add(new MenuItem("Báo cáo phòng ban", contextPath + "/manager/reports", "bar-chart", "operations"));
     menuItems.add(new MenuItem("Khách hàng", contextPath + "/manager/customers", "users", "operations"));
-
+    
     // Financial Section
     menuItems.add(new MenuItem("TÀI CHÍNH", true));
     menuItems.add(new MenuItem("Doanh thu phòng ban", contextPath + "/manager/revenue", "trending-up", "financial"));
@@ -245,6 +245,9 @@ public class MenuService {
     menuItems.add(new MenuItem("NHÂN SỰ", true));
     menuItems.add(new MenuItem("Lương & Thưởng", contextPath + "/manager/payroll", "dollar-sign", "hr"));
     menuItems.add(new MenuItem("Đánh giá hiệu suất", contextPath + "/manager/performance", "trending-up", "hr"));
+
+    menuItems.add(new MenuItem("KHÁC", true));
+    menuItems.add(new MenuItem("Duyệt Blog", contextPath + "/manager/blog", "file-text", "marketing"));
 
     return menuItems;
   }
@@ -324,6 +327,7 @@ public class MenuService {
     // Dashboard Section
     menuItems.add(new MenuItem("MARKETING", true));
     menuItems.add(new MenuItem("Dashboard", contextPath + "/dashboard", "layout-dashboard", "marketing"));
+   
 
     // Campaign Management
     menuItems.add(new MenuItem("CHIẾN DỊCH", true));
@@ -341,6 +345,7 @@ public class MenuService {
     // Content Management
     menuItems.add(new MenuItem("NỘI DUNG", true));
     menuItems.add(new MenuItem("Quản lý nội dung", contextPath + "/marketing/content", "edit", "content"));
+    menuItems.add(new MenuItem("Quản lý Blog", contextPath + "/marketing/blog", "file-text", "marketing"));
     menuItems.add(new MenuItem("Thư viện media", contextPath + "/marketing/media", "image", "content"));
     menuItems.add(new MenuItem("Thương hiệu", contextPath + "/marketing/brand", "heart", "content"));
 
