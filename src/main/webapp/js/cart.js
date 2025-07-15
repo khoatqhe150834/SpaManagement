@@ -16,25 +16,69 @@ interface CartItem {
 let cartItems = [];
 let isLoading = false;
 
-// Initialize cart
-document.addEventListener('DOMContentLoaded', async () => {
+// Initialize cart function
+async function initializeCart() {
+    console.log('🛒 Initializing cart...');
     await loadCart();
     await updateCartIcon();
+
+    // Setup cart icon click handler (only if not already set up)
+    const cartIconBtn = document.getElementById('cart-icon-btn');
+    if (cartIconBtn && !cartIconBtn.hasAttribute('data-cart-initialized')) {
+        cartIconBtn.addEventListener('click', () => {
+            openCart();
+        });
+        cartIconBtn.setAttribute('data-cart-initialized', 'true');
+    }
+}
+
+// Initialize cart on DOM ready
+document.addEventListener('DOMContentLoaded', async () => {
+    await initializeCart();
 
     // Listen for cart updates
     window.addEventListener('cartUpdated', async () => {
         await loadCart();
         await updateCartIcon();
     });
+});
 
-    // Setup cart icon click handler
-    const cartIconBtn = document.getElementById('cart-icon-btn');
-    if (cartIconBtn) {
-        cartIconBtn.addEventListener('click', () => {
-            openCart();
-        });
+// Handle browser back/forward navigation (bfcache)
+window.addEventListener('pageshow', async (event) => {
+    console.log('🔄 Page show event triggered, persisted:', event.persisted);
+    // Always refresh cart on pageshow, especially when coming from bfcache
+    await initializeCart();
+});
+
+// Handle page visibility changes (when user switches tabs and comes back)
+document.addEventListener('visibilitychange', async () => {
+    if (!document.hidden) {
+        console.log('👁️ Page became visible, refreshing cart...');
+        await updateCartIcon();
     }
 });
+
+// Handle window focus (additional safety net)
+window.addEventListener('focus', async () => {
+    console.log('🎯 Window focused, refreshing cart icon...');
+    await updateCartIcon();
+});
+
+// Handle localStorage changes (cross-tab synchronization)
+window.addEventListener('storage', async (event) => {
+    if (event.key === 'session_cart') {
+        console.log('💾 Cart storage changed in another tab, syncing...');
+        await loadCart();
+        await updateCartIcon();
+    }
+});
+
+// Additional safety net: periodically refresh cart icon (every 5 seconds)
+setInterval(async () => {
+    if (!isLoading && !document.hidden) {
+        await updateCartIcon();
+    }
+}, 5000);
 
 // Load cart data
 async function loadCart() {
@@ -49,13 +93,15 @@ async function loadCart() {
         const savedCart = localStorage.getItem(cartKey);
         if (savedCart) {
             cartItems = JSON.parse(savedCart);
+            console.log(`🛒 Cart loaded: ${cartItems.length} items from ${cartKey}`);
             updateCartDisplay();
         } else {
             cartItems = [];
+            console.log(`🛒 Cart empty: no data found in ${cartKey}`);
             updateCartDisplay();
         }
     } catch (error) {
-        console.error('Error loading cart:', error);
+        console.error('❌ Error loading cart:', error);
         showNotification('Không thể tải giỏ hàng', 'error');
     } finally {
         isLoading = false;
@@ -249,7 +295,10 @@ function updateCartDisplay() {
 // Update cart icon in header
 async function updateCartIcon() {
     const badge = document.getElementById('cart-badge');
-    if (!badge) return;
+    if (!badge) {
+        console.log('⚠️ Cart badge element not found');
+        return;
+    }
 
     // Calculate total items
     let totalItems = 0;
@@ -261,8 +310,9 @@ async function updateCartIcon() {
             const currentCart = JSON.parse(savedCart);
             totalItems = currentCart.reduce((sum, item) => sum + item.quantity, 0);
         }
+        console.log(`🔢 Cart icon updated: ${totalItems} items`);
     } catch (error) {
-        console.error('Error calculating cart total for icon:', error);
+        console.error('❌ Error calculating cart total for icon:', error);
     }
 
     if (totalItems > 0) {
