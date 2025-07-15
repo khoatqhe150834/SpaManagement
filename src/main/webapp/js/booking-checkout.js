@@ -45,100 +45,48 @@ class BookingCheckout {
         this.showLoading(true);
 
         try {
-            // Get current user
-            const user = await this.getCurrentUser();
             console.log('=== CART LOADING DEBUG ===');
-            console.log('Current user:', user);
+            console.log('Loading cart data from session_cart only...');
 
-            // Define cart keys
-            const userCartKey = user && user.id ? `cart_${user.id}` : null;
-            const sessionCartKey = 'session_cart';
+            // Get current user for debugging purposes only
+            const user = await this.getCurrentUser();
+            console.log('Current user (for debugging only):', user);
 
-            console.log('User cart key:', userCartKey);
-            console.log('Session cart key:', sessionCartKey);
+            // Always use session_cart regardless of login status
+            const cartKey = 'session_cart';
+            console.log('Cart key:', cartKey);
 
-            // Load cart data from both locations
-            let userCartData = null;
-            let sessionCartData = null;
+            // Show all localStorage keys for debugging
+            console.log('All localStorage keys:', Object.keys(localStorage));
+            console.log('Cart-related keys:', Object.keys(localStorage).filter(key => key.includes('cart')));
 
-            // Check user-specific cart
-            if (userCartKey) {
-                const userCartRaw = localStorage.getItem(userCartKey);
-                console.log(`Raw user cart data (${userCartKey}):`, userCartRaw);
-                if (userCartRaw) {
-                    try {
-                        userCartData = JSON.parse(userCartRaw);
-                        console.log(`Parsed user cart (${userCartKey}):`, userCartData);
-                    } catch (e) {
-                        console.error(`Error parsing user cart from ${userCartKey}:`, e);
-                    }
-                }
-            }
+            // Load cart data from session_cart
+            let cartData = [];
+            const cartRaw = localStorage.getItem(cartKey);
+            console.log(`Raw cart data (${cartKey}):`, cartRaw);
 
-            // Check session cart
-            const sessionCartRaw = localStorage.getItem(sessionCartKey);
-            console.log(`Raw session cart data (${sessionCartKey}):`, sessionCartRaw);
-            if (sessionCartRaw) {
+            if (cartRaw) {
                 try {
-                    sessionCartData = JSON.parse(sessionCartRaw);
-                    console.log(`Parsed session cart (${sessionCartKey}):`, sessionCartData);
+                    cartData = JSON.parse(cartRaw);
+                    console.log(`Parsed cart data (${cartKey}):`, cartData);
+
+                    // Validate cart data
+                    if (!Array.isArray(cartData)) {
+                        console.warn('Cart data is not an array, resetting to empty array');
+                        cartData = [];
+                    }
                 } catch (e) {
-                    console.error(`Error parsing session cart from ${sessionCartKey}:`, e);
-                }
-            }
-
-            // Determine which cart to use and handle migration
-            let finalCartData = [];
-            let migrationOccurred = false;
-
-            if (user && user.id) {
-                // User is authenticated - prioritize user cart, but merge with session cart if needed
-                const hasUserCart = userCartData && Array.isArray(userCartData) && userCartData.length > 0;
-                const hasSessionCart = sessionCartData && Array.isArray(sessionCartData) && sessionCartData.length > 0;
-
-                console.log('Has user cart:', hasUserCart);
-                console.log('Has session cart:', hasSessionCart);
-
-                if (hasUserCart && hasSessionCart) {
-                    // Both carts exist - merge them
-                    console.log('Both user and session carts exist - merging...');
-                    finalCartData = this.mergeCartData(userCartData, sessionCartData);
-                    migrationOccurred = true;
-                } else if (hasUserCart) {
-                    // Only user cart exists
-                    console.log('Using user cart data');
-                    finalCartData = userCartData;
-                } else if (hasSessionCart) {
-                    // Only session cart exists - migrate to user cart
-                    console.log('Migrating session cart to user cart...');
-                    finalCartData = sessionCartData;
-                    migrationOccurred = true;
-                } else {
-                    // No cart data found
-                    console.log('No cart data found in either location');
-                    finalCartData = [];
-                }
-
-                // Save merged/migrated cart to user cart if migration occurred
-                if (migrationOccurred && finalCartData.length > 0) {
-                    console.log(`Saving merged cart to ${userCartKey}:`, finalCartData);
-                    localStorage.setItem(userCartKey, JSON.stringify(finalCartData));
+                    console.error(`Error parsing cart data from ${cartKey}:`, e);
+                    cartData = [];
                 }
             } else {
-                // User is not authenticated - use session cart only
-                if (sessionCartData && Array.isArray(sessionCartData)) {
-                    console.log('Using session cart data (guest user)');
-                    finalCartData = sessionCartData;
-                } else {
-                    console.log('No session cart data found (guest user)');
-                    finalCartData = [];
-                }
+                console.log('No cart data found');
+                cartData = [];
             }
 
-            this.cartItems = finalCartData;
+            this.cartItems = cartData;
             console.log(`Final cart loaded: ${this.cartItems.length} items`);
             console.log('Final cart items:', this.cartItems);
-            console.log('Migration occurred:', migrationOccurred);
             console.log('=== END CART LOADING DEBUG ===');
 
         } catch (error) {
@@ -149,35 +97,7 @@ class BookingCheckout {
         }
     }
 
-    mergeCartData(userCart, sessionCart) {
-        console.log('=== CART MERGE DEBUG ===');
-        console.log('User cart items:', userCart.length);
-        console.log('Session cart items:', sessionCart.length);
-        console.log('User cart:', userCart);
-        console.log('Session cart:', sessionCart);
 
-        const merged = [...userCart];
-        const existingServiceIds = new Set(userCart.map(item => item.serviceId));
-
-        console.log('Existing service IDs in user cart:', Array.from(existingServiceIds));
-
-        // Add session cart items that don't exist in user cart
-        for (const sessionItem of sessionCart) {
-            console.log(`Checking session item: ${sessionItem.serviceName} (ID: ${sessionItem.serviceId})`);
-            if (!existingServiceIds.has(sessionItem.serviceId)) {
-                merged.push(sessionItem);
-                existingServiceIds.add(sessionItem.serviceId);
-                console.log(`✓ Added session item to merged cart: ${sessionItem.serviceName}`);
-            } else {
-                console.log(`✗ Skipped duplicate item: ${sessionItem.serviceName}`);
-            }
-        }
-
-        console.log(`Merged cart contains ${merged.length} items`);
-        console.log('Final merged cart:', merged);
-        console.log('=== END CART MERGE DEBUG ===');
-        return merged;
-    }
 
     async getCurrentUser() {
         // Check sessionStorage first (set by JSP)
@@ -347,28 +267,16 @@ class BookingCheckout {
 
     async saveCart() {
         try {
-            const user = await this.getCurrentUser();
             console.log('=== CART SAVE DEBUG ===');
-            console.log('Saving cart for user:', user);
             console.log('Cart items to save:', this.cartItems);
 
-            // Determine the correct cart key
-            const cartKey = user && user.id ? `cart_${user.id}` : 'session_cart';
+            // Always use session_cart regardless of login status
+            const cartKey = 'session_cart';
             console.log('Saving to cart key:', cartKey);
 
             // Save to localStorage
             localStorage.setItem(cartKey, JSON.stringify(this.cartItems));
             console.log('Cart saved successfully');
-
-            // If user is authenticated, also update session_cart for backward compatibility
-            // but prioritize user cart
-            if (user && user.id) {
-                const sessionCartData = localStorage.getItem('session_cart');
-                if (sessionCartData) {
-                    console.log('User cart saved, session_cart still exists for compatibility');
-                }
-            }
-
             console.log('=== END CART SAVE DEBUG ===');
 
             // Trigger cart update event for other components
@@ -559,17 +467,10 @@ class BookingCheckout {
 
     async clearCart() {
         try {
-            const user = await this.getCurrentUser();
             console.log('=== CART CLEAR DEBUG ===');
-            console.log('Clearing cart for user:', user);
+            console.log('Clearing cart...');
 
-            // Clear both possible cart locations to ensure complete cleanup
-            if (user && user.id) {
-                const userCartKey = `cart_${user.id}`;
-                console.log(`Removing user cart: ${userCartKey}`);
-                localStorage.removeItem(userCartKey);
-            }
-
+            // Always use session_cart regardless of login status
             console.log('Removing session cart: session_cart');
             localStorage.removeItem('session_cart');
 
@@ -685,14 +586,21 @@ class BookingCheckout {
         console.log('=== CART DEBUG INFO ===');
         console.log('Cart items:', this.cartItems);
         console.log('Cart length:', this.cartItems.length);
-        console.log('LocalStorage keys:', Object.keys(localStorage));
 
-        // Check all cart-related localStorage keys
-        Object.keys(localStorage).forEach(key => {
-            if (key.includes('cart') || key.includes('Cart')) {
-                console.log(`${key}:`, localStorage.getItem(key));
+        // Check session_cart only
+        const sessionCart = localStorage.getItem('session_cart');
+        console.log('session_cart:', sessionCart);
+
+        if (sessionCart) {
+            try {
+                const parsedCart = JSON.parse(sessionCart);
+                console.log('Parsed session_cart:', parsedCart);
+                console.log('Session cart length:', parsedCart.length);
+            } catch (e) {
+                console.error('Error parsing session_cart:', e);
             }
-        });
+        }
+
         console.log('=== END CART DEBUG ===');
     }
 
@@ -731,12 +639,8 @@ class BookingCheckout {
     }
 
     async clearAllCartData() {
-        // Clear all cart-related localStorage
-        Object.keys(localStorage).forEach(key => {
-            if (key.includes('cart') || key.includes('Cart')) {
-                localStorage.removeItem(key);
-            }
-        });
+        // Clear session_cart only
+        localStorage.removeItem('session_cart');
 
         this.cartItems = [];
         this.updateCartDisplay();

@@ -42,9 +42,9 @@ async function loadCart() {
     showLoading(true);
 
     try {
-        const user = await getCurrentUser();
-        const cartKey = user ? `cart_${user.id}` : 'session_cart';
-        
+        // Always use session_cart regardless of login status
+        const cartKey = 'session_cart';
+
         // Load cart from localStorage
         const savedCart = localStorage.getItem(cartKey);
         if (savedCart) {
@@ -74,8 +74,8 @@ async function getCurrentUser() {
 // Save cart
 async function saveCart(items) {
     try {
-        const user = await getCurrentUser();
-        const cartKey = user ? `cart_${user.id}` : 'session_cart';
+        // Always use session_cart regardless of login status
+        const cartKey = 'session_cart';
         localStorage.setItem(cartKey, JSON.stringify(items));
         
         // Update cart icon and trigger cart update event
@@ -90,9 +90,9 @@ async function saveCart(items) {
 // Add to cart
 async function addToCart(serviceData) {
     try {
-        const user = await getCurrentUser();
-        const cartKey = user ? `cart_${user.id}` : 'session_cart';
-        
+        // Always use session_cart regardless of login status
+        const cartKey = 'session_cart';
+
         // Load current cart
         let currentCart = [];
         const savedCart = localStorage.getItem(cartKey);
@@ -156,14 +156,10 @@ async function removeFromCart(itemId) {
 // Clear cart
 async function clearCart() {
     if (!confirm('Bạn có chắc muốn xóa tất cả dịch vụ khỏi giỏ hàng?')) return;
-    
+
     cartItems = [];
-    const user = await getCurrentUser();
-    if (user) {
-        localStorage.removeItem(`cart_${user.id}`);
-    } else {
-        localStorage.removeItem('session_cart');
-    }
+    // Always use session_cart regardless of login status
+    localStorage.removeItem('session_cart');
     
     updateCartDisplay();
     await updateCartIcon();
@@ -258,8 +254,8 @@ async function updateCartIcon() {
     // Calculate total items
     let totalItems = 0;
     try {
-        const user = await getCurrentUser();
-        const cartKey = user ? `cart_${user.id}` : 'session_cart';
+        // Always use session_cart regardless of login status
+        const cartKey = 'session_cart';
         const savedCart = localStorage.getItem(cartKey);
         if (savedCart) {
             const currentCart = JSON.parse(savedCart);
