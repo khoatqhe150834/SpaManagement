@@ -135,64 +135,64 @@ class BookingCheckout {
         container.style.display = 'block';
 
         container.innerHTML = this.cartItems.map(item => `
-            <div class="cart-item-card group bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:border-[#D4AF37]/30">
-                <div class="flex items-start space-x-4">
+            <div class="cart-item-card group bg-white border border-gray-200 rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-primary/30">
+                <div class="flex items-start space-x-6">
                     <img
                         src="${item.serviceImage}"
                         alt="${item.serviceName}"
-                        class="w-24 h-24 object-cover rounded-xl shadow-sm group-hover:shadow-md transition-shadow duration-300"
+                        class="w-28 h-28 object-cover rounded-xl shadow-md group-hover:shadow-lg transition-shadow duration-300"
                     />
-                    
+
                     <div class="flex-1">
-                        <h3 class="text-xl font-semibold text-[#333333] mb-2 group-hover:text-[#D4AF37] transition-colors duration-300">
+                        <h3 class="text-2xl font-serif font-semibold text-spa-dark mb-3 group-hover:text-primary transition-colors duration-300">
                             ${item.serviceName}
                         </h3>
-                        <p class="text-sm text-gray-600 mb-3 leading-relaxed">
+                        <p class="text-gray-600 mb-4 leading-relaxed">
                             ${item.description}
                         </p>
                         <div class="flex items-center">
-                            <div class="flex items-center text-sm text-gray-500 bg-gray-50 px-3 py-1 rounded-full">
-                                <i data-lucide="clock" class="h-4 w-4 mr-1.5 text-[#D4AF37]"></i>
-                                <span class="font-medium">${item.serviceDuration} phút</span>
+                            <div class="flex items-center text-gray-500 bg-spa-cream px-4 py-2 rounded-full">
+                                <i data-lucide="clock" class="h-5 w-5 mr-2 text-primary"></i>
+                                <span class="font-semibold">${item.serviceDuration} phút</span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="text-right min-w-[140px]">
-                        <div class="text-xl font-bold text-[#D4AF37] mb-3">
+                    <div class="text-right min-w-[160px]">
+                        <div class="text-2xl font-bold text-primary mb-4">
                             ${this.formatCurrency(item.servicePrice)}
                         </div>
-                        
+
                         <!-- Quantity Controls -->
-                        <div class="flex items-center justify-center space-x-3 mb-3 bg-gray-50 rounded-lg p-2">
+                        <div class="flex items-center justify-center space-x-4 mb-4 bg-spa-cream rounded-xl p-3">
                             <button
                                 onclick="bookingCheckout.updateQuantity('${item.id}', ${item.quantity - 1})"
-                                class="quantity-btn p-2 rounded-full bg-white hover:bg-red-50 hover:text-red-600 transition-all duration-200 shadow-sm hover:shadow-md border border-gray-200"
+                                class="quantity-btn p-3 rounded-full bg-white hover:bg-red-50 hover:text-red-600 transition-all duration-200 shadow-md hover:shadow-lg border border-gray-200"
                             >
-                                <i data-lucide="minus" class="h-4 w-4"></i>
+                                <i data-lucide="minus" class="h-5 w-5"></i>
                             </button>
-                            <span class="w-10 text-center font-bold text-lg text-[#333333] bg-white px-2 py-1 rounded-md border border-gray-200">${item.quantity}</span>
+                            <span class="w-12 text-center font-bold text-xl text-spa-dark bg-white px-3 py-2 rounded-lg border border-gray-200">${item.quantity}</span>
                             <button
                                 onclick="bookingCheckout.updateQuantity('${item.id}', ${item.quantity + 1})"
-                                class="quantity-btn p-2 rounded-full bg-white hover:bg-[#D4AF37] hover:text-white transition-all duration-200 shadow-sm hover:shadow-md border border-gray-200"
+                                class="quantity-btn p-3 rounded-full bg-white hover:bg-primary hover:text-white transition-all duration-200 shadow-md hover:shadow-lg border border-gray-200"
                             >
-                                <i data-lucide="plus" class="h-4 w-4"></i>
+                                <i data-lucide="plus" class="h-5 w-5"></i>
                             </button>
                         </div>
 
                         <!-- Remove Button -->
                         <button
                             onclick="bookingCheckout.removeItem('${item.id}')"
-                            class="text-red-500 hover:text-red-700 hover:bg-red-50 transition-all duration-200 text-sm flex items-center justify-center w-full py-2 px-3 rounded-lg border border-red-200 hover:border-red-300"
+                            class="text-red-500 hover:text-red-700 hover:bg-red-50 transition-all duration-200 flex items-center justify-center w-full py-3 px-4 rounded-xl border border-red-200 hover:border-red-300 font-semibold"
                         >
-                            <i data-lucide="trash-2" class="h-4 w-4 mr-1"></i>
+                            <i data-lucide="trash-2" class="h-5 w-5 mr-2"></i>
                             Xóa
                         </button>
 
                         <!-- Subtotal -->
-                        <div class="text-sm text-gray-600 mt-3 pt-3 border-t border-gray-100">
-                            <span class="text-xs text-gray-500">Tổng cộng:</span>
-                            <div class="font-bold text-[#D4AF37] text-lg">
+                        <div class="text-gray-600 mt-4 pt-4 border-t border-gray-200">
+                            <span class="text-sm text-gray-500">Tổng cộng:</span>
+                            <div class="font-bold text-primary text-xl">
                                 ${this.formatCurrency(item.servicePrice * item.quantity)}
                             </div>
                         </div>

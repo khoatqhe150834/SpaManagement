@@ -1,141 +1,199 @@
-<%-- 
+<%--
     Document   : booking-checkout.jsp
     Created on : Booking Checkout Page
     Author     : G1_SpaManagement Team
 --%>
 
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ page import="model.RoleConstants" %>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+
+<%
+    boolean showBookingFeatures = true; // Default to show for guests
+
+    if (session.getAttribute("authenticated") != null
+            && Boolean.TRUE.equals(session.getAttribute("authenticated"))) {
+
+        if (session.getAttribute("customer") != null) {
+            showBookingFeatures = true;
+        } else if (session.getAttribute("user") != null) {
+            showBookingFeatures = false; // Hide for staff/admin roles
+        }
+    }
+
+    pageContext.setAttribute("showBookingFeatures", showBookingFeatures);
+%>
+
 <!DOCTYPE html>
-<html>
+<html lang="vi" class="scroll-smooth">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <title>Thanh toán - BeautyZone Spa</title>
-    
-    <!-- Include Home Framework Styles -->
-    <jsp:include page="/WEB-INF/view/common/home/stylesheet.jsp" />
-    
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thanh toán - Spa Hương Sen</title>
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#D4AF37",
+              "primary-dark": "#B8941F",
+              secondary: "#FADADD",
+              "spa-cream": "#FFF8F0",
+              "spa-dark": "#333333",
+            },
+            fontFamily: {
+              serif: ["Playfair Display", "serif"],
+              sans: ["Roboto", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Roboto:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-    
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="<c:url value='/css/style.css'/>" />
+
+    <!-- Custom styles for animations and components -->
     <style>
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            padding: 12px 24px;
-            border-radius: 8px;
-            color: white;
-            font-weight: 500;
-            transform: translateX(400px);
-            transition: transform 0.3s ease;
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
         }
-        
-        .notification.show {
-            transform: translateX(0);
+        to {
+          opacity: 1;
+          transform: translateY(0);
         }
-        
-        .notification.success {
-            background-color: #10b981;
-        }
-        
-        .notification.error {
-            background-color: #ef4444;
-        }
-        
-        .notification.info {
-            background-color: #3b82f6;
-        }
-        
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-        }
-        
-        .loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #D4AF37;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .cart-item-card {
-            transition: all 0.3s ease;
-        }
-        
-        .cart-item-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-        }
-        
-        .quantity-btn {
-            transition: all 0.2s ease;
-        }
-        
-        .quantity-btn:hover {
-            transform: scale(1.05);
-        }
-        
-        .payment-timer {
-            background: linear-gradient(135deg, #D4AF37, #B8941F);
-            color: white;
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            margin-bottom: 24px;
-        }
-        
-        .qr-container {
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 32px;
-            text-align: center;
-        }
-        
-        .payment-info-card {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      .animate-fadeIn {
+        animation: fadeIn 0.6s ease-out forwards;
+      }
+
+      .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        padding: 12px 24px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        transform: translateX(400px);
+        transition: transform 0.3s ease;
+      }
+
+      .notification.show {
+        transform: translateX(0);
+      }
+
+      .notification.success {
+        background-color: #10b981;
+      }
+
+      .notification.error {
+        background-color: #ef4444;
+      }
+
+      .notification.info {
+        background-color: #3b82f6;
+      }
+
+      .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+      }
+
+      .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #D4AF37;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      .cart-item-card {
+        transition: all 0.3s ease;
+      }
+
+      .cart-item-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+      }
+
+      .quantity-btn {
+        transition: all 0.2s ease;
+      }
+
+      .quantity-btn:hover {
+        transform: scale(1.05);
+      }
+
+      .payment-timer {
+        background: linear-gradient(135deg, #D4AF37, #B8941F);
+        color: white;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        margin-bottom: 24px;
+      }
+
+      .qr-container {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 32px;
+        text-align: center;
+      }
+
+      .payment-info-card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
     </style>
 </head>
-<body id="bg">
-    <div class="page-wraper">
-        <div id="loading-area"></div>
-        
-        <!-- Header -->
-        <jsp:include page="/WEB-INF/view/common/home/header.jsp"></jsp:include>
-        
-        <!-- Main Content -->
-        <div class="min-h-screen bg-[#FFF8F0] pt-8">
+
+<body class="bg-spa-cream">
+    <jsp:include page="/WEB-INF/view/common/header.jsp" />
+
+    <!-- Main Content -->
+    <div class="min-h-screen bg-spa-cream pt-20">
             <!-- Checkout Step -->
-            <div id="checkoutStep" class="max-w-[1200px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-6 sm:py-8 md:py-10 lg:py-12">
+            <div id="checkoutStep" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-fadeIn">
                 <!-- Header -->
-                <div class="text-center mb-8">
-                    <h1 class="text-4xl font-serif text-[#333333] mb-2">
+                <div class="text-center mb-12">
+                    <h1 class="text-4xl md:text-5xl font-serif text-spa-dark mb-4">
                         Thanh toán
                     </h1>
-                    <p class="text-gray-600">
+                    <p class="text-xl text-gray-600">
                         Xem lại đơn hàng và hoàn tất thanh toán
                     </p>
                 </div>
@@ -143,22 +201,26 @@
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <!-- Services List -->
                     <div class="lg:col-span-2">
-                        <div class="bg-white rounded-lg shadow-sm p-6 max-h-[600px] overflow-y-auto">
-                            <h2 class="text-xl font-semibold text-[#333333] mb-6">
+                        <div class="bg-white rounded-xl shadow-lg p-8 max-h-[600px] overflow-y-auto">
+                            <h2 class="text-2xl font-serif font-semibold text-spa-dark mb-8">
                                 Dịch vụ đã chọn
                             </h2>
 
                             <!-- Empty Cart Message -->
-                            <div id="emptyCartMessage" class="text-center py-12" style="display: none;">
-                                <div class="text-gray-400 mb-4">
-                                    <i data-lucide="credit-card" class="h-16 w-16 mx-auto"></i>
+                            <div id="emptyCartMessage" class="text-center py-16" style="display: none;">
+                                <div class="text-gray-400 mb-6">
+                                    <i data-lucide="credit-card" class="h-20 w-20 mx-auto"></i>
                                 </div>
-                                <h3 class="text-lg font-medium text-gray-900 mb-2">
+                                <h3 class="text-xl font-semibold text-spa-dark mb-3">
                                     Giỏ hàng trống
                                 </h3>
-                                <p class="text-gray-500">
+                                <p class="text-gray-600 mb-6">
                                     Thêm dịch vụ vào giỏ hàng để tiếp tục
                                 </p>
+                                <a href="<c:url value='/services'/>" class="inline-flex items-center px-6 py-3 bg-primary text-white rounded-full hover:bg-primary-dark transition-all duration-300 font-semibold">
+                                    Khám phá dịch vụ
+                                    <i data-lucide="arrow-right" class="ml-2 h-5 w-5"></i>
+                                </a>
                             </div>
 
                             <!-- Cart Items Container -->
@@ -170,54 +232,54 @@
 
                     <!-- Summary Section -->
                     <div class="lg:col-span-1">
-                        <div class="bg-white rounded-lg shadow-sm p-6 sticky top-8">
-                            <h2 class="text-xl font-semibold text-[#333333] mb-6">
+                        <div class="bg-white rounded-xl shadow-lg p-8 sticky top-24">
+                            <h2 class="text-2xl font-serif font-semibold text-spa-dark mb-8">
                                 Tóm tắt đơn hàng
                             </h2>
 
-                            <div class="space-y-4 mb-6">
-                                <div class="flex justify-between">
+                            <div class="space-y-4 mb-8">
+                                <div class="flex justify-between text-lg">
                                     <span class="text-gray-600">Tạm tính:</span>
-                                    <span class="font-medium" id="subtotalAmount">0đ</span>
+                                    <span class="font-semibold text-spa-dark" id="subtotalAmount">0đ</span>
                                 </div>
-                                <div class="flex justify-between">
+                                <div class="flex justify-between text-lg">
                                     <span class="text-gray-600">VAT (10%):</span>
-                                    <span class="font-medium" id="taxAmount">0đ</span>
+                                    <span class="font-semibold text-spa-dark" id="taxAmount">0đ</span>
                                 </div>
-                                <div class="border-t pt-4">
-                                    <div class="flex justify-between text-lg font-bold">
-                                        <span>Tổng cộng:</span>
-                                        <span class="text-[#D4AF37]" id="totalAmount">0đ</span>
+                                <div class="border-t border-gray-200 pt-4">
+                                    <div class="flex justify-between text-xl font-bold">
+                                        <span class="text-spa-dark">Tổng cộng:</span>
+                                        <span class="text-primary" id="totalAmount">0đ</span>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Payment Method -->
-                            <div class="mb-6">
-                                <h3 class="font-semibold text-[#333333] mb-3">
+                            <div class="mb-8">
+                                <h3 class="font-semibold text-spa-dark mb-4">
                                     Phương thức thanh toán
                                 </h3>
-                                <div class="border border-[#D4AF37] rounded-lg p-3 bg-[#FFF8F0]">
+                                <div class="border border-primary rounded-xl p-4 bg-spa-cream">
                                     <div class="flex items-center">
-                                        <i data-lucide="qr-code" class="h-5 w-5 text-[#D4AF37] mr-2"></i>
-                                        <span class="font-medium">Chuyển khoản QR Code</span>
+                                        <i data-lucide="qr-code" class="h-6 w-6 text-primary mr-3"></i>
+                                        <span class="font-semibold text-spa-dark">Chuyển khoản QR Code</span>
                                     </div>
-                                    <p class="text-sm text-gray-600 mt-1">
+                                    <p class="text-gray-600 mt-2">
                                         Thanh toán nhanh chóng và an toàn
                                     </p>
                                 </div>
                             </div>
 
                             <!-- Checkout Button -->
-                            <button id="checkoutBtn" class="w-full flex items-center justify-center px-6 py-4 bg-[#D4AF37] text-white rounded-lg hover:bg-[#B8941F] transition-colors font-semibold text-lg">
-                                <i data-lucide="credit-card" class="h-5 w-5 mr-2"></i>
+                            <button id="checkoutBtn" class="w-full flex items-center justify-center px-8 py-4 bg-primary text-white rounded-full hover:bg-primary-dark transition-all duration-300 font-semibold text-lg transform hover:scale-105">
+                                <i data-lucide="credit-card" class="h-6 w-6 mr-2"></i>
                                 Thanh toán
                             </button>
 
                             <!-- Security Notice -->
-                            <div class="mt-4 text-center">
+                            <div class="mt-6 text-center">
                                 <div class="flex items-center justify-center text-sm text-gray-500">
-                                    <i data-lucide="check-circle" class="h-4 w-4 mr-1 text-green-500"></i>
+                                    <i data-lucide="shield-check" class="h-5 w-5 mr-2 text-green-500"></i>
                                     Thanh toán được bảo mật 100%
                                 </div>
                             </div>
@@ -227,16 +289,16 @@
             </div>
 
             <!-- Payment Step -->
-            <div id="paymentStep" class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8" style="display: none;">
+            <div id="paymentStep" class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-fadeIn" style="display: none;">
                 <!-- Header -->
-                <div class="text-center mb-8">
-                    <div class="bg-[#D4AF37] rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                        <i data-lucide="qr-code" class="h-8 w-8 text-white"></i>
+                <div class="text-center mb-12">
+                    <div class="bg-primary rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+                        <i data-lucide="qr-code" class="h-10 w-10 text-white"></i>
                     </div>
-                    <h1 class="text-3xl font-serif text-[#333333] mb-2">
+                    <h1 class="text-4xl md:text-5xl font-serif text-spa-dark mb-4">
                         Thanh toán QR Code
                     </h1>
-                    <p class="text-gray-600">
+                    <p class="text-xl text-gray-600">
                         Quét mã QR bên dưới để hoàn tất thanh toán
                     </p>
                 </div>
@@ -256,45 +318,45 @@
                 </div>
 
                 <!-- QR Code -->
-                <div class="bg-white rounded-lg shadow-sm p-8 mb-6">
+                <div class="bg-white rounded-xl shadow-lg p-10 mb-8">
                     <div class="qr-container">
-                        <div class="bg-gray-100 rounded-lg p-6 mb-4 inline-block">
-                            <img id="qrCodeImage" src="" alt="QR Code thanh toán" class="w-48 h-48 mx-auto">
+                        <div class="bg-spa-cream rounded-xl p-8 mb-6 inline-block">
+                            <img id="qrCodeImage" src="" alt="QR Code thanh toán" class="w-56 h-56 mx-auto">
                         </div>
-                        <p class="text-gray-600 mb-4">
+                        <p class="text-lg text-gray-600 mb-4">
                             Sử dụng ứng dụng ngân hàng để quét mã QR
                         </p>
                     </div>
                 </div>
 
                 <!-- Payment Details -->
-                <div class="payment-info-card mb-6">
-                    <h3 class="text-lg font-semibold text-[#333333] mb-4">
+                <div class="payment-info-card mb-8">
+                    <h3 class="text-2xl font-serif font-semibold text-spa-dark mb-6">
                         Thông tin thanh toán
                     </h3>
-                    <div class="space-y-3">
-                        <div class="flex justify-between">
+                    <div class="space-y-4">
+                        <div class="flex justify-between text-lg">
                             <span class="text-gray-600">Ngân hàng:</span>
-                            <span class="font-medium" id="bankName">Vietcombank</span>
+                            <span class="font-semibold text-spa-dark" id="bankName">Vietcombank</span>
                         </div>
-                        <div class="flex justify-between">
+                        <div class="flex justify-between text-lg">
                             <span class="text-gray-600">Số tài khoản:</span>
-                            <span class="font-medium" id="accountNumber">1234567890</span>
+                            <span class="font-semibold text-spa-dark" id="accountNumber">1234567890</span>
                         </div>
-                        <div class="flex justify-between">
+                        <div class="flex justify-between text-lg">
                             <span class="text-gray-600">Chủ tài khoản:</span>
-                            <span class="font-medium" id="accountName">SPA HUONG SEN</span>
+                            <span class="font-semibold text-spa-dark" id="accountName">SPA HUONG SEN</span>
                         </div>
-                        <div class="flex justify-between items-center">
+                        <div class="flex justify-between items-center text-lg">
                             <span class="text-gray-600">Mã tham chiếu:</span>
                             <div class="flex items-center">
-                                <span class="font-medium mr-2" id="referenceNumber"></span>
-                                <button id="copyRefBtn" class="p-1 text-[#D4AF37] hover:text-[#B8941F] transition-colors" title="Sao chép mã">
-                                    <i data-lucide="copy" class="h-4 w-4"></i>
+                                <span class="font-semibold text-spa-dark mr-3" id="referenceNumber"></span>
+                                <button id="copyRefBtn" class="p-2 text-primary hover:text-primary-dark transition-colors rounded-full hover:bg-spa-cream" title="Sao chép mã">
+                                    <i data-lucide="copy" class="h-5 w-5"></i>
                                 </button>
                             </div>
                         </div>
-                        <div class="flex justify-between text-lg font-bold text-[#D4AF37] pt-2 border-t">
+                        <div class="flex justify-between text-xl font-bold text-primary pt-4 border-t border-gray-200">
                             <span>Tổng tiền:</span>
                             <span id="paymentTotalAmount">0đ</span>
                         </div>
@@ -302,62 +364,78 @@
                 </div>
 
                 <!-- Instructions -->
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                    <h4 class="font-semibold text-blue-800 mb-2">Hướng dẫn thanh toán:</h4>
-                    <ol class="text-sm text-blue-700 space-y-1">
-                        <li>1. Mở ứng dụng ngân hàng trên điện thoại</li>
-                        <li>2. Chọn chức năng "Quét QR Code" hoặc "Chuyển khoản QR"</li>
-                        <li>3. Quét mã QR ở trên</li>
-                        <li>4. Kiểm tra thông tin và xác nhận thanh toán</li>
-                        <li>5. Lưu lại biên lai để đối chiếu</li>
+                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 mb-8">
+                    <h4 class="font-serif font-semibold text-blue-800 mb-4 text-lg">Hướng dẫn thanh toán:</h4>
+                    <ol class="text-blue-700 space-y-2">
+                        <li class="flex items-start">
+                            <span class="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">1</span>
+                            Mở ứng dụng ngân hàng trên điện thoại
+                        </li>
+                        <li class="flex items-start">
+                            <span class="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">2</span>
+                            Chọn chức năng "Quét QR Code" hoặc "Chuyển khoản QR"
+                        </li>
+                        <li class="flex items-start">
+                            <span class="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">3</span>
+                            Quét mã QR ở trên
+                        </li>
+                        <li class="flex items-start">
+                            <span class="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">4</span>
+                            Kiểm tra thông tin và xác nhận thanh toán
+                        </li>
+                        <li class="flex items-start">
+                            <span class="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">5</span>
+                            Lưu lại biên lai để đối chiếu
+                        </li>
                     </ol>
                 </div>
 
                 <!-- Actions -->
-                <div class="flex space-x-4">
-                    <button id="backToCheckoutBtn" class="flex-1 flex items-center justify-center px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <button id="backToCheckoutBtn" class="flex-1 flex items-center justify-center px-8 py-4 border-2 border-gray-300 text-gray-700 rounded-full hover:bg-gray-50 transition-all duration-300 font-semibold text-lg">
                         <i data-lucide="arrow-left" class="h-5 w-5 mr-2"></i>
                         Quay lại
                     </button>
-                    <button id="paymentCompleteBtn" class="flex-1 px-6 py-3 bg-[#D4AF37] text-white rounded-lg hover:bg-[#B8941F] transition-colors font-semibold">
+                    <button id="paymentCompleteBtn" class="flex-1 px-8 py-4 bg-primary text-white rounded-full hover:bg-primary-dark transition-all duration-300 font-semibold text-lg transform hover:scale-105">
                         Tôi đã thanh toán
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- Loading Overlay -->
-        <div id="loadingOverlay" class="loading-overlay" style="display: none;">
-            <div class="loading-spinner"></div>
-        </div>
-
-        <!-- Notification Container -->
-        <div id="notification" class="notification"></div>
-
-        <!-- Footer -->
-        <jsp:include page="/WEB-INF/view/common/footer.jsp" />
-
-        <!-- JavaScript -->
-        <script>
-            // Global configuration
-            window.spaConfig = {
-                contextPath: '${pageContext.request.contextPath}',
-                apiEndpoint: '${pageContext.request.contextPath}/api'
-            };
-        </script>
-
-        <!-- Include Home Framework Scripts -->
-        <jsp:include page="/WEB-INF/view/common/home/js.jsp" />
-
-        <!-- Booking Checkout JavaScript -->
-        <script src="${pageContext.request.contextPath}/js/booking-checkout.js"></script>
-
-        <!-- Initialize Lucide Icons -->
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                lucide.createIcons();
-            });
-        </script>
     </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notification" class="notification"></div>
+
+    <!-- JavaScript -->
+    <script>
+        // Global configuration
+        window.spaConfig = {
+            contextPath: '${pageContext.request.contextPath}',
+            apiEndpoint: '${pageContext.request.contextPath}/api'
+        };
+    </script>
+
+    <!-- Core JavaScript -->
+    <script src="<c:url value='/js/app.js'/>"></script>
+
+    <!-- Booking Checkout JavaScript -->
+    <script src="${pageContext.request.contextPath}/js/booking-checkout.js"></script>
+
+    <!-- Initialize Lucide Icons -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+        });
+    </script>
+
+    <!-- Footer -->
+    <jsp:include page="/WEB-INF/view/common/footer.jsp" />
 </body>
 </html>
