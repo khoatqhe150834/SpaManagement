@@ -1,5 +1,6 @@
 <%@page contentType="text/html" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <!DOCTYPE html>
 <html lang="vi" class="scroll-smooth">
 <head>
@@ -116,13 +117,17 @@
                             <h2 class="text-lg font-semibold text-primary mb-4 flex items-center gap-2"><i data-lucide="image" class="w-5 h-5"></i> Hình ảnh dịch vụ</h2>
                             <div class="flex flex-wrap items-center gap-3 mb-2">
                                 <c:forEach var="img" items="${serviceImages}">
-                                    <div class="relative h-28 w-28 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 overflow-hidden flex items-center justify-center mr-2 mb-2 existing-img-container" data-img-id="${img.id}">
-                                        <img src="${pageContext.request.contextPath}${img.imageUrl}" class="w-full h-full object-cover" />
-                                        <input type="checkbox" name="delete_image_ids" value="${img.id}" id="delete_img_${img.id}" class="delete-checkbox hidden" />
-                                        <button type="button" class="absolute top-1 right-1 bg-white rounded-full p-1 shadow remove-existing-img-btn" title="Xóa ảnh này">
-                                            <i data-lucide="x" class="w-4 h-4 text-red-600"></i>
-                                        </button>
-                                    </div>
+                                    <c:if test="${not empty img.url}">
+                                        <div class="relative h-28 w-28 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 overflow-hidden flex items-center justify-center mr-2 mb-2 existing-img-container" data-img-id="${img.imageId}">
+                                            <a href="javascript:void(0);" title="Xem ảnh lớn" onclick="showImageModal('${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(img.url, '/services/')}')">
+                                                <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(img.url, '/services/')}" class="w-full h-full object-cover hover:scale-105 transition-transform duration-200" style="cursor: zoom-in;" />
+                                            </a>
+                                            <input type="checkbox" name="delete_image_ids" value="${img.imageId}" id="delete_img_${img.imageId}" class="delete-checkbox hidden" />
+                                            <button type="button" class="absolute top-1 right-1 bg-white rounded-full p-1 shadow remove-existing-img-btn" title="Xóa ảnh này">
+                                                <i data-lucide="x" class="w-4 h-4 text-red-600"></i>
+                                            </button>
+                                        </div>
+                                    </c:if>
                                 </c:forEach>
                                 <div class="flex gap-3 flex-wrap uploaded-imgs-container"></div>
                                 <label class="flex flex-col items-center justify-center gap-1 h-28 w-28 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 cursor-pointer" for="upload-file-multiple">
@@ -132,6 +137,11 @@
                                 </label>
                             </div>
                             <div class="text-sm mt-1" id="imageError"></div>
+                        </div>
+                        <!-- Modal xem ảnh lớn -->
+                        <div id="imageModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 hidden">
+                            <span class="absolute top-4 right-8 text-white text-3xl cursor-pointer" id="closeModal">&times;</span>
+                            <img id="modalImg" src="" class="max-h-[80vh] max-w-[90vw] rounded-xl shadow-2xl border-4 border-white" />
                         </div>
                         <!-- Cài đặt -->
                         <div class="mb-8">
@@ -411,6 +421,20 @@
                 }
             });
         }
+        function showImageModal(src) {
+            document.getElementById('modalImg').src = src;
+            document.getElementById('imageModal').classList.remove('hidden');
+        }
+        document.getElementById('closeModal').onclick = function() {
+            document.getElementById('imageModal').classList.add('hidden');
+            document.getElementById('modalImg').src = '';
+        };
+        document.getElementById('imageModal').onclick = function(e) {
+            if (e.target === this) {
+                this.classList.add('hidden');
+                document.getElementById('modalImg').src = '';
+            }
+        };
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM Content Loaded');
             
