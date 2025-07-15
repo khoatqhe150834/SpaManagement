@@ -230,6 +230,22 @@
                     this.style.display = 'none';
                 };
 
+                // --- AJAX check duplicate service type name ---
+                function checkServiceTypeNameDuplicate(name, callback) {
+                    $.ajax({
+                        url: contextPath + '/manager/servicetype',
+                        type: 'GET',
+                        data: { service: 'check-duplicate-name', name: name },
+                        dataType: 'json',
+                        success: function (response) {
+                            callback(!response.valid, response.message);
+                        },
+                        error: function () {
+                            callback(false, 'Không thể kiểm tra tên. Vui lòng thử lại.');
+                        }
+                    });
+                }
+
                 // --- Real-time validate event binding ---
                 document.addEventListener('DOMContentLoaded', function () {
                     const nameInput = document.getElementById('name');
@@ -238,7 +254,7 @@
 
                     nameInput.addEventListener('input', function () {
                         if (validateName(this)) {
-                            checkNameDuplicate(this.value.trim(), function (isDuplicate, msg) {
+                            checkServiceTypeNameDuplicate(this.value.trim(), function (isDuplicate, msg) {
                                 if (isDuplicate) {
                                     setInvalid(nameInput, document.getElementById('nameError'), msg || 'Tên này đã tồn tại trong hệ thống');
                                 } else {
@@ -250,7 +266,7 @@
                     nameInput.addEventListener('blur', function () {
                         this.value = this.value.replace(/\s+/g, ' ').trim();
                         if (validateName(this)) {
-                            checkNameDuplicate(this.value.trim(), function (isDuplicate, msg) {
+                            checkServiceTypeNameDuplicate(this.value.trim(), function (isDuplicate, msg) {
                                 if (isDuplicate) {
                                     setInvalid(nameInput, document.getElementById('nameError'), msg || 'Tên này đã tồn tại trong hệ thống');
                                 } else {

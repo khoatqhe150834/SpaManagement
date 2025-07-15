@@ -188,12 +188,58 @@
     </div>
     <jsp:include page="/WEB-INF/view/common/footer.jsp" />
     <script>
+        var contextPath = "${pageContext.request.contextPath}";
         if (window.lucide) lucide.createIcons();
     </script>
     <!-- Giữ lại toàn bộ script validation, upload ảnh, ... ở cuối file như cũ -->
     <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
     <script>
-    // ... giữ nguyên toàn bộ script validation, upload ảnh, ... như bản cũ ...
+        // ... giữ nguyên toàn bộ script validation, upload ảnh, ... như bản cũ ...
+        // AJAX check duplicate service name
+        function checkServiceNameDuplicate(name, id, callback) {
+            $.ajax({
+                url: contextPath + '/manager/service',
+                type: 'GET',
+                data: { service: 'check-duplicate-name', name: name, id: id },
+                dataType: 'json',
+                success: function (response) {
+                    callback(!response.valid, response.message);
+                },
+                error: function () {
+                    callback(false, 'Không thể kiểm tra tên. Vui lòng thử lại.');
+                }
+            });
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            const nameInput = document.getElementById('name');
+            const serviceId = document.querySelector('input[name="id"]').value;
+            // ... existing code ...
+            nameInput.addEventListener('input', function() {
+                updateCharCount(this, 'nameCharCount', 200);
+                if (validateName(this)) {
+                    checkServiceNameDuplicate(this.value.trim(), serviceId, function(isDuplicate, msg) {
+                        if (isDuplicate) {
+                            setInvalid(nameInput, document.getElementById('nameError'), msg || 'Tên này đã tồn tại trong hệ thống');
+                        } else {
+                            setValid(nameInput, document.getElementById('nameError'), 'Tên hợp lệ');
+                        }
+                    });
+                }
+            });
+            nameInput.addEventListener('blur', function() {
+                this.value = this.value.replace(/\s+/g, ' ').trim();
+                if (validateName(this)) {
+                    checkServiceNameDuplicate(this.value.trim(), serviceId, function(isDuplicate, msg) {
+                        if (isDuplicate) {
+                            setInvalid(nameInput, document.getElementById('nameError'), msg || 'Tên này đã tồn tại trong hệ thống');
+                        } else {
+                            setValid(nameInput, document.getElementById('nameError'), 'Tên hợp lệ');
+                        }
+                    });
+                }
+            });
+            // ... existing code ...
+        });
     </script>
     <style>
         .is-valid {
