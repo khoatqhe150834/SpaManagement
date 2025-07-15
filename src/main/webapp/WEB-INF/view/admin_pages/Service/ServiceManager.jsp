@@ -1,6 +1,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <!DOCTYPE html>
 <html lang="vi" class="scroll-smooth">
 <head>
@@ -113,7 +114,15 @@
                                             <td class="px-6 py-4 font-medium text-gray-900">${service.serviceId}</td>
                                             <td class="px-6 py-4 text-center">
                                                 <div class="flex justify-center items-center h-16">
-                                                    <img src="${pageContext.request.contextPath}${serviceThumbnails[service.serviceId]}" alt="Service Image" class="w-16 h-16 object-cover rounded-xl border bg-gray-50 shadow" />
+                                                    <c:set var="imgUrl" value="${serviceThumbnails[service.serviceId]}" />
+                                                    <c:choose>
+                                                        <c:when test="${not empty imgUrl}">
+                                                            <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(imgUrl, '/services/')}" alt="Service Image" class="w-16 h-16 object-cover rounded-xl border bg-gray-50 shadow" />
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <img src="${pageContext.request.contextPath}/assets/images/no-image.png" alt="No image" class="w-16 h-16 object-cover rounded-xl border bg-gray-50 shadow" />
+                                                        </c:otherwise>
+                                                    </c:choose>
                                                 </div>
                                             </td>
                                             <td class="px-6 py-4 max-w-xs truncate" title="${service.name}">${service.name}</td>

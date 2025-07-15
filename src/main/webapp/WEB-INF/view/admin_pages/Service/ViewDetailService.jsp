@@ -7,6 +7,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <!DOCTYPE html>
 <html lang="vi" class="scroll-smooth">
 <head>
@@ -152,10 +153,10 @@
                         <div>
                             <c:choose>
                                 <c:when test="${not empty serviceImages}">
-                                    <img src="${pageContext.request.contextPath}${serviceImages[0].url}" alt="Service Image" class="w-full h-72 object-cover rounded-xl shadow mb-4" id="mainImage">
+                                    <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(serviceImages[0].url, '/services/')}" alt="Service Image" class="w-full h-72 object-cover rounded-xl shadow mb-4" id="mainImage">
                                     <div class="grid grid-cols-4 gap-2">
                                         <c:forEach var="img" items="${serviceImages}" varStatus="loop">
-                                            <img src="${pageContext.request.contextPath}${img.url}" alt="Thumbnail" class="w-full h-16 object-cover rounded-lg border-2 cursor-pointer <c:if test='${loop.index == 0}'>border-primary</c:if>" onclick="changeImage('${pageContext.request.contextPath}${img.url}', this)">
+                                            <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(img.url, '/services/')}" alt="Thumbnail" class="w-full h-16 object-cover rounded-lg border-2 cursor-pointer <c:if test='${loop.index == 0}'>border-primary</c:if>" onclick="changeImage('${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(img.url, '/services/')}', this)">
                                         </c:forEach>
                                     </div>
                                 </c:when>
