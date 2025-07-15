@@ -55,13 +55,19 @@
                             <div>
                                 <label for="name" class="block text-sm font-medium text-spa-dark mb-2">Tên Loại Dịch Vụ <span class="text-red-500">*</span></label>
                                 <input type="text" name="name" id="name" maxlength="200" required placeholder="Nhập tên loại dịch vụ" class="block w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary" />
-                                <div class="text-red-500 text-xs mt-1" id="nameError"></div>
+                                <div class="flex justify-between items-center mt-1">
+                                    <div class="text-red-500 text-xs" id="nameError"></div>
+                                    <small class="text-gray-400 ml-auto" id="nameCharCount">0/200</small>
+                                </div>
                             </div>
                             <!-- Description -->
                             <div>
                                 <label for="description" class="block text-sm font-medium text-spa-dark mb-2">Mô tả <span class="text-red-500">*</span></label>
                                 <textarea name="description" id="description" rows="5" placeholder="Nhập mô tả..." class="block w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"></textarea>
-                                <div class="text-red-500 text-xs mt-1" id="descriptionError"></div>
+                                <div class="flex justify-between items-center mt-1">
+                                    <div class="text-red-500 text-xs" id="descriptionError"></div>
+                                    <small class="text-gray-400 ml-auto" id="descCharCount">0/500</small>
+                                </div>
                                 <small class="text-gray-500">Tối thiểu 20 ký tự, tối đa 500 ký tự</small>
                             </div>
                             <!-- Image -->
@@ -120,6 +126,37 @@
                     input.classList.remove('border-red-500', 'focus:ring-red-500', 'border-green-500', 'focus:ring-green-500');
                     input.classList.add('border-gray-300', 'focus:ring-primary');
                     errorDiv.textContent = '';
+                }
+
+                // --- Character count functions ---
+                function updateCharCount(input, counterId, maxLength) {
+                    try {
+                        const counter = document.getElementById(counterId);
+                        if (!counter) {
+                            console.error('Counter element not found:', counterId);
+                            return;
+                        }
+                        if (!input) {
+                            console.error('Input element not found');
+                            return;
+                        }
+                        
+                        const value = input.value || "";
+                        const currentLength = value.length;
+                        const displayText = currentLength + '/' + maxLength;
+                        
+                        counter.textContent = displayText;
+                        
+                        if (currentLength > maxLength * 0.8) {
+                            counter.style.color = '#f59e0b';
+                        } else if (currentLength > maxLength) {
+                            counter.style.color = '#f44336';
+                        } else {
+                            counter.style.color = '#6b7280';
+                        }
+                    } catch (error) {
+                        console.error('Error in updateCharCount:', error);
+                    }
                 }
 
                 // --- Validate Name ---
@@ -252,7 +289,12 @@
                     const descInput = document.getElementById('description');
                     const imageInput = document.getElementById('image');
 
+                    // Initialize character counts on page load
+                    updateCharCount(nameInput, 'nameCharCount', 200);
+                    updateCharCount(descInput, 'descCharCount', 500);
+
                     nameInput.addEventListener('input', function () {
+                        updateCharCount(this, 'nameCharCount', 200);
                         if (validateName(this)) {
                             checkServiceTypeNameDuplicate(this.value.trim(), function (isDuplicate, msg) {
                                 if (isDuplicate) {
@@ -265,6 +307,7 @@
                     });
                     nameInput.addEventListener('blur', function () {
                         this.value = this.value.replace(/\s+/g, ' ').trim();
+                        updateCharCount(this, 'nameCharCount', 200);
                         if (validateName(this)) {
                             checkServiceTypeNameDuplicate(this.value.trim(), function (isDuplicate, msg) {
                                 if (isDuplicate) {
@@ -276,10 +319,12 @@
                         }
                     });
                     descInput.addEventListener('input', function () {
+                        updateCharCount(this, 'descCharCount', 500);
                         validateDescription(this);
                     });
                     descInput.addEventListener('blur', function () {
                         this.value = this.value.replace(/\s+/g, ' ').trim();
+                        updateCharCount(this, 'descCharCount', 500);
                         validateDescription(this);
                     });
                     imageInput.addEventListener('change', async function () {
