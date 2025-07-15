@@ -152,10 +152,10 @@
                         <div>
                             <c:choose>
                                 <c:when test="${not empty serviceImages}">
-                                    <img src="${pageContext.request.contextPath}${serviceImages[0].imageUrl}" alt="Service Image" class="w-full h-72 object-cover rounded-xl shadow mb-4" id="mainImage">
+                                    <img src="${pageContext.request.contextPath}${serviceImages[0].url}" alt="Service Image" class="w-full h-72 object-cover rounded-xl shadow mb-4" id="mainImage">
                                     <div class="grid grid-cols-4 gap-2">
                                         <c:forEach var="img" items="${serviceImages}" varStatus="loop">
-                                            <img src="${pageContext.request.contextPath}${img.imageUrl}" alt="Thumbnail" class="w-full h-16 object-cover rounded-lg border-2 cursor-pointer <c:if test='${loop.index == 0}'>border-primary</c:if>" onclick="changeImage('${pageContext.request.contextPath}${img.imageUrl}', this)">
+                                            <img src="${pageContext.request.contextPath}${img.url}" alt="Thumbnail" class="w-full h-16 object-cover rounded-lg border-2 cursor-pointer <c:if test='${loop.index == 0}'>border-primary</c:if>" onclick="changeImage('${pageContext.request.contextPath}${img.url}', this)">
                                         </c:forEach>
                                     </div>
                                 </c:when>

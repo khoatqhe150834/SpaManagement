@@ -202,16 +202,20 @@
     </servlet-mapping>
 
     <!-- Customer Controller Servlet -->
+    <!--
     <servlet>
         <servlet-name>CustomerController</servlet-name>
         <servlet-class>controller.CustomerController</servlet-class>
     </servlet>
+    -->
 
     <!-- Customer Controller Servlet Mapping -->
+    <!--
     <servlet-mapping>
         <servlet-name>CustomerController</servlet-name>
         <url-pattern>/customer/*</url-pattern>
     </servlet-mapping>
+    -->
 
     <!-- BookingSession API Servlet -->
     <servlet>
