@@ -190,10 +190,10 @@
             <div id="checkoutStep" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-fadeIn">
                 <!-- Header -->
                 <div class="text-center mb-12">
-                    <h1 class="text-4xl md:text-5xl font-serif text-spa-dark mb-4">
+                    <h1 class="text-3xl md:text-4xl font-serif text-spa-dark mb-4">
                         Thanh toán
                     </h1>
-                    <p class="text-xl text-gray-600">
+                    <p class="text-lg text-gray-600">
                         Xem lại đơn hàng và hoàn tất thanh toán
                     </p>
                 </div>
@@ -202,7 +202,7 @@
                     <!-- Services List -->
                     <div class="lg:col-span-2">
                         <div class="bg-white rounded-xl shadow-lg p-8 max-h-[600px] overflow-y-auto">
-                            <h2 class="text-2xl font-serif font-semibold text-spa-dark mb-8">
+                            <h2 class="text-xl font-serif font-semibold text-spa-dark mb-6">
                                 Dịch vụ đã chọn
                             </h2>
 
@@ -211,15 +211,15 @@
                                 <div class="text-gray-400 mb-6">
                                     <i data-lucide="credit-card" class="h-20 w-20 mx-auto"></i>
                                 </div>
-                                <h3 class="text-xl font-semibold text-spa-dark mb-3">
+                                <h3 class="text-lg font-semibold text-spa-dark mb-3">
                                     Giỏ hàng trống
                                 </h3>
-                                <p class="text-gray-600 mb-6">
+                                <p class="text-sm text-gray-600 mb-6">
                                     Thêm dịch vụ vào giỏ hàng để tiếp tục
                                 </p>
-                                <a href="<c:url value='/services'/>" class="inline-flex items-center px-6 py-3 bg-primary text-white rounded-full hover:bg-primary-dark transition-all duration-300 font-semibold">
+                                <a href="<c:url value='/services'/>" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-full hover:bg-primary-dark transition-all duration-300 font-medium text-sm">
                                     Khám phá dịch vụ
-                                    <i data-lucide="arrow-right" class="ml-2 h-5 w-5"></i>
+                                    <i data-lucide="arrow-right" class="ml-2 h-4 w-4"></i>
                                 </a>
 
                                 <!-- Debug Panel (only show in development) -->
@@ -237,7 +237,7 @@
                             <!-- Loading State -->
                             <div id="cartLoadingState" class="text-center py-12">
                                 <div class="loading-spinner mx-auto mb-4"></div>
-                                <p class="text-gray-600">Đang tải giỏ hàng...</p>
+                                <p class="text-sm text-gray-600">Đang tải giỏ hàng...</p>
                             </div>
 
                             <!-- Cart Items Container -->
@@ -250,21 +250,21 @@
                     <!-- Summary Section -->
                     <div class="lg:col-span-1">
                         <div class="bg-white rounded-xl shadow-lg p-8 sticky top-24">
-                            <h2 class="text-2xl font-serif font-semibold text-spa-dark mb-8">
+                            <h2 class="text-xl font-serif font-semibold text-spa-dark mb-6">
                                 Tóm tắt đơn hàng
                             </h2>
 
-                            <div class="space-y-4 mb-8">
-                                <div class="flex justify-between text-lg">
+                            <div class="space-y-3 mb-6">
+                                <div class="flex justify-between text-base">
                                     <span class="text-gray-600">Tạm tính:</span>
                                     <span class="font-semibold text-spa-dark" id="subtotalAmount">0đ</span>
                                 </div>
-                                <div class="flex justify-between text-lg">
+                                <div class="flex justify-between text-base">
                                     <span class="text-gray-600">VAT (10%):</span>
                                     <span class="font-semibold text-spa-dark" id="taxAmount">0đ</span>
                                 </div>
-                                <div class="border-t border-gray-200 pt-4">
-                                    <div class="flex justify-between text-xl font-bold">
+                                <div class="border-t border-gray-200 pt-3">
+                                    <div class="flex justify-between text-lg font-bold">
                                         <span class="text-spa-dark">Tổng cộng:</span>
                                         <span class="text-primary" id="totalAmount">0đ</span>
                                     </div>
@@ -272,31 +272,31 @@
                             </div>
 
                             <!-- Payment Method -->
-                            <div class="mb-8">
-                                <h3 class="font-semibold text-spa-dark mb-4">
+                            <div class="mb-6">
+                                <h3 class="text-base font-semibold text-spa-dark mb-3">
                                     Phương thức thanh toán
                                 </h3>
-                                <div class="border border-primary rounded-xl p-4 bg-spa-cream">
+                                <div class="border border-primary rounded-xl p-3 bg-spa-cream">
                                     <div class="flex items-center">
-                                        <i data-lucide="qr-code" class="h-6 w-6 text-primary mr-3"></i>
-                                        <span class="font-semibold text-spa-dark">Chuyển khoản QR Code</span>
+                                        <i data-lucide="qr-code" class="h-5 w-5 text-primary mr-2"></i>
+                                        <span class="font-medium text-spa-dark text-sm">Chuyển khoản QR Code</span>
                                     </div>
-                                    <p class="text-gray-600 mt-2">
+                                    <p class="text-xs text-gray-600 mt-1">
                                         Thanh toán nhanh chóng và an toàn
                                     </p>
                                 </div>
                             </div>
 
                             <!-- Checkout Button -->
-                            <button id="checkoutBtn" class="w-full flex items-center justify-center px-8 py-4 bg-primary text-white rounded-full hover:bg-primary-dark transition-all duration-300 font-semibold text-lg transform hover:scale-105">
-                                <i data-lucide="credit-card" class="h-6 w-6 mr-2"></i>
+                            <button id="checkoutBtn" class="w-full flex items-center justify-center px-6 py-3 bg-primary text-white rounded-full hover:bg-primary-dark transition-all duration-300 font-medium text-base transform hover:scale-105">
+                                <i data-lucide="credit-card" class="h-5 w-5 mr-2"></i>
                                 Thanh toán
                             </button>
 
                             <!-- Security Notice -->
-                            <div class="mt-6 text-center">
-                                <div class="flex items-center justify-center text-sm text-gray-500">
-                                    <i data-lucide="shield-check" class="h-5 w-5 mr-2 text-green-500"></i>
+                            <div class="mt-4 text-center">
+                                <div class="flex items-center justify-center text-xs text-gray-500">
+                                    <i data-lucide="shield-check" class="h-4 w-4 mr-1 text-green-500"></i>
                                     Thanh toán được bảo mật 100%
                                 </div>
                             </div>
@@ -312,10 +312,10 @@
                     <div class="bg-primary rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
                         <i data-lucide="qr-code" class="h-10 w-10 text-white"></i>
                     </div>
-                    <h1 class="text-4xl md:text-5xl font-serif text-spa-dark mb-4">
+                    <h1 class="text-2xl md:text-3xl font-serif text-spa-dark mb-4">
                         Thanh toán QR Code
                     </h1>
-                    <p class="text-xl text-gray-600">
+                    <p class="text-base text-gray-600">
                         Quét mã QR bên dưới để hoàn tất thanh toán
                     </p>
                 </div>
@@ -326,10 +326,10 @@
                         <i data-lucide="timer" class="h-5 w-5 mr-2"></i>
                         <span class="text-sm">Thời gian còn lại:</span>
                     </div>
-                    <div class="text-3xl font-bold" id="paymentTimer">
+                    <div class="text-2xl font-bold" id="paymentTimer">
                         15:00
                     </div>
-                    <p id="timerWarning" class="text-red-200 text-sm mt-2" style="display: none;">
+                    <p id="timerWarning" class="text-red-200 text-xs mt-2" style="display: none;">
                         ⚠️ Vui lòng hoàn tất thanh toán trong 5 phút
                     </p>
                 </div>
@@ -340,7 +340,7 @@
                         <div class="bg-spa-cream rounded-xl p-8 mb-6 inline-block">
                             <img id="qrCodeImage" src="" alt="QR Code thanh toán" class="w-56 h-56 mx-auto">
                         </div>
-                        <p class="text-lg text-gray-600 mb-4">
+                        <p class="text-sm text-gray-600 mb-4">
                             Sử dụng ứng dụng ngân hàng để quét mã QR
                         </p>
                     </div>
@@ -348,32 +348,32 @@
 
                 <!-- Payment Details -->
                 <div class="payment-info-card mb-8">
-                    <h3 class="text-2xl font-serif font-semibold text-spa-dark mb-6">
+                    <h3 class="text-lg font-serif font-semibold text-spa-dark mb-4">
                         Thông tin thanh toán
                     </h3>
-                    <div class="space-y-4">
-                        <div class="flex justify-between text-lg">
+                    <div class="space-y-3">
+                        <div class="flex justify-between text-sm">
                             <span class="text-gray-600">Ngân hàng:</span>
-                            <span class="font-semibold text-spa-dark" id="bankName">Vietcombank</span>
+                            <span class="font-medium text-spa-dark" id="bankName">Vietcombank</span>
                         </div>
-                        <div class="flex justify-between text-lg">
+                        <div class="flex justify-between text-sm">
                             <span class="text-gray-600">Số tài khoản:</span>
-                            <span class="font-semibold text-spa-dark" id="accountNumber">1234567890</span>
+                            <span class="font-medium text-spa-dark" id="accountNumber">1234567890</span>
                         </div>
-                        <div class="flex justify-between text-lg">
+                        <div class="flex justify-between text-sm">
                             <span class="text-gray-600">Chủ tài khoản:</span>
-                            <span class="font-semibold text-spa-dark" id="accountName">SPA HUONG SEN</span>
+                            <span class="font-medium text-spa-dark" id="accountName">SPA HUONG SEN</span>
                         </div>
-                        <div class="flex justify-between items-center text-lg">
+                        <div class="flex justify-between items-center text-sm">
                             <span class="text-gray-600">Mã tham chiếu:</span>
                             <div class="flex items-center">
-                                <span class="font-semibold text-spa-dark mr-3" id="referenceNumber"></span>
-                                <button id="copyRefBtn" class="p-2 text-primary hover:text-primary-dark transition-colors rounded-full hover:bg-spa-cream" title="Sao chép mã">
-                                    <i data-lucide="copy" class="h-5 w-5"></i>
+                                <span class="font-medium text-spa-dark mr-2" id="referenceNumber"></span>
+                                <button id="copyRefBtn" class="p-1 text-primary hover:text-primary-dark transition-colors rounded-full hover:bg-spa-cream" title="Sao chép mã">
+                                    <i data-lucide="copy" class="h-4 w-4"></i>
                                 </button>
                             </div>
                         </div>
-                        <div class="flex justify-between text-xl font-bold text-primary pt-4 border-t border-gray-200">
+                        <div class="flex justify-between text-base font-bold text-primary pt-3 border-t border-gray-200">
                             <span>Tổng tiền:</span>
                             <span id="paymentTotalAmount">0đ</span>
                         </div>
@@ -382,26 +382,26 @@
 
                 <!-- Instructions -->
                 <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 mb-8">
-                    <h4 class="font-serif font-semibold text-blue-800 mb-4 text-lg">Hướng dẫn thanh toán:</h4>
-                    <ol class="text-blue-700 space-y-2">
+                    <h4 class="font-serif font-medium text-blue-800 mb-3 text-base">Hướng dẫn thanh toán:</h4>
+                    <ol class="text-blue-700 space-y-1 text-sm">
                         <li class="flex items-start">
-                            <span class="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">1</span>
+                            <span class="bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5">1</span>
                             Mở ứng dụng ngân hàng trên điện thoại
                         </li>
                         <li class="flex items-start">
-                            <span class="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">2</span>
+                            <span class="bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5">2</span>
                             Chọn chức năng "Quét QR Code" hoặc "Chuyển khoản QR"
                         </li>
                         <li class="flex items-start">
-                            <span class="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">3</span>
+                            <span class="bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5">3</span>
                             Quét mã QR ở trên
                         </li>
                         <li class="flex items-start">
-                            <span class="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">4</span>
+                            <span class="bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5">4</span>
                             Kiểm tra thông tin và xác nhận thanh toán
                         </li>
                         <li class="flex items-start">
-                            <span class="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">5</span>
+                            <span class="bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5">5</span>
                             Lưu lại biên lai để đối chiếu
                         </li>
                     </ol>
@@ -409,11 +409,11 @@
 
                 <!-- Actions -->
                 <div class="flex flex-col sm:flex-row gap-4">
-                    <button id="backToCheckoutBtn" class="flex-1 flex items-center justify-center px-8 py-4 border-2 border-gray-300 text-gray-700 rounded-full hover:bg-gray-50 transition-all duration-300 font-semibold text-lg">
-                        <i data-lucide="arrow-left" class="h-5 w-5 mr-2"></i>
+                    <button id="backToCheckoutBtn" class="flex-1 flex items-center justify-center px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-full hover:bg-gray-50 transition-all duration-300 font-medium text-base">
+                        <i data-lucide="arrow-left" class="h-4 w-4 mr-2"></i>
                         Quay lại
                     </button>
-                    <button id="paymentCompleteBtn" class="flex-1 px-8 py-4 bg-primary text-white rounded-full hover:bg-primary-dark transition-all duration-300 font-semibold text-lg transform hover:scale-105">
+                    <button id="paymentCompleteBtn" class="flex-1 px-6 py-3 bg-primary text-white rounded-full hover:bg-primary-dark transition-all duration-300 font-medium text-base transform hover:scale-105">
                         Tôi đã thanh toán
                     </button>
                 </div>

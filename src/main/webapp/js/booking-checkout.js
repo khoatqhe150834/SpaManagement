@@ -255,20 +255,20 @@ class BookingCheckout {
                     
                     <!-- Service Details -->
                     <div class="flex-1 min-w-0">
-                        <h3 class="text-xl font-serif font-semibold text-spa-dark mb-2">
+                        <h3 class="text-lg  font-semibold text-spa-dark mb-2">
                             ${this.escapeHtml(item.serviceName)}
                         </h3>
-                        <div class="flex items-center space-x-4 text-sm text-gray-600 mb-3">
+                        <div class="flex items-center space-x-3 text-xs text-gray-600 mb-2">
                             <div class="flex items-center">
-                                <i data-lucide="clock" class="h-4 w-4 mr-1"></i>
+                                <i data-lucide="clock" class="h-3 w-3 mr-1"></i>
                                 <span>${item.serviceDuration} phút</span>
                             </div>
                             <div class="flex items-center">
-                                <i data-lucide="calendar" class="h-4 w-4 mr-1"></i>
+                                <i data-lucide="calendar" class="h-3 w-3 mr-1"></i>
                                 <span>Đã thêm: ${this.formatDate(item.addedAt)}</span>
                             </div>
                         </div>
-                        <div class="text-2xl font-bold text-primary mb-4">
+                        <div class="text-lg font-bold text-primary mb-3">
                             ${this.formatCurrency(item.servicePrice)}
                         </div>
                     </div>
@@ -280,25 +280,25 @@ class BookingCheckout {
                                     class="quantity-btn p-2 text-gray-600 hover:text-primary hover:bg-white rounded-md transition-all duration-200">
                                 <i data-lucide="minus" class="h-4 w-4"></i>
                             </button>
-                            <span class="w-12 text-center font-semibold text-lg">${item.quantity}</span>
+                            <span class="w-10 text-center font-medium text-base">${item.quantity}</span>
                             <button onclick="bookingCheckout.updateQuantity('${item.id}', ${item.quantity + 1})" 
                                     class="quantity-btn p-2 text-gray-600 hover:text-primary hover:bg-white rounded-md transition-all duration-200">
                                 <i data-lucide="plus" class="h-4 w-4"></i>
                             </button>
                         </div>
-                        <button onclick="bookingCheckout.removeItem('${item.id}')" 
-                                class="mt-3 w-full text-red-500 hover:text-red-700 text-sm font-medium transition-colors duration-200">
-                            <i data-lucide="trash-2" class="h-4 w-4 inline mr-1"></i>
+                        <button onclick="bookingCheckout.removeItem('${item.id}')"
+                                class="mt-2 w-full text-red-500 hover:text-red-700 text-xs font-medium transition-colors duration-200">
+                            <i data-lucide="trash-2" class="h-3 w-3 inline mr-1"></i>
                             Xóa
                         </button>
                     </div>
                 </div>
                 
                 <!-- Item Total -->
-                <div class="mt-4 pt-4 border-t border-gray-100">
+                <div class="mt-3 pt-3 border-t border-gray-100">
                     <div class="flex justify-between items-center">
-                        <span class="text-gray-600">Thành tiền:</span>
-                        <span class="text-xl font-bold text-spa-dark">
+                        <span class="text-sm text-gray-600">Thành tiền:</span>
+                        <span class="text-base font-bold text-spa-dark">
                             ${this.formatCurrency(item.servicePrice * item.quantity)}
                         </span>
                     </div>
