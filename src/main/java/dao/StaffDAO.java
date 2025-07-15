@@ -1,18 +1,15 @@
 package dao;
 
 import db.DBContext;
-import model.ServiceType;
-import model.Staff;
-import model.User;
-import model.Staff.AvailabilityStatus;
-import model.Certificate;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import model.ServiceType;
+import model.Staff;
+import model.User;
 
 public class StaffDAO implements BaseDAO<Staff, Integer> {
 
@@ -502,56 +499,56 @@ public class StaffDAO implements BaseDAO<Staff, Integer> {
         return false;
     }
 
-    public Staff getStaffById(int staffUserId) {
-        Staff staff = null;
-        String sql = "SELECT * FROM therapists WHERE user_id = ?";
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, staffUserId);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                staff = new Staff();
-                // ... set các trường khác ...
-                staff.setUserId(rs.getInt("user_id"));
-                staff.setFullName(rs.getString("full_name"));
-                // ... các trường khác ...
-
-                // Lấy danh sách chứng chỉ
-                CertificateDAO certificateDAO = new CertificateDAO();
-                List<Certificate> certificates = certificateDAO.getCertificatesByStaffId(staffUserId);
-                staff.setCertificates(certificates);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return staff;
-    }
+//    public Staff getStaffById(int staffUserId) {
+//        Staff staff = null;
+//        String sql = "SELECT * FROM therapists WHERE user_id = ?";
+//        try (Connection conn = DBContext.getConnection();
+//             PreparedStatement ps = conn.prepareStatement(sql)) {
+//            ps.setInt(1, staffUserId);
+//            ResultSet rs = ps.executeQuery();
+//            if (rs.next()) {
+//                staff = new Staff();
+//                // ... set các trường khác ...
+//                staff.setUserId(rs.getInt("user_id"));
+//                staff.setFullName(rs.getString("full_name"));
+//                // ... các trường khác ...
+//
+//                // Lấy danh sách chứng chỉ
+//                CertificateDAO certificateDAO = new CertificateDAO();
+//                List<Certificate> certificates = certificateDAO.getCertificatesByStaffId(staffUserId);
+//                staff.setCertificates(certificates);
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        return staff;
+//    }
 
     // Nếu có hàm lấy danh sách staff:
-    public List<Staff> getAllStaff() {
-        List<Staff> list = new ArrayList<>();
-        String sql = "SELECT * FROM therapists";
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                Staff staff = new Staff();
-                // ... set các trường khác ...
-                int staffUserId = rs.getInt("user_id");
-                staff.setUserId(staffUserId);
-                staff.setFullName(rs.getString("full_name"));
-                // ... các trường khác ...
-
-                // Lấy danh sách chứng chỉ
-                CertificateDAO certificateDAO = new CertificateDAO();
-                List<Certificate> certificates = certificateDAO.getCertificatesByStaffId(staffUserId);
-                staff.setCertificates(certificates);
-
-                list.add(staff);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
+//    public List<Staff> getAllStaff() {
+//        List<Staff> list = new ArrayList<>();
+//        String sql = "SELECT * FROM therapists";
+//        try (Connection conn = DBContext.getConnection();
+//             PreparedStatement ps = conn.prepareStatement(sql)) {
+//            ResultSet rs = ps.executeQuery();
+//            while (rs.next()) {
+//                Staff staff = new Staff();
+//                // ... set các trường khác ...
+//                int staffUserId = rs.getInt("user_id");
+//                staff.setUserId(staffUserId);
+//                staff.setFullName(rs.getString("full_name"));
+//                // ... các trường khác ...
+//
+//                // Lấy danh sách chứng chỉ
+//                CertificateDAO certificateDAO = new CertificateDAO();
+//                List<Certificate> certificates = certificateDAO.getCertificatesByStaffId(staffUserId);
+//                staff.setCertificates(certificates);
+//
+//                list.add(staff);
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        return list;
+//    }
 }
