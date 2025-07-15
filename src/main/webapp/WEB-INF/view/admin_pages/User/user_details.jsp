@@ -38,12 +38,12 @@
         <main class="flex-1 py-12 lg:py-20 ml-64">
             <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex flex-wrap items-center gap-2 mb-8 text-gray-500 text-sm">
-                    <a href="${pageContext.request.contextPath}/user/list" class="flex items-center gap-1 hover:text-primary">
+                    <a href="${pageContext.request.contextPath}/admin/user/profile" class="flex items-center gap-1 hover:text-primary">
                         <i data-lucide="home" class="w-4 h-4"></i>
-                        Danh sách người dùng
+                        Thông tin cá nhân nhân viên
                     </a>
                     <span>-</span>
-                    <span class="text-primary font-semibold">Chi tiết người dùng</span>
+                    <span class="text-primary font-semibold">Chi tiết thông tin cá nhân</span>
                 </div>
                 <div class="bg-white rounded-2xl shadow-lg p-8">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -152,23 +152,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="flex items-center gap-3 bg-gray-50 rounded-lg p-4">
-                                    <i data-lucide="key" class="w-6 h-6 text-primary"></i>
-                                    <div>
-                                        <div class="text-xs text-gray-500">Mật khẩu</div>
-                                        <div class="font-semibold text-gray-800">
-                    <c:choose>
-                                                <c:when test="${not empty user.hashPassword}">
-                                                    Đã có mật khẩu
-                                                    <div class="text-xs text-gray-500 break-all">Hash: ${user.hashPassword}</div>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <span class="text-red-500">Chưa có mật khẩu</span>
-                                                </c:otherwise>
-                    </c:choose>
-                                        </div>
-                                    </div>
-            </div>
+
         </div>
     </div>
 
@@ -188,11 +172,11 @@
                         </div>
                     </div>
                     <div class="flex flex-wrap justify-end gap-3 mt-8">
-                        <a href="${pageContext.request.contextPath}/user/list" class="inline-flex items-center gap-2 px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+                        <a href="${pageContext.request.contextPath}/admin/user/profile" class="inline-flex items-center gap-2 px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
                             <i data-lucide="arrow-left" class="w-5 h-5"></i> Quay lại
         </a>
-                        <a href="${pageContext.request.contextPath}/user/edit?id=${user.userId}" class="inline-flex items-center gap-2 px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition">
-                            <i data-lucide="edit" class="w-5 h-5"></i> Chỉnh sửa
+                        <a href="${pageContext.request.contextPath}/admin/user/edit?id=${user.userId}&returnTo=profile" class="inline-flex items-center gap-2 px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition">
+                            <i data-lucide="edit" class="w-5 h-5"></i> Chỉnh sửa thông tin
         </a>
     </div>
 </div>
