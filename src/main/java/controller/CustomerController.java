@@ -15,7 +15,6 @@ import java.util.logging.Logger;
 import dao.AccountDAO;
 import dao.CustomerDAO;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -28,7 +27,7 @@ import util.ErrorLogger;
  *
  * @author Admin
  */
- @WebServlet(urlPatterns = { "/customer/*" })
+// @WebServlet(urlPatterns = { "/customer/*" })
 public class CustomerController extends HttpServlet {
 
     private CustomerDAO customerDAO;
@@ -157,9 +156,8 @@ public class CustomerController extends HttpServlet {
             }
             int actualPageSize = (pageSize == 9999) ? Integer.MAX_VALUE : pageSize;
 
-            List<Customer> customers = customerDAO.getPaginatedCustomers(page, actualPageSize, searchValue, status,
-                    sortBy, sortOrder);
-            int totalCustomers = customerDAO.getTotalCustomerCount(searchValue, status);
+            List<Customer> customers = customerDAO.getPaginatedCustomers(page, actualPageSize, searchValue, status, null, sortBy, sortOrder);
+            int totalCustomers = customerDAO.getTotalCustomerCount(searchValue, status, null);
 
             int totalPages = 0;
             if (totalCustomers > 0) {
@@ -172,15 +170,21 @@ public class CustomerController extends HttpServlet {
                 page = totalPages;
             }
 
+            // Tính toán chỉ số bắt đầu và kết thúc của khách hàng trên trang hiện tại
+            int startItem = (totalCustomers == 0) ? 0 : ((page - 1) * actualPageSize) + 1;
+            int endItem = (totalCustomers == 0) ? 0 : Math.min(page * actualPageSize, totalCustomers);
+
             request.setAttribute("customers", customers);
             request.setAttribute("currentPage", page);
             request.setAttribute("pageSize", pageSize); // Pass original pageSize (e.g., 9999) back to JSP
-            request.setAttribute("totalpages", totalPages);
+            request.setAttribute("totalPages", totalPages);
             request.setAttribute("totalCustomers", totalCustomers);
             request.setAttribute("status", status);
             request.setAttribute("sortBy", sortBy);
             request.setAttribute("sortOrder", sortOrder);
             request.setAttribute("searchValue", searchValue);
+            request.setAttribute("startItem", startItem);
+            request.setAttribute("endItem", endItem);
 
             request.getRequestDispatcher("/WEB-INF/view/admin_pages/Customer/customer_list.jsp").forward(request,
                     response);
@@ -367,7 +371,22 @@ public class CustomerController extends HttpServlet {
             customerDAO.save(newCustomer);
 
             request.getSession().setAttribute("successMessage", "Đã thêm khách hàng mới thành công!");
-            response.sendRedirect(request.getContextPath() + "/customer/list");
+            // Sau khi thêm mới thành công
+            String page = request.getParameter("page");
+            String pageSize = request.getParameter("pageSize");
+            String searchValue = request.getParameter("searchValue");
+            String status = request.getParameter("status");
+            String sortBy = request.getParameter("sortBy");
+            String sortOrder = request.getParameter("sortOrder");
+            List<String> params = new ArrayList<>();
+            if (page != null && !page.isEmpty()) params.add("page=" + page);
+            if (pageSize != null && !pageSize.isEmpty()) params.add("pageSize=" + pageSize);
+            if (searchValue != null && !searchValue.isEmpty()) params.add("searchValue=" + java.net.URLEncoder.encode(searchValue, "UTF-8"));
+            if (status != null && !status.isEmpty()) params.add("status=" + status);
+            if (sortBy != null && !sortBy.isEmpty()) params.add("sortBy=" + sortBy);
+            if (sortOrder != null && !sortOrder.isEmpty()) params.add("sortOrder=" + sortOrder);
+            String redirectUrl = request.getContextPath() + "/customer/list" + (params.isEmpty() ? "" : ("?" + String.join("&", params)));
+            response.sendRedirect(redirectUrl);
 
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error saving new customer to database", e);
@@ -712,22 +731,34 @@ public class CustomerController extends HttpServlet {
      */
     private String buildListRedirectUrl(HttpServletRequest request) {
         String page = request.getParameter("page");
-        String search = request.getParameter("search");
+        String pageSize = request.getParameter("pageSize");
+        String searchValue = request.getParameter("searchValue");
         String status = request.getParameter("status");
+        String sortBy = request.getParameter("sortBy");
+        String sortOrder = request.getParameter("sortOrder");
 
         List<String> params = new ArrayList<>();
         if (page != null && !page.isEmpty()) {
             params.add("page=" + page);
         }
-        if (search != null && !search.isEmpty()) {
+        if (pageSize != null && !pageSize.isEmpty()) {
+            params.add("pageSize=" + pageSize);
+        }
+        if (searchValue != null && !searchValue.isEmpty()) {
             try {
-                params.add("search=" + URLEncoder.encode(search, StandardCharsets.UTF_8.toString()));
+                params.add("searchValue=" + URLEncoder.encode(searchValue, StandardCharsets.UTF_8.toString()));
             } catch (Exception e) {
                 logger.warning("Không thể mã hóa tham số tìm kiếm: " + e.getMessage());
             }
         }
         if (status != null && !status.isEmpty()) {
             params.add("status=" + status);
+        }
+        if (sortBy != null && !sortBy.isEmpty()) {
+            params.add("sortBy=" + sortBy);
+        }
+        if (sortOrder != null && !sortOrder.isEmpty()) {
+            params.add("sortOrder=" + sortOrder);
         }
 
         String queryString = String.join("&", params);
