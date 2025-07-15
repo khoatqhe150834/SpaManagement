@@ -37,7 +37,7 @@
         <main class="flex-1 py-12 lg:py-20 ml-64">
             <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex flex-wrap items-center gap-2 mb-8 text-gray-500 text-sm">
-                    <a href="${pageContext.request.contextPath}/user/list" class="flex items-center gap-1 hover:text-primary">
+                    <a href="${pageContext.request.contextPath}/admin/user/list" class="flex items-center gap-1 hover:text-primary">
                         <i data-lucide="home" class="w-4 h-4"></i>
                         Danh sách người dùng
                     </a>
@@ -45,7 +45,7 @@
                     <span class="text-primary font-semibold">Thêm mới người dùng</span>
                 </div>
                 <div class="bg-white rounded-2xl shadow-lg p-8">
-                    <form action="${pageContext.request.contextPath}/user/create" method="post" id="userForm">
+                    <form action="${pageContext.request.contextPath}/admin/user/create" method="post" id="userForm">
                         <div class="mb-8">
                             <h2 class="text-lg font-semibold text-primary mb-4 flex items-center gap-2"><i data-lucide="key-round" class="w-5 h-5"></i> Thông tin tài khoản</h2>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -118,7 +118,7 @@
                 </div>
 
                         <div class="flex justify-end gap-3 mt-8">
-                            <a href="${pageContext.request.contextPath}/user/list" class="inline-flex items-center gap-2 px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+                            <a href="${pageContext.request.contextPath}/admin/user/list" class="inline-flex items-center gap-2 px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
                                 <i data-lucide="arrow-left" class="w-5 h-5"></i> Hủy
                             </a>
                             <button type="submit" class="inline-flex items-center gap-2 px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition">
