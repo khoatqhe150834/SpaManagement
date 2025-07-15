@@ -325,9 +325,10 @@ function proceedToCheckout() {
         showNotification('Giỏ hàng trống', 'error');
         return;
     }
-    
-    // Redirect to booking page with cart items
-    window.location.href = '/booking?from=cart';
+
+    // Redirect to booking checkout page
+    const contextPath = window.spaConfig ? window.spaConfig.contextPath : '';
+    window.location.href = contextPath + '/booking-checkout';
 }
 
 
