@@ -1,6 +1,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 
@@ -253,26 +254,19 @@
                                 <c:if test="${image.isPrimary}">
                                     <div class="primary-badge">Primary</div>
                                 </c:if>
-                                
                                 <div class="image-preview-actions">
                                     <c:if test="${!image.isPrimary}">
-                                        <button type="button" class="btn-icon bg-success" 
-                                                onclick="setPrimaryImage(${image.imageId})"
-                                                title="Set as Primary">
+                                        <button type="button" class="btn-icon bg-success" onclick="setPrimaryImage(${image.imageId})" title="Set as Primary">
                                             <iconify-icon icon="solar:star-outline"></iconify-icon>
                                         </button>
                                     </c:if>
-                                    <button type="button" class="btn-icon bg-danger" 
-                                            onclick="deleteImage(${image.imageId})"
-                                            title="Delete Image">
+                                    <button type="button" class="btn-icon bg-danger" onclick="deleteImage(${image.imageId})" title="Delete Image">
                                         <iconify-icon icon="solar:trash-bin-minimalistic-outline"></iconify-icon>
                                     </button>
                                 </div>
-                                
-                                <img src="${pageContext.request.contextPath}${image.url}" 
-                                     alt="${image.altText}" 
-                                     onerror="this.src='${pageContext.request.contextPath}/assets/images/no-image.png'">
-                                
+                                <a href="javascript:void(0);" onclick="showImageModal('${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(image.url, '/services/')}')">
+                                    <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(image.url, '/services/')}" alt="${image.altText}" onerror="this.src='${pageContext.request.contextPath}/assets/images/no-image.png'" style="cursor: zoom-in;" />
+                                </a>
                                 <div class="image-preview-info">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <small class="text-muted">
@@ -306,6 +300,30 @@
         window.serviceId = ${service.serviceId};
     </script>
     <script src="<c:url value='/js/single-image-upload.js'/>"></script>
+
+    <!-- Modal xem ảnh lớn -->
+    <div id="imageModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 hidden">
+        <span class="absolute top-4 right-8 text-white text-3xl cursor-pointer" id="closeModal">&times;</span>
+        <img id="modalImg" src="" class="max-h-[80vh] max-w-[90vw] rounded-xl shadow-2xl border-4 border-white" />
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            window.showImageModal = function(src) {
+                document.getElementById('modalImg').src = src;
+                document.getElementById('imageModal').classList.remove('hidden');
+            };
+            document.getElementById('closeModal').onclick = function() {
+                document.getElementById('imageModal').classList.add('hidden');
+                document.getElementById('modalImg').src = '';
+            };
+            document.getElementById('imageModal').onclick = function(e) {
+                if (e.target === this) {
+                    this.classList.add('hidden');
+                    document.getElementById('modalImg').src = '';
+                }
+            };
+        });
+    </script>
 
 </body>
 

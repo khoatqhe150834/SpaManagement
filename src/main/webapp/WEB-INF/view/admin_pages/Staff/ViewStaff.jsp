@@ -71,6 +71,52 @@
                         <h3 class="font-semibold text-lg mb-2">Tiểu sử</h3>
                         <div class="bg-gray-50 rounded-lg p-4 text-gray-700 whitespace-pre-line">${staff.bio}</div>
                     </div>
+
+                    <h2 class="text-lg font-semibold mt-6 mb-2">Chứng chỉ hành nghề</h2>
+                    <c:choose>
+                        <c:when test="${empty staff.certificates}">
+                            <div class="text-gray-500">Chưa có chứng chỉ nào.</div>
+                        </c:when>
+                        <c:otherwise>
+                            <table class="min-w-full divide-y divide-gray-200 border rounded-lg">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-2">Tên chứng chỉ</th>
+                                        <th class="px-4 py-2">Số hiệu</th>
+                                        <th class="px-4 py-2">Ngày cấp</th>
+                                        <th class="px-4 py-2">Ngày hết hạn</th>
+                                        <th class="px-4 py-2">File scan</th>
+                                        <th class="px-4 py-2">Ghi chú</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <c:forEach var="cert" items="${staff.certificates}">
+                                        <tr>
+                                            <td class="px-4 py-2">${cert.certificateName}</td>
+                                            <td class="px-4 py-2">${cert.certificateNumber}</td>
+                                            <td class="px-4 py-2">
+                                                <fmt:formatDate value="${cert.issuedDate}" pattern="dd/MM/yyyy"/>
+                                            </td>
+                                            <td class="px-4 py-2">
+                                                <c:choose>
+                                                    <c:when test="${not empty cert.expiryDate}">
+                                                        <fmt:formatDate value="${cert.expiryDate}" pattern="dd/MM/yyyy"/>
+                                                    </c:when>
+                                                    <c:otherwise>-</c:otherwise>
+                                                </c:choose>
+                                            </td>
+                                            <td class="px-4 py-2">
+                                                <c:if test="${not empty cert.fileUrl}">
+                                                    <a href="${cert.fileUrl}" target="_blank" class="text-blue-600 underline">Xem file</a>
+                                                </c:if>
+                                            </td>
+                                            <td class="px-4 py-2">${cert.note}</td>
+                                        </tr>
+                                    </c:forEach>
+                                </tbody>
+                            </table>
+                        </c:otherwise>
+                    </c:choose>
                 </div>
             </div>
         </main>

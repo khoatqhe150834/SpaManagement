@@ -1,6 +1,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <%
     if (session.getAttribute("toastMessage") != null) {
         request.setAttribute("toastMessage", session.getAttribute("toastMessage"));
@@ -109,6 +110,7 @@
                                         <th class="px-6 py-3 text-center">Tiểu Sử</th>
                                         <th class="px-6 py-3 text-center">Trạng Thái</th>
                                         <th class="px-6 py-3 text-center">EXP (Năm)</th>
+                                        <th class="px-6 py-3 text-center">Chứng chỉ</th>
                                         <th class="px-6 py-3 text-center">Hành Động</th>
                                     </tr>
                                 </thead>
@@ -136,6 +138,16 @@
                                                 </c:choose>
                                             </td>
                                             <td class="px-6 py-4 text-center">${therapist.yearsOfExperience}</td>
+                                            <td class="px-6 py-4 text-center">
+                                                <c:choose>
+                                                    <c:when test="${not empty therapist.certificates}">
+                                                        <span class="text-green-600 font-semibold">${fn:length(therapist.certificates)} chứng chỉ</span>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <span class="text-gray-400">0</span>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </td>
                                             <td class="px-6 py-4 text-center">
                                                 <div class="flex items-center justify-center gap-2">
                                                     <a href="staff?service=viewById&id=${therapist.user.userId}" class="p-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-full" title="Xem chi tiết">

@@ -116,6 +116,36 @@
 <jsp:include page="/WEB-INF/view/common/footer.jsp" />
 <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
 <script>if (window.lucide) lucide.createIcons();</script>
+<!-- Modal xem ảnh lớn -->
+<div id="imageModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 hidden">
+    <span class="absolute top-4 right-8 text-white text-3xl cursor-pointer" id="closeModal">&times;</span>
+    <img id="modalImg" src="" class="max-h-[80vh] max-w-[90vw] rounded-xl shadow-2xl border-4 border-white" />
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        window.showImageModal = function(src) {
+            document.getElementById('modalImg').src = src;
+            document.getElementById('imageModal').classList.remove('hidden');
+        };
+        document.getElementById('closeModal').onclick = function() {
+            document.getElementById('imageModal').classList.add('hidden');
+            document.getElementById('modalImg').src = '';
+        };
+        document.getElementById('imageModal').onclick = function(e) {
+            if (e.target === this) {
+                this.classList.add('hidden');
+                document.getElementById('modalImg').src = '';
+            }
+        };
+        // Gắn sự kiện click cho ảnh preview nếu có
+        document.querySelectorAll('.file-preview').forEach(function(img) {
+            img.style.cursor = 'zoom-in';
+            img.onclick = function() {
+                window.showImageModal(img.src);
+            };
+        });
+    });
+</script>
 <!-- Giữ lại toàn bộ script upload, mapping, progress như cũ -->
 <script>
         const contextPath = '${pageContext.request.contextPath}';
