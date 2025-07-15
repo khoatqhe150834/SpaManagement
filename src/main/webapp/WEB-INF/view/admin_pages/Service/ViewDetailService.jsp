@@ -7,6 +7,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <!DOCTYPE html>
 <html lang="vi" class="scroll-smooth">
 <head>
@@ -152,10 +153,10 @@
                         <div>
                             <c:choose>
                                 <c:when test="${not empty serviceImages}">
-                                    <img src="${pageContext.request.contextPath}${serviceImages[0].url}" alt="Service Image" class="w-full h-72 object-cover rounded-xl shadow mb-4" id="mainImage">
+                                    <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(serviceImages[0].url, '/services/')}" alt="Service Image" class="w-full h-72 object-cover rounded-xl shadow mb-4 hover:scale-105 transition-transform duration-200" id="mainImage" style="cursor: zoom-in;" onclick="showImageModal(this.src)" />
                                     <div class="grid grid-cols-4 gap-2">
                                         <c:forEach var="img" items="${serviceImages}" varStatus="loop">
-                                            <img src="${pageContext.request.contextPath}${img.url}" alt="Thumbnail" class="w-full h-16 object-cover rounded-lg border-2 cursor-pointer <c:if test='${loop.index == 0}'>border-primary</c:if>" onclick="changeImage('${pageContext.request.contextPath}${img.url}', this)">
+                                            <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(img.url, '/services/')}" alt="Thumbnail" class="w-full h-16 object-cover rounded shadow cursor-pointer hover:scale-105 transition-transform duration-200" onclick="showImageModal(this.src)" />
                                         </c:forEach>
                                     </div>
                                 </c:when>
@@ -181,12 +182,31 @@
         </main>
     </div>
     <jsp:include page="/WEB-INF/view/common/footer.jsp" />
+    <!-- Modal xem ảnh lớn -->
+    <div id="imageModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 hidden">
+        <span class="absolute top-4 right-8 text-white text-3xl cursor-pointer" id="closeModal">&times;</span>
+        <img id="modalImg" src="" class="max-h-[80vh] max-w-[90vw] rounded-xl shadow-2xl border-4 border-white" />
+    </div>
     <script>
         function changeImage(src, thumbElement) {
             document.getElementById('mainImage').src = src;
             document.querySelectorAll('.grid img').forEach(thumb => thumb.classList.remove('border-primary'));
             thumbElement.classList.add('border-primary');
         }
+        function showImageModal(src) {
+            document.getElementById('modalImg').src = src;
+            document.getElementById('imageModal').classList.remove('hidden');
+        }
+        document.getElementById('closeModal').onclick = function() {
+            document.getElementById('imageModal').classList.add('hidden');
+            document.getElementById('modalImg').src = '';
+        };
+        document.getElementById('imageModal').onclick = function(e) {
+            if (e.target === this) {
+                this.classList.add('hidden');
+                document.getElementById('modalImg').src = '';
+            }
+        };
         window.addEventListener('DOMContentLoaded', () => {
             if (window.lucide) lucide.createIcons();
         });

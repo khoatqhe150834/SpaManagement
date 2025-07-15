@@ -151,7 +151,7 @@ async function removeFromCart(itemId) {
     await saveCart(cartItems);
     updateCartDisplay();
     showNotification('Đã xóa dịch vụ khỏi giỏ hàng', 'success');
-}
+}   
 
 // Clear cart
 async function clearCart() {

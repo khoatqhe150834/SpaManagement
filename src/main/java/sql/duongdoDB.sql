@@ -900,14 +900,18 @@ INSERT INTO `service_reviews`
 UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `service_images`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE service_images (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE `service_images` (
+    image_id INT AUTO_INCREMENT PRIMARY KEY,
     service_id INT NOT NULL,
-    image_url VARCHAR(255) NOT NULL,
+    url VARCHAR(255) NOT NULL,
+    alt_text VARCHAR(255),
+    is_primary BOOLEAN DEFAULT 0,
     sort_order INT DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    caption VARCHAR(255),
+    is_active BOOLEAN DEFAULT 1,
+    file_size INT,
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (service_id) REFERENCES services(service_id) ON DELETE CASCADE
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
