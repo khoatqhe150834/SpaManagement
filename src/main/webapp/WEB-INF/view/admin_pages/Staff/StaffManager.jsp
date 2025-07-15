@@ -12,167 +12,65 @@
     }
 %>
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
-    <head>
-        <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Staff - Admin Dashboard</title>
-        <link rel="icon" type="image/png" href="assets/images/favicon.png" sizes="16x16">
-        <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp"></jsp:include>
-            <style>
-                .bio-wrap {
-                    display: -webkit-box;
-                    -webkit-line-clamp: 3;
-                    -webkit-box-orient: vertical;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    white-space: normal;
-                    max-width: 180px;
-                    min-width: 120px;
-                    position: relative;
-                    word-break: break-word;
-                    overflow-wrap: break-word;
-                }
-                .bio-wrap.expanded {
-                    -webkit-line-clamp: unset;
-                    max-height: none;
-                    overflow: visible;
-                }
-                .see-more-link {
-                    color: #1976d2;
-                    cursor: pointer;
-                    font-weight: 500;
-                    margin-left: 4px;
-                    font-size: 0.95em;
-                }
-                .table td, .table th {
-                    white-space: normal !important;
-                }
-                /* Toast Styles */
-                .toast {
-                    min-width: 300px;
-                    background-color: white;
-                    border: none;
-                    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-                }
-
-                .toast-header {
-                    border-bottom: none;
-                }
-
-                .toast-body {
-                    padding: 1rem;
-                    font-size: 0.9rem;
-                }
-
-                /* Animation for toast */
-                .toast.show {
-                    animation: slideIn 0.5s ease-in-out;
-                }
-
-                @keyframes slideIn {
-                    from {
-                        transform: translateX(100%);
-                        opacity: 0;
-                    }
-                    to {
-                        transform: translateX(0);
-                        opacity: 1;
-                    }
-                }
-
-                .pagination .page-item .page-link {
-                    border-radius: 8px !important;
-                    border: 1px solid #e0e0e0;
-                    color: #1976d2;
-                    background: #fff;
-                    min-width: 40px;
-                    min-height: 40px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-weight: 500;
-                    transition: background 0.2s, color 0.2s;
-                }
-                .pagination .page-item.active .page-link {
-                    background: #1976d2;
-                    color: #fff;
-                    border-color: #1976d2;
-                }
-                .pagination .page-item.disabled .page-link {
-                    color: #bdbdbd;
-                    background: #f5f5f5;
-                    border-color: #e0e0e0;
-                    pointer-events: none;
-                }
-                .pagination .page-link:hover {
-                    background: #e3f2fd;
-                    color: #1976d2;
-                }
-
-                @media (min-width: 1024px) {
-                    .dashboard-main-body,
-                    .card-body,
-                    .table-responsive {
-                        overflow-x: visible !important;
-                        max-width: 100% !important;
-                    }
-                    .table {
-                        width: 100% !important;
-                        min-width: 900px;
-                        table-layout: auto !important;
-                    }
-                }
-                .table td, .table th {
-                    white-space: nowrap;
-                    text-overflow: ellipsis;
-                    overflow: hidden;
-                    max-width: 180px;
-                }
-                .table td.bio-wrap, .table td.wrap-text {
-                    white-space: normal;
-                    max-width: 140px;
-                }
-                th.text-center, td.text-center {
-                    text-align: center !important;
-                }
-                th.text-start, td.text-start {
-                    text-align: left !important;
-                }
-            </style>
-        </head>
-        <body>
-        <jsp:include page="/WEB-INF/view/common/sidebar.jsp"></jsp:include>
-        <jsp:include page="/WEB-INF/view/common/header.jsp"></jsp:include>
-            <div class="dashboard-main-body">
-                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
-                    <h6 class="fw-semibold mb-0">Danh sách Nhân Viên</h6>
-                    <ul class="d-flex align-items-center gap-2">
-                        <li class="fw-medium">
-                            <a href="index.html" class="d-flex align-items-center gap-1 hover-text-primary">
-                                <iconify-icon icon="solar:home-smile-angle-outline" class="icon text-lg"></iconify-icon>
-                                Trang Chủ
-                            </a>
-                        </li>
-                        <li>-</li>
-                        <li class="fw-medium">Danh sách Nhân Viên</li>
-                    </ul>
+<html lang="vi" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff - Admin Dashboard</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#D4AF37",
+              "primary-dark": "#B8941F",
+              secondary: "#FADADD",
+              "spa-cream": "#FFF8F0",
+              "spa-dark": "#333333",
+            },
+            fontFamily: {
+              serif: ["Playfair Display", "serif"],
+              sans: ["Roboto", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Roboto:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <!-- Custom CSS nếu có -->
+    <link rel="stylesheet" href="<c:url value='/css/style.css'/>" />
+</head>
+<body class="bg-spa-cream font-sans">
+    <jsp:include page="/WEB-INF/view/common/header.jsp" />
+    <div class="flex">
+        <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
+        <main class="flex-1 py-12 lg:py-20 ml-64">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <!-- Page Header -->
+                <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
+                    <h1 class="text-3xl font-serif text-spa-dark font-bold">Danh Sách Nhân Viên</h1>
+                    <a href="staff?service=pre-insert" class="inline-flex items-center gap-2 h-10 px-4 bg-primary text-white font-semibold rounded-lg hover:bg-primary-dark transition-colors">
+                        <i data-lucide="plus" class="w-5 h-5"></i>
+                        <span>Thêm Nhân Viên</span>
+                    </a>
                 </div>
-                <div class="card h-100 p-0 radius-12">
-                    <div class="card-header border-bottom bg-base py-16 px-24 d-flex align-items-center flex-wrap gap-3 justify-content-between">
-                        <div class="d-flex align-items-center flex-wrap gap-3">
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="text-md fw-medium text-secondary-light mb-0">Hiển thị số mục</span>
-                                <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px" id="limitSelect" onchange="changeLimit(this.value)">
+                <!-- Card -->
+                <div class="bg-white rounded-2xl shadow-lg">
+                    <!-- Card Header: Filters & Actions -->
+                    <div class="p-6 border-b border-gray-200 flex flex-wrap items-center justify-between gap-4">
+                        <form class="flex flex-wrap items-center gap-3" method="get" action="staff">
+                            <select class="w-auto h-10 pl-3 pr-8 text-base placeholder-gray-600 border rounded-lg appearance-none focus:shadow-outline-blue focus:border-blue-300" id="limitSelect" name="limit" onchange="this.form.submit()">
                                 <c:forEach var="i" begin="1" end="10">
-                                    <option value="${i}" ${limit == i ? 'selected' : ''}>${i}</option>
+                                    <option value="${i}" ${limit==i ? 'selected' : '' }>${i}</option>
                                 </c:forEach>
                             </select>
-                        </div>
-                        <form class="navbar-search d-flex gap-2 align-items-center" method="get" action="staff">
-                            <input type="text" class="bg-base h-40-px w-auto" name="keyword" placeholder="Tìm Kiếm" value="${keyword}">
-                            <select name="serviceTypeId" class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px">
+                            <input type="text" class="h-10 px-4 text-base placeholder-gray-600 border rounded-lg focus:shadow-outline" name="keyword" placeholder="Tìm kiếm" value="${keyword}">
+                            <select name="serviceTypeId" class="w-auto h-10 pl-3 pr-8 text-base placeholder-gray-600 border rounded-lg appearance-none focus:shadow-outline-blue focus:border-blue-300">
                                 <option value="">Tất cả loại dịch vụ</option>
                                 <c:forEach var="stype" items="${serviceTypes}">
                                     <option value="${stype.serviceTypeId}" <c:if test="${serviceTypeId == stype.serviceTypeId}">selected</c:if>>
@@ -180,7 +78,7 @@
                                     </option>
                                 </c:forEach>
                             </select>
-                            <select name="status" class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px">
+                            <select name="status" class="w-auto h-10 pl-3 pr-8 text-base placeholder-gray-600 border rounded-lg appearance-none focus:shadow-outline-blue focus:border-blue-300">
                                 <option value="">Trạng thái</option>
                                 <c:forEach var="s" items="${statusList}">
                                     <option value="${s}" <c:if test="${status == s}">selected</c:if>>
@@ -196,251 +94,143 @@
                             </select>
                             <input type="hidden" name="service" value="search">
                             <input type="hidden" name="limit" value="${limit}" />
-                            <button type="submit" class="btn btn-primary h-40-px radius-12">Tìm Kiếm</button>
+                            <button type="submit" class="h-10 px-4 bg-primary text-white font-semibold rounded-lg hover:bg-primary-dark transition-colors">Tìm Kiếm</button>
                         </form>
                     </div>
-                    <a href="staff?service=pre-insert" class="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2">
-                        <iconify-icon icon="ic:baseline-plus" class="icon text-xl line-height-1"></iconify-icon>
-                        Thêm Nhân Viên
-                    </a>
-                </div>
-                <div class="card-body p-24">
-                    <div class="table-responsive scroll-sm">
-                        <table class="table bordered-table sm-table mb-0" id="staffTable" style="table-layout: auto; width: 100%;">
-                            <thead>
-                                <tr>
-                                    <th class="text-start">STT</th>
-                                    <th class="text-center">Tên</th>
-                                    <th class="text-center">Loại Dịch Vụ</th>
-                                    <th class="text-center">Tiểu Sử</th>
-                                    <th class="text-center" data-orderable="false">Trạng Thái</th>
-                                    <th class="text-start">EXP (Năm)</th>
-                                    <th class="text-center" data-orderable="false">Hành Động</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <c:forEach var="therapist" items="${staffList}" varStatus="status">
+                    <!-- Table -->
+                    <div class="p-6">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left text-gray-500">
+                                <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                                     <tr>
-                                        <td class="text-center">${status.index + 1}</td>
-                                        <td class="text-center"><div class="wrap-text">${therapist.user.fullName}</div></td>
-                                        <td class="text-center">
-                                            <c:if test="${not empty therapist.serviceType}">
-                                                <div class="wrap-text">${therapist.serviceType.name}</div>
-                                            </c:if>
-                                        </td>
-                                        <td class="text-center">
-                                            <div class="bio-wrap" id="bio-${status.index}">
-                                                ${therapist.bio}
-                                            </div>
-                                            <span class="see-more-link" onclick="toggleBio(${status.index}, this)" style="display:none">Xem thêm</span>
-                                        </td>
-                                        <td class="text-center">
-                                            <c:choose>
-                                                <c:when test="${therapist.availabilityStatus == 'AVAILABLE'}">
-                                                    <span class="bg-success-focus text-success-600 border border-success-main px-24 py-4 radius-4 fw-medium text-sm">Available</span>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <span class="bg-neutral-200 text-neutral-600 border border-neutral-400 px-24 py-4 radius-4 fw-medium text-sm">${therapist.availabilityStatus}</span>
-                                                </c:otherwise>
-                                            </c:choose>
-                                        </td>
-                                        <td class="text-center">${therapist.yearsOfExperience}</td>
-                                        <td class="text-center">
-                                            <div class="d-flex align-items-center gap-10 justify-content-center">
-                                                <a href="staff?service=viewById&id=${therapist.user.userId}" class="bg-info-focus text-info-600 w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle" title="Xem chi tiết">
-                                                    <iconify-icon icon="majesticons:eye-line" class="icon text-xl"></iconify-icon>
-                                                </a>
-                                                <a href="staff?service=pre-update&id=${therapist.user.userId}" class="bg-success-focus text-success-600 w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle" title="Chỉnh sửa">
-                                                    <iconify-icon icon="lucide:edit" class="menu-icon"></iconify-icon>
-                                                </a>
-                                                <a href="staff?service=deactiveById&id=${therapist.user.userId}" class="bg-warning-focus text-warning-600 w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle" title="Vô hiệu hóa" onclick="return confirm('Bạn có chắc chắn muốn vô hiệu hóa nhân viên này?');">
-                                                    <iconify-icon icon="uil:calendar" class="menu-icon"></iconify-icon>
-                                                </a>
-                                            </div>
-                                        </td>
+                                        <th class="px-6 py-3">STT</th>
+                                        <th class="px-6 py-3 text-center">Tên</th>
+                                        <th class="px-6 py-3 text-center">Loại Dịch Vụ</th>
+                                        <th class="px-6 py-3 text-center">Tiểu Sử</th>
+                                        <th class="px-6 py-3 text-center">Trạng Thái</th>
+                                        <th class="px-6 py-3 text-center">EXP (Năm)</th>
+                                        <th class="px-6 py-3 text-center">Hành Động</th>
                                     </tr>
-                                </c:forEach>
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    <c:forEach var="therapist" items="${staffList}" varStatus="status">
+                                        <tr class="bg-white border-b hover:bg-gray-50">
+                                            <td class="px-6 py-4 text-center">${status.index + 1}</td>
+                                            <td class="px-6 py-4 text-center">${therapist.user.fullName}</td>
+                                            <td class="px-6 py-4 text-center">
+                                                <c:if test="${not empty therapist.serviceType}">
+                                                    ${therapist.serviceType.name}
+                                                </c:if>
+                                            </td>
+                                            <td class="px-6 py-4 text-center max-w-xs truncate" title="${therapist.bio}">
+                                                ${therapist.bio}
+                                            </td>
+                                            <td class="px-6 py-4 text-center">
+                                                <c:choose>
+                                                    <c:when test="${therapist.availabilityStatus == 'AVAILABLE'}">
+                                                        <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Available</span>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <span class="bg-gray-200 text-gray-600 text-xs font-medium px-2.5 py-0.5 rounded-full">${therapist.availabilityStatus}</span>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </td>
+                                            <td class="px-6 py-4 text-center">${therapist.yearsOfExperience}</td>
+                                            <td class="px-6 py-4 text-center">
+                                                <div class="flex items-center justify-center gap-2">
+                                                    <a href="staff?service=viewById&id=${therapist.user.userId}" class="p-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-full" title="Xem chi tiết">
+                                                        <i data-lucide="eye" class="w-5 h-5"></i>
+                                                    </a>
+                                                    <a href="staff?service=pre-update&id=${therapist.user.userId}" class="p-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-full" title="Chỉnh sửa">
+                                                        <i data-lucide="edit" class="w-5 h-5"></i>
+                                                    </a>
+                                                    <a href="staff?service=deactiveById&id=${therapist.user.userId}" class="p-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 rounded-full" title="Vô hiệu hóa" onclick="return confirm('Bạn có chắc chắn muốn vô hiệu hóa nhân viên này?');">
+                                                        <i data-lucide="ban" class="w-5 h-5"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </c:forEach>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-24">
-                        <c:set var="start" value="${(currentPage - 1) * limit + 1}" />
-                        <c:set var="end" value="${currentPage * limit > totalEntries ? totalEntries : currentPage * limit}" />
-                        <span>Hiển thị từ ${start} đến ${end} của ${totalEntries} mục</span>
-                        <ul class="pagination d-flex flex-wrap align-items-center gap-2 justify-content-center">
-                            <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
-                                <a class="page-link" href="staff?service=list-all&page=1&limit=${limit}">
-                                    <iconify-icon icon="ic:round-keyboard-double-arrow-left"></iconify-icon>
-                                </a>
-                            </li>
-                            <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
-                                <a class="page-link" href="staff?service=list-all&page=${currentPage - 1}&limit=${limit}">
-                                    <iconify-icon icon="ep:d-arrow-left"></iconify-icon>
-                                </a>
-                            </li>
-                            <c:forEach var="i" begin="1" end="${totalPages}">
-                                <c:if test="${i >= currentPage - 2 && i <= currentPage + 2}">
-                                    <li class="page-item ${i == currentPage ? 'active' : ''}">
-                                        <a class="page-link"
-                                           href="staff?service=list-all&page=${i}&limit=${limit}
-                                           ${not empty keyword ? '&keyword='.concat(keyword) : ''}
-                                           ${not empty status ? '&status='.concat(status) : ''}
-                                           ${not empty serviceTypeId ? '&serviceTypeId='.concat(serviceTypeId) : ''}">
-                                            ${i}
-                                        </a>
-                                    </li>
-                                </c:if>
-                                <c:if test="${i == currentPage - 3 || i == currentPage + 3}">
-                                    <li class="page-item disabled"><span class="page-link">...</span></li>
-                                </c:if>
-                            </c:forEach>
-                            <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
-                                <a class="page-link" href="staff?service=list-all&page=${currentPage + 1}&limit=${limit}">
-                                    <iconify-icon icon="ep:d-arrow-right"></iconify-icon>
-                                </a>
-                            </li>
-                            <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
-                                <a class="page-link" href="staff?service=list-all&page=${totalPages}&limit=${limit}">
-                                    <iconify-icon icon="ic:round-keyboard-double-arrow-right"></iconify-icon>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
+                    <!-- Pagination -->
+                    <div class="flex items-center justify-between flex-wrap gap-2 p-6">
+    <span>
+        <c:choose>
+            <c:when test="${totalEntries == 0}">
+                Hiển thị 0 mục
+            </c:when>
+            <c:otherwise>
+                Hiển thị ${start} đến ${end} của ${totalEntries} mục
+            </c:otherwise>
+        </c:choose>
+    </span>
+    <ul class="inline-flex items-center -space-x-px text-sm">
+        <li>
+            <c:choose>
+                <c:when test="${currentPage == 1}">
+                    <span class="px-3 py-2 ml-0 leading-tight text-gray-400 bg-white border border-gray-300 rounded-l-lg cursor-not-allowed">&lt;</span>
+                </c:when>
+                <c:otherwise>
+                    <a class="px-3 py-2 ml-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700"
+                       href="staff?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${currentPage - 1}&limit=${limit}
+                       ${not empty keyword ? '&keyword='.concat(keyword) : ''}
+                       ${not empty status ? '&status='.concat(status) : ''}
+                       ${not empty serviceTypeId ? '&serviceTypeId='.concat(serviceTypeId) : ''}">&lt;</a>
+                </c:otherwise>
+            </c:choose>
+        </li>
+        <c:set var="lastPage" value="0" />
+        <c:forEach var="i" begin="1" end="${totalPages}">
+            <c:choose>
+                <c:when test="${i == 1 || i == 2 || i == totalPages || i == totalPages-1 || (i >= currentPage-1 && i <= currentPage+1)}">
+                    <c:if test="${lastPage + 1 != i}">
+                        <li><span class="px-3 py-2 leading-tight text-gray-400 bg-white border border-gray-300">...</span></li>
+                    </c:if>
+                    <li>
+                        <c:choose>
+                            <c:when test="${i == currentPage}">
+                                <span class="px-3 py-2 leading-tight text-white bg-primary border border-gray-300">${i}</span>
+                            </c:when>
+                            <c:otherwise>
+                                <a class="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700"
+                                   href="staff?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${i}&limit=${limit}
+                                   ${not empty keyword ? '&keyword='.concat(keyword) : ''}
+                                   ${not empty status ? '&status='.concat(status) : ''}
+                                   ${not empty serviceTypeId ? '&serviceTypeId='.concat(serviceTypeId) : ''}">${i}</a>
+                            </c:otherwise>
+                        </c:choose>
+                    </li>
+                    <c:set var="lastPage" value="${i}" />
+                </c:when>
+            </c:choose>
+        </c:forEach>
+        <li>
+            <c:choose>
+                <c:when test="${currentPage == totalPages}">
+                    <span class="px-3 py-2 leading-tight text-gray-400 bg-white border border-gray-300 rounded-r-lg cursor-not-allowed">&gt;</span>
+                </c:when>
+                <c:otherwise>
+                    <a class="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700"
+                       href="staff?service=${param.service != null && param.service != '' ? param.service : 'list-all'}&page=${currentPage + 1}&limit=${limit}
+                       ${not empty keyword ? '&keyword='.concat(keyword) : ''}
+                       ${not empty status ? '&status='.concat(status) : ''}
+                       ${not empty serviceTypeId ? '&serviceTypeId='.concat(serviceTypeId) : ''}">&gt;</a>
+                </c:otherwise>
+            </c:choose>
+        </li>
+    </ul>
+</div>
                 </div>
             </div>
-        </div>
-        <jsp:include page="/WEB-INF/view/common/admin/js.jsp"></jsp:include>
-
-            <!-- Add Toast Container -->
-            <div class="position-fixed top-0 end-0 p-3" style="z-index: 11">
-            <c:if test="${not empty toastMessage}">
-                <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
-                    <div class="toast-header ${toastType eq 'success' ? 'bg-success' : 'bg-danger'} text-white">
-                        <strong class="me-auto">${toastType eq 'success' ? 'Success' : 'Error'}</strong>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                    </div>
-                    <div class="toast-body">
-                        ${toastMessage}
-                    </div>
-                </div>
-            </c:if>
-        </div>
-
-        <script>
-            function changeLimit(newLimit) {
-                let currentUrl = new URL(window.location.href);
-                let searchParams = currentUrl.searchParams;
-                if (searchParams.has('keyword')) {
-                    searchParams.set('service', 'search');
-                } else {
-                    searchParams.set('service', 'list-all');
-                }
-                searchParams.set('limit', newLimit);
-                searchParams.set('page', '1');
-                window.location.href = currentUrl.pathname + '?' + searchParams.toString();
-            }
-
-            // Auto hide toast after 3 seconds
-            document.addEventListener("DOMContentLoaded", function () {
-                const toast = document.querySelector('.toast');
-                if (toast) {
-                    setTimeout(() => {
-                        toast.classList.remove('show');
-                        setTimeout(() => toast.remove(), 500);
-                    }, 3000);
-                }
-            });
-
-            function toggleBio(index, link) {
-                const bioDiv = document.getElementById('bio-' + index);
-                if (bioDiv.classList.contains('expanded')) {
-                    bioDiv.classList.remove('expanded');
-                    link.textContent = 'Xem thêm';
-                } else {
-                    bioDiv.classList.add('expanded');
-                    link.textContent = 'Ẩn bớt';
-                }
-            }
-
-            function checkSeeMore() {
-                document.querySelectorAll('.bio-wrap').forEach(function(bio) {
-                    // Ẩn "Xem thêm" mặc định
-                    const seeMore = bio.nextElementSibling;
-                    if (seeMore && seeMore.classList.contains('see-more-link')) {
-                        seeMore.style.display = 'none';
-                    }
-
-                    // Tạo clone để đo chiều cao thực tế
-                    const clone = bio.cloneNode(true);
-                    clone.style.visibility = 'hidden';
-                    clone.style.position = 'absolute';
-                    clone.style.height = 'auto';
-                    clone.style.webkitLineClamp = 'unset';
-                    clone.classList.add('expanded');
-                    document.body.appendChild(clone);
-
-                    // So sánh chiều cao thực tế và chiều cao bị cắt
-                    if (clone.offsetHeight > bio.offsetHeight) {
-                        if (seeMore && seeMore.classList.contains('see-more-link')) {
-                            seeMore.style.display = 'inline';
-                        }
-                    }
-                    document.body.removeChild(clone);
-                });
-            }
-
-            document.addEventListener("DOMContentLoaded", function () {
-                checkSeeMore();
-            });
-
-            if (window.jQuery && $.fn.dataTable) {
-                $('#staffTable').on('draw.dt', function () {
-                    checkSeeMore();
-                });
-            }
-        </script>
-        <script src="${pageContext.request.contextPath}/assets/admin/js/lib/jquery-3.7.1.min.js"></script>
-        <script src="${pageContext.request.contextPath}/assets/admin/js/lib/dataTables.min.js"></script>
-        <script>
-        // Hàm lấy chữ cái đầu tiên (bỏ qua khoảng trắng)
-        function getFirstLetter(data) {
-            if (!data) return '';
-            // Nếu có thẻ HTML thì lấy text
-            var div = document.createElement("div");
-            div.innerHTML = data;
-            var text = div.textContent || div.innerText || "";
-            text = text.trim();
-            return text.charAt(0).toUpperCase();
-        }
-
-        // Đăng ký sort custom cho DataTables
-        jQuery.extend(jQuery.fn.dataTable.ext.type.order, {
-            "first-letter-asc": function(a, b) {
-                return getFirstLetter(a).localeCompare(getFirstLetter(b), 'vi', {sensitivity: 'base'});
-            },
-            "first-letter-desc": function(a, b) {
-                return getFirstLetter(b).localeCompare(getFirstLetter(a), 'vi', {sensitivity: 'base'});
-            }
-        });
-
-        $(document).ready(function() {
-            $('#staffTable').DataTable({
-                "paging": false,
-                "info": false,
-                "searching": false,
-                "ordering": true,
-                "order": [],
-                "columnDefs": [
-                    { "orderable": false, "targets": [4, 6] }, // Trạng Thái, Hành Động
-                    { "type": "num", "targets": [0, 5] },      // STT, EXP
-                    // Custom sort theo chữ cái đầu cho 3 cột: Tên (1), Loại dịch vụ (2), Tiểu sử (3)
-                    { "type": "first-letter", "targets": [1, 2, 3] }
-                ],
-                "language": {
-                    "emptyTable": "Không có dữ liệu"
-                }
-            });
-        });
-        </script>
-    </body>
+        </main>
+    </div>
+    <jsp:include page="/WEB-INF/view/common/footer.jsp" />
+    <!-- Script riêng nếu có -->
+    <script>
+        // ... script toast, phân trang, ... chuyển sang class Tailwind nếu cần ...
+    </script>
+</body>
 </html>
