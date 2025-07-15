@@ -74,6 +74,21 @@
                             <input type="number" name="yearsOfExperience" id="yearsOfExperience" value="${staff.yearsOfExperience}" class="w-full border rounded-lg px-3 py-2" required min="0" max="60" />
                         </div>
                     </div>
+                    <!-- Chứng chỉ hành nghề -->
+                    <div class="mt-8">
+                        <h3 class="font-semibold text-lg mb-2">Chứng chỉ hành nghề</h3>
+                        <div id="certificatesContainer">
+                            <div class="certificate-row grid grid-cols-1 md:grid-cols-6 gap-2 mb-2">
+                                <input type="text" name="certificateName" class="border rounded-lg px-2 py-1" placeholder="Tên chứng chỉ" required>
+                                <input type="text" name="certificateNumber" class="border rounded-lg px-2 py-1" placeholder="Số hiệu" required>
+                                <input type="date" name="issuedDate" class="border rounded-lg px-2 py-1" required>
+                                <input type="date" name="expiryDate" class="border rounded-lg px-2 py-1">
+                                <input type="text" name="fileUrl" class="border rounded-lg px-2 py-1" placeholder="Link file scan">
+                                <input type="text" name="note" class="border rounded-lg px-2 py-1" placeholder="Ghi chú">
+                            </div>
+                        </div>
+                        <button type="button" onclick="addCertificateRow()" class="mt-2 px-4 py-1 bg-primary text-white rounded-lg">+ Thêm chứng chỉ</button>
+                    </div>
                     <div class="flex justify-end gap-3">
                         <a href="staff" class="px-6 py-2 rounded-lg border border-red-500 text-red-600 hover:bg-red-50 font-semibold">Hủy</a>
                         <button type="submit" class="px-6 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark">Cập nhật</button>
@@ -86,6 +101,23 @@
     <script>
         // ... script JS validation, chuyển class sang Tailwind nếu cần ...
     </script>
+    <script>
+function addCertificateRow() {
+    const container = document.getElementById('certificatesContainer');
+    const row = document.createElement('div');
+    row.className = 'certificate-row grid grid-cols-1 md:grid-cols-6 gap-2 mb-2';
+    row.innerHTML = `
+        <input type="text" name="certificateName" class="border rounded-lg px-2 py-1" placeholder="Tên chứng chỉ" required>
+        <input type="text" name="certificateNumber" class="border rounded-lg px-2 py-1" placeholder="Số hiệu" required>
+        <input type="date" name="issuedDate" class="border rounded-lg px-2 py-1" required>
+        <input type="date" name="expiryDate" class="border rounded-lg px-2 py-1">
+        <input type="text" name="fileUrl" class="border rounded-lg px-2 py-1" placeholder="Link file scan">
+        <input type="text" name="note" class="border rounded-lg px-2 py-1" placeholder="Ghi chú">
+        <button type="button" onclick="this.parentElement.remove()" class="text-red-500">Xóa</button>
+    `;
+    container.appendChild(row);
+}
+</script>
 </body>
 </html>
 

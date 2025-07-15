@@ -64,7 +64,40 @@
                         <label for="bio" class="block font-semibold mb-2">Tiểu sử <span class="text-red-500">*</span></label>
                         <textarea name="bio" id="bio" rows="4" minlength="20" maxlength="500" required class="w-full border rounded-lg px-3 py-2 resize-none"></textarea>
                         <div class="flex justify-end text-xs text-gray-500 mt-1"><span id="bioCharCount">0</span>/500</div>
-                                            </div>
+                    </div>
+                    <!-- BẮT ĐẦU: Chứng chỉ hành nghề -->
+                    <div class="mt-8">
+                        <h3 class="font-semibold text-lg mb-2">Chứng chỉ hành nghề</h3>
+                        <div id="certificatesContainer">
+                            <div class="certificate-row grid grid-cols-1 md:grid-cols-6 gap-2 mb-2">
+                                <input type="text" name="certificateName" class="border rounded-lg px-2 py-1" placeholder="Tên chứng chỉ" required>
+                                <input type="text" name="certificateNumber" class="border rounded-lg px-2 py-1" placeholder="Số hiệu" required>
+                                <input type="date" name="issuedDate" class="border rounded-lg px-2 py-1" required>
+                                <input type="date" name="expiryDate" class="border rounded-lg px-2 py-1">
+                                <input type="text" name="fileUrl" class="border rounded-lg px-2 py-1" placeholder="Link file scan">
+                                <input type="text" name="note" class="border rounded-lg px-2 py-1" placeholder="Ghi chú">
+                            </div>
+                        </div>
+                        <button type="button" onclick="addCertificateRow()" class="mt-2 px-4 py-1 bg-primary text-white rounded-lg">+ Thêm chứng chỉ</button>
+                    </div>
+                    <script>
+                    function addCertificateRow() {
+                        const container = document.getElementById('certificatesContainer');
+                        const row = document.createElement('div');
+                        row.className = 'certificate-row grid grid-cols-1 md:grid-cols-6 gap-2 mb-2';
+                        row.innerHTML = `
+                            <input type="text" name="certificateName" class="border rounded-lg px-2 py-1" placeholder="Tên chứng chỉ" required>
+                            <input type="text" name="certificateNumber" class="border rounded-lg px-2 py-1" placeholder="Số hiệu" required>
+                            <input type="date" name="issuedDate" class="border rounded-lg px-2 py-1" required>
+                            <input type="date" name="expiryDate" class="border rounded-lg px-2 py-1">
+                            <input type="text" name="fileUrl" class="border rounded-lg px-2 py-1" placeholder="Link file scan">
+                            <input type="text" name="note" class="border rounded-lg px-2 py-1" placeholder="Ghi chú">
+                            <button type="button" onclick="this.parentElement.remove()" class="text-red-500">Xóa</button>
+                        `;
+                        container.appendChild(row);
+                    }
+                    </script>
+                    <!-- KẾT THÚC: Chứng chỉ hành nghề -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label for="serviceTypeId" class="block font-semibold mb-2">Loại dịch vụ <span class="text-red-500">*</span></label>
