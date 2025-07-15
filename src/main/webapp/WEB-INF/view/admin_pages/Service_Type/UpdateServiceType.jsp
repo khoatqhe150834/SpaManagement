@@ -52,6 +52,7 @@
                         <form action="servicetype" method="post" enctype="multipart/form-data" id="serviceTypeForm" novalidate class="bg-white rounded-2xl shadow-lg p-8 space-y-6">
                             <input type="hidden" name="service" value="update" />
                             <input type="hidden" name="id" value="${stype.serviceTypeId}" />
+                            <input type="hidden" name="image_url" value="${stype.imageUrl}" />
                             <!-- Name -->
                             <div>
                                 <label for="name" class="block text-sm font-medium text-spa-dark mb-2">Tên Loại Dịch Vụ <span class="text-red-500">*</span></label>
@@ -77,7 +78,7 @@
                                 <input type="file" name="image" id="image" accept="image/jpeg,image/png,image/gif" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-dark" onchange="validateImageAsync(this);">
                                 <div id="imagePreview" class="mt-2${empty stype.imageUrl ? ' hidden' : ''}">
                                     <c:if test="${not empty stype.imageUrl}">
-                                        <img src="${pageContext.request.contextPath}${stype.imageUrl}" alt="Preview" class="w-32 h-32 object-cover rounded-lg border" id="previewImg" onclick="showImageModal(this.src)" style="cursor:pointer;">
+                                        <img src="${pageContext.request.contextPath}/image?type=service_type&name=${stype.imageUrl}" alt="Preview" class="w-32 h-32 object-cover rounded-lg border" id="previewImg" onclick="showImageModal(this.src)" style="cursor:pointer;">
                                     </c:if>
                                 </div>
                                 <div class="text-red-500 text-xs mt-1" id="imageError"></div>
