@@ -76,7 +76,9 @@
                                 <label for="image" class="block text-sm font-medium text-spa-dark mb-2">Hình Ảnh</label>
                                 <input type="file" name="image" id="image" accept="image/jpeg,image/png,image/gif" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-dark" onchange="validateImageAsync(this);">
                                 <div id="imagePreview" class="mt-2${empty stype.imageUrl ? ' hidden' : ''}">
-                                    <img src="${stype.imageUrl}" alt="Preview" class="w-32 h-32 object-cover rounded-lg border" id="previewImg" onclick="showImageModal(this.src)" style="cursor:pointer;">
+                                    <c:if test="${not empty stype.imageUrl}">
+                                        <img src="${pageContext.request.contextPath}${stype.imageUrl}" alt="Preview" class="w-32 h-32 object-cover rounded-lg border" id="previewImg" onclick="showImageModal(this.src)" style="cursor:pointer;">
+                                    </c:if>
                                 </div>
                                 <div class="text-red-500 text-xs mt-1" id="imageError"></div>
                                 <small class="text-gray-500">Chọn ảnh mới nếu muốn thay đổi. Nếu không chọn, sẽ giữ ảnh cũ.<br>Chấp nhận: JPG, PNG, GIF. Kích thước tối đa: 2MB. Kích thước tối thiểu: 200x200px</small>
