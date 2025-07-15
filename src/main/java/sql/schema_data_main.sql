@@ -804,7 +804,7 @@ CREATE TABLE `remember_me_tokens` (
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `token` (`token`)
-) ENGINE=InnoDB AUTO_INCREMENT=317 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=319 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -813,7 +813,7 @@ CREATE TABLE `remember_me_tokens` (
 
 LOCK TABLES `remember_me_tokens` WRITE;
 /*!40000 ALTER TABLE `remember_me_tokens` DISABLE KEYS */;
-INSERT INTO `remember_me_tokens` VALUES (11,'quangkhoa5112@5dulieu.com','123456789','0cb51cb5-2380-4033-acdc-f3cd9fa385ce','2025-07-06 09:36:14','2025-06-06 09:36:13'),(24,'xapymabo@mailinator.com','A123456a@','aae04773-83ea-47ae-b622-9712d48c53f8','2025-07-07 08:05:55','2025-06-07 08:05:54'),(97,'therapist@beautyzone.com','123456','fc4ac81a-adca-4486-b47d-1ecb4d2a1a0b','2025-07-14 17:58:55','2025-06-14 17:58:55'),(149,'khoatqhe150834@fpt.edu.vn','123456','8bb29688-a91f-4ff6-b85f-6b0fcee17e56','2025-07-17 20:17:45','2025-06-17 20:17:44'),(290,'admin@beautyzone.com','123456','bb15f679-49e4-4eff-b2d6-5664dfaee735','2025-08-10 13:47:26','2025-07-11 20:47:26'),(295,'manager@beautyzone.com','123456','bd95b064-f676-4458-8813-3a5175ba384f','2025-08-11 14:21:53','2025-07-12 21:21:53'),(316,'khoatqhe150834@gmail.com','123456','b40791de-a979-46ca-b6da-fb4b2bd130b9','2025-08-14 16:53:08','2025-07-15 23:53:08');
+INSERT INTO `remember_me_tokens` VALUES (11,'quangkhoa5112@5dulieu.com','123456789','0cb51cb5-2380-4033-acdc-f3cd9fa385ce','2025-07-06 09:36:14','2025-06-06 09:36:13'),(24,'xapymabo@mailinator.com','A123456a@','aae04773-83ea-47ae-b622-9712d48c53f8','2025-07-07 08:05:55','2025-06-07 08:05:54'),(97,'therapist@beautyzone.com','123456','fc4ac81a-adca-4486-b47d-1ecb4d2a1a0b','2025-07-14 17:58:55','2025-06-14 17:58:55'),(149,'khoatqhe150834@fpt.edu.vn','123456','8bb29688-a91f-4ff6-b85f-6b0fcee17e56','2025-07-17 20:17:45','2025-06-17 20:17:44'),(290,'admin@beautyzone.com','123456','bb15f679-49e4-4eff-b2d6-5664dfaee735','2025-08-10 13:47:26','2025-07-11 20:47:26'),(295,'manager@beautyzone.com','123456','bd95b064-f676-4458-8813-3a5175ba384f','2025-08-11 14:21:53','2025-07-12 21:21:53'),(318,'khoatqhe150834@gmail.com','123456','8b0f9dd9-9cde-4770-a0cf-9c80e57433b7','2025-08-14 17:53:34','2025-07-16 00:53:33');
 /*!40000 ALTER TABLE `remember_me_tokens` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -893,7 +893,7 @@ CREATE TABLE `service_reviews` (
   `review_id` int NOT NULL AUTO_INCREMENT,
   `service_id` int NOT NULL COMMENT 'ID dịch vụ được đánh giá (để tiện truy vấn)',
   `customer_id` int NOT NULL COMMENT 'ID khách hàng đánh giá (để tiện truy vấn)',
-  `appointment_id` int NOT NULL COMMENT 'ID của lịch hẹn đã hoàn thành mà review này dành cho.',
+  `booking_id` int NOT NULL COMMENT 'ID của lịch hẹn đã hoàn thành mà review này dành cho.',
   `rating` tinyint unsigned NOT NULL COMMENT 'Điểm đánh giá (1-5)',
   `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `comment` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
@@ -904,8 +904,10 @@ CREATE TABLE `service_reviews` (
   PRIMARY KEY (`review_id`),
   KEY `service_id` (`service_id`),
   KEY `customer_id` (`customer_id`),
+  KEY `service_reviews_ibfk_3` (`booking_id`),
   CONSTRAINT `service_reviews_ibfk_1` FOREIGN KEY (`service_id`) REFERENCES `services` (`service_id`) ON DELETE CASCADE,
-  CONSTRAINT `service_reviews_ibfk_2` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`) ON DELETE CASCADE
+  CONSTRAINT `service_reviews_ibfk_2` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`) ON DELETE CASCADE,
+  CONSTRAINT `service_reviews_ibfk_3` FOREIGN KEY (`booking_id`) REFERENCES `bookings` (`booking_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -915,7 +917,6 @@ CREATE TABLE `service_reviews` (
 
 LOCK TABLES `service_reviews` WRITE;
 /*!40000 ALTER TABLE `service_reviews` DISABLE KEYS */;
-INSERT INTO `service_reviews` VALUES (4,3,2,143,5,'Rất hài lòng!','Dịch vụ chăm sóc da rất tốt, da tôi cải thiện rõ rệt. Kỹ thuật viên Dung rất nhiệt tình.','2025-06-01 09:40:23','2025-06-01 09:40:23',1,NULL),(5,2,1,144,5,'Tuyệt vời!','Anh Cường massage rất chuyên nghiệp.','2025-06-18 09:04:30','2025-06-18 09:04:30',1,NULL),(6,1,2,145,4,'Hài lòng','Dịch vụ tốt, sẽ quay lại.','2025-06-18 09:04:30','2025-06-18 09:04:30',1,NULL),(7,3,3,146,4,'Khá tốt','Chị Dung làm da rất cẩn thận.','2025-06-18 09:04:30','2025-06-18 09:04:30',1,NULL),(8,7,5,147,5,'Rất thư giãn','Massage Thái đúng chuẩn.','2025-06-18 09:04:30','2025-06-18 09:04:30',1,NULL),(9,11,6,148,3,'Tạm được','Hiệu quả chưa rõ rệt lắm.','2025-06-18 09:04:30','2025-06-18 09:04:30',1,NULL),(10,12,7,149,5,'Da sáng mịn','Rất thích liệu trình vitamin C này.','2025-06-18 09:04:30','2025-06-18 09:04:30',1,NULL),(11,1,8,150,4,'Tốt','Anh Long tay nghề tốt.','2025-06-18 09:04:30','2025-06-18 09:04:30',1,NULL),(12,2,9,151,5,'Trên cả tuyệt vời!','Đá nóng rất hiệu quả, cảm ơn anh Huy.','2025-06-18 09:04:30','2025-06-18 09:04:30',1,NULL);
 /*!40000 ALTER TABLE `service_reviews` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1204,4 +1205,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-07-16  0:45:00
+-- Dump completed on 2025-07-16  1:19:19
