@@ -194,7 +194,179 @@
     <!-- Giữ lại toàn bộ script validation, upload ảnh, ... ở cuối file như cũ -->
     <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
     <script>
-        // ... giữ nguyên toàn bộ script validation, upload ảnh, ... như bản cũ ...
+        // Utility functions for validation
+        function setValid(input, errorDiv, message) {
+            input.classList.remove('is-invalid');
+            input.classList.add('is-valid');
+            errorDiv.textContent = message;
+            errorDiv.style.color = '#22c55e';
+        }
+        function setInvalid(input, errorDiv, message) {
+            input.classList.remove('is-valid');
+            input.classList.add('is-invalid');
+            errorDiv.textContent = message;
+            errorDiv.style.color = '#f44336';
+        }
+        function setDefault(input, errorDiv) {
+            input.classList.remove('is-valid', 'is-invalid');
+            errorDiv.textContent = '';
+        }
+        function updateCharCount(input, counterId, maxLength) {
+            const counter = document.getElementById(counterId);
+            const currentLength = input.value.length;
+            counter.textContent = `${currentLength}/${maxLength}`;
+            if (currentLength > maxLength * 0.8) {
+                counter.style.color = '#f59e0b';
+            } else if (currentLength > maxLength) {
+                counter.style.color = '#f44336';
+            } else {
+                counter.style.color = '#6b7280';
+            }
+        }
+        function validateName(input) {
+            const vietnameseNamePattern = /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂẾưăạảấầẩẫậắằẳẵặẹẻẽềềểếỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s]+$/;
+            const value = input.value.trim();
+            const errorDiv = document.getElementById('nameError');
+            if (value === '') {
+                setInvalid(input, errorDiv, 'Tên dịch vụ không được để trống');
+                return false;
+            }
+            if (value.length < 2) {
+                setInvalid(input, errorDiv, 'Tên dịch vụ phải có ít nhất 2 ký tự');
+                return false;
+            }
+            if (value.length > 200) {
+                setInvalid(input, errorDiv, 'Tên dịch vụ không được vượt quá 200 ký tự');
+                return false;
+            }
+            if (!vietnameseNamePattern.test(value)) {
+                setInvalid(input, errorDiv, 'Tên dịch vụ chỉ được chứa chữ cái và khoảng trắng');
+                return false;
+            }
+            setValid(input, errorDiv, 'Tên hợp lệ');
+            return true;
+        }
+        function validateDescription(input) {
+            const errorDiv = document.getElementById('descriptionError');
+            const value = input.value.trim();
+            if (value.length > 500) {
+                setInvalid(input, errorDiv, 'Mô tả không được vượt quá 500 ký tự');
+                return false;
+            }
+            setValid(input, errorDiv, 'Mô tả hợp lệ');
+            return true;
+        }
+        function validatePrice(input) {
+            const errorDiv = document.getElementById('priceError');
+            const value = parseFloat(input.value);
+            if (isNaN(value) || value <= 0) {
+                setInvalid(input, errorDiv, 'Giá phải là số dương');
+                return false;
+            }
+            if (value > 10000000) {
+                setInvalid(input, errorDiv, 'Giá không được vượt quá 10,000,000 VND');
+                return false;
+            }
+            setValid(input, errorDiv, 'Giá hợp lệ');
+            return true;
+        }
+        function validateDuration(input) {
+            const errorDiv = document.getElementById('durationError');
+            const value = parseInt(input.value);
+            if (isNaN(value) || value <= 0) {
+                setInvalid(input, errorDiv, 'Thời lượng phải là số dương');
+                return false;
+            }
+            if (value < 15) {
+                setInvalid(input, errorDiv, 'Thời lượng tối thiểu là 15 phút');
+                return false;
+            }
+            if (value > 480) {
+                setInvalid(input, errorDiv, 'Thời lượng không được vượt quá 8 giờ (480 phút)');
+                return false;
+            }
+            setValid(input, errorDiv, 'Thời lượng hợp lệ');
+            return true;
+        }
+        function validateBufferTime(input) {
+            const errorDiv = document.getElementById('bufferError');
+            const value = parseInt(input.value);
+            if (isNaN(value) || value < 0) {
+                setInvalid(input, errorDiv, 'Thời gian chờ phải là số không âm');
+                return false;
+            }
+            if (value > 120) {
+                setInvalid(input, errorDiv, 'Thời gian chờ không được vượt quá 2 giờ (120 phút)');
+                return false;
+            }
+            setValid(input, errorDiv, 'Thời gian chờ hợp lệ');
+            return true;
+        }
+        function handleImageUpload(input) {
+            const files = input.files;
+            const container = document.querySelector('.uploaded-imgs-container');
+            const errorDiv = document.getElementById('imageError');
+            if (files.length === 0) {
+                setDefault(input, errorDiv);
+                return;
+            }
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (file.size > 5 * 1024 * 1024) {
+                    setInvalid(input, errorDiv, `File ${file.name} vượt quá 5MB`);
+                    return;
+                }
+                const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                if (!validTypes.includes(file.type)) {
+                    setInvalid(input, errorDiv, `File ${file.name} không phải là ảnh hợp lệ`);
+                    return;
+                }
+            }
+            setValid(input, errorDiv, `${files.length} ảnh đã được chọn`);
+            container.innerHTML = '';
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const previewDiv = document.createElement('div');
+                    previewDiv.className = 'relative h-28 w-28 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 overflow-hidden flex items-center justify-center mr-2 mb-2';
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'w-full h-full object-cover';
+                    const removeBtn = document.createElement('button');
+                    removeBtn.type = 'button';
+                    removeBtn.className = 'absolute top-1 right-1 bg-white rounded-full p-1 shadow hover:bg-red-50';
+                    removeBtn.innerHTML = '<i data-lucide="x" class="w-4 h-4 text-red-600"></i>';
+                    removeBtn.onclick = function() {
+                        previewDiv.remove();
+                        const dt = new DataTransfer();
+                        const input = document.getElementById('upload-file-multiple');
+                        const { files } = input;
+                        for (let i = 0; i < files.length; i++) {
+                            if (i !== Array.from(container.children).indexOf(previewDiv)) {
+                                dt.items.add(files[i]);
+                            }
+                        }
+                        input.files = dt.files;
+                    };
+                    previewDiv.appendChild(img);
+                    previewDiv.appendChild(removeBtn);
+                    container.appendChild(previewDiv);
+                    if (window.lucide) {
+                        lucide.createIcons();
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        function validateForm() {
+            const nameValid = validateName(document.getElementById('name'));
+            const descValid = validateDescription(document.getElementById('description'));
+            const priceValid = validatePrice(document.getElementById('price'));
+            const durationValid = validateDuration(document.getElementById('duration_minutes'));
+            const bufferValid = validateBufferTime(document.getElementById('buffer_time_after_minutes'));
+            return nameValid && descValid && priceValid && durationValid && bufferValid;
+        }
         // AJAX check duplicate service name
         function checkServiceNameDuplicate(name, id, callback) {
             $.ajax({
@@ -212,8 +384,13 @@
         }
         document.addEventListener('DOMContentLoaded', function() {
             const nameInput = document.getElementById('name');
+            const descInput = document.getElementById('description');
+            const priceInput = document.getElementById('price');
+            const durationInput = document.getElementById('duration_minutes');
+            const bufferInput = document.getElementById('buffer_time_after_minutes');
+            const imageInput = document.getElementById('upload-file-multiple');
             const serviceId = document.querySelector('input[name="id"]').value;
-            // ... existing code ...
+            // Name validation
             nameInput.addEventListener('input', function() {
                 updateCharCount(this, 'nameCharCount', 200);
                 if (validateName(this)) {
@@ -238,7 +415,37 @@
                     });
                 }
             });
-            // ... existing code ...
+            // Description validation
+            descInput.addEventListener('input', function() {
+                updateCharCount(this, 'descCharCount', 500);
+                validateDescription(this);
+            });
+            descInput.addEventListener('blur', function() {
+                this.value = this.value.replace(/\s+/g, ' ').trim();
+                validateDescription(this);
+            });
+            // Price validation
+            priceInput.addEventListener('input', validatePrice.bind(null, priceInput));
+            priceInput.addEventListener('blur', validatePrice.bind(null, priceInput));
+            // Duration validation
+            durationInput.addEventListener('input', validateDuration.bind(null, durationInput));
+            durationInput.addEventListener('blur', validateDuration.bind(null, durationInput));
+            // Buffer time validation
+            bufferInput.addEventListener('input', validateBufferTime.bind(null, bufferInput));
+            bufferInput.addEventListener('blur', validateBufferTime.bind(null, bufferInput));
+            // Image upload
+            if (imageInput) {
+                imageInput.addEventListener('change', function() {
+                    handleImageUpload(this);
+                });
+            }
+            // Form submission
+            document.getElementById('service-form').addEventListener('submit', function(e) {
+                if (!validateForm()) {
+                    e.preventDefault();
+                    alert('Vui lòng kiểm tra lại thông tin trước khi lưu!');
+                }
+            });
         });
     </script>
     <style>
