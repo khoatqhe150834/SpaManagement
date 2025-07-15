@@ -117,77 +117,53 @@ INSERT INTO `blogs` VALUES (1,2,'5 Lợi Ích Tuyệt Vời Của Massage Thư�
 UNLOCK TABLES;
 
 --
--- Table structure for table `booking_appointments`
+-- Table structure for table `bookings`
 --
 
-DROP TABLE IF EXISTS `booking_appointments`;
+DROP TABLE IF EXISTS `bookings`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `booking_appointments` (
-  `appointment_id` int NOT NULL AUTO_INCREMENT,
-  `booking_group_id` int NOT NULL,
+CREATE TABLE `bookings` (
+  `booking_id` int NOT NULL AUTO_INCREMENT,
+  `customer_id` int NOT NULL,
+  `payment_item_id` int NOT NULL,
   `service_id` int NOT NULL,
   `therapist_user_id` int NOT NULL,
-  `start_time` datetime NOT NULL,
-  `end_time` datetime NOT NULL,
-  `service_price` decimal(8,2) NOT NULL,
-  `status` enum('SCHEDULED','IN_PROGRESS','COMPLETED','CANCELLED') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'SCHEDULED',
-  `service_notes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`appointment_id`),
-  KEY `idx_booking_group` (`booking_group_id`),
-  KEY `idx_therapist_time` (`therapist_user_id`,`start_time`),
-  KEY `idx_service_status` (`service_id`,`status`),
-  CONSTRAINT `booking_appointments_ibfk_1` FOREIGN KEY (`booking_group_id`) REFERENCES `booking_groups` (`booking_group_id`) ON DELETE CASCADE,
-  CONSTRAINT `booking_appointments_ibfk_2` FOREIGN KEY (`service_id`) REFERENCES `services` (`service_id`),
-  CONSTRAINT `booking_appointments_ibfk_3` FOREIGN KEY (`therapist_user_id`) REFERENCES `therapists` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=171 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `booking_appointments`
---
-
-LOCK TABLES `booking_appointments` WRITE;
-/*!40000 ALTER TABLE `booking_appointments` DISABLE KEYS */;
-INSERT INTO `booking_appointments` VALUES (143,185,2,3,'2025-06-25 09:00:00','2025-06-25 10:30:00',700000.00,'COMPLETED','Massage đá nóng - phòng VIP','2025-06-24 04:54:32','2025-06-24 04:54:32'),(144,185,8,12,'2025-06-25 11:00:00','2025-06-25 12:15:00',750000.00,'COMPLETED','Massage Shiatsu','2025-06-24 04:54:32','2025-06-24 04:54:32'),(145,185,27,15,'2025-06-25 14:00:00','2025-06-25 14:45:00',200000.00,'COMPLETED','Manicure cơ bản','2025-06-24 04:54:32','2025-06-24 04:54:32'),(146,186,1,16,'2025-06-25 10:00:00','2025-06-25 11:00:00',500000.00,'COMPLETED','Massage Thụy Điển','2025-06-24 04:54:32','2025-06-24 04:54:32'),(147,186,3,4,'2025-06-25 15:00:00','2025-06-25 16:00:00',400000.00,'COMPLETED','Chăm sóc da cơ bản','2025-06-24 04:54:32','2025-06-24 04:54:32'),(148,187,7,18,'2025-06-25 13:00:00','2025-06-25 14:30:00',650000.00,'COMPLETED','Massage Thái cổ truyền','2025-06-24 04:54:32','2025-06-24 04:54:32'),(149,187,5,14,'2025-06-25 16:00:00','2025-06-25 16:45:00',450000.00,'COMPLETED','Tẩy tế bào chết','2025-06-24 04:54:32','2025-06-24 04:54:32'),(150,187,27,15,'2025-06-25 17:00:00','2025-06-25 17:45:00',200000.00,'COMPLETED','Manicure','2025-06-24 04:54:32','2025-06-24 04:54:32'),(151,188,1,3,'2025-06-26 10:00:00','2025-06-26 11:00:00',500000.00,'COMPLETED','Massage Thụy Điển','2025-06-24 04:54:32','2025-06-24 04:54:32'),(152,188,9,16,'2025-06-26 15:30:00','2025-06-26 16:15:00',400000.00,'COMPLETED','Massage foot reflexology','2025-06-24 04:54:32','2025-06-24 04:54:32'),(153,188,28,15,'2025-06-26 17:00:00','2025-06-26 18:15:00',350000.00,'SCHEDULED','Pedicure deluxe','2025-06-24 04:54:32','2025-06-24 04:54:32'),(154,189,4,17,'2025-06-26 11:00:00','2025-06-26 12:15:00',650000.00,'COMPLETED','Trị mụn chuyên sâu','2025-06-24 04:54:32','2025-06-24 04:54:32'),(155,190,4,13,'2025-06-26 09:30:00','2025-06-26 10:45:00',650000.00,'SCHEDULED','Trị mụn chuyên sâu','2025-06-24 04:54:32','2025-06-24 04:54:32'),(156,190,6,19,'2025-06-26 14:00:00','2025-06-26 15:00:00',300000.00,'SCHEDULED','Gội đầu thảo dược','2025-06-24 04:54:32','2025-06-24 04:54:32'),(157,191,2,12,'2025-06-27 08:30:00','2025-06-27 10:00:00',700000.00,'COMPLETED','Massage đá nóng','2025-06-24 04:54:32','2025-06-24 04:54:32'),(158,191,8,18,'2025-06-27 11:00:00','2025-06-27 12:15:00',750000.00,'SCHEDULED','Massage Shiatsu','2025-06-24 04:54:32','2025-06-24 04:54:32'),(159,191,6,15,'2025-06-27 15:00:00','2025-06-27 16:00:00',300000.00,'SCHEDULED','Gội đầu thảo dược','2025-06-24 04:54:32','2025-06-24 04:54:32'),(160,192,3,4,'2025-06-27 09:00:00','2025-06-27 10:00:00',400000.00,'COMPLETED','Chăm sóc da cơ bản','2025-06-24 04:54:32','2025-06-24 04:54:32'),(161,192,7,18,'2025-06-27 13:30:00','2025-06-27 15:00:00',650000.00,'SCHEDULED','Massage Thái','2025-06-24 04:54:32','2025-06-24 04:54:32'),(162,193,1,3,'2025-06-27 16:00:00','2025-06-27 17:00:00',500000.00,'SCHEDULED','Massage Thụy Điển','2025-06-24 04:54:32','2025-06-24 04:54:32'),(163,193,5,14,'2025-06-27 17:30:00','2025-06-27 18:15:00',450000.00,'SCHEDULED','Tẩy tế bào chết','2025-06-24 04:54:32','2025-06-24 04:54:32'),(164,194,2,12,'2025-06-30 19:00:00','2025-06-30 20:30:00',700000.00,'SCHEDULED','Massage đá nóng','2025-06-24 04:54:32','2025-06-25 11:26:06'),(165,194,1,16,'2025-06-28 14:00:00','2025-06-28 15:00:00',500000.00,'CANCELLED','Massage Thụy Điển','2025-06-24 04:54:32','2025-06-25 10:32:18'),(166,195,3,4,'2025-06-28 16:00:00','2025-06-28 17:00:00',400000.00,'SCHEDULED','Chăm sóc da','2025-06-24 04:54:32','2025-06-24 04:54:32'),(167,195,5,14,'2025-06-28 17:00:00','2025-06-28 17:45:00',450000.00,'SCHEDULED','Tẩy tế bào chết','2025-06-24 04:54:32','2025-06-25 11:26:06'),(168,196,8,18,'2025-06-29 10:00:00','2025-06-29 11:15:00',750000.00,'SCHEDULED','Massage Shiatsu','2025-06-24 04:54:32','2025-06-24 04:54:32'),(169,196,7,12,'2025-07-04 13:00:00','2025-07-04 14:30:00',650000.00,'CANCELLED','Massage Thái','2025-06-24 04:54:32','2025-06-26 05:32:19'),(170,196,27,15,'2025-06-29 19:00:00','2025-06-29 19:45:00',250000.00,'SCHEDULED','Manicure cao cấp','2025-06-24 04:54:32','2025-06-25 11:26:06');
-/*!40000 ALTER TABLE `booking_appointments` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `booking_groups`
---
-
-DROP TABLE IF EXISTS `booking_groups`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `booking_groups` (
-  `booking_group_id` int NOT NULL AUTO_INCREMENT,
-  `customer_id` int NOT NULL,
-  `booking_date` date NOT NULL,
-  `total_amount` decimal(10,2) NOT NULL,
-  `payment_status` enum('PENDING','PAID') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'PENDING',
-  `booking_status` enum('CONFIRMED','IN_PROGRESS','COMPLETED','CANCELLED') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'CONFIRMED',
-  `payment_method` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'ONLINE_BANKING',
-  `special_notes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`booking_group_id`),
-  KEY `idx_customer_booking_date` (`customer_id`,`booking_date`),
+  `appointment_date` date NOT NULL,
+  `appointment_time` time NOT NULL,
+  `duration_minutes` int NOT NULL,
+  `booking_status` enum('SCHEDULED','CONFIRMED','IN_PROGRESS','COMPLETED','CANCELLED','NO_SHOW') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'SCHEDULED',
+  `booking_notes` text COLLATE utf8mb4_unicode_ci,
+  `cancellation_reason` text COLLATE utf8mb4_unicode_ci,
+  `cancelled_at` timestamp NULL DEFAULT NULL,
+  `cancelled_by` int DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`booking_id`),
+  KEY `service_id` (`service_id`),
+  KEY `cancelled_by` (`cancelled_by`),
+  KEY `idx_customer_bookings` (`customer_id`,`appointment_date`),
+  KEY `idx_therapist_schedule` (`therapist_user_id`,`appointment_date`,`appointment_time`),
+  KEY `idx_appointment_datetime` (`appointment_date`,`appointment_time`),
   KEY `idx_booking_status` (`booking_status`),
-  CONSTRAINT `booking_groups_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=197 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  KEY `idx_payment_item_booking` (`payment_item_id`),
+  CONSTRAINT `bookings_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `bookings_ibfk_2` FOREIGN KEY (`payment_item_id`) REFERENCES `payment_items` (`payment_item_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `bookings_ibfk_3` FOREIGN KEY (`service_id`) REFERENCES `services` (`service_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `bookings_ibfk_4` FOREIGN KEY (`therapist_user_id`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `bookings_ibfk_5` FOREIGN KEY (`cancelled_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `chk_appointment_date` CHECK ((`appointment_date` >= _utf8mb4'2000-01-01')),
+  CONSTRAINT `chk_appointment_time` CHECK (((`appointment_time` >= _utf8mb4'00:00:00') and (`appointment_time` <= _utf8mb4'23:59:59')))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `booking_groups`
+-- Dumping data for table `bookings`
 --
 
-LOCK TABLES `booking_groups` WRITE;
-/*!40000 ALTER TABLE `booking_groups` DISABLE KEYS */;
-INSERT INTO `booking_groups` VALUES (185,1,'2025-06-25',1650000.00,'PAID','CONFIRMED','ONLINE_BANKING','Khách VIP, ưu tiên phòng riêng','2025-06-24 04:54:32','2025-06-24 04:54:32'),(186,2,'2025-06-25',900000.00,'PAID','CONFIRMED','ONLINE_BANKING',NULL,'2025-06-24 04:54:32','2025-06-24 04:54:32'),(187,3,'2025-06-25',1300000.00,'PENDING','CONFIRMED','ONLINE_BANKING','Đặt cho 2 người','2025-06-24 04:54:32','2025-06-24 04:54:32'),(188,5,'2025-06-26',1250000.00,'PAID','CONFIRMED','CASH',NULL,'2025-06-24 04:54:32','2025-06-24 04:54:32'),(189,6,'2025-06-26',650000.00,'PAID','CONFIRMED','ONLINE_BANKING',NULL,'2025-06-24 04:54:32','2025-06-24 04:54:32'),(190,7,'2025-06-26',950000.00,'PENDING','CONFIRMED','ONLINE_BANKING',NULL,'2025-06-24 04:54:32','2025-06-24 04:54:32'),(191,8,'2025-06-27',1750000.00,'PAID','CONFIRMED','ONLINE_BANKING',NULL,'2025-06-24 04:54:32','2025-06-24 04:54:32'),(192,9,'2025-06-27',1050000.00,'PAID','CONFIRMED','ONLINE_BANKING',NULL,'2025-06-24 04:54:32','2025-06-24 04:54:32'),(193,10,'2025-06-27',950000.00,'PENDING','CONFIRMED','ONLINE_BANKING',NULL,'2025-06-24 04:54:32','2025-06-24 04:54:32'),(194,83,'2025-06-28',1200000.00,'PAID','CONFIRMED','ONLINE_BANKING','Đặt trước 1 tuần','2025-06-24 04:54:32','2025-06-25 08:53:10'),(195,83,'2025-06-28',850000.00,'PAID','CONFIRMED','CASH',NULL,'2025-06-24 04:54:32','2025-06-25 06:10:56'),(196,83,'2025-06-29',1650000.00,'PENDING','CONFIRMED','ONLINE_BANKING',NULL,'2025-06-24 04:54:32','2025-06-25 06:10:56');
-/*!40000 ALTER TABLE `booking_groups` ENABLE KEYS */;
+LOCK TABLES `bookings` WRITE;
+/*!40000 ALTER TABLE `bookings` DISABLE KEYS */;
+/*!40000 ALTER TABLE `bookings` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -217,44 +193,6 @@ LOCK TABLES `business_hours` WRITE;
 /*!40000 ALTER TABLE `business_hours` DISABLE KEYS */;
 INSERT INTO `business_hours` VALUES (1,'MONDAY','09:00:00','21:00:00',0,NULL),(2,'TUESDAY','09:00:00','21:00:00',0,NULL),(3,'WEDNESDAY','09:00:00','21:00:00',0,NULL),(4,'THURSDAY','09:00:00','21:00:00',0,NULL),(5,'FRIDAY','09:00:00','22:00:00',0,'Mở cửa muộn hơn'),(6,'SATURDAY','09:00:00','22:00:00',0,'Mở cửa muộn hơn'),(7,'SUNDAY','10:00:00','20:00:00',0,NULL);
 /*!40000 ALTER TABLE `business_hours` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `cart_items`
---
-
-DROP TABLE IF EXISTS `cart_items`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `cart_items` (
-  `cart_item_id` int NOT NULL AUTO_INCREMENT,
-  `cart_id` int NOT NULL,
-  `service_id` int NOT NULL COMMENT 'ID của dịch vụ được thêm vào giỏ',
-  `quantity` int NOT NULL DEFAULT '1' COMMENT 'Số lượng dịch vụ này (ví dụ: 2 suất massage cho 2 người)',
-  `price_at_addition` decimal(12,2) NOT NULL COMMENT 'Giá dịch vụ tại thời điểm thêm vào giỏ',
-  `therapist_user_id_preference` int DEFAULT NULL COMMENT 'Ưu tiên kỹ thuật viên cho dịch vụ',
-  `preferred_start_time_slot` datetime DEFAULT NULL COMMENT 'Ưu tiên thời gian cho dịch vụ (cần kiểm tra lại khi đặt lịch)',
-  `notes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT 'Ghi chú của khách hàng cho mục này',
-  `added_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `is_converted_to_appointment` tinyint(1) DEFAULT '0' COMMENT 'Đánh dấu nếu mục này đã được chuyển thành lịch hẹn',
-  PRIMARY KEY (`cart_item_id`),
-  KEY `cart_id` (`cart_id`),
-  KEY `service_id` (`service_id`),
-  KEY `therapist_user_id_preference` (`therapist_user_id_preference`),
-  CONSTRAINT `cart_items_ibfk_1` FOREIGN KEY (`cart_id`) REFERENCES `shopping_carts` (`cart_id`) ON DELETE CASCADE,
-  CONSTRAINT `cart_items_ibfk_2` FOREIGN KEY (`service_id`) REFERENCES `services` (`service_id`) ON DELETE CASCADE,
-  CONSTRAINT `cart_items_ibfk_3` FOREIGN KEY (`therapist_user_id_preference`) REFERENCES `users` (`user_id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `cart_items`
---
-
-LOCK TABLES `cart_items` WRITE;
-/*!40000 ALTER TABLE `cart_items` DISABLE KEYS */;
-INSERT INTO `cart_items` VALUES (1,1,2,1,700000.00,3,'2025-06-10 14:00:00','Xin phòng riêng nếu có thể.','2025-06-01 09:40:23',1),(2,1,6,1,300000.00,NULL,'2025-06-10 16:00:00',NULL,'2025-06-01 09:40:23',0),(3,2,1,1,500000.00,NULL,NULL,'Đặt cho buổi chiều.','2025-06-01 09:40:23',0),(4,3,3,2,400000.00,4,'2025-05-28 10:00:00','Cho 2 người.','2025-05-30 09:40:23',0);
-/*!40000 ALTER TABLE `cart_items` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -291,6 +229,158 @@ LOCK TABLES `categories` WRITE;
 /*!40000 ALTER TABLE `categories` DISABLE KEYS */;
 INSERT INTO `categories` VALUES (1,NULL,'Massage','massage','Các dịch vụ massage thư giãn và trị liệu','https://placehold.co/200x150/AFEEEE/333333?text=MassageCat','SERVICE',1,1,'2025-06-01 09:40:23','2025-06-01 09:40:23'),(2,NULL,'Chăm Sóc Da','cham-soc-da','Dịch vụ chăm sóc da mặt và toàn thân','https://placehold.co/200x150/FFEFD5/333333?text=SkinCareCat','SERVICE',1,2,'2025-06-01 09:40:23','2025-06-01 09:40:23'),(3,2,'Da Mặt','da-mat','Chăm sóc chuyên sâu cho da mặt','https://placehold.co/200x150/FFE4E1/333333?text=FacialCat','SERVICE',1,1,'2025-06-01 09:40:23','2025-06-01 09:40:23'),(4,NULL,'Mẹo Chăm Sóc Sức Khỏe','meo-cham-soc-suc-khoe','Bài viết về cách chăm sóc sức khỏe và sắc đẹp','https://placehold.co/200x150/F5DEB3/333333?text=HealthTips','BLOG_POST',1,1,'2025-06-01 09:40:23','2025-06-01 09:40:23'),(5,NULL,'Tin Tức Spa','tin-tuc-spa','Cập nhật thông tin mới nhất từ spa','https://placehold.co/200x150/D2B48C/333333?text=SpaNews','BLOG_POST',1,2,'2025-06-01 09:40:23','2025-06-01 09:40:23');
 /*!40000 ALTER TABLE `categories` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `chatbot_analytics`
+--
+
+DROP TABLE IF EXISTS `chatbot_analytics`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `chatbot_analytics` (
+  `analytics_id` int NOT NULL AUTO_INCREMENT,
+  `date_recorded` date NOT NULL COMMENT 'Date for analytics data',
+  `total_conversations` int DEFAULT '0' COMMENT 'Total conversations on this date',
+  `unique_sessions` int DEFAULT '0' COMMENT 'Unique sessions on this date',
+  `avg_confidence_score` decimal(3,2) DEFAULT '0.00' COMMENT 'Average AI confidence score',
+  `avg_response_time_ms` int DEFAULT '0' COMMENT 'Average response time in milliseconds',
+  `total_feedback_count` int DEFAULT '0' COMMENT 'Total feedback received',
+  `avg_rating` decimal(2,1) DEFAULT '0.0' COMMENT 'Average user rating',
+  `common_queries` json DEFAULT NULL COMMENT 'Most common queries and their frequency',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`analytics_id`),
+  UNIQUE KEY `unique_date` (`date_recorded`),
+  KEY `idx_date_recorded` (`date_recorded`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `chatbot_analytics`
+--
+
+LOCK TABLES `chatbot_analytics` WRITE;
+/*!40000 ALTER TABLE `chatbot_analytics` DISABLE KEYS */;
+/*!40000 ALTER TABLE `chatbot_analytics` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `chatbot_conversations`
+--
+
+DROP TABLE IF EXISTS `chatbot_conversations`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `chatbot_conversations` (
+  `conversation_id` int NOT NULL AUTO_INCREMENT,
+  `session_id` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `user_message` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `bot_response` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `confidence_score` decimal(3,2) DEFAULT '0.80' COMMENT 'AI response confidence (0.00-1.00)',
+  `response_time_ms` int DEFAULT '0' COMMENT 'Response generation time in milliseconds',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `metadata` json DEFAULT NULL COMMENT 'Additional conversation metadata',
+  PRIMARY KEY (`conversation_id`),
+  KEY `idx_session_id` (`session_id`),
+  KEY `idx_created_at` (`created_at`),
+  KEY `idx_confidence_score` (`confidence_score`),
+  CONSTRAINT `chatbot_conversations_ibfk_1` FOREIGN KEY (`session_id`) REFERENCES `chatbot_sessions` (`session_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `chatbot_conversations`
+--
+
+LOCK TABLES `chatbot_conversations` WRITE;
+/*!40000 ALTER TABLE `chatbot_conversations` DISABLE KEYS */;
+/*!40000 ALTER TABLE `chatbot_conversations` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Temporary view structure for view `chatbot_dashboard_view`
+--
+
+DROP TABLE IF EXISTS `chatbot_dashboard_view`;
+/*!50001 DROP VIEW IF EXISTS `chatbot_dashboard_view`*/;
+SET @saved_cs_client     = @@character_set_client;
+/*!50503 SET character_set_client = utf8mb4 */;
+/*!50001 CREATE VIEW `chatbot_dashboard_view` AS SELECT 
+ 1 AS `conversation_date`,
+ 1 AS `unique_sessions`,
+ 1 AS `total_conversations`,
+ 1 AS `avg_confidence`,
+ 1 AS `avg_response_time`,
+ 1 AS `feedback_count`,
+ 1 AS `avg_rating`,
+ 1 AS `helpful_responses`,
+ 1 AS `unhelpful_responses`*/;
+SET character_set_client = @saved_cs_client;
+
+--
+-- Table structure for table `chatbot_feedback`
+--
+
+DROP TABLE IF EXISTS `chatbot_feedback`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `chatbot_feedback` (
+  `feedback_id` int NOT NULL AUTO_INCREMENT,
+  `conversation_id` int NOT NULL,
+  `session_id` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `rating` tinyint unsigned DEFAULT NULL COMMENT 'User rating 1-5 stars',
+  `feedback_text` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT 'Optional feedback text',
+  `is_helpful` tinyint(1) DEFAULT NULL COMMENT '1=helpful, 0=not helpful, NULL=no feedback',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`feedback_id`),
+  KEY `session_id` (`session_id`),
+  KEY `idx_conversation_id` (`conversation_id`),
+  KEY `idx_rating` (`rating`),
+  KEY `idx_created_at` (`created_at`),
+  CONSTRAINT `chatbot_feedback_ibfk_1` FOREIGN KEY (`conversation_id`) REFERENCES `chatbot_conversations` (`conversation_id`) ON DELETE CASCADE,
+  CONSTRAINT `chatbot_feedback_ibfk_2` FOREIGN KEY (`session_id`) REFERENCES `chatbot_sessions` (`session_id`) ON DELETE CASCADE,
+  CONSTRAINT `chatbot_feedback_chk_1` CHECK ((`rating` between 1 and 5))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `chatbot_feedback`
+--
+
+LOCK TABLES `chatbot_feedback` WRITE;
+/*!40000 ALTER TABLE `chatbot_feedback` DISABLE KEYS */;
+/*!40000 ALTER TABLE `chatbot_feedback` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `chatbot_sessions`
+--
+
+DROP TABLE IF EXISTS `chatbot_sessions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `chatbot_sessions` (
+  `session_id` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `user_id` int DEFAULT NULL COMMENT 'References users.user_id for authenticated users',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_activity` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `session_data` json DEFAULT NULL COMMENT 'Additional session context data',
+  `is_active` tinyint(1) DEFAULT '1' COMMENT 'Session active status',
+  PRIMARY KEY (`session_id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_last_activity` (`last_activity`),
+  KEY `idx_is_active` (`is_active`),
+  CONSTRAINT `chatbot_sessions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `chatbot_sessions`
+--
+
+LOCK TABLES `chatbot_sessions` WRITE;
+/*!40000 ALTER TABLE `chatbot_sessions` DISABLE KEYS */;
+/*!40000 ALTER TABLE `chatbot_sessions` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -395,7 +485,7 @@ CREATE TABLE `customers` (
   KEY `idx_customer_phone` (`phone_number`),
   KEY `idx_customer_email` (`email`),
   CONSTRAINT `customers_ibfk_1` FOREIGN KEY (`role_id`) REFERENCES `roles` (`role_id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=113 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=114 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -404,7 +494,7 @@ CREATE TABLE `customers` (
 
 LOCK TABLES `customers` WRITE;
 /*!40000 ALTER TABLE `customers` DISABLE KEYS */;
-INSERT INTO `customers` VALUES (1,'Nguyễn Thị Mai','mai.nguyen@email.com','0988111222','$2b$10$abcdefghijklmnopqrstu',1,'FEMALE','1990-07-15','123 Đường Hoa, Quận 1, TP. HCM',250,'Khách hàng VIP, thích trà gừng.',5,'2025-06-01 09:40:23','2025-07-03 18:00:47','https://placehold.co/100x100/FFC0CB/333333?text=NTHMai',0),(2,'Trần Văn Nam','nam.tran@email.com','0977333444','$2b$10$abcdefghijklmnopqrstu',1,'MALE','1988-02-20','456 Đường Cây, Quận 3, TP. HCM',60,'Thường đặt dịch vụ massage chân.',5,'2025-06-01 09:40:23','2025-06-01 09:40:23','https://placehold.co/100x100/B0E0E6/333333?text=TVNam',0),(3,'Lê Thị Lan','lan.le@email.com','0966555666','$2b$10$abcdefghijklmnopqrstu',1,'FEMALE','1995-11-30','789 Đường Lá, Quận Bình Thạnh, TP. HCM',200,'Hay đi cùng bạn bè.',5,'2025-06-01 09:40:23','2025-06-01 09:40:23','https://placehold.co/100x100/98FB98/333333?text=LTLan',0),(4,'Phạm Văn Hùng','hung.pham@email.com','0955777888','$2b$10$abcdefghijklmnopqrstu',0,'MALE','1985-01-01','101 Đường Sông, Quận 2, TP. HCM',10,'Tài khoản không hoạt động.',5,'2025-06-01 09:40:23','2025-06-01 09:40:23','https://placehold.co/100x100/D3D3D3/333333?text=PVHung',0),(5,'Võ Thị Kim Chi','kimchi.vo@email.com','0944999000','$2b$10$abcdefghijklmnopqrstu',1,'FEMALE','2000-10-10','202 Đường Núi, Quận 7, TP. HCM',50,NULL,5,'2025-06-01 09:40:23','2025-06-01 09:40:23','https://placehold.co/100x100/FFE4E1/333333?text=VTKChi',0),(6,'Khách Vãng Lai A',NULL,'0912345001',NULL,1,'UNKNOWN',NULL,NULL,0,'Khách đặt qua điện thoại',NULL,'2025-06-01 09:40:23','2025-06-01 09:40:23',NULL,0),(7,'Clementine Shields','qaxyb@mailinator.com','0075252946','$2a$10$Mg7a1qbG3Wpt5/LL1hJXdORgyMD8WFuuFS49lZKuEpf33xp6wDM0G',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-01 09:44:15','2025-06-01 09:44:15',NULL,0),(8,'Preston Reeves','wogelyvi@mailinator.com','0621707951','$2a$10$LfSiDBEkpBQh9uWhQwnW1.iG3TrMf3w0ucvWyw9GisHH.LNU63Oyy',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-02 02:37:54','2025-06-02 02:37:54',NULL,0),(9,'Hector Gill','qepem@mailinator.com','0488215435','$2a$10$.GhDdGMtOZGoZsZlikXXA..J3OjZ4ka4t8iEEGEWQhRg5HXi9yESi',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-02 02:40:08','2025-06-02 02:40:08',NULL,0),(10,'John Walters','hybux@mailinator.com','0764611157','$2a$10$FIUJAcV5Tp4IGs9CD8jr5ePKbM28eoPYtMxj2egfVCtU/W8wnFQX2',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-02 02:44:44','2025-06-02 02:44:44',NULL,0),(11,'Gregory Jacobs','fetoryby@mailinator.com','0868681648','$2a$10$kZUd1FfHe9.C/KOzKJZcxOL.uShM946L30qhvxDyRp39Ga0IlKj..',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-02 02:47:15','2025-06-02 02:47:15',NULL,0),(12,'Taylor Gross','jygemi@mailinator.com','0370784956','$2a$10$xfj9S0w1KsRoYkxlCK7wveQVequmL7r6bN5KifZG6m5TUO89zWata',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-02 02:49:28','2025-06-02 02:49:28',NULL,0),(14,'Kameko Leach','vadyrud@mailinator.com','0575726427','$2a$10$Ry4BL4CuoaI7Djki6.jD0eawqu/iEUt1aG/uHBqFO.yBuuiNb/Eiq',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-05 02:53:25','2025-06-05 02:53:25',NULL,0),(15,'Geoffrey White','hudyq@mailinator.com','0838898566','$2a$10$I7NizmxcWCvvsCUQGGoFqOdtwNAWE3oaFJuakQXtCsU9/rGtI1qkq',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-05 05:26:40','2025-06-05 05:26:40',NULL,0),(16,'Denton Holder','quangkhoa51123@gmail.com','0367449306','$2a$10$aUaZEiTGhy28V9UQF/Rj0O.MuR08s.ohvt6lflBvZA1bVxRi.H6eC',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-06 15:07:09','2025-06-06 15:07:09',NULL,0),(17,'Thieu Quang Khoa','begig@mailinator.com','0770634550','$2a$10$vEkr7YHufIaNKugswSNrwekQdXqrVjhGR4nnM6qhLBK1V9UCuy9di',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-06 15:07:35','2025-06-06 15:07:35',NULL,0),(18,'Eleanor Tran','sopehoxyq@mailinator.com','0863647205','$2a$10$1i8Jd7VQrkQk/vP/UU4A3eCfkEHF2lloVQISSj0tftLyvGruTnTBu',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-06 15:27:31','2025-06-06 15:27:31',NULL,0),(19,'Bert Keller','gimibokuk@mailinator.com','0315448491','$2a$10$ZKeSAojzxiFnpDVz6eiG1etPVrRM9vO56mjHhebgvMafG1opIeasK',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-06 15:29:58','2025-06-06 15:29:58',NULL,0),(20,'Ian Schwartz','kuwidozata@mailinator.com','0981727583','$2a$10$OiABUyWOj5psL9dnXsfOsOgFIu5tb7Si/oJwlUFsmBV5T11gbAHl2',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-06 15:36:55','2025-06-06 15:36:55',NULL,0),(21,'Ian Bradshaw','hyjoz@mailinator.com','0994918210','$2a$10$k5F5H8URCFl8J.DE8XRUT.sm7jVcIBbzFhgYwy4aDbuDf80YIZIsy',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-06 15:47:51','2025-06-06 15:47:51',NULL,0),(22,'Alea Compton','xapymabo@mailinator.com','0526799608','$2a$10$bqPlpJK5LWK0kKJ6LyMzlOuHepBWUuSIpQn7eJGR8hsRuNMszQRx6',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-06 16:41:35','2025-06-06 16:41:35',NULL,0),(60,'Emmanuel Garcia','quangkhoa51132@5dulieu.com','0567692940','$2a$10$FwTfR.8kjEt7RPzwtkneu.HUXHOLmk9DOSYsvTZPrsLfJ1YdZyv/a',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-07 13:13:13','2025-06-07 13:13:13',NULL,0),(83,'Melanie Lancaster','quangkhoa5112@gmail.com','0722572791','$2a$10$TKn/I4MP1IRuqwZwJVqVIeOc7X2AK8RK4Xo2G5prcL8ywFYCz4BNS',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-10 01:36:30','2025-07-03 06:08:50',NULL,1),(110,'Dương Đỗ','abc@gmail.com','0782376648','$2a$10$2Zfcb/2y9j8CeGq049nu0Ojx9/dDBGn6zS9Bsl9NFF7m7au6eyccq',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-25 11:38:25','2025-06-25 11:38:25',NULL,0),(111,'Đỗ Hoàng Dương','dohoangduong2708@gmail.com','0705711546','$2a$10$OW1/RQ9tWxbUozfeeU1rV.gjz1FHtTv5uaGq3MAJ1AbCizmH5NdJS',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-25 11:39:32','2025-06-25 11:42:22',NULL,1),(112,'Elaine Duffy','khoatqhe150834@gmail.com','0339987189','$2a$10$q5t4RkEKiZs6V3gMwZ1Nm.a4wsJZ5DiAtIVtIEdamOFwiFnGRaPnW',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-07-03 04:11:21','2025-07-03 06:10:04',NULL,1);
+INSERT INTO `customers` VALUES (1,'Nguyễn Thị Mai','mai.nguyen@email.com','0988111222','$2b$10$abcdefghijklmnopqrstu',1,'FEMALE','1990-07-15','123 Đường Hoa, Quận 1, TP. HCM',250,'Khách hàng VIP, thích trà gừng.',5,'2025-06-01 09:40:23','2025-07-03 18:00:47','https://placehold.co/100x100/FFC0CB/333333?text=NTHMai',0),(2,'Trần Văn Nam','nam.tran@email.com','0977333444','$2b$10$abcdefghijklmnopqrstu',1,'MALE','1988-02-20','456 Đường Cây, Quận 3, TP. HCM',60,'Thường đặt dịch vụ massage chân.',5,'2025-06-01 09:40:23','2025-06-01 09:40:23','https://placehold.co/100x100/B0E0E6/333333?text=TVNam',0),(3,'Lê Thị Lan','lan.le@email.com','0966555666','$2b$10$abcdefghijklmnopqrstu',1,'FEMALE','1995-11-30','789 Đường Lá, Quận Bình Thạnh, TP. HCM',200,'Hay đi cùng bạn bè.',5,'2025-06-01 09:40:23','2025-06-01 09:40:23','https://placehold.co/100x100/98FB98/333333?text=LTLan',0),(4,'Phạm Văn Hùng','hung.pham@email.com','0955777888','$2b$10$abcdefghijklmnopqrstu',0,'MALE','1985-01-01','101 Đường Sông, Quận 2, TP. HCM',10,'Tài khoản không hoạt động.',5,'2025-06-01 09:40:23','2025-06-01 09:40:23','https://placehold.co/100x100/D3D3D3/333333?text=PVHung',0),(5,'Võ Thị Kim Chi','kimchi.vo@email.com','0944999000','$2b$10$abcdefghijklmnopqrstu',1,'FEMALE','2000-10-10','202 Đường Núi, Quận 7, TP. HCM',50,NULL,5,'2025-06-01 09:40:23','2025-06-01 09:40:23','https://placehold.co/100x100/FFE4E1/333333?text=VTKChi',0),(6,'Khách Vãng Lai A',NULL,'0912345001',NULL,1,'UNKNOWN',NULL,NULL,0,'Khách đặt qua điện thoại',NULL,'2025-06-01 09:40:23','2025-06-01 09:40:23',NULL,0),(7,'Clementine Shields','qaxyb@mailinator.com','0075252946','$2a$10$Mg7a1qbG3Wpt5/LL1hJXdORgyMD8WFuuFS49lZKuEpf33xp6wDM0G',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-01 09:44:15','2025-06-01 09:44:15',NULL,0),(8,'Preston Reeves','wogelyvi@mailinator.com','0621707951','$2a$10$LfSiDBEkpBQh9uWhQwnW1.iG3TrMf3w0ucvWyw9GisHH.LNU63Oyy',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-02 02:37:54','2025-06-02 02:37:54',NULL,0),(9,'Hector Gill','qepem@mailinator.com','0488215435','$2a$10$.GhDdGMtOZGoZsZlikXXA..J3OjZ4ka4t8iEEGEWQhRg5HXi9yESi',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-02 02:40:08','2025-06-02 02:40:08',NULL,0),(10,'John Walters','hybux@mailinator.com','0764611157','$2a$10$FIUJAcV5Tp4IGs9CD8jr5ePKbM28eoPYtMxj2egfVCtU/W8wnFQX2',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-02 02:44:44','2025-06-02 02:44:44',NULL,0),(11,'Gregory Jacobs','fetoryby@mailinator.com','0868681648','$2a$10$kZUd1FfHe9.C/KOzKJZcxOL.uShM946L30qhvxDyRp39Ga0IlKj..',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-02 02:47:15','2025-06-02 02:47:15',NULL,0),(12,'Taylor Gross','jygemi@mailinator.com','0370784956','$2a$10$xfj9S0w1KsRoYkxlCK7wveQVequmL7r6bN5KifZG6m5TUO89zWata',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-02 02:49:28','2025-06-02 02:49:28',NULL,0),(14,'Kameko Leach','vadyrud@mailinator.com','0575726427','$2a$10$Ry4BL4CuoaI7Djki6.jD0eawqu/iEUt1aG/uHBqFO.yBuuiNb/Eiq',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-05 02:53:25','2025-06-05 02:53:25',NULL,0),(15,'Geoffrey White','hudyq@mailinator.com','0838898566','$2a$10$I7NizmxcWCvvsCUQGGoFqOdtwNAWE3oaFJuakQXtCsU9/rGtI1qkq',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-05 05:26:40','2025-06-05 05:26:40',NULL,0),(16,'Denton Holder','quangkhoa51123@gmail.com','0367449306','$2a$10$aUaZEiTGhy28V9UQF/Rj0O.MuR08s.ohvt6lflBvZA1bVxRi.H6eC',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-06 15:07:09','2025-06-06 15:07:09',NULL,0),(17,'Thieu Quang Khoa','begig@mailinator.com','0770634550','$2a$10$vEkr7YHufIaNKugswSNrwekQdXqrVjhGR4nnM6qhLBK1V9UCuy9di',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-06 15:07:35','2025-06-06 15:07:35',NULL,0),(18,'Eleanor Tran','sopehoxyq@mailinator.com','0863647205','$2a$10$1i8Jd7VQrkQk/vP/UU4A3eCfkEHF2lloVQISSj0tftLyvGruTnTBu',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-06 15:27:31','2025-06-06 15:27:31',NULL,0),(19,'Bert Keller','gimibokuk@mailinator.com','0315448491','$2a$10$ZKeSAojzxiFnpDVz6eiG1etPVrRM9vO56mjHhebgvMafG1opIeasK',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-06 15:29:58','2025-06-06 15:29:58',NULL,0),(20,'Ian Schwartz','kuwidozata@mailinator.com','0981727583','$2a$10$OiABUyWOj5psL9dnXsfOsOgFIu5tb7Si/oJwlUFsmBV5T11gbAHl2',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-06 15:36:55','2025-06-06 15:36:55',NULL,0),(21,'Ian Bradshaw','hyjoz@mailinator.com','0994918210','$2a$10$k5F5H8URCFl8J.DE8XRUT.sm7jVcIBbzFhgYwy4aDbuDf80YIZIsy',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-06 15:47:51','2025-06-06 15:47:51',NULL,0),(22,'Alea Compton','xapymabo@mailinator.com','0526799608','$2a$10$bqPlpJK5LWK0kKJ6LyMzlOuHepBWUuSIpQn7eJGR8hsRuNMszQRx6',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-06 16:41:35','2025-06-06 16:41:35',NULL,0),(60,'Emmanuel Garcia','quangkhoa51132@5dulieu.com','0567692940','$2a$10$FwTfR.8kjEt7RPzwtkneu.HUXHOLmk9DOSYsvTZPrsLfJ1YdZyv/a',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-07 13:13:13','2025-06-07 13:13:13',NULL,0),(83,'Melanie Lancaster','quangkhoa5112@gmail.com','0722572791','$2a$10$TKn/I4MP1IRuqwZwJVqVIeOc7X2AK8RK4Xo2G5prcL8ywFYCz4BNS',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-10 01:36:30','2025-07-03 06:08:50',NULL,1),(110,'Dương Đỗ','abc@gmail.com','0782376648','$2a$10$2Zfcb/2y9j8CeGq049nu0Ojx9/dDBGn6zS9Bsl9NFF7m7au6eyccq',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-25 11:38:25','2025-06-25 11:38:25',NULL,0),(111,'Đỗ Hoàng Dương','dohoangduong2708@gmail.com','0705711546','$2a$10$OW1/RQ9tWxbUozfeeU1rV.gjz1FHtTv5uaGq3MAJ1AbCizmH5NdJS',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-25 11:39:32','2025-06-25 11:42:22',NULL,1),(113,'Perry Bowen','khoatqhe150834@gmail.com','0899339325','$2a$10$lyJgp/pjXtmmrRz1.ec29Osep5i8YluhNCFWj.8ckoU5qUHhQCaeG',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-07-15 05:58:17','2025-07-15 05:59:31',NULL,1);
 /*!40000 ALTER TABLE `customers` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -426,7 +516,7 @@ CREATE TABLE `email_verification_tokens` (
   UNIQUE KEY `token` (`token`),
   KEY `idx_user_email` (`user_email`),
   KEY `idx_token` (`token`)
-) ENGINE=InnoDB AUTO_INCREMENT=136 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=137 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -435,88 +525,8 @@ CREATE TABLE `email_verification_tokens` (
 
 LOCK TABLES `email_verification_tokens` WRITE;
 /*!40000 ALTER TABLE `email_verification_tokens` DISABLE KEYS */;
-INSERT INTO `email_verification_tokens` VALUES (81,'c216559d-da40-447e-b38a-a5e88f1c3b0e','quangkhoa51132@5dulieu.com','2025-06-07 13:13:15','2025-06-08 13:13:15',0),(99,'0a27e432-4208-483b-8ebf-d0214ed8cbea','quangkhoa5112@gmail.com','2025-06-10 01:36:32','2025-06-11 01:36:32',1),(118,'7b75cfe9-c519-475b-a133-d5adb8764a72','khoatqhe150834@fpt.edu.vn','2025-06-16 01:24:40','2025-06-17 01:24:41',1),(129,'63df4db1-b921-47f3-93bf-c088ff4e76af','khoatqhe150834@gmail.com','2025-06-22 12:35:41','2025-06-23 12:35:42',1),(131,'a7e5c4f4-0933-4c00-9d7c-75748172217e','abc@gmail.com','2025-06-25 11:38:30','2025-06-26 11:38:31',0),(134,'945e4624-40d4-48e2-a8ba-a4bc5ab8dc1b','dohoangduong2708@gmail.com','2025-06-25 11:41:16','2025-06-26 11:41:16',0),(135,'9103a486-0b60-47bc-901f-7925909d0293','khoatqhe150834@gmail.com','2025-07-03 11:11:21','2025-07-04 04:11:21',1);
+INSERT INTO `email_verification_tokens` VALUES (81,'c216559d-da40-447e-b38a-a5e88f1c3b0e','quangkhoa51132@5dulieu.com','2025-06-07 13:13:15','2025-06-08 13:13:15',0),(99,'0a27e432-4208-483b-8ebf-d0214ed8cbea','quangkhoa5112@gmail.com','2025-06-10 01:36:32','2025-06-11 01:36:32',1),(118,'7b75cfe9-c519-475b-a133-d5adb8764a72','khoatqhe150834@fpt.edu.vn','2025-06-16 01:24:40','2025-06-17 01:24:41',1),(129,'63df4db1-b921-47f3-93bf-c088ff4e76af','khoatqhe150834@gmail.com','2025-06-22 12:35:41','2025-06-23 12:35:42',1),(131,'a7e5c4f4-0933-4c00-9d7c-75748172217e','abc@gmail.com','2025-06-25 11:38:30','2025-06-26 11:38:31',0),(134,'945e4624-40d4-48e2-a8ba-a4bc5ab8dc1b','dohoangduong2708@gmail.com','2025-06-25 11:41:16','2025-06-26 11:41:16',0),(135,'9103a486-0b60-47bc-901f-7925909d0293','khoatqhe150834@gmail.com','2025-07-03 11:11:21','2025-07-04 04:11:21',1),(136,'3cead5ea-d921-4ae2-80e4-ff1b3823c99b','khoatqhe150834@gmail.com','2025-07-15 12:58:16','2025-07-16 05:58:17',1);
 /*!40000 ALTER TABLE `email_verification_tokens` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `general_transactions_log`
---
-
-DROP TABLE IF EXISTS `general_transactions_log`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `general_transactions_log` (
-  `transaction_log_id` int NOT NULL AUTO_INCREMENT,
-  `payment_id` int DEFAULT NULL,
-  `user_id` int DEFAULT NULL COMMENT 'User (nhân viên) liên quan đến giao dịch này (ví dụ: admin điều chỉnh)',
-  `customer_id` int DEFAULT NULL COMMENT 'Khách hàng liên quan đến giao dịch này',
-  `related_entity_type` enum('APPOINTMENT_PAYMENT','POINT_REDEMPTION','REFUND_ONLINE','OTHER_EXPENSE','OTHER_REVENUE') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `related_entity_id` int DEFAULT NULL,
-  `transaction_code_internal` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `type` enum('DEBIT_SPA','CREDIT_SPA') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `amount` decimal(12,2) NOT NULL,
-  `currency_code` varchar(3) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'VND',
-  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-  `status` enum('PENDING','COMPLETED','FAILED','CANCELLED','PARTIALLY_PAID') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'COMPLETED',
-  `transaction_date` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`transaction_log_id`),
-  UNIQUE KEY `transaction_code_internal` (`transaction_code_internal`),
-  UNIQUE KEY `payment_id` (`payment_id`),
-  KEY `user_id` (`user_id`),
-  KEY `customer_id` (`customer_id`),
-  CONSTRAINT `general_transactions_log_ibfk_1` FOREIGN KEY (`payment_id`) REFERENCES `payments` (`payment_id`) ON DELETE SET NULL,
-  CONSTRAINT `general_transactions_log_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL,
-  CONSTRAINT `general_transactions_log_ibfk_3` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `general_transactions_log`
---
-
-LOCK TABLES `general_transactions_log` WRITE;
-/*!40000 ALTER TABLE `general_transactions_log` DISABLE KEYS */;
-INSERT INTO `general_transactions_log` VALUES (5,4,NULL,2,'APPOINTMENT_PAYMENT',6,'SPA_PAY_00001','CREDIT_SPA',350000.00,'VND','Thu tiền dịch vụ Chăm Sóc Da Cơ Bản (ID: 3) cho lịch hẹn ID: 6','COMPLETED','2025-06-03 04:05:00'),(6,NULL,NULL,2,'POINT_REDEMPTION',6,'SPA_POINT_RD_00001','DEBIT_SPA',50000.00,'VND','Khách hàng Trần Văn Nam đổi 50 điểm (tương đương 50.000 VND) cho lịch hẹn ID: 6','COMPLETED','2025-06-03 04:00:00'),(7,5,NULL,1,'APPOINTMENT_PAYMENT',5,'SPA_PAY_00002','CREDIT_SPA',700000.00,'VND','Ghi nhận yêu cầu thanh toán cho dịch vụ Massage Đá Nóng (ID: 2) cho lịch hẹn ID: 5','PENDING','2025-06-05 06:00:00');
-/*!40000 ALTER TABLE `general_transactions_log` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `loyalty_point_transactions`
---
-
-DROP TABLE IF EXISTS `loyalty_point_transactions`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `loyalty_point_transactions` (
-  `point_transaction_id` int NOT NULL AUTO_INCREMENT,
-  `customer_id` int NOT NULL,
-  `transaction_type` enum('EARNED_APPOINTMENT','REDEEMED_PAYMENT','ADMIN_ADJUSTMENT','EXPIRED','REFUND_POINTS','MANUAL_ADD') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `points_changed` int NOT NULL,
-  `balance_after_transaction` int NOT NULL,
-  `related_appointment_id` int DEFAULT NULL,
-  `related_payment_id` int DEFAULT NULL,
-  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-  `transaction_date` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `admin_user_id` int DEFAULT NULL COMMENT 'User admin thực hiện điều chỉnh điểm (nếu có)',
-  PRIMARY KEY (`point_transaction_id`),
-  KEY `customer_id` (`customer_id`),
-  KEY `related_payment_id` (`related_payment_id`),
-  KEY `admin_user_id` (`admin_user_id`),
-  CONSTRAINT `loyalty_point_transactions_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`) ON DELETE CASCADE,
-  CONSTRAINT `loyalty_point_transactions_ibfk_3` FOREIGN KEY (`related_payment_id`) REFERENCES `payments` (`payment_id`) ON DELETE SET NULL,
-  CONSTRAINT `loyalty_point_transactions_ibfk_4` FOREIGN KEY (`admin_user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `loyalty_point_transactions`
---
-
-LOCK TABLES `loyalty_point_transactions` WRITE;
-/*!40000 ALTER TABLE `loyalty_point_transactions` DISABLE KEYS */;
-INSERT INTO `loyalty_point_transactions` VALUES (5,2,'EARNED_APPOINTMENT',35,110,6,4,'Tích điểm từ lịch hẹn hoàn thành (10.000 VND = 1 điểm)','2025-06-03 04:10:00',NULL),(6,2,'REDEEMED_PAYMENT',-50,60,6,NULL,'Đổi 50 điểm trừ vào thanh toán lịch hẹn','2025-06-03 04:00:00',NULL),(7,1,'ADMIN_ADJUSTMENT',100,250,NULL,NULL,'Tặng điểm tri ân khách hàng VIP.','2025-06-01 09:40:23',1);
-/*!40000 ALTER TABLE `loyalty_point_transactions` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -622,6 +632,74 @@ INSERT INTO `password_reset_tokens` VALUES (4,'8c09d300-9181-435b-b1e4-5c6d2faee
 UNLOCK TABLES;
 
 --
+-- Table structure for table `payment_item_usage`
+--
+
+DROP TABLE IF EXISTS `payment_item_usage`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `payment_item_usage` (
+  `usage_id` int NOT NULL AUTO_INCREMENT,
+  `payment_item_id` int NOT NULL,
+  `total_quantity` int NOT NULL,
+  `booked_quantity` int NOT NULL DEFAULT '0',
+  `remaining_quantity` int GENERATED ALWAYS AS ((`total_quantity` - `booked_quantity`)) STORED,
+  `last_updated` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`usage_id`),
+  UNIQUE KEY `uk_payment_item` (`payment_item_id`),
+  CONSTRAINT `payment_item_usage_ibfk_1` FOREIGN KEY (`payment_item_id`) REFERENCES `payment_items` (`payment_item_id`) ON DELETE CASCADE,
+  CONSTRAINT `chk_booked_quantity_valid` CHECK (((`booked_quantity` >= 0) and (`booked_quantity` <= `total_quantity`))),
+  CONSTRAINT `chk_total_quantity_positive` CHECK ((`total_quantity` > 0))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `payment_item_usage`
+--
+
+LOCK TABLES `payment_item_usage` WRITE;
+/*!40000 ALTER TABLE `payment_item_usage` DISABLE KEYS */;
+/*!40000 ALTER TABLE `payment_item_usage` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `payment_items`
+--
+
+DROP TABLE IF EXISTS `payment_items`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `payment_items` (
+  `payment_item_id` int NOT NULL AUTO_INCREMENT,
+  `payment_id` int NOT NULL,
+  `service_id` int NOT NULL,
+  `quantity` int NOT NULL DEFAULT '1',
+  `unit_price` decimal(10,2) NOT NULL,
+  `total_price` decimal(10,2) NOT NULL,
+  `service_duration` int NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`payment_item_id`),
+  KEY `idx_payment_items` (`payment_id`),
+  KEY `idx_service_payment` (`service_id`),
+  CONSTRAINT `payment_items_ibfk_1` FOREIGN KEY (`payment_id`) REFERENCES `payments` (`payment_id`) ON DELETE CASCADE,
+  CONSTRAINT `payment_items_ibfk_2` FOREIGN KEY (`service_id`) REFERENCES `services` (`service_id`) ON DELETE RESTRICT,
+  CONSTRAINT `chk_duration_positive` CHECK ((`service_duration` > 0)),
+  CONSTRAINT `chk_quantity_positive` CHECK ((`quantity` > 0)),
+  CONSTRAINT `chk_total_price_positive` CHECK ((`total_price` > 0)),
+  CONSTRAINT `chk_unit_price_positive` CHECK ((`unit_price` > 0))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `payment_items`
+--
+
+LOCK TABLES `payment_items` WRITE;
+/*!40000 ALTER TABLE `payment_items` DISABLE KEYS */;
+/*!40000 ALTER TABLE `payment_items` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `payments`
 --
 
@@ -630,22 +708,26 @@ DROP TABLE IF EXISTS `payments`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `payments` (
   `payment_id` int NOT NULL AUTO_INCREMENT,
-  `appointment_id` int NOT NULL COMMENT 'Liên kết với lịch hẹn đang được thanh toán',
-  `customer_id` int NOT NULL COMMENT 'Khách hàng thực hiện thanh toán',
-  `amount_paid` decimal(12,2) NOT NULL,
-  `payment_method` enum('CREDIT_CARD','BANK_TRANSFER','VNPAY','MOMO','LOYALTY_POINTS','OTHER_ONLINE') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Chỉ các phương thức online và điểm',
-  `payment_date` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `transaction_id_gateway` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Mã giao dịch từ cổng thanh toán',
-  `status` enum('PENDING','COMPLETED','FAILED','REFUNDED','PARTIALLY_PAID') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PENDING' COMMENT 'Trạng thái thanh toán online',
-  `notes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT 'Ghi chú về thanh toán, ví dụ: mã lỗi cổng thanh toán',
+  `customer_id` int NOT NULL,
+  `total_amount` decimal(10,2) NOT NULL,
+  `tax_amount` decimal(10,2) DEFAULT '0.00',
+  `subtotal_amount` decimal(10,2) NOT NULL,
+  `payment_method` enum('BANK_TRANSFER','CREDIT_CARD','VNPAY','MOMO','ZALOPAY','CASH') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `payment_status` enum('PENDING','PAID','REFUNDED','FAILED') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PENDING',
+  `reference_number` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `transaction_date` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `payment_date` timestamp NULL DEFAULT NULL,
+  `notes` text COLLATE utf8mb4_unicode_ci,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`payment_id`),
-  UNIQUE KEY `transaction_id_gateway` (`transaction_id_gateway`),
-  KEY `customer_id` (`customer_id`),
-  KEY `idx_payment_date` (`payment_date`),
-  CONSTRAINT `payments_ibfk_2` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`) ON DELETE RESTRICT
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  UNIQUE KEY `reference_number` (`reference_number`),
+  KEY `idx_customer_payment` (`customer_id`,`payment_date`),
+  KEY `idx_payment_status` (`payment_status`),
+  KEY `idx_reference_number` (`reference_number`),
+  KEY `idx_transaction_date` (`transaction_date`),
+  CONSTRAINT `payments_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -654,7 +736,6 @@ CREATE TABLE `payments` (
 
 LOCK TABLES `payments` WRITE;
 /*!40000 ALTER TABLE `payments` DISABLE KEYS */;
-INSERT INTO `payments` VALUES (4,6,2,350000.00,'VNPAY','2025-06-03 04:05:00','VNPAY_TRN001','COMPLETED','Thanh toán thành công cho dịch vụ Chăm Sóc Da Cơ Bản.','2025-06-01 09:40:23','2025-06-01 09:40:23'),(5,5,1,700000.00,'MOMO','2025-06-05 06:00:00','MOMO_TRN002','PENDING','Khách hàng đã tạo yêu cầu thanh toán qua Momo.','2025-06-01 09:40:23','2025-06-01 09:40:23');
 /*!40000 ALTER TABLE `payments` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -723,7 +804,7 @@ CREATE TABLE `remember_me_tokens` (
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `token` (`token`)
-) ENGINE=InnoDB AUTO_INCREMENT=241 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=317 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -732,7 +813,7 @@ CREATE TABLE `remember_me_tokens` (
 
 LOCK TABLES `remember_me_tokens` WRITE;
 /*!40000 ALTER TABLE `remember_me_tokens` DISABLE KEYS */;
-INSERT INTO `remember_me_tokens` VALUES (11,'quangkhoa5112@5dulieu.com','123456789','0cb51cb5-2380-4033-acdc-f3cd9fa385ce','2025-07-06 09:36:14','2025-06-06 09:36:13'),(24,'xapymabo@mailinator.com','A123456a@','aae04773-83ea-47ae-b622-9712d48c53f8','2025-07-07 08:05:55','2025-06-07 08:05:54'),(97,'therapist@beautyzone.com','123456','fc4ac81a-adca-4486-b47d-1ecb4d2a1a0b','2025-07-14 17:58:55','2025-06-14 17:58:55'),(149,'khoatqhe150834@fpt.edu.vn','123456','8bb29688-a91f-4ff6-b85f-6b0fcee17e56','2025-07-17 20:17:45','2025-06-17 20:17:44'),(236,'manager@beautyzone.com','123456','9a8e56f9-4cfc-471d-bd22-687c2fb4c9fa','2025-08-03 02:35:59','2025-07-04 09:35:58'),(238,'admin@beautyzone.com','123456','7897b982-ca61-4360-b368-1cead78b620b','2025-08-05 16:03:41','2025-07-06 23:03:41');
+INSERT INTO `remember_me_tokens` VALUES (11,'quangkhoa5112@5dulieu.com','123456789','0cb51cb5-2380-4033-acdc-f3cd9fa385ce','2025-07-06 09:36:14','2025-06-06 09:36:13'),(24,'xapymabo@mailinator.com','A123456a@','aae04773-83ea-47ae-b622-9712d48c53f8','2025-07-07 08:05:55','2025-06-07 08:05:54'),(97,'therapist@beautyzone.com','123456','fc4ac81a-adca-4486-b47d-1ecb4d2a1a0b','2025-07-14 17:58:55','2025-06-14 17:58:55'),(149,'khoatqhe150834@fpt.edu.vn','123456','8bb29688-a91f-4ff6-b85f-6b0fcee17e56','2025-07-17 20:17:45','2025-06-17 20:17:44'),(290,'admin@beautyzone.com','123456','bb15f679-49e4-4eff-b2d6-5664dfaee735','2025-08-10 13:47:26','2025-07-11 20:47:26'),(295,'manager@beautyzone.com','123456','bd95b064-f676-4458-8813-3a5175ba384f','2025-08-11 14:21:53','2025-07-12 21:21:53'),(316,'khoatqhe150834@gmail.com','123456','b40791de-a979-46ca-b6da-fb4b2bd130b9','2025-08-14 16:53:08','2025-07-15 23:53:08');
 /*!40000 ALTER TABLE `remember_me_tokens` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -788,7 +869,7 @@ CREATE TABLE `service_images` (
   KEY `idx_service_id` (`service_id`),
   KEY `idx_is_active` (`is_active`),
   CONSTRAINT `service_images_ibfk_1` FOREIGN KEY (`service_id`) REFERENCES `services` (`service_id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Stores multiple images for each service with metadata';
+) ENGINE=InnoDB AUTO_INCREMENT=115 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Stores multiple images for each service with metadata';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -797,6 +878,7 @@ CREATE TABLE `service_images` (
 
 LOCK TABLES `service_images` WRITE;
 /*!40000 ALTER TABLE `service_images` DISABLE KEYS */;
+INSERT INTO `service_images` VALUES (87,1,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752471576/services/1/9f14d87e-91ca-473b-b76f-7420383810aa.jpg','Service image for massage.jpg',1,1,'Uploaded via TestController',1,NULL,'2025-07-14 05:39:37','2025-07-14 05:39:37'),(88,1,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752471578/services/1/bc71c550-2dab-4b25-af30-cc8f3967dba9.jpg','Service image for sakura-massage-spa.jpg',0,2,'Uploaded via TestController',1,NULL,'2025-07-14 05:39:39','2025-07-14 05:39:39'),(89,2,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752471688/services/2/c861d4ba-158d-42a3-919c-92f9cb7a2a31.jpg','Service image for Adult-woman-having-hot-stone-m-1024x768.jpg',1,1,'Uploaded via TestController',1,NULL,'2025-07-14 05:41:28','2025-07-14 05:41:28'),(90,2,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752471690/services/2/ea59b084-d37b-4053-9ba3-3e2e4aef1382.jpg','Service image for hot-stone-massage.jpg',0,2,'Uploaded via TestController',1,NULL,'2025-07-14 05:41:30','2025-07-14 05:41:30'),(91,3,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752471805/services/3/f48e022f-5332-44f2-a4a4-b76804f0c9d0.jpg','Service image for 20201107_cach-cham-soc-da-mat-hang-ngay-1.jpg',1,1,'Uploaded via TestController',1,NULL,'2025-07-14 05:43:25','2025-07-14 05:43:25'),(92,3,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752471806/services/3/c1b57e77-2e27-4790-a6d8-f42c22a6e8ec.webp','Service image for nganh-cham-soc-da-mo-ra-nhieu-co-hoi-nghe-nghiep-9fea782b-c3da-4e97-a9b8-7dc3da79eb26.webp',0,2,'Uploaded via TestController',1,NULL,'2025-07-14 05:43:27','2025-07-14 05:43:27'),(93,4,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752471974/services/4/b27dbde2-258c-4859-b137-a9d5bb8958aa.jpg','Service image for 20240424140334.jpg',1,1,'Uploaded via TestController',1,NULL,'2025-07-14 05:46:14','2025-07-14 05:46:14'),(94,4,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752471976/services/4/2d0d900e-5b42-4727-8642-5406c7e6d894.png','Service image for tri-mun-dung-nguyen-spa1.png',0,2,'Uploaded via TestController',1,NULL,'2025-07-14 05:46:17','2025-07-14 05:46:17'),(95,5,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472121/services/5/b7aa6723-d9a0-4f6c-91c2-8da732aa10a6.jpg','Service image for tay-da-chet-1.jpg',1,1,'Uploaded via TestController',1,NULL,'2025-07-14 05:48:42','2025-07-14 05:48:42'),(96,5,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472124/services/5/b9bb999d-6aa6-4df6-9174-3a9db2274433.png','Service image for tay-te-bao-chet-da-mat-06.png',0,2,'Uploaded via TestController',1,NULL,'2025-07-14 05:48:44','2025-07-14 05:48:44'),(97,6,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472169/services/6/cb0739e0-2760-49e2-8d0c-fc2ffa772625.webp','Service image for Mot_so_dieu_can_biet_khi_goi_dau_bang_thao_duoc_thien_nhien_1_6e9385774c.webp',1,1,'Uploaded via TestController',1,NULL,'2025-07-14 05:49:29','2025-07-14 05:49:29'),(98,6,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472170/services/6/217bda47-5405-4701-9a67-1ba276a2d3fd.jpg','Service image for tai-sao-nen-goi-dau-duong-sinh-thao-duoc-1.jpg',0,2,'Uploaded via TestController',1,NULL,'2025-07-14 05:49:31','2025-07-14 05:49:31'),(99,7,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472253/services/7/bae4c82c-49ba-4487-a0b6-307f1bf49a21.webp','Service image for dia-chi-massage-tphcm-3.webp',1,1,'Uploaded via TestController',1,NULL,'2025-07-14 05:50:54','2025-07-14 05:50:54'),(100,7,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472256/services/7/43f92a2b-5783-4c4d-a899-b36b75dc7568.jpg','Service image for -Massage-bam-huyet-ap-la-thuoc-ong-Y-tri-lieu-Cot-song-That-lung.jpeg',0,2,'Uploaded via TestController',1,NULL,'2025-07-14 05:50:57','2025-07-14 05:50:57'),(101,7,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472336/services/7/bf035931-2a3b-4ede-90e6-4ac651d81438.avif','Service image for 67aae87b-b7d8-4bd6-975b-06103831f6e2_eee40472.avif',1,1,'Uploaded via TestController',1,NULL,'2025-07-14 05:52:16','2025-07-14 05:52:16'),(102,7,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472337/services/7/0cc2707f-7236-491e-afef-84ba4fa06859.webp','Service image for big-ticket-image-6098b643490c8295174682-cropped600-400.jpg.webp',0,2,'Uploaded via TestController',1,NULL,'2025-07-14 05:52:18','2025-07-14 05:52:18'),(103,8,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472362/services/8/cdfa8097-bd32-45f7-bf4e-470a07885aad.avif','Service image for 67aae87b-b7d8-4bd6-975b-06103831f6e2_eee40472.avif',1,1,'Uploaded via TestController',1,NULL,'2025-07-14 05:52:42','2025-07-14 05:52:42'),(104,8,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472363/services/8/38fa657a-220d-4164-9d99-73e66418ec1c.webp','Service image for big-ticket-image-6098b643490c8295174682-cropped600-400.jpg.webp',0,2,'Uploaded via TestController',1,NULL,'2025-07-14 05:52:43','2025-07-14 05:52:43'),(105,9,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472450/services/9/8daabb6c-f3de-465c-baa4-57791a486b94.jpg','Service image for massage-foot-2386.jpg',1,1,'Uploaded via TestController',1,NULL,'2025-07-14 05:54:10','2025-07-14 05:54:10'),(106,9,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472452/services/9/b5c47954-1918-45be-ab3c-71f52cb26787.jpg','Service image for top-10-dia-chi-massage-chan-gan-day-tot-nhat-tai-tphcm-20230530111507-276043.jpg',0,2,'Uploaded via TestController',1,NULL,'2025-07-14 05:54:12','2025-07-14 05:54:12'),(107,10,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472569/services/10/d79b21e5-8d0e-404d-8dcf-b2ec70076636.jpg','Service image for massage (1).jpg',1,1,'Uploaded via TestController',1,NULL,'2025-07-14 05:56:09','2025-07-14 05:56:09'),(108,10,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472570/services/10/13662bb5-789e-4819-9acd-624bfbc2ec07.webp','Service image for n2.webp',0,2,'Uploaded via TestController',1,NULL,'2025-07-14 05:56:11','2025-07-14 05:56:11'),(109,27,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472669/services/27/f990545d-adad-4caa-ae6d-f90768bf3d2d.jpg','Service image for 21.jpg',1,1,'Uploaded via TestController',1,NULL,'2025-07-14 05:57:49','2025-07-14 05:57:49'),(110,27,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472671/services/27/40fcf601-110d-42bd-8909-b64523dc91a4.webp','Service image for young-lady-showing-her-red-manicure-pedicure-nails-young-lady-showing-her-red-manicure-pedicure-nails-rose-142082356.webp',0,2,'Uploaded via TestController',1,NULL,'2025-07-14 05:57:51','2025-07-14 05:57:51'),(111,71,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472778/services/71/4237de8e-37a1-4677-a478-1719b8306928.jpg','Service image for B3-BE888_sensor_M_20180723160955.jpg',1,1,'Uploaded via TestController',1,NULL,'2025-07-14 05:59:39','2025-07-14 05:59:39'),(112,71,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472780/services/71/b101ddd8-d2a2-4728-87dd-9401d2defca4.png','Service image for float-therapy.png',0,2,'Uploaded via TestController',1,NULL,'2025-07-14 05:59:41','2025-07-14 05:59:41'),(113,72,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472859/services/72/0bda7958-8789-42e3-8f8e-058d7aba8ee7.jpg','Service image for bon-tam-rai-hoa-hong-2_441ccdc2297a4b5c8905257b3236ce87_grande.jpg',1,1,'Uploaded via TestController',1,NULL,'2025-07-14 06:01:00','2025-07-14 06:01:00'),(114,72,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472861/services/72/a3e3d846-6784-401f-8001-c6065456f0ca.jpg','Service image for o-dau-ban-bon-cau-viglacera-thiet-bi-ve-sinh-cao-cap-gia-tot-1.jpg',0,2,'Uploaded via TestController',1,NULL,'2025-07-14 06:01:02','2025-07-14 06:01:02');
 /*!40000 ALTER TABLE `service_images` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -822,10 +904,8 @@ CREATE TABLE `service_reviews` (
   PRIMARY KEY (`review_id`),
   KEY `service_id` (`service_id`),
   KEY `customer_id` (`customer_id`),
-  KEY `appointment_id` (`appointment_id`),
   CONSTRAINT `service_reviews_ibfk_1` FOREIGN KEY (`service_id`) REFERENCES `services` (`service_id`) ON DELETE CASCADE,
-  CONSTRAINT `service_reviews_ibfk_2` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`) ON DELETE CASCADE,
-  CONSTRAINT `service_reviews_ibfk_3` FOREIGN KEY (`appointment_id`) REFERENCES `booking_appointments` (`appointment_id`) ON DELETE CASCADE
+  CONSTRAINT `service_reviews_ibfk_2` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -908,37 +988,6 @@ INSERT INTO `services` VALUES (1,1,'Massage Thụy Điển','Massage cổ điể
 UNLOCK TABLES;
 
 --
--- Table structure for table `shopping_carts`
---
-
-DROP TABLE IF EXISTS `shopping_carts`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `shopping_carts` (
-  `cart_id` int NOT NULL AUTO_INCREMENT,
-  `customer_id` int DEFAULT NULL COMMENT 'Liên kết với khách hàng nếu đã đăng nhập/xác định',
-  `session_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Dùng cho khách vãng lai chưa đăng nhập',
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `status` enum('ACTIVE','ABANDONED','CONVERTED') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'ACTIVE' COMMENT 'CONVERTED khi các mục đã được chuyển thành lịch hẹn/yêu cầu',
-  PRIMARY KEY (`cart_id`),
-  UNIQUE KEY `uq_customer_active_cart` (`customer_id`,`status`),
-  KEY `idx_cart_session_id` (`session_id`),
-  CONSTRAINT `shopping_carts_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `shopping_carts`
---
-
-LOCK TABLES `shopping_carts` WRITE;
-/*!40000 ALTER TABLE `shopping_carts` DISABLE KEYS */;
-INSERT INTO `shopping_carts` VALUES (1,1,NULL,'2025-06-01 09:40:23','2025-06-01 09:40:23','ACTIVE'),(2,NULL,'sess_abc123xyz789','2025-06-01 09:40:23','2025-06-01 09:40:23','ACTIVE'),(3,2,NULL,'2025-05-30 09:40:23','2025-05-30 09:40:23','ABANDONED');
-/*!40000 ALTER TABLE `shopping_carts` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `spa_information`
 --
 
@@ -981,51 +1030,6 @@ LOCK TABLES `spa_information` WRITE;
 /*!40000 ALTER TABLE `spa_information` DISABLE KEYS */;
 INSERT INTO `spa_information` VALUES (1,'BeautyZone','Số 10 Đường An Bình','Phường Yên Hòa','Hà Nội','100000','Việt Nam','02412345678','0912345678','contact@annhienspa.vn','support@annhienspa.vn','https://annhienspa.vn','https://placehold.co/200x100/E6F2FF/333333?text=AnNhienLogo','0123456789','Vui lòng hủy lịch trước 24 giờ để tránh phí hủy. Chi tiết xem tại website.','Điều khoản đặt lịch chi tiết có tại quầy lễ tân và website của spa.','Nơi bạn tìm thấy sự thư giãn và tái tạo năng lượng.','An nhiên Spa cung cấp các dịch vụ chăm sóc sức khỏe và sắc đẹp hàng đầu với đội ngũ chuyên nghiệp và không gian yên tĩnh.',8.00,15,'2025-06-01 09:40:23','2025-06-04 15:18:58');
 /*!40000 ALTER TABLE `spa_information` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `therapist_assignments`
---
-
-DROP TABLE IF EXISTS `therapist_assignments`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `therapist_assignments` (
-  `assignment_id` int NOT NULL AUTO_INCREMENT,
-  `therapist_user_id` int NOT NULL COMMENT 'FK to therapists.user_id',
-  `service_id` int NOT NULL COMMENT 'FK to services.service_id',
-  `booking_group_id` int NOT NULL COMMENT 'FK to booking_groups.booking_group_id',
-  `assignment_date` date NOT NULL COMMENT 'Date when service will be performed',
-  `start_time` time NOT NULL COMMENT 'Start time for this service',
-  `end_time` time NOT NULL COMMENT 'End time for this service',
-  `assignment_status` enum('SCHEDULED','IN_PROGRESS','COMPLETED','CANCELLED','NO_SHOW') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'SCHEDULED',
-  `workload_balance_score` decimal(5,2) DEFAULT '0.00' COMMENT 'Work balancer score for this assignment (0.00-100.00)',
-  `estimated_duration_minutes` int NOT NULL COMMENT 'Expected duration from service duration',
-  `actual_duration_minutes` int DEFAULT NULL COMMENT 'Actual time taken, filled after completion',
-  `buffer_time_minutes` int DEFAULT '10' COMMENT 'Buffer time after this service',
-  `notes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT 'Special instructions or notes',
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`assignment_id`),
-  UNIQUE KEY `uq_therapist_datetime` (`therapist_user_id`,`assignment_date`,`start_time`),
-  KEY `idx_therapist_date_time` (`therapist_user_id`,`assignment_date`,`start_time`),
-  KEY `idx_booking_group` (`booking_group_id`),
-  KEY `idx_service` (`service_id`),
-  KEY `idx_date_time_range` (`assignment_date`,`start_time`,`end_time`),
-  KEY `idx_workload_balance` (`workload_balance_score`),
-  CONSTRAINT `fk_assignment_booking_group` FOREIGN KEY (`booking_group_id`) REFERENCES `booking_groups` (`booking_group_id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_assignment_service` FOREIGN KEY (`service_id`) REFERENCES `services` (`service_id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_assignment_therapist` FOREIGN KEY (`therapist_user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `therapist_assignments`
---
-
-LOCK TABLES `therapist_assignments` WRITE;
-/*!40000 ALTER TABLE `therapist_assignments` DISABLE KEYS */;
-/*!40000 ALTER TABLE `therapist_assignments` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -1169,9 +1173,27 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,1,'Nguyễn Văn An','quangkhoa5112@5dulieu.com','$2a$10$Q8m8OY5RIEWeo1alSpOx1up8kZLEz.QDkfiKfyBlbO3GN0ySqwEm.','0912345678','MALE','1980-01-15',NULL,'https://placehold.co/100x100/E6E6FA/333333?text=NVAn',1,'2025-06-01 09:40:23','2025-06-01 09:40:23','2025-06-05 02:51:26'),(2,2,'Trần Thị Bình','manager@spademo.com','$2b$10$abcdefghijklmnopqrstuv','0987654321','FEMALE','1985-05-20',NULL,'https://placehold.co/100x100/FFF0F5/333333?text=TTBinh',1,'2025-06-01 09:40:23','2025-06-01 09:40:23','2025-06-01 09:40:23'),(3,3,'Lê Minh Cường','therapist1@spademo.com','$2b$10$abcdefghijklmnopqrstuv','0905112233','MALE','1990-09-10',NULL,'https://placehold.co/100x100/F0FFF0/333333?text=LMCuong',1,'2025-06-01 09:40:23','2025-06-01 09:40:23','2025-06-01 09:40:23'),(4,3,'Phạm Thị Dung','therapist2@spademo.com','$2b$10$abcdefghijklmnopqrstuv','0905445566','FEMALE','1992-12-01',NULL,'https://placehold.co/100x100/FAFAD2/333333?text=PTDung',1,'2025-06-01 09:40:23','2025-06-01 09:40:23','2025-06-01 09:40:23'),(5,4,'Hoàng Văn Em','receptionist@spademo.com','$2b$10$abcdefghijklmnopqrstuv','0918778899','MALE','1995-03-25',NULL,'https://placehold.co/100x100/ADD8E6/333333?text=HVEm',1,'2025-06-01 09:40:23','2025-06-01 09:40:23','2025-06-01 09:40:23'),(6,1,'Nguyễn Văn Admin','admin@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234567','MALE','1985-01-15',NULL,'/assets/avatars/admin.jpg',1,NULL,'2025-06-04 03:47:10','2025-06-04 03:47:10'),(7,2,'Trần Thị Manager','manager@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234568','FEMALE','1988-03-20',NULL,'/assets/avatars/manager.jpg',1,NULL,'2025-06-04 03:57:48','2025-06-04 03:57:48'),(8,3,'Lê Văn Therapist','therapist@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234569','MALE','1990-07-10',NULL,'/assets/avatars/therapist.jpg',1,NULL,'2025-06-04 03:57:48','2025-06-04 03:57:48'),(9,4,'Phạm Thị Receptionist','receptionist@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234570','FEMALE','1992-11-25',NULL,'/assets/avatars/receptionist.jpg',1,NULL,'2025-06-04 03:57:48','2025-06-04 03:57:48'),(10,1,'Hoàng Minh Quản Trị','admin2@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234571','MALE','1987-05-12',NULL,'/assets/avatars/admin2.jpg',1,NULL,'2025-06-04 03:57:48','2025-06-04 03:57:48'),(11,3,'Nguyễn Thị Spa Master','therapist2@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234572','FEMALE','1989-09-18',NULL,'/assets/avatars/therapist2.jpg',1,NULL,'2025-06-04 03:57:48','2025-06-04 03:57:48'),(12,3,'Mai Anh Tuấn','therapist3@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234573','MALE','1991-04-12',NULL,'/assets/admin/images/avatar/avatar-1.jpg',1,NULL,'2025-06-18 01:49:35','2025-06-18 01:49:35'),(13,3,'Trần Ngọc Bích','therapist4@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234574','FEMALE','1993-08-22',NULL,'/assets/admin/images/avatar/avatar-2.jpg',1,NULL,'2025-06-18 01:49:35','2025-06-18 01:49:35'),(14,3,'Vũ Minh Đức','therapist5@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234575','MALE','1989-11-05',NULL,'/assets/admin/images/avatar/avatar-3.jpg',1,NULL,'2025-06-18 01:49:35','2025-06-18 01:49:35'),(15,3,'Hoàng Thị Thu','therapist6@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234576','FEMALE','1995-02-18',NULL,'/assets/admin/images/avatar/avatar-4.jpg',1,NULL,'2025-06-18 01:49:35','2025-06-18 01:49:35'),(16,3,'Đặng Văn Long','therapist7@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234577','MALE','1988-06-30',NULL,'/assets/admin/images/avatar/avatar-5.jpg',1,NULL,'2025-06-18 01:49:35','2025-06-18 01:49:35'),(17,3,'Ngô Mỹ Linh','therapist8@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234578','FEMALE','1992-07-21',NULL,'/assets/admin/images/avatar/avatar-6.jpg',1,NULL,'2025-06-18 01:49:35','2025-06-18 01:49:35'),(18,3,'Bùi Quang Huy','therapist9@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234579','MALE','1996-01-09',NULL,'/assets/admin/images/avatar/avatar-7.jpg',1,NULL,'2025-06-18 01:49:35','2025-06-18 01:49:35'),(19,3,'Đỗ Phương Thảo','therapist10@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234580','FEMALE','1994-03-14',NULL,'/assets/admin/images/avatar/avatar-8.jpg',1,NULL,'2025-06-18 01:49:35','2025-06-18 01:49:35'),(20,3,'Lương Thế Vinh','therapist11@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234581','MALE','1998-10-25',NULL,'/assets/admin/images/avatar/avatar-9.jpg',1,NULL,'2025-06-18 01:49:35','2025-06-18 01:49:35'),(21,6,'Phan Thị Diễm','marketing@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234582','FEMALE','1990-12-03',NULL,'/assets/admin/images/avatar/avatar-10.jpg',1,NULL,'2025-06-18 01:49:35','2025-06-25 02:09:07');
+INSERT INTO `users` VALUES (1,1,'Nguyễn Văn An','quangkhoa5112@5dulieu.com','$2a$10$Q8m8OY5RIEWeo1alSpOx1up8kZLEz.QDkfiKfyBlbO3GN0ySqwEm.','0912345678','MALE','1980-01-15',NULL,NULL,1,'2025-06-01 09:40:23','2025-06-01 09:40:23','2025-07-11 05:26:24'),(2,2,'Trần Thị Bình','manager@spademo.com','$2b$10$abcdefghijklmnopqrstuv','0987654321','FEMALE','1985-05-20',NULL,NULL,1,'2025-06-01 09:40:23','2025-06-01 09:40:23','2025-07-11 05:26:24'),(3,3,'Lê Minh Cường','therapist1@spademo.com','$2b$10$abcdefghijklmnopqrstuv','0905112233','MALE','1990-09-10',NULL,NULL,1,'2025-06-01 09:40:23','2025-06-01 09:40:23','2025-07-11 05:26:24'),(4,3,'Phạm Thị Dung','therapist2@spademo.com','$2b$10$abcdefghijklmnopqrstuv','0905445566','FEMALE','1992-12-01',NULL,NULL,1,'2025-06-01 09:40:23','2025-06-01 09:40:23','2025-07-11 05:26:24'),(5,4,'Hoàng Văn Em','receptionist@spademo.com','$2b$10$abcdefghijklmnopqrstuv','0918778899','MALE','1995-03-25',NULL,NULL,1,'2025-06-01 09:40:23','2025-06-01 09:40:23','2025-07-11 05:26:24'),(6,1,'Nguyễn Văn Admin','admin@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234567','MALE','1985-01-15',NULL,NULL,1,NULL,'2025-06-04 03:47:10','2025-07-11 05:26:24'),(7,2,'Trần Thị Manager','manager@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234568','FEMALE','1988-03-20',NULL,NULL,1,NULL,'2025-06-04 03:57:48','2025-07-11 05:26:24'),(8,3,'Lê Văn Therapist','therapist@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234569','MALE','1990-07-10',NULL,NULL,1,NULL,'2025-06-04 03:57:48','2025-07-11 05:26:24'),(9,4,'Phạm Thị Receptionist','receptionist@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234570','FEMALE','1992-11-25',NULL,NULL,1,NULL,'2025-06-04 03:57:48','2025-07-11 05:26:24'),(10,1,'Hoàng Minh Quản Trị','admin2@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234571','MALE','1987-05-12',NULL,NULL,1,NULL,'2025-06-04 03:57:48','2025-07-11 05:26:24'),(11,3,'Nguyễn Thị Spa Master','therapist2@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234572','FEMALE','1989-09-18',NULL,NULL,1,NULL,'2025-06-04 03:57:48','2025-07-11 05:26:24'),(12,3,'Mai Anh Tuấn','therapist3@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234573','MALE','1991-04-12',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24'),(13,3,'Trần Ngọc Bích','therapist4@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234574','FEMALE','1993-08-22',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24'),(14,3,'Vũ Minh Đức','therapist5@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234575','MALE','1989-11-05',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24'),(15,3,'Hoàng Thị Thu','therapist6@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234576','FEMALE','1995-02-18',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24'),(16,3,'Đặng Văn Long','therapist7@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234577','MALE','1988-06-30',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24'),(17,3,'Ngô Mỹ Linh','therapist8@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234578','FEMALE','1992-07-21',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24'),(18,3,'Bùi Quang Huy','therapist9@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234579','MALE','1996-01-09',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24'),(19,3,'Đỗ Phương Thảo','therapist10@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234580','FEMALE','1994-03-14',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24'),(20,3,'Lương Thế Vinh','therapist11@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234581','MALE','1998-10-25',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24'),(21,6,'Phan Thị Diễm','marketing@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234582','FEMALE','1990-12-03',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Final view structure for view `chatbot_dashboard_view`
+--
+
+/*!50001 DROP VIEW IF EXISTS `chatbot_dashboard_view`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8mb4 */;
+/*!50001 SET character_set_results     = utf8mb4 */;
+/*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
+/*!50001 VIEW `chatbot_dashboard_view` AS select cast(`c`.`created_at` as date) AS `conversation_date`,count(distinct `c`.`session_id`) AS `unique_sessions`,count(`c`.`conversation_id`) AS `total_conversations`,avg(`c`.`confidence_score`) AS `avg_confidence`,avg(`c`.`response_time_ms`) AS `avg_response_time`,count(`f`.`feedback_id`) AS `feedback_count`,avg(`f`.`rating`) AS `avg_rating`,sum((case when (`f`.`is_helpful` = true) then 1 else 0 end)) AS `helpful_responses`,sum((case when (`f`.`is_helpful` = false) then 1 else 0 end)) AS `unhelpful_responses` from (`chatbot_conversations` `c` left join `chatbot_feedback` `f` on((`c`.`conversation_id` = `f`.`conversation_id`))) where (`c`.`created_at` >= (curdate() - interval 30 day)) group by cast(`c`.`created_at` as date) order by `conversation_date` desc */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -1182,4 +1204,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-07-07 18:57:16
+-- Dump completed on 2025-07-16  0:45:00
