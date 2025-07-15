@@ -221,10 +221,27 @@
                                     Khám phá dịch vụ
                                     <i data-lucide="arrow-right" class="ml-2 h-5 w-5"></i>
                                 </a>
+
+                                <!-- Debug Panel (only show in development) -->
+                                <div class="mt-6 p-4 bg-gray-100 rounded-lg text-sm">
+                                    <h4 class="font-semibold mb-2">Debug Panel:</h4>
+                                    <div class="space-y-2">
+                                        <button onclick="window.debugCart()" class="px-3 py-1 bg-blue-500 text-white rounded text-xs">Debug Cart</button>
+                                        <button onclick="window.addTestCartItems()" class="px-3 py-1 bg-green-500 text-white rounded text-xs">Add Test Items</button>
+                                        <button onclick="window.clearAllCartData()" class="px-3 py-1 bg-red-500 text-white rounded text-xs">Clear All Cart</button>
+                                        <button onclick="window.refreshCart()" class="px-3 py-1 bg-purple-500 text-white rounded text-xs">Refresh Cart</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Loading State -->
+                            <div id="cartLoadingState" class="text-center py-12">
+                                <div class="loading-spinner mx-auto mb-4"></div>
+                                <p class="text-gray-600">Đang tải giỏ hàng...</p>
                             </div>
 
                             <!-- Cart Items Container -->
-                            <div id="cartItemsContainer" class="space-y-6">
+                            <div id="cartItemsContainer" class="space-y-6" style="display: none;">
                                 <!-- Cart items will be dynamically inserted here -->
                             </div>
                         </div>
@@ -420,6 +437,52 @@
             contextPath: '${pageContext.request.contextPath}',
             apiEndpoint: '${pageContext.request.contextPath}/api'
         };
+
+        // Debug information
+        console.log('Booking checkout page loaded');
+        console.log('Context path:', window.spaConfig.contextPath);
+        console.log('Show booking features:', '${showBookingFeatures}');
+
+        // Debug localStorage
+        console.log('=== INITIAL LOCALSTORAGE DEBUG ===');
+        console.log('All localStorage keys:', Object.keys(localStorage));
+        Object.keys(localStorage).forEach(key => {
+            if (key.includes('cart') || key.includes('Cart')) {
+                console.log(`${key}:`, localStorage.getItem(key));
+            }
+        });
+        console.log('=== END INITIAL DEBUG ===');
+    </script>
+
+    <c:choose>
+        <c:when test="${sessionScope.user != null}">
+            <script>
+                console.log('User authenticated: ${sessionScope.user.fullName}');
+                sessionStorage.setItem('user', JSON.stringify({
+                    id: '${sessionScope.user.userId}',
+                    fullName: '${sessionScope.user.fullName}',
+                    roleId: '${sessionScope.user.roleId}'
+                }));
+            </script>
+        </c:when>
+        <c:when test="${sessionScope.customer != null}">
+            <script>
+                console.log('Customer authenticated: ${sessionScope.customer.fullName}');
+                sessionStorage.setItem('user', JSON.stringify({
+                    id: '${sessionScope.customer.customerId}',
+                    fullName: '${sessionScope.customer.fullName}',
+                    roleId: '${sessionScope.customer.roleId}'
+                }));
+            </script>
+        </c:when>
+        <c:otherwise>
+            <script>
+                console.log('No authenticated user found');
+            </script>
+        </c:otherwise>
+    </c:choose>
+
+    <script>
     </script>
 
     <!-- Core JavaScript -->
@@ -432,6 +495,29 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             lucide.createIcons();
+
+            // Re-initialize icons after any dynamic content updates
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                        // Check if any added nodes contain lucide icons
+                        const hasIcons = Array.from(mutation.addedNodes).some(node =>
+                            node.nodeType === 1 && (
+                                node.querySelector && node.querySelector('[data-lucide]') ||
+                                node.hasAttribute && node.hasAttribute('data-lucide')
+                            )
+                        );
+                        if (hasIcons) {
+                            lucide.createIcons();
+                        }
+                    }
+                });
+            });
+
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
         });
     </script>
 
