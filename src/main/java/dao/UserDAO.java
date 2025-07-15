@@ -323,10 +323,21 @@ public class UserDAO implements BaseDAO<User, Integer> {
             }
         }
 
+        // Loại bỏ admin (1) và khách hàng (5) nếu không truyền role (chỉ lấy nhân viên: 2,3,4,6)
+        if (role == null || role.trim().isEmpty()) {
+            sql.append(" AND role_id IN (2,3,4,6)");
+        }
+
         // Add role condition
         if (role != null && !role.trim().isEmpty()) {
-            sql.append(" AND role_id = ?");
-            parameters.add(Integer.parseInt(role.trim()));
+            int roleId = Integer.parseInt(role.trim());
+            if (roleId != 5) { // Không lấy khách hàng
+                sql.append(" AND role_id = ?");
+                parameters.add(roleId);
+            } else {
+                // Nếu là role khách hàng thì không lấy user nào
+                sql.append(" AND 1=0");
+            }
         }
 
         // Add sorting
@@ -388,6 +399,11 @@ public class UserDAO implements BaseDAO<User, Integer> {
             } else if ("inactive".equalsIgnoreCase(status)) {
                 sql.append(" AND is_active = false");
             }
+        }
+
+        // Loại bỏ admin và customer nếu không truyền role (chỉ lấy nhân viên)
+        if (role == null || role.trim().isEmpty()) {
+            sql.append(" AND role_id != 1 AND role_id != 5");
         }
 
         // Add role condition
@@ -513,7 +529,7 @@ public class UserDAO implements BaseDAO<User, Integer> {
     // Existing methods remain unchanged
     @Override
     public <S extends User> S save(S user) {
-        String sql = "INSERT INTO users (role_id, full_name, email, hash_password, phone_number, gender, birthday, avatar_url, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO users (role_id, full_name, email, hash_password, phone_number, gender, birthday, avatar_url, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, user.getRoleId());
             ps.setString(2, user.getFullName());
@@ -524,6 +540,7 @@ public class UserDAO implements BaseDAO<User, Integer> {
             ps.setDate(7, user.getBirthday() != null ? new java.sql.Date(user.getBirthday().getTime()) : null);
             ps.setString(8, user.getAvatarUrl());
             ps.setBoolean(9, user.getIsActive());
+            ps.setTimestamp(10, new Timestamp(System.currentTimeMillis()));
 
             int rows = ps.executeUpdate();
             if (rows > 0) {

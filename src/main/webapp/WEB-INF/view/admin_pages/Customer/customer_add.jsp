@@ -174,6 +174,98 @@
             input.removeClass('is-invalid');
             input.closest('div').find('.error-text').html('');
         }
+<<<<<<< HEAD
+    });
+    // On submit: check all
+    $('form').on('submit', function(e) {
+        let valid = true;
+        // Validate Full Name
+        const fullName = $('#fullName').val().trim();
+        let nameErrors = [];
+        if (!fullName) {
+            nameErrors.push('Tên là bắt buộc.');
+        }
+        if (/[^\p{L}\s]/u.test(fullName)) {
+            nameErrors.push('Tên chỉ được chứa chữ cái và khoảng trắng, không được chứa số hoặc ký tự đặc biệt.');
+        }
+        if (fullName.length < 2 || fullName.length > 100) {
+            nameErrors.push('Tên phải có độ dài từ 2 đến 100 ký tự.');
+        }
+        if (fullName.includes('  ')) {
+            nameErrors.push('Tên không được có nhiều khoảng trắng liền kề.');
+        }
+        if (!fullName.includes(' ') && fullName.length > 0) {
+            nameErrors.push('Tên đầy đủ cần có ít nhất hai từ (ví dụ: An Nguyen).');
+        }
+        if (nameErrors.length > 0) {
+            showError($('#fullName'), nameErrors.join('<br>'));
+            valid = false;
+        } else {
+            clearError($('#fullName'));
+        }
+        // Validate Email
+        const email = $('#email').val().trim();
+        let emailErrors = [];
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!email) {
+            emailErrors.push('Email là bắt buộc.');
+        }
+        if (email && !emailRegex.test(email)) {
+            emailErrors.push('Email không đúng định dạng.');
+        }
+        if (!emailUnique) {
+            emailErrors.push('Email đã tồn tại.');
+        }
+        if (emailErrors.length > 0) {
+            showError($('#email'), emailErrors.join('<br>'));
+            valid = false;
+        } else {
+            clearError($('#email'));
+        }
+        // Validate Password
+        const password = $('#password').val();
+        if (!password) {
+            showError($('#password'), 'Password is required.');
+            valid = false;
+        } else if (password.length < 7) {
+            showError($('#password'), 'Mật khẩu phải có ít nhất 7 ký tự.');
+            valid = false;
+        } else {
+            clearError($('#password'));
+        }
+        // Validate Phone Number (required)
+        const phone = $('#phoneNumber').val().trim();
+        let phoneErrors = [];
+        if (!phone) {
+            phoneErrors.push('Số điện thoại là bắt buộc.');
+        }
+        if (phone && !/^0\d{9}$/.test(phone)) {
+            phoneErrors.push('Số điện thoại phải gồm 10 số, bắt đầu bằng số 0 và không chứa ký tự đặc biệt.');
+        }
+        if (phone && /[^0-9]/.test(phone)) {
+            phoneErrors.push('Số điện thoại chỉ được chứa số, không được chứa ký tự đặc biệt.');
+        }
+        if (!phoneUnique) {
+            phoneErrors.push('Số điện thoại đã tồn tại.');
+        }
+        if (phoneErrors.length > 0) {
+            showError($('#phoneNumber'), phoneErrors.join('<br>'));
+            valid = false;
+        } else {
+            clearError($('#phoneNumber'));
+        }
+        // Validate Birthday (required)
+        const birthday = $('#birthday').val();
+        if (!birthday) {
+            showError($('#birthday'), 'Ngày sinh là bắt buộc.');
+            valid = false;
+        } else {
+            const inputDate = new Date(birthday);
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            if (inputDate > today) {
+                showError($('#birthday'), 'Ngày sinh không thể ở trong tương lai.');
+=======
         
         // AJAX check email
         $('#email').on('blur', function() {
@@ -232,6 +324,7 @@
             }
             if (nameErrors.length > 0) {
                 showError(fullName, nameErrors.join('<br>'));
+>>>>>>> 930728efa0f7cf03c3be0615b8c286ef9d1a026a
                 valid = false;
             } else {
                 clearError(fullName);

@@ -228,15 +228,16 @@ public class ServiceTypeController extends HttpServlet {
 
             String imageUrl = request.getParameter("image_url"); // Giá trị mặc định là ảnh cũ hoặc nhập tay
             if (fileName != null && !fileName.isEmpty() && filePart.getSize() > 0) {
-                // Nếu có upload file mới thì lưu file và lấy đường dẫn mới
+                // Chuẩn hóa tên file: chỉ cho phép chữ, số, dấu chấm, gạch dưới, gạch ngang
+                fileName = fileName.replaceAll("[^a-zA-Z0-9._-]", "_");
                 String uniqueFileName = System.currentTimeMillis() + "_" + fileName;
-                String uploadPath = getServletContext().getRealPath("/assets/uploads/service-types/");
+                String uploadPath = "D:/spa-uploads/service-types/";
                 File uploadDir = new File(uploadPath);
                 if (!uploadDir.exists()) {
                     uploadDir.mkdirs();
                 }
                 filePart.write(uploadPath + File.separator + uniqueFileName);
-                imageUrl = "/assets/uploads/service-types/" + uniqueFileName;
+                imageUrl = uniqueFileName; // Lưu vào DB chỉ tên file
             }
 
             String name = request.getParameter("name");

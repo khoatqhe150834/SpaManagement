@@ -91,7 +91,14 @@
                                             <td class="px-6 py-4 font-medium text-gray-900">${stype.serviceTypeId}</td>
                                             <td class="px-6 py-4 text-center">
                                                 <div class="flex justify-center items-center h-16">
-                                                    <img src="${pageContext.request.contextPath}${stype.imageUrl}" alt="Hình ảnh loại dịch vụ" class="w-16 h-16 object-cover rounded-xl border bg-gray-50 shadow" style="cursor:pointer" onclick="showImagePreview('${pageContext.request.contextPath}${stype.imageUrl}')"/>
+                                                    <c:choose>
+                                                        <c:when test="${not empty stype.imageUrl}">
+                                                            <img src="${pageContext.request.contextPath}/image?type=service_type&name=${stype.imageUrl}" alt="Hình ảnh loại dịch vụ" class="w-16 h-16 object-cover rounded-xl border bg-gray-50 shadow" style="cursor:pointer" onclick="showImagePreview('${pageContext.request.contextPath}/image?type=service_type&name=${stype.imageUrl}')"/>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <img src="${pageContext.request.contextPath}/assets/images/no-image.png" alt="No image" class="w-16 h-16 object-cover rounded-xl border bg-gray-50 shadow"/>
+                                                        </c:otherwise>
+                                                    </c:choose>
                                                 </div>
                                             </td>
                                             <td class="px-6 py-4">${stype.name}</td>
