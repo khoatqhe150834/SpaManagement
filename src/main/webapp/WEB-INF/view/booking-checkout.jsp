@@ -489,37 +489,9 @@
     <script src="<c:url value='/js/app.js'/>"></script>
 
     <!-- Booking Checkout JavaScript -->
-    <script src="${pageContext.request.contextPath}/js/booking-checkout.js"></script>
+    <script src="<c:url value='/js/booking-checkout.js'/>"></script>
 
-    <!-- Initialize Lucide Icons -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            lucide.createIcons();
-
-            // Re-initialize icons after any dynamic content updates
-            const observer = new MutationObserver(function(mutations) {
-                mutations.forEach(function(mutation) {
-                    if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-                        // Check if any added nodes contain lucide icons
-                        const hasIcons = Array.from(mutation.addedNodes).some(node =>
-                            node.nodeType === 1 && (
-                                node.querySelector && node.querySelector('[data-lucide]') ||
-                                node.hasAttribute && node.hasAttribute('data-lucide')
-                            )
-                        );
-                        if (hasIcons) {
-                            lucide.createIcons();
-                        }
-                    }
-                });
-            });
-
-            observer.observe(document.body, {
-                childList: true,
-                subtree: true
-            });
-        });
-    </script>
+   
 
     <!-- Footer -->
     <jsp:include page="/WEB-INF/view/common/footer.jsp" />
