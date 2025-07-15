@@ -212,15 +212,44 @@
             errorDiv.textContent = '';
         }
         function updateCharCount(input, counterId, maxLength) {
-            const counter = document.getElementById(counterId);
-            const currentLength = input.value.length;
-            counter.textContent = `${currentLength}/${maxLength}`;
-            if (currentLength > maxLength * 0.8) {
-                counter.style.color = '#f59e0b';
-            } else if (currentLength > maxLength) {
-                counter.style.color = '#f44336';
-            } else {
-                counter.style.color = '#6b7280';
+            try {
+                const counter = document.getElementById(counterId);
+                if (!counter) {
+                    console.error('Counter element not found:', counterId);
+                    return;
+                }
+                if (!input) {
+                    console.error('Input element not found');
+                    return;
+                }
+                
+                const value = input.value || "";
+                const currentLength = value.length;
+                
+                console.log('Debug values:', {
+                    counterId: counterId,
+                    value: value,
+                    currentLength: currentLength,
+                    maxLength: maxLength,
+                    currentLengthType: typeof currentLength,
+                    maxLengthType: typeof maxLength
+                });
+                
+                const displayText = currentLength + '/' + maxLength;
+                
+                console.log('Final display text:', displayText);
+                
+                counter.textContent = displayText;
+                
+                if (currentLength > maxLength * 0.8) {
+                    counter.style.color = '#f59e0b';
+                } else if (currentLength > maxLength) {
+                    counter.style.color = '#f44336';
+                } else {
+                    counter.style.color = '#6b7280';
+                }
+            } catch (error) {
+                console.error('Error in updateCharCount:', error);
             }
         }
         function validateName(input) {
@@ -383,6 +412,8 @@
             });
         }
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM Content Loaded');
+            
             const nameInput = document.getElementById('name');
             const descInput = document.getElementById('description');
             const priceInput = document.getElementById('price');
@@ -390,6 +421,18 @@
             const bufferInput = document.getElementById('buffer_time_after_minutes');
             const imageInput = document.getElementById('upload-file-multiple');
             const serviceId = document.querySelector('input[name="id"]').value;
+            
+            console.log('Elements found:', {
+                nameInput: !!nameInput,
+                descInput: !!descInput,
+                nameCounter: !!document.getElementById('nameCharCount'),
+                descCounter: !!document.getElementById('descCharCount')
+            });
+            
+            // Initialize character counts on page load
+            updateCharCount(nameInput, 'nameCharCount', 200);
+            updateCharCount(descInput, 'descCharCount', 500);
+            
             // Name validation
             nameInput.addEventListener('input', function() {
                 updateCharCount(this, 'nameCharCount', 200);
@@ -405,6 +448,7 @@
             });
             nameInput.addEventListener('blur', function() {
                 this.value = this.value.replace(/\s+/g, ' ').trim();
+                updateCharCount(this, 'nameCharCount', 200);
                 if (validateName(this)) {
                     checkServiceNameDuplicate(this.value.trim(), serviceId, function(isDuplicate, msg) {
                         if (isDuplicate) {
@@ -422,6 +466,7 @@
             });
             descInput.addEventListener('blur', function() {
                 this.value = this.value.replace(/\s+/g, ' ').trim();
+                updateCharCount(this, 'descCharCount', 500);
                 validateDescription(this);
             });
             // Price validation
