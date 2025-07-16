@@ -25,6 +25,7 @@ import model.Payment;
 import model.PaymentItem;
 import model.PaymentItemUsage;
 import model.Service;
+import model.SpaInformation;
 
 /**
  * Service class for cart-based payment processing
@@ -385,12 +386,46 @@ public class CartPaymentService {
      */
     private BigDecimal getTaxPercentage() throws SQLException {
         try {
-            // Assuming SpaInformationDAO has a method to get VAT percentage
-            // This would need to be implemented based on your existing SpaInformation structure
-            return new BigDecimal("8.00"); // Default 8% VAT as mentioned in schema
+            // Get the first spa information record (assuming single spa setup)
+            List<SpaInformation> spaInfoList = spaInfoDAO.listAll();
+            if (!spaInfoList.isEmpty()) {
+                SpaInformation spaInfo = spaInfoList.get(0);
+                BigDecimal vatPercentage = spaInfo.getVatPercentage();
+                if (vatPercentage != null && vatPercentage.compareTo(BigDecimal.ZERO) > 0) {
+                    LOGGER.log(Level.INFO, "Using VAT percentage from database: {0}%", vatPercentage);
+                    return vatPercentage;
+                }
+            }
+
+            // Fallback to 10% if no VAT percentage is configured in database
+            LOGGER.log(Level.WARNING, "No VAT percentage found in spa_information, using default 10%");
+            return new BigDecimal("10.00");
         } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, "Could not retrieve tax percentage, using default 8%", ex);
-            return new BigDecimal("8.00");
+            LOGGER.log(Level.WARNING, "Could not retrieve tax percentage from database, using default 10%", ex);
+            return new BigDecimal("10.00");
+        }
+    }
+
+    /**
+     * Update VAT percentage in spa information
+     * This method can be used to set the correct tax percentage
+     */
+    public boolean updateVatPercentage(BigDecimal newVatPercentage) throws SQLException {
+        try {
+            List<SpaInformation> spaInfoList = spaInfoDAO.listAll();
+            if (!spaInfoList.isEmpty()) {
+                SpaInformation spaInfo = spaInfoList.get(0);
+                spaInfo.setVatPercentage(newVatPercentage);
+                boolean updated = spaInfoDAO.update(spaInfo);
+                if (updated) {
+                    LOGGER.log(Level.INFO, "VAT percentage updated to: {0}%", newVatPercentage);
+                }
+                return updated;
+            }
+            return false;
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "Error updating VAT percentage", ex);
+            throw new SQLException("Failed to update VAT percentage: " + ex.getMessage(), ex);
         }
     }
 
