@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<web-app version="5.0" xmlns="https://jakarta.ee/xml/ns/jakartaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_5_0.xsd">
+<web-app version="5.0" xmlns="https://jakarta.ee/xml/ns/jakartaee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_5_0.xsd">
     <!-- Application Lifecycle Listener -->
     <listener>
         <listener-class>listener.ApplicationLifecycleListener</listener-class>
@@ -98,13 +100,13 @@
     </context-param>
     <!-- Static resource mapping -->
     <servlet>
-    <servlet-name>UserController</servlet-name>
-    <servlet-class>controller.UserController</servlet-class>
-</servlet>
+        <servlet-name>UserController</servlet-name>
+        <servlet-class>controller.UserController</servlet-class>
+    </servlet>
 <servlet-mapping>
-    <servlet-name>UserController</servlet-name>
-    <url-pattern>/admin/user/*</url-pattern>
-</servlet-mapping>
+        <servlet-name>UserController</servlet-name>
+        <url-pattern>/admin/user/*</url-pattern>
+    </servlet-mapping>
     <servlet-mapping>
         <servlet-name>default</servlet-name>
         <url-pattern>/assets/*</url-pattern>
@@ -171,10 +173,8 @@
         <servlet-name>LogOutController</servlet-name>
         <url-pattern>/logout</url-pattern>
     </servlet-mapping>
-    <!-- CustomerController removed - replaced by AdminCustomerController and ManagerCustomerController with @WebServlet annotations -->
-=======
-
-    <!-- Customer Controller Servlet -->
+    <!-- CustomerController removed - replaced by AdminCustomerController and
+    ManagerCustomerController with @WebServlet annotations --> ======= <!-- Customer Controller Servlet -->
     <!--
     <servlet>
         <servlet-name>CustomerController</servlet-name>
@@ -188,10 +188,8 @@
         <servlet-name>CustomerController</servlet-name>
         <url-pattern>/customer/*</url-pattern>
     </servlet-mapping>
-    -->
-
->>>>>>> d07ad0a6981b721dd5751982ea529b9fea30dcd6
-    <!-- BookingSession API Servlet -->
+    --> >>>>>>>
+    d07ad0a6981b721dd5751982ea529b9fea30dcd6 <!-- BookingSession API Servlet -->
     <servlet>
         <servlet-name>BookingSessionApiServlet</servlet-name>
         <servlet-class>controller.api.BookingSessionApiServlet</servlet-class>
@@ -213,9 +211,6 @@
         <param-name>cloudinary.api_secret</param-name>
         <param-value>ABahQ3j9UOU245iSBmlAwqCCN0Q</param-value>
     </context-param>
-<<<<<<< HEAD
-</web-app>
-=======
 
     <!-- Chatbot API Configuration -->
     <context-param>
@@ -245,4 +240,3 @@
     </servlet-mapping>
 
 </web-app>
->>>>>>> d07ad0a6981b721dd5751982ea529b9fea30dcd6

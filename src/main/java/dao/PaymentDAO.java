@@ -391,6 +391,279 @@ public class PaymentDAO implements BaseDAO<Payment, Integer> {
     }
 
     /**
+     * Find payments by customer ID with pagination and filtering
+     * Enhanced method for payment history feature
+     */
+    public List<Payment> findByCustomerIdWithFilters(Integer customerId, int page, int pageSize,
+            String statusFilter, String paymentMethodFilter, java.util.Date startDate,
+            java.util.Date endDate, String searchQuery) throws SQLException {
+
+        List<Payment> payments = new ArrayList<>();
+        StringBuilder sql = new StringBuilder(
+            "SELECT p.*, c.full_name, c.email, c.phone_number " +
+            "FROM payments p " +
+            "LEFT JOIN customers c ON p.customer_id = c.customer_id " +
+            "WHERE p.customer_id = ?");
+
+        List<Object> parameters = new ArrayList<>();
+        parameters.add(customerId);
+
+        // Add status filter
+        if (statusFilter != null && !statusFilter.trim().isEmpty() && !"ALL".equals(statusFilter)) {
+            sql.append(" AND p.payment_status = ?");
+            parameters.add(statusFilter);
+        }
+
+        // Add payment method filter
+        if (paymentMethodFilter != null && !paymentMethodFilter.trim().isEmpty() && !"ALL".equals(paymentMethodFilter)) {
+            sql.append(" AND p.payment_method = ?");
+            parameters.add(paymentMethodFilter);
+        }
+
+        // Add date range filter
+        if (startDate != null) {
+            sql.append(" AND DATE(p.payment_date) >= ?");
+            parameters.add(new java.sql.Date(startDate.getTime()));
+        }
+
+        if (endDate != null) {
+            sql.append(" AND DATE(p.payment_date) <= ?");
+            parameters.add(new java.sql.Date(endDate.getTime()));
+        }
+
+        // Add search query (search in reference number or notes)
+        if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+            sql.append(" AND (p.reference_number LIKE ? OR p.notes LIKE ?)");
+            String searchPattern = "%" + searchQuery.trim() + "%";
+            parameters.add(searchPattern);
+            parameters.add(searchPattern);
+        }
+
+        sql.append(" ORDER BY p.created_at DESC LIMIT ? OFFSET ?");
+        parameters.add(pageSize);
+        parameters.add((page - 1) * pageSize);
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+
+            // Set parameters
+            for (int i = 0; i < parameters.size(); i++) {
+                stmt.setObject(i + 1, parameters.get(i));
+            }
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    payments.add(mapResultSetToPayment(rs));
+                }
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error finding payments by customer ID with filters", ex);
+            throw ex;
+        }
+
+        return payments;
+    }
+
+    /**
+     * Count payments by customer ID with filtering
+     * Used for pagination in payment history
+     */
+    public int countByCustomerIdWithFilters(Integer customerId, String statusFilter,
+            String paymentMethodFilter, java.util.Date startDate, java.util.Date endDate,
+            String searchQuery) throws SQLException {
+
+        StringBuilder sql = new StringBuilder(
+            "SELECT COUNT(*) FROM payments p WHERE p.customer_id = ?");
+
+        List<Object> parameters = new ArrayList<>();
+        parameters.add(customerId);
+
+        // Add same filters as in findByCustomerIdWithFilters
+        if (statusFilter != null && !statusFilter.trim().isEmpty() && !"ALL".equals(statusFilter)) {
+            sql.append(" AND p.payment_status = ?");
+            parameters.add(statusFilter);
+        }
+
+        if (paymentMethodFilter != null && !paymentMethodFilter.trim().isEmpty() && !"ALL".equals(paymentMethodFilter)) {
+            sql.append(" AND p.payment_method = ?");
+            parameters.add(paymentMethodFilter);
+        }
+
+        if (startDate != null) {
+            sql.append(" AND DATE(p.payment_date) >= ?");
+            parameters.add(new java.sql.Date(startDate.getTime()));
+        }
+
+        if (endDate != null) {
+            sql.append(" AND DATE(p.payment_date) <= ?");
+            parameters.add(new java.sql.Date(endDate.getTime()));
+        }
+
+        if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+            sql.append(" AND (p.reference_number LIKE ? OR p.notes LIKE ?)");
+            String searchPattern = "%" + searchQuery.trim() + "%";
+            parameters.add(searchPattern);
+            parameters.add(searchPattern);
+        }
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+
+            // Set parameters
+            for (int i = 0; i < parameters.size(); i++) {
+                stmt.setObject(i + 1, parameters.get(i));
+            }
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error counting payments by customer ID with filters", ex);
+            throw ex;
+        }
+
+        return 0;
+    }
+
+    /**
+     * Find recent payments by customer ID (for dashboard preview)
+     */
+    public List<Payment> findRecentByCustomerId(Integer customerId, int limit) throws SQLException {
+        List<Payment> payments = new ArrayList<>();
+        String sql = "SELECT p.*, c.full_name, c.email, c.phone_number " +
+                    "FROM payments p " +
+                    "LEFT JOIN customers c ON p.customer_id = c.customer_id " +
+                    "WHERE p.customer_id = ? " +
+                    "ORDER BY p.created_at DESC " +
+                    "LIMIT ?";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, customerId);
+            stmt.setInt(2, limit);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    payments.add(mapResultSetToPayment(rs));
+                }
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error finding recent payments by customer ID: " + customerId, ex);
+            throw ex;
+        }
+
+        return payments;
+    }
+
+    /**
+     * Find payments by date range
+     */
+    public List<Payment> findByDateRange(java.util.Date startDate, java.util.Date endDate) throws SQLException {
+        List<Payment> payments = new ArrayList<>();
+        String sql = "SELECT p.*, c.full_name, c.email, c.phone_number " +
+                    "FROM payments p " +
+                    "LEFT JOIN customers c ON p.customer_id = c.customer_id " +
+                    "WHERE DATE(p.payment_date) >= ? AND DATE(p.payment_date) <= ? " +
+                    "ORDER BY p.created_at DESC";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setDate(1, new java.sql.Date(startDate.getTime()));
+            stmt.setDate(2, new java.sql.Date(endDate.getTime()));
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    payments.add(mapResultSetToPayment(rs));
+                }
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error finding payments by date range", ex);
+            throw ex;
+        }
+
+        return payments;
+    }
+
+    /**
+     * Find payments by customer ID and date range
+     */
+    public List<Payment> findByCustomerIdAndDateRange(Integer customerId, java.util.Date startDate,
+            java.util.Date endDate) throws SQLException {
+        List<Payment> payments = new ArrayList<>();
+        String sql = "SELECT p.*, c.full_name, c.email, c.phone_number " +
+                    "FROM payments p " +
+                    "LEFT JOIN customers c ON p.customer_id = c.customer_id " +
+                    "WHERE p.customer_id = ? AND DATE(p.payment_date) >= ? AND DATE(p.payment_date) <= ? " +
+                    "ORDER BY p.created_at DESC";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, customerId);
+            stmt.setDate(2, new java.sql.Date(startDate.getTime()));
+            stmt.setDate(3, new java.sql.Date(endDate.getTime()));
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    payments.add(mapResultSetToPayment(rs));
+                }
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error finding payments by customer ID and date range", ex);
+            throw ex;
+        }
+
+        return payments;
+    }
+
+    /**
+     * Get customer payment statistics
+     */
+    public Map<String, Object> getCustomerPaymentStatistics(Integer customerId) throws SQLException {
+        Map<String, Object> stats = new HashMap<>();
+        String sql = "SELECT " +
+                    "COUNT(*) as total_payments, " +
+                    "SUM(CASE WHEN payment_status = 'PAID' THEN total_amount ELSE 0 END) as total_spent, " +
+                    "COUNT(CASE WHEN payment_status = 'PAID' THEN 1 END) as paid_payments, " +
+                    "COUNT(CASE WHEN payment_status = 'PENDING' THEN 1 END) as pending_payments, " +
+                    "AVG(CASE WHEN payment_status = 'PAID' THEN total_amount ELSE NULL END) as avg_payment_amount, " +
+                    "MAX(payment_date) as last_payment_date " +
+                    "FROM payments WHERE customer_id = ?";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, customerId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    stats.put("totalPayments", rs.getInt("total_payments"));
+                    stats.put("totalSpent", rs.getBigDecimal("total_spent"));
+                    stats.put("paidPayments", rs.getInt("paid_payments"));
+                    stats.put("pendingPayments", rs.getInt("pending_payments"));
+                    stats.put("avgPaymentAmount", rs.getBigDecimal("avg_payment_amount"));
+                    stats.put("lastPaymentDate", rs.getTimestamp("last_payment_date"));
+                }
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error getting customer payment statistics for customer: " + customerId, ex);
+            throw ex;
+        }
+
+        return stats;
+    }
+
+    /**
      * Map ResultSet to Payment object
      */
     private Payment mapResultSetToPayment(ResultSet rs) throws SQLException {

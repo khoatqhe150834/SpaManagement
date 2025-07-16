@@ -1,9 +1,10 @@
 package model;
 
-import lombok.ToString;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
+import java.util.List;
+
+import lombok.ToString;
 
 /**
  * Payment model class for cart-based payment transactions
@@ -29,6 +30,7 @@ public class Payment {
     
     // Related entities (for joins)
     private Customer customer;
+    private List<PaymentItem> paymentItems;
     
     // Enums for payment method and status
     public enum PaymentMethod {
@@ -169,6 +171,14 @@ public class Payment {
     
     public void setCustomer(Customer customer) {
         this.customer = customer;
+    }
+
+    public List<PaymentItem> getPaymentItems() {
+        return paymentItems;
+    }
+
+    public void setPaymentItems(List<PaymentItem> paymentItems) {
+        this.paymentItems = paymentItems;
     }
     
     // Utility methods

@@ -1,8 +1,9 @@
 package model;
 
-import lombok.ToString;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+
+import lombok.ToString;
 
 /**
  * PaymentItem model class for individual services in cart payments
@@ -24,6 +25,7 @@ public class PaymentItem {
     // Related entities (for joins)
     private Payment payment;
     private Service service;
+    private PaymentItemUsage usage;
     
     // Constructors
     public PaymentItem() {
@@ -183,5 +185,13 @@ public class PaymentItem {
      */
     public boolean isForService(Integer serviceId) {
         return this.serviceId != null && this.serviceId.equals(serviceId);
+    }
+
+    public PaymentItemUsage getUsage() {
+        return usage;
+    }
+
+    public void setUsage(PaymentItemUsage usage) {
+        this.usage = usage;
     }
 }
