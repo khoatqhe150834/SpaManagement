@@ -438,6 +438,83 @@ public class UserDAO implements BaseDAO<User, Integer> {
         }
     }
 
+    // New methods for Profile Management (only Manager role)
+    public List<User> getPaginatedUsersForProfile(int page, int pageSize, String searchValue, String role) {
+        List<User> users = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT * FROM users WHERE 1=1");
+        List<Object> parameters = new ArrayList<>();
+
+        // Add search condition
+        if (searchValue != null && !searchValue.trim().isEmpty()) {
+            sql.append(" AND (full_name LIKE ? OR email LIKE ? OR phone_number LIKE ?)");
+            String searchPattern = "%" + searchValue.trim() + "%";
+            parameters.add(searchPattern);
+            parameters.add(searchPattern);
+            parameters.add(searchPattern);
+        }
+
+        // Force role to be Manager only (role_id = 2)
+        sql.append(" AND role_id = 2");
+
+        sql.append(" ORDER BY user_id ASC");
+        sql.append(" LIMIT ? OFFSET ?");
+        parameters.add(pageSize);
+        parameters.add((page - 1) * pageSize);
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
+            for (int i = 0; i < parameters.size(); i++) {
+                ps.setObject(i + 1, parameters.get(i));
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    users.add(buildUserFromResultSet(rs));
+                }
+            }
+
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error getting paginated users for profile", e);
+            throw new RuntimeException("Error getting paginated users for profile: " + e.getMessage(), e);
+        }
+
+        return users;
+    }
+
+    public int getTotalUserCountForProfile(String searchValue, String role) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM users WHERE 1=1");
+        List<Object> parameters = new ArrayList<>();
+
+        // Add search condition
+        if (searchValue != null && !searchValue.trim().isEmpty()) {
+            sql.append(" AND (full_name LIKE ? OR email LIKE ? OR phone_number LIKE ?)");
+            String searchPattern = "%" + searchValue.trim() + "%";
+            parameters.add(searchPattern);
+            parameters.add(searchPattern);
+            parameters.add(searchPattern);
+        }
+
+        // Force role to be Manager only (role_id = 2)
+        sql.append(" AND role_id = 2");
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
+            for (int i = 0; i < parameters.size(); i++) {
+                ps.setObject(i + 1, parameters.get(i));
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt(1) : 0;
+            }
+
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error getting total user count for profile", e);
+            return 0;
+        }
+    }
+
     public boolean updateLastLogin(int userId) {
         String sql = "UPDATE users SET last_login_at = ? WHERE user_id = ?";
         try (Connection conn = DBContext.getConnection();

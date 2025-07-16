@@ -84,13 +84,13 @@ public class AuthorizationFilter implements Filter {
         RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID,
         RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID)));
     URL_ROLE_MAPPINGS.put("/booking-checkout", new HashSet<>(Arrays.asList(
-         RoleConstants.CUSTOMER_ID)));
+        RoleConstants.CUSTOMER_ID)));
     URL_ROLE_MAPPINGS.put("/checkout/process", new HashSet<>(Arrays.asList(
-         RoleConstants.CUSTOMER_ID)));
+        RoleConstants.CUSTOMER_ID)));
     URL_ROLE_MAPPINGS.put("/customer/payment-history", new HashSet<>(Arrays.asList(
-         RoleConstants.CUSTOMER_ID)));
+        RoleConstants.CUSTOMER_ID)));
     URL_ROLE_MAPPINGS.put("/customer/payments", new HashSet<>(Arrays.asList(
-         RoleConstants.CUSTOMER_ID)));
+        RoleConstants.CUSTOMER_ID)));
 
     // Marketing areas
     URL_ROLE_MAPPINGS.put("/marketing", new HashSet<>(Arrays.asList(
@@ -109,13 +109,14 @@ public class AuthorizationFilter implements Filter {
     // Customer Management - Role-based separation
     // Admin manages customer accounts (login credentials, account status)
     URL_ROLE_MAPPINGS.put("/admin/customer-account", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID)));
-    
+
     // Manager manages customer information (personal details, profile)
-    URL_ROLE_MAPPINGS.put("/manager/customer", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
-    
+    URL_ROLE_MAPPINGS.put("/manager/customer",
+        new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
+
     // Legacy customer path (deprecated - use specific paths above)
     URL_ROLE_MAPPINGS.put("/customer/", new HashSet<>(Arrays.asList(RoleConstants.MANAGER_ID)));
-    
+
     // Customer profile and appointment access
     URL_ROLE_MAPPINGS.put("/profile", new HashSet<>(Arrays.asList(
         RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID,
@@ -123,7 +124,7 @@ public class AuthorizationFilter implements Filter {
     URL_ROLE_MAPPINGS.put("/appointments", new HashSet<>(Arrays.asList(
         RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID,
         RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID)));
-    
+
     // Customer payment access
     URL_ROLE_MAPPINGS.put("/customer/payment", new HashSet<>(Arrays.asList(
         RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.CUSTOMER_ID)));
@@ -135,7 +136,8 @@ public class AuthorizationFilter implements Filter {
     // Paths accessible to any authenticated user
     Set<Integer> allAuthenticatedRoles = new HashSet<>(Arrays.asList(
         RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID,
-        RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID, RoleConstants.MARKETING_ID, RoleConstants.INVENTORY_MANAGER_ID));
+        RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID, RoleConstants.MARKETING_ID,
+        RoleConstants.INVENTORY_MANAGER_ID));
     URL_ROLE_MAPPINGS.put("/dashboard", allAuthenticatedRoles);
     URL_ROLE_MAPPINGS.put("/password/change", allAuthenticatedRoles);
   }
@@ -147,12 +149,15 @@ public class AuthorizationFilter implements Filter {
     // Admin can access everything
     ROLE_HIERARCHY.put(RoleConstants.ADMIN_ID, new HashSet<>(Arrays.asList(
         RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID,
-        RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID, RoleConstants.MARKETING_ID, RoleConstants.INVENTORY_MANAGER_ID)));
+        RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID, RoleConstants.MARKETING_ID,
+        RoleConstants.INVENTORY_MANAGER_ID)));
 
-    // Manager can access manager, therapist, receptionist, customer, marketing, inventory_manager areas
+    // Manager can access manager, therapist, receptionist, customer, marketing,
+    // inventory_manager areas
     ROLE_HIERARCHY.put(RoleConstants.MANAGER_ID, new HashSet<>(Arrays.asList(
         RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID,
-        RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID, RoleConstants.MARKETING_ID, RoleConstants.INVENTORY_MANAGER_ID)));
+        RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID, RoleConstants.MARKETING_ID,
+        RoleConstants.INVENTORY_MANAGER_ID)));
 
     // Therapist can access therapist and customer areas
     ROLE_HIERARCHY.put(RoleConstants.THERAPIST_ID, new HashSet<>(Arrays.asList(

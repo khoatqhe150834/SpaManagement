@@ -14,7 +14,6 @@ import dao.RoleDAO;
 import dao.UserDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -23,7 +22,6 @@ import jakarta.servlet.http.Part;
 import model.Role;
 import model.User;
 import service.email.EmailService;
-import service.email.AsyncEmailService;
 
 //@WebServlet(name = "UserController", urlPatterns = {"/user/*"})
 @MultipartConfig(
@@ -34,21 +32,11 @@ import service.email.AsyncEmailService;
 public class UserController extends HttpServlet {
 
     private UserDAO userDAO;
-    private AsyncEmailService asyncEmailService;
     private static final Logger logger = Logger.getLogger(UserController.class.getName());
 
     @Override
     public void init() throws ServletException {
         userDAO = new UserDAO();
-        asyncEmailService = new AsyncEmailService();
-    }
-    
-    @Override
-    public void destroy() {
-        super.destroy();
-        if (asyncEmailService != null) {
-            // Cleanup if needed
-        }
     }
 
     @Override
@@ -66,9 +54,6 @@ public class UserController extends HttpServlet {
                 case "list":
                     listUsers(request, response);
                     break;
-                case "profile":
-                    listUserProfiles(request, response);
-                    break;
                 case "create":
                     showCreateForm(request, response);
                     break;
@@ -84,8 +69,8 @@ public class UserController extends HttpServlet {
                 case "deactivate":
                     deactivateUser(request, response);
                     break;
-                case "quick-reset-password":
-                    quickResetPassword(request, response);
+                case "profile":
+                    showProfileList(request, response);
                     break;
                 default:
                     listUsers(request, response);
@@ -119,7 +104,7 @@ public class UserController extends HttpServlet {
                     deleteUser(request, response);
                     break;
                 default:
-                    response.sendRedirect(request.getContextPath() + "/admin/user/list");
+                    response.sendRedirect(request.getContextPath() + "/user/list");
                     break;
             }
         } catch (Exception e) {
@@ -177,55 +162,6 @@ public class UserController extends HttpServlet {
         }
     }
 
-    private void listUserProfiles(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        try {
-            // Get parameters
-            int page = getIntParameter(request, "page", 1);
-            int pageSize = getIntParameter(request, "pageSize", 10); // default 10
-            String searchValue = request.getParameter("searchValue");
-            String status = request.getParameter("status");
-            String role = request.getParameter("role");
-            String sortBy = request.getParameter("sortBy");
-            String sortOrder = request.getParameter("sortOrder");
-
-            // Get users with pagination and filtering
-            List<User> users = userDAO.getPaginatedUsers(page, pageSize, searchValue, status, role, sortBy, sortOrder);
-            int totalUsers = userDAO.getTotalUserCount(searchValue, status, role);
-            int totalPages = (int) Math.ceil((double) totalUsers / pageSize);
-
-            // Lấy danh sách role nhân viên (role_id = 2, 3, 4, 6), loại bỏ roleId = 5 (khách hàng)
-            RoleDAO roleDAO = new RoleDAO();
-            List<Role> allRoles = roleDAO.findAll();
-            List<Role> staffRoles = new java.util.ArrayList<>();
-            for (Role r : allRoles) {
-                if ((r.getRoleId() == 2 || r.getRoleId() == 3 || r.getRoleId() == 4 || r.getRoleId() == 6) && r.getRoleId() != 5) {
-                    staffRoles.add(r);
-                }
-            }
-            request.setAttribute("roles", staffRoles);
-
-            // Set attributes
-            request.setAttribute("users", users);
-            request.setAttribute("currentPage", page);
-            request.setAttribute("totalPages", totalPages);
-            request.setAttribute("pageSize", pageSize);
-            request.setAttribute("searchValue", searchValue);
-            request.setAttribute("status", status);
-            request.setAttribute("role", role);
-            request.setAttribute("sortBy", sortBy);
-            request.setAttribute("sortOrder", sortOrder);
-            request.setAttribute("totalUsers", totalUsers);
-
-            // Forward to profile-focused JSP
-            request.getRequestDispatcher("/WEB-INF/view/admin_pages/User/user_profile_list.jsp").forward(request, response);
-
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error listing user profiles", e);
-            handleError(request, response, "Error loading user profile list: " + e.getMessage());
-        }
-    }
-
     private void showCreateForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         // Lấy danh sách role nhân viên (role_id = 2, 3, 4, 6), loại bỏ roleId = 5 (khách hàng)
@@ -263,11 +199,6 @@ public class UserController extends HttpServlet {
                 }
                 request.setAttribute("roles", staffRoles);
                 request.setAttribute("user", userOpt.get());
-                
-                // Preserve returnTo parameter
-                String returnTo = request.getParameter("returnTo");
-                request.setAttribute("returnTo", returnTo);
-                
                 request.getRequestDispatcher("/WEB-INF/view/admin_pages/User/user_edit.jsp").forward(request, response);
             } else {
                 handleError(request, response, "User not found");
@@ -424,7 +355,7 @@ public class UserController extends HttpServlet {
                 emailService.sendAutoPasswordEmail(email, fullName, password);
                 HttpSession session = request.getSession();
                 session.setAttribute("successMessage", "Tài khoản đã được tạo và gửi thông tin qua email!");
-                response.sendRedirect(request.getContextPath() + "/admin/user/list");
+                response.sendRedirect(request.getContextPath() + "/user/list");
                 return;
             } else {
                 request.setAttribute("errorMessage", "Lỗi khi lưu tài khoản. Vui lòng thử lại hoặc kiểm tra dữ liệu!");
@@ -522,11 +453,6 @@ public class UserController extends HttpServlet {
                 // Không set password
                 request.setAttribute("errors", errors);
                 request.setAttribute("user", userInput);
-                
-                // Preserve returnTo parameter
-                String returnTo = request.getParameter("returnTo");
-                request.setAttribute("returnTo", returnTo);
-                
                 request.getRequestDispatcher("/WEB-INF/view/admin_pages/User/user_edit.jsp").forward(request, response);
                 return;
             }
@@ -573,11 +499,6 @@ public class UserController extends HttpServlet {
                     errors.put("password", "Password must be at least 6 characters");
                     request.setAttribute("errors", errors);
                     request.setAttribute("user", user);
-                    
-                    // Preserve returnTo parameter
-                    String returnTo = request.getParameter("returnTo");
-                    request.setAttribute("returnTo", returnTo);
-                    
                     request.getRequestDispatcher("/WEB-INF/view/admin_pages/User/user_edit.jsp").forward(request, response);
                     return;
                 }
@@ -595,11 +516,6 @@ public class UserController extends HttpServlet {
             if (updated || passwordChanged) {
                 request.setAttribute("successMessage", "Cập nhật tài khoản thành công!");
                 request.setAttribute("user", userDAO.findById(userId).orElse(user));
-                
-                // Preserve returnTo parameter
-                String returnTo = request.getParameter("returnTo");
-                request.setAttribute("returnTo", returnTo);
-                
                 // Lấy lại danh sách roles cho dropdown
                 RoleDAO roleDAO = new RoleDAO();
                 List<Role> allRoles = roleDAO.findAll();
@@ -617,14 +533,7 @@ public class UserController extends HttpServlet {
             // Redirect with success message
             HttpSession session = request.getSession();
             session.setAttribute("successMessage", "User updated successfully!");
-            
-            // Check returnTo parameter to decide redirect destination
-            String returnTo = request.getParameter("returnTo");
-            if ("profile".equals(returnTo)) {
-                response.sendRedirect(request.getContextPath() + "/admin/user/profile");
-            } else {
-                response.sendRedirect(request.getContextPath() + "/admin/user/list");
-            }
+            response.sendRedirect(request.getContextPath() + "/user/list");
 
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error updating user", e);
@@ -652,7 +561,7 @@ public class UserController extends HttpServlet {
                 session.setAttribute("errorMessage", "Failed to deactivate user");
             }
 
-            response.sendRedirect(request.getContextPath() + "/admin/user/list");
+            response.sendRedirect(request.getContextPath() + "/user/list");
 
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error deleting user", e);
@@ -683,10 +592,10 @@ public class UserController extends HttpServlet {
             String fromDetails = request.getParameter("fromDetails");
             if ("true".equals(fromDetails)) {
                 // Redirect back to details page
-                response.sendRedirect(request.getContextPath() + "/admin/user/view?id=" + userId);
+                response.sendRedirect(request.getContextPath() + "/user/view?id=" + userId);
             } else {
                 // Redirect to list page
-                response.sendRedirect(request.getContextPath() + "/admin/user/list");
+                response.sendRedirect(request.getContextPath() + "/user/list");
             }
 
         } catch (Exception e) {
@@ -718,10 +627,10 @@ public class UserController extends HttpServlet {
             String fromDetails = request.getParameter("fromDetails");
             if ("true".equals(fromDetails)) {
                 // Redirect back to details page
-                response.sendRedirect(request.getContextPath() + "/admin/user/view?id=" + userId);
+                response.sendRedirect(request.getContextPath() + "/user/view?id=" + userId);
             } else {
                 // Redirect to list page
-                response.sendRedirect(request.getContextPath() + "/admin/user/list");
+                response.sendRedirect(request.getContextPath() + "/user/list");
             }
 
         } catch (Exception e) {
@@ -766,70 +675,95 @@ public class UserController extends HttpServlet {
         return defaultValue;
     }
 
-    private void quickResetPassword(HttpServletRequest request, HttpServletResponse response)
+    private void showProfileList(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
-            int userId = getIntParameter(request, "id", 0);
-            if (userId <= 0) {
-                HttpSession session = request.getSession();
-                session.setAttribute("errorMessage", "ID người dùng không hợp lệ");
-                response.sendRedirect(request.getContextPath() + "/admin/user/list");
-                return;
+            // Get parameters (similar to listUsers but with different filtering)
+            int page = getIntParameter(request, "page", 1);
+            int pageSize = getIntParameter(request, "pageSize", 10);
+            String searchValue = request.getParameter("searchValue");
+            String role = request.getParameter("role");
+
+            // Force role to be Manager only for profile management
+            if (role == null || role.trim().isEmpty()) {
+                role = "2"; // Manager role only
             }
 
-            // Get user info first
-            Optional<User> userOpt = userDAO.findById(userId);
-            if (!userOpt.isPresent()) {
-                HttpSession session = request.getSession();
-                session.setAttribute("errorMessage", "Không tìm thấy người dùng");
-                response.sendRedirect(request.getContextPath() + "/admin/user/list");
-                return;
+            // Get users with pagination and filtering - only Managers
+            List<User> users = userDAO.getPaginatedUsersForProfile(page, pageSize, searchValue, role);
+            int totalUsers = userDAO.getTotalUserCountForProfile(searchValue, role);
+            int totalPages = (int) Math.ceil((double) totalUsers / pageSize);
+
+            // Get Manager role only
+            RoleDAO roleDAO = new RoleDAO();
+            List<Role> allRoles = roleDAO.findAll();
+            List<Role> managerRoles = new java.util.ArrayList<>();
+            for (Role r : allRoles) {
+                if (r.getRoleId() == 2) { // Only Manager
+                    managerRoles.add(r);
+                }
             }
+            request.setAttribute("roles", managerRoles);
 
-            User user = userOpt.get();
-            
-            // Generate and update new password
-            String newPassword = userDAO.resetPassword(userId);
-            if (newPassword == null) {
-                HttpSession session = request.getSession();
-                session.setAttribute("errorMessage", "Không thể đặt lại mật khẩu. Vui lòng thử lại.");
-                response.sendRedirect(request.getContextPath() + "/admin/user/list");
-                return;
-            }
+            // Set attributes
+            request.setAttribute("users", users);
+            request.setAttribute("currentPage", page);
+            request.setAttribute("totalPages", totalPages);
+            request.setAttribute("pageSize", pageSize);
+            request.setAttribute("searchValue", searchValue);
+            request.setAttribute("role", role);
+            request.setAttribute("totalUsers", totalUsers);
 
-            // Send email asynchronously
-            try {
-                asyncEmailService.sendNewPasswordEmailFireAndForget(
-                    user.getEmail(), 
-                    user.getFullName(), 
-                    newPassword
-                );
-                logger.info("Password reset email sent for user: " + user.getEmail());
-            } catch (Exception emailError) {
-                logger.log(Level.WARNING, "Failed to send password reset email to: " + user.getEmail(), emailError);
-                // Continue anyway since password was already reset
-            }
-
-            // Audit log
-            logger.info("Password reset by admin for user ID: " + userId + " (" + user.getEmail() + ")");
-
-            HttpSession session = request.getSession();
-            session.setAttribute("successMessage", 
-                "Đã đặt lại mật khẩu cho " + user.getFullName() + ". Thông tin đăng nhập mới đã được gửi qua email.");
-            
-            response.sendRedirect(request.getContextPath() + "/admin/user/list");
+            // Forward to profile list JSP
+            request.getRequestDispatcher("/WEB-INF/view/admin_pages/User/user_profile_list.jsp").forward(request, response);
 
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error in quick password reset", e);
-            HttpSession session = request.getSession();
-            session.setAttribute("errorMessage", "Đã xảy ra lỗi: " + e.getMessage());
-            response.sendRedirect(request.getContextPath() + "/admin/user/list");
+            logger.log(Level.SEVERE, "Error listing user profiles", e);
+            handleError(request, response, "Error loading user profiles: " + e.getMessage());
+        }
+    }
+
+    private void showUserProfile(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        User currentUser = (User) session.getAttribute("user");
+        
+        if (currentUser != null) {
+            // Get fresh user data from database
+            try {
+                Optional<User> userOpt = userDAO.findById(currentUser.getUserId());
+                if (userOpt.isPresent()) {
+                    User user = userOpt.get();
+                    
+                    // Get role display name
+                    String roleDisplayName = "";
+                    RoleDAO roleDAO = new RoleDAO();
+                    List<Role> allRoles = roleDAO.findAll();
+                    for (Role r : allRoles) {
+                        if (r.getRoleId() != null && r.getRoleId().equals(user.getRoleId())) {
+                            roleDisplayName = r.getDisplayName() != null ? r.getDisplayName() : r.getName();
+                            break;
+                        }
+                    }
+                    
+                    request.setAttribute("user", user);
+                    request.setAttribute("roleDisplayName", roleDisplayName);
+                    request.getRequestDispatcher("/WEB-INF/view/common/profile.jsp").forward(request, response);
+                } else {
+                    handleError(request, response, "User not found");
+                }
+            } catch (Exception e) {
+                logger.log(Level.SEVERE, "Error loading user profile", e);
+                handleError(request, response, "Error loading profile: " + e.getMessage());
+            }
+        } else {
+            handleError(request, response, "No user session found");
         }
     }
 
     private void handleError(HttpServletRequest request, HttpServletResponse response, String errorMessage)
             throws ServletException, IOException {
         request.setAttribute("errorMessage", errorMessage);
-                    request.getRequestDispatcher("/WEB-INF/view/admin_pages/User/user_Acount_List.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/view/admin_pages/User/user_list.jsp").forward(request, response);
     }
 } 

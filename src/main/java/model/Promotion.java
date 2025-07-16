@@ -27,6 +27,7 @@ public class Promotion {
     private String termsAndConditions;
     private Integer createdByUserId;
     private Boolean isAutoApply;
+    private String customerCondition; // INDIVIDUAL, GROUP, COUPLE, ALL
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     
@@ -74,6 +75,8 @@ public class Promotion {
     public void setCreatedByUserId(Integer createdByUserId) { this.createdByUserId = createdByUserId; }
     public Boolean getIsAutoApply() { return isAutoApply; }
     public void setIsAutoApply(Boolean isAutoApply) { this.isAutoApply = isAutoApply; }
+    public String getCustomerCondition() { return customerCondition; }
+    public void setCustomerCondition(String customerCondition) { this.customerCondition = customerCondition; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
@@ -81,7 +84,7 @@ public class Promotion {
 
     @Override
     public String toString() {
-        return "Promotion{" + "promotionId=" + promotionId + ", title=" + title + ", description=" + description + ", promotionCode=" + promotionCode + ", discountType=" + discountType + ", discountValue=" + discountValue + ", appliesToServiceId=" + appliesToServiceId + ", minimumAppointmentValue=" + minimumAppointmentValue + ", startDate=" + startDate + ", endDate=" + endDate + ", status=" + status + ", usageLimitPerCustomer=" + usageLimitPerCustomer + ", totalUsageLimit=" + totalUsageLimit + ", currentUsageCount=" + currentUsageCount + ", applicableScope=" + applicableScope + ", applicableServiceIdsJson=" + applicableServiceIdsJson + ", imageUrl=" + imageUrl + ", termsAndConditions=" + termsAndConditions + ", createdByUserId=" + createdByUserId + ", isAutoApply=" + isAutoApply + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + '}';
+        return "Promotion{" + "promotionId=" + promotionId + ", title=" + title + ", description=" + description + ", promotionCode=" + promotionCode + ", discountType=" + discountType + ", discountValue=" + discountValue + ", appliesToServiceId=" + appliesToServiceId + ", minimumAppointmentValue=" + minimumAppointmentValue + ", startDate=" + startDate + ", endDate=" + endDate + ", status=" + status + ", usageLimitPerCustomer=" + usageLimitPerCustomer + ", totalUsageLimit=" + totalUsageLimit + ", currentUsageCount=" + currentUsageCount + ", applicableScope=" + applicableScope + ", applicableServiceIdsJson=" + applicableServiceIdsJson + ", imageUrl=" + imageUrl + ", termsAndConditions=" + termsAndConditions + ", createdByUserId=" + createdByUserId + ", isAutoApply=" + isAutoApply + ", customerCondition=" + customerCondition + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + '}';
     }
     
     

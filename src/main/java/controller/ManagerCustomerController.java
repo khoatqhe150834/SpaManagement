@@ -438,6 +438,19 @@ public class ManagerCustomerController extends HttpServlet {
             String notes = request.getParameter("notes");
             String loyaltyPointsStr = request.getParameter("loyaltyPoints");
 
+            // DEBUG LOGGING
+            logger.info("=== UPDATE CUSTOMER DEBUG ===");
+            logger.info("Customer ID: " + customerId);
+            logger.info("Full Name: " + name);
+            logger.info("Phone: " + phone);
+            logger.info("Gender RECEIVED: '" + gender + "' (Length: " + (gender != null ? gender.length() : 0) + ")");
+            logger.info("Gender CURRENT in DB: '" + customer.getGender() + "'");
+            logger.info("Address: " + address);
+            logger.info("Birthday: " + birthdayStr);
+            logger.info("Notes: " + notes);
+            logger.info("Loyalty Points: " + loyaltyPointsStr);
+            logger.info("=== END DEBUG ===");
+
             Map<String, String> errors = new HashMap<>();
 
             // Validation (similar to create but for updates)

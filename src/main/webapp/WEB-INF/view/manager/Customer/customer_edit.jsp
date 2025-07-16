@@ -153,10 +153,11 @@
                                     <div>
                                         <label for="gender" class="block font-medium text-gray-700 mb-1">Giới tính</label>
                                         <select name="gender" id="gender" class="form-input">
-                                            <option value="Male" ${customer.gender == 'Male' ? 'selected' : ''}>Nam</option>
-                                            <option value="Female" ${customer.gender == 'Female' ? 'selected' : ''}>Nữ</option>
+                                            <option value="M" ${customer.gender == 'M' || customer.gender == 'Male' ? 'selected' : ''}>Nam</option>
+                                            <option value="F" ${customer.gender == 'F' || customer.gender == 'Female' ? 'selected' : ''}>Nữ</option>
                                             <option value="Other" ${customer.gender == 'Other' ? 'selected' : ''}>Khác</option>
                                         </select>
+                                        <!-- DEBUG: Current gender value: ${customer.gender} -->
                                     </div>
                                     <div class="md:col-span-2">
                                         <label for="address" class="block font-medium text-gray-700 mb-1">

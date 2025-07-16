@@ -170,7 +170,7 @@ public class MenuService {
     // User Management with sub-items
 
     MenuItem staffProfileMgmt = new MenuItem("Quản lí nhân viên", contextPath + "/admin/user/profile", "users", "management");
-    staffProfileMgmt.addSubItem(new MenuItem("Thông tin cá nhân", contextPath + "/admin/user/profile", "user"));
+    staffProfileMgmt.addSubItem(new MenuItem("Thông tin quản lí", contextPath + "/admin/user/profile", "user"));
     staffProfileMgmt.addSubItem(new MenuItem("Tài khoản hệ thống", contextPath + "/admin/user/list", "shield"));
     menuItems.add(staffProfileMgmt);
 
@@ -244,7 +244,7 @@ public class MenuService {
     // Promotions Management (moved from Admin)
     MenuItem promotionMgmt = new MenuItem("Khuyến mãi", contextPath + "/promotion/list", "gift", "services");
     promotionMgmt.addSubItem(new MenuItem("Tất cả khuyến mãi", contextPath + "/promotion/list", "list"));
-    promotionMgmt.addSubItem(new MenuItem("Tạo khuyến mãi", contextPath + "/promotion/add", "plus"));
+    promotionMgmt.addSubItem(new MenuItem("Tạo khuyến mãi", contextPath + "/promotion/create", "plus"));
     menuItems.add(promotionMgmt);
 
     // Operations Section
