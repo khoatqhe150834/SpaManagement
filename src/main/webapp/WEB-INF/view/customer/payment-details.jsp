@@ -1,411 +1,383 @@
-<%-- 
-    Document   : payment-details.jsp
-    Created on : Payment Details View
-    Author     : G1_SpaManagement Team
---%>
-
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@ page contentType="text/html" pageEncoding="UTF-8"%>
+
 <!DOCTYPE html>
-<html>
+<html lang="vi" class="scroll-smooth">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <title>${pageTitle != null ? pageTitle : 'Chi Tiết Thanh Toán - BeautyZone Spa'}</title>
-    
-    <!-- Include Common Styles -->
-    <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp" />
-    
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>${pageTitle != null ? pageTitle : 'Chi Tiết Thanh Toán - Spa Hương Sen'}</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#D4AF37",
+              "primary-dark": "#B8941F",
+              secondary: "#FADADD",
+              "spa-cream": "#FFF8F0",
+              "spa-dark": "#333333",
+            },
+            fontFamily: {
+              serif: ["Playfair Display", "serif"],
+              sans: ["Roboto", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Roboto:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="<c:url value='/css/style.css'/>" />
+
+    <!-- Custom styles for animations -->
     <style>
-        .payment-details-container {
-            padding: 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-            min-height: 100vh;
-            background-color: #f8fafc;
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
         }
-        
-        .page-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 2rem;
-            padding: 1.5rem 2rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        to {
+          opacity: 1;
+          transform: translateY(0);
         }
-        
-        .page-title {
-            font-size: 2rem;
-            font-weight: 600;
-            margin: 0;
-        }
-        
-        .breadcrumb {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.9rem;
-            opacity: 0.9;
-        }
-        
-        .breadcrumb a {
-            color: white;
-            text-decoration: none;
-        }
-        
-        .breadcrumb a:hover {
-            text-decoration: underline;
-        }
-        
-        .payment-detail-card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            overflow: hidden;
-            margin-bottom: 2rem;
-        }
-        
-        .card-header {
-            padding: 1.5rem;
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            border-bottom: 1px solid #e5e7eb;
-        }
-        
-        .card-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin: 0;
-            color: #1f2937;
-        }
-        
-        .card-body {
-            padding: 1.5rem;
-        }
-        
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        
-        .info-item {
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .info-label {
-            font-size: 0.9rem;
-            color: #6b7280;
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-        }
-        
-        .info-value {
-            font-weight: 600;
-            color: #1f2937;
-            font-size: 1.1rem;
-        }
-        
-        .status-badge {
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            display: inline-block;
-            width: fit-content;
-        }
-        
-        .status-paid { background: #d1fae5; color: #065f46; }
-        .status-pending { background: #fef3c7; color: #92400e; }
-        .status-failed { background: #fee2e2; color: #991b1b; }
-        .status-refunded { background: #e0e7ff; color: #3730a3; }
-        
-        .items-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-        }
-        
-        .items-table th,
-        .items-table td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid #e5e7eb;
-        }
-        
-        .items-table th {
-            background: #f9fafb;
-            font-weight: 600;
-            color: #374151;
-        }
-        
-        .usage-progress {
-            width: 100px;
-            height: 8px;
-            background: #e5e7eb;
-            border-radius: 4px;
-            overflow: hidden;
-            margin: 0.25rem 0;
-        }
-        
-        .usage-fill {
-            height: 100%;
-            background: #10b981;
-            transition: width 0.3s;
-        }
-        
-        .back-button {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.75rem 1.5rem;
-            background: #6b7280;
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: 500;
-            transition: background 0.2s;
-        }
-        
-        .back-button:hover {
-            background: #4b5563;
-        }
-        
-        @media (max-width: 768px) {
-            .payment-details-container {
-                padding: 1rem;
-            }
-            
-            .page-header {
-                flex-direction: column;
-                text-align: center;
-                gap: 1rem;
-            }
-            
-            .info-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .items-table {
-                font-size: 0.9rem;
-            }
-            
-            .items-table th,
-            .items-table td {
-                padding: 0.75rem 0.5rem;
-            }
-        }
+      }
+      .animate-fadeIn {
+        animation: fadeIn 0.6s ease-out forwards;
+      }
+      .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      /* Payment specific styles */
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+      }
+
+      .status-paid { background-color: #d1fae5; color: #065f46; }
+      .status-pending { background-color: #fef3c7; color: #92400e; }
+      .status-failed { background-color: #fee2e2; color: #991b1b; }
+      .status-refunded { background-color: #e0e7ff; color: #3730a3; }
+
+      .usage-progress {
+        height: 8px;
+        background-color: #e5e7eb;
+        border-radius: 4px;
+        overflow: hidden;
+      }
+
+      .usage-fill {
+        height: 100%;
+        background-color: #10b981;
+        transition: width 0.3s ease;
+      }
     </style>
 </head>
-<body>
-    <!-- Include Header -->
+
+<body class="bg-spa-cream">
     <jsp:include page="/WEB-INF/view/common/header.jsp" />
-    
-    <div class="payment-details-container">
+
+    <!-- Main Content -->
+    <main class="min-h-screen pt-20">
         <!-- Page Header -->
-        <div class="page-header">
-            <div>
-                <h1 class="page-title">Chi Tiết Thanh Toán #${payment.paymentId}</h1>
-                <div class="breadcrumb">
-                    <a href="${pageContext.request.contextPath}/">Trang chủ</a>
-                    <span>›</span>
-                    <a href="${pageContext.request.contextPath}/customer/dashboard">Dashboard</a>
-                    <span>›</span>
-                    <a href="${pageContext.request.contextPath}/customer/payment-history">Lịch sử thanh toán</a>
-                    <span>›</span>
-                    <span>Chi tiết thanh toán</span>
+        <section class="bg-gradient-to-r from-primary to-primary-dark text-white py-16">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h1 class="text-4xl md:text-5xl font-serif mb-4">Chi Tiết Thanh Toán #${payment.paymentId}</h1>
+                    <div class="flex items-center justify-center gap-2 text-white/80">
+                        <a href="${pageContext.request.contextPath}/" class="hover:text-white transition-colors">Trang chủ</a>
+                        <i data-lucide="chevron-right" class="h-4 w-4"></i>
+                        <a href="${pageContext.request.contextPath}/dashboard" class="hover:text-white transition-colors">Dashboard</a>
+                        <i data-lucide="chevron-right" class="h-4 w-4"></i>
+                        <a href="${pageContext.request.contextPath}/customer/payments" class="hover:text-white transition-colors">Lịch sử thanh toán</a>
+                        <i data-lucide="chevron-right" class="h-4 w-4"></i>
+                        <span>Chi tiết thanh toán</span>
+                    </div>
                 </div>
-            </div>
-            <div class="customer-info">
+
                 <c:if test="${customer != null}">
-                    <div style="text-align: right;">
-                        <div style="font-size: 1.1rem; font-weight: 500;">${customer.fullName}</div>
-                        <div style="opacity: 0.8;">${customer.email}</div>
+                    <div class="mt-8 text-center">
+                        <div class="inline-flex items-center bg-white/10 backdrop-blur-sm rounded-lg px-6 py-3">
+                            <i data-lucide="user" class="h-5 w-5 mr-3"></i>
+                            <div class="text-left">
+                                <div class="font-semibold">${customer.fullName}</div>
+                                <div class="text-sm text-white/80">${customer.email}</div>
+                            </div>
+                        </div>
                     </div>
                 </c:if>
             </div>
-        </div>
-        
+        </section>
+
         <c:if test="${payment != null}">
             <!-- Payment Information -->
-            <div class="payment-detail-card">
-                <div class="card-header">
-                    <h2 class="card-title">Thông Tin Thanh Toán</h2>
-                </div>
-                <div class="card-body">
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <span class="info-label">Mã thanh toán</span>
-                            <span class="info-value">#${payment.paymentId}</span>
+            <section class="py-8">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden animate-fadeIn">
+                        <div class="bg-gradient-to-r from-gray-50 to-gray-100 p-6 border-b border-gray-200">
+                            <h2 class="text-2xl font-serif text-spa-dark flex items-center">
+                                <i data-lucide="credit-card" class="h-6 w-6 mr-3 text-primary"></i>
+                                Thông Tin Thanh Toán
+                            </h2>
                         </div>
-                        
-                        <div class="info-item">
-                            <span class="info-label">Mã tham chiếu</span>
-                            <span class="info-value">${payment.referenceNumber}</span>
-                        </div>
-                        
-                        <div class="info-item">
-                            <span class="info-label">Ngày thanh toán</span>
-                            <span class="info-value">
-                                <fmt:formatDate value="${payment.paymentDate}" pattern="dd/MM/yyyy HH:mm:ss"/>
-                            </span>
-                        </div>
-                        
-                        <div class="info-item">
-                            <span class="info-label">Phương thức thanh toán</span>
-                            <span class="info-value">
-                                <c:choose>
-                                    <c:when test="${payment.paymentMethod == 'BANK_TRANSFER'}">Chuyển khoản ngân hàng</c:when>
-                                    <c:when test="${payment.paymentMethod == 'CREDIT_CARD'}">Thẻ tín dụng</c:when>
-                                    <c:when test="${payment.paymentMethod == 'VNPAY'}">VNPay</c:when>
-                                    <c:when test="${payment.paymentMethod == 'MOMO'}">MoMo</c:when>
-                                    <c:when test="${payment.paymentMethod == 'ZALOPAY'}">ZaloPay</c:when>
-                                    <c:when test="${payment.paymentMethod == 'CASH'}">Tiền mặt</c:when>
-                                    <c:otherwise>${payment.paymentMethod}</c:otherwise>
-                                </c:choose>
-                            </span>
-                        </div>
-                        
-                        <div class="info-item">
-                            <span class="info-label">Trạng thái</span>
-                            <span class="status-badge 
-                                <c:choose>
-                                    <c:when test="${payment.paymentStatus == 'PAID'}">status-paid</c:when>
-                                    <c:when test="${payment.paymentStatus == 'PENDING'}">status-pending</c:when>
-                                    <c:when test="${payment.paymentStatus == 'FAILED'}">status-failed</c:when>
-                                    <c:when test="${payment.paymentStatus == 'REFUNDED'}">status-refunded</c:when>
-                                </c:choose>">
-                                <c:choose>
-                                    <c:when test="${payment.paymentStatus == 'PAID'}">Đã thanh toán</c:when>
-                                    <c:when test="${payment.paymentStatus == 'PENDING'}">Chờ xử lý</c:when>
-                                    <c:when test="${payment.paymentStatus == 'FAILED'}">Thất bại</c:when>
-                                    <c:when test="${payment.paymentStatus == 'REFUNDED'}">Đã hoàn tiền</c:when>
-                                    <c:otherwise>${payment.paymentStatus}</c:otherwise>
-                                </c:choose>
-                            </span>
-                        </div>
-                        
-                        <div class="info-item">
-                            <span class="info-label">Tổng tiền</span>
-                            <span class="info-value" style="color: #059669; font-size: 1.3rem;">
-                                <fmt:formatNumber value="${payment.totalAmount}" type="currency" 
-                                                currencySymbol="" pattern="#,##0"/> VNĐ
-                            </span>
+                        <div class="p-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div>
+                                    <div class="text-sm text-gray-600 mb-1">Mã thanh toán</div>
+                                    <div class="font-semibold text-lg text-spa-dark">#${payment.paymentId}</div>
+                                </div>
+
+                                <div>
+                                    <div class="text-sm text-gray-600 mb-1">Mã tham chiếu</div>
+                                    <div class="font-semibold text-lg text-spa-dark">${payment.referenceNumber}</div>
+                                </div>
+
+                                <div>
+                                    <div class="text-sm text-gray-600 mb-1">Ngày thanh toán</div>
+                                    <div class="font-semibold text-lg text-spa-dark">
+                                        <fmt:formatDate value="${payment.paymentDate}" pattern="dd/MM/yyyy HH:mm:ss"/>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="text-sm text-gray-600 mb-1">Phương thức thanh toán</div>
+                                    <div class="font-semibold text-lg text-spa-dark">
+                                        <c:choose>
+                                            <c:when test="${payment.paymentMethod == 'BANK_TRANSFER'}">Chuyển khoản ngân hàng</c:when>
+                                            <c:when test="${payment.paymentMethod == 'CREDIT_CARD'}">Thẻ tín dụng</c:when>
+                                            <c:when test="${payment.paymentMethod == 'VNPAY'}">VNPay</c:when>
+                                            <c:when test="${payment.paymentMethod == 'MOMO'}">MoMo</c:when>
+                                            <c:when test="${payment.paymentMethod == 'ZALOPAY'}">ZaloPay</c:when>
+                                            <c:when test="${payment.paymentMethod == 'CASH'}">Tiền mặt</c:when>
+                                            <c:otherwise>${payment.paymentMethod}</c:otherwise>
+                                        </c:choose>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="text-sm text-gray-600 mb-1">Trạng thái</div>
+                                    <span class="status-badge
+                                        <c:choose>
+                                            <c:when test="${payment.paymentStatus == 'PAID'}">status-paid</c:when>
+                                            <c:when test="${payment.paymentStatus == 'PENDING'}">status-pending</c:when>
+                                            <c:when test="${payment.paymentStatus == 'FAILED'}">status-failed</c:when>
+                                            <c:when test="${payment.paymentStatus == 'REFUNDED'}">status-refunded</c:when>
+                                        </c:choose>">
+                                        <c:choose>
+                                            <c:when test="${payment.paymentStatus == 'PAID'}">Đã thanh toán</c:when>
+                                            <c:when test="${payment.paymentStatus == 'PENDING'}">Chờ xử lý</c:when>
+                                            <c:when test="${payment.paymentStatus == 'FAILED'}">Thất bại</c:when>
+                                            <c:when test="${payment.paymentStatus == 'REFUNDED'}">Đã hoàn tiền</c:when>
+                                            <c:otherwise>${payment.paymentStatus}</c:otherwise>
+                                        </c:choose>
+                                    </span>
+                                </div>
+
+                                <div>
+                                    <div class="text-sm text-gray-600 mb-1">Tổng tiền</div>
+                                    <div class="font-bold text-2xl text-primary">
+                                        <fmt:formatNumber value="${payment.totalAmount}" type="currency"
+                                                        currencySymbol="" pattern="#,##0"/> VNĐ
+                                    </div>
+                                </div>
+                            </div>
+
+                            <c:if test="${not empty payment.notes}">
+                                <div class="mt-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded">
+                                    <div class="flex items-start">
+                                        <i data-lucide="info" class="h-5 w-5 text-yellow-600 mr-2 mt-0.5"></i>
+                                        <div>
+                                            <div class="font-medium text-yellow-800 mb-1">Ghi chú:</div>
+                                            <div class="text-yellow-700">${payment.notes}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </c:if>
                         </div>
                     </div>
-                    
-                    <c:if test="${not empty payment.notes}">
-                        <div style="margin-top: 1.5rem; padding: 1rem; background: #f9fafb; border-radius: 8px; border-left: 4px solid #fbbf24;">
-                            <div style="font-weight: 500; margin-bottom: 0.5rem; color: #92400e;">Ghi chú:</div>
-                            <div style="color: #6b7280;">${payment.notes}</div>
-                        </div>
-                    </c:if>
                 </div>
-            </div>
-            
+            </section>
+
             <!-- Payment Items -->
             <c:if test="${payment.paymentItems != null && not empty payment.paymentItems}">
-                <div class="payment-detail-card">
-                    <div class="card-header">
-                        <h2 class="card-title">Dịch Vụ Đã Mua (${payment.paymentItems.size()} dịch vụ)</h2>
-                    </div>
-                    <div class="card-body">
-                        <table class="items-table">
-                            <thead>
-                                <tr>
-                                    <th>Dịch vụ</th>
-                                    <th>Số lượng</th>
-                                    <th>Đơn giá</th>
-                                    <th>Thành tiền</th>
-                                    <th>Tình trạng sử dụng</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <c:forEach var="item" items="${payment.paymentItems}">
-                                    <tr>
-                                        <td>
-                                            <div style="font-weight: 500;">${item.serviceName != null ? item.serviceName : 'Dịch vụ không xác định'}</div>
-                                            <c:if test="${item.serviceDuration != null}">
-                                                <div style="color: #6b7280; font-size: 0.9rem;">Thời gian: ${item.serviceDuration} phút</div>
-                                            </c:if>
-                                        </td>
-                                        <td>${item.quantity}</td>
-                                        <td>
-                                            <fmt:formatNumber value="${item.unitPrice}" type="currency" 
-                                                            currencySymbol="" pattern="#,##0"/> VNĐ
-                                        </td>
-                                        <td>
-                                            <fmt:formatNumber value="${item.totalPrice}" type="currency" 
-                                                            currencySymbol="" pattern="#,##0"/> VNĐ
-                                        </td>
-                                        <td>
-                                            <c:choose>
-                                                <c:when test="${item.usage != null}">
-                                                    <div>Đã sử dụng: ${item.usage.bookedQuantity}/${item.usage.totalQuantity}</div>
-                                                    <div class="usage-progress">
-                                                        <div class="usage-fill" style="width: ${item.usage.totalQuantity > 0 ? (item.usage.bookedQuantity * 100 / item.usage.totalQuantity) : 0}%"></div>
+                <section class="pb-8">
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div class="bg-white rounded-xl shadow-lg overflow-hidden animate-fadeIn">
+                            <div class="bg-gradient-to-r from-gray-50 to-gray-100 p-6 border-b border-gray-200">
+                                <h2 class="text-2xl font-serif text-spa-dark flex items-center">
+                                    <i data-lucide="shopping-bag" class="h-6 w-6 mr-3 text-primary"></i>
+                                    Dịch Vụ Đã Mua (${payment.paymentItems.size()} dịch vụ)
+                                </h2>
+                            </div>
+                            <div class="p-6">
+                                <div class="space-y-6">
+                                    <c:forEach var="item" items="${payment.paymentItems}">
+                                        <div class="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                                <!-- Service Info -->
+                                                <div class="lg:col-span-2">
+                                                    <h3 class="text-xl font-semibold text-spa-dark mb-2">
+                                                        ${item.serviceName != null ? item.serviceName : 'Dịch vụ không xác định'}
+                                                    </h3>
+                                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+                                                        <div>
+                                                            <span class="font-medium">Số lượng:</span> ${item.quantity}
+                                                        </div>
+                                                        <div>
+                                                            <span class="font-medium">Đơn giá:</span>
+                                                            <fmt:formatNumber value="${item.unitPrice}" type="currency"
+                                                                            currencySymbol="" pattern="#,##0"/> VNĐ
+                                                        </div>
+                                                        <div>
+                                                            <span class="font-medium">Thành tiền:</span>
+                                                            <span class="font-semibold text-primary">
+                                                                <fmt:formatNumber value="${item.totalPrice}" type="currency"
+                                                                                currencySymbol="" pattern="#,##0"/> VNĐ
+                                                            </span>
+                                                        </div>
                                                     </div>
-                                                    <div style="color: #059669; font-size: 0.9rem;">Còn lại: ${item.usage.remainingQuantity}</div>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <div style="color: #6b7280;">Chưa có thông tin sử dụng</div>
-                                                </c:otherwise>
-                                            </c:choose>
-                                        </td>
-                                    </tr>
-                                </c:forEach>
-                            </tbody>
-                        </table>
-                        
-                        <!-- Payment Summary -->
-                        <div style="margin-top: 2rem; padding-top: 1rem; border-top: 2px solid #e5e7eb;">
-                            <div style="display: grid; grid-template-columns: 1fr auto; gap: 2rem;">
-                                <div></div>
-                                <div style="min-width: 300px;">
-                                    <div style="display: grid; gap: 0.75rem; font-size: 1rem;">
-                                        <div style="display: flex; justify-content: space-between;">
-                                            <span>Tạm tính:</span>
-                                            <span><fmt:formatNumber value="${payment.subtotalAmount}" type="currency" 
-                                                                  currencySymbol="" pattern="#,##0"/> VNĐ</span>
+                                                </div>
+
+                                                <!-- Usage Info -->
+                                                <div class="lg:col-span-1">
+                                                    <div class="bg-gray-50 rounded-lg p-4">
+                                                        <h4 class="font-medium text-spa-dark mb-3 flex items-center">
+                                                            <i data-lucide="activity" class="h-4 w-4 mr-2 text-primary"></i>
+                                                            Tình trạng sử dụng
+                                                        </h4>
+                                                        <c:choose>
+                                                            <c:when test="${item.usage != null}">
+                                                                <div class="space-y-3">
+                                                                    <div class="flex justify-between text-sm">
+                                                                        <span>Đã sử dụng:</span>
+                                                                        <span class="font-medium">${item.usage.bookedQuantity}/${item.usage.totalQuantity}</span>
+                                                                    </div>
+                                                                    <div class="usage-progress">
+                                                                        <div class="usage-fill" style="width: ${item.usage.totalQuantity > 0 ? (item.usage.bookedQuantity * 100 / item.usage.totalQuantity) : 0}%"></div>
+                                                                    </div>
+                                                                    <div class="flex justify-between text-sm">
+                                                                        <span>Còn lại:</span>
+                                                                        <span class="font-medium text-green-600">${item.usage.remainingQuantity}</span>
+                                                                    </div>
+                                                                </div>
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                <div class="text-sm text-gray-500 text-center py-2">
+                                                                    Chưa có thông tin sử dụng
+                                                                </div>
+                                                            </c:otherwise>
+                                                        </c:choose>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div style="display: flex; justify-content: space-between;">
-                                            <span>Thuế VAT:</span>
-                                            <span><fmt:formatNumber value="${payment.taxAmount}" type="currency" 
-                                                                  currencySymbol="" pattern="#,##0"/> VNĐ</span>
-                                        </div>
-                                        <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 1.2rem; color: #059669; border-top: 1px solid #e5e7eb; padding-top: 0.75rem;">
-                                            <span>Tổng cộng:</span>
-                                            <span><fmt:formatNumber value="${payment.totalAmount}" type="currency" 
-                                                                  currencySymbol="" pattern="#,##0"/> VNĐ</span>
+                                    </c:forEach>
+                                </div>
+
+                                <!-- Payment Summary -->
+                                <div class="mt-8 pt-6 border-t border-gray-200">
+                                    <div class="flex justify-end">
+                                        <div class="w-96">
+                                            <div class="space-y-3">
+                                                <div class="flex justify-between text-gray-600">
+                                                    <span>Tạm tính:</span>
+                                                    <span><fmt:formatNumber value="${payment.subtotalAmount}" type="currency"
+                                                                          currencySymbol="" pattern="#,##0"/> VNĐ</span>
+                                                </div>
+                                                <div class="flex justify-between text-gray-600">
+                                                    <span>Thuế VAT:</span>
+                                                    <span><fmt:formatNumber value="${payment.taxAmount}" type="currency"
+                                                                          currencySymbol="" pattern="#,##0"/> VNĐ</span>
+                                                </div>
+                                                <div class="flex justify-between font-bold text-xl text-primary border-t pt-3">
+                                                    <span>Tổng cộng:</span>
+                                                    <span><fmt:formatNumber value="${payment.totalAmount}" type="currency"
+                                                                          currencySymbol="" pattern="#,##0"/> VNĐ</span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                </section>
             </c:if>
         </c:if>
-        
-        <!-- Back Button -->
-        <div style="margin-top: 2rem;">
-            <a href="${pageContext.request.contextPath}/customer/payment-history" class="back-button">
-                <i class="fas fa-arrow-left"></i>
-                Quay lại lịch sử thanh toán
-            </a>
-        </div>
-    </div>
-    
+
+        <!-- No Payment Found -->
+        <c:if test="${payment == null}">
+            <section class="py-16">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="text-center">
+                        <div class="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+                            <i data-lucide="alert-circle" class="h-12 w-12 text-gray-400"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-spa-dark mb-2">Không tìm thấy thông tin thanh toán</h3>
+                        <p class="text-gray-600 mb-6">Thanh toán này không tồn tại hoặc bạn không có quyền truy cập.</p>
+                        <a href="${pageContext.request.contextPath}/customer/payments"
+                           class="inline-flex items-center px-6 py-3 bg-primary hover:bg-primary-dark text-white rounded-lg font-medium transition-colors duration-200">
+                            <i data-lucide="arrow-left" class="h-5 w-5 mr-2"></i>
+                            Quay lại lịch sử thanh toán
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </c:if>
+
+        <!-- Action Buttons -->
+        <c:if test="${payment != null}">
+            <section class="pb-16">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex justify-center gap-4">
+                        <a href="${pageContext.request.contextPath}/customer/payments"
+                           class="inline-flex items-center px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors duration-200">
+                            <i data-lucide="arrow-left" class="h-5 w-5 mr-2"></i>
+                            Quay lại
+                        </a>
+                        <button onclick="window.print()"
+                                class="inline-flex items-center px-6 py-3 bg-primary hover:bg-primary-dark text-white rounded-lg font-medium transition-colors duration-200">
+                            <i data-lucide="printer" class="h-5 w-5 mr-2"></i>
+                            In hóa đơn
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </c:if>
+    </main>
+
     <!-- Include Footer -->
     <jsp:include page="/WEB-INF/view/common/footer.jsp" />
-    
-    <!-- Include Common JS -->
-    <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
+
+    <!-- Initialize Lucide Icons -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+        });
+    </script>
 </body>
 </html>
+
