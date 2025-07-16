@@ -171,7 +171,6 @@
         <servlet-name>LogOutController</servlet-name>
         <url-pattern>/logout</url-pattern>
     </servlet-mapping>
-<<<<<<< HEAD
     <!-- CustomerController removed - replaced by AdminCustomerController and ManagerCustomerController with @WebServlet annotations -->
 =======
 

@@ -168,17 +168,13 @@ public class MenuService {
     menuItems.add(new MenuItem("Dashboard", contextPath + "/dashboard", "layout-dashboard", "management"));
 
     // User Management with sub-items
-<<<<<<< HEAD
-    MenuItem userAccountMgmt = new MenuItem("Quản lí nhân viên", contextPath + "/admin/user/profile", "users", "management");
-    userAccountMgmt.addSubItem(new MenuItem("Thông tin cá nhân", contextPath + "/admin/user/profile", "user"));
-    userAccountMgmt.addSubItem(new MenuItem("Tài khoản hệ thống", contextPath + "/admin/user/list", "shield"));
-=======
-    MenuItem userAccountMgmt = new MenuItem("Quản lí tài khoản người dùng", contextPath + "/user/list", "users",
-        "management");
-    userAccountMgmt.addSubItem(new MenuItem("Tài khoản nhân viên", contextPath + "/user/list", "users"));
-    userAccountMgmt.addSubItem(new MenuItem("Tài khoản khách hàng", contextPath + "/admin/customer-account", "user"));
->>>>>>> d07ad0a6981b721dd5751982ea529b9fea30dcd6
-    menuItems.add(userAccountMgmt);
+
+    MenuItem staffProfileMgmt = new MenuItem("Quản lí nhân viên", contextPath + "/admin/user/profile", "users", "management");
+    staffProfileMgmt.addSubItem(new MenuItem("Thông tin cá nhân", contextPath + "/admin/user/profile", "user"));
+    staffProfileMgmt.addSubItem(new MenuItem("Tài khoản hệ thống", contextPath + "/admin/user/list", "shield"));
+    menuItems.add(staffProfileMgmt);
+
+   
 
     // Customer Account Management (Admin specific)
     MenuItem customerAccountMgmt = new MenuItem("Quản lý tài khoản khách hàng", contextPath + "/admin/customer-account/list", "user-check", "management");
@@ -221,22 +217,14 @@ public class MenuService {
     staffMgmt.addSubItem(new MenuItem("Đào tạo", contextPath + "/manager/staff/training", "book-open"));
     staffMgmt.addSubItem(new MenuItem("Lịch làm việc", contextPath + "/manager/staff/schedules", "calendar"));
     menuItems.add(staffMgmt);
-<<<<<<< HEAD
+    
     // Customer Information Management (Manager specific)
     MenuItem customerInfoMgmt = new MenuItem("Quản lý thông tin khách hàng", contextPath + "/manager/customer/list", "users", "management");
     customerInfoMgmt.addSubItem(new MenuItem("Danh sách khách hàng", contextPath + "/manager/customer/list", "users"));
     customerInfoMgmt.addSubItem(new MenuItem("Thêm thông tin KH", contextPath + "/manager/customer/create", "user-plus"));
-    customerInfoMgmt.addSubItem(new MenuItem("Cập nhật thông tin", contextPath + "/manager/customer/edit", "edit"));
     customerInfoMgmt.addSubItem(new MenuItem("Quản lý điểm thưởng", contextPath + "/manager/customer/loyalty", "gift"));
     
     menuItems.add(customerInfoMgmt);
-=======
-    // Thêm sidebar Quản lý khách hàng ngay dưới Quản lý nhân viên
-    MenuItem customerMgmt = new MenuItem("Quản lý khách hàng", contextPath + "/manager/customers", "users",
-        "management");
-    customerMgmt.addSubItem(new MenuItem("Tất cả khách hàng", contextPath + "/manager/customers", "users"));
-    menuItems.add(customerMgmt);
->>>>>>> d07ad0a6981b721dd5751982ea529b9fea30dcd6
     // Service Management Section
     menuItems.add(new MenuItem("DỊCH VỤ & VẬN HÀNH", true));
 
