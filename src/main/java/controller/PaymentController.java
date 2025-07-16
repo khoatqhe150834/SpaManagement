@@ -134,29 +134,18 @@ public class PaymentController extends HttpServlet {
                     List<PaymentItem> paymentItems = paymentItemDAO.findByPaymentId(payment.getPaymentId());
                     payment.setPaymentItems(paymentItems);
 
-                    // Get usage information for each payment item - Enhanced error handling
-                    for (PaymentItem item : paymentItems) {
-                        try {
-                            // Check if payment item ID is valid
-                            if (item.getPaymentItemId() != null && item.getPaymentItemId() > 0) {
-                                Optional<PaymentItemUsage> usageOptional = paymentItemUsageDAO.findByPaymentItemId(item.getPaymentItemId());
-                                PaymentItemUsage usage = usageOptional.orElse(null);
-                                item.setUsage(usage);
-
-                                LOGGER.log(Level.FINE, "Loaded usage for payment item {0}: {1}",
-                                    new Object[]{item.getPaymentItemId(), usage != null ? "found" : "not found"});
-                            } else {
-                                LOGGER.log(Level.WARNING, "Invalid payment item ID: {0}", item.getPaymentItemId());
-                                item.setUsage(null);
-                            }
-                        } catch (SQLException ex) {
-                            LOGGER.log(Level.WARNING, "Could not load usage for payment item: " + item.getPaymentItemId(), ex);
-                            // Set usage to null if there's an error - don't let this break the whole page
-                            item.setUsage(null);
-                        } catch (Exception ex) {
-                            LOGGER.log(Level.WARNING, "Unexpected error loading usage for payment item: " + item.getPaymentItemId(), ex);
-                            item.setUsage(null);
-                        }
+                   // Get usage information for each payment item - Enhanced error handling
+                   if (paymentItems != null) {
+                       for (PaymentItem item : paymentItems) {
+                           try {
+                               Optional<PaymentItemUsage> usageOptional = paymentItemUsageDAO.findByPaymentItemId(item.getPaymentItemId());
+                               PaymentItemUsage usage = usageOptional.orElse(null);
+                               item.setUsage(usage);
+                           } catch (SQLException ex) {
+                               LOGGER.log(Level.WARNING, "Could not load usage for payment item: " + item.getPaymentItemId(), ex);
+                               item.setUsage(null); // Set usage to null in case of an error
+                           }
+                       }
                     }
                 } catch (SQLException ex) {
                     LOGGER.log(Level.WARNING, "Could not load payment items for payment: " + payment.getPaymentId(), ex);
@@ -174,7 +163,7 @@ public class PaymentController extends HttpServlet {
             request.setAttribute("pageSize", pageSize);
             request.setAttribute("totalPages", totalPages);
             request.setAttribute("totalRecords", totalRecords);
-            request.setAttribute("hasNextPage", page < totalPages);
+         request.setAttribute("hasNextPage", page < totalPages);
             request.setAttribute("hasPreviousPage", page > 1);
             
             // Set filter attributes for form persistence
@@ -211,43 +200,25 @@ public class PaymentController extends HttpServlet {
     private void handlePaymentDetails(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         
-        HttpSession session = request.getSession();
-        Customer customer = (Customer) session.getAttribute("customer");
-        
-        // Security check - ensure customer is logged in
-        if (customer == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
-        
         try {
             String paymentIdStr = request.getParameter("id");
-            if (paymentIdStr == null || paymentIdStr.trim().isEmpty()) {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Payment ID is required");
-                return;
-            }
-            
             int paymentId = Integer.parseInt(paymentIdStr);
             
-            // Get payment details - FIXED: Handle Optional properly
+            // Get payment details (without items initially)
             Optional<Payment> paymentOptional = paymentDAO.findById(paymentId);
             if (!paymentOptional.isPresent()) {
-                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Payment not found");
+                response.sendError(HttpServletResponse.SC_NOT_FOUND);
                 return;
             }
-
             Payment payment = paymentOptional.get();
-            if (!payment.getCustomerId().equals(customer.getCustomerId())) {
-                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Payment not found");
-                return;
-            }
-            
-            // Get payment items and usage
+
+            // Get payment items separately
             List<PaymentItem> paymentItems = paymentItemDAO.findByPaymentId(paymentId);
-            payment.setPaymentItems(paymentItems);
-            
-            // Get usage information for each payment item - FIXED: Handle Optional properly
+
+            //  You may still want usage information for each item...
             for (PaymentItem item : paymentItems) {
+                // ... (your existing usage retrieval logic here)
+                //  Leave this part unchanged if you need usage info on the details page
                 try {
                     Optional<PaymentItemUsage> usageOptional = paymentItemUsageDAO.findByPaymentItemId(item.getPaymentItemId());
                     PaymentItemUsage usage = usageOptional.orElse(null);
@@ -260,7 +231,7 @@ public class PaymentController extends HttpServlet {
             
             // Set attributes for JSP
             request.setAttribute("payment", payment);
-            request.setAttribute("customer", customer);
+            request.setAttribute("paymentItems", paymentItems); // Set payment items
             request.setAttribute("pageTitle", "Chi Tiết Thanh Toán #" + paymentId + " - BeautyZone Spa");
             
             // Forward to payment details JSP (to be created if needed)

@@ -151,17 +151,6 @@
                                 </div>
 
                                 <div>
-                                    <div class="text-sm text-gray-600 mb-1">Mã tham chiếu</div>
-                                    <div class="font-semibold text-lg text-spa-dark">${payment.referenceNumber}</div>
-                                </div>
-
-                                <div>
-                                    <div class="text-sm text-gray-600 mb-1">Ngày thanh toán</div>
-                                    <div class="font-semibold text-lg text-spa-dark">
-                                        <fmt:formatDate value="${payment.paymentDate}" pattern="dd/MM/yyyy HH:mm:ss"/>
-                                    </div>
-                                </div>
-
                                 <div>
                                     <div class="text-sm text-gray-600 mb-1">Phương thức thanh toán</div>
                                     <div class="font-semibold text-lg text-spa-dark">
@@ -198,10 +187,20 @@
 
                                 <div>
                                     <div class="text-sm text-gray-600 mb-1">Tổng tiền</div>
-                                    <div class="font-bold text-2xl text-primary">
-                                        <fmt:formatNumber value="${payment.totalAmount}" type="currency"
-                                                        currencySymbol="" pattern="#,##0"/> VNĐ
-                                    </div>
+                                    <div class="font-bold text-2xl text-primary"><fmt:formatNumber value="${payment.totalAmount}" pattern="#,##0" /> VNĐ</div>
+                                </div>
+                                <div>
+                                   <div class="text-sm text-gray-600 mb-1">Mã tham chiếu</div>
+                                   <div class="font-semibold text-lg text-spa-dark">${payment.referenceNumber}</div>
+                                </div>
+                                 <div>
+                                   <div class="text-sm text-gray-600 mb-1">Ngày thanh toán</div>
+                                   <div class="font-semibold text-lg text-spa-dark">
+                                       <fmt:formatDate value="${payment.paymentDate}" pattern="dd/MM/yyyy HH:mm:ss"/>
+                                   </div>
+                                 </div>
+
+                                
                                 </div>
                             </div>
 
@@ -222,7 +221,7 @@
             </section>
 
             <!-- Payment Items -->
-            <c:if test="${payment.paymentItems != null && not empty payment.paymentItems}">
+            <c:if test="${paymentItems != null && not empty paymentItems}">
                 <section class="pb-8">
                     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div class="bg-white rounded-xl shadow-lg overflow-hidden animate-fadeIn">
@@ -230,11 +229,11 @@
                                 <h2 class="text-2xl font-serif text-spa-dark flex items-center">
                                     <i data-lucide="shopping-bag" class="h-6 w-6 mr-3 text-primary"></i>
                                     Dịch Vụ Đã Mua (${payment.paymentItems.size()} dịch vụ)
-                                </h2>
+                                </h2>  
                             </div>
                             <div class="p-6">
                                 <div class="space-y-6">
-                                    <c:forEach var="item" items="${payment.paymentItems}">
+                                    <c:forEach var="item" items="${paymentItems}">
                                         <div class="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
                                             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                                                 <!-- Service Info -->
@@ -380,4 +379,3 @@
     </script>
 </body>
 </html>
-
