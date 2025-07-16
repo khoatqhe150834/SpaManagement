@@ -7,8 +7,12 @@ package controller;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import com.google.gson.Gson;
 
 import dao.CustomerDAO;
 import dao.RememberMeTokenDAO;
@@ -25,10 +29,6 @@ import model.Customer;
 import model.RememberMeToken;
 import model.RoleConstants;
 import model.User;
-import com.google.gson.Gson;
-import java.util.HashMap;
-import java.util.Map;
-import model.FlashMessage;
 
 /**
  *

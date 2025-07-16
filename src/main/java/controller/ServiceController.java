@@ -24,12 +24,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @WebServlet(name = "ServiceController", urlPatterns = { "/manager/service" })
 @MultipartConfig(fileSizeThreshold = 0, maxFileSize = 2097152, // 2MB
         maxRequestSize = 2097152)
 public class ServiceController extends HttpServlet {
 
+    private static final Logger LOGGER = Logger.getLogger(ServiceController.class.getName());
     private final String SERVICE_MANAGER_URL = "/WEB-INF/view/admin_pages/Service/ServiceManager.jsp";
 
     @Override
@@ -118,77 +121,124 @@ public class ServiceController extends HttpServlet {
                 return;
             }
             case "pre-update": {
-                int id = Integer.parseInt(request.getParameter("id").trim());
-                Service s = serviceDAO.findById(id).orElse(null);
-                List<ServiceType> types = typeDAO.findAll();
-                request.setAttribute("serviceTypes", types);
-                request.setAttribute("service", s);
-                List<ServiceImage> serviceImages = serviceImageDAO.findByServiceId(id);
-                request.setAttribute("serviceImages", serviceImages);
+                try {
+                    int id = Integer.parseInt(request.getParameter("id").trim());
+                    Service s = serviceDAO.findById(id).orElse(null);
+                    
+                    if (s == null) {
+                        response.sendRedirect("service?service=list-all&toastType=error&toastMessage=Dịch+vụ+không+tồn+tại");
+                        return;
+                    }
+                    
+                    List<ServiceType> types = typeDAO.findAll();
+                    request.setAttribute("serviceTypes", types);
+                    request.setAttribute("service", s);
+                    List<ServiceImage> serviceImages = serviceImageDAO.findByServiceId(id);
+                    request.setAttribute("serviceImages", serviceImages);
 
-                // Lấy tham số page, limit, searchParams nếu có
-                String pageParam = request.getParameter("page");
-                String keyword = request.getParameter("keyword");
-                String status = request.getParameter("status");
+                    // Lấy tham số page, limit, searchParams nếu có
+                    String pageParam = request.getParameter("page");
+                    String keyword = request.getParameter("keyword");
+                    String status = request.getParameter("status");
 
-                request.setAttribute("page", pageParam);
-                request.setAttribute("keyword", keyword);
-                request.setAttribute("status", status);
-                request.setAttribute("serviceTypeId", serviceTypeIdParam);
-                request.setAttribute("limit", limit);
+                    request.setAttribute("page", pageParam);
+                    request.setAttribute("keyword", keyword);
+                    request.setAttribute("status", status);
+                    request.setAttribute("serviceTypeId", serviceTypeIdParam);
+                    request.setAttribute("limit", limit);
 
-                request.getRequestDispatcher("/WEB-INF/view/admin_pages/Service/UpdateService.jsp").forward(request,
-                        response);
+                    request.getRequestDispatcher("/WEB-INF/view/admin_pages/Service/UpdateService.jsp").forward(request,
+                            response);
+                } catch (NumberFormatException e) {
+                    LOGGER.warning("Invalid service ID format: " + request.getParameter("id"));
+                    response.sendRedirect("service?service=list-all&toastType=error&toastMessage=ID+dịch+vụ+không+hợp+lệ");
+                }
                 return;
             }
             case "delete": {
-                int id = Integer.parseInt(request.getParameter("id").trim());
-                serviceDAO.deleteById(id);
-                response.sendRedirect("service");
+                try {
+                    int id = Integer.parseInt(request.getParameter("id").trim());
+                    Service serviceToDelete = serviceDAO.findById(id).orElse(null);
+                    
+                    if (serviceToDelete == null) {
+                        response.sendRedirect("service?service=list-all&toastType=error&toastMessage=Dịch+vụ+không+tồn+tại");
+                        return;
+                    }
+                    
+                    serviceDAO.deleteById(id);
+                    response.sendRedirect("service?service=list-all&toastType=success&toastMessage=Đã+xóa+dịch+vụ+thành+công");
+                } catch (NumberFormatException e) {
+                    LOGGER.warning("Invalid service ID format: " + request.getParameter("id"));
+                    response.sendRedirect("service?service=list-all&toastType=error&toastMessage=ID+dịch+vụ+không+hợp+lệ");
+                }
                 return;
             }
             case "deactivate": {
-                int id = Integer.parseInt(request.getParameter("id").trim());
-                serviceDAO.deactivateById(id);
-                // Lấy tham số truy vấn để redirect giữ nguyên trang
-                String pageParam = request.getParameter("page");
-                String keyword = request.getParameter("keyword");
-                String status = request.getParameter("status");
-                String serviceTypeIdStr = request.getParameter("serviceTypeId");
-                StringBuilder redirectUrl = new StringBuilder("service?service=list-all");
-                if (pageParam != null)
-                    redirectUrl.append("&page=").append(pageParam);
-                if (limitParam != null)
-                    redirectUrl.append("&limit=").append(limitParam);
-                if (keyword != null && !keyword.isEmpty())
-                    redirectUrl.append("&keyword=").append(keyword);
-                if (status != null && !status.isEmpty())
-                    redirectUrl.append("&status=").append(status);
-                if (serviceTypeIdStr != null && !serviceTypeIdStr.isEmpty())
-                    redirectUrl.append("&serviceTypeId=").append(serviceTypeIdStr);
-                response.sendRedirect(redirectUrl.toString());
+                try {
+                    int id = Integer.parseInt(request.getParameter("id").trim());
+                    Service serviceToDeactivate = serviceDAO.findById(id).orElse(null);
+                    
+                    if (serviceToDeactivate == null) {
+                        response.sendRedirect("service?service=list-all&toastType=error&toastMessage=Dịch+vụ+không+tồn+tại");
+                        return;
+                    }
+                    
+                    serviceDAO.deactivateById(id);
+                    // Lấy tham số truy vấn để redirect giữ nguyên trang
+                    String pageParam = request.getParameter("page");
+                    String keyword = request.getParameter("keyword");
+                    String status = request.getParameter("status");
+                    String serviceTypeIdStr = request.getParameter("serviceTypeId");
+                    StringBuilder redirectUrl = new StringBuilder("service?service=list-all&toastType=success&toastMessage=Đã+vô+hiệu+hóa+dịch+vụ+thành+công");
+                    if (pageParam != null)
+                        redirectUrl.append("&page=").append(pageParam);
+                    if (limitParam != null)
+                        redirectUrl.append("&limit=").append(limitParam);
+                    if (keyword != null && !keyword.isEmpty())
+                        redirectUrl.append("&keyword=").append(keyword);
+                    if (status != null && !status.isEmpty())
+                        redirectUrl.append("&status=").append(status);
+                    if (serviceTypeIdStr != null && !serviceTypeIdStr.isEmpty())
+                        redirectUrl.append("&serviceTypeId=").append(serviceTypeIdStr);
+                    response.sendRedirect(redirectUrl.toString());
+                } catch (NumberFormatException e) {
+                    LOGGER.warning("Invalid service ID format: " + request.getParameter("id"));
+                    response.sendRedirect("service?service=list-all&toastType=error&toastMessage=ID+dịch+vụ+không+hợp+lệ");
+                }
                 return;
             }
             case "activate": {
-                int id = Integer.parseInt(request.getParameter("id").trim());
-                serviceDAO.activateById(id);
-                // Lấy tham số truy vấn để redirect giữ nguyên trang
-                String pageParam = request.getParameter("page");
-                String keyword = request.getParameter("keyword");
-                String status = request.getParameter("status");
-                String serviceTypeIdStr = request.getParameter("serviceTypeId");
-                StringBuilder redirectUrl = new StringBuilder("service?service=list-all");
-                if (pageParam != null)
-                    redirectUrl.append("&page=").append(pageParam);
-                if (limitParam != null)
-                    redirectUrl.append("&limit=").append(limitParam);
-                if (keyword != null && !keyword.isEmpty())
-                    redirectUrl.append("&keyword=").append(keyword);
-                if (status != null && !status.isEmpty())
-                    redirectUrl.append("&status=").append(status);
-                if (serviceTypeIdStr != null && !serviceTypeIdStr.isEmpty())
-                    redirectUrl.append("&serviceTypeId=").append(serviceTypeIdStr);
-                response.sendRedirect(redirectUrl.toString());
+                try {
+                    int id = Integer.parseInt(request.getParameter("id").trim());
+                    Service serviceToActivate = serviceDAO.findById(id).orElse(null);
+                    
+                    if (serviceToActivate == null) {
+                        response.sendRedirect("service?service=list-all&toastType=error&toastMessage=Dịch+vụ+không+tồn+tại");
+                        return;
+                    }
+                    
+                    serviceDAO.activateById(id);
+                    // Lấy tham số truy vấn để redirect giữ nguyên trang
+                    String pageParam = request.getParameter("page");
+                    String keyword = request.getParameter("keyword");
+                    String status = request.getParameter("status");
+                    String serviceTypeIdStr = request.getParameter("serviceTypeId");
+                    StringBuilder redirectUrl = new StringBuilder("service?service=list-all&toastType=success&toastMessage=Đã+kích+hoạt+dịch+vụ+thành+công");
+                    if (pageParam != null)
+                        redirectUrl.append("&page=").append(pageParam);
+                    if (limitParam != null)
+                        redirectUrl.append("&limit=").append(limitParam);
+                    if (keyword != null && !keyword.isEmpty())
+                        redirectUrl.append("&keyword=").append(keyword);
+                    if (status != null && !status.isEmpty())
+                        redirectUrl.append("&status=").append(status);
+                    if (serviceTypeIdStr != null && !serviceTypeIdStr.isEmpty())
+                        redirectUrl.append("&serviceTypeId=").append(serviceTypeIdStr);
+                    response.sendRedirect(redirectUrl.toString());
+                } catch (NumberFormatException e) {
+                    LOGGER.warning("Invalid service ID format: " + request.getParameter("id"));
+                    response.sendRedirect("service?service=list-all&toastType=error&toastMessage=ID+dịch+vụ+không+hợp+lệ");
+                }
                 return;
             }
             case "search": {
@@ -234,14 +284,15 @@ public class ServiceController extends HttpServlet {
                                 .forward(request, response);
                     } else {
                         response.sendRedirect(
-                                "service?service=list-all&toastType=error&toastMessage=Service+not+found");
+                                "service?service=list-all&toastType=error&toastMessage=Không+tìm+thấy+dịch+vụ");
                     }
                 } catch (NumberFormatException e) {
-                    response.sendRedirect("service?service=list-all&toastType=error&toastMessage=Invalid+service+ID");
+                    LOGGER.warning("Invalid service ID format: " + request.getParameter("id"));
+                    response.sendRedirect("service?service=list-all&toastType=error&toastMessage=ID+dịch+vụ+không+hợp+lệ");
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LOGGER.log(Level.SEVERE, "Error viewing service detail", e);
                     response.sendRedirect(
-                            "service?service=list-all&toastType=error&toastMessage=An+unexpected+error+occurred");
+                            "service?service=list-all&toastType=error&toastMessage=Có+lỗi+xảy+ra+khi+xem+chi+tiết+dịch+vụ");
                 }
                 return;
             }
@@ -250,8 +301,13 @@ public class ServiceController extends HttpServlet {
                 String idParam = request.getParameter("id");
                 boolean isDuplicate;
                 if (idParam != null && !idParam.isEmpty()) {
-                    int id = Integer.parseInt(idParam);
-                    isDuplicate = serviceDAO.existsByNameExceptId(name, id);
+                    try {
+                        int id = Integer.parseInt(idParam);
+                        isDuplicate = serviceDAO.existsByNameExceptId(name, id);
+                    } catch (NumberFormatException e) {
+                        LOGGER.warning("Invalid service ID format: " + idParam);
+                        isDuplicate = false;
+                    }
                 } else {
                     isDuplicate = serviceDAO.existsByName(name);
                 }
@@ -274,62 +330,89 @@ public class ServiceController extends HttpServlet {
         ServiceDAO serviceDAO = new ServiceDAO();
         ServiceTypeDAO typeDAO = new ServiceTypeDAO();
 
-        String serviceTypeIdStr = request.getParameter("service_type_id");
-        int serviceTypeId = Integer.parseInt(serviceTypeIdStr);
-        ServiceType serviceType = typeDAO.findById(serviceTypeId).orElse(null);
-
-        String name = request.getParameter("name");
-        String description = request.getParameter("description");
-        BigDecimal price = new BigDecimal(request.getParameter("price"));
-        int duration = Integer.parseInt(request.getParameter("duration_minutes"));
-        int buffer = Integer.parseInt(request.getParameter("buffer_time_after_minutes"));
-        boolean isActive = request.getParameter("is_active") != null;
-        boolean bookable = request.getParameter("bookable_online") != null;
-        boolean requiresConsultation = request.getParameter("requires_consultation") != null;
-
-        Service s = new Service();
-        s.setServiceTypeId(serviceType);
-        s.setName(name);
-        s.setDescription(description);
-        s.setPrice(price);
-        s.setDurationMinutes(duration);
-        s.setBufferTimeAfterMinutes(buffer);
-        s.setIsActive(isActive);
-        s.setBookableOnline(bookable);
-        s.setRequiresConsultation(requiresConsultation);
-        s.setAverageRating(BigDecimal.ZERO);
-
-        if (service.equals("insert")) {
-            // Save service first to get the service ID
-            serviceDAO.save(s);
-            int serviceId = s.getServiceId();
-
-            // Process image uploads using modern approach
-            processServiceImages(request, serviceId);
-
-        } else if (service.equals("update")) {
-            int id = Integer.parseInt(request.getParameter("id").trim());
-            s.setServiceId(id);
-            serviceDAO.update(s);
-
-            // Handle image deletion
-            String[] deleteImageIds = request.getParameterValues("delete_image_ids");
-            if (deleteImageIds != null) {
-                ServiceImageDAO serviceImageDAO = new ServiceImageDAO();
-                for (String imgIdStr : deleteImageIds) {
-                    try {
-                        int imgId = Integer.parseInt(imgIdStr);
-                        serviceImageDAO.deleteById(imgId);
-                    } catch (NumberFormatException ignored) {
-                    }
-                }
+        try {
+            String serviceTypeIdStr = request.getParameter("service_type_id");
+            int serviceTypeId = Integer.parseInt(serviceTypeIdStr);
+            ServiceType serviceType = typeDAO.findById(serviceTypeId).orElse(null);
+            
+            if (serviceType == null) {
+                response.sendRedirect("service?service=list-all&toastType=error&toastMessage=Loại+dịch+vụ+không+tồn+tại");
+                return;
             }
 
-            // Process new image uploads
-            processServiceImages(request, id);
-        }
+            String name = request.getParameter("name");
+            String description = request.getParameter("description");
+            BigDecimal price = new BigDecimal(request.getParameter("price"));
+            int duration = Integer.parseInt(request.getParameter("duration_minutes"));
+            int buffer = Integer.parseInt(request.getParameter("buffer_time_after_minutes"));
+            boolean isActive = request.getParameter("is_active") != null;
+            boolean bookable = request.getParameter("bookable_online") != null;
+            boolean requiresConsultation = request.getParameter("requires_consultation") != null;
 
-        response.sendRedirect("service");
+            Service s = new Service();
+            s.setServiceTypeId(serviceType);
+            s.setName(name);
+            s.setDescription(description);
+            s.setPrice(price);
+            s.setDurationMinutes(duration);
+            s.setBufferTimeAfterMinutes(buffer);
+            s.setIsActive(isActive);
+            s.setBookableOnline(bookable);
+            s.setRequiresConsultation(requiresConsultation);
+            s.setAverageRating(BigDecimal.ZERO);
+
+            if (service.equals("insert")) {
+                // Save service first to get the service ID
+                serviceDAO.save(s);
+                int serviceId = s.getServiceId();
+
+                // Process image uploads using modern approach
+                processServiceImages(request, serviceId);
+                
+                response.sendRedirect("service?service=list-all&toastType=success&toastMessage=Đã+tạo+dịch+vụ+thành+công");
+
+            } else if (service.equals("update")) {
+                try {
+                    int id = Integer.parseInt(request.getParameter("id").trim());
+                    Service existingService = serviceDAO.findById(id).orElse(null);
+                    
+                    if (existingService == null) {
+                        response.sendRedirect("service?service=list-all&toastType=error&toastMessage=Dịch+vụ+không+tồn+tại");
+                        return;
+                    }
+                    
+                    s.setServiceId(id);
+                    serviceDAO.update(s);
+
+                    // Handle image deletion
+                    String[] deleteImageIds = request.getParameterValues("delete_image_ids");
+                    if (deleteImageIds != null) {
+                        ServiceImageDAO serviceImageDAO = new ServiceImageDAO();
+                        for (String imgIdStr : deleteImageIds) {
+                            try {
+                                int imgId = Integer.parseInt(imgIdStr);
+                                serviceImageDAO.deleteById(imgId);
+                            } catch (NumberFormatException ignored) {
+                            }
+                        }
+                    }
+
+                    // Process new image uploads
+                    processServiceImages(request, id);
+                    
+                    response.sendRedirect("service?service=list-all&toastType=success&toastMessage=Đã+cập+nhật+dịch+vụ+thành+công");
+                } catch (NumberFormatException e) {
+                    LOGGER.warning("Invalid service ID format: " + request.getParameter("id"));
+                    response.sendRedirect("service?service=list-all&toastType=error&toastMessage=ID+dịch+vụ+không+hợp+lệ");
+                }
+            }
+        } catch (NumberFormatException e) {
+            LOGGER.warning("Invalid number format in form data");
+            response.sendRedirect("service?service=list-all&toastType=error&toastMessage=Dữ+liệu+không+hợp+lệ");
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error processing service form", e);
+            response.sendRedirect("service?service=list-all&toastType=error&toastMessage=Có+lỗi+xảy+ra+khi+xử+lý+dữ+liệu");
+        }
     }
 
     /**
@@ -354,7 +437,7 @@ public class ServiceController extends HttpServlet {
                 // Validate file
                 ImageUploadUtil.ValidationResult validation = ImageUploadUtil.validateFile(filePart);
                 if (!validation.isValid()) {
-                    System.err.println("Image validation failed: " + validation.getErrors());
+                    LOGGER.warning("Image validation failed: " + validation.getErrors());
                     continue;
                 }
 
@@ -362,7 +445,7 @@ public class ServiceController extends HttpServlet {
                 ImageUploadUtil.ValidationResult dimensionValidation = ImageUploadUtil
                         .validateImageDimensions(filePart.getInputStream());
                 if (!dimensionValidation.isValid()) {
-                    System.err.println("Image dimension validation failed: " + dimensionValidation.getErrors());
+                    LOGGER.warning("Image dimension validation failed: " + dimensionValidation.getErrors());
                     continue;
                 }
 
@@ -370,7 +453,7 @@ public class ServiceController extends HttpServlet {
                 ServiceImage serviceImage = new ServiceImage();
                 serviceImage.setServiceId(serviceId);
                 serviceImage.setUrl(""); // Temporary, will be updated after processing
-                serviceImage.setAltText("Service image");
+                serviceImage.setAltText("Ảnh dịch vụ");
                 serviceImage.setIsPrimary(sortOrder == 0); // First image is primary
                 serviceImage.setSortOrder(sortOrder);
                 serviceImage.setIsActive(true);
@@ -378,7 +461,7 @@ public class ServiceController extends HttpServlet {
                 // Save to get the image ID
                 ServiceImage savedImage = serviceImageDAO.save(serviceImage);
                 if (savedImage == null || savedImage.getImageId() == null) {
-                    System.err.println("Failed to save image record");
+                    LOGGER.warning("Failed to save image record");
                     continue;
                 }
 
@@ -391,12 +474,11 @@ public class ServiceController extends HttpServlet {
                 savedImage.setFileSize(processedResult.getFileSize());
                 serviceImageDAO.update(savedImage);
 
-                System.out.println("Successfully saved image: " + processedResult.getFullSizeUrl());
+                LOGGER.info("Successfully saved image: " + processedResult.getFullSizeUrl());
                 sortOrder++;
 
             } catch (Exception e) {
-                System.err.println("Error processing image upload: " + e.getMessage());
-                e.printStackTrace();
+                LOGGER.log(Level.SEVERE, "Error processing image upload: " + e.getMessage(), e);
             }
         }
     }

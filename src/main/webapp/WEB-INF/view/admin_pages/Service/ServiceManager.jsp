@@ -1,6 +1,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <!DOCTYPE html>
 <html lang="vi" class="scroll-smooth">
 <head>
@@ -113,7 +114,15 @@
                                             <td class="px-6 py-4 font-medium text-gray-900">${service.serviceId}</td>
                                             <td class="px-6 py-4 text-center">
                                                 <div class="flex justify-center items-center h-16">
-                                                    <img src="${pageContext.request.contextPath}${serviceThumbnails[service.serviceId]}" alt="Service Image" class="w-16 h-16 object-cover rounded-xl border bg-gray-50 shadow" />
+                                                    <c:set var="imgUrl" value="${serviceThumbnails[service.serviceId]}" />
+                                                    <c:choose>
+                                                        <c:when test="${not empty imgUrl}">
+                                                            <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(imgUrl, '/services/')}" alt="Service Image" class="w-16 h-16 object-cover rounded shadow mx-auto hover:scale-105 transition-transform duration-200" style="cursor: zoom-in;" onclick="showImageModal(this.src)" />
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <img src="${pageContext.request.contextPath}/assets/images/no-image.png" alt="No image" class="w-16 h-16 object-cover rounded-xl border bg-gray-50 shadow" />
+                                                        </c:otherwise>
+                                                    </c:choose>
                                                 </div>
                                             </td>
                                             <td class="px-6 py-4 max-w-xs truncate" title="${service.name}">${service.name}</td>
@@ -244,6 +253,27 @@
         function confirmAction(message) {
             return confirm(message);
         }
+    </script>
+    <!-- Modal xem ảnh lớn -->
+    <div id="imageModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 hidden">
+        <span class="absolute top-4 right-8 text-white text-3xl cursor-pointer" id="closeModal">&times;</span>
+        <img id="modalImg" src="" class="max-h-[80vh] max-w-[90vw] rounded-xl shadow-2xl border-4 border-white" />
+    </div>
+    <script>
+        function showImageModal(src) {
+            document.getElementById('modalImg').src = src;
+            document.getElementById('imageModal').classList.remove('hidden');
+        }
+        document.getElementById('closeModal').onclick = function() {
+            document.getElementById('imageModal').classList.add('hidden');
+            document.getElementById('modalImg').src = '';
+        };
+        document.getElementById('imageModal').onclick = function(e) {
+            if (e.target === this) {
+                this.classList.add('hidden');
+                document.getElementById('modalImg').src = '';
+            }
+        };
     </script>
 </body>
 </html>

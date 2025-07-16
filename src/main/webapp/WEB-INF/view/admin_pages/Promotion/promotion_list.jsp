@@ -155,6 +155,7 @@
                                     </th>
                                     <th scope="col">Tiêu đề</th>
                                     <th scope="col">Mã khuyến mãi</th>
+                                    <th scope="col">Hình ảnh</th>
                                     <th scope="col" class="text-center">Trạng thái</th>
                                     <th scope="col" class="text-center">Thao tác</th>
                                 </tr>
@@ -165,6 +166,11 @@
                                         <td>${promotion.promotionId}</td>
                                         <td>${promotion.title}</td>
                                         <td>${promotion.promotionCode}</td>
+                                        <td>
+                                            <c:if test="${not empty promotion.imageUrl}">
+                                                <img src="${pageContext.request.contextPath}${promotion.imageUrl}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;" alt="Ảnh khuyến mãi" />
+                                            </c:if>
+                                        </td>
                                         <td>
                                             <c:choose>
                                                 <c:when test="${promotion.status eq 'ACTIVE'}">

@@ -55,7 +55,7 @@ public class AuthorizationFilter implements Filter {
   private static void initializeUrlRoleMappings() {
     // Admin-only areas
     URL_ROLE_MAPPINGS.put("/admin", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID)));
-    URL_ROLE_MAPPINGS.put("/user", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID)));
+    URL_ROLE_MAPPINGS.put("/user/", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID)));
     URL_ROLE_MAPPINGS.put("/system", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID)));
 
     // Manager areas (Admin + Manager access)
@@ -83,6 +83,8 @@ public class AuthorizationFilter implements Filter {
     URL_ROLE_MAPPINGS.put("/booking", new HashSet<>(Arrays.asList(
         RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID,
         RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID)));
+    URL_ROLE_MAPPINGS.put("/booking-checkout", new HashSet<>(Arrays.asList(
+         RoleConstants.CUSTOMER_ID)));
 
     // Marketing areas
     URL_ROLE_MAPPINGS.put("/marketing", new HashSet<>(Arrays.asList(
@@ -98,10 +100,17 @@ public class AuthorizationFilter implements Filter {
     URL_ROLE_MAPPINGS.put("/inventory-manager/", new HashSet<>(Arrays.asList(RoleConstants.INVENTORY_MANAGER_ID)));
     URL_ROLE_MAPPINGS.put("/inventory-manager", new HashSet<>(Arrays.asList(RoleConstants.INVENTORY_MANAGER_ID)));
 
-    // Customer areas (all authenticated users can access)
-    URL_ROLE_MAPPINGS.put("/customer/", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID,
-        RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID, RoleConstants.MARKETING_ID)));
+    // Customer Management - Role-based separation
+    // Admin manages customer accounts (login credentials, account status)
+    URL_ROLE_MAPPINGS.put("/admin/customer-account", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID)));
+    
+    // Manager manages customer information (personal details, profile)
+    URL_ROLE_MAPPINGS.put("/manager/customer", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
+    
+    // Legacy customer path (deprecated - use specific paths above)
+    URL_ROLE_MAPPINGS.put("/customer/", new HashSet<>(Arrays.asList(RoleConstants.MANAGER_ID)));
+    
+    // Customer profile and appointment access
     URL_ROLE_MAPPINGS.put("/profile", new HashSet<>(Arrays.asList(
         RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID,
         RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID)));

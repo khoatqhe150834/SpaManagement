@@ -243,7 +243,8 @@ class WishlistManager {
         
         // Example: Send to cart API or add to cart localStorage
         try {
-            const currentCartItems = JSON.parse(localStorage.getItem('cart') || '[]');
+            // Always use session_cart regardless of login status
+            const currentCartItems = JSON.parse(localStorage.getItem('session_cart') || '[]');
             const existingCartItem = currentCartItems.find(cartItem => cartItem.serviceId === item.serviceId);
 
             if (!existingCartItem) {
@@ -255,7 +256,7 @@ class WishlistManager {
                     quantity: 1,
                     addedAt: new Date().toISOString()
                 });
-                localStorage.setItem('cart', JSON.stringify(currentCartItems));
+                localStorage.setItem('session_cart', JSON.stringify(currentCartItems));
             }
         } catch (error) {
             console.error('Failed to add to cart:', error);

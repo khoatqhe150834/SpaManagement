@@ -11,14 +11,12 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.Map;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.HashMap;
 
 import db.DBContext;
 import model.ServiceImage;
@@ -41,16 +39,16 @@ public class ServiceImageDAO implements BaseDAO<ServiceImage, Integer> {
                 PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             stmt.setInt(1, entity.getServiceId());
-            stmt.setString(2, entity.getUrl());
-            stmt.setString(3, entity.getAltText());
+            stmt.setString(2, entity.getUrl() != null ? entity.getUrl() : "");
+            stmt.setString(3, entity.getAltText() != null ? entity.getAltText() : "");
             stmt.setBoolean(4, entity.getIsPrimary() != null ? entity.getIsPrimary() : false);
             stmt.setInt(5, entity.getSortOrder() != null ? entity.getSortOrder() : 0);
-            stmt.setString(6, entity.getCaption());
+            stmt.setString(6, entity.getCaption() != null ? entity.getCaption() : "");
             stmt.setBoolean(7, entity.getIsActive() != null ? entity.getIsActive() : true);
             if (entity.getFileSize() != null) {
                 stmt.setInt(8, entity.getFileSize());
             } else {
-                stmt.setNull(8, Types.INTEGER);
+                stmt.setNull(8, java.sql.Types.INTEGER);
             }
 
             int affectedRows = stmt.executeUpdate();
