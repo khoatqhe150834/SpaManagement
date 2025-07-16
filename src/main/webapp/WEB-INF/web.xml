@@ -171,7 +171,27 @@
         <servlet-name>LogOutController</servlet-name>
         <url-pattern>/logout</url-pattern>
     </servlet-mapping>
+<<<<<<< HEAD
     <!-- CustomerController removed - replaced by AdminCustomerController and ManagerCustomerController with @WebServlet annotations -->
+=======
+
+    <!-- Customer Controller Servlet -->
+    <!--
+    <servlet>
+        <servlet-name>CustomerController</servlet-name>
+        <servlet-class>controller.CustomerController</servlet-class>
+    </servlet>
+    -->
+
+    <!-- Customer Controller Servlet Mapping -->
+    <!--
+    <servlet-mapping>
+        <servlet-name>CustomerController</servlet-name>
+        <url-pattern>/customer/*</url-pattern>
+    </servlet-mapping>
+    -->
+
+>>>>>>> d07ad0a6981b721dd5751982ea529b9fea30dcd6
     <!-- BookingSession API Servlet -->
     <servlet>
         <servlet-name>BookingSessionApiServlet</servlet-name>
@@ -194,4 +214,36 @@
         <param-name>cloudinary.api_secret</param-name>
         <param-value>ABahQ3j9UOU245iSBmlAwqCCN0Q</param-value>
     </context-param>
+<<<<<<< HEAD
 </web-app>
+=======
+
+    <!-- Chatbot API Configuration -->
+    <context-param>
+        <param-name>chatbot.api.url</param-name>
+        <param-value>http://localhost:8000</param-value>
+    </context-param>
+
+    <context-param>
+        <param-name>chatbot.api.timeout</param-name>
+        <param-value>30000</param-value>
+    </context-param>
+
+    <!-- Chatbot API Servlet -->
+    <servlet>
+        <servlet-name>ChatbotApiServlet</servlet-name>
+        <servlet-class>controller.api.ChatbotApiServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>ChatbotApiServlet</servlet-name>
+        <url-pattern>/api/chat</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>ChatbotApiServlet</servlet-name>
+        <url-pattern>/api/chatbot</url-pattern>
+    </servlet-mapping>
+
+</web-app>
+>>>>>>> d07ad0a6981b721dd5751982ea529b9fea30dcd6

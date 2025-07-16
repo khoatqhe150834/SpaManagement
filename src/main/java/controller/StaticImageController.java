@@ -20,7 +20,7 @@ import java.util.logging.Logger;
  * Maps URLs like /services/service_71_79_full.png to
  * D:/spa-uploads/services/service_71_79_full.png
  */
-@WebServlet(name = "StaticImageController", urlPatterns = { "/services/*" })
+@WebServlet(name = "StaticImageController", urlPatterns = { "/image" })
 public class StaticImageController extends HttpServlet {
 
   private static final Logger LOGGER = Logger.getLogger(StaticImageController.class.getName());
@@ -30,61 +30,42 @@ public class StaticImageController extends HttpServlet {
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
 
-    String pathInfo = request.getPathInfo();
-    if (pathInfo == null || pathInfo.equals("/")) {
-      response.sendError(HttpServletResponse.SC_NOT_FOUND, "Image not found");
+    String type = request.getParameter("type");
+    String name = request.getParameter("name");
+    if (type == null || name == null || name.contains("..") || name.contains("/")) {
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid image request");
       return;
     }
-
-    // Remove leading slash from pathInfo
-    String imagePath = pathInfo.substring(1);
-
-    // Construct full file path
-    String fullPath = EXTERNAL_IMAGE_PATH + "/services/" + imagePath;
+    String folder;
+    if ("service_type".equals(type)) {
+      folder = "service-types";
+    } else if ("service".equals(type)) {
+      folder = "services";
+    } else {
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid type");
+      return;
+    }
+    String fullPath = EXTERNAL_IMAGE_PATH + "/" + folder + "/" + name;
     Path imageFile = Paths.get(fullPath);
-
-    LOGGER.info("Attempting to serve image: " + fullPath);
-
-    // Security check - ensure the path is within our allowed directory
     if (!imageFile.normalize().startsWith(Paths.get(EXTERNAL_IMAGE_PATH).normalize())) {
-      LOGGER.warning("Path traversal attempt detected: " + fullPath);
       response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied");
       return;
     }
-
-    // Check if file exists
     if (!Files.exists(imageFile) || !Files.isRegularFile(imageFile)) {
-      LOGGER.warning("Image file not found: " + fullPath);
       response.sendError(HttpServletResponse.SC_NOT_FOUND, "Image not found");
       return;
     }
-
-    // Get file extension and set content type
     String fileName = imageFile.getFileName().toString();
     String contentType = getContentType(fileName);
-
     if (contentType == null) {
-      LOGGER.warning("Unsupported file type: " + fileName);
       response.sendError(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE, "Unsupported file type");
       return;
     }
-
-    try {
-      // Set response headers
-      response.setContentType(contentType);
-      response.setHeader("Cache-Control", "public, max-age=86400"); // Cache for 24 hours
-      response.setContentLengthLong(Files.size(imageFile));
-
-      // Copy file to response output stream
-      try (OutputStream out = response.getOutputStream()) {
-        Files.copy(imageFile, out);
-      }
-
-      LOGGER.info("Successfully served image: " + fullPath);
-
-    } catch (IOException e) {
-      LOGGER.log(Level.SEVERE, "Error serving image: " + fullPath, e);
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error serving image");
+    response.setContentType(contentType);
+    response.setHeader("Cache-Control", "public, max-age=86400");
+    response.setContentLengthLong(Files.size(imageFile));
+    try (OutputStream out = response.getOutputStream()) {
+      Files.copy(imageFile, out);
     }
   }
 

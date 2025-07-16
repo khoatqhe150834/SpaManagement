@@ -151,7 +151,7 @@ async function removeFromCart(itemId) {
     await saveCart(cartItems);
     updateCartDisplay();
     showNotification('Đã xóa dịch vụ khỏi giỏ hàng', 'success');
-}
+}   
 
 // Clear cart
 async function clearCart() {
@@ -325,9 +325,10 @@ function proceedToCheckout() {
         showNotification('Giỏ hàng trống', 'error');
         return;
     }
-    
-    // Redirect to booking page with cart items
-    window.location.href = '/booking?from=cart';
+
+    // Redirect to booking checkout page
+    const contextPath = window.spaConfig ? window.spaConfig.contextPath : '';
+    window.location.href = contextPath + '/booking-checkout';
 }
 
 

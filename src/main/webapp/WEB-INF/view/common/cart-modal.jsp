@@ -69,9 +69,9 @@
                     <button onclick="clearCart()" class="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
                         Xóa tất cả
                     </button>
-                    <button onclick="window.location.href='${pageContext.request.contextPath}/booking'" class="flex-2 flex items-center justify-center px-6 py-3 bg-[#D4AF37] text-white rounded-lg hover:bg-[#B8941F] transition-colors font-semibold">
-                        <i data-lucide="calendar" class="h-5 w-5 mr-2"></i>
-                        Đặt lịch ngay
+                    <button onclick="window.location.href='${pageContext.request.contextPath}/booking-checkout'" class="flex-2 flex items-center justify-center px-6 py-3 bg-[#D4AF37] text-white rounded-lg hover:bg-[#B8941F] transition-colors font-semibold">
+                        <i data-lucide="credit-card" class="h-5 w-5 mr-2"></i>
+                        Thanh toán
                     </button>
                 </div>
 

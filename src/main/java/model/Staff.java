@@ -1,6 +1,8 @@
 package model;
 
 import java.sql.Timestamp;
+import java.util.List;
+import model.Certificate;
 
 /**
  *
@@ -15,6 +17,7 @@ public class Staff {
     private int yearsOfExperience;
     private Timestamp createdAt;
     private Timestamp updatedAt;
+    private List<Certificate> certificates;
 
     public Staff() {
     }
@@ -84,6 +87,14 @@ public class Staff {
 
     public void setUpdatedAt(Timestamp updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public List<Certificate> getCertificates() {
+        return certificates;
+    }
+
+    public void setCertificates(List<Certificate> certificates) {
+        this.certificates = certificates;
     }
 
     @Override

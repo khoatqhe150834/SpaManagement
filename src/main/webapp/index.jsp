@@ -1,22 +1,24 @@
-﻿<%-- Document : index.jsp Created on : May 29, 2025, 10:45:37 AM Author : quang
---%> <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %> <%@ taglib
-prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %> <%@ page
-import="model.RoleConstants" %> <%@page contentType="text/html"
-pageEncoding="UTF-8"%> 
+﻿<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ page import="model.RoleConstants" %>
+<%@ page contentType="text/html" pageEncoding="UTF-8"%>
+
 <%
-// Set showBookingFeatures based on user role
-boolean showBookingFeatures = true; // Default to show for guests
+    boolean showBookingFeatures = true; // Default to show for guests
 
-if (session.getAttribute("authenticated") != null && (Boolean)session.getAttribute("authenticated")) {
-    if (session.getAttribute("customer") != null) {
-        showBookingFeatures = true; // Show for customers
-    } else if (session.getAttribute("user") != null) {
-        showBookingFeatures = false; // Hide for staff/admin roles
+    if (session.getAttribute("authenticated") != null 
+            && Boolean.TRUE.equals(session.getAttribute("authenticated"))) {
+
+        if (session.getAttribute("customer") != null) {
+            showBookingFeatures = true;
+        } else if (session.getAttribute("user") != null) {
+            showBookingFeatures = false; // Hide for staff/admin roles
+        }
     }
-}
 
-pageContext.setAttribute("showBookingFeatures", showBookingFeatures);
+    pageContext.setAttribute("showBookingFeatures", showBookingFeatures);
 %>
+
 
 <!DOCTYPE html>
 <html lang="vi" class="scroll-smooth">
@@ -836,7 +838,6 @@ pageContext.setAttribute("showBookingFeatures", showBookingFeatures);
     <script src="<c:url value='/js/service-tracker.js'/>"></script>
     <script src="<c:url value='/js/recently-viewed-services.js'/>"></script>
     <script src="<c:url value='/js/homepage-sections.js'/>"></script>
-
 
     <!-- Footer -->
     <jsp:include page="/WEB-INF/view/common/footer.jsp" />

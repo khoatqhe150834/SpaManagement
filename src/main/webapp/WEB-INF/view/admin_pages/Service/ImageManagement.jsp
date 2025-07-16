@@ -1,6 +1,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <!DOCTYPE html>
 <html lang="vi" class="scroll-smooth">
 <head>
@@ -108,7 +109,9 @@
                                             <c:if test="${image.isPrimary}">
                                                 <div class="absolute top-2 left-2 bg-yellow-400 text-white text-xs font-bold px-2 py-1 rounded">Chính</div>
                                             </c:if>
-                                            <img src="${pageContext.request.contextPath}${image.url}" alt="${image.altText}" class="w-full h-36 object-cover cursor-pointer" onclick="viewImageFullSize('${pageContext.request.contextPath}${image.url}')">
+                                            <a href="javascript:void(0);" onclick="viewImageFullSize('${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(image.url, '/services/')}')">
+                                                <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(image.url, '/services/')}" alt="${image.altText}" class="w-full h-36 object-cover cursor-pointer hover:scale-105 transition-transform duration-200" />
+                                            </a>
                                             <div class="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition">
                                                 <c:if test="${!image.isPrimary}">
                                                     <button type="button" class="bg-green-500 hover:bg-green-600 text-white rounded-full p-1" onclick="setPrimaryImage('${image.imageId}', '${service.serviceId}')" title="Đặt làm chính"><i data-lucide="star" class="w-4 h-4"></i></button>
@@ -160,7 +163,9 @@
                                                     <c:if test="${image.isPrimary}">
                                                         <div class="absolute top-2 left-2 bg-yellow-400 text-white text-xs font-bold px-2 py-1 rounded">Chính</div>
                                                     </c:if>
-                                                    <img src="${pageContext.request.contextPath}${image.url}" alt="${image.altText}" class="w-full h-36 object-cover cursor-pointer" onclick="viewImageFullSize('${pageContext.request.contextPath}${image.url}')">
+                                                    <a href="javascript:void(0);" onclick="viewImageFullSize('${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(image.url, '/services/')}')">
+                                                        <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(image.url, '/services/')}" alt="${image.altText}" class="w-full h-36 object-cover cursor-pointer hover:scale-105 transition-transform duration-200" />
+                                                    </a>
                                                     <div class="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition">
                                                         <!-- Không có nút thao tác ở view tổng hợp -->
                                                     </div>
@@ -188,12 +193,10 @@
 </main>
 </div>
 <jsp:include page="/WEB-INF/view/common/footer.jsp" />
-<!-- Modal xem ảnh -->
-<div id="imageModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden">
-    <div class="bg-white rounded-xl shadow-lg max-w-2xl w-full p-6 relative">
-        <button onclick="document.getElementById('imageModal').classList.add('hidden')" class="absolute top-2 right-2 bg-gray-200 hover:bg-gray-300 rounded-full p-2"><i data-lucide="x" class="w-5 h-5"></i></button>
-        <img id="modalImage" src="" alt="" class="w-full h-auto rounded-lg">
-    </div>
+<!-- Modal xem ảnh lớn -->
+<div id="imageModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 hidden">
+    <span class="absolute top-4 right-8 text-white text-3xl cursor-pointer" id="closeModal">&times;</span>
+    <img id="modalImg" src="" class="max-h-[80vh] max-w-[90vw] rounded-xl shadow-2xl border-4 border-white" />
 </div>
 <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
 <script>
@@ -264,11 +267,31 @@
         });
     }
     
-    // View image full size
-    function viewImageFullSize(imageUrl) {
-        document.getElementById('modalImage').src = imageUrl;
-        document.getElementById('imageModal').classList.remove('hidden');
-    }
+    document.addEventListener('DOMContentLoaded', function() {
+        window.viewImageFullSize = function(src) {
+            document.getElementById('modalImg').src = src;
+            document.getElementById('imageModal').classList.remove('hidden');
+        };
+        document.getElementById('closeModal').onclick = function() {
+            document.getElementById('imageModal').classList.add('hidden');
+            document.getElementById('modalImg').src = '';
+        };
+        document.getElementById('imageModal').onclick = function(e) {
+            if (e.target === this) {
+                this.classList.add('hidden');
+                document.getElementById('modalImg').src = '';
+            }
+        };
+        // Gán lại sự kiện click cho tất cả thẻ <a> có onclick gọi viewImageFullSize
+        document.querySelectorAll('a[onclick^="viewImageFullSize"]').forEach(function(a) {
+            a.addEventListener('click', function(e) {
+                e.preventDefault();
+                var src = this.getAttribute('onclick').match(/viewImageFullSize\('([^']+)'\)/);
+                if (src && src[1]) window.viewImageFullSize(src[1]);
+                return false;
+            });
+        });
+    });
 </script>
 </body>
 </html>

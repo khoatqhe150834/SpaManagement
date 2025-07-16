@@ -900,14 +900,18 @@ INSERT INTO `service_reviews`
 UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `service_images`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE service_images (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE `service_images` (
+    image_id INT AUTO_INCREMENT PRIMARY KEY,
     service_id INT NOT NULL,
-    image_url VARCHAR(255) NOT NULL,
+    url VARCHAR(255) NOT NULL,
+    alt_text VARCHAR(255),
+    is_primary BOOLEAN DEFAULT 0,
     sort_order INT DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    caption VARCHAR(255),
+    is_active BOOLEAN DEFAULT 1,
+    file_size INT,
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (service_id) REFERENCES services(service_id) ON DELETE CASCADE
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1260,3 +1264,23 @@ UNLOCK TABLES;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2025-06-26 23:36:14
+DROP TABLE IF EXISTS `certificates`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `certificates` (
+  `certificate_id` int NOT NULL AUTO_INCREMENT,
+  `staff_user_id` int NOT NULL,
+  `certificate_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `certificate_number` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `issued_date` date NOT NULL,
+  `expiry_date` date DEFAULT NULL,
+  `file_url` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `note` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`certificate_id`),
+  UNIQUE KEY `uq_certificate_number` (`certificate_number`),
+  KEY `idx_staff_user_id` (`staff_user_id`),
+  CONSTRAINT `certificates_ibfk_1` FOREIGN KEY (`staff_user_id`) REFERENCES `therapists` (`user_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
