@@ -16,12 +16,15 @@
     <title>Tổng Quan - Manager Dashboard</title>
     <link rel="icon" type="image/png" href="${pageContext.request.contextPath}/assets/admin/images/favicon.png" sizes="16x16">
     <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp" />
+    <!-- Manager Dashboard Scrollbar CSS -->
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/admin/css/manager-dashboard-scrollbar.css">
 </head>
 <body>
     <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
     <jsp:include page="/WEB-INF/view/common/admin/header.jsp" />
 
-    <div class="dashboard-main-body">
+    <div class="dashboard-main">
+        <div class="dashboard-main-body">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
             <h6 class="fw-semibold mb-0">Tổng Quan Manager</h6>
             <ul class="d-flex align-items-center gap-2">
@@ -226,6 +229,90 @@
                                     <h6 class="text-md fw-semibold mb-1">Đánh Giá 5 Sao</h6>
                                     <span class="text-sm text-secondary-light">Khách hàng VIP đánh giá 5 sao dịch vụ massage</span>
                                     <p class="text-xs text-secondary-light mb-0 mt-1">1 ngày trước</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            </div>
+            </div>
+        </div>
+
+        <!-- Additional Test Content for Scrollbar -->
+        <div class="row gy-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header border-bottom bg-base py-16 px-24">
+                        <h6 class="text-lg fw-semibold mb-0">📊 Thống Kê Chi Tiết</h6>
+                    </div>
+                    <div class="card-body p-24">
+                        <div class="row gy-3">
+                            <div class="col-md-3">
+                                <div class="border rounded p-3 text-center">
+                                    <h5 class="text-primary mb-1">150</h5>
+                                    <small class="text-secondary">Tổng Khách Hàng</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="border rounded p-3 text-center">
+                                    <h5 class="text-success mb-1">25</h5>
+                                    <small class="text-secondary">Nhân Viên</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="border rounded p-3 text-center">
+                                    <h5 class="text-info mb-1">89</h5>
+                                    <small class="text-secondary">Dịch Vụ</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="border rounded p-3 text-center">
+                                    <h5 class="text-warning mb-1">12</h5>
+                                    <small class="text-secondary">Phòng</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Content to Ensure Scrollbar Appears -->
+        <div class="row gy-4 mb-24">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header border-bottom bg-base py-16 px-24">
+                        <h6 class="text-lg fw-semibold mb-0">🔧 Test Scrollbar Content</h6>
+                    </div>
+                    <div class="card-body p-24">
+                        <p>Nội dung này được thêm để test scrollbar. Khi dashboard có nhiều nội dung, scrollbar sẽ xuất hiện tự động.</p>
+                        <div class="alert alert-info">
+                            <strong>Thông tin:</strong> Scrollbar sẽ xuất hiện khi nội dung vượt quá chiều cao màn hình.
+                        </div>
+                        <!-- Extra content to force scrollbar -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="p-3 border rounded">
+                                    <h6>Mục 1</h6>
+                                    <p class="mb-0">Mô tả chi tiết về mục 1...</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="p-3 border rounded">
+                                    <h6>Mục 2</h6>
+                                    <p class="mb-0">Mô tả chi tiết về mục 2...</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="p-3 border rounded">
+                                    <h6>Mục 3</h6>
+                                    <p class="mb-0">Mô tả chi tiết về mục 3...</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="p-3 border rounded">
+                                    <h6>Mục 4</h6>
+                                    <p class="mb-0">Mô tả chi tiết về mục 4...</p>
                                 </div>
                             </div>
                         </div>

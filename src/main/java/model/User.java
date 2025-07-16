@@ -1,6 +1,7 @@
 package model;
 
 import java.util.Date;
+
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
@@ -47,6 +48,10 @@ public class User {
         this.lastLoginAt = lastLoginAt;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+    }
+
+    public Integer getRoleId() {
+        return roleId;
     }
   
   

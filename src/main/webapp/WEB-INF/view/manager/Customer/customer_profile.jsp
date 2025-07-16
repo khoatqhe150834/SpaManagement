@@ -190,10 +190,10 @@
                                             <div class="text-xs text-gray-500 uppercase tracking-wide">Giới tính</div>
                                             <div class="font-semibold text-gray-800">
                                                 <c:choose>
-                                                    <c:when test="${customer.gender == 'Male'}">Nam</c:when>
-                                                    <c:when test="${customer.gender == 'Female'}">Nữ</c:when>
+                                                    <c:when test="${customer.gender == 'Male' || customer.gender == 'M'}">Nam</c:when>
+                                                    <c:when test="${customer.gender == 'Female' || customer.gender == 'F'}">Nữ</c:when>
                                                     <c:when test="${customer.gender == 'Other'}">Khác</c:when>
-                                                    <c:otherwise><span class="text-gray-400 italic">Chưa cập nhật</span></c:otherwise>
+                                                    <c:otherwise><span class="text-gray-400 italic">Chưa cập nhật (${customer.gender})</span></c:otherwise>
                                                 </c:choose>
                                             </div>
                                         </div>

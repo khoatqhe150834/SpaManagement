@@ -111,8 +111,7 @@ public class AuthorizationFilter implements Filter {
         RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID,
         RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID)));
     URL_ROLE_MAPPINGS.put("/appointments", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID,
-        RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID)));
+        RoleConstants.MANAGER_ID)));
 
     // Paths accessible to any authenticated user
     Set<Integer> allAuthenticatedRoles = new HashSet<>(Arrays.asList(

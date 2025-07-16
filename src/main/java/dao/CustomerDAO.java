@@ -317,6 +317,15 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
     @Override
     public <S extends Customer> S update(S customer) {
         String sql = "UPDATE customers SET full_name=?, email=?, phone_number=?, gender=?, birthday=?, address=?, is_active=?, loyalty_points=?, role_id=?, is_verified=?, updated_at=?, avatar_url=?, notes=? WHERE customer_id=?";
+        
+        // DEBUG LOGGING
+        Logger.getLogger(CustomerDAO.class.getName()).log(Level.INFO, "=== DAO UPDATE DEBUG ===");
+        Logger.getLogger(CustomerDAO.class.getName()).log(Level.INFO, "Customer ID: " + customer.getCustomerId());
+        Logger.getLogger(CustomerDAO.class.getName()).log(Level.INFO, "Full Name: " + customer.getFullName());
+        Logger.getLogger(CustomerDAO.class.getName()).log(Level.INFO, "Gender: " + customer.getGender());
+        Logger.getLogger(CustomerDAO.class.getName()).log(Level.INFO, "Phone: " + customer.getPhoneNumber());
+        Logger.getLogger(CustomerDAO.class.getName()).log(Level.INFO, "=== END DAO DEBUG ===");
+        
         try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, customer.getFullName());
             ps.setString(2, customer.getEmail());

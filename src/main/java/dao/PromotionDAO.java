@@ -32,6 +32,7 @@ public class PromotionDAO {
         p.setIsAutoApply(rs.getBoolean("is_auto_apply"));
         p.setMinimumAppointmentValue(rs.getBigDecimal("minimum_appointment_value"));
         p.setApplicableScope(rs.getString("applicable_scope"));
+        p.setCustomerCondition(rs.getString("customer_condition"));
 
         Timestamp start = rs.getTimestamp("start_date");
         if (start != null) p.setStartDate(start.toLocalDateTime());
@@ -43,7 +44,7 @@ public class PromotionDAO {
 
     // Thêm khuyến mãi mới
     public boolean save(Promotion p) {
-        String sql = "INSERT INTO promotions (title, promotion_code, discount_type, discount_value, description, status, start_date, end_date, current_usage_count, is_auto_apply, minimum_appointment_value, applicable_scope, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO promotions (title, promotion_code, discount_type, discount_value, description, status, start_date, end_date, current_usage_count, is_auto_apply, minimum_appointment_value, applicable_scope, customer_condition, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, p.getTitle());
@@ -58,7 +59,8 @@ public class PromotionDAO {
             ps.setBoolean(10, p.getIsAutoApply() != null ? p.getIsAutoApply() : false);
             ps.setBigDecimal(11, p.getMinimumAppointmentValue() != null ? p.getMinimumAppointmentValue() : BigDecimal.ZERO);
             ps.setString(12, p.getApplicableScope());
-            ps.setString(13, p.getImageUrl());
+            ps.setString(13, p.getCustomerCondition() != null ? p.getCustomerCondition() : "ALL");
+            ps.setString(14, p.getImageUrl());
             int row = ps.executeUpdate();
             if (row > 0) {
                 ResultSet rs = ps.getGeneratedKeys();
@@ -73,7 +75,7 @@ public class PromotionDAO {
 
     // Update khuyến mãi
     public boolean update(Promotion p) {
-        String sql = "UPDATE promotions SET title=?, promotion_code=?, discount_type=?, discount_value=?, description=?, status=?, start_date=?, end_date=?, current_usage_count=?, is_auto_apply=?, minimum_appointment_value=?, applicable_scope=?, image_url=? WHERE promotion_id=?";
+        String sql = "UPDATE promotions SET title=?, promotion_code=?, discount_type=?, discount_value=?, description=?, status=?, start_date=?, end_date=?, current_usage_count=?, is_auto_apply=?, minimum_appointment_value=?, applicable_scope=?, customer_condition=?, image_url=? WHERE promotion_id=?";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, p.getTitle());
@@ -88,8 +90,9 @@ public class PromotionDAO {
             ps.setBoolean(10, p.getIsAutoApply() != null ? p.getIsAutoApply() : false);
             ps.setBigDecimal(11, p.getMinimumAppointmentValue() != null ? p.getMinimumAppointmentValue() : BigDecimal.ZERO);
             ps.setString(12, p.getApplicableScope());
-            ps.setString(13, p.getImageUrl());
-            ps.setInt(14, p.getPromotionId());
+            ps.setString(13, p.getCustomerCondition() != null ? p.getCustomerCondition() : "ALL");
+            ps.setString(14, p.getImageUrl());
+            ps.setInt(15, p.getPromotionId());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Update Promotion Error", e);
@@ -138,6 +141,9 @@ public class PromotionDAO {
             String sortColumn = switch (sortBy) {
                 case "id" -> "promotion_id";
                 case "title" -> "title";
+                case "status" -> "status";
+                case "code" -> "promotion_code";
+                case "discount" -> "discount_value";
                 default -> "promotion_id";
             };
             sql += " ORDER BY " + sortColumn + " " + (sortOrder != null && sortOrder.equalsIgnoreCase("desc") ? "DESC" : "ASC");
@@ -180,6 +186,9 @@ public class PromotionDAO {
             String sortColumn = switch (sortBy) {
                 case "id" -> "promotion_id";
                 case "title" -> "title";
+                case "status" -> "status";
+                case "code" -> "promotion_code";
+                case "discount" -> "discount_value";
                 default -> "promotion_id";
             };
             sql += " ORDER BY " + sortColumn + " " + (sortOrder != null && sortOrder.equalsIgnoreCase("desc") ? "DESC" : "ASC");
@@ -303,7 +312,7 @@ public class PromotionDAO {
         }
     }
       public boolean scheduledPromotion(int  promotionId) {
-        String sql = "UPDATE promotions SET SET status = 'SCHEDULED', updated_at = ? WHERE promotion_id = ?";
+        String sql = "UPDATE promotions SET status = 'SCHEDULED', updated_at = ? WHERE promotion_id = ?";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
@@ -415,6 +424,7 @@ public class PromotionDAO {
     promotion.setTotalUsageLimit((Integer) rs.getObject("total_usage_limit"));
     promotion.setCurrentUsageCount(rs.getInt("current_usage_count"));
     promotion.setApplicableScope(rs.getString("applicable_scope"));
+    promotion.setCustomerCondition(rs.getString("customer_condition"));
     promotion.setApplicableServiceIdsJson(rs.getString("applicable_service_ids_json"));
     promotion.setImageUrl(rs.getString("image_url"));
     promotion.setTermsAndConditions(rs.getString("terms_and_conditions"));
@@ -501,4 +511,136 @@ public class PromotionDAO {
         }
         return count;
     }
+
+    /**
+     * Auto update promotion status based on start and end dates
+     */
+    public void updatePromotionStatusByTime() {
+        String updateActivePromotions = "UPDATE promotions SET status = 'ACTIVE', updated_at = ? " +
+                                       "WHERE status = 'SCHEDULED' AND start_date <= ? AND end_date >= ?";
+        
+        String updateExpiredPromotions = "UPDATE promotions SET status = 'INACTIVE', updated_at = ? " +
+                                        "WHERE status = 'ACTIVE' AND end_date < ?";
+        
+        try (Connection conn = DBContext.getConnection()) {
+            Timestamp now = new Timestamp(System.currentTimeMillis());
+            
+            // Activate scheduled promotions that should start now
+            try (PreparedStatement ps1 = conn.prepareStatement(updateActivePromotions)) {
+                ps1.setTimestamp(1, now);
+                ps1.setTimestamp(2, now);
+                ps1.setTimestamp(3, now);
+                int activated = ps1.executeUpdate();
+                if (activated > 0) {
+                    logger.info("Auto-activated " + activated + " promotions");
+                }
+            }
+            
+            // Deactivate expired promotions
+            try (PreparedStatement ps2 = conn.prepareStatement(updateExpiredPromotions)) {
+                ps2.setTimestamp(1, now);
+                ps2.setTimestamp(2, now);
+                int deactivated = ps2.executeUpdate();
+                if (deactivated > 0) {
+                    logger.info("Auto-deactivated " + deactivated + " expired promotions");
+                }
+            }
+            
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error auto-updating promotion status", e);
+        }
+    }
+
+    /**
+     * Get promotions that need status update
+     */
+    public List<Promotion> getPromotionsNeedingStatusUpdate() {
+        List<Promotion> promotions = new ArrayList<>();
+        String sql = "SELECT * FROM promotions WHERE " +
+                    "(status = 'SCHEDULED' AND start_date <= ?) OR " +
+                    "(status = 'ACTIVE' AND end_date < ?)";
+        
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            Timestamp now = new Timestamp(System.currentTimeMillis());
+            ps.setTimestamp(1, now);
+            ps.setTimestamp(2, now);
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    promotions.add(mapResultSet(rs));
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error getting promotions needing update", e);
+        }
+        return promotions;
+    }
+
+    /**
+     * Get promotion usage report with customer information
+     */
+    public List<java.util.Map<String, Object>> getPromotionUsageReport(int promotionId, int page, int pageSize) {
+        List<java.util.Map<String, Object>> usageList = new ArrayList<>();
+        String sql = "SELECT pu.*, c.first_name, c.last_name, c.email, c.phone, " +
+                    "p.title as promotion_title, p.promotion_code " +
+                    "FROM promotion_usage pu " +
+                    "JOIN customers c ON pu.customer_id = c.customer_id " +
+                    "JOIN promotions p ON pu.promotion_id = p.promotion_id " +
+                    "WHERE pu.promotion_id = ? " +
+                    "ORDER BY pu.used_at DESC " +
+                    "LIMIT ? OFFSET ?";
+        
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setInt(1, promotionId);
+            ps.setInt(2, pageSize);
+            ps.setInt(3, (page - 1) * pageSize);
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    java.util.Map<String, Object> usage = new java.util.HashMap<>();
+                    usage.put("usageId", rs.getInt("usage_id"));
+                    usage.put("customerId", rs.getInt("customer_id"));
+                    usage.put("customerName", rs.getString("first_name") + " " + rs.getString("last_name"));
+                    usage.put("customerEmail", rs.getString("email"));
+                    usage.put("customerPhone", rs.getString("phone"));
+                    usage.put("promotionTitle", rs.getString("promotion_title"));
+                    usage.put("promotionCode", rs.getString("promotion_code"));
+                    usage.put("originalAmount", rs.getBigDecimal("original_amount"));
+                    usage.put("discountAmount", rs.getBigDecimal("discount_amount"));
+                    usage.put("finalAmount", rs.getBigDecimal("final_amount"));
+                    usage.put("usedAt", rs.getTimestamp("used_at"));
+                    usageList.add(usage);
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error getting promotion usage report", e);
+        }
+        return usageList;
+    }
+
+    /**
+     * Get total usage count for a promotion
+     */
+    public int getTotalUsageCount(int promotionId) {
+        String sql = "SELECT COUNT(*) FROM promotion_usage WHERE promotion_id = ?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, promotionId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error getting total usage count", e);
+        }
+        return 0;
+    }
 }
+
+
+

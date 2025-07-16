@@ -37,6 +37,9 @@
 
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="<c:url value='/css/style.css'/>" />
@@ -47,13 +50,20 @@
 
     <main class="py-12 px-4 md:px-8 pt-28">
         <div class="container mx-auto">
-          <div class="text-center mb-12">
+                          <div class="text-center mb-12">
             <h1 class="text-4xl md:text-5xl font-bold text-spa-dark">
               Ưu đãi & Khuyến mãi đặc biệt
             </h1>
             <p class="text-lg text-gray-600 mt-4">
                 Tận hưởng những gói độc quyền và giảm giá theo mùa của chúng tôi.
             </p>
+            <div class="mt-6">
+                <a href="${pageContext.request.contextPath}/promotions/available" 
+                   class="inline-block bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
+                    <i class="fas fa-tags mr-2"></i>
+                    Xem Mã Khuyến Mãi Của Tôi
+                </a>
+            </div>
           </div>
   
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

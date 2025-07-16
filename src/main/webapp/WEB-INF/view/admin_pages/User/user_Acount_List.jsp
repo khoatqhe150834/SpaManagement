@@ -207,10 +207,7 @@
                                                     <div id="dropdown-${user.userId}" class="hidden absolute right-0 z-10 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5">
                                                         <div class="py-1" role="menu">
                                                             <div class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide border-b">Tài khoản</div>
-                                                            <a href="${pageContext.request.contextPath}/admin/user/view?id=${user.userId}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
-                                                                <i data-lucide="eye" class="mr-3 h-4 w-4"></i>
-                                                                Xem chi tiết tài khoản
-                                                            </a>
+
                                                             <a href="${pageContext.request.contextPath}/admin/user/edit?id=${user.userId}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
                                                                 <i data-lucide="user-cog" class="mr-3 h-4 w-4"></i>
                                                                 Chỉnh sửa vai trò

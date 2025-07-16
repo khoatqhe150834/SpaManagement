@@ -19,16 +19,16 @@ import model.Customer;
 import service.email.AsyncEmailService;
 
 /**
- * AdminCustomerController - Handles customer account management for ADMIN role
- * Focus: Account credentials, status, verification, password reset
- * URL Pattern: /admin/customer-account/*
+ * ManagerCustomerAcountController - Handles customer account management for ADMIN role
+ Focus: Account credentials, status, verification, password reset
+ URL Pattern: /admin/customer-account/*
  */
 @WebServlet(urlPatterns = { "/admin/customer-account/*" })
-public class AdminCustomerController extends HttpServlet {
+public class ManagerCustomerAcountController extends HttpServlet {
 
     private CustomerDAO customerDAO;
     private AsyncEmailService asyncEmailService;
-    private static final Logger logger = Logger.getLogger(AdminCustomerController.class.getName());
+    private static final Logger logger = Logger.getLogger(ManagerCustomerAcountController.class.getName());
     private static final int DEFAULT_PAGE_SIZE = 10;
 
     @Override
@@ -116,8 +116,23 @@ public class AdminCustomerController extends HttpServlet {
                 case "reset-password":
                     handleProcessPasswordReset(request, response);
                     break;
+                case "quick-reset-password":
+                    handleQuickPasswordResetPost(request, response);
+                    break;
                 case "bulk-action":
                     handleBulkAccountAction(request, response);
+                    break;
+                case "activate":
+                    handleActivateAccount(request, response);
+                    break;
+                case "deactivate":
+                    handleDeactivateAccount(request, response);
+                    break;
+                case "verify":
+                    handleVerifyEmail(request, response);
+                    break;
+                case "unverify":
+                    handleUnverifyEmail(request, response);
                     break;
                 default:
                     logger.warning("Invalid POST action: " + action);
@@ -282,6 +297,34 @@ public class AdminCustomerController extends HttpServlet {
     private void handlePasswordResetManagement(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
+            int page = getIntParameter(request, "page", 1);
+            int pageSize = getIntParameter(request, "pageSize", DEFAULT_PAGE_SIZE);
+            String searchValue = request.getParameter("searchValue");
+
+            // Get customers that need password reset - inactive accounts or unverified emails
+            List<Customer> customersNeedingReset = customerDAO.getPaginatedCustomers(page, pageSize, searchValue, "false", "false", "id", "desc");
+            int totalCustomers = customerDAO.getTotalCustomerCount(searchValue, "false", "false");
+            int totalPages = (int) Math.ceil((double) totalCustomers / pageSize);
+            
+            // Calculate pagination display info
+            int startItem = totalCustomers > 0 ? (page - 1) * pageSize + 1 : 0;
+            int endItem = Math.min(page * pageSize, totalCustomers);
+
+            // Get statistics
+            int inactiveAccounts = customerDAO.countCustomersByStatus(false);
+            int unverifiedAccounts = customerDAO.countCustomersByVerification(false);
+
+            request.setAttribute("customers", customersNeedingReset);
+            request.setAttribute("currentPage", page);
+            request.setAttribute("pageSize", pageSize);
+            request.setAttribute("totalPages", totalPages);
+            request.setAttribute("totalCustomers", totalCustomers);
+            request.setAttribute("startItem", startItem);
+            request.setAttribute("endItem", endItem);
+            request.setAttribute("searchValue", searchValue);
+            request.setAttribute("inactiveAccounts", inactiveAccounts);
+            request.setAttribute("unverifiedAccounts", unverifiedAccounts);
+
             request.getRequestDispatcher("/WEB-INF/view/admin_pages/CustomerAccount/password_reset.jsp")
                     .forward(request, response);
 
@@ -618,5 +661,68 @@ public class AdminCustomerController extends HttpServlet {
             }
         }
         return defaultValue;
+    }
+
+    /**
+     * Handle quick password reset for a single customer
+     */
+    private void handleQuickPasswordResetPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        try {
+            int customerId = getIntParameter(request, "id", 0);
+            if (customerId <= 0) {
+                request.getSession().setAttribute("errorMessage", "ID khách hàng không hợp lệ.");
+                response.sendRedirect(request.getContextPath() + "/admin/customer-account/reset-password");
+                return;
+            }
+
+            // Get customer info first
+            Optional<Customer> customerOpt = customerDAO.findById(customerId);
+            if (!customerOpt.isPresent()) {
+                request.getSession().setAttribute("errorMessage", "Không tìm thấy khách hàng.");
+                response.sendRedirect(request.getContextPath() + "/admin/customer-account/reset-password");
+                return;
+            }
+
+            Customer customer = customerOpt.get();
+            
+            // Generate new random password
+            String newPassword = generateRandomPassword(8);
+            String hashedPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt());
+
+            // Update password using customer email
+            dao.AccountDAO accountDAO = new dao.AccountDAO();
+            if (accountDAO.updateCustomerPassword(customer.getEmail(), hashedPassword)) {
+                // Send simple notification email
+                try {
+                    request.getSession().setAttribute("successMessage", 
+                        "Đã đặt lại mật khẩu thành công cho khách hàng: " + customer.getFullName() + 
+                        ". Mật khẩu mới: " + newPassword + " (Vui lòng thông báo cho khách hàng)");
+                } catch (Exception emailError) {
+                    logger.warning("Could not send email notification: " + emailError.getMessage());
+                    request.getSession().setAttribute("successMessage", 
+                        "Đã đặt lại mật khẩu thành công. Mật khẩu mới: " + newPassword + " (Vui lòng thông báo cho khách hàng)");
+                }
+            } else {
+                request.getSession().setAttribute("errorMessage", "Đặt lại mật khẩu thất bại.");
+            }
+
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error in quick password reset", e);
+            request.getSession().setAttribute("errorMessage", "Lỗi khi đặt lại mật khẩu: " + e.getMessage());
+        }
+
+        response.sendRedirect(request.getContextPath() + "/admin/customer-account/reset-password");
+    }
+
+    // Hàm sinh mật khẩu ngẫu nhiên
+    private String generateRandomPassword(int length) {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        StringBuilder sb = new StringBuilder();
+        java.util.Random random = new java.util.Random();
+        for (int i = 0; i < length; i++) {
+            sb.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return sb.toString();
     }
 } 
