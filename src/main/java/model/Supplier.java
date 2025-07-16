@@ -1,22 +1,18 @@
 package model;
 
-import java.sql.Timestamp;
-
 public class Supplier {
     private int supplierId;
     private String name;
     private String contactInfo;
-    private Timestamp createdAt;
-    private Timestamp updatedAt;
+    private boolean isActive;
 
     public Supplier() {}
 
-    public Supplier(int supplierId, String name, String contactInfo, Timestamp createdAt, Timestamp updatedAt) {
+    public Supplier(int supplierId, String name, String contactInfo, boolean isActive) {
         this.supplierId = supplierId;
         this.name = name;
         this.contactInfo = contactInfo;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
+        this.isActive = isActive;
     }
 
     public int getSupplierId() { return supplierId; }
@@ -25,10 +21,8 @@ public class Supplier {
     public void setName(String name) { this.name = name; }
     public String getContactInfo() { return contactInfo; }
     public void setContactInfo(String contactInfo) { this.contactInfo = contactInfo; }
-    public Timestamp getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
-    public Timestamp getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(Timestamp updatedAt) { this.updatedAt = updatedAt; }
+    public boolean isActive() { return isActive; }
+    public void setActive(boolean active) { isActive = active; }
 
     @Override
     public String toString() {
@@ -36,8 +30,7 @@ public class Supplier {
                 "supplierId=" + supplierId +
                 ", name='" + name + '\'' +
                 ", contactInfo='" + contactInfo + '\'' +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
+                ", isActive=" + isActive +
                 '}';
     }
 } 

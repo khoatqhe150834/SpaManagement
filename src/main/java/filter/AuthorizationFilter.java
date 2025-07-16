@@ -102,6 +102,10 @@ public class AuthorizationFilter implements Filter {
     URL_ROLE_MAPPINGS.put("/promotion", new HashSet<>(Arrays.asList(
         RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.MARKETING_ID)));
 
+    // Inventory Manager areas (Inventory Manager only)
+    URL_ROLE_MAPPINGS.put("/inventory-manager/", new HashSet<>(Arrays.asList(RoleConstants.INVENTORY_MANAGER_ID)));
+    URL_ROLE_MAPPINGS.put("/inventory-manager", new HashSet<>(Arrays.asList(RoleConstants.INVENTORY_MANAGER_ID)));
+
     // Customer Management - Role-based separation
     // Admin manages customer accounts (login credentials, account status)
     URL_ROLE_MAPPINGS.put("/admin/customer-account", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID)));
@@ -123,7 +127,7 @@ public class AuthorizationFilter implements Filter {
     // Paths accessible to any authenticated user
     Set<Integer> allAuthenticatedRoles = new HashSet<>(Arrays.asList(
         RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID,
-        RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID, RoleConstants.MARKETING_ID));
+        RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID, RoleConstants.MARKETING_ID, RoleConstants.INVENTORY_MANAGER_ID));
     URL_ROLE_MAPPINGS.put("/dashboard", allAuthenticatedRoles);
     URL_ROLE_MAPPINGS.put("/password/change", allAuthenticatedRoles);
   }
@@ -135,12 +139,12 @@ public class AuthorizationFilter implements Filter {
     // Admin can access everything
     ROLE_HIERARCHY.put(RoleConstants.ADMIN_ID, new HashSet<>(Arrays.asList(
         RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID,
-        RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID, RoleConstants.MARKETING_ID)));
+        RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID, RoleConstants.MARKETING_ID, RoleConstants.INVENTORY_MANAGER_ID)));
 
-    // Manager can access manager, therapist, receptionist, and customer areas
+    // Manager can access manager, therapist, receptionist, customer, marketing, inventory_manager areas
     ROLE_HIERARCHY.put(RoleConstants.MANAGER_ID, new HashSet<>(Arrays.asList(
         RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID,
-        RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID, RoleConstants.MARKETING_ID)));
+        RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID, RoleConstants.MARKETING_ID, RoleConstants.INVENTORY_MANAGER_ID)));
 
     // Therapist can access therapist and customer areas
     ROLE_HIERARCHY.put(RoleConstants.THERAPIST_ID, new HashSet<>(Arrays.asList(
@@ -153,6 +157,10 @@ public class AuthorizationFilter implements Filter {
     // Marketing can only access marketing areas
     ROLE_HIERARCHY.put(RoleConstants.MARKETING_ID, new HashSet<>(Arrays.asList(
         RoleConstants.MARKETING_ID)));
+
+    // Inventory Manager can only access inventory_manager area
+    ROLE_HIERARCHY.put(RoleConstants.INVENTORY_MANAGER_ID, new HashSet<>(Arrays.asList(
+        RoleConstants.INVENTORY_MANAGER_ID)));
 
     // Customer can only access customer areas
     ROLE_HIERARCHY.put(RoleConstants.CUSTOMER_ID, new HashSet<>(Arrays.asList(

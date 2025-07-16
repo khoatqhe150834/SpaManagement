@@ -5,18 +5,19 @@ import java.sql.Timestamp;
 public class InventoryItem {
     private int inventoryItemId;
     private String name;
-    private int inventoryCategoryId;
-    private int supplierId;
+    private Integer inventoryCategoryId;
+    private Integer supplierId;
     private String unit;
     private int quantity;
     private int minQuantity;
     private String description;
     private Timestamp createdAt;
     private Timestamp updatedAt;
+    private boolean isActive;
 
     public InventoryItem() {}
 
-    public InventoryItem(int inventoryItemId, String name, int inventoryCategoryId, int supplierId, String unit, int quantity, int minQuantity, String description, Timestamp createdAt, Timestamp updatedAt) {
+    public InventoryItem(int inventoryItemId, String name, Integer inventoryCategoryId, Integer supplierId, String unit, int quantity, int minQuantity, String description, Timestamp createdAt, Timestamp updatedAt, boolean isActive) {
         this.inventoryItemId = inventoryItemId;
         this.name = name;
         this.inventoryCategoryId = inventoryCategoryId;
@@ -27,16 +28,17 @@ public class InventoryItem {
         this.description = description;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.isActive = isActive;
     }
 
     public int getInventoryItemId() { return inventoryItemId; }
     public void setInventoryItemId(int inventoryItemId) { this.inventoryItemId = inventoryItemId; }
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
-    public int getInventoryCategoryId() { return inventoryCategoryId; }
-    public void setInventoryCategoryId(int inventoryCategoryId) { this.inventoryCategoryId = inventoryCategoryId; }
-    public int getSupplierId() { return supplierId; }
-    public void setSupplierId(int supplierId) { this.supplierId = supplierId; }
+    public Integer getInventoryCategoryId() { return inventoryCategoryId; }
+    public void setInventoryCategoryId(Integer inventoryCategoryId) { this.inventoryCategoryId = inventoryCategoryId; }
+    public Integer getSupplierId() { return supplierId; }
+    public void setSupplierId(Integer supplierId) { this.supplierId = supplierId; }
     public String getUnit() { return unit; }
     public void setUnit(String unit) { this.unit = unit; }
     public int getQuantity() { return quantity; }
@@ -49,6 +51,8 @@ public class InventoryItem {
     public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
     public Timestamp getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Timestamp updatedAt) { this.updatedAt = updatedAt; }
+    public boolean isActive() { return isActive; }
+    public void setActive(boolean active) { isActive = active; }
 
     @Override
     public String toString() {
@@ -63,6 +67,7 @@ public class InventoryItem {
                 ", description='" + description + '\'' +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
+                ", isActive=" + isActive +
                 '}';
     }
 } 
