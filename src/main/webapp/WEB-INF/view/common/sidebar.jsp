@@ -246,6 +246,7 @@
                                 <c:when test="${userRole == 'THERAPIST'}">Nhân viên</c:when>
                                 <c:when test="${userRole == 'RECEPTIONIST'}">Lễ tân</c:when>
                                 <c:when test="${userRole == 'MARKETING'}">Marketing</c:when>
+                                <c:when test="${userRole == 'INVENTORY_MANAGER'}">Quản lý kho</c:when>
                                 <c:when test="${userRole == 'CUSTOMER'}">Khách hàng</c:when>
                                 <c:otherwise>${userRole.toLowerCase()}</c:otherwise>
                             </c:choose>
