@@ -3,14 +3,11 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
-
+<html lang="vi" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
-    <title>Upload Images - ${service.name}</title>
-    <link rel="icon" type="image/png" href="${pageContext.request.contextPath}/assets/images/favicon.png" sizes="16x16">
-
-    <!-- Tailwind CSS -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Ảnh Dịch Vụ - ${service.name} - Spa Hương Sen</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -20,8 +17,8 @@
               primary: "#D4AF37",
               "primary-dark": "#B8941F",
               secondary: "#FADADD",
-              cream: "#FFF8F0",
-              dark: "#333333"
+              "spa-cream": "#FFF8F0",
+              "spa-dark": "#333333"
             },
             fontFamily: {
               serif: ["Playfair Display", "serif"],
@@ -29,53 +26,16 @@
             }
           }
         }
-      }
+      };
     </script>
-
-    <!-- Lucide Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Roboto:wght@300;400;500;600&display=swap" rel="stylesheet" />
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-    <!-- Iconify Icons -->
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-
-    <!-- Site-wide custom CSS -->
     <link rel="stylesheet" href="<c:url value='/css/style.css'/>" />
-
-    <!-- Add Google Fonts to match public site -->
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Roboto:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        /* Utility replacements for bootstrap-like classes used in markup */
-        .card { @apply bg-white rounded-lg shadow-md; }
-        .card-header { @apply border-b border-gray-200 mb-4 pb-2 flex justify-between items-center; }
-        .card-body { @apply p-4; }
-        .btn { @apply inline-flex items-center justify-center font-semibold rounded transition-all duration-200; }
-        .btn-primary { @apply bg-primary text-white hover:bg-primary-dark; padding:0.5rem 1rem; }
-        .btn-outline-primary { @apply border border-primary text-primary hover:bg-primary hover:text-white; padding:0.5rem 1rem; }
-        .btn-icon { @apply w-8 h-8 rounded-full flex items-center justify-center text-white; }
-        .bg-success { background-color: theme('colors.primary'); }
-        .bg-danger { background-color: #dc3545; }
-        .alert { @apply rounded p-3 text-sm mt-2; }
-        .alert-success { @apply bg-green-100 text-green-700; }
-        .alert-danger  { @apply bg-red-100 text-red-700; }
-        .alert-warning { @apply bg-yellow-100 text-yellow-700; }
-        .fw-semibold { font-weight: 600; }
-
-        /* Consistent color scheme with public site */
-        :root {
-            --primary-color: #D4AF37; /* Gold tone used in index.jsp */
-            --primary-dark: #B8941F;
-        }
-
-        body {
-            font-family: 'Roboto', sans-serif;
-        }
-        h1, h2, h3, h4, h5, h6 {
-            font-family: 'Playfair Display', serif;
-        }
-
-        /* Override component colors to use primary palette */
         .image-upload-zone {
             border: 2px dashed #ddd;
-            border-radius: 8px;
+            border-radius: 12px;
             padding: 40px;
             text-align: center;
             background: #fafafa;
@@ -83,248 +43,300 @@
             cursor: pointer;
         }
         .image-upload-zone:hover {
-            border-color: var(--primary-color);
-            background: #fff8f0; /* light cream */
+            border-color: #D4AF37;
+            background: #fff8f0;
         }
         .image-upload-zone.dragover {
-            border-color: var(--primary-color);
+            border-color: #D4AF37;
             background: #fff3e0;
         }
-
-        /* Progress bar */
-        .progress-fill {
-            background: var(--primary-color);
-        }
-
-        /* Primary badge on selected image */
-        .primary-badge {
-            background: var(--primary-color);
-        }
-
-        /* Success icon buttons -> use primary palette */
-        .btn-icon.bg-success {
-            background: var(--primary-color) !important;
-        }
-
-        /* Hover state for the success button */
-        .btn-icon.bg-success:hover {
-            background: var(--primary-dark) !important;
-        }
-        
         .image-preview-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 20px;
             margin-top: 20px;
         }
-        
         .image-preview-item {
             position: relative;
             border: 1px solid #ddd;
-            border-radius: 8px;
+            border-radius: 12px;
             overflow: hidden;
             background: white;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
         }
-        
+        .image-preview-item:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
         .image-preview-item img {
             width: 100%;
             height: 150px;
             object-fit: cover;
         }
-        
         .image-preview-info {
-            padding: 10px;
+            padding: 12px;
         }
-        
         .image-preview-actions {
             position: absolute;
-            top: 5px;
-            right: 5px;
+            top: 8px;
+            right: 8px;
             display: flex;
-            gap: 5px;
+            gap: 4px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
-        
+        .image-preview-item:hover .image-preview-actions {
+            opacity: 1;
+        }
         .upload-progress {
             display: none;
             margin-top: 20px;
         }
-        
         .progress-item {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-            padding: 10px;
+            gap: 12px;
+            margin-bottom: 12px;
+            padding: 12px;
             border: 1px solid #ddd;
-            border-radius: 4px;
+            border-radius: 8px;
+            background: white;
         }
-        
-        .progress-bar {
-            flex: 1;
-            height: 6px;
-            background: #f0f0f0;
-            border-radius: 3px;
-            overflow: hidden;
-        }
-        
         .sortable-placeholder {
             background: #f0f0f0;
             border: 2px dashed #ccc;
             margin: 10px;
             height: 150px;
+            border-radius: 12px;
         }
     </style>
 </head>
+<body class="bg-spa-cream font-sans min-h-screen">
+<jsp:include page="/WEB-INF/view/common/header.jsp" />
+<div class="flex">
+<jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
+<main class="flex-1 py-12 lg:py-20 ml-64">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Breadcrumb Navigation -->
+    <nav class="flex items-center space-x-2 text-sm text-gray-600 mb-8">
+        <a href="${pageContext.request.contextPath}/manager/dashboard" class="hover:text-primary transition-colors">
+            <i data-lucide="home" class="w-4 h-4 inline mr-1"></i>
+            Dashboard
+        </a>
+        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+        <a href="${pageContext.request.contextPath}/manager/service" class="hover:text-primary transition-colors">
+            <i data-lucide="list" class="w-4 h-4 inline mr-1"></i>
+            Quản lý dịch vụ
+        </a>
+        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+        <a href="${pageContext.request.contextPath}/manager/service-images/manage" class="hover:text-primary transition-colors">
+            <i data-lucide="gallery-horizontal" class="w-4 h-4 inline mr-1"></i>
+            Quản lý ảnh
+        </a>
+        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+        <span class="text-primary font-semibold">Upload ảnh - ${service.name}</span>
+    </nav>
 
-<body class="bg-cream min-h-screen">
-    <jsp:include page="/WEB-INF/view/common/header.jsp" />
-
-    <div class="max-w-7xl mx-auto px-4 mb-8">
-        <div class="flex flex-wrap items-center justify-between gap-3">
-            <h2 class="text-3xl font-serif">Upload Images - ${service.name}</h2>
-            <a href="${pageContext.request.contextPath}/manager/service" class="text-primary hover:text-primary-dark flex items-center font-semibold">
-                <i data-lucide="home" class="w-5 h-5 mr-1"></i>
-                Service Management
-            </a>
+    <!-- Header Section -->
+    <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div>
+                <h1 class="text-3xl font-serif font-bold text-spa-dark mb-2 flex items-center gap-3">
+                    <i data-lucide="upload" class="w-8 h-8 text-primary"></i>
+                    Upload Ảnh Dịch Vụ
+                </h1>
+                <p class="text-gray-600">Tải lên ảnh cho dịch vụ: <span class="font-semibold text-primary">${service.name}</span></p>
+            </div>
+            <div class="flex flex-wrap gap-3">
+                <a href="${pageContext.request.contextPath}/manager/service-images/manage?serviceId=${service.serviceId}" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                    Quay về
+                </a>
+                <a href="${pageContext.request.contextPath}/manager/service" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-800 rounded-lg hover:bg-blue-200 transition-colors">
+                    <i data-lucide="list" class="w-4 h-4"></i>
+                    Danh sách dịch vụ
+                </a>
+            </div>
         </div>
     </div>
 
-    <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <!-- Upload Section -->
         <div>
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="text-xl font-semibold">Upload New Images</h3>
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-serif font-bold text-spa-dark flex items-center gap-2">
+                        <i data-lucide="cloud-upload" class="w-6 h-6 text-primary"></i>
+                        Upload Ảnh Mới
+                    </h3>
                 </div>
-                <div class="card-body">
-                    <div class="image-upload-zone" id="uploadZone">
-                        <iconify-icon icon="solar:cloud-upload-outline" class="text-primary text-6xl mb-16"></iconify-icon>
-                        <h6 class="text-md fw-semibold text-primary-light mb-8">Drag & Drop Images Here</h6>
-                        <p class="text-sm text-secondary-light mb-16">or click to browse files</p>
-                        <input type="file" id="imageInput" multiple accept="image/*" style="display: none;">
-                        <button id="chooseFilesBtn" type="button" class="btn btn-primary btn-sm">
-                            Choose Files
-                        </button>
-                        <div class="mt-16">
-                            <small class="text-muted">
-                                Supported formats: JPG, PNG, WebP<br>
-                                Maximum size: 2MB per file<br>
-                                Minimum dimensions: 150x150 pixels
-                            </small>
-                        </div>
+                <div class="image-upload-zone" id="uploadZone">
+                    <i data-lucide="cloud-upload" class="text-primary w-16 h-16 mx-auto mb-4"></i>
+                    <h4 class="text-lg font-semibold text-primary mb-2">Kéo & thả ảnh vào đây</h4>
+                    <p class="text-gray-600 mb-6">hoặc click để chọn file</p>
+                    <input type="file" id="imageInput" multiple accept="image/*" style="display: none;">
+                    <button id="chooseFilesBtn" type="button" class="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors shadow-sm">
+                        <i data-lucide="file-plus" class="w-5 h-5"></i>
+                        Chọn file
+                    </button>
+                    <div class="mt-6 text-sm text-gray-500">
+                        <p>Định dạng: JPG, PNG, WebP</p>
+                        <p>Tối đa 2MB/file. Kích thước tối thiểu: 150x150 pixels</p>
                     </div>
+                </div>
 
-                    <!-- Upload Progress -->
-                    <div class="upload-progress" id="uploadProgress">
-                        <h6 class="text-md fw-semibold mb-16">Upload Progress</h6>
-                        <div id="progressContainer"></div>
-                    </div>
+                <!-- Upload Progress -->
+                <div class="upload-progress" id="uploadProgress">
+                    <h4 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                        <i data-lucide="loader-2" class="w-5 h-5 text-primary animate-spin"></i>
+                        Tiến trình Upload
+                    </h4>
+                    <div id="progressContainer" class="space-y-3"></div>
+                </div>
 
-                    <!-- Upload Results -->
-                    <div id="uploadResults" class="mt-20" style="display: none;">
-                        <div class="alert alert-success" id="successMessage" style="display: none;"></div>
-                        <div class="alert alert-danger" id="errorMessage" style="display: none;"></div>
-                    </div>
+                <!-- Upload Results -->
+                <div id="uploadResults" class="mt-6" style="display: none;">
+                    <div class="alert alert-success" id="successMessage" style="display: none;"></div>
+                    <div class="alert alert-danger" id="errorMessage" style="display: none;"></div>
                 </div>
             </div>
         </div>
 
         <!-- Existing Images Section -->
         <div>
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="text-xl font-semibold">Existing Images (${existingImages.size()})</h3>
-                    <button type="button" class="btn btn-outline-primary ml-auto" onclick="refreshImages()">
-                        <i data-lucide="refresh-ccw" class="w-4 h-4 mr-1"></i>
-                        Refresh
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-serif font-bold text-spa-dark flex items-center gap-2">
+                        <i data-lucide="gallery-horizontal" class="w-6 h-6 text-primary"></i>
+                        Ảnh Hiện Tại (${existingImages.size()})
+                    </h3>
+                    <button type="button" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors" onclick="refreshImages()">
+                        <i data-lucide="refresh-ccw" class="w-4 h-4"></i>
+                        Làm mới
                     </button>
                 </div>
-                <div class="card-body">
-                    <c:if test="${empty existingImages}">
-                        <div class="text-center py-40">
-                            <iconify-icon icon="solar:gallery-outline" class="text-secondary-light text-6xl mb-16"></iconify-icon>
-                            <p class="text-secondary-light">No images uploaded yet</p>
-                        </div>
-                    </c:if>
-                    
-                    <div class="image-preview-container" id="existingImagesContainer">
-                        <c:forEach var="image" items="${existingImages}">
-                            <div class="image-preview-item" data-image-id="${image.imageId}">
-                                <c:if test="${image.isPrimary}">
-                                    <div class="primary-badge">Primary</div>
-                                </c:if>
-                                <div class="image-preview-actions">
-                                    <c:if test="${!image.isPrimary}">
-                                        <button type="button" class="btn-icon bg-success" onclick="setPrimaryImage(${image.imageId})" title="Set as Primary">
-                                            <iconify-icon icon="solar:star-outline"></iconify-icon>
-                                        </button>
-                                    </c:if>
-                                    <button type="button" class="btn-icon bg-danger" onclick="deleteImage(${image.imageId})" title="Delete Image">
-                                        <iconify-icon icon="solar:trash-bin-minimalistic-outline"></iconify-icon>
-                                    </button>
+                
+                <c:if test="${empty existingImages}">
+                    <div class="text-center py-16 text-gray-400">
+                        <i data-lucide="image-off" class="w-16 h-16 mx-auto mb-4 text-gray-300"></i>
+                        <h4 class="text-lg font-semibold mb-2">Chưa có ảnh nào</h4>
+                        <p class="mb-6">Dịch vụ này chưa có ảnh nào được tải lên</p>
+                    </div>
+                </c:if>
+                
+                <div class="image-preview-container" id="existingImagesContainer">
+                    <c:forEach var="image" items="${existingImages}">
+                        <div class="image-preview-item" data-image-id="${image.imageId}">
+                            <c:if test="${image.isPrimary}">
+                                <div class="absolute top-3 left-3 bg-yellow-400 text-white text-xs font-bold px-2 py-1 rounded-full z-10 flex items-center gap-1">
+                                    <i data-lucide="star" class="w-3 h-3"></i>
+                                    Chính
                                 </div>
-                                <a href="javascript:void(0);" onclick="showImageModal('${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(image.url, '/services/')}')">
-                                    <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(image.url, '/services/')}" alt="${image.altText}" onerror="this.src='${pageContext.request.contextPath}/assets/images/no-image.png'" style="cursor: zoom-in;" />
-                                </a>
-                                <div class="image-preview-info">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <small class="text-muted">
-                                            <c:if test="${image.fileSize != null}">
-                                                <fmt:formatNumber value="${image.fileSize / 1024}" maxFractionDigits="1" />KB
-                                            </c:if>
-                                        </small>
-                                        <small class="text-muted">Order: ${image.sortOrder}</small>
-                                    </div>
+                            </c:if>
+                            <div class="image-preview-actions">
+                                <c:if test="${!image.isPrimary}">
+                                    <button type="button" class="bg-green-500 hover:bg-green-600 text-white rounded-full p-2 shadow-lg transition-colors" 
+                                            onclick="setPrimaryImage(${image.imageId})" 
+                                            title="Đặt làm ảnh chính">
+                                        <i data-lucide="star" class="w-4 h-4"></i>
+                                    </button>
+                                </c:if>
+                                <button type="button" class="bg-red-500 hover:bg-red-600 text-white rounded-full p-2 shadow-lg transition-colors" 
+                                        onclick="deleteImage(${image.imageId})" 
+                                        title="Xóa ảnh">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                            <a href="javascript:void(0);" onclick="showImageModal('${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(image.url, '/services/')}')" 
+                               class="block relative overflow-hidden">
+                                <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(image.url, '/services/')}" 
+                                     alt="${image.altText}" 
+                                     onerror="this.src='${pageContext.request.contextPath}/assets/images/no-image.png'" 
+                                     class="w-full h-48 object-cover cursor-pointer hover:scale-105 transition-transform duration-300" />
+                                <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
+                                    <i data-lucide="zoom-in" class="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"></i>
+                                </div>
+                            </a>
+                            <div class="image-preview-info">
+                                <div class="flex justify-between items-center text-xs text-gray-500">
+                                    <span>
+                                        <c:if test="${image.fileSize != null}">
+                                            <fmt:formatNumber value="${image.fileSize / 1024}" maxFractionDigits="1" />KB
+                                        </c:if>
+                                    </span>
+                                    <span class="flex items-center gap-1">
+                                        <i data-lucide="hash" class="w-3 h-3"></i>
+                                        ${image.sortOrder}
+                                    </span>
                                 </div>
                             </div>
-                        </c:forEach>
-                    </div>
-                    
-                    <c:if test="${not empty existingImages}">
-                        <div class="mt-20">
-                            <small class="text-muted">
-                                <iconify-icon icon="solar:info-circle-outline" class="me-1"></iconify-icon>
-                                Drag images to reorder them
-                            </small>
                         </div>
-                    </c:if>
+                    </c:forEach>
                 </div>
+                
+                <c:if test="${not empty existingImages}">
+                    <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                        <div class="flex items-center gap-2 text-blue-700 text-sm">
+                            <i data-lucide="info" class="w-4 h-4"></i>
+                            <span>Kéo ảnh để sắp xếp lại thứ tự hiển thị</span>
+                        </div>
+                    </div>
+                </c:if>
             </div>
         </div>
     </div>
+</div>
+</main>
+</div>
 
-    <!-- Provide page-specific variables and load external JS -->
-    <script>
-        window.contextPath = '${pageContext.request.contextPath}';
-        window.serviceId = ${service.serviceId};
-    </script>
-    <script src="<c:url value='/js/single-image-upload.js'/>"></script>
-
-    <!-- Modal xem ảnh lớn -->
-    <div id="imageModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 hidden">
-        <span class="absolute top-4 right-8 text-white text-3xl cursor-pointer" id="closeModal">&times;</span>
-        <img id="modalImg" src="" class="max-h-[80vh] max-w-[90vw] rounded-xl shadow-2xl border-4 border-white" />
+<!-- Modal xem ảnh lớn -->
+<div id="imageModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 hidden">
+    <div class="relative max-w-[90vw] max-h-[90vh]">
+        <button id="closeModal" class="absolute -top-12 right-0 text-white text-4xl hover:text-gray-300 transition-colors">
+            <i data-lucide="x" class="w-8 h-8"></i>
+        </button>
+        <img id="modalImg" src="" class="max-h-[90vh] max-w-[90vw] rounded-xl shadow-2xl border-4 border-white object-contain" />
     </div>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            window.showImageModal = function(src) {
-                document.getElementById('modalImg').src = src;
-                document.getElementById('imageModal').classList.remove('hidden');
-            };
-            document.getElementById('closeModal').onclick = function() {
+</div>
+
+<!-- Provide page-specific variables and load external JS -->
+<script>
+    window.contextPath = '${pageContext.request.contextPath}';
+    window.serviceId = ${service.serviceId};
+</script>
+<script src="<c:url value='/js/single-image-upload.js'/>"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.lucide) lucide.createIcons();
+        
+        window.showImageModal = function(src) {
+            document.getElementById('modalImg').src = src;
+            document.getElementById('imageModal').classList.remove('hidden');
+        };
+        
+        document.getElementById('closeModal').onclick = function() {
+            document.getElementById('imageModal').classList.add('hidden');
+            document.getElementById('modalImg').src = '';
+        };
+        
+        document.getElementById('imageModal').onclick = function(e) {
+            if (e.target === this) {
+                this.classList.add('hidden');
+                document.getElementById('modalImg').src = '';
+            }
+        };
+        
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
                 document.getElementById('imageModal').classList.add('hidden');
                 document.getElementById('modalImg').src = '';
-            };
-            document.getElementById('imageModal').onclick = function(e) {
-                if (e.target === this) {
-                    this.classList.add('hidden');
-                    document.getElementById('modalImg').src = '';
-                }
-            };
+            }
         });
-    </script>
+    });
+</script>
 
 </body>
-
 </html>
