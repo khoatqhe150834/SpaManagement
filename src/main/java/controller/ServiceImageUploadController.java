@@ -101,7 +101,7 @@ public class ServiceImageUploadController extends HttpServlet {
                 handleDeleteImage(request, response);
                 break;
             default:
-                sendErrorResponse(response, "Invalid action");
+                sendErrorResponse(response, "Hành động không hợp lệ");
                 break;
         }
     }
@@ -113,7 +113,7 @@ public class ServiceImageUploadController extends HttpServlet {
             throws ServletException, IOException {
 
         String serviceIdParam = request.getParameter("serviceId");
-        if (serviceIdParam == null) {
+        if (serviceIdParam == null || serviceIdParam.trim().isEmpty()) {
             response.sendRedirect(request.getContextPath() + "/manager/service");
             return;
         }
@@ -136,6 +136,7 @@ public class ServiceImageUploadController extends HttpServlet {
                     .forward(request, response);
 
         } catch (NumberFormatException e) {
+            LOGGER.warning("Invalid service ID format: " + serviceIdParam);
             response.sendRedirect(request.getContextPath() + "/manager/service");
         }
     }
@@ -147,6 +148,9 @@ public class ServiceImageUploadController extends HttpServlet {
             throws ServletException, IOException {
 
         List<Service> services = serviceDAO.findAll();
+        if (services.isEmpty()) {
+            request.setAttribute("errorMessage", "Không có dịch vụ nào để upload ảnh. Vui lòng tạo dịch vụ trước.");
+        }
         request.setAttribute("services", services);
         request.getRequestDispatcher("/WEB-INF/view/admin_pages/Service/BatchImageUpload.jsp")
                 .forward(request, response);
@@ -159,7 +163,7 @@ public class ServiceImageUploadController extends HttpServlet {
             throws ServletException, IOException {
 
         String serviceIdParam = request.getParameter("serviceId");
-        if (serviceIdParam != null) {
+        if (serviceIdParam != null && !serviceIdParam.trim().isEmpty()) {
             try {
                 Integer serviceId = Integer.parseInt(serviceIdParam);
                 Optional<Service> serviceOpt = serviceDAO.findById(serviceId);
@@ -168,7 +172,7 @@ public class ServiceImageUploadController extends HttpServlet {
                 request.setAttribute("service", serviceOpt.orElse(null));
                 request.setAttribute("images", images);
             } catch (NumberFormatException e) {
-                // Invalid service ID
+                LOGGER.warning("Invalid service ID format: " + serviceIdParam);
             }
         }
 
@@ -189,7 +193,7 @@ public class ServiceImageUploadController extends HttpServlet {
 
         try {
             String serviceIdParam = request.getParameter("serviceId");
-            JsonObject paramError = ErrorHandler.validateRequiredParameter(serviceIdParam, "Service ID");
+            JsonObject paramError = ErrorHandler.validateRequiredParameter(serviceIdParam, "ID Dịch vụ");
             if (paramError != null) {
                 sendJsonErrorResponse(response, paramError);
                 return;
@@ -199,7 +203,7 @@ public class ServiceImageUploadController extends HttpServlet {
             Optional<Service> serviceOpt = serviceDAO.findById(serviceId);
 
             if (!serviceOpt.isPresent()) {
-                sendErrorResponse(response, "Service not found");
+                sendErrorResponse(response, "Không tìm thấy dịch vụ");
                 return;
             }
 
@@ -251,11 +255,11 @@ public class ServiceImageUploadController extends HttpServlet {
             boolean overallSuccess = errorCount == 0 && successCount > 0;
             String message;
             if (overallSuccess) {
-                message = String.format("All %d images uploaded successfully!", successCount);
+                message = String.format("Tất cả %d ảnh đã được tải lên thành công!", successCount);
             } else if (successCount > 0) {
-                message = String.format("Partial success: %d uploaded, %d failed", successCount, errorCount);
+                message = String.format("Tải lên một phần: %d thành công, %d thất bại", successCount, errorCount);
             } else {
-                message = "All uploads failed. Please check your files and try again.";
+                message = "Tất cả upload đều thất bại. Vui lòng kiểm tra file và thử lại.";
             }
 
             JsonObject response_obj = new JsonObject();
@@ -272,7 +276,7 @@ public class ServiceImageUploadController extends HttpServlet {
 
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error in single upload", e);
-            sendErrorResponse(response, "Upload failed: " + e.getMessage());
+            sendErrorResponse(response, "Upload thất bại: " + e.getMessage());
         }
     }
 
@@ -310,7 +314,7 @@ public class ServiceImageUploadController extends HttpServlet {
             ServiceImage serviceImage = new ServiceImage();
             serviceImage.setServiceId(serviceId);
             serviceImage.setUrl(""); // Temporary, will be updated after processing
-            serviceImage.setAltText("Service image");
+            serviceImage.setAltText("Ảnh dịch vụ");
             serviceImage.setIsPrimary(false);
             serviceImage.setSortOrder(sortOrder != null ? sortOrder : getNextSortOrder(serviceId));
             serviceImage.setIsActive(true);
@@ -319,7 +323,7 @@ public class ServiceImageUploadController extends HttpServlet {
             ServiceImage savedImage = serviceImageDAO.save(serviceImage);
             if (savedImage == null || savedImage.getImageId() == null) {
                 result.addProperty("success", false);
-                result.addProperty("error", "Failed to save image record");
+                result.addProperty("error", "Không thể lưu bản ghi ảnh");
                 return result;
             }
 
@@ -400,7 +404,7 @@ public class ServiceImageUploadController extends HttpServlet {
                 String serviceIdStr = serviceMapping.get(fileName);
                 if (serviceIdStr == null || serviceIdStr.isEmpty()) {
                     result.addProperty("success", false);
-                    result.addProperty("error", "No service selected for this file");
+                    result.addProperty("error", "Chưa chọn dịch vụ cho file này");
                     results.add(result);
                     continue;
                 }
@@ -411,7 +415,7 @@ public class ServiceImageUploadController extends HttpServlet {
 
                     if (!serviceOpt.isPresent()) {
                         result.addProperty("success", false);
-                        result.addProperty("error", "Service not found");
+                        result.addProperty("error", "Không tìm thấy dịch vụ");
                         results.add(result);
                         continue;
                     }
@@ -423,7 +427,7 @@ public class ServiceImageUploadController extends HttpServlet {
 
                 } catch (NumberFormatException e) {
                     result.addProperty("success", false);
-                    result.addProperty("error", "Invalid service ID");
+                    result.addProperty("error", "ID dịch vụ không hợp lệ");
                     results.add(result);
                 }
             }
@@ -435,7 +439,7 @@ public class ServiceImageUploadController extends HttpServlet {
             JsonObject response_obj = new JsonObject();
             response_obj.addProperty("success", true);
             response_obj.addProperty("message",
-                    String.format("Batch upload completed: %d successful, %d failed", successCount, errorCount));
+                    String.format("Batch upload hoàn thành: %d thành công, %d thất bại", successCount, errorCount));
             response_obj.addProperty("successCount", successCount);
             response_obj.addProperty("errorCount", errorCount);
             response_obj.add("results", gson.toJsonTree(results));
@@ -446,7 +450,7 @@ public class ServiceImageUploadController extends HttpServlet {
 
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error in batch upload", e);
-            sendErrorResponse(response, "Batch upload failed: " + e.getMessage());
+            sendErrorResponse(response, "Batch upload thất bại: " + e.getMessage());
         }
     }
 
@@ -466,13 +470,13 @@ public class ServiceImageUploadController extends HttpServlet {
 
             if (imageIdParam == null || imageIdParam.trim().isEmpty()) {
                 LOGGER.warning("Missing imageId parameter");
-                sendErrorResponse(response, "Image ID is required and cannot be empty");
+                sendErrorResponse(response, "ID ảnh là bắt buộc và không được để trống");
                 return;
             }
 
             if (serviceIdParam == null || serviceIdParam.trim().isEmpty()) {
                 LOGGER.warning("Missing serviceId parameter");
-                sendErrorResponse(response, "Service ID is required and cannot be empty");
+                sendErrorResponse(response, "ID dịch vụ là bắt buộc và không được để trống");
                 return;
             }
 
@@ -484,7 +488,7 @@ public class ServiceImageUploadController extends HttpServlet {
                 serviceId = Integer.parseInt(serviceIdParam);
             } catch (NumberFormatException e) {
                 LOGGER.warning("Invalid number format - imageId: " + imageIdParam + ", serviceId: " + serviceIdParam);
-                sendErrorResponse(response, "Invalid image ID or service ID format");
+                sendErrorResponse(response, "Định dạng ID ảnh hoặc ID dịch vụ không hợp lệ");
                 return;
             }
 
@@ -493,7 +497,7 @@ public class ServiceImageUploadController extends HttpServlet {
 
             JsonObject result = new JsonObject();
             result.addProperty("success", true);
-            result.addProperty("message", "Primary image updated successfully");
+            result.addProperty("message", "Đã cập nhật ảnh chính thành công");
 
             PrintWriter out = response.getWriter();
             out.print(gson.toJson(result));
@@ -501,7 +505,7 @@ public class ServiceImageUploadController extends HttpServlet {
 
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error setting primary image", e);
-            sendErrorResponse(response, "Failed to set primary image: " + e.getMessage());
+            sendErrorResponse(response, "Không thể đặt ảnh chính: " + e.getMessage());
         }
     }
 
@@ -516,7 +520,7 @@ public class ServiceImageUploadController extends HttpServlet {
         try {
             String orderParam = request.getParameter("order");
             if (orderParam == null) {
-                sendErrorResponse(response, "Order parameter is required");
+                sendErrorResponse(response, "Tham số thứ tự là bắt buộc");
                 return;
             }
 
@@ -532,7 +536,7 @@ public class ServiceImageUploadController extends HttpServlet {
 
             JsonObject result = new JsonObject();
             result.addProperty("success", true);
-            result.addProperty("message", "Image order updated successfully");
+            result.addProperty("message", "Đã cập nhật thứ tự ảnh thành công");
 
             PrintWriter out = response.getWriter();
             out.print(gson.toJson(result));
@@ -540,7 +544,7 @@ public class ServiceImageUploadController extends HttpServlet {
 
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error updating image order", e);
-            sendErrorResponse(response, "Failed to update image order: " + e.getMessage());
+            sendErrorResponse(response, "Không thể cập nhật thứ tự ảnh: " + e.getMessage());
         }
     }
 
@@ -555,7 +559,7 @@ public class ServiceImageUploadController extends HttpServlet {
         try {
             String imageIdParam = request.getParameter("imageId");
             if (imageIdParam == null) {
-                sendErrorResponse(response, "Image ID is required");
+                sendErrorResponse(response, "ID ảnh là bắt buộc");
                 return;
             }
 
@@ -575,7 +579,7 @@ public class ServiceImageUploadController extends HttpServlet {
 
             JsonObject result = new JsonObject();
             result.addProperty("success", true);
-            result.addProperty("message", "Image deleted successfully");
+            result.addProperty("message", "Đã xóa ảnh thành công");
 
             PrintWriter out = response.getWriter();
             out.print(gson.toJson(result));
@@ -583,7 +587,7 @@ public class ServiceImageUploadController extends HttpServlet {
 
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error deleting image", e);
-            sendErrorResponse(response, "Failed to delete image: " + e.getMessage());
+            sendErrorResponse(response, "Không thể xóa ảnh: " + e.getMessage());
         }
     }
 

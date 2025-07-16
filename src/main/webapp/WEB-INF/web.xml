@@ -1,19 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_5_0.xsd"
-    version="5.0">
-
+<web-app version="5.0" xmlns="https://jakarta.ee/xml/ns/jakartaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_5_0.xsd">
     <!-- Application Lifecycle Listener -->
     <listener>
         <listener-class>listener.ApplicationLifecycleListener</listener-class>
     </listener>
-
     <!-- Cloudinary Initialization Listener -->
     <listener>
         <listener-class>listener.CloudinaryInitListener</listener-class>
     </listener>
-
     <!-- Cloudinary Configuration Parameters -->
     <context-param>
         <param-name>cloudinary.cloud_name</param-name>
@@ -27,41 +21,34 @@
         <param-name>cloudinary.api_secret</param-name>
         <param-value>your_api_secret</param-value>
     </context-param>
-
     <!-- Security and Middleware Filters Configuration -->
-
     <!-- Authentication Filter - Runs First -->
     <filter>
         <filter-name>AuthenticationFilter</filter-name>
         <filter-class>filter.AuthenticationFilter</filter-class>
     </filter>
-
     <filter-mapping>
         <filter-name>AuthenticationFilter</filter-name>
         <url-pattern>/*</url-pattern>
         <dispatcher>REQUEST</dispatcher>
         <dispatcher>FORWARD</dispatcher>
     </filter-mapping>
-
     <!-- Authorization Filter - Runs After Authentication -->
     <filter>
         <filter-name>AuthorizationFilter</filter-name>
         <filter-class>filter.AuthorizationFilter</filter-class>
     </filter>
-
     <filter-mapping>
         <filter-name>AuthorizationFilter</filter-name>
         <url-pattern>/*</url-pattern>
         <dispatcher>REQUEST</dispatcher>
         <dispatcher>FORWARD</dispatcher>
     </filter-mapping>
-
     <!-- Exception Handling Filter - Runs Last -->
     <filter>
         <filter-name>ExceptionHandlingFilter</filter-name>
         <filter-class>filter.ExceptionHandlingFilter</filter-class>
     </filter>
-
     <filter-mapping>
         <filter-name>ExceptionHandlingFilter</filter-name>
         <url-pattern>/*</url-pattern>
@@ -69,18 +56,16 @@
         <dispatcher>FORWARD</dispatcher>
         <dispatcher>ERROR</dispatcher>
     </filter-mapping>
-
+  
     <session-config>
         <session-timeout>
             30
         </session-timeout>
         <tracking-mode>COOKIE</tracking-mode>
     </session-config>
-
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>
-
     <!-- Error Pages Configuration -->
     <error-page>
         <error-code>401</error-code>
@@ -90,22 +75,18 @@
         <error-code>403</error-code>
         <location>/WEB-INF/view/common/error/403.jsp</location>
     </error-page>
-
     <error-page>
         <error-code>404</error-code>
         <location>/WEB-INF/view/common/error/404.jsp</location>
     </error-page>
-
     <error-page>
         <error-code>500</error-code>
         <location>/WEB-INF/view/common/error/500.jsp</location>
     </error-page>
-
     <error-page>
         <exception-type>java.lang.Exception</exception-type>
         <location>/WEB-INF/view/common/error/500.jsp</location>
     </error-page>
-
     <!-- Enable detailed error messages -->
     <context-param>
         <param-name>jakarta.servlet.jsp.errorpage.showErrorMessage</param-name>
@@ -115,91 +96,83 @@
         <param-name>jakarta.servlet.jsp.errorpage.showStackTrace</param-name>
         <param-value>true</param-value>
     </context-param>
-
     <!-- Static resource mapping -->
+    <servlet>
+    <servlet-name>UserController</servlet-name>
+    <servlet-class>controller.UserController</servlet-class>
+</servlet>
+<servlet-mapping>
+    <servlet-name>UserController</servlet-name>
+    <url-pattern>/admin/user/*</url-pattern>
+</servlet-mapping>
     <servlet-mapping>
         <servlet-name>default</servlet-name>
         <url-pattern>/assets/*</url-pattern>
     </servlet-mapping>
-
     <!-- Service images directory mapping is now handled by StaticImageController -->
-
     <servlet-mapping>
         <servlet-name>default</servlet-name>
         <url-pattern>*.css</url-pattern>
     </servlet-mapping>
-
     <servlet-mapping>
         <servlet-name>default</servlet-name>
         <url-pattern>*.js</url-pattern>
     </servlet-mapping>
-
     <servlet-mapping>
         <servlet-name>default</servlet-name>
         <url-pattern>*.png</url-pattern>
     </servlet-mapping>
-
     <servlet-mapping>
         <servlet-name>default</servlet-name>
         <url-pattern>*.jpg</url-pattern>
     </servlet-mapping>
-
     <servlet-mapping>
         <servlet-name>default</servlet-name>
         <url-pattern>*.jpeg</url-pattern>
     </servlet-mapping>
-
     <servlet-mapping>
         <servlet-name>default</servlet-name>
         <url-pattern>*.gif</url-pattern>
     </servlet-mapping>
-
     <servlet-mapping>
         <servlet-name>default</servlet-name>
         <url-pattern>*.ico</url-pattern>
     </servlet-mapping>
-
     <servlet>
         <servlet-name>ServiceTypeController</servlet-name>
         <servlet-class>controller.ServiceTypeController</servlet-class>
         <multipart-config>
-            <max-file-size>2097152</max-file-size> <!-- 2MB -->
+            <max-file-size>2097152</max-file-size>
+            <!-- 2MB -->
             <max-request-size>2097152</max-request-size>
             <file-size-threshold>0</file-size-threshold>
         </multipart-config>
     </servlet>
-
     <!-- Add explicit servlet mappings -->
     <servlet>
         <servlet-name>HomeController</servlet-name>
         <servlet-class>controller.HomeController</servlet-class>
     </servlet>
-
     <!-- TestController configuration moved to @WebServlet annotation -->
-
     <servlet>
         <servlet-name>RegisterController</servlet-name>
         <servlet-class>controller.RegisterController</servlet-class>
     </servlet>
-
     <servlet>
         <servlet-name>LogOutController</servlet-name>
         <servlet-class>controller.LogOutController</servlet-class>
     </servlet>
-
     <servlet-mapping>
         <servlet-name>HomeController</servlet-name>
         <url-pattern>/</url-pattern>
     </servlet-mapping>
-
-
     <!-- TestController mapping moved to @WebServlet annotation -->
-
-
     <servlet-mapping>
         <servlet-name>LogOutController</servlet-name>
         <url-pattern>/logout</url-pattern>
     </servlet-mapping>
+    <!-- CustomerController removed - replaced by AdminCustomerController and ManagerCustomerController with @WebServlet annotations -->
+=======
 
     <!-- Customer Controller Servlet -->
     <!--
@@ -217,19 +190,17 @@
     </servlet-mapping>
     -->
 
+>>>>>>> d07ad0a6981b721dd5751982ea529b9fea30dcd6
     <!-- BookingSession API Servlet -->
     <servlet>
         <servlet-name>BookingSessionApiServlet</servlet-name>
         <servlet-class>controller.api.BookingSessionApiServlet</servlet-class>
     </servlet>
-
     <!-- BookingSession API Servlet Mapping -->
     <servlet-mapping>
         <servlet-name>BookingSessionApiServlet</servlet-name>
         <url-pattern>/api/booking-session</url-pattern>
     </servlet-mapping>
-
-
     <context-param>
         <param-name>cloudinary.cloud_name</param-name>
         <param-value>dj5wpyfvh</param-value>
@@ -242,6 +213,9 @@
         <param-name>cloudinary.api_secret</param-name>
         <param-value>ABahQ3j9UOU245iSBmlAwqCCN0Q</param-value>
     </context-param>
+<<<<<<< HEAD
+</web-app>
+=======
 
     <!-- Chatbot API Configuration -->
     <context-param>
@@ -271,3 +245,4 @@
     </servlet-mapping>
 
 </web-app>
+>>>>>>> d07ad0a6981b721dd5751982ea529b9fea30dcd6

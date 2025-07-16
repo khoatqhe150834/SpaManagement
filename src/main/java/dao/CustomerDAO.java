@@ -35,9 +35,14 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         customer.setAddress(rs.getString("address"));
         customer.setIsActive(rs.getBoolean("is_active"));
         customer.setLoyaltyPoints(rs.getInt("loyalty_points"));
-        customer.setRoleId(rs.getInt("role_id"));
-        customer.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
-        customer.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
+        // Handle nullable role_id field
+        customer.setRoleId(rs.getObject("role_id") != null ? rs.getInt("role_id") : null);
+        // Handle nullable timestamp fields
+        java.sql.Timestamp createdAtTs = rs.getTimestamp("created_at");
+        customer.setCreatedAt(createdAtTs != null ? createdAtTs.toLocalDateTime() : null);
+        
+        java.sql.Timestamp updatedAtTs = rs.getTimestamp("updated_at");
+        customer.setUpdatedAt(updatedAtTs != null ? updatedAtTs.toLocalDateTime() : null);
         customer.setIsVerified(rs.getObject("is_verified") != null ? rs.getBoolean("is_verified") : false);
         customer.setAvatarUrl(rs.getString("avatar_url"));
         customer.setNotes(rs.getString("notes"));
@@ -130,7 +135,7 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
             return customers;
         }
 
-        String sql = "SELECT * FROM customers WHERE email LIKE ? ORDER BY email";
+        String sql = "SELECT * FROM customers WHERE email LIKE ?";
 
         try (Connection conn = DBContext.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -159,7 +164,7 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
             return customers;
         }
 
-        String sql = "SELECT * FROM customers WHERE phone_number LIKE ? ORDER BY phone_number";
+        String sql = "SELECT * FROM customers WHERE phone_number LIKE ?";
 
         try (Connection conn = DBContext.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -190,7 +195,7 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
             throw new IllegalArgumentException("Phone number already exists");
         }
 
-        String sql = "INSERT INTO customers (full_name, email, hash_password, phone_number, role_id, is_active, loyalty_points, is_verified, created_at, updated_at, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO customers (full_name, email, hash_password, phone_number, role_id, is_active, loyalty_points, is_verified, created_at, updated_at, notes, gender, birthday, address, avatar_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DBContext.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, customer.getFullName());
@@ -204,6 +209,10 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
             ps.setTimestamp(9, Timestamp.valueOf(java.time.LocalDateTime.now()));
             ps.setTimestamp(10, Timestamp.valueOf(java.time.LocalDateTime.now()));
             ps.setString(11, customer.getNotes());
+            ps.setString(12, customer.getGender());
+            ps.setDate(13, customer.getBirthday() != null ? new java.sql.Date(customer.getBirthday().getTime()) : null);
+            ps.setString(14, customer.getAddress());
+            ps.setString(15, customer.getAvatarUrl());
             int rows = ps.executeUpdate();
             if (rows > 0) {
                 ResultSet rs = ps.getGeneratedKeys();
@@ -655,7 +664,7 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
     }
 
     public List<Customer> getPaginatedCustomers(int page, int pageSize, String searchValue, String status,
-            String sortBy, String sortOrder) {
+            String verification, String sortBy, String sortOrder) {
         List<Customer> customers = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT * FROM customers WHERE 1=1");
         List<Object> params = new ArrayList<>();
@@ -673,13 +682,39 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
             params.add("active".equalsIgnoreCase(status));
         }
 
+        if (verification != null && !verification.trim().isEmpty()) {
+            sql.append(" AND is_verified = ?");
+            params.add("verified".equalsIgnoreCase(verification));
+        }
+
         // Validate sortBy parameter to prevent SQL injection
         String orderBy;
         switch (sortBy.toLowerCase()) {
             case "name":
+            case "fullname":
                 orderBy = "full_name";
                 break;
+            case "email":
+                orderBy = "email";
+                break;
+            case "phone":
+            case "phonenumber":
+                orderBy = "phone_number";
+                break;
+            case "loyalty":
+            case "loyaltypoints":
+                orderBy = "loyalty_points";
+                break;
+            case "createdat":
+            case "created":
+                orderBy = "created_at";
+                break;
+            case "updatedat":
+            case "updated":
+                orderBy = "updated_at";
+                break;
             case "id":
+            case "customerid":
             default:
                 orderBy = "customer_id";
                 break;
@@ -712,7 +747,7 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         return customers;
     }
 
-    public int getTotalCustomerCount(String searchValue, String status) {
+    public int getTotalCustomerCount(String searchValue, String status, String verification) {
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM customers WHERE 1=1");
         List<Object> params = new ArrayList<>();
 
@@ -727,6 +762,11 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         if (status != null && !status.trim().isEmpty()) {
             sql.append(" AND is_active = ?");
             params.add("active".equalsIgnoreCase(status));
+        }
+
+        if (verification != null && !verification.trim().isEmpty()) {
+            sql.append(" AND is_verified = ?");
+            params.add("verified".equalsIgnoreCase(verification));
         }
 
         try (Connection conn = DBContext.getConnection();
@@ -751,4 +791,273 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
 
     // Deprecated - kept for backward compatibility, but recommend using more
     // specific methods above
+
+    /**
+     * Count customers by status (active/inactive)
+     */
+    public int countCustomersByStatus(boolean isActive) {
+        String sql = "SELECT COUNT(*) FROM customers WHERE is_active = ?";
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setBoolean(1, isActive);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt(1) : 0;
+            }
+        } catch (SQLException e) {
+            Logger.getLogger(CustomerDAO.class.getName()).log(Level.SEVERE, "Error counting customers by status", e);
+            return 0;
+        }
+    }
+
+    /**
+     * Count customers by verification status
+     */
+    public int countCustomersByVerification(boolean isVerified) {
+        String sql = "SELECT COUNT(*) FROM customers WHERE is_verified = ?";
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setBoolean(1, isVerified);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt(1) : 0;
+            }
+        } catch (SQLException e) {
+            Logger.getLogger(CustomerDAO.class.getName()).log(Level.SEVERE, "Error counting customers by verification", e);
+            return 0;
+        }
+    }
+
+    /**
+     * Get list of unverified customers
+     */
+    public List<Customer> getUnverifiedCustomers() {
+        List<Customer> customers = new ArrayList<>();
+        String sql = "SELECT * FROM customers WHERE is_verified = false ORDER BY created_at DESC";
+        
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    customers.add(buildCustomerFromResultSet(rs));
+                }
+            }
+        } catch (SQLException e) {
+            Logger.getLogger(CustomerDAO.class.getName()).log(Level.SEVERE, "Error getting unverified customers", e);
+        }
+        return customers;
+    }
+
+    /**
+     * Get paginated list of unverified customers with search and sorting
+     */
+    public List<Customer> getPaginatedUnverifiedCustomers(int page, int pageSize, String search, 
+                                                          String sortBy, String sortOrder) {
+        List<Customer> customers = new ArrayList<>();
+        
+        // Build WHERE clause for search
+        StringBuilder whereClause = new StringBuilder("WHERE is_verified = false");
+        if (search != null && !search.trim().isEmpty()) {
+            whereClause.append(" AND (full_name LIKE ? OR email LIKE ? OR phone LIKE ?)");
+        }
+        
+        // Build ORDER BY clause
+        String orderByClause = "";
+        if (sortBy != null && !sortBy.isEmpty()) {
+            String column = mapSortParameter(sortBy);
+            String order = "desc".equalsIgnoreCase(sortOrder) ? "DESC" : "ASC";
+            orderByClause = " ORDER BY " + column + " " + order;
+        } else {
+            orderByClause = " ORDER BY created_at DESC";
+        }
+        
+        // Build LIMIT clause
+        String limitClause = "";
+        if (pageSize != 9999) { // 9999 means show all
+            limitClause = " LIMIT ? OFFSET ?";
+        }
+        
+        String sql = "SELECT * FROM customers " + whereClause + orderByClause + limitClause;
+        
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            int paramIndex = 1;
+            
+            // Set search parameters
+            if (search != null && !search.trim().isEmpty()) {
+                String searchPattern = "%" + search.trim() + "%";
+                ps.setString(paramIndex++, searchPattern);
+                ps.setString(paramIndex++, searchPattern);
+                ps.setString(paramIndex++, searchPattern);
+            }
+            
+            // Set pagination parameters
+            if (pageSize != 9999) {
+                ps.setInt(paramIndex++, pageSize);
+                ps.setInt(paramIndex++, (page - 1) * pageSize);
+            }
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    customers.add(buildCustomerFromResultSet(rs));
+                }
+            }
+        } catch (SQLException e) {
+            Logger.getLogger(CustomerDAO.class.getName()).log(Level.SEVERE, 
+                "Error getting paginated unverified customers", e);
+        }
+        return customers;
+    }
+
+    /**
+     * Get total count of unverified customers
+     */
+    public int getTotalUnverifiedCustomers() {
+        String sql = "SELECT COUNT(*) FROM customers WHERE is_verified = false";
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            Logger.getLogger(CustomerDAO.class.getName()).log(Level.SEVERE, 
+                "Error getting total unverified customers count", e);
+        }
+        return 0;
+    }
+
+    /**
+     * Get total count of unverified customers with search filter
+     */
+    public int getTotalUnverifiedCustomersWithSearch(String search) {
+        StringBuilder whereClause = new StringBuilder("WHERE is_verified = false");
+        if (search != null && !search.trim().isEmpty()) {
+            whereClause.append(" AND (full_name LIKE ? OR email LIKE ? OR phone LIKE ?)");
+        }
+        
+        String sql = "SELECT COUNT(*) FROM customers " + whereClause;
+        
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            if (search != null && !search.trim().isEmpty()) {
+                String searchPattern = "%" + search.trim() + "%";
+                ps.setString(1, searchPattern);
+                ps.setString(2, searchPattern);
+                ps.setString(3, searchPattern);
+            }
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            Logger.getLogger(CustomerDAO.class.getName()).log(Level.SEVERE, 
+                "Error getting total unverified customers with search", e);
+        }
+        return 0;
+    }
+
+    /**
+     * Verify all unverified customers' emails
+     */
+    public int verifyAllCustomers() {
+        String sql = "UPDATE customers SET is_verified = true, updated_at = ? WHERE is_verified = false";
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setTimestamp(1, Timestamp.valueOf(java.time.LocalDateTime.now()));
+            return ps.executeUpdate();
+        } catch (SQLException e) {
+            Logger.getLogger(CustomerDAO.class.getName()).log(Level.SEVERE, "Error verifying all customers", e);
+            return 0;
+        }
+    }
+
+    /**
+     * Map sort parameter to database column name to prevent SQL injection
+     */
+    private String mapSortParameter(String sortBy) {
+        if (sortBy == null || sortBy.trim().isEmpty()) {
+            return "customer_id";
+        }
+        
+        switch (sortBy.toLowerCase()) {
+            case "name":
+            case "fullname":
+                return "full_name";
+            case "email":
+                return "email";
+            case "phone":
+            case "phonenumber":
+                return "phone_number";
+            case "loyalty":
+            case "loyaltypoints":
+                return "loyalty_points";
+            case "createdat":
+            case "created":
+                return "created_at";
+            case "updatedat":
+            case "updated":
+                return "updated_at";
+            case "id":
+            case "customerid":
+            default:
+                return "customer_id";
+        }
+    }
+
+    /**
+     * Verify customer email by customer ID
+     */
+    public boolean verifyCustomerEmail(int customerId) {
+        String sql = "UPDATE customers SET is_verified = true, updated_at = ? WHERE customer_id = ?";
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setTimestamp(1, Timestamp.valueOf(java.time.LocalDateTime.now()));
+            ps.setInt(2, customerId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            Logger.getLogger(CustomerDAO.class.getName()).log(Level.SEVERE, "Error verifying customer email", e);
+            return false;
+        }
+    }
+
+    /**
+     * Unverify customer email by customer ID
+     */
+    public boolean unverifyCustomerEmail(int customerId) {
+        String sql = "UPDATE customers SET is_verified = false, updated_at = ? WHERE customer_id = ?";
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setTimestamp(1, Timestamp.valueOf(java.time.LocalDateTime.now()));
+            ps.setInt(2, customerId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            Logger.getLogger(CustomerDAO.class.getName()).log(Level.SEVERE, "Error unverifying customer email", e);
+            return false;
+        }
+    }
+
+    /**
+     * Get customers with loyalty points (for manager loyalty management)
+     */
+    public List<Customer> getCustomersWithLoyaltyPoints() {
+        List<Customer> customers = new ArrayList<>();
+        String sql = "SELECT * FROM customers WHERE loyalty_points > 0 ORDER BY loyalty_points DESC";
+        
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    customers.add(buildCustomerFromResultSet(rs));
+                }
+            }
+        } catch (SQLException e) {
+            Logger.getLogger(CustomerDAO.class.getName()).log(Level.SEVERE, "Error getting customers with loyalty points", e);
+        }
+        return customers;
+    }
+
+    private static final Logger logger = Logger.getLogger(CustomerDAO.class.getName());
 }
