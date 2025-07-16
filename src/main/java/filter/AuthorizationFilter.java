@@ -87,6 +87,10 @@ public class AuthorizationFilter implements Filter {
          RoleConstants.CUSTOMER_ID)));
     URL_ROLE_MAPPINGS.put("/checkout/process", new HashSet<>(Arrays.asList(
          RoleConstants.CUSTOMER_ID)));
+    URL_ROLE_MAPPINGS.put("/customer/payment-history", new HashSet<>(Arrays.asList(
+         RoleConstants.CUSTOMER_ID)));
+    URL_ROLE_MAPPINGS.put("/customer/payments", new HashSet<>(Arrays.asList(
+         RoleConstants.CUSTOMER_ID)));
 
     // Marketing areas
     URL_ROLE_MAPPINGS.put("/marketing", new HashSet<>(Arrays.asList(
