@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -78,9 +79,16 @@ public class PaymentController extends HttpServlet {
         
         HttpSession session = request.getSession();
         Customer customer = (Customer) session.getAttribute("customer");
-        
+
+        // Debug logging
+        LOGGER.info("=== PAYMENT HISTORY DEBUG ===");
+        LOGGER.info("Session ID: " + session.getId());
+        LOGGER.info("Customer from session: " + (customer != null ?
+            "ID=" + customer.getCustomerId() + ", Name=" + customer.getFullName() : "null"));
+
         // Security check - ensure customer is logged in
         if (customer == null) {
+            LOGGER.warning("No customer in session, redirecting to login");
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
@@ -103,32 +111,60 @@ public class PaymentController extends HttpServlet {
             
             // Get payment history with filters using enhanced DAO methods
             List<Payment> payments = paymentDAO.findByCustomerIdWithFilters(
-                customer.getCustomerId(), page, pageSize, statusFilter, paymentMethodFilter, 
+                customer.getCustomerId(), page, pageSize, statusFilter, paymentMethodFilter,
                 startDate, endDate, searchQuery);
-            
+
+            // Debug logging
+            LOGGER.info("Retrieved " + payments.size() + " payments for customer " + customer.getCustomerId());
+            LOGGER.info("Filters applied: status=" + statusFilter + ", method=" + paymentMethodFilter +
+                       ", search=" + searchQuery);
+
             // Get total count for pagination
             int totalRecords = paymentDAO.countByCustomerIdWithFilters(
-                customer.getCustomerId(), statusFilter, paymentMethodFilter, 
+                customer.getCustomerId(), statusFilter, paymentMethodFilter,
                 startDate, endDate, searchQuery);
+
+            LOGGER.info("Total records count: " + totalRecords);
             
             int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
             
             // Get payment items and usage for each payment
             for (Payment payment : payments) {
-                List<PaymentItem> paymentItems = paymentItemDAO.findByPaymentId(payment.getPaymentId());
-                payment.setPaymentItems(paymentItems);
-                
-                // Get usage information for each payment item - FIXED: Handle Optional properly
-                for (PaymentItem item : paymentItems) {
-                    try {
-                        Optional<PaymentItemUsage> usageOptional = paymentItemUsageDAO.findByPaymentItemId(item.getPaymentItemId());
-                        PaymentItemUsage usage = usageOptional.orElse(null);
-                        item.setUsage(usage);
-                    } catch (SQLException ex) {
-                        LOGGER.log(Level.WARNING, "Could not load usage for payment item: " + item.getPaymentItemId(), ex);
-                        // Set usage to null if there's an error
-                        item.setUsage(null);
+                try {
+                    List<PaymentItem> paymentItems = paymentItemDAO.findByPaymentId(payment.getPaymentId());
+                    payment.setPaymentItems(paymentItems);
+
+                    // Get usage information for each payment item - Enhanced error handling
+                    for (PaymentItem item : paymentItems) {
+                        try {
+                            // Check if payment item ID is valid
+                            if (item.getPaymentItemId() != null && item.getPaymentItemId() > 0) {
+                                Optional<PaymentItemUsage> usageOptional = paymentItemUsageDAO.findByPaymentItemId(item.getPaymentItemId());
+                                PaymentItemUsage usage = usageOptional.orElse(null);
+                                item.setUsage(usage);
+
+                                LOGGER.log(Level.FINE, "Loaded usage for payment item {0}: {1}",
+                                    new Object[]{item.getPaymentItemId(), usage != null ? "found" : "not found"});
+                            } else {
+                                LOGGER.log(Level.WARNING, "Invalid payment item ID: {0}", item.getPaymentItemId());
+                                item.setUsage(null);
+                            }
+                        } catch (SQLException ex) {
+                            LOGGER.log(Level.WARNING, "Could not load usage for payment item: " + item.getPaymentItemId(), ex);
+                            // Set usage to null if there's an error - don't let this break the whole page
+                            item.setUsage(null);
+                        } catch (Exception ex) {
+                            LOGGER.log(Level.WARNING, "Unexpected error loading usage for payment item: " + item.getPaymentItemId(), ex);
+                            item.setUsage(null);
+                        }
                     }
+                } catch (SQLException ex) {
+                    LOGGER.log(Level.WARNING, "Could not load payment items for payment: " + payment.getPaymentId(), ex);
+                    // Set empty list if there's an error loading payment items
+                    payment.setPaymentItems(new ArrayList<>());
+                } catch (Exception ex) {
+                    LOGGER.log(Level.WARNING, "Unexpected error loading payment items for payment: " + payment.getPaymentId(), ex);
+                    payment.setPaymentItems(new ArrayList<>());
                 }
             }
             
