@@ -35,6 +35,15 @@ public class UserDAO implements BaseDAO<User, Integer> {
         user.setBirthday(rs.getDate("birthday"));
         user.setAddress(rs.getString("address"));
         user.setAvatarUrl(rs.getString("avatar_url"));
+        
+        // Handle email verification field (may not exist in old database)
+        try {
+            user.setIsEmailVerified(rs.getBoolean("is_email_verified"));
+        } catch (SQLException e) {
+            // Column doesn't exist yet, set default value
+            user.setIsEmailVerified(false);
+        }
+        
         user.setLastLoginAt(rs.getDate("last_login_at"));
         user.setCreatedAt(rs.getDate("created_at"));
         user.setUpdatedAt(rs.getDate("updated_at"));
@@ -498,6 +507,63 @@ public class UserDAO implements BaseDAO<User, Integer> {
         }
     }
 
+    /**
+     * Generate secure random password for user reset
+     * @return randomly generated password with mixed characters
+     */
+    public String generateSecurePassword() {
+        java.security.SecureRandom random = new java.security.SecureRandom();
+        
+        // Character sets
+        String upperCase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        String lowerCase = "abcdefghijklmnopqrstuvwxyz";
+        String digits = "0123456789";
+        String special = "!@#$%";
+        
+        StringBuilder password = new StringBuilder();
+        
+        // Ensure at least 2 characters from each category (8 total)
+        for (int i = 0; i < 2; i++) {
+            password.append(upperCase.charAt(random.nextInt(upperCase.length())));
+            password.append(lowerCase.charAt(random.nextInt(lowerCase.length())));
+            password.append(digits.charAt(random.nextInt(digits.length())));
+            password.append(special.charAt(random.nextInt(special.length())));
+        }
+        
+        // Shuffle the password characters
+        char[] chars = password.toString().toCharArray();
+        for (int i = chars.length - 1; i > 0; i--) {
+            int j = random.nextInt(i + 1);
+            char temp = chars[i];
+            chars[i] = chars[j];
+            chars[j] = temp;
+        }
+        
+        return new String(chars);
+    }
+
+    /**
+     * Reset password for a user and return the new password
+     * @param userId user ID to reset password for
+     * @return new password if successful, null if failed
+     */
+    public String resetPassword(int userId) {
+        try {
+            String newPassword = generateSecurePassword();
+            boolean updated = updatePassword(userId, newPassword);
+            if (updated) {
+                logger.info("Password reset successful for user ID: " + userId);
+                return newPassword;
+            } else {
+                logger.warning("Password reset failed for user ID: " + userId);
+                return null;
+            }
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error resetting password for user ID: " + userId, e);
+            return null;
+        }
+    }
+
     public boolean isEmailExists(String email) {
         String sql = "SELECT COUNT(*) FROM users WHERE email = ?";
         try (Connection conn = DBContext.getConnection();
@@ -575,6 +641,15 @@ public class UserDAO implements BaseDAO<User, Integer> {
                 user.setBirthday(rs.getDate("birthday"));
                 user.setAddress(rs.getString("address"));
                 user.setAvatarUrl(rs.getString("avatar_url"));
+                
+                // Handle email verification field (may not exist in old database)
+                try {
+                    user.setIsEmailVerified(rs.getBoolean("is_email_verified"));
+                } catch (SQLException e) {
+                    // Column doesn't exist yet, set default value
+                    user.setIsEmailVerified(false);
+                }
+                
                 user.setLastLoginAt(rs.getDate("last_login_at"));
                 user.setCreatedAt(rs.getDate("created_at"));
                 user.setUpdatedAt(rs.getDate("updated_at"));
@@ -605,6 +680,15 @@ public class UserDAO implements BaseDAO<User, Integer> {
                 user.setGender(rs.getString("gender"));
                 user.setBirthday(rs.getDate("birthday"));
                 user.setAvatarUrl(rs.getString("avatar_url"));
+                
+                // Handle email verification field (may not exist in old database)
+                try {
+                    user.setIsEmailVerified(rs.getBoolean("is_email_verified"));
+                } catch (SQLException e) {
+                    // Column doesn't exist yet, set default value
+                    user.setIsEmailVerified(false);
+                }
+                
                 user.setLastLoginAt(rs.getDate("last_login_at"));
                 user.setCreatedAt(rs.getDate("created_at"));
                 user.setUpdatedAt(rs.getDate("updated_at"));
@@ -675,6 +759,15 @@ public class UserDAO implements BaseDAO<User, Integer> {
                 user.setGender(rs.getString("gender"));
                 user.setBirthday(rs.getDate("birthday"));
                 user.setAvatarUrl(rs.getString("avatar_url"));
+                
+                // Handle email verification field (may not exist in old database)
+                try {
+                    user.setIsEmailVerified(rs.getBoolean("is_email_verified"));
+                } catch (SQLException e) {
+                    // Column doesn't exist yet, set default value
+                    user.setIsEmailVerified(false);
+                }
+                
                 user.setLastLoginAt(rs.getDate("last_login_at"));
                 user.setCreatedAt(rs.getDate("created_at"));
                 user.setUpdatedAt(rs.getDate("updated_at"));

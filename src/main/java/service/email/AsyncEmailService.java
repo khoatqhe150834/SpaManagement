@@ -90,6 +90,38 @@ public class AsyncEmailService {
   }
 
   /**
+   * Send new password email and immediately return success message
+   * The actual email sending happens in background
+   * 
+   * @param email       The recipient email address
+   * @param newPassword The new password
+   * @param contextPath The application context path (can be null)
+   */
+  public void sendNewPasswordEmailFireAndForget(String email, String newPassword, String contextPath) {
+    emailExecutor.submit(() -> {
+      try {
+        LOGGER.info("Starting fire-and-forget new password email for: " + email);
+
+        boolean result = emailService.sendNewPasswordEmail(email, newPassword, contextPath);
+
+        if (result) {
+          LOGGER.info("Successfully sent new password email to: " + email);
+        } else {
+          LOGGER.warning("Failed to send new password email to: " + email);
+          // In a production environment, you might want to:
+          // 1. Store failed emails in a retry queue
+          // 2. Send notifications to administrators
+          // 3. Log to monitoring systems
+        }
+
+      } catch (Exception e) {
+        LOGGER.log(Level.SEVERE, "Error in fire-and-forget new password email sending to: " + email, e);
+        // Handle error - could retry, store in database for manual retry, etc.
+      }
+    });
+  }
+
+  /**
    * Send email with callback for handling success/failure
    * 
    * @param email       The recipient email address

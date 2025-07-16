@@ -1,13 +1,22 @@
 package dao;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import db.DBContext;
 import model.Service;
 import model.ServiceType;
-
-import java.sql.*;
-import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class ServiceDAO implements BaseDAO<Service, Integer> {
 
@@ -614,10 +623,9 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
         }
 
         List<Service> services = new ArrayList<>();
-        String sql = "SELECT s.*, COUNT(ba.appointment_id) as purchase_count " +
+        String sql = "SELECT s.*, COUNT(b.booking_id) as purchase_count " +
                 "FROM services s " +
-                "LEFT JOIN booking_appointments ba ON s.service_id = ba.service_id AND ba.status IN ('COMPLETED', 'IN_PROGRESS') "
-                +
+                "LEFT JOIN bookings b ON s.service_id = b.service_id AND b.booking_status IN ('COMPLETED', 'IN_PROGRESS') " +
                 "WHERE s.is_active = 1 " +
                 "GROUP BY s.service_id " +
                 "ORDER BY purchase_count DESC, s.average_rating DESC " +

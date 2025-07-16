@@ -1,23 +1,21 @@
 package controller;
 
-import dao.StaffDAO;
 import dao.ServiceTypeDAO;
+import dao.StaffDAO;
 import dao.UserDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
-import model.Staff;
-import model.ServiceType;
-import model.User;
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.List;
-import java.util.Optional;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 import model.Certificate;
-import java.util.ArrayList;
-import dao.CertificateDAO;
+import model.ServiceType;
+import model.Staff;
+import model.User;
 
 @WebServlet(name = "StaffController", urlPatterns = {"/admin/staff"})
 public class StaffController extends HttpServlet {
@@ -251,10 +249,10 @@ public class StaffController extends HttpServlet {
                     }
                 }
 
-                CertificateDAO certificateDAO = new CertificateDAO();
-                for (Certificate cert : certificates) {
-                    certificateDAO.addCertificate(cert);
-                }
+//                CertificateDAO certificateDAO = new CertificateDAO();
+//                for (Certificate cert : certificates) {
+//                    certificateDAO.addCertificate(cert);
+//                }
             } else {
                 System.out.println("Update staff userId: " + staff.getUser().getUserId());
                 staff.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
