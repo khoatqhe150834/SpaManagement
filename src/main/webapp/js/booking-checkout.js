@@ -441,25 +441,71 @@ class BookingCheckout {
         try {
             this.showLoading(true);
 
-            // In a real implementation, this would verify payment with the backend
-            // For now, we'll simulate a successful payment
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            // Prepare payment data
+            const paymentData = {
+                cartItems: this.cartItems.map(item => ({
+                    serviceId: parseInt(item.serviceId),
+                    quantity: item.quantity
+                })),
+                paymentMethod: 'BANK_TRANSFER', // Default payment method
+                referenceNumber: document.getElementById('referenceNumber')?.textContent || null,
+                notes: 'Thanh toán qua QR Code'
+            };
 
-            // Clear cart after successful payment
-            await this.clearCart();
+            // Call backend to process payment
+            const contextPath = window.spaConfig ? window.spaConfig.contextPath : '';
+            const response = await fetch(contextPath + '/checkout/process', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(paymentData)
+            });
 
-            // Show success message
-            this.showNotification('Thanh toán thành công! Cảm ơn bạn đã sử dụng dịch vụ.', 'success');
+            const result = await response.json();
 
-            // Redirect to success page or home
-            setTimeout(() => {
-                const contextPath = window.spaConfig ? window.spaConfig.contextPath : '';
-                window.location.href = contextPath + '/';
-            }, 3000);
+            if (result.success) {
+                // Clear cart after successful payment
+                if (result.clearCart) {
+                    await this.clearCart();
+                }
+
+                // Show success message
+                this.showNotification('Thanh toán thành công! Cảm ơn bạn đã sử dụng dịch vụ.', 'success');
+
+                // Log payment details
+                console.log('Payment completed:', {
+                    paymentId: result.paymentId,
+                    referenceNumber: result.referenceNumber,
+                    totalAmount: result.totalAmount
+                });
+
+                // Redirect to success page or home
+                setTimeout(() => {
+                    const contextPath = window.spaConfig ? window.spaConfig.contextPath : '';
+                    window.location.href = contextPath + '/';
+                }, 3000);
+            } else {
+                // Handle payment failure
+                this.showNotification(result.message || 'Thanh toán thất bại. Vui lòng thử lại.', 'error');
+            }
 
         } catch (error) {
             console.error('Payment completion error:', error);
-            this.showNotification('Có lỗi xảy ra khi xử lý thanh toán', 'error');
+
+            // Handle different types of errors
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                this.showNotification('Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet.', 'error');
+            } else if (error.status === 401) {
+                this.showNotification('Vui lòng đăng nhập để tiếp tục thanh toán.', 'error');
+                // Redirect to login after a delay
+                setTimeout(() => {
+                    const contextPath = window.spaConfig ? window.spaConfig.contextPath : '';
+                    window.location.href = contextPath + '/login';
+                }, 2000);
+            } else {
+                this.showNotification('Có lỗi xảy ra khi xử lý thanh toán. Vui lòng thử lại.', 'error');
+            }
         } finally {
             this.showLoading(false);
         }
