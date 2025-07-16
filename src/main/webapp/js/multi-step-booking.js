@@ -92,15 +92,9 @@ class MultiStepBooking {
 
     loadCartItems() {
         try {
-            // Check if user is authenticated
-            const user = sessionStorage.getItem('user');
-            let cartKey = 'session_cart';
-            
-            if (user) {
-                const userData = JSON.parse(user);
-                cartKey = `cart_${userData.id}`;
-            }
-            
+            // Always use session_cart regardless of login status
+            const cartKey = 'session_cart';
+
             const savedCart = localStorage.getItem(cartKey);
             this.cartItems = savedCart ? JSON.parse(savedCart) : [];
         } catch (error) {
