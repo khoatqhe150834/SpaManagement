@@ -272,6 +272,7 @@ public class MenuService {
     
     // Financial Section
     menuItems.add(new MenuItem("TÀI CHÍNH", true));
+    menuItems.add(new MenuItem("Thống kê thanh toán", contextPath + "/manager/payment-statistics", "bar-chart-3", "financial"));
     menuItems.add(new MenuItem("Doanh thu phòng ban", contextPath + "/manager/revenue", "trending-up", "financial"));
     menuItems.add(new MenuItem("Hoa hồng nhân viên", contextPath + "/manager/commissions", "coins", "financial"));
 
@@ -462,6 +463,7 @@ public class MenuService {
     menuItems.add(new MenuItem("Lịch hẹn của tôi", contextPath + "/customer/view", "calendar", "appointments")
         .withNotification("3", "yellow"));
     menuItems.add(new MenuItem("Đặt dịch vụ", contextPath + "/booking", "calendar-plus", "appointments"));
+    menuItems.add(new MenuItem("Lịch sử đặt lịch", contextPath + "/customer/booking-history", "clock", "appointments"));
     menuItems.add(new MenuItem("Lịch sử điều trị", contextPath + "/customer/history", "history", "appointments"));
 
     // Account Management

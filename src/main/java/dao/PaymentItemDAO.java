@@ -252,6 +252,35 @@ public class PaymentItemDAO implements BaseDAO<PaymentItem, Integer> {
     }
     
     /**
+     * Find payment items by customer ID (through payments table)
+     */
+    public List<PaymentItem> findByCustomerId(Integer customerId) throws SQLException {
+        List<PaymentItem> paymentItems = new ArrayList<>();
+        String sql = "SELECT pi.*, s.name as service_name, s.description as service_description, " +
+                    "p.customer_id, p.payment_status " +
+                    "FROM payment_items pi " +
+                    "LEFT JOIN services s ON pi.service_id = s.service_id " +
+                    "LEFT JOIN payments p ON pi.payment_id = p.payment_id " +
+                    "WHERE p.customer_id = ? AND p.payment_status IN ('PAID', 'PENDING') " +
+                    "ORDER BY pi.created_at DESC";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, customerId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    PaymentItem item = mapResultSetToPaymentItem(rs);
+                    paymentItems.add(item);
+                }
+            }
+        }
+
+        return paymentItems;
+    }
+
+    /**
      * Find payment items by service ID
      */
     public List<PaymentItem> findByServiceId(Integer serviceId) throws SQLException {

@@ -1,6 +1,7 @@
 package dao;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -603,5 +604,144 @@ public class BookingDAO implements BaseDAO<Booking, Integer> {
         }
 
         return booking;
+    }
+
+    /**
+     * Find bookings by customer ID with filters and pagination
+     */
+    public List<Booking> findByCustomerIdWithFilters(Integer customerId, String statusFilter,
+            Date dateFrom, Date dateTo, int page, int pageSize) throws SQLException {
+        List<Booking> bookings = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT b.*, c.full_name as customer_name, c.email as customer_email, ");
+        sql.append("s.name as service_name, u.full_name as therapist_name ");
+        sql.append("FROM bookings b ");
+        sql.append("LEFT JOIN customers c ON b.customer_id = c.customer_id ");
+        sql.append("LEFT JOIN services s ON b.service_id = s.service_id ");
+        sql.append("LEFT JOIN users u ON b.therapist_user_id = u.user_id ");
+        sql.append("WHERE b.customer_id = ? ");
+
+        List<Object> params = new ArrayList<>();
+        params.add(customerId);
+
+        // Add status filter
+        if (statusFilter != null && !statusFilter.isEmpty() && !statusFilter.equals("ALL")) {
+            sql.append("AND b.booking_status = ? ");
+            params.add(statusFilter);
+        }
+
+        // Add date range filter
+        if (dateFrom != null) {
+            sql.append("AND b.appointment_date >= ? ");
+            params.add(dateFrom);
+        }
+
+        if (dateTo != null) {
+            sql.append("AND b.appointment_date <= ? ");
+            params.add(dateTo);
+        }
+
+        sql.append("ORDER BY b.appointment_date DESC, b.appointment_time DESC ");
+        sql.append("LIMIT ? OFFSET ?");
+
+        params.add(pageSize);
+        params.add((page - 1) * pageSize);
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+
+            for (int i = 0; i < params.size(); i++) {
+                stmt.setObject(i + 1, params.get(i));
+            }
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Booking booking = mapResultSetToBooking(rs);
+                    bookings.add(booking);
+                }
+            }
+        }
+
+        return bookings;
+    }
+
+    /**
+     * Count bookings by customer ID with filters
+     */
+    public int countByCustomerIdWithFilters(Integer customerId, String statusFilter,
+            Date dateFrom, Date dateTo) throws SQLException {
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT COUNT(*) FROM bookings b WHERE b.customer_id = ? ");
+
+        List<Object> params = new ArrayList<>();
+        params.add(customerId);
+
+        // Add status filter
+        if (statusFilter != null && !statusFilter.isEmpty() && !statusFilter.equals("ALL")) {
+            sql.append("AND b.booking_status = ? ");
+            params.add(statusFilter);
+        }
+
+        // Add date range filter
+        if (dateFrom != null) {
+            sql.append("AND b.appointment_date >= ? ");
+            params.add(dateFrom);
+        }
+
+        if (dateTo != null) {
+            sql.append("AND b.appointment_date <= ? ");
+            params.add(dateTo);
+        }
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+
+            for (int i = 0; i < params.size(); i++) {
+                stmt.setObject(i + 1, params.get(i));
+            }
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        }
+
+        return 0;
+    }
+
+    /**
+     * Get booking statistics by customer ID
+     */
+    public Map<String, Integer> getBookingStatsByCustomerId(Integer customerId) throws SQLException {
+        Map<String, Integer> stats = new HashMap<>();
+
+        String sql = "SELECT " +
+                    "COUNT(*) as total_bookings, " +
+                    "COUNT(CASE WHEN booking_status = 'SCHEDULED' THEN 1 END) as scheduled_count, " +
+                    "COUNT(CASE WHEN booking_status = 'COMPLETED' THEN 1 END) as completed_count, " +
+                    "COUNT(CASE WHEN booking_status = 'CANCELLED' THEN 1 END) as cancelled_count, " +
+                    "COUNT(CASE WHEN booking_status = 'NO_SHOW' THEN 1 END) as no_show_count " +
+                    "FROM bookings WHERE customer_id = ?";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, customerId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    stats.put("total_bookings", rs.getInt("total_bookings"));
+                    stats.put("scheduled_count", rs.getInt("scheduled_count"));
+                    stats.put("completed_count", rs.getInt("completed_count"));
+                    stats.put("cancelled_count", rs.getInt("cancelled_count"));
+                    stats.put("no_show_count", rs.getInt("no_show_count"));
+                }
+            }
+        }
+
+        return stats;
     }
 }

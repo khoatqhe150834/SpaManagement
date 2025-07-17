@@ -500,12 +500,12 @@
                 <div class="p-6 border-b border-gray-200">
                     <h2 class="text-xl font-semibold text-spa-dark flex items-center gap-2">
                         <i data-lucide="shopping-bag" class="h-6 w-6 text-primary"></i>
-                        Dịch Vụ Đã Mua (${fn:length(payment.paymentItems)} dịch vụ)
+                        Dịch Vụ Đã Mua (${fn:length(paymentItems)} dịch vụ)
                     </h2>
                 </div>
                 <div class="p-6">
                     <c:choose>
-                        <c:when test="${not empty payment.paymentItems}">
+                        <c:when test="${paymentItems != null && not empty paymentItems}">
                             <table id="paymentItemsTable" class="w-full display responsive nowrap payment-items-table" style="width:100%">
                                 <thead>
                                     <tr>
@@ -519,7 +519,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <c:forEach var="item" items="${payment.paymentItems}">
+                                    <c:forEach var="item" items="${paymentItems}">
                                         <tr>
                                             <td>
                                                 <div class="service-name">
@@ -547,7 +547,7 @@
                                                 </span>
                                             </td>
                                             <td class="text-right">
-                                                <span class="font-bold text-green-600">
+                                                <span class="font-bold text-primary">
                                                     <fmt:formatNumber value="${item.totalPrice}" type="currency" currencySymbol="" pattern="#,##0"/> VNĐ
                                                 </span>
                                             </td>
@@ -557,15 +557,18 @@
                                                         <div class="flex flex-col gap-1">
                                                             <div class="flex items-center gap-2">
                                                                 <div class="w-full bg-gray-200 rounded-full h-2">
-                                                                    <div class="bg-primary h-2 rounded-full" style="width: ${(item.usage.usedQuantity / item.quantity) * 100}%"></div>
+                                                                    <div class="bg-primary h-2 rounded-full" style="width: ${(item.usage.bookedQuantity / item.usage.totalQuantity) * 100}%"></div>
                                                                 </div>
                                                                 <span class="text-xs text-gray-600 whitespace-nowrap">
-                                                                    ${item.usage.usedQuantity}/${item.quantity}
+                                                                    ${item.usage.bookedQuantity}/${item.usage.totalQuantity}
                                                                 </span>
                                                             </div>
-                                                            <c:if test="${not empty item.usage.lastUsedDate}">
+                                                            <div class="text-xs text-gray-500">
+                                                                Còn lại: ${item.usage.remainingQuantity}
+                                                            </div>
+                                                            <c:if test="${not empty item.usage.lastUpdated}">
                                                                 <div class="text-xs text-gray-500">
-                                                                    Lần cuối: <fmt:formatDate value="${item.usage.lastUsedDate}" pattern="dd/MM/yyyy"/>
+                                                                    Cập nhật: <fmt:formatDate value="${item.usage.lastUpdated}" pattern="dd/MM/yyyy HH:mm"/>
                                                                 </div>
                                                             </c:if>
                                                         </div>
@@ -658,7 +661,15 @@
 
             // Initialize DataTables
             if ($.fn.DataTable && document.getElementById('paymentItemsTable')) {
-                $('#paymentItemsTable').DataTable({
+                console.log('Initializing DataTables for paymentItemsTable...');
+
+                // Check if DataTable already exists and destroy it
+                if ($.fn.DataTable.isDataTable('#paymentItemsTable')) {
+                    $('#paymentItemsTable').DataTable().destroy();
+                }
+
+                try {
+                    $('#paymentItemsTable').DataTable({
                     responsive: true,
                     dom: 'Blfrtip',
                     processing: true,
@@ -760,6 +771,12 @@
                         console.log('DataTables initialized successfully for manager payment details');
                     }
                 });
+                } catch (error) {
+                    console.error('Error initializing DataTables:', error);
+                    alert('Có lỗi xảy ra khi khởi tạo bảng dữ liệu. Vui lòng tải lại trang.');
+                }
+            } else {
+                console.log('DataTables not available or table not found');
             }
         });
 

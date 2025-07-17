@@ -781,6 +781,8 @@ art.js -->
                     responsive: true,
                     dom: 'Blfrtip',
                     processing: true,
+                    stateSave: true,
+                    stateDuration: 300, // 5 minutes state persistence
                     language: {
                         "sProcessing": "Đang xử lý...",
                         "sLengthMenu": "Hiển thị _MENU_ mục",
@@ -853,18 +855,61 @@ art.js -->
                     dom: '<"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4"<"flex items-center"l><"flex items-center"Bf>>rtip',
 
                     initComplete: function() {
+                        var table = this.api();
+
                         // Apply custom styling after DataTables initialization
                         $('.dataTables_filter input').addClass('ml-2 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary');
                         $('.dataTables_length select').addClass('mx-2 px-2 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary');
                         $('.dataTables_paginate .paginate_button').addClass('mx-1');
-                        
+
                         // Style the wrapper
                         $('.dataTables_wrapper').addClass('px-0 pb-0');
-                        
+
                         // Initialize Lucide icons in the table
                         lucide.createIcons();
-                        
-                        console.log('DataTables initialized successfully');
+
+                        // Add event handlers to preserve pagination during sorting
+                        var isRestoringPage = false; // Flag to prevent infinite recursion
+
+                        $('#paymentsTable thead').on('click', 'th', function() {
+                            // Only store page if we're not currently restoring
+                            if (!isRestoringPage) {
+                                var currentPage = table.page.info().page;
+                                sessionStorage.setItem('paymentsTableCurrentPage', currentPage);
+                            }
+                        });
+
+                        // Handle order event (when sorting actually happens)
+                        table.on('order.dt', function() {
+                            // Prevent recursion
+                            if (isRestoringPage) {
+                                return;
+                            }
+
+                            // Restore the page after sorting
+                            var storedPage = sessionStorage.getItem('paymentsTableCurrentPage');
+                            if (storedPage !== null) {
+                                var pageNum = parseInt(storedPage);
+                                var pageInfo = table.page.info();
+                                var maxPage = Math.ceil(pageInfo.recordsDisplay / pageInfo.length) - 1;
+
+                                // Ensure the page number is valid
+                                if (pageNum <= maxPage && pageNum !== pageInfo.page) {
+                                    isRestoringPage = true; // Set flag before calling draw
+                                    table.page(pageNum).draw(false);
+
+                                    // Use setTimeout to reset flag after draw completes
+                                    setTimeout(function() {
+                                        isRestoringPage = false;
+                                    }, 100);
+                                }
+
+                                // Clear the stored page
+                                sessionStorage.removeItem('paymentsTableCurrentPage');
+                            }
+                        });
+
+                        console.log('DataTables with pagination preservation initialized successfully');
                     }
                 });
             }     
@@ -948,7 +993,7 @@ art.js -->
             
             // Apply status filter (column 5)
             if (statusFilter) {
-                table.column(5).search(statusFilter).draw();
+                table.column(5).search(statusFilter).draw(false);
             }
             
             // Apply amount filter (column 4)
@@ -963,7 +1008,7 @@ art.js -->
                     }
                 );
                 
-                table.draw();
+                table.draw(false);
                 
                 // Remove the custom filter after drawing
                 $.fn.dataTable.ext.search.pop();
@@ -984,7 +1029,7 @@ art.js -->
             
             // Reset DataTable filters
             const table = $('#paymentsTable').DataTable();
-            table.search('').columns().search('').draw();
+            table.search('').columns().search('').draw(false);
             
             // Show notification
             showNotification('Đã đặt lại bộ lọc', 'info');
@@ -1011,7 +1056,7 @@ art.js -->
                 }
             );
             
-            table.draw();
+            table.draw(false);
             
             // Remove the custom filter after drawing
             $.fn.dataTable.ext.search.pop();
@@ -1022,7 +1067,7 @@ art.js -->
         
         function clearDateFilter() {
             const table = $('#paymentsTable').DataTable();
-            table.draw();
+            table.draw(false);
             showNotification('Đã xóa bộ lọc thời gian', 'info');
         }
 

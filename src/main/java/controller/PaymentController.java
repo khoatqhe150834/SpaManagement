@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +40,8 @@ import service.PaymentHistoryService;
     "/customer/payments",
     "/customer/payment-details",
     "/manager/payments-management",
-    "/manager/payment-details"
+    "/manager/payment-details",
+    "/manager/payment-statistics"
 })
 public class PaymentController extends HttpServlet {
     
@@ -78,6 +80,9 @@ public class PaymentController extends HttpServlet {
                 break;
             case "/manager/payment-details":
                 handleManagerPaymentDetails(request, response);
+                break;
+            case "/manager/payment-statistics":
+                handlePaymentStatistics(request, response);
                 break;
             default:
                 response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -447,6 +452,7 @@ public class PaymentController extends HttpServlet {
 
             // Set request attributes
             request.setAttribute("payment", payment);
+            request.setAttribute("paymentItems", paymentItems); // Set payment items as separate attribute like customer version
             request.setAttribute("pageTitle", "Chi Tiết Thanh Toán #" + paymentId + " - Manager Dashboard");
 
             // Forward to payment details JSP (can reuse customer payment details with manager context)
@@ -526,6 +532,85 @@ public class PaymentController extends HttpServlet {
         } catch (ParseException e) {
             LOGGER.log(Level.WARNING, "Invalid date format: " + dateStr);
             return null;
+        }
+    }
+
+    /**
+     * Handles payment statistics dashboard for managers
+     */
+    private void handlePaymentStatistics(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        HttpSession session = request.getSession();
+        String userRole = (String) session.getAttribute("userRole");
+
+        // Check manager authentication
+        if (!"MANAGER".equals(userRole) && !"ADMIN".equals(userRole)) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
+        try {
+            // Get date range parameters (optional)
+            String startDateStr = request.getParameter("startDate");
+            String endDateStr = request.getParameter("endDate");
+
+            Date startDate = null;
+            Date endDate = null;
+
+            if (startDateStr != null && !startDateStr.isEmpty()) {
+                startDate = parseDate(startDateStr);
+            }
+            if (endDateStr != null && !endDateStr.isEmpty()) {
+                endDate = parseDate(endDateStr);
+            }
+
+            // If no date range specified, default to current month
+            if (startDate == null || endDate == null) {
+                Calendar cal = Calendar.getInstance();
+                cal.set(Calendar.DAY_OF_MONTH, 1);
+                cal.set(Calendar.HOUR_OF_DAY, 0);
+                cal.set(Calendar.MINUTE, 0);
+                cal.set(Calendar.SECOND, 0);
+                cal.set(Calendar.MILLISECOND, 0);
+                startDate = new Date(cal.getTimeInMillis());
+
+                cal.add(Calendar.MONTH, 1);
+                cal.add(Calendar.DAY_OF_MONTH, -1);
+                cal.set(Calendar.HOUR_OF_DAY, 23);
+                cal.set(Calendar.MINUTE, 59);
+                cal.set(Calendar.SECOND, 59);
+                endDate = new Date(cal.getTimeInMillis());
+            }
+
+            // Get comprehensive payment statistics
+            Map<String, Object> overallStats = paymentDAO.getOverallPaymentStatistics();
+            Map<String, Object> dateRangeStats = paymentDAO.getPaymentStatisticsByDateRange(startDate, endDate);
+            Map<String, Object> methodStats = paymentDAO.getPaymentMethodStatistics(startDate, endDate);
+            List<Map<String, Object>> dailyStats = paymentDAO.getDailyPaymentStatistics(startDate, endDate);
+            List<Map<String, Object>> serviceStats = paymentDAO.getServiceRevenueStatistics(startDate, endDate);
+            Map<String, Object> customerStats = paymentDAO.getCustomerPaymentStatistics(startDate, endDate);
+
+            // Set request attributes
+            request.setAttribute("overallStats", overallStats);
+            request.setAttribute("dateRangeStats", dateRangeStats);
+            request.setAttribute("methodStats", methodStats);
+            request.setAttribute("dailyStats", dailyStats);
+            request.setAttribute("serviceStats", serviceStats);
+            request.setAttribute("customerStats", customerStats);
+            request.setAttribute("startDate", startDate);
+            request.setAttribute("endDate", endDate);
+            request.setAttribute("pageTitle", "Thống Kê Thanh Toán - Manager Dashboard");
+
+            // Forward to payment statistics JSP
+            request.getRequestDispatcher("/WEB-INF/view/manager/payment-statistics.jsp")
+                    .forward(request, response);
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Database error loading payment statistics", ex);
+            request.setAttribute("errorMessage", "Lỗi hệ thống. Vui lòng thử lại sau.");
+            request.getRequestDispatcher("/WEB-INF/view/common/error.jsp")
+                    .forward(request, response);
         }
     }
 }

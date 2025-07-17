@@ -119,6 +119,41 @@
         table.dataTable tbody tr:hover {
             background-color: rgba(255, 248, 240, 0.5);
         }
+
+        /* Enhanced search input styling */
+        .dataTables_filter {
+            position: relative;
+        }
+
+        .dataTables_filter input {
+            transition: all 0.3s ease;
+            min-width: 250px;
+        }
+
+        .dataTables_filter input:focus {
+            transform: scale(1.02);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1), 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-clear {
+            transition: all 0.2s ease;
+        }
+
+        .search-clear:hover {
+            background-color: rgba(212, 175, 55, 0.1);
+        }
+
+        /* Search results highlighting */
+        .dataTables_info {
+            font-weight: 500;
+        }
+
+        /* Responsive search input */
+        @media (max-width: 640px) {
+            .dataTables_filter input {
+                min-width: 200px;
+            }
+        }
     </style>
 </head>
 <body class="bg-spa-cream font-sans text-spa-dark">
@@ -324,6 +359,12 @@
                     responsive: true,
                     dom: 'Blfrtip', // Add 'B' for buttons to the dom string
                     processing: true,
+                    search: {
+                        caseInsensitive: true,
+                        regex: false,
+                        smart: true
+                    },
+                    searchDelay: 300, // Built-in search delay
                     language: {
                         "sProcessing": "Đang xử lý...",
                         "sLengthMenu": "Hiển thị _MENU_ mục",
@@ -406,18 +447,73 @@
                             }
                         }
                     ],
-                    dom: '<"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4"<"flex items-center"l><"flex items-center"Bf>>rtip',
+                    dom: '<"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4"<"flex items-center"l><"flex items-center gap-2"Bf><"flex items-center"f>>rtip',
 
                     initComplete: function() {
+                        var table = this.api();
+
                         // Apply custom styling after DataTables initialization
                         $('.dataTables_filter input').addClass('ml-2 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary');
                         $('.dataTables_length select').addClass('mx-2 px-2 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary');
                         $('.dataTables_paginate .paginate_button').addClass('mx-1');
-                        
+
                         // Style the wrapper
                         $('.dataTables_wrapper').addClass('px-6 pb-6');
-                        
-                        console.log('DataTables initialized successfully');
+
+                        // Enhanced real-time search functionality
+                        var searchInput = $('.dataTables_filter input');
+
+                        // Add placeholder text
+                        searchInput.attr('placeholder', 'Tìm kiếm thanh toán...');
+
+                        // Remove default DataTables search event and add custom debounced search
+                        searchInput.off('keyup.DT search.DT input.DT paste.DT cut.DT');
+
+                        // Debounce function to prevent excessive API calls
+                        var searchTimeout;
+
+                        searchInput.on('input keyup', function() {
+                            var searchTerm = this.value;
+
+                            // Clear previous timeout
+                            clearTimeout(searchTimeout);
+
+                            // Set new timeout for debounced search
+                            searchTimeout = setTimeout(function() {
+                                // Perform the search
+                                table.search(searchTerm).draw();
+
+                                // Update search result info
+                                var info = table.page.info();
+                                if (searchTerm && info.recordsDisplay !== info.recordsTotal) {
+                                    console.log('Search results: ' + info.recordsDisplay + ' of ' + info.recordsTotal + ' records');
+                                }
+                            }, 300); // 300ms debounce delay
+                        });
+
+                        // Clear search functionality
+                        searchInput.on('search', function() {
+                            if (this.value === '') {
+                                table.search('').draw();
+                            }
+                        });
+
+                        // Add clear button functionality
+                        var filterWrapper = $('.dataTables_filter');
+                        if (filterWrapper.find('.search-clear').length === 0) {
+                            filterWrapper.append('<button type="button" class="search-clear ml-2 px-2 py-1 text-gray-500 hover:text-gray-700 rounded" title="Xóa tìm kiếm"><i data-lucide="x" class="h-4 w-4"></i></button>');
+
+                            $('.search-clear').on('click', function() {
+                                searchInput.val('').trigger('input').focus();
+                            });
+                        }
+
+                        // Reinitialize Lucide icons for the clear button
+                        if (typeof lucide !== 'undefined') {
+                            lucide.createIcons();
+                        }
+
+                        console.log('DataTables with enhanced search initialized successfully');
                     }
                 });
             }

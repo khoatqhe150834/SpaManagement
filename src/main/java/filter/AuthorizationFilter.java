@@ -93,6 +93,8 @@ public class AuthorizationFilter implements Filter {
          RoleConstants.CUSTOMER_ID)));
     URL_ROLE_MAPPINGS.put("/customer/payments", new HashSet<>(Arrays.asList(
          RoleConstants.CUSTOMER_ID)));
+    URL_ROLE_MAPPINGS.put("/customer/booking-history", new HashSet<>(Arrays.asList(
+         RoleConstants.CUSTOMER_ID)));
 
     // Marketing areas
     URL_ROLE_MAPPINGS.put("/marketing", new HashSet<>(Arrays.asList(
@@ -138,6 +140,8 @@ public class AuthorizationFilter implements Filter {
     URL_ROLE_MAPPINGS.put("/manager/payments-management", new HashSet<>(Arrays.asList(
         RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
     URL_ROLE_MAPPINGS.put("/manager/payment-details", new HashSet<>(Arrays.asList(
+        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
+    URL_ROLE_MAPPINGS.put("/manager/payment-statistics", new HashSet<>(Arrays.asList(
         RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
 
     // Paths accessible to any authenticated user

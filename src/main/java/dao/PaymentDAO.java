@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -921,6 +922,198 @@ public class PaymentDAO implements BaseDAO<Payment, Integer> {
         }
 
         return payment;
+    }
+
+    /**
+     * Get payment statistics by date range
+     */
+    public Map<String, Object> getPaymentStatisticsByDateRange(Date startDate, Date endDate) throws SQLException {
+        Map<String, Object> stats = new HashMap<>();
+        String sql = "SELECT " +
+                    "COUNT(*) as total_payments, " +
+                    "SUM(CASE WHEN payment_status = 'PAID' THEN total_amount ELSE 0 END) as total_revenue, " +
+                    "SUM(CASE WHEN payment_status = 'PENDING' THEN total_amount ELSE 0 END) as pending_amount, " +
+                    "SUM(CASE WHEN payment_status IN ('FAILED', 'REFUNDED') THEN total_amount ELSE 0 END) as failed_refunded_amount, " +
+                    "COUNT(CASE WHEN payment_status = 'PAID' THEN 1 END) as paid_count, " +
+                    "COUNT(CASE WHEN payment_status = 'PENDING' THEN 1 END) as pending_count, " +
+                    "COUNT(CASE WHEN payment_status IN ('FAILED', 'REFUNDED') THEN 1 END) as failed_refunded_count, " +
+                    "AVG(CASE WHEN payment_status = 'PAID' THEN total_amount END) as avg_payment_amount " +
+                    "FROM payments " +
+                    "WHERE payment_date BETWEEN ? AND ?";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setDate(1, new java.sql.Date(startDate.getTime()));
+            stmt.setDate(2, new java.sql.Date(endDate.getTime()));
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    stats.put("total_payments", rs.getInt("total_payments"));
+                    stats.put("total_revenue", rs.getBigDecimal("total_revenue"));
+                    stats.put("pending_amount", rs.getBigDecimal("pending_amount"));
+                    stats.put("failed_refunded_amount", rs.getBigDecimal("failed_refunded_amount"));
+                    stats.put("paid_count", rs.getInt("paid_count"));
+                    stats.put("pending_count", rs.getInt("pending_count"));
+                    stats.put("failed_refunded_count", rs.getInt("failed_refunded_count"));
+                    stats.put("avg_payment_amount", rs.getBigDecimal("avg_payment_amount"));
+                }
+            }
+        }
+
+        return stats;
+    }
+
+    /**
+     * Get payment method statistics
+     */
+    public Map<String, Object> getPaymentMethodStatistics(Date startDate, Date endDate) throws SQLException {
+        Map<String, Object> stats = new HashMap<>();
+        String sql = "SELECT " +
+                    "payment_method, " +
+                    "COUNT(*) as method_count, " +
+                    "SUM(CASE WHEN payment_status = 'PAID' THEN total_amount ELSE 0 END) as method_revenue, " +
+                    "ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM payments WHERE payment_date BETWEEN ? AND ?), 2) as percentage " +
+                    "FROM payments " +
+                    "WHERE payment_date BETWEEN ? AND ? " +
+                    "GROUP BY payment_method " +
+                    "ORDER BY method_revenue DESC";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            java.sql.Date sqlStartDate = new java.sql.Date(startDate.getTime());
+            java.sql.Date sqlEndDate = new java.sql.Date(endDate.getTime());
+
+            stmt.setDate(1, sqlStartDate);
+            stmt.setDate(2, sqlEndDate);
+            stmt.setDate(3, sqlStartDate);
+            stmt.setDate(4, sqlEndDate);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    String method = rs.getString("payment_method");
+                    Map<String, Object> methodData = new HashMap<>();
+                    methodData.put("count", rs.getInt("method_count"));
+                    methodData.put("revenue", rs.getBigDecimal("method_revenue"));
+                    methodData.put("percentage", rs.getDouble("percentage"));
+                    stats.put(method, methodData);
+                }
+            }
+        }
+
+        return stats;
+    }
+
+    /**
+     * Get daily payment statistics
+     */
+    public List<Map<String, Object>> getDailyPaymentStatistics(Date startDate, Date endDate) throws SQLException {
+        List<Map<String, Object>> dailyStats = new ArrayList<>();
+        String sql = "SELECT " +
+                    "DATE(payment_date) as payment_day, " +
+                    "COUNT(*) as daily_count, " +
+                    "SUM(CASE WHEN payment_status = 'PAID' THEN total_amount ELSE 0 END) as daily_revenue " +
+                    "FROM payments " +
+                    "WHERE payment_date BETWEEN ? AND ? " +
+                    "GROUP BY DATE(payment_date) " +
+                    "ORDER BY payment_day";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setDate(1, new java.sql.Date(startDate.getTime()));
+            stmt.setDate(2, new java.sql.Date(endDate.getTime()));
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> dayData = new HashMap<>();
+                    dayData.put("date", rs.getDate("payment_day"));
+                    dayData.put("count", rs.getInt("daily_count"));
+                    dayData.put("revenue", rs.getBigDecimal("daily_revenue"));
+                    dailyStats.add(dayData);
+                }
+            }
+        }
+
+        return dailyStats;
+    }
+
+    /**
+     * Get service revenue statistics
+     */
+    public List<Map<String, Object>> getServiceRevenueStatistics(Date startDate, Date endDate) throws SQLException {
+        List<Map<String, Object>> serviceStats = new ArrayList<>();
+        String sql = "SELECT " +
+                    "s.service_id, " +
+                    "s.name as service_name, " +
+                    "COUNT(pi.payment_item_id) as item_count, " +
+                    "SUM(pi.quantity) as total_quantity, " +
+                    "SUM(pi.unit_price * pi.quantity) as total_revenue " +
+                    "FROM services s " +
+                    "JOIN payment_items pi ON s.service_id = pi.service_id " +
+                    "JOIN payments p ON pi.payment_id = p.payment_id " +
+                    "WHERE p.payment_date BETWEEN ? AND ? AND p.payment_status = 'PAID' " +
+                    "GROUP BY s.service_id, s.name " +
+                    "ORDER BY total_revenue DESC " +
+                    "LIMIT 10";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setDate(1, new java.sql.Date(startDate.getTime()));
+            stmt.setDate(2, new java.sql.Date(endDate.getTime()));
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> serviceData = new HashMap<>();
+                    serviceData.put("service_id", rs.getInt("service_id"));
+                    serviceData.put("service_name", rs.getString("service_name"));
+                    serviceData.put("item_count", rs.getInt("item_count"));
+                    serviceData.put("total_quantity", rs.getInt("total_quantity"));
+                    serviceData.put("total_revenue", rs.getBigDecimal("total_revenue"));
+                    serviceStats.add(serviceData);
+                }
+            }
+        }
+
+        return serviceStats;
+    }
+
+    /**
+     * Get customer payment statistics (overloaded for date range)
+     */
+    public Map<String, Object> getCustomerPaymentStatistics(Date startDate, Date endDate) throws SQLException {
+        Map<String, Object> stats = new HashMap<>();
+        String sql = "SELECT " +
+                    "COUNT(DISTINCT p.customer_id) as unique_customers, " +
+                    "COUNT(*) as total_payments, " +
+                    "AVG(p.total_amount) as avg_payment_amount, " +
+                    "MAX(p.total_amount) as max_payment_amount, " +
+                    "MIN(p.total_amount) as min_payment_amount, " +
+                    "SUM(CASE WHEN p.payment_status = 'PAID' THEN p.total_amount ELSE 0 END) as total_revenue " +
+                    "FROM payments p " +
+                    "WHERE p.payment_date BETWEEN ? AND ?";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setDate(1, new java.sql.Date(startDate.getTime()));
+            stmt.setDate(2, new java.sql.Date(endDate.getTime()));
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    stats.put("unique_customers", rs.getInt("unique_customers"));
+                    stats.put("total_payments", rs.getInt("total_payments"));
+                    stats.put("avg_payment_amount", rs.getBigDecimal("avg_payment_amount"));
+                    stats.put("max_payment_amount", rs.getBigDecimal("max_payment_amount"));
+                    stats.put("min_payment_amount", rs.getBigDecimal("min_payment_amount"));
+                    stats.put("total_revenue", rs.getBigDecimal("total_revenue"));
+                }
+            }
+        }
+
+        return stats;
     }
 
 }
