@@ -541,14 +541,9 @@ public class PaymentController extends HttpServlet {
     private void handlePaymentStatistics(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        HttpSession session = request.getSession();
-        String userRole = (String) session.getAttribute("userRole");
+      
+       
 
-        // Check manager authentication
-        if (!"MANAGER".equals(userRole) && !"ADMIN".equals(userRole)) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
 
         try {
             // Get date range parameters (optional)

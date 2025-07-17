@@ -47,9 +47,11 @@ prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
         <div class="flex justify-between items-center py-4">
           <!-- Logo -->
           <div class="flex items-center">
-            <div class="text-2xl font-serif font-bold text-primary">
+            <a href="${pageContext.request.contextPath}/"
+               class="text-2xl font-serif font-bold text-primary hover:text-primary-dark transition-colors duration-200 cursor-pointer"
+               aria-label="Về trang chủ">
               Spa Hương Sen
-            </div>
+            </a>
           </div>
 
           <!-- Navigation -->

@@ -461,6 +461,35 @@ public class RoomController extends HttpServlet {
                 return;
             }
 
+            if (name.trim().length() < 2) {
+                request.getSession().setAttribute("errorMessage", "Tên phòng phải có ít nhất 2 ký tự.");
+                response.sendRedirect(request.getContextPath() + "/manager/room/add");
+                return;
+            }
+
+            if (name.trim().length() > 50) {
+                request.getSession().setAttribute("errorMessage", "Tên phòng không được vượt quá 50 ký tự.");
+                response.sendRedirect(request.getContextPath() + "/manager/room/add");
+                return;
+            }
+
+            // Check for duplicate room name
+            List<Room> existingRooms = roomDAO.findAll();
+            for (Room existingRoom : existingRooms) {
+                if (existingRoom.getName().equalsIgnoreCase(name.trim())) {
+                    request.getSession().setAttribute("errorMessage", "Tên phòng đã tồn tại. Vui lòng chọn tên khác.");
+                    response.sendRedirect(request.getContextPath() + "/manager/room/add");
+                    return;
+                }
+            }
+
+            // Validate description length
+            if (description != null && description.trim().length() > 200) {
+                request.getSession().setAttribute("errorMessage", "Mô tả không được vượt quá 200 ký tự.");
+                response.sendRedirect(request.getContextPath() + "/manager/room/add");
+                return;
+            }
+
             int capacity;
             try {
                 capacity = Integer.parseInt(capacityStr);
@@ -522,6 +551,35 @@ public class RoomController extends HttpServlet {
             // Validate input
             if (name == null || name.trim().isEmpty()) {
                 request.getSession().setAttribute("errorMessage", "Tên phòng không được để trống.");
+                response.sendRedirect(request.getContextPath() + "/manager/room/edit/" + roomId);
+                return;
+            }
+
+            if (name.trim().length() < 2) {
+                request.getSession().setAttribute("errorMessage", "Tên phòng phải có ít nhất 2 ký tự.");
+                response.sendRedirect(request.getContextPath() + "/manager/room/edit/" + roomId);
+                return;
+            }
+
+            if (name.trim().length() > 50) {
+                request.getSession().setAttribute("errorMessage", "Tên phòng không được vượt quá 50 ký tự.");
+                response.sendRedirect(request.getContextPath() + "/manager/room/edit/" + roomId);
+                return;
+            }
+
+            // Check for duplicate room name (excluding current room)
+            List<Room> existingRooms = roomDAO.findAll();
+            for (Room existingRoom : existingRooms) {
+                if (existingRoom.getRoomId() != roomId && existingRoom.getName().equalsIgnoreCase(name.trim())) {
+                    request.getSession().setAttribute("errorMessage", "Tên phòng đã tồn tại. Vui lòng chọn tên khác.");
+                    response.sendRedirect(request.getContextPath() + "/manager/room/edit/" + roomId);
+                    return;
+                }
+            }
+
+            // Validate description length
+            if (description != null && description.trim().length() > 200) {
+                request.getSession().setAttribute("errorMessage", "Mô tả không được vượt quá 200 ký tự.");
                 response.sendRedirect(request.getContextPath() + "/manager/room/edit/" + roomId);
                 return;
             }

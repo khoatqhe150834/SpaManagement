@@ -150,11 +150,15 @@
                         <!-- Description -->
                         <div class="md:col-span-2">
                             <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
-                                Mô Tả
+                                Mô Tả <span class="text-sm text-gray-500">(Tối đa 200 ký tự)</span>
                             </label>
-                            <textarea id="description" name="description" rows="4"
+                            <textarea id="description" name="description" rows="4" maxlength="200"
                                       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                       placeholder="Nhập mô tả phòng...">${room.description}</textarea>
+                            <div class="flex justify-between mt-1">
+                                <div id="descriptionError" class="text-red-500 text-sm hidden"></div>
+                                <div id="charCount" class="text-sm text-gray-500">${fn:length(room.description)}/200 ký tự</div>
+                            </div>
                         </div>
 
                         <!-- Room Info -->
@@ -213,6 +217,14 @@
                 nameError.textContent = 'Tên phòng không được để trống.';
                 nameError.classList.remove('hidden');
                 isValid = false;
+            } else if (name.length < 2) {
+                nameError.textContent = 'Tên phòng phải có ít nhất 2 ký tự.';
+                nameError.classList.remove('hidden');
+                isValid = false;
+            } else if (name.length > 50) {
+                nameError.textContent = 'Tên phòng không được vượt quá 50 ký tự.';
+                nameError.classList.remove('hidden');
+                isValid = false;
             } else {
                 nameError.classList.add('hidden');
             }
@@ -228,6 +240,17 @@
                 capacityError.classList.add('hidden');
             }
 
+            // Validate description length
+            const description = document.getElementById('description').value.trim();
+            const descriptionError = document.getElementById('descriptionError');
+            if (description.length > 200) {
+                descriptionError.textContent = 'Mô tả không được vượt quá 200 ký tự.';
+                descriptionError.classList.remove('hidden');
+                isValid = false;
+            } else {
+                descriptionError.classList.add('hidden');
+            }
+
             if (!isValid) {
                 e.preventDefault();
             }
@@ -236,7 +259,8 @@
         // Real-time validation
         document.getElementById('name').addEventListener('input', function() {
             const nameError = document.getElementById('nameError');
-            if (this.value.trim()) {
+            const name = this.value.trim();
+            if (name && name.length >= 2 && name.length <= 50) {
                 nameError.classList.add('hidden');
             }
         });
@@ -246,6 +270,26 @@
             const capacity = parseInt(this.value);
             if (capacity >= 1 && capacity <= 20) {
                 capacityError.classList.add('hidden');
+            }
+        });
+
+        // Character counter for description
+        document.getElementById('description').addEventListener('input', function() {
+            const charCount = document.getElementById('charCount');
+            const descriptionError = document.getElementById('descriptionError');
+            const currentLength = this.value.length;
+
+            charCount.textContent = currentLength + '/200 ký tự';
+
+            if (currentLength > 200) {
+                charCount.classList.add('text-red-500');
+                charCount.classList.remove('text-gray-500');
+                descriptionError.textContent = 'Mô tả không được vượt quá 200 ký tự.';
+                descriptionError.classList.remove('hidden');
+            } else {
+                charCount.classList.remove('text-red-500');
+                charCount.classList.add('text-gray-500');
+                descriptionError.classList.add('hidden');
             }
         });
     </script>
