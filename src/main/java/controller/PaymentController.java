@@ -202,11 +202,11 @@ public class PaymentController extends HttpServlet {
         
         try {
             String paymentIdStr = request.getParameter("id");
-            int paymentId = Integer.parseInt(paymentIdStr);
+            int paymentId = Integer.parseInt(paymentIdStr.trim());
             
             // Get payment details (without items initially)
             Optional<Payment> paymentOptional = paymentDAO.findById(paymentId);
-            if (!paymentOptional.isPresent()) {
+            if (paymentOptional.isEmpty()) {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND);
                 return;
             }

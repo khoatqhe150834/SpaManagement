@@ -168,25 +168,7 @@
 
         <!-- Content -->
         <div class="p-6 bg-spa-cream min-h-screen">
-            <!-- Page Header -->
-            <div class="bg-gradient-to-r from-primary to-primary-dark text-white p-8 rounded-xl mb-8">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h1 class="text-3xl font-bold mb-2">Lịch Sử Thanh Toán</h1>
-                        <div class="flex items-center gap-2 text-white/90 text-sm">
-                            <a href="${pageContext.request.contextPath}/" class="hover:text-white transition-colors">Trang chủ</a>
-                            <i data-lucide="chevron-right" class="h-4 w-4"></i>
-                            <a href="${pageContext.request.contextPath}/customer/dashboard" class="hover:text-white transition-colors">Dashboard</a>
-                            <i data-lucide="chevron-right" class="h-4 w-4"></i>
-                            <span>Lịch sử thanh toán</span>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <div class="text-lg font-medium">${sessionScope.customer.fullName}</div>
-                        <div class="text-white/80 text-sm">${sessionScope.customer.email}</div>
-                    </div>
-                </div>
-            </div>
+            
 
             <!-- Payment History Table -->
             <div class="bg-white rounded-xl shadow-md border border-primary/10 overflow-hidden">
@@ -231,7 +213,7 @@
                                                 </c:choose>
                                             </td>
                                             <td data-order="${payment.totalAmount}">
-                                                <span class="font-semibold text-green-600">
+                                                <span class="font-semibold text-primary">
                                                     <fmt:formatNumber value="${payment.totalAmount}" type="currency"
                                                                     currencySymbol="" pattern="#,##0"/> VNĐ
                                                 </span>
@@ -370,6 +352,18 @@
                         { 
                             responsivePriority: 3, 
                             targets: [5] // Notes are low priority
+                        },
+                        {
+                            targets: 0, // Payment ID column
+                            type: 'num',
+                            render: function(data, type, row) {
+                                if (type === 'sort' || type === 'type') {
+                                    // Extract numeric value from "#123" format
+                                    var numericValue = data.replace(/[^\d]/g, '');
+                                    return parseInt(numericValue) || 0;
+                                }
+                                return data;
+                            }
                         },
                         {
                             targets: 3, // Amount column

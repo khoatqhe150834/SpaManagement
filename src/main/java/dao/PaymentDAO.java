@@ -671,6 +671,7 @@ public class PaymentDAO implements BaseDAO<Payment, Integer> {
 
         payment.setPaymentId(rs.getInt("payment_id"));
         payment.setCustomerId(rs.getInt("customer_id"));
+        if (rs.getBigDecimal("total_amount") != null)
         payment.setTotalAmount(rs.getBigDecimal("total_amount"));
         payment.setTaxAmount(rs.getBigDecimal("tax_amount"));
         payment.setSubtotalAmount(rs.getBigDecimal("subtotal_amount"));
@@ -696,4 +697,5 @@ public class PaymentDAO implements BaseDAO<Payment, Integer> {
 
         return payment;
     }
+
 }
