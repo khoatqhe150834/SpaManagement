@@ -131,6 +131,8 @@
         <!-- Main Content -->
         <div class="flex-1 ml-64">
             <div class="p-8">
+                
+
                 <!-- Page Header -->
                 <div class="mb-8">
                     <div class="flex items-center justify-between">
@@ -139,10 +141,10 @@
                             <p class="text-gray-600 mt-2">Quản lý thông tin phòng và giường trong spa</p>
                         </div>
                         <div class="flex items-center space-x-4">
-                            <button class="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center">
+                            <a href="${pageContext.request.contextPath}/manager/room/add" class="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center">
                                 <i data-lucide="plus" class="h-4 w-4 mr-2"></i>
                                 Thêm Phòng Mới
-                            </button>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -218,87 +220,58 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <!-- Sample data - replace with actual data from controller -->
-                                <tr>
-                                    <td>1</td>
-                                    <td>Room A</td>
-                                    <td>Standard room for individual treatments</td>
-                                    <td>1</td>
-                                    <td><span class="px-2 py-1 text-xs font-medium rounded-full status-active">Hoạt động</span></td>
-                                    <td>17/07/2025</td>
-                                    <td>
-                                        <div class="flex items-center gap-2">
-                                            <button onclick="viewRoom(1)" class="inline-flex items-center px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors duration-200" title="Xem chi tiết">
-                                                <i data-lucide="eye" class="h-3 w-3 mr-1"></i>
-                                                Chi tiết
-                                            </button>
-                                            <button onclick="editRoom(1)" class="inline-flex items-center px-3 py-1 text-xs font-medium text-yellow-600 bg-yellow-50 rounded-md hover:bg-yellow-100 transition-colors duration-200" title="Chỉnh sửa">
-                                                <i data-lucide="edit" class="h-3 w-3 mr-1"></i>
-                                                Sửa
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>2</td>
-                                    <td>VIP Suite</td>
-                                    <td>Luxury suite for couples with two beds</td>
-                                    <td>2</td>
-                                    <td><span class="px-2 py-1 text-xs font-medium rounded-full status-active">Hoạt động</span></td>
-                                    <td>17/07/2025</td>
-                                    <td>
-                                        <div class="flex items-center gap-2">
-                                            <button onclick="viewRoom(2)" class="inline-flex items-center px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors duration-200" title="Xem chi tiết">
-                                                <i data-lucide="eye" class="h-3 w-3 mr-1"></i>
-                                                Chi tiết
-                                            </button>
-                                            <button onclick="editRoom(2)" class="inline-flex items-center px-3 py-1 text-xs font-medium text-yellow-600 bg-yellow-50 rounded-md hover:bg-yellow-100 transition-colors duration-200" title="Chỉnh sửa">
-                                                <i data-lucide="edit" class="h-3 w-3 mr-1"></i>
-                                                Sửa
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>3</td>
-                                    <td>Room B</td>
-                                    <td>Room for facial or massage treatments</td>
-                                    <td>1</td>
-                                    <td><span class="px-2 py-1 text-xs font-medium rounded-full status-active">Hoạt động</span></td>
-                                    <td>17/07/2025</td>
-                                    <td>
-                                        <div class="flex items-center gap-2">
-                                            <button onclick="viewRoom(3)" class="inline-flex items-center px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors duration-200" title="Xem chi tiết">
-                                                <i data-lucide="eye" class="h-3 w-3 mr-1"></i>
-                                                Chi tiết
-                                            </button>
-                                            <button onclick="editRoom(3)" class="inline-flex items-center px-3 py-1 text-xs font-medium text-yellow-600 bg-yellow-50 rounded-md hover:bg-yellow-100 transition-colors duration-200" title="Chỉnh sửa">
-                                                <i data-lucide="edit" class="h-3 w-3 mr-1"></i>
-                                                Sửa
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>4</td>
-                                    <td>Maintenance Room</td>
-                                    <td>Under maintenance, not available</td>
-                                    <td>1</td>
-                                    <td><span class="px-2 py-1 text-xs font-medium rounded-full status-inactive">Bảo trì</span></td>
-                                    <td>17/07/2025</td>
-                                    <td>
-                                        <div class="flex items-center gap-2">
-                                            <button onclick="viewRoom(4)" class="inline-flex items-center px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors duration-200" title="Xem chi tiết">
-                                                <i data-lucide="eye" class="h-3 w-3 mr-1"></i>
-                                                Chi tiết
-                                            </button>
-                                            <button onclick="editRoom(4)" class="inline-flex items-center px-3 py-1 text-xs font-medium text-yellow-600 bg-yellow-50 rounded-md hover:bg-yellow-100 transition-colors duration-200" title="Chỉnh sửa">
-                                                <i data-lucide="edit" class="h-3 w-3 mr-1"></i>
-                                                Sửa
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
+                                <c:forEach var="room" items="${rooms}">
+                                    <tr>
+                                        <td>${room.roomId}</td>
+                                        <td>${room.name}</td>
+                                        <td>${room.description}</td>
+                                        <td>${room.capacity}</td>
+                                        <td>
+                                            <c:choose>
+                                                <c:when test="${room.isActive}">
+                                                    <span class="px-2 py-1 text-xs font-medium rounded-full status-active">Hoạt động</span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="px-2 py-1 text-xs font-medium rounded-full status-maintenance">Bảo trì</span>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </td>
+                                        <td>${room.createdAt}</td>
+                                        <td>
+                                            <div class="flex items-center gap-2">
+                                                <a href="${pageContext.request.contextPath}/manager/room-details/${room.roomId}"
+                                                   class="inline-flex items-center px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors duration-200"
+                                                   title="Xem chi tiết">
+                                                    <i data-lucide="eye" class="h-3 w-3 mr-1"></i>
+                                                    Chi tiết
+                                                </a>
+                                                <a href="${pageContext.request.contextPath}/manager/room/edit/${room.roomId}"
+                                                   class="inline-flex items-center px-3 py-1 text-xs font-medium text-yellow-600 bg-yellow-50 rounded-md hover:bg-yellow-100 transition-colors duration-200"
+                                                   title="Chỉnh sửa">
+                                                    <i data-lucide="edit" class="h-3 w-3 mr-1"></i>
+                                                    Sửa
+                                                </a>
+                                                <a href="${pageContext.request.contextPath}/manager/room/toggle-status/${room.roomId}"
+                                                   class="inline-flex items-center px-3 py-1 text-xs font-medium text-purple-600 bg-purple-50 rounded-md hover:bg-purple-100 transition-colors duration-200"
+                                                   title="Thay đổi trạng thái"
+                                                   onclick="return confirm('Bạn có chắc chắn muốn thay đổi trạng thái phòng này?')">
+                                                    <i data-lucide="refresh-cw" class="h-3 w-3 mr-1"></i>
+                                                    <c:choose>
+                                                        <c:when test="${room.isActive}">Tắt</c:when>
+                                                        <c:otherwise>Bật</c:otherwise>
+                                                    </c:choose>
+                                                </a>
+                                                <!-- <a href="${pageContext.request.contextPath}/manager/room/delete/${room.roomId}"
+                                                   class="inline-flex items-center px-3 py-1 text-xs font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100 transition-colors duration-200"
+                                                   title="Xóa phòng"
+                                                   onclick="return confirm('Bạn có chắc chắn muốn xóa phòng này? Hành động này không thể hoàn tác.')">
+                                                    <i data-lucide="trash-2" class="h-3 w-3 mr-1"></i>
+                                                    Xóa
+                                                </a> -->
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </c:forEach>
                             </tbody>
                         </table>
                     </div>
@@ -411,13 +384,5 @@
             }
         });
 
-        // Room management functions
-        function viewRoom(roomId) {
-            window.location.href = '/manager/room-details/' + roomId;
-        }
-
-        function editRoom(roomId) {
-            // TODO: Implement edit room functionality
-            alert('Chức năng chỉnh sửa phòng sẽ được triển khai sau');
-        }
+        // Room management functions are now handled by direct links
     </script>

@@ -1,5 +1,12 @@
 package controller;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import dao.BedDAO;
 import dao.RoomDAO;
 import jakarta.servlet.ServletException;
@@ -8,12 +15,6 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import model.Bed;
 import model.Room;
 import model.User;
@@ -26,8 +27,12 @@ import model.User;
  */
 @WebServlet(name = "RoomController", urlPatterns = {
     "/manager/rooms-management",
-    "/manager/room-details",
-    "/manager/room-details/*"
+    "/manager/room-details/*",
+    "/manager/room/add",
+    "/manager/room/edit/*",
+    "/manager/room/update",
+    "/manager/room/delete/*",
+    "/manager/room/toggle-status/*"
 })
 public class RoomController extends HttpServlet {
     
@@ -46,10 +51,16 @@ public class RoomController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         String pathInfo = request.getServletPath();
         String additionalPath = request.getPathInfo();
-        
+
+        LOGGER.info("=== ROOM CONTROLLER DEBUG ===");
+        LOGGER.info("Request URI: " + request.getRequestURI());
+        LOGGER.info("Servlet Path: " + pathInfo);
+        LOGGER.info("Path Info: " + additionalPath);
+        LOGGER.info("Context Path: " + request.getContextPath());
+
         // Security check - ensure user is logged in and has manager role
         if (!isAuthorized(request, response)) {
             return;
@@ -58,7 +69,7 @@ public class RoomController extends HttpServlet {
         try {
             if (pathInfo.equals("/manager/rooms-management")) {
                 handleRoomsManagement(request, response);
-            } else if (pathInfo.equals("/manager/room-details")) {
+            } else if (pathInfo.startsWith("/manager/room-details")) {
                 if (additionalPath != null && additionalPath.length() > 1) {
                     // Handle /manager/room-details/{roomId}
                     String roomIdStr = additionalPath.substring(1); // Remove leading slash
@@ -66,6 +77,29 @@ public class RoomController extends HttpServlet {
                 } else {
                     // Handle /manager/room-details with roomId parameter
                     handleRoomDetails(request, response);
+                }
+            } else if (pathInfo.equals("/manager/room/add")) {
+                handleAddRoomForm(request, response);
+            } else if (pathInfo.startsWith("/manager/room/edit")) {
+                if (additionalPath != null && additionalPath.length() > 1) {
+                    String roomIdStr = additionalPath.substring(1);
+                    handleEditRoomForm(request, response, roomIdStr);
+                } else {
+                    response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Room ID is required");
+                }
+            } else if (pathInfo.startsWith("/manager/room/delete")) {
+                if (additionalPath != null && additionalPath.length() > 1) {
+                    String roomIdStr = additionalPath.substring(1);
+                    handleDeleteRoom(request, response, roomIdStr);
+                } else {
+                    response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Room ID is required");
+                }
+            } else if (pathInfo.startsWith("/manager/room/toggle-status")) {
+                if (additionalPath != null && additionalPath.length() > 1) {
+                    String roomIdStr = additionalPath.substring(1);
+                    handleToggleRoomStatus(request, response, roomIdStr);
+                } else {
+                    response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Room ID is required");
                 }
             } else {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -218,18 +252,324 @@ public class RoomController extends HttpServlet {
     }
     
     /**
-     * Handles POST requests for room management operations (future implementation)
+     * Handles add room form display
+     */
+    private void handleAddRoomForm(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        LOGGER.info("Displaying add room form");
+
+        // Forward to add room JSP
+        request.getRequestDispatcher("/WEB-INF/view/manager/room-add.jsp")
+               .forward(request, response);
+    }
+
+    /**
+     * Handles edit room form display
+     */
+    private void handleEditRoomForm(HttpServletRequest request, HttpServletResponse response, String roomIdStr)
+            throws ServletException, IOException {
+
+        try {
+            LOGGER.info("Displaying edit room form for room ID: " + roomIdStr);
+
+            // Parse room ID
+            int roomId;
+            try {
+                roomId = Integer.parseInt(roomIdStr);
+            } catch (NumberFormatException e) {
+                LOGGER.warning("Invalid room ID format: " + roomIdStr);
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid room ID format");
+                return;
+            }
+
+            // Get room details
+            Optional<Room> roomOpt = roomDAO.findById(roomId);
+            if (!roomOpt.isPresent()) {
+                LOGGER.warning("Room not found with ID: " + roomId);
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Room not found");
+                return;
+            }
+
+            Room room = roomOpt.get();
+            LOGGER.info("Found room for editing: " + room.getName() + " (ID: " + room.getRoomId() + ")");
+
+            // Set attributes for JSP
+            request.setAttribute("room", room);
+
+            // Forward to edit room JSP
+            request.getRequestDispatcher("/WEB-INF/view/manager/room-edit.jsp")
+                   .forward(request, response);
+
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Database error in edit room form", e);
+            request.setAttribute("errorMessage", "Lỗi khi tải thông tin phòng. Vui lòng thử lại.");
+            request.getRequestDispatcher("/WEB-INF/view/error.jsp").forward(request, response);
+        }
+    }
+
+    /**
+     * Handles room deletion
+     */
+    private void handleDeleteRoom(HttpServletRequest request, HttpServletResponse response, String roomIdStr)
+            throws ServletException, IOException {
+
+        try {
+            LOGGER.info("Deleting room with ID: " + roomIdStr);
+
+            // Parse room ID
+            int roomId;
+            try {
+                roomId = Integer.parseInt(roomIdStr);
+            } catch (NumberFormatException e) {
+                LOGGER.warning("Invalid room ID format: " + roomIdStr);
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid room ID format");
+                return;
+            }
+
+            // Check if room exists
+            Optional<Room> roomOpt = roomDAO.findById(roomId);
+            if (!roomOpt.isPresent()) {
+                LOGGER.warning("Room not found with ID: " + roomId);
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Room not found");
+                return;
+            }
+
+            // Delete the room
+            boolean deleted = roomDAO.delete(roomId);
+
+            if (deleted) {
+                LOGGER.info("Successfully deleted room with ID: " + roomId);
+                request.getSession().setAttribute("successMessage", "Xóa phòng thành công!");
+            } else {
+                LOGGER.warning("Failed to delete room with ID: " + roomId);
+                request.getSession().setAttribute("errorMessage", "Không thể xóa phòng. Vui lòng thử lại.");
+            }
+
+            // Redirect back to rooms management
+            response.sendRedirect(request.getContextPath() + "/manager/rooms-management");
+
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Database error in delete room", e);
+            request.getSession().setAttribute("errorMessage", "Lỗi khi xóa phòng. Vui lòng thử lại.");
+            response.sendRedirect(request.getContextPath() + "/manager/rooms-management");
+        }
+    }
+
+    /**
+     * Handles room status toggle
+     */
+    private void handleToggleRoomStatus(HttpServletRequest request, HttpServletResponse response, String roomIdStr)
+            throws ServletException, IOException {
+
+        try {
+            LOGGER.info("Toggling status for room with ID: " + roomIdStr);
+
+            // Parse room ID
+            int roomId;
+            try {
+                roomId = Integer.parseInt(roomIdStr);
+            } catch (NumberFormatException e) {
+                LOGGER.warning("Invalid room ID format: " + roomIdStr);
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid room ID format");
+                return;
+            }
+
+            // Get room details
+            Optional<Room> roomOpt = roomDAO.findById(roomId);
+            if (!roomOpt.isPresent()) {
+                LOGGER.warning("Room not found with ID: " + roomId);
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Room not found");
+                return;
+            }
+
+            Room room = roomOpt.get();
+
+            // Toggle status
+            boolean newStatus = !room.getIsActive();
+            room.setIsActive(newStatus);
+
+            // Update the room
+            Room updatedRoom = roomDAO.update(room);
+
+            if (updatedRoom != null) {
+                String statusText = newStatus ? "Hoạt động" : "Bảo trì";
+                LOGGER.info("Successfully toggled status for room ID: " + roomId + " to " + statusText);
+                request.getSession().setAttribute("successMessage", "Cập nhật trạng thái phòng thành công!");
+            } else {
+                LOGGER.warning("Failed to toggle status for room ID: " + roomId);
+                request.getSession().setAttribute("errorMessage", "Không thể cập nhật trạng thái phòng. Vui lòng thử lại.");
+            }
+
+            // Redirect back to rooms management
+            response.sendRedirect(request.getContextPath() + "/manager/rooms-management");
+
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Database error in toggle room status", e);
+            request.getSession().setAttribute("errorMessage", "Lỗi khi cập nhật trạng thái phòng. Vui lòng thử lại.");
+            response.sendRedirect(request.getContextPath() + "/manager/rooms-management");
+        }
+    }
+
+    /**
+     * Handles POST requests for room management operations
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         // Security check
         if (!isAuthorized(request, response)) {
             return;
         }
-        
-        // Future implementation for room CRUD operations
-        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "POST operations not yet implemented");
+
+        String pathInfo = request.getServletPath();
+
+        LOGGER.info("POST request to: " + pathInfo);
+
+        try {
+            if (pathInfo.equals("/manager/room/add")) {
+                handleAddRoom(request, response);
+            } else if (pathInfo.equals("/manager/room/update")) {
+                handleUpdateRoom(request, response);
+            } else {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error in RoomController POST", e);
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                "An error occurred while processing your request.");
+        }
+    }
+
+    /**
+     * Handles room creation from form submission
+     */
+    private void handleAddRoom(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        try {
+            // Get form parameters
+            String name = request.getParameter("name");
+            String description = request.getParameter("description");
+            String capacityStr = request.getParameter("capacity");
+
+            // Validate input
+            if (name == null || name.trim().isEmpty()) {
+                request.getSession().setAttribute("errorMessage", "Tên phòng không được để trống.");
+                response.sendRedirect(request.getContextPath() + "/manager/room/add");
+                return;
+            }
+
+            int capacity;
+            try {
+                capacity = Integer.parseInt(capacityStr);
+                if (capacity <= 0) {
+                    throw new NumberFormatException("Capacity must be positive");
+                }
+            } catch (NumberFormatException e) {
+                request.getSession().setAttribute("errorMessage", "Sức chứa phải là số nguyên dương.");
+                response.sendRedirect(request.getContextPath() + "/manager/room/add");
+                return;
+            }
+
+            // Create new room
+            Room room = new Room(name.trim(), description != null ? description.trim() : "", capacity);
+
+            // Save to database
+            Room savedRoom = roomDAO.save(room);
+
+            if (savedRoom != null) {
+                LOGGER.info("Successfully created room: " + savedRoom.getName() + " (ID: " + savedRoom.getRoomId() + ")");
+                request.getSession().setAttribute("successMessage", "Thêm phòng mới thành công!");
+                response.sendRedirect(request.getContextPath() + "/manager/rooms-management");
+            } else {
+                LOGGER.warning("Failed to create room: " + name);
+                request.getSession().setAttribute("errorMessage", "Không thể thêm phòng mới. Vui lòng thử lại.");
+                response.sendRedirect(request.getContextPath() + "/manager/room/add");
+            }
+
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Database error in add room", e);
+            request.getSession().setAttribute("errorMessage", "Lỗi khi thêm phòng mới. Vui lòng thử lại.");
+            response.sendRedirect(request.getContextPath() + "/manager/room/add");
+        }
+    }
+
+    /**
+     * Handles room update from form submission
+     */
+    private void handleUpdateRoom(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        try {
+            // Get form parameters
+            String roomIdStr = request.getParameter("roomId");
+            String name = request.getParameter("name");
+            String description = request.getParameter("description");
+            String capacityStr = request.getParameter("capacity");
+
+            // Validate room ID
+            int roomId;
+            try {
+                roomId = Integer.parseInt(roomIdStr);
+            } catch (NumberFormatException e) {
+                request.getSession().setAttribute("errorMessage", "ID phòng không hợp lệ.");
+                response.sendRedirect(request.getContextPath() + "/manager/rooms-management");
+                return;
+            }
+
+            // Validate input
+            if (name == null || name.trim().isEmpty()) {
+                request.getSession().setAttribute("errorMessage", "Tên phòng không được để trống.");
+                response.sendRedirect(request.getContextPath() + "/manager/room/edit/" + roomId);
+                return;
+            }
+
+            int capacity;
+            try {
+                capacity = Integer.parseInt(capacityStr);
+                if (capacity <= 0) {
+                    throw new NumberFormatException("Capacity must be positive");
+                }
+            } catch (NumberFormatException e) {
+                request.getSession().setAttribute("errorMessage", "Sức chứa phải là số nguyên dương.");
+                response.sendRedirect(request.getContextPath() + "/manager/room/edit/" + roomId);
+                return;
+            }
+
+            // Get existing room
+            Optional<Room> roomOpt = roomDAO.findById(roomId);
+            if (!roomOpt.isPresent()) {
+                request.getSession().setAttribute("errorMessage", "Không tìm thấy phòng.");
+                response.sendRedirect(request.getContextPath() + "/manager/rooms-management");
+                return;
+            }
+
+            Room room = roomOpt.get();
+
+            // Update room properties
+            room.setName(name.trim());
+            room.setDescription(description != null ? description.trim() : "");
+            room.setCapacity(capacity);
+
+            // Update in database
+            Room updatedRoom = roomDAO.update(room);
+
+            if (updatedRoom != null) {
+                LOGGER.info("Successfully updated room: " + updatedRoom.getName() + " (ID: " + updatedRoom.getRoomId() + ")");
+                request.getSession().setAttribute("successMessage", "Cập nhật thông tin phòng thành công!");
+                response.sendRedirect(request.getContextPath() + "/manager/rooms-management");
+            } else {
+                LOGGER.warning("Failed to update room ID: " + roomId);
+                request.getSession().setAttribute("errorMessage", "Không thể cập nhật thông tin phòng. Vui lòng thử lại.");
+                response.sendRedirect(request.getContextPath() + "/manager/room/edit/" + roomId);
+            }
+
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Database error in update room", e);
+            request.getSession().setAttribute("errorMessage", "Lỗi khi cập nhật thông tin phòng. Vui lòng thử lại.");
+            response.sendRedirect(request.getContextPath() + "/manager/rooms-management");
+        }
     }
 }

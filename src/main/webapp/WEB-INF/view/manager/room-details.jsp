@@ -135,12 +135,18 @@
                 <nav class="flex mb-8" aria-label="Breadcrumb">
                     <ol class="inline-flex items-center space-x-1 md:space-x-3">
                         <li class="inline-flex items-center">
-                            <a href="/manager/rooms-management" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-primary">
+                            <a href="${pageContext.request.contextPath}/dashboard" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-primary">
                                 <i data-lucide="home" class="h-4 w-4 mr-2"></i>
-                                Quản Lý Phòng
+                                Dashboard
                             </a>
                         </li>
                         <li>
+                            <div class="flex items-center">
+                                <i data-lucide="chevron-right" class="h-4 w-4 text-gray-400"></i>
+                                <a href="${pageContext.request.contextPath}/manager/rooms-management" class="ml-1 text-sm font-medium text-gray-700 hover:text-primary md:ml-2">Quản Lý Phòng</a>
+                            </div>
+                        </li>
+                        <li aria-current="page">
                             <div class="flex items-center">
                                 <i data-lucide="chevron-right" class="h-4 w-4 text-gray-400"></i>
                                 <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">Chi Tiết Phòng</span>
@@ -149,22 +155,54 @@
                     </ol>
                 </nav>
 
+                <!-- Success/Error Messages -->
+                <c:if test="${not empty sessionScope.successMessage}">
+                    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6" role="alert">
+                        <div class="flex items-center">
+                            <i data-lucide="check-circle" class="h-5 w-5 mr-2"></i>
+                            <span class="block sm:inline">${sessionScope.successMessage}</span>
+                        </div>
+                    </div>
+                    <c:remove var="successMessage" scope="session" />
+                </c:if>
+
+                <c:if test="${not empty sessionScope.errorMessage}">
+                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6" role="alert">
+                        <div class="flex items-center">
+                            <i data-lucide="alert-circle" class="h-5 w-5 mr-2"></i>
+                            <span class="block sm:inline">${sessionScope.errorMessage}</span>
+                        </div>
+                    </div>
+                    <c:remove var="errorMessage" scope="session" />
+                </c:if>
+
                 <!-- Page Header -->
                 <div class="mb-8">
                     <div class="flex items-center justify-between">
                         <div>
-                            <h1 class="text-3xl font-bold text-gray-900">Chi Tiết Phòng: VIP Suite</h1>
+                            <h1 class="text-3xl font-bold text-gray-900">Chi Tiết Phòng: ${room.name}</h1>
                             <p class="text-gray-600 mt-2">Thông tin chi tiết về phòng và các giường trong phòng</p>
                         </div>
                         <div class="flex items-center space-x-4">
-                            <button class="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center">
+                            <a href="${pageContext.request.contextPath}/manager/room/edit/${room.roomId}" class="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center">
                                 <i data-lucide="edit" class="h-4 w-4 mr-2"></i>
                                 Chỉnh Sửa Phòng
-                            </button>
-                            <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center">
-                                <i data-lucide="plus" class="h-4 w-4 mr-2"></i>
-                                Thêm Giường
-                            </button>
+                            </a>
+                            <a href="${pageContext.request.contextPath}/manager/room/toggle-status/${room.roomId}"
+                               class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center"
+                               onclick="return confirm('Bạn có chắc chắn muốn thay đổi trạng thái phòng này?')">
+                                <i data-lucide="refresh-cw" class="h-4 w-4 mr-2"></i>
+                                <c:choose>
+                                    <c:when test="${room.isActive}">Tắt Phòng</c:when>
+                                    <c:otherwise>Bật Phòng</c:otherwise>
+                                </c:choose>
+                            </a>
+                            <a href="${pageContext.request.contextPath}/manager/room/delete/${room.roomId}"
+                               class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center"
+                               onclick="return confirm('Bạn có chắc chắn muốn xóa phòng này? Hành động này không thể hoàn tác.')">
+                                <i data-lucide="trash-2" class="h-4 w-4 mr-2"></i>
+                                Xóa Phòng
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -179,25 +217,61 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">ID Phòng</label>
-                                <p class="text-lg font-semibold text-gray-900">2</p>
+                                <p class="text-lg font-semibold text-gray-900">#${room.roomId}</p>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Tên Phòng</label>
-                                <p class="text-lg font-semibold text-gray-900">VIP Suite</p>
+                                <p class="text-lg font-semibold text-gray-900">${room.name}</p>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Sức Chứa</label>
-                                <p class="text-lg font-semibold text-gray-900">2 giường</p>
+                                <p class="text-lg font-semibold text-gray-900">${room.capacity} người</p>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Trạng Thái</label>
-                                <span class="px-3 py-1 text-sm font-medium rounded-full status-active">Hoạt động</span>
+                                <c:choose>
+                                    <c:when test="${room.isActive}">
+                                        <span class="px-3 py-1 text-sm font-medium rounded-full status-active">
+                                            <i data-lucide="check-circle" class="w-4 h-4 inline mr-1"></i>
+                                            Hoạt động
+                                        </span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span class="px-3 py-1 text-sm font-medium rounded-full status-inactive">
+                                            <i data-lucide="x-circle" class="w-4 h-4 inline mr-1"></i>
+                                            Bảo trì
+                                        </span>
+                                    </c:otherwise>
+                                </c:choose>
                             </div>
                         </div>
-                        
+
                         <div class="mt-6">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Mô Tả</label>
-                            <p class="text-gray-900">Luxury suite for couples with two beds</p>
+                            <p class="text-gray-900">${room.description != null && !empty room.description ? room.description : 'Chưa có mô tả'}</p>
+                        </div>
+
+                        <!-- Additional Room Information -->
+                        <div class="mt-6 pt-6 border-t border-gray-200">
+                            <h3 class="text-lg font-medium text-gray-900 mb-4">Thông Tin Bổ Sung</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Ngày Tạo</label>
+                                    <p class="text-gray-900">${room.createdAt}</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Cập Nhật Lần Cuối</label>
+                                    <p class="text-gray-900">${room.updatedAt}</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Tổng Số Đặt Phòng</label>
+                                    <p class="text-gray-900">
+                                        <span class="text-2xl font-bold text-primary">0</span>
+                                        <span class="text-sm text-gray-500 ml-1">lượt đặt</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                         </div>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
