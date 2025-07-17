@@ -134,6 +134,12 @@ public class AuthorizationFilter implements Filter {
     URL_ROLE_MAPPINGS.put("/payment-history", new HashSet<>(Arrays.asList(
         RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.CUSTOMER_ID)));
 
+    // Manager payment management access (Admin + Manager only)
+    URL_ROLE_MAPPINGS.put("/manager/payments-management", new HashSet<>(Arrays.asList(
+        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
+    URL_ROLE_MAPPINGS.put("/manager/payment-details", new HashSet<>(Arrays.asList(
+        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
+
     // Paths accessible to any authenticated user
     Set<Integer> allAuthenticatedRoles = new HashSet<>(Arrays.asList(
         RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID,

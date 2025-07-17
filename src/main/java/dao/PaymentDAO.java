@@ -663,6 +663,227 @@ public class PaymentDAO implements BaseDAO<Payment, Integer> {
         return stats;
     }
 
+    // ==================== MANAGER-SPECIFIC METHODS ====================
+
+    /**
+     * Find all payments across all customers with pagination and filtering (for managers)
+     */
+    public List<Payment> findAllWithFilters(int page, int pageSize, String statusFilter,
+            String paymentMethodFilter, java.util.Date startDate, java.util.Date endDate,
+            String searchQuery, String customerFilter) throws SQLException {
+
+        List<Payment> payments = new ArrayList<>();
+        StringBuilder sql = new StringBuilder(
+            "SELECT p.*, c.full_name, c.email, c.phone_number " +
+            "FROM payments p " +
+            "LEFT JOIN customers c ON p.customer_id = c.customer_id " +
+            "WHERE 1=1");
+
+        List<Object> parameters = new ArrayList<>();
+
+        // Add filters
+        if (statusFilter != null && !statusFilter.trim().isEmpty() && !"ALL".equalsIgnoreCase(statusFilter)) {
+            sql.append(" AND p.payment_status = ?");
+            parameters.add(statusFilter);
+        }
+
+        if (paymentMethodFilter != null && !paymentMethodFilter.trim().isEmpty() && !"ALL".equalsIgnoreCase(paymentMethodFilter)) {
+            sql.append(" AND p.payment_method = ?");
+            parameters.add(paymentMethodFilter);
+        }
+
+        if (startDate != null) {
+            sql.append(" AND p.payment_date >= ?");
+            parameters.add(new java.sql.Timestamp(startDate.getTime()));
+        }
+
+        if (endDate != null) {
+            sql.append(" AND p.payment_date <= ?");
+            parameters.add(new java.sql.Timestamp(endDate.getTime()));
+        }
+
+        if (customerFilter != null && !customerFilter.trim().isEmpty()) {
+            sql.append(" AND (c.full_name LIKE ? OR c.email LIKE ? OR c.phone_number LIKE ?)");
+            String customerPattern = "%" + customerFilter.trim() + "%";
+            parameters.add(customerPattern);
+            parameters.add(customerPattern);
+            parameters.add(customerPattern);
+        }
+
+        if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+            sql.append(" AND (p.reference_number LIKE ? OR p.notes LIKE ? OR CAST(p.payment_id AS CHAR) LIKE ?)");
+            String searchPattern = "%" + searchQuery.trim() + "%";
+            parameters.add(searchPattern);
+            parameters.add(searchPattern);
+            parameters.add(searchPattern);
+        }
+
+        sql.append(" ORDER BY p.created_at DESC LIMIT ? OFFSET ?");
+        parameters.add(pageSize);
+        parameters.add((page - 1) * pageSize);
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+
+            // Set parameters
+            for (int i = 0; i < parameters.size(); i++) {
+                stmt.setObject(i + 1, parameters.get(i));
+            }
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    payments.add(mapResultSetToPayment(rs));
+                }
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error finding all payments with filters", ex);
+            throw ex;
+        }
+
+        return payments;
+    }
+
+    /**
+     * Count all payments across all customers with filtering (for managers)
+     */
+    public int countAllWithFilters(String statusFilter, String paymentMethodFilter,
+            java.util.Date startDate, java.util.Date endDate, String searchQuery,
+            String customerFilter) throws SQLException {
+
+        StringBuilder sql = new StringBuilder(
+            "SELECT COUNT(*) FROM payments p " +
+            "LEFT JOIN customers c ON p.customer_id = c.customer_id " +
+            "WHERE 1=1");
+
+        List<Object> parameters = new ArrayList<>();
+
+        // Add filters (same logic as findAllWithFilters)
+        if (statusFilter != null && !statusFilter.trim().isEmpty() && !"ALL".equalsIgnoreCase(statusFilter)) {
+            sql.append(" AND p.payment_status = ?");
+            parameters.add(statusFilter);
+        }
+
+        if (paymentMethodFilter != null && !paymentMethodFilter.trim().isEmpty() && !"ALL".equalsIgnoreCase(paymentMethodFilter)) {
+            sql.append(" AND p.payment_method = ?");
+            parameters.add(paymentMethodFilter);
+        }
+
+        if (startDate != null) {
+            sql.append(" AND p.payment_date >= ?");
+            parameters.add(new java.sql.Timestamp(startDate.getTime()));
+        }
+
+        if (endDate != null) {
+            sql.append(" AND p.payment_date <= ?");
+            parameters.add(new java.sql.Timestamp(endDate.getTime()));
+        }
+
+        if (customerFilter != null && !customerFilter.trim().isEmpty()) {
+            sql.append(" AND (c.full_name LIKE ? OR c.email LIKE ? OR c.phone_number LIKE ?)");
+            String customerPattern = "%" + customerFilter.trim() + "%";
+            parameters.add(customerPattern);
+            parameters.add(customerPattern);
+            parameters.add(customerPattern);
+        }
+
+        if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+            sql.append(" AND (p.reference_number LIKE ? OR p.notes LIKE ? OR CAST(p.payment_id AS CHAR) LIKE ?)");
+            String searchPattern = "%" + searchQuery.trim() + "%";
+            parameters.add(searchPattern);
+            parameters.add(searchPattern);
+            parameters.add(searchPattern);
+        }
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+
+            // Set parameters
+            for (int i = 0; i < parameters.size(); i++) {
+                stmt.setObject(i + 1, parameters.get(i));
+            }
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error counting all payments with filters", ex);
+            throw ex;
+        }
+
+        return 0;
+    }
+
+    /**
+     * Simple method to get all payments without filters (for debugging)
+     */
+    public List<Payment> findAllPaymentsSimple() throws SQLException {
+        List<Payment> payments = new ArrayList<>();
+        String sql = "SELECT p.*, c.full_name, c.email, c.phone_number " +
+                    "FROM payments p " +
+                    "LEFT JOIN customers c ON p.customer_id = c.customer_id " +
+                    "ORDER BY p.created_at DESC LIMIT 50";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    payments.add(mapResultSetToPayment(rs));
+                }
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error finding all payments simple", ex);
+            throw ex;
+        }
+
+        return payments;
+    }
+
+    /**
+     * Get overall payment statistics for manager dashboard
+     */
+    public Map<String, Object> getOverallPaymentStatistics() throws SQLException {
+        Map<String, Object> stats = new HashMap<>();
+        String sql = "SELECT " +
+                    "COUNT(*) as total_payments, " +
+                    "SUM(CASE WHEN payment_status = 'PAID' THEN total_amount ELSE 0 END) as total_revenue, " +
+                    "COUNT(CASE WHEN payment_status = 'PAID' THEN 1 END) as paid_payments, " +
+                    "COUNT(CASE WHEN payment_status = 'PENDING' THEN 1 END) as pending_payments, " +
+                    "COUNT(CASE WHEN payment_status = 'FAILED' THEN 1 END) as failed_payments, " +
+                    "COUNT(CASE WHEN payment_status = 'REFUNDED' THEN 1 END) as refunded_payments, " +
+                    "AVG(CASE WHEN payment_status = 'PAID' THEN total_amount ELSE NULL END) as avg_payment_amount, " +
+                    "COUNT(DISTINCT customer_id) as unique_customers " +
+                    "FROM payments";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    stats.put("totalPayments", rs.getInt("total_payments"));
+                    stats.put("totalRevenue", rs.getBigDecimal("total_revenue"));
+                    stats.put("paidPayments", rs.getInt("paid_payments"));
+                    stats.put("pendingPayments", rs.getInt("pending_payments"));
+                    stats.put("failedPayments", rs.getInt("failed_payments"));
+                    stats.put("refundedPayments", rs.getInt("refunded_payments"));
+                    stats.put("avgPaymentAmount", rs.getBigDecimal("avg_payment_amount"));
+                    stats.put("uniqueCustomers", rs.getInt("unique_customers"));
+                }
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error getting overall payment statistics", ex);
+            throw ex;
+        }
+
+        return stats;
+    }
+
     /**
      * Map ResultSet to Payment object
      */

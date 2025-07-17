@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,6 +25,7 @@ import model.Customer;
 import model.Payment;
 import model.PaymentItem;
 import model.PaymentItemUsage;
+import model.User;
 import service.PaymentHistoryService;
 
 /**
@@ -32,7 +34,13 @@ import service.PaymentHistoryService;
  * 
  * @author G1_SpaManagement Team
  */
-@WebServlet(name = "PaymentController", urlPatterns = {"/customer/payment-history", "/customer/payments", "/customer/payment-details"})
+@WebServlet(name = "PaymentController", urlPatterns = {
+    "/customer/payment-history",
+    "/customer/payments",
+    "/customer/payment-details",
+    "/manager/payments-management",
+    "/manager/payment-details"
+})
 public class PaymentController extends HttpServlet {
     
     private static final Logger LOGGER = Logger.getLogger(PaymentController.class.getName());
@@ -64,6 +72,12 @@ public class PaymentController extends HttpServlet {
                 break;
             case "/customer/payment-details":
                 handlePaymentDetails(request, response);
+                break;
+            case "/manager/payments-management":
+                handleManagerPaymentHistory(request, response);
+                break;
+            case "/manager/payment-details":
+                handleManagerPaymentDetails(request, response);
                 break;
             default:
                 response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -253,6 +267,215 @@ public class PaymentController extends HttpServlet {
         }
     }
     
+    /**
+     * Handle manager payment history page with all customer payments
+     */
+    private void handleManagerPaymentHistory(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        // Check manager authorization
+        if (!isManagerAuthorized(request, response)) {
+            return;
+        }
+
+        try {
+
+            // Get pagination parameters
+            int page = 1;
+            int pageSize = 20; // Default page size for manager view
+
+            String pageParam = request.getParameter("page");
+            String pageSizeParam = request.getParameter("pageSize");
+
+            if (pageParam != null && !pageParam.trim().isEmpty()) {
+                try {
+                    page = Integer.parseInt(pageParam);
+                    if (page < 1) page = 1;
+                } catch (NumberFormatException e) {
+                    page = 1;
+                }
+            }
+
+            if (pageSizeParam != null && !pageSizeParam.trim().isEmpty()) {
+                try {
+                    pageSize = Integer.parseInt(pageSizeParam);
+                    if (pageSize < 5) pageSize = 5;
+                    if (pageSize > 100) pageSize = 100;
+                } catch (NumberFormatException e) {
+                    pageSize = 20;
+                }
+            }
+
+            // Get filter parameters
+            String statusFilter = request.getParameter("status");
+            String paymentMethodFilter = request.getParameter("paymentMethod");
+            String customerFilter = request.getParameter("customer");
+            String searchQuery = request.getParameter("search");
+            String startDateStr = request.getParameter("startDate");
+            String endDateStr = request.getParameter("endDate");
+
+            // Parse dates
+            Date startDate = null;
+            Date endDate = null;
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+            if (startDateStr != null && !startDateStr.trim().isEmpty()) {
+                try {
+                    startDate = dateFormat.parse(startDateStr);
+                } catch (ParseException e) {
+                    LOGGER.log(Level.WARNING, "Invalid start date format: " + startDateStr, e);
+                }
+            }
+
+            if (endDateStr != null && !endDateStr.trim().isEmpty()) {
+                try {
+                    endDate = dateFormat.parse(endDateStr);
+                    // Set end date to end of day
+                    endDate = new Date(endDate.getTime() + 24 * 60 * 60 * 1000 - 1);
+                } catch (ParseException e) {
+                    LOGGER.log(Level.WARNING, "Invalid end date format: " + endDateStr, e);
+                }
+            }
+
+            // Get payment history with filters using enhanced DAO methods
+            List<Payment> payments = paymentDAO.findAllWithFilters(
+                page, pageSize, statusFilter, paymentMethodFilter,
+                startDate, endDate, searchQuery, customerFilter);
+
+            LOGGER.info("Retrieved " + payments.size() + " payments for manager view");
+
+            // Get total count for pagination
+            int totalRecords = paymentDAO.countAllWithFilters(
+                statusFilter, paymentMethodFilter, startDate, endDate, searchQuery, customerFilter);
+
+            int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
+
+            // Load payment items for each payment (for summary display)
+            for (Payment payment : payments) {
+                try {
+                    List<model.PaymentItem> paymentItems = paymentItemDAO.findByPaymentId(payment.getPaymentId());
+                    payment.setPaymentItems(paymentItems);
+                } catch (SQLException ex) {
+                    LOGGER.log(Level.WARNING, "Could not load payment items for payment: " + payment.getPaymentId(), ex);
+                }
+            }
+
+            // Get overall statistics for manager dashboard
+            Map<String, Object> overallStats = paymentDAO.getOverallPaymentStatistics();
+
+            // Set request attributes
+            request.setAttribute("payments", payments);
+            request.setAttribute("currentPage", page);
+            request.setAttribute("pageSize", pageSize);
+            request.setAttribute("totalPages", totalPages);
+            request.setAttribute("totalRecords", totalRecords);
+            request.setAttribute("overallStats", overallStats);
+
+            // Set filter values for form persistence
+            request.setAttribute("statusFilter", statusFilter);
+            request.setAttribute("paymentMethodFilter", paymentMethodFilter);
+            request.setAttribute("customerFilter", customerFilter);
+            request.setAttribute("searchQuery", searchQuery);
+            request.setAttribute("startDate", startDateStr);
+            request.setAttribute("endDate", endDateStr);
+
+            // Set page title
+            request.setAttribute("pageTitle", "Quản Lý Thanh Toán - Manager Dashboard");
+
+            // Forward to JSP
+            request.getRequestDispatcher("/WEB-INF/view/manager/payments-management.jsp")
+                    .forward(request, response);
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Database error in manager payment management", ex);
+            request.setAttribute("errorMessage", "Đã xảy ra lỗi khi tải dữ liệu thanh toán: " + ex.getMessage());
+            request.getRequestDispatcher("/WEB-INF/view/error.jsp").forward(request, response);
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "Unexpected error in manager payment management", ex);
+            request.setAttribute("errorMessage", "Đã xảy ra lỗi không mong muốn: " + ex.getMessage());
+            request.getRequestDispatcher("/WEB-INF/view/error.jsp").forward(request, response);
+        }
+    }
+
+    /**
+     * Handle manager payment details view
+     */
+    private void handleManagerPaymentDetails(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        // Check manager authorization
+        if (!isManagerAuthorized(request, response)) {
+            return;
+        }
+
+        String paymentIdStr = request.getParameter("id");
+        if (paymentIdStr == null || paymentIdStr.trim().isEmpty()) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Payment ID is required");
+            return;
+        }
+
+        try {
+            int paymentId = Integer.parseInt(paymentIdStr);
+
+            // Get payment details with customer information
+            var paymentOptional = paymentDAO.findById(paymentId);
+            if (paymentOptional.isEmpty()) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Payment not found");
+                return;
+            }
+
+            Payment payment = paymentOptional.get();
+
+            // Load payment items and usage details
+            List<model.PaymentItem> paymentItems = paymentItemDAO.findByPaymentId(paymentId);
+            for (model.PaymentItem item : paymentItems) {
+                var usageOptional = paymentItemUsageDAO.findByPaymentItemId(item.getPaymentItemId());
+                item.setUsage(usageOptional.orElse(null));
+            }
+            payment.setPaymentItems(paymentItems);
+
+            // Set request attributes
+            request.setAttribute("payment", payment);
+            request.setAttribute("pageTitle", "Chi Tiết Thanh Toán #" + paymentId + " - Manager Dashboard");
+
+            // Forward to payment details JSP (can reuse customer payment details with manager context)
+            request.getRequestDispatcher("/WEB-INF/view/manager/payment-details.jsp")
+                    .forward(request, response);
+
+        } catch (NumberFormatException ex) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid payment ID format");
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Database error loading payment details", ex);
+            request.setAttribute("errorMessage", "Đã xảy ra lỗi khi tải chi tiết thanh toán: " + ex.getMessage());
+            request.getRequestDispatcher("/WEB-INF/view/error.jsp").forward(request, response);
+        }
+    }
+
+    /**
+     * Check if the current user is authorized as a manager
+     */
+    private boolean isManagerAuthorized(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return false;
+        }
+
+        User user = (User) session.getAttribute("user");
+        String userType = (String) session.getAttribute("userType");
+
+        if (user == null || userType == null ||
+            (!userType.equals("MANAGER") && !userType.equals("ADMIN"))) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN,
+                "Access denied. Manager or Admin privileges required.");
+            return false;
+        }
+
+        return true;
+    }
+
     /**
      * Handles POST requests (currently not used, redirects to GET)
      */

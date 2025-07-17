@@ -225,6 +225,15 @@ public class MenuService {
     customerInfoMgmt.addSubItem(new MenuItem("Quản lý điểm thưởng", contextPath + "/manager/customer/loyalty", "gift"));
     
     menuItems.add(customerInfoMgmt);
+
+    // Payment Management Section
+    MenuItem paymentMgmt = new MenuItem("Quản lý thanh toán", contextPath + "/manager/payments-management", "credit-card", "payments");
+    paymentMgmt.addSubItem(new MenuItem("Tất cả thanh toán", contextPath + "/manager/payments-management", "list"));
+    paymentMgmt.addSubItem(new MenuItem("Thanh toán chờ xử lý", contextPath + "/manager/payments-management?status=PENDING", "clock"));
+    paymentMgmt.addSubItem(new MenuItem("Thanh toán thất bại", contextPath + "/manager/payments-management?status=FAILED", "x-circle"));
+    paymentMgmt.addSubItem(new MenuItem("Yêu cầu hoàn tiền", contextPath + "/manager/payments-management?status=REFUNDED", "refresh-cw"));
+    menuItems.add(paymentMgmt);
+
     // Service Management Section
     menuItems.add(new MenuItem("DỊCH VỤ & VẬN HÀNH", true));
 

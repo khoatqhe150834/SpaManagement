@@ -1,0 +1,23 @@
+<%-- Add this script at the end of the file, just before the closing </body> tag --%>
+<script>
+// Initialize chart data with default values if server data is not available
+const chartData = {
+    paymentMethods: {
+        percentages: [
+            ${cashPaymentsPercent != null ? cashPaymentsPercent : 20}, 
+            ${bankTransferPaymentsPercent != null ? bankTransferPaymentsPercent : 30}, 
+            ${creditCardPaymentsPercent != null ? creditCardPaymentsPercent : 15}, 
+            ${vnpayPaymentsPercent != null ? vnpayPaymentsPercent : 15}, 
+            ${momoPaymentsPercent != null ? momoPaymentsPercent : 10}, 
+            ${zalopayPaymentsPercent != null ? zalopayPaymentsPercent : 10}
+        ],
+        labels: ['Tiền mặt', 'Chuyển khoản', 'Thẻ tín dụng', 'VNPay', 'MoMo', 'ZaloPay']
+    },
+    monthlyRevenue: {
+        labels: ${monthlyRevenueLabels != null ? monthlyRevenueLabels : "['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6']"},
+        data: ${monthlyRevenueData != null ? monthlyRevenueData : "[0, 0, 0, 0, 0, 0]"}
+    }
+};
+
+// Use this chartData object in your initializeCharts function
+</script>
