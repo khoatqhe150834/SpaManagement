@@ -64,19 +64,6 @@
             font-family: 'Roboto', sans-serif;
         }
         
-        .dataTables_filter input {
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            padding: 8px 12px;
-            margin-left: 8px;
-        }
-        
-        .dataTables_filter input:focus {
-            outline: none;
-            border-color: #D4AF37;
-            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
-        }
-        
         .dataTables_length select {
             border: 1px solid #d1d5db;
             border-radius: 8px;
@@ -128,9 +115,16 @@
         .dataTables_filter input {
             transition: all 0.3s ease;
             min-width: 250px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin-left: 8px;
         }
 
         .dataTables_filter input:focus {
+            outline: none;
+            border-color: #D4AF37;
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
             transform: scale(1.02);
             box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1), 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
@@ -203,8 +197,6 @@
 
         <!-- Content -->
         <div class="p-6 bg-spa-cream min-h-screen">
-            
-
             <!-- Payment History Table -->
             <div class="bg-white rounded-xl shadow-md border border-primary/10 overflow-hidden">
                 <div class="p-6 border-b border-gray-200">
@@ -217,6 +209,14 @@
                 <c:choose>
                     <c:when test="${payments != null && not empty payments}">
                         <div class="p-6">
+                            <div class="dataTables_filter mb-4">
+                                <label>
+                                    <input type="search" id="customSearch" class="ml-2 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" placeholder="Tìm kiếm thanh toán...">
+                                    <button type="button" class="search-clear ml-2 px-2 py-1 text-gray-500 hover:text-gray-700 rounded" title="Xóa tìm kiếm">
+                                        <i data-lucide="x" class="h-4 w-4"></i>
+                                    </button>
+                                </label>
+                            </div>
                             <table id="paymentsTable" class="w-full display responsive nowrap" style="width:100%">
                                 <thead>
                                     <tr>
@@ -327,7 +327,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Toggle dropdowns
             document.querySelectorAll('.dropdown-toggle').forEach(function(item) {
-            item.addEventListener('click', function(e) {
+                item.addEventListener('click', function(e) {
                     e.preventDefault();
                     const dropdown = item.closest('.dropdown');
                     const menu = dropdown.querySelector('.dropdown-menu');
@@ -355,15 +355,11 @@
             
             // Initialize DataTables
             if ($.fn.DataTable && document.getElementById('paymentsTable')) {
-                $('#paymentsTable').DataTable({
+                var table = $('#paymentsTable').DataTable({
                     responsive: true,
                     dom: 'Blfrtip', // Add 'B' for buttons to the dom string
                     processing: true,
-                    search: {
-                        caseInsensitive: true,
-                        regex: false,
-                        smart: true
-                    },
+                    searching: false, // Disable DataTables' default search
                     searchDelay: 300, // Built-in search delay
                     language: {
                         "sProcessing": "Đang xử lý...",
@@ -399,7 +395,6 @@
                             type: 'num',
                             render: function(data, type, row) {
                                 if (type === 'sort' || type === 'type') {
-                                    // Extract numeric value from "#123" format
                                     var numericValue = data.replace(/[^\d]/g, '');
                                     return parseInt(numericValue) || 0;
                                 }
@@ -411,28 +406,24 @@
                             type: 'num',
                             render: function(data, type, row) {
                                 if (type === 'display' || type === 'type') {
-                                    // Return the formatted display value
                                     return data;
                                 }
-                                // For sorting and type detection, extract the numeric value
                                 var numericValue = $(data).find('.hidden').text();
                                 if (numericValue) {
                                     return parseFloat(numericValue);
                                 }
-                                // Fallback: extract number from data-order attribute or text
                                 var match = data.match(/data-order="([^"]+)"/);
                                 if (match) {
                                     return parseFloat(match[1]);
                                 }
-                                // Last resort: try to extract number from the text
                                 var textMatch = data.replace(/[^\d]/g, '');
                                 return textMatch ? parseFloat(textMatch) : 0;
                             }
                         },
                         {
                             targets: 6, // Actions column
-                            orderable: false, // Disable sorting for actions column
-                            searchable: false // Disable searching for actions column
+                            orderable: false,
+                            searchable: false
                         }
                     ],
                     pageLength: 10,
@@ -447,48 +438,29 @@
                             }
                         }
                     ],
-                    dom: '<"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4"<"flex items-center"l><"flex items-center gap-2"Bf><"flex items-center"f>>rtip',
+                    dom: '<"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4"<"flex items-center"l><"flex items-center gap-2"B>>rtip',
 
                     initComplete: function() {
                         var table = this.api();
 
-                        // Apply custom styling after DataTables initialization
-                        $('.dataTables_filter input').addClass('ml-2 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary');
                         $('.dataTables_length select').addClass('mx-2 px-2 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary');
                         $('.dataTables_paginate .paginate_button').addClass('mx-1');
-
-                        // Style the wrapper
                         $('.dataTables_wrapper').addClass('px-6 pb-6');
 
                         // Enhanced real-time search functionality
-                        var searchInput = $('.dataTables_filter input');
+                        var searchInput = $('#customSearch');
 
-                        // Add placeholder text
-                        searchInput.attr('placeholder', 'Tìm kiếm thanh toán...');
-
-                        // Remove default DataTables search event and add custom debounced search
-                        searchInput.off('keyup.DT search.DT input.DT paste.DT cut.DT');
-
-                        // Debounce function to prevent excessive API calls
+                        // Add debounce function
                         var searchTimeout;
-
                         searchInput.on('input keyup', function() {
-                            var searchTerm = this.value;
-
-                            // Clear previous timeout
                             clearTimeout(searchTimeout);
-
-                            // Set new timeout for debounced search
                             searchTimeout = setTimeout(function() {
-                                // Perform the search
-                                table.search(searchTerm).draw();
-
-                                // Update search result info
+                                table.search(searchInput.val()).draw();
                                 var info = table.page.info();
-                                if (searchTerm && info.recordsDisplay !== info.recordsTotal) {
+                                if (searchInput.val() && info.recordsDisplay !== info.recordsTotal) {
                                     console.log('Search results: ' + info.recordsDisplay + ' of ' + info.recordsTotal + ' records');
                                 }
-                            }, 300); // 300ms debounce delay
+                            }, 300);
                         });
 
                         // Clear search functionality
@@ -499,21 +471,13 @@
                         });
 
                         // Add clear button functionality
-                        var filterWrapper = $('.dataTables_filter');
-                        if (filterWrapper.find('.search-clear').length === 0) {
-                            filterWrapper.append('<button type="button" class="search-clear ml-2 px-2 py-1 text-gray-500 hover:text-gray-700 rounded" title="Xóa tìm kiếm"><i data-lucide="x" class="h-4 w-4"></i></button>');
+                        $('.search-clear').on('click', function() {
+                            searchInput.val('').trigger('input').focus();
+                        });
 
-                            $('.search-clear').on('click', function() {
-                                searchInput.val('').trigger('input').focus();
-                            });
-                        }
-
-                        // Reinitialize Lucide icons for the clear button
                         if (typeof lucide !== 'undefined') {
                             lucide.createIcons();
                         }
-
-                        console.log('DataTables with enhanced search initialized successfully');
                     }
                 });
             }
@@ -521,27 +485,22 @@
 
         // CRUD Functions for Payment Actions
         function viewPayment(paymentId) {
-            // Open modal or redirect to view payment details
             window.location.href = '${pageContext.request.contextPath}/customer/payment-details?id=' + paymentId;
         }
 
         function editPayment(paymentId) {
-            // Open edit modal or redirect to edit page
             if (confirm('Bạn có chắc chắn muốn chỉnh sửa thanh toán #' + paymentId + '?')) {
                 window.location.href = '${pageContext.request.contextPath}/customer/payment/edit/' + paymentId;
             }
         }
 
         function deletePayment(paymentId) {
-            // Confirm deletion and send AJAX request
             if (confirm('Bạn có chắc chắn muốn xóa thanh toán #' + paymentId + '? Hành động này không thể hoàn tác.')) {
-                // Show loading state
                 const button = event.target.closest('button');
                 const originalContent = button.innerHTML;
                 button.innerHTML = '<i data-lucide="loader-2" class="h-3 w-3 animate-spin"></i>';
                 button.disabled = true;
 
-                // Send AJAX request
                 fetch('${pageContext.request.contextPath}/customer/payment/delete/' + paymentId, {
                     method: 'DELETE',
                     headers: {
@@ -550,16 +509,12 @@
                     }
                 })
                 .then(response => {
-                    if (response.ok) {
-                        return response.json();
-                    }
+                    if (response.ok) return response.json();
                     throw new Error('Network response was not ok');
                 })
                 .then(data => {
                     if (data.success) {
-                        // Show success message
                         showNotification('Xóa thanh toán thành công!', 'success');
-                        // Reload the page or remove the row from table
                         setTimeout(() => {
                             location.reload();
                         }, 1500);
@@ -570,7 +525,6 @@
                 .catch(error => {
                     console.error('Error:', error);
                     showNotification('Có lỗi xảy ra khi xóa thanh toán: ' + error.message, 'error');
-                    // Restore button state
                     button.innerHTML = originalContent;
                     button.disabled = false;
                     lucide.createIcons();
@@ -579,16 +533,13 @@
         }
 
         function printReceipt(paymentId) {
-            // Open receipt in new window for printing
             const receiptWindow = window.open(
                 '${pageContext.request.contextPath}/customer/payment/receipt/' + paymentId,
                 'receipt',
                 'width=800,height=600,scrollbars=yes,resizable=yes'
             );
-            
             if (receiptWindow) {
                 receiptWindow.focus();
-                // Auto print when loaded
                 receiptWindow.onload = function() {
                     receiptWindow.print();
                 };
@@ -599,20 +550,17 @@
 
         // Notification function
         function showNotification(message, type = 'info') {
-            // Create notification element
             const notification = document.createElement('div');
             notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm transition-all duration-300 transform translate-x-full`;
             
-            // Set colors based on type
             const colors = {
                 success: 'bg-green-500 text-white',
                 error: 'bg-red-500 text-white',
                 warning: 'bg-yellow-500 text-white',
                 info: 'bg-blue-500 text-white'
             };
-            
             notification.className += ' ' + (colors[type] || colors.info);
-            // Determine icon based on type
+            
             let iconName = 'info';
             if (type === 'success') iconName = 'check-circle';
             else if (type === 'error') iconName = 'x-circle';
@@ -627,12 +575,10 @@
             document.body.appendChild(notification);
             lucide.createIcons();
             
-            // Animate in
             setTimeout(() => {
                 notification.classList.remove('translate-x-full');
             }, 100);
             
-            // Auto remove after 5 seconds
             setTimeout(() => {
                 notification.classList.add('translate-x-full');
                 setTimeout(() => {

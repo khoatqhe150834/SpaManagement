@@ -11,6 +11,16 @@ document.addEventListener('DOMContentLoaded', () => {
     let sessionId = 'spa-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
     let apiHealthy = false;
 
+    // Drag resize state variables
+    let isResizing = false;
+    let resizeDirection = '';
+    let startX = 0;
+    let startY = 0;
+    let startWidth = 0;
+    let startHeight = 0;
+    let startLeft = 0;
+    let startTop = 0;
+
     // DOM elements with safety checks
     const chatWindow = document.getElementById('chat-window');
     const minimizedIndicator = document.getElementById('minimized-indicator');
@@ -486,6 +496,177 @@ document.addEventListener('DOMContentLoaded', () => {
         lucide.createIcons(toggleSuggestionsBtn);
     }
 
+    // Drag resize functionality
+    function initDragResize() {
+        const resizeHandles = document.querySelectorAll('.resize-handle');
+
+        resizeHandles.forEach(handle => {
+            handle.addEventListener('mousedown', startResize);
+        });
+
+        document.addEventListener('mousemove', doResize);
+        document.addEventListener('mouseup', stopResize);
+    }
+
+    function startResize(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        isResizing = true;
+        resizeDirection = e.target.className.match(/resize-handle-(\w+(?:-\w+)?)/)?.[1] || '';
+
+        startX = e.clientX;
+        startY = e.clientY;
+
+        const rect = chatWindow.getBoundingClientRect();
+        startWidth = rect.width;
+        startHeight = rect.height;
+        startLeft = rect.left;
+        startTop = rect.top;
+
+        // Disable transitions during resize
+        chatWindow.style.transition = 'none';
+
+        // Add resizing class for visual feedback
+        chatWindow.classList.add('resizing');
+
+        console.log('Started resizing:', resizeDirection);
+    }
+
+    function doResize(e) {
+        if (!isResizing) return;
+
+        e.preventDefault();
+
+        const deltaX = e.clientX - startX;
+        const deltaY = e.clientY - startY;
+
+        let newWidth = startWidth;
+        let newHeight = startHeight;
+        let newLeft = startLeft;
+        let newTop = startTop;
+
+        // Calculate new dimensions based on resize direction
+        switch (resizeDirection) {
+            case 'right':
+                newWidth = Math.max(300, Math.min(600, startWidth + deltaX));
+                break;
+            case 'left':
+                newWidth = Math.max(300, Math.min(600, startWidth - deltaX));
+                newLeft = startLeft + (startWidth - newWidth);
+                break;
+            case 'bottom':
+                newHeight = Math.max(350, Math.min(700, startHeight + deltaY));
+                break;
+            case 'top':
+                newHeight = Math.max(350, Math.min(700, startHeight - deltaY));
+                newTop = startTop + (startHeight - newHeight);
+                break;
+            case 'bottom-right':
+                newWidth = Math.max(300, Math.min(600, startWidth + deltaX));
+                newHeight = Math.max(350, Math.min(700, startHeight + deltaY));
+                break;
+            case 'bottom-left':
+                newWidth = Math.max(300, Math.min(600, startWidth - deltaX));
+                newHeight = Math.max(350, Math.min(700, startHeight + deltaY));
+                newLeft = startLeft + (startWidth - newWidth);
+                break;
+            case 'top-right':
+                newWidth = Math.max(300, Math.min(600, startWidth + deltaX));
+                newHeight = Math.max(350, Math.min(700, startHeight - deltaY));
+                newTop = startTop + (startHeight - newHeight);
+                break;
+            case 'top-left':
+                newWidth = Math.max(300, Math.min(600, startWidth - deltaX));
+                newHeight = Math.max(350, Math.min(700, startHeight - deltaY));
+                newLeft = startLeft + (startWidth - newWidth);
+                newTop = startTop + (startHeight - newHeight);
+                break;
+        }
+
+        // Apply new dimensions and position
+        chatWindow.style.width = newWidth + 'px';
+        chatWindow.style.height = newHeight + 'px';
+        chatWindow.style.left = newLeft + 'px';
+        chatWindow.style.top = newTop + 'px';
+        chatWindow.style.right = 'auto';
+        chatWindow.style.bottom = 'auto';
+    }
+
+    function stopResize() {
+        if (!isResizing) return;
+
+        isResizing = false;
+        resizeDirection = '';
+
+        // Re-enable transitions
+        chatWindow.style.transition = '';
+
+        // Remove resizing class
+        chatWindow.classList.remove('resizing');
+
+        // Save the new size to localStorage
+        const rect = chatWindow.getBoundingClientRect();
+        localStorage.setItem('chatbot-width', rect.width);
+        localStorage.setItem('chatbot-height', rect.height);
+        localStorage.setItem('chatbot-left', rect.left);
+        localStorage.setItem('chatbot-top', rect.top);
+
+        console.log('Resize completed:', rect.width + 'x' + rect.height);
+    }
+
+    // Reset chatbot to default position and size
+    function resetChatbotPosition() {
+        chatWindow.style.width = '384px';
+        chatWindow.style.height = '480px';
+        chatWindow.style.left = 'auto';
+        chatWindow.style.top = 'auto';
+        chatWindow.style.right = '1rem';
+        chatWindow.style.bottom = '5rem';
+
+        // Clear saved dimensions
+        localStorage.removeItem('chatbot-width');
+        localStorage.removeItem('chatbot-height');
+        localStorage.removeItem('chatbot-left');
+        localStorage.removeItem('chatbot-top');
+
+        console.log('Chatbot position reset to default');
+    }
+
+    // Load saved dimensions
+    function loadSavedDimensions() {
+        const savedWidth = localStorage.getItem('chatbot-width');
+        const savedHeight = localStorage.getItem('chatbot-height');
+        const savedLeft = localStorage.getItem('chatbot-left');
+        const savedTop = localStorage.getItem('chatbot-top');
+
+        if (savedWidth && savedHeight) {
+            chatWindow.style.width = savedWidth + 'px';
+            chatWindow.style.height = savedHeight + 'px';
+
+            // Only apply saved position if user has manually resized/moved the window
+            if (savedLeft && savedTop && (savedLeft !== 'auto' && savedTop !== 'auto')) {
+                // Check if the saved position is still within viewport
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+                const width = parseInt(savedWidth);
+                const height = parseInt(savedHeight);
+                const left = parseInt(savedLeft);
+                const top = parseInt(savedTop);
+
+                // Ensure the window is still visible
+                if (left >= 0 && top >= 0 && left + width <= viewportWidth && top + height <= viewportHeight) {
+                    chatWindow.style.left = savedLeft + 'px';
+                    chatWindow.style.top = savedTop + 'px';
+                    chatWindow.style.right = 'auto';
+                    chatWindow.style.bottom = 'auto';
+                }
+            }
+
+            console.log('Loaded saved dimensions:', savedWidth + 'x' + savedHeight);
+        }
+    }
+
     // Event listeners
     toggleChatBtn.addEventListener('click', toggleChat);
     minimizeBtn.addEventListener('click', minimizeChat);
@@ -495,6 +676,20 @@ document.addEventListener('DOMContentLoaded', () => {
     chatInput.addEventListener('keypress', handleKeyPress);
     toggleSuggestionsBtn.addEventListener('click', toggleSuggestions);
     clearChatBtn.addEventListener('click', handleClearChat);
+
+    // Initialize drag resize functionality
+    initDragResize();
+
+    // Load saved dimensions
+    loadSavedDimensions();
+
+    // Add double-click to reset size (optional UX enhancement)
+    if (chatWindow) {
+        const chatHeader = chatWindow.querySelector('.bg-gradient-to-r');
+        if (chatHeader) {
+            chatHeader.addEventListener('dblclick', resetChatbotPosition);
+        }
+    }
 
     // Initial render
     renderSuggestions();
