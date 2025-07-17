@@ -143,6 +143,16 @@ public class AuthorizationFilter implements Filter {
         RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
     URL_ROLE_MAPPINGS.put("/manager/payment-statistics", new HashSet<>(Arrays.asList(
         RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
+    URL_ROLE_MAPPINGS.put("/manager/payment-statistics/revenue", new HashSet<>(Arrays.asList(
+        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
+    URL_ROLE_MAPPINGS.put("/manager/payment-statistics/methods", new HashSet<>(Arrays.asList(
+        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
+    URL_ROLE_MAPPINGS.put("/manager/payment-statistics/timeline", new HashSet<>(Arrays.asList(
+        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
+    URL_ROLE_MAPPINGS.put("/manager/payment-statistics/customers", new HashSet<>(Arrays.asList(
+        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
+    URL_ROLE_MAPPINGS.put("/manager/payment-statistics/services", new HashSet<>(Arrays.asList(
+        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
 
     // Manager room management access (Admin + Manager only)
     URL_ROLE_MAPPINGS.put("/manager/rooms-management", new HashSet<>(Arrays.asList(
@@ -158,6 +168,16 @@ public class AuthorizationFilter implements Filter {
     URL_ROLE_MAPPINGS.put("/manager/room/delete", new HashSet<>(Arrays.asList(
         RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
     URL_ROLE_MAPPINGS.put("/manager/room/toggle-status", new HashSet<>(Arrays.asList(
+        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
+
+    // Validation API endpoints
+    URL_ROLE_MAPPINGS.put("/api/validate/room/name", new HashSet<>(Arrays.asList(
+        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
+    URL_ROLE_MAPPINGS.put("/api/validate/room/name/*", new HashSet<>(Arrays.asList(
+        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
+    URL_ROLE_MAPPINGS.put("/api/validate/bed/name", new HashSet<>(Arrays.asList(
+        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
+    URL_ROLE_MAPPINGS.put("/api/validate/bed/name/*", new HashSet<>(Arrays.asList(
         RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
 
     // Paths accessible to any authenticated user

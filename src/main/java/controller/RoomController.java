@@ -336,15 +336,10 @@ public class RoomController extends HttpServlet {
             }
 
             // Delete the room
-            boolean deleted = roomDAO.delete(roomId);
+            roomDAO.deleteById(roomId);
 
-            if (deleted) {
-                LOGGER.info("Successfully deleted room with ID: " + roomId);
-                request.getSession().setAttribute("successMessage", "Xóa phòng thành công!");
-            } else {
-                LOGGER.warning("Failed to delete room with ID: " + roomId);
-                request.getSession().setAttribute("errorMessage", "Không thể xóa phòng. Vui lòng thử lại.");
-            }
+            LOGGER.info("Successfully deleted room with ID: " + roomId);
+            request.getSession().setAttribute("successMessage", "Xóa phòng thành công!");
 
             // Redirect back to rooms management
             response.sendRedirect(request.getContextPath() + "/manager/rooms-management");

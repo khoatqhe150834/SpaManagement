@@ -1116,4 +1116,892 @@ public class PaymentDAO implements BaseDAO<Payment, Integer> {
         return stats;
     }
 
+    // ==================== STATISTICS CONTROLLER METHODS ====================
+
+    /**
+     * Get comprehensive revenue statistics for the revenue statistics page
+     */
+    public Map<String, Object> getRevenueStatistics() throws SQLException {
+        Map<String, Object> stats = new HashMap<>();
+        String sql = "SELECT " +
+                    "SUM(CASE WHEN payment_status = 'PAID' THEN total_amount ELSE 0 END) as total_revenue, " +
+                    "SUM(CASE WHEN payment_status = 'PAID' AND MONTH(payment_date) = MONTH(CURRENT_DATE) " +
+                    "    AND YEAR(payment_date) = YEAR(CURRENT_DATE) THEN total_amount ELSE 0 END) as monthly_revenue, " +
+                    "AVG(CASE WHEN payment_status = 'PAID' THEN total_amount ELSE NULL END) as average_transaction, " +
+                    "COUNT(CASE WHEN payment_status = 'PAID' THEN 1 END) as total_transactions, " +
+                    "((SUM(CASE WHEN payment_status = 'PAID' AND MONTH(payment_date) = MONTH(CURRENT_DATE) " +
+                    "    AND YEAR(payment_date) = YEAR(CURRENT_DATE) THEN total_amount ELSE 0 END) - " +
+                    "  SUM(CASE WHEN payment_status = 'PAID' AND MONTH(payment_date) = MONTH(CURRENT_DATE - INTERVAL 1 MONTH) " +
+                    "    AND YEAR(payment_date) = YEAR(CURRENT_DATE - INTERVAL 1 MONTH) THEN total_amount ELSE 0 END)) / " +
+                    "  NULLIF(SUM(CASE WHEN payment_status = 'PAID' AND MONTH(payment_date) = MONTH(CURRENT_DATE - INTERVAL 1 MONTH) " +
+                    "    AND YEAR(payment_date) = YEAR(CURRENT_DATE - INTERVAL 1 MONTH) THEN total_amount ELSE 0 END), 0) * 100) as growth_percentage " +
+                    "FROM payments";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            if (rs.next()) {
+                stats.put("totalRevenue", rs.getBigDecimal("total_revenue"));
+                stats.put("monthlyRevenue", rs.getBigDecimal("monthly_revenue"));
+                stats.put("averageTransaction", rs.getBigDecimal("average_transaction"));
+                stats.put("totalTransactions", rs.getInt("total_transactions"));
+                stats.put("growthPercentage", rs.getDouble("growth_percentage"));
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error getting revenue statistics", ex);
+            throw ex;
+        }
+
+        return stats;
+    }
+
+    /**
+     * Get monthly revenue data for charts
+     */
+    public Map<String, Double> getMonthlyRevenue() throws SQLException {
+        Map<String, Double> monthlyRevenue = new HashMap<>();
+        String sql = "SELECT " +
+                    "DATE_FORMAT(payment_date, '%Y-%m') as month_year, " +
+                    "SUM(CASE WHEN payment_status = 'PAID' THEN total_amount ELSE 0 END) as revenue " +
+                    "FROM payments " +
+                    "WHERE payment_date >= DATE_SUB(CURRENT_DATE, INTERVAL 12 MONTH) " +
+                    "GROUP BY DATE_FORMAT(payment_date, '%Y-%m') " +
+                    "ORDER BY month_year";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                monthlyRevenue.put(rs.getString("month_year"), rs.getDouble("revenue"));
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error getting monthly revenue", ex);
+            throw ex;
+        }
+
+        return monthlyRevenue;
+    }
+
+    /**
+     * Get daily revenue data for the last 30 days
+     */
+    public Map<String, Double> getDailyRevenue() throws SQLException {
+        Map<String, Double> dailyRevenue = new HashMap<>();
+        String sql = "SELECT " +
+                    "DATE(payment_date) as payment_day, " +
+                    "SUM(CASE WHEN payment_status = 'PAID' THEN total_amount ELSE 0 END) as revenue " +
+                    "FROM payments " +
+                    "WHERE payment_date >= DATE_SUB(CURRENT_DATE, INTERVAL 30 DAY) " +
+                    "GROUP BY DATE(payment_date) " +
+                    "ORDER BY payment_day";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                dailyRevenue.put(rs.getString("payment_day"), rs.getDouble("revenue"));
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error getting daily revenue", ex);
+            throw ex;
+        }
+
+        return dailyRevenue;
+    }
+
+    /**
+     * Get top services by revenue
+     */
+    public List<Map<String, Object>> getTopServicesByRevenue(int limit) throws SQLException {
+        List<Map<String, Object>> topServices = new ArrayList<>();
+        String sql = "SELECT " +
+                    "s.service_id, " +
+                    "s.name as service_name, " +
+                    "SUM(pi.unit_price * pi.quantity) as revenue, " +
+                    "COUNT(pi.payment_item_id) as transaction_count " +
+                    "FROM services s " +
+                    "JOIN payment_items pi ON s.service_id = pi.service_id " +
+                    "JOIN payments p ON pi.payment_id = p.payment_id " +
+                    "WHERE p.payment_status = 'PAID' " +
+                    "GROUP BY s.service_id, s.name " +
+                    "ORDER BY revenue DESC " +
+                    "LIMIT ?";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, limit);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> service = new HashMap<>();
+                    service.put("serviceId", rs.getInt("service_id"));
+                    service.put("serviceName", rs.getString("service_name"));
+                    service.put("revenue", rs.getBigDecimal("revenue"));
+                    service.put("transactionCount", rs.getInt("transaction_count"));
+                    topServices.add(service);
+                }
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error getting top services by revenue", ex);
+            throw ex;
+        }
+
+        return topServices;
+    }
+
+    /**
+     * Get revenue breakdown by payment status
+     */
+    public Map<String, Double> getRevenueByStatus() throws SQLException {
+        Map<String, Double> revenueByStatus = new HashMap<>();
+        String sql = "SELECT " +
+                    "payment_status, " +
+                    "SUM(total_amount) as status_revenue " +
+                    "FROM payments " +
+                    "GROUP BY payment_status";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                revenueByStatus.put(rs.getString("payment_status"), rs.getDouble("status_revenue"));
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error getting revenue by status", ex);
+            throw ex;
+        }
+
+        return revenueByStatus;
+    }
+
+    /**
+     * Get payment method counts
+     */
+    public Map<String, Integer> getPaymentMethodCounts() throws SQLException {
+        Map<String, Integer> methodCounts = new HashMap<>();
+        String sql = "SELECT " +
+                    "payment_method, " +
+                    "COUNT(*) as method_count " +
+                    "FROM payments " +
+                    "GROUP BY payment_method " +
+                    "ORDER BY method_count DESC";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                methodCounts.put(rs.getString("payment_method"), rs.getInt("method_count"));
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error getting payment method counts", ex);
+            throw ex;
+        }
+
+        return methodCounts;
+    }
+
+    /**
+     * Get payment method revenue
+     */
+    public Map<String, Double> getPaymentMethodRevenue() throws SQLException {
+        Map<String, Double> methodRevenue = new HashMap<>();
+        String sql = "SELECT " +
+                    "payment_method, " +
+                    "SUM(CASE WHEN payment_status = 'PAID' THEN total_amount ELSE 0 END) as method_revenue " +
+                    "FROM payments " +
+                    "GROUP BY payment_method " +
+                    "ORDER BY method_revenue DESC";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                methodRevenue.put(rs.getString("payment_method"), rs.getDouble("method_revenue"));
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error getting payment method revenue", ex);
+            throw ex;
+        }
+
+        return methodRevenue;
+    }
+
+    /**
+     * Get payment method trends over time
+     */
+    public Map<String, Map<String, Integer>> getPaymentMethodTrends() throws SQLException {
+        Map<String, Map<String, Integer>> methodTrends = new HashMap<>();
+        String sql = "SELECT " +
+                    "payment_method, " +
+                    "DATE_FORMAT(payment_date, '%Y-%m') as month_year, " +
+                    "COUNT(*) as method_count " +
+                    "FROM payments " +
+                    "WHERE payment_date >= DATE_SUB(CURRENT_DATE, INTERVAL 6 MONTH) " +
+                    "GROUP BY payment_method, DATE_FORMAT(payment_date, '%Y-%m') " +
+                    "ORDER BY payment_method, month_year";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                String method = rs.getString("payment_method");
+                String monthYear = rs.getString("month_year");
+                int count = rs.getInt("method_count");
+
+                methodTrends.computeIfAbsent(method, k -> new HashMap<>()).put(monthYear, count);
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error getting payment method trends", ex);
+            throw ex;
+        }
+
+        return methodTrends;
+    }
+
+    /**
+     * Get average transaction amount by payment method
+     */
+    public Map<String, Double> getAverageAmountByMethod() throws SQLException {
+        Map<String, Double> avgAmountByMethod = new HashMap<>();
+        String sql = "SELECT " +
+                    "payment_method, " +
+                    "AVG(CASE WHEN payment_status = 'PAID' THEN total_amount ELSE NULL END) as avg_amount " +
+                    "FROM payments " +
+                    "GROUP BY payment_method";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                avgAmountByMethod.put(rs.getString("payment_method"), rs.getDouble("avg_amount"));
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error getting average amount by method", ex);
+            throw ex;
+        }
+
+        return avgAmountByMethod;
+    }
+
+    /**
+     * Get daily transaction counts for the last 30 days
+     */
+    public Map<String, Integer> getDailyTransactionCounts() throws SQLException {
+        Map<String, Integer> dailyTransactions = new HashMap<>();
+        String sql = "SELECT " +
+                    "DATE(payment_date) as payment_day, " +
+                    "COUNT(*) as transaction_count " +
+                    "FROM payments " +
+                    "WHERE payment_date >= DATE_SUB(CURRENT_DATE, INTERVAL 30 DAY) " +
+                    "GROUP BY DATE(payment_date) " +
+                    "ORDER BY payment_day";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                dailyTransactions.put(rs.getString("payment_day"), rs.getInt("transaction_count"));
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error getting daily transaction counts", ex);
+            throw ex;
+        }
+
+        return dailyTransactions;
+    }
+
+    /**
+     * Get monthly transaction counts for the last 12 months
+     */
+    public Map<String, Integer> getMonthlyTransactionCounts() throws SQLException {
+        Map<String, Integer> monthlyTransactions = new HashMap<>();
+        String sql = "SELECT " +
+                    "DATE_FORMAT(payment_date, '%Y-%m') as month_year, " +
+                    "COUNT(*) as transaction_count " +
+                    "FROM payments " +
+                    "WHERE payment_date >= DATE_SUB(CURRENT_DATE, INTERVAL 12 MONTH) " +
+                    "GROUP BY DATE_FORMAT(payment_date, '%Y-%m') " +
+                    "ORDER BY month_year";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                monthlyTransactions.put(rs.getString("month_year"), rs.getInt("transaction_count"));
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error getting monthly transaction counts", ex);
+            throw ex;
+        }
+
+        return monthlyTransactions;
+    }
+
+    /**
+     * Get hourly transaction counts
+     */
+    public Map<String, Integer> getHourlyTransactionCounts() throws SQLException {
+        Map<String, Integer> hourlyTransactions = new HashMap<>();
+        String sql = "SELECT " +
+                    "HOUR(payment_date) as payment_hour, " +
+                    "COUNT(*) as transaction_count " +
+                    "FROM payments " +
+                    "WHERE payment_date >= DATE_SUB(CURRENT_DATE, INTERVAL 30 DAY) " +
+                    "GROUP BY HOUR(payment_date) " +
+                    "ORDER BY payment_hour";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                hourlyTransactions.put(rs.getString("payment_hour"), rs.getInt("transaction_count"));
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error getting hourly transaction counts", ex);
+            throw ex;
+        }
+
+        return hourlyTransactions;
+    }
+
+    /**
+     * Get peak time analysis
+     */
+    public Map<String, Object> getPeakTimeAnalysis() throws SQLException {
+        Map<String, Object> peakAnalysis = new HashMap<>();
+
+        // Get peak hour
+        String peakHourSql = "SELECT " +
+                           "HOUR(payment_date) as peak_hour, " +
+                           "COUNT(*) as hour_transactions " +
+                           "FROM payments " +
+                           "WHERE payment_date >= DATE_SUB(CURRENT_DATE, INTERVAL 30 DAY) " +
+                           "GROUP BY HOUR(payment_date) " +
+                           "ORDER BY hour_transactions DESC " +
+                           "LIMIT 1";
+
+        // Get peak day of week
+        String peakDaySql = "SELECT " +
+                          "DAYNAME(payment_date) as peak_day, " +
+                          "COUNT(*) as day_transactions " +
+                          "FROM payments " +
+                          "WHERE payment_date >= DATE_SUB(CURRENT_DATE, INTERVAL 30 DAY) " +
+                          "GROUP BY DAYNAME(payment_date) " +
+                          "ORDER BY day_transactions DESC " +
+                          "LIMIT 1";
+
+        try (Connection conn = DBContext.getConnection()) {
+
+            // Get peak hour
+            try (PreparedStatement stmt = conn.prepareStatement(peakHourSql);
+                 ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    peakAnalysis.put("peakHour", rs.getInt("peak_hour"));
+                    peakAnalysis.put("peakHourTransactions", rs.getInt("hour_transactions"));
+                }
+            }
+
+            // Get peak day
+            try (PreparedStatement stmt = conn.prepareStatement(peakDaySql);
+                 ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    peakAnalysis.put("peakDay", rs.getString("peak_day"));
+                    peakAnalysis.put("peakDayTransactions", rs.getInt("day_transactions"));
+                }
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error getting peak time analysis", ex);
+            throw ex;
+        }
+
+        return peakAnalysis;
+    }
+
+    /**
+     * Get growth trends
+     */
+    public Map<String, Double> getGrowthTrends() throws SQLException {
+        Map<String, Double> growthTrends = new HashMap<>();
+        String sql = "SELECT " +
+                    "((SUM(CASE WHEN MONTH(payment_date) = MONTH(CURRENT_DATE) " +
+                    "    AND YEAR(payment_date) = YEAR(CURRENT_DATE) THEN total_amount ELSE 0 END) - " +
+                    "  SUM(CASE WHEN MONTH(payment_date) = MONTH(CURRENT_DATE - INTERVAL 1 MONTH) " +
+                    "    AND YEAR(payment_date) = YEAR(CURRENT_DATE - INTERVAL 1 MONTH) THEN total_amount ELSE 0 END)) / " +
+                    "  NULLIF(SUM(CASE WHEN MONTH(payment_date) = MONTH(CURRENT_DATE - INTERVAL 1 MONTH) " +
+                    "    AND YEAR(payment_date) = YEAR(CURRENT_DATE - INTERVAL 1 MONTH) THEN total_amount ELSE 0 END), 0) * 100) as monthly_growth, " +
+                    "((SUM(CASE WHEN YEAR(payment_date) = YEAR(CURRENT_DATE) THEN total_amount ELSE 0 END) - " +
+                    "  SUM(CASE WHEN YEAR(payment_date) = YEAR(CURRENT_DATE - INTERVAL 1 YEAR) THEN total_amount ELSE 0 END)) / " +
+                    "  NULLIF(SUM(CASE WHEN YEAR(payment_date) = YEAR(CURRENT_DATE - INTERVAL 1 YEAR) THEN total_amount ELSE 0 END), 0) * 100) as yearly_growth " +
+                    "FROM payments " +
+                    "WHERE payment_status = 'PAID'";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            if (rs.next()) {
+                growthTrends.put("monthlyGrowth", rs.getDouble("monthly_growth"));
+                growthTrends.put("yearlyGrowth", rs.getDouble("yearly_growth"));
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error getting growth trends", ex);
+            throw ex;
+        }
+
+        return growthTrends;
+    }
+
+    /**
+     * Get top customers by revenue
+     */
+    public List<Map<String, Object>> getTopCustomersByRevenue(int limit) throws SQLException {
+        List<Map<String, Object>> topCustomers = new ArrayList<>();
+        String sql = "SELECT " +
+                    "c.customer_id, " +
+                    "c.full_name as customer_name, " +
+                    "c.email, " +
+                    "SUM(CASE WHEN p.payment_status = 'PAID' THEN p.total_amount ELSE 0 END) as total_spent, " +
+                    "COUNT(p.payment_id) as transaction_count, " +
+                    "AVG(CASE WHEN p.payment_status = 'PAID' THEN p.total_amount ELSE NULL END) as average_spent, " +
+                    "MAX(p.payment_date) as last_visit " +
+                    "FROM customers c " +
+                    "LEFT JOIN payments p ON c.customer_id = p.customer_id " +
+                    "GROUP BY c.customer_id, c.full_name, c.email " +
+                    "HAVING total_spent > 0 " +
+                    "ORDER BY total_spent DESC " +
+                    "LIMIT ?";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, limit);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> customer = new HashMap<>();
+                    customer.put("customerId", rs.getInt("customer_id"));
+                    customer.put("customerName", rs.getString("customer_name"));
+                    customer.put("email", rs.getString("email"));
+                    customer.put("totalSpent", rs.getBigDecimal("total_spent"));
+                    customer.put("transactionCount", rs.getInt("transaction_count"));
+                    customer.put("averageSpent", rs.getBigDecimal("average_spent"));
+                    customer.put("lastVisit", rs.getTimestamp("last_visit"));
+                    topCustomers.add(customer);
+                }
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error getting top customers by revenue", ex);
+            throw ex;
+        }
+
+        return topCustomers;
+    }
+
+    /**
+     * Get customer segments
+     */
+    public Map<String, Integer> getCustomerSegments() throws SQLException {
+        Map<String, Integer> segments = new HashMap<>();
+        String sql = "SELECT " +
+                    "CASE " +
+                    "    WHEN total_spent >= 5000000 THEN 'VIP' " +
+                    "    WHEN total_spent >= 2000000 THEN 'Premium' " +
+                    "    WHEN total_spent >= 500000 THEN 'Regular' " +
+                    "    ELSE 'New' " +
+                    "END as segment, " +
+                    "COUNT(*) as segment_count " +
+                    "FROM ( " +
+                    "    SELECT " +
+                    "        c.customer_id, " +
+                    "        SUM(CASE WHEN p.payment_status = 'PAID' THEN p.total_amount ELSE 0 END) as total_spent " +
+                    "    FROM customers c " +
+                    "    LEFT JOIN payments p ON c.customer_id = p.customer_id " +
+                    "    GROUP BY c.customer_id " +
+                    ") customer_totals " +
+                    "GROUP BY segment " +
+                    "ORDER BY segment_count DESC";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                segments.put(rs.getString("segment"), rs.getInt("segment_count"));
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error getting customer segments", ex);
+            throw ex;
+        }
+
+        return segments;
+    }
+
+    /**
+     * Get customer behavior analysis
+     */
+    public Map<String, Object> getCustomerBehaviorAnalysis() throws SQLException {
+        Map<String, Object> behavior = new HashMap<>();
+        String sql = "SELECT " +
+                    "COUNT(DISTINCT c.customer_id) as total_customers, " +
+                    "AVG(customer_totals.total_spent) as average_ltv, " +
+                    "AVG(customer_totals.transaction_count) as avg_transactions_per_customer, " +
+                    "AVG(DATEDIFF(customer_totals.last_payment, customer_totals.first_payment)) as avg_customer_lifespan " +
+                    "FROM customers c " +
+                    "LEFT JOIN ( " +
+                    "    SELECT " +
+                    "        customer_id, " +
+                    "        SUM(CASE WHEN payment_status = 'PAID' THEN total_amount ELSE 0 END) as total_spent, " +
+                    "        COUNT(payment_id) as transaction_count, " +
+                    "        MIN(payment_date) as first_payment, " +
+                    "        MAX(payment_date) as last_payment " +
+                    "    FROM payments " +
+                    "    GROUP BY customer_id " +
+                    ") customer_totals ON c.customer_id = customer_totals.customer_id";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            if (rs.next()) {
+                behavior.put("totalCustomers", rs.getInt("total_customers"));
+                behavior.put("averageLTV", rs.getBigDecimal("average_ltv"));
+                behavior.put("avgTransactionsPerCustomer", rs.getDouble("avg_transactions_per_customer"));
+                behavior.put("avgCustomerLifespan", rs.getInt("avg_customer_lifespan"));
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error getting customer behavior analysis", ex);
+            throw ex;
+        }
+
+        return behavior;
+    }
+
+    /**
+     * Get new vs returning customers
+     */
+    public Map<String, Integer> getNewVsReturningCustomers() throws SQLException {
+        Map<String, Integer> customerTypes = new HashMap<>();
+        String sql = "SELECT " +
+                    "SUM(CASE WHEN MONTH(first_payment) = MONTH(CURRENT_DATE) " +
+                    "    AND YEAR(first_payment) = YEAR(CURRENT_DATE) THEN 1 ELSE 0 END) as new_customers, " +
+                    "SUM(CASE WHEN MONTH(first_payment) < MONTH(CURRENT_DATE) " +
+                    "    OR YEAR(first_payment) < YEAR(CURRENT_DATE) THEN 1 ELSE 0 END) as returning_customers " +
+                    "FROM ( " +
+                    "    SELECT " +
+                    "        customer_id, " +
+                    "        MIN(payment_date) as first_payment " +
+                    "    FROM payments " +
+                    "    WHERE payment_status = 'PAID' " +
+                    "    GROUP BY customer_id " +
+                    ") customer_first_payments";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            if (rs.next()) {
+                customerTypes.put("newCustomers", rs.getInt("new_customers"));
+                customerTypes.put("returningCustomers", rs.getInt("returning_customers"));
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error getting new vs returning customers", ex);
+            throw ex;
+        }
+
+        return customerTypes;
+    }
+
+    /**
+     * Get customer lifetime value analysis
+     */
+    public List<Map<String, Object>> getCustomerLifetimeValue() throws SQLException {
+        List<Map<String, Object>> ltvAnalysis = new ArrayList<>();
+        String sql = "SELECT " +
+                    "segment, " +
+                    "COUNT(*) as customer_count, " +
+                    "AVG(total_spent) as average_ltv, " +
+                    "ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM customers), 2) as percentage " +
+                    "FROM ( " +
+                    "    SELECT " +
+                    "        c.customer_id, " +
+                    "        SUM(CASE WHEN p.payment_status = 'PAID' THEN p.total_amount ELSE 0 END) as total_spent, " +
+                    "        CASE " +
+                    "            WHEN SUM(CASE WHEN p.payment_status = 'PAID' THEN p.total_amount ELSE 0 END) >= 5000000 THEN 'VIP' " +
+                    "            WHEN SUM(CASE WHEN p.payment_status = 'PAID' THEN p.total_amount ELSE 0 END) >= 2000000 THEN 'Premium' " +
+                    "            WHEN SUM(CASE WHEN p.payment_status = 'PAID' THEN p.total_amount ELSE 0 END) >= 500000 THEN 'Regular' " +
+                    "            ELSE 'New' " +
+                    "        END as segment " +
+                    "    FROM customers c " +
+                    "    LEFT JOIN payments p ON c.customer_id = p.customer_id " +
+                    "    GROUP BY c.customer_id " +
+                    ") customer_segments " +
+                    "GROUP BY segment " +
+                    "ORDER BY average_ltv DESC";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                Map<String, Object> segment = new HashMap<>();
+                segment.put("segmentName", rs.getString("segment"));
+                segment.put("customerCount", rs.getInt("customer_count"));
+                segment.put("averageLTV", rs.getBigDecimal("average_ltv"));
+                segment.put("percentage", rs.getDouble("percentage"));
+                ltvAnalysis.add(segment);
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error getting customer lifetime value", ex);
+            throw ex;
+        }
+
+        return ltvAnalysis;
+    }
+
+    /**
+     * Get service performance data
+     */
+    public List<Map<String, Object>> getServicePerformanceData() throws SQLException {
+        List<Map<String, Object>> servicePerformance = new ArrayList<>();
+        String sql = "SELECT " +
+                    "s.service_id, " +
+                    "s.name as service_name, " +
+                    "COUNT(pi.payment_item_id) as booking_count, " +
+                    "SUM(pi.unit_price * pi.quantity) as total_revenue, " +
+                    "AVG(pi.unit_price * pi.quantity) as average_revenue, " +
+                    "SUM(pi.quantity) as total_quantity, " +
+                    "COALESCE(growth.growth_rate, 0) as growth_rate " +
+                    "FROM services s " +
+                    "LEFT JOIN payment_items pi ON s.service_id = pi.service_id " +
+                    "LEFT JOIN payments p ON pi.payment_id = p.payment_id AND p.payment_status = 'PAID' " +
+                    "LEFT JOIN ( " +
+                    "    SELECT " +
+                    "        s2.service_id, " +
+                    "        ROUND(((current_month.revenue - previous_month.revenue) / " +
+                    "               NULLIF(previous_month.revenue, 0) * 100), 2) as growth_rate " +
+                    "    FROM services s2 " +
+                    "    LEFT JOIN ( " +
+                    "        SELECT " +
+                    "            pi2.service_id, " +
+                    "            SUM(pi2.unit_price * pi2.quantity) as revenue " +
+                    "        FROM payment_items pi2 " +
+                    "        JOIN payments p2 ON pi2.payment_id = p2.payment_id " +
+                    "        WHERE p2.payment_status = 'PAID' " +
+                    "            AND MONTH(p2.payment_date) = MONTH(CURRENT_DATE) " +
+                    "            AND YEAR(p2.payment_date) = YEAR(CURRENT_DATE) " +
+                    "        GROUP BY pi2.service_id " +
+                    "    ) current_month ON s2.service_id = current_month.service_id " +
+                    "    LEFT JOIN ( " +
+                    "        SELECT " +
+                    "            pi3.service_id, " +
+                    "            SUM(pi3.unit_price * pi3.quantity) as revenue " +
+                    "        FROM payment_items pi3 " +
+                    "        JOIN payments p3 ON pi3.payment_id = p3.payment_id " +
+                    "        WHERE p3.payment_status = 'PAID' " +
+                    "            AND MONTH(p3.payment_date) = MONTH(CURRENT_DATE - INTERVAL 1 MONTH) " +
+                    "            AND YEAR(p3.payment_date) = YEAR(CURRENT_DATE - INTERVAL 1 MONTH) " +
+                    "        GROUP BY pi3.service_id " +
+                    "    ) previous_month ON s2.service_id = previous_month.service_id " +
+                    ") growth ON s.service_id = growth.service_id " +
+                    "GROUP BY s.service_id, s.name, growth.growth_rate " +
+                    "ORDER BY total_revenue DESC";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                Map<String, Object> service = new HashMap<>();
+                service.put("serviceId", rs.getInt("service_id"));
+                service.put("serviceName", rs.getString("service_name"));
+                service.put("bookingCount", rs.getInt("booking_count"));
+                service.put("totalRevenue", rs.getBigDecimal("total_revenue"));
+                service.put("averageRevenue", rs.getBigDecimal("average_revenue"));
+                service.put("totalQuantity", rs.getInt("total_quantity"));
+                service.put("growthRate", rs.getDouble("growth_rate"));
+                servicePerformance.add(service);
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error getting service performance data", ex);
+            throw ex;
+        }
+
+        return servicePerformance;
+    }
+
+    /**
+     * Get service popularity trends
+     */
+    public Map<String, Map<String, Integer>> getServicePopularityTrends() throws SQLException {
+        Map<String, Map<String, Integer>> serviceTrends = new HashMap<>();
+        String sql = "SELECT " +
+                    "s.name as service_name, " +
+                    "DATE_FORMAT(p.payment_date, '%Y-%m') as month_year, " +
+                    "COUNT(pi.payment_item_id) as booking_count " +
+                    "FROM services s " +
+                    "JOIN payment_items pi ON s.service_id = pi.service_id " +
+                    "JOIN payments p ON pi.payment_id = p.payment_id " +
+                    "WHERE p.payment_status = 'PAID' " +
+                    "    AND p.payment_date >= DATE_SUB(CURRENT_DATE, INTERVAL 6 MONTH) " +
+                    "GROUP BY s.service_id, s.name, DATE_FORMAT(p.payment_date, '%Y-%m') " +
+                    "ORDER BY s.name, month_year";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                String serviceName = rs.getString("service_name");
+                String monthYear = rs.getString("month_year");
+                int bookingCount = rs.getInt("booking_count");
+
+                serviceTrends.computeIfAbsent(serviceName, k -> new HashMap<>()).put(monthYear, bookingCount);
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error getting service popularity trends", ex);
+            throw ex;
+        }
+
+        return serviceTrends;
+    }
+
+    /**
+     * Get service revenue breakdown
+     */
+    public Map<String, Double> getServiceRevenueBreakdown() throws SQLException {
+        Map<String, Double> serviceRevenue = new HashMap<>();
+        String sql = "SELECT " +
+                    "s.name as service_name, " +
+                    "SUM(pi.unit_price * pi.quantity) as service_revenue " +
+                    "FROM services s " +
+                    "JOIN payment_items pi ON s.service_id = pi.service_id " +
+                    "JOIN payments p ON pi.payment_id = p.payment_id " +
+                    "WHERE p.payment_status = 'PAID' " +
+                    "GROUP BY s.service_id, s.name " +
+                    "ORDER BY service_revenue DESC";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                serviceRevenue.put(rs.getString("service_name"), rs.getDouble("service_revenue"));
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error getting service revenue breakdown", ex);
+            throw ex;
+        }
+
+        return serviceRevenue;
+    }
+
+    /**
+     * Get service utilization rates
+     */
+    public Map<String, Double> getServiceUtilizationRates() throws SQLException {
+        Map<String, Double> utilizationRates = new HashMap<>();
+        String sql = "SELECT " +
+                    "s.name as service_name, " +
+                    "ROUND((COUNT(pi.payment_item_id) * 100.0 / " +
+                    "       (SELECT COUNT(*) FROM payment_items pi2 " +
+                    "        JOIN payments p2 ON pi2.payment_id = p2.payment_id " +
+                    "        WHERE p2.payment_status = 'PAID')), 2) as utilization_rate " +
+                    "FROM services s " +
+                    "LEFT JOIN payment_items pi ON s.service_id = pi.service_id " +
+                    "LEFT JOIN payments p ON pi.payment_id = p.payment_id AND p.payment_status = 'PAID' " +
+                    "GROUP BY s.service_id, s.name " +
+                    "ORDER BY utilization_rate DESC";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                utilizationRates.put(rs.getString("service_name"), rs.getDouble("utilization_rate"));
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error getting service utilization rates", ex);
+            throw ex;
+        }
+
+        return utilizationRates;
+    }
+
+    /**
+     * Get seasonal service analysis
+     */
+    public Map<String, Map<String, Integer>> getSeasonalServiceAnalysis() throws SQLException {
+        Map<String, Map<String, Integer>> seasonalAnalysis = new HashMap<>();
+        String sql = "SELECT " +
+                    "s.name as service_name, " +
+                    "CASE " +
+                    "    WHEN MONTH(p.payment_date) IN (3, 4, 5) THEN 'Spring' " +
+                    "    WHEN MONTH(p.payment_date) IN (6, 7, 8) THEN 'Summer' " +
+                    "    WHEN MONTH(p.payment_date) IN (9, 10, 11) THEN 'Fall' " +
+                    "    ELSE 'Winter' " +
+                    "END as season, " +
+                    "COUNT(pi.payment_item_id) as booking_count " +
+                    "FROM services s " +
+                    "JOIN payment_items pi ON s.service_id = pi.service_id " +
+                    "JOIN payments p ON pi.payment_id = p.payment_id " +
+                    "WHERE p.payment_status = 'PAID' " +
+                    "    AND p.payment_date >= DATE_SUB(CURRENT_DATE, INTERVAL 1 YEAR) " +
+                    "GROUP BY s.service_id, s.name, season " +
+                    "ORDER BY s.name, season";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                String serviceName = rs.getString("service_name");
+                String season = rs.getString("season");
+                int bookingCount = rs.getInt("booking_count");
+
+                seasonalAnalysis.computeIfAbsent(serviceName, k -> new HashMap<>()).put(season, bookingCount);
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error getting seasonal service analysis", ex);
+            throw ex;
+        }
+
+        return seasonalAnalysis;
+    }
+
 }

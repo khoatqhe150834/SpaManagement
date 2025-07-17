@@ -272,7 +272,16 @@ public class MenuService {
     
     // Financial Section
     menuItems.add(new MenuItem("TÀI CHÍNH", true));
-    menuItems.add(new MenuItem("Thống kê thanh toán", contextPath + "/manager/payment-statistics", "bar-chart-3", "financial"));
+
+    // Payment Statistics with sub-menu
+    MenuItem paymentStats = new MenuItem("Thống kê thanh toán", contextPath + "/manager/payment-statistics", "bar-chart-3", "financial");
+    paymentStats.addSubItem(new MenuItem("Tổng quan doanh thu", contextPath + "/manager/payment-statistics/revenue", "trending-up", "financial"));
+    paymentStats.addSubItem(new MenuItem("Phân tích phương thức", contextPath + "/manager/payment-statistics/methods", "credit-card", "financial"));
+    paymentStats.addSubItem(new MenuItem("Thống kê theo thời gian", contextPath + "/manager/payment-statistics/timeline", "calendar", "financial"));
+    paymentStats.addSubItem(new MenuItem("Báo cáo khách hàng", contextPath + "/manager/payment-statistics/customers", "users", "financial"));
+    paymentStats.addSubItem(new MenuItem("Doanh thu dịch vụ", contextPath + "/manager/payment-statistics/services", "package", "financial"));
+    menuItems.add(paymentStats);
+
     menuItems.add(new MenuItem("Doanh thu phòng ban", contextPath + "/manager/revenue", "trending-up", "financial"));
     menuItems.add(new MenuItem("Hoa hồng nhân viên", contextPath + "/manager/commissions", "coins", "financial"));
 
