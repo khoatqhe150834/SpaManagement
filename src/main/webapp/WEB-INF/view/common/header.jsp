@@ -29,7 +29,7 @@ prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
             showBookingFeatures = false; // Hide for staff/admin roles
         }
         if (userRole != null) {
-            userMenuItems = MenuService.getMenuItemsByRole(userRole, request.getContextPath());
+            userMenuItems = MenuService.getAvatarDropdownMenuItems(userRole, request.getContextPath());
         }
     }
     

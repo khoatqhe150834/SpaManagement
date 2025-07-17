@@ -61,7 +61,7 @@
     }
 
     // Generate role-based menu items using MenuService
-    List<MenuItem> menuItems = MenuService.getMenuItemsByRole(userRole, request.getContextPath());
+    List<MenuItem> menuItems = MenuService.getSidebarMenuItems(userRole, request.getContextPath());
 
     pageContext.setAttribute("userRole", userRole);
     pageContext.setAttribute("contextPath", request.getContextPath());

@@ -434,7 +434,7 @@
                         <div class="info-row">
                             <span class="info-label">Ngày thanh toán:</span>
                             <span class="info-value">
-                                <fmt:formatDate value="${payment.paymentDate}" pattern="dd/MM/yyyy HH:mm"/>
+                                ${payment.paymentDate}
                             </span>
                         </div>
                         <div class="info-row">
@@ -454,7 +454,7 @@
                         <div class="info-row">
                             <span class="info-label">Ngày giao dịch:</span>
                             <span class="info-value">
-                                <fmt:formatDate value="${payment.transactionDate}" pattern="dd/MM/yyyy HH:mm"/>
+                                ${payment.transactionDate}
                             </span>
                         </div>
                     </div>
@@ -472,7 +472,7 @@
                         <div class="info-row">
                             <span class="info-label">Tạm tính:</span>
                             <span class="info-value">
-                                <fmt:formatNumber value="${payment.subtotalAmount}" type="currency" currencySymbol="₫" groupingUsed="true"/>
+                                ${payment.subtotalAmount} VNĐ
                             </span>
                         </div>
                     </div>
@@ -480,7 +480,7 @@
                         <div class="info-row">
                             <span class="info-label">Thuế:</span>
                             <span class="info-value">
-                                <fmt:formatNumber value="${payment.taxAmount}" type="currency" currencySymbol="₫" groupingUsed="true"/>
+                                ${payment.taxAmount} VNĐ
                             </span>
                         </div>
                     </div>
@@ -488,7 +488,7 @@
                         <div class="info-row">
                             <span class="info-label">Tổng cộng:</span>
                             <span class="info-value amount-highlight">
-                                <fmt:formatNumber value="${payment.totalAmount}" type="currency" currencySymbol="₫" groupingUsed="true"/>
+                                ${payment.totalAmount} VNĐ
                             </span>
                         </div>
                     </div>
@@ -523,7 +523,7 @@
                                         <tr>
                                             <td>
                                                 <div class="service-name">
-                                                    ${item.service != null && item.service.serviceName != null ? item.service.serviceName : 'Dịch vụ không xác định'}
+                                                    ${item.service != null && item.service.name != null ? item.service.name : 'Dịch vụ không xác định'}
                                                 </div>
                                                 <div class="service-description">
                                                     <c:if test="${not empty item.service.description}">
@@ -538,7 +538,7 @@
                                             </td>
                                             <td class="text-right">
                                                 <span class="font-semibold text-gray-900">
-                                                    <fmt:formatNumber value="${item.unitPrice}" type="currency" currencySymbol="" pattern="#,##0"/> VNĐ
+                                                    ${item.unitPrice} VNĐ
                                                 </span>
                                             </td>
                                             <td class="text-center">
@@ -548,7 +548,7 @@
                                             </td>
                                             <td class="text-right">
                                                 <span class="font-bold text-primary">
-                                                    <fmt:formatNumber value="${item.totalPrice}" type="currency" currencySymbol="" pattern="#,##0"/> VNĐ
+                                                    ${item.totalPrice} VNĐ
                                                 </span>
                                             </td>
                                             <td>
@@ -568,7 +568,7 @@
                                                             </div>
                                                             <c:if test="${not empty item.usage.lastUpdated}">
                                                                 <div class="text-xs text-gray-500">
-                                                                    Cập nhật: <fmt:formatDate value="${item.usage.lastUpdated}" pattern="dd/MM/yyyy HH:mm"/>
+                                                                    Cập nhật: ${item.usage.lastUpdated}
                                                                 </div>
                                                             </c:if>
                                                         </div>
@@ -587,13 +587,7 @@
                                                             title="Xem chi tiết dịch vụ">
                                                         <i data-lucide="eye" class="h-3 w-3"></i>
                                                     </button>
-                                                    <c:if test="${item.usage != null && item.usage.remainingQuantity > 0}">
-                                                        <button onclick="scheduleService(${item.paymentItemId})"
-                                                                class="inline-flex items-center px-2 py-1 bg-green-100 hover:bg-green-200 text-green-700 rounded text-xs font-medium transition-colors"
-                                                                title="Đặt lịch cho khách hàng">
-                                                            <i data-lucide="calendar-plus" class="h-3 w-3"></i>
-                                                        </button>
-                                                    </c:if>
+                                                    
                                                 </div>
                                             </td>
                                         </tr>
@@ -801,7 +795,7 @@
 
         function viewServiceDetails(serviceId) {
             // Open service details in a new window or modal
-            window.open('${pageContext.request.contextPath}/services/details?id=' + serviceId, '_blank');
+            window.open('${pageContext.request.contextPath}/services-details?id=' + serviceId, '_blank');
         }
 
         function scheduleService(paymentItemId) {

@@ -34,6 +34,47 @@
     .resize-handle-bottom-right:hover {
         background-color: rgba(212, 175, 55, 0.4) !important;
     }
+
+    /* Enhanced text wrapping styles for chatbot */
+    #chat-input {
+        word-wrap: break-word !important;
+        white-space: pre-wrap !important;
+        overflow-wrap: break-word !important;
+        line-height: 1.4 !important;
+        transition: height 0.2s ease !important;
+    }
+
+    /* Message bubble text wrapping */
+    .chat-message-content {
+        word-wrap: break-word !important;
+        white-space: pre-wrap !important;
+        overflow-wrap: break-word !important;
+        word-break: break-word !important;
+        hyphens: auto !important;
+        line-height: 1.4 !important;
+        max-width: 100% !important;
+    }
+
+    /* Ensure message containers don't overflow */
+    .chat-message-bubble {
+        max-width: 100% !important;
+        overflow: hidden !important;
+    }
+
+    /* Responsive text wrapping for different window sizes */
+    @media (max-width: 480px) {
+        .chat-message-content {
+            font-size: 0.875rem !important;
+            line-height: 1.3 !important;
+        }
+    }
+
+    /* Handle long URLs and continuous text */
+    .chat-message-content a,
+    .chat-message-content code {
+        word-break: break-all !important;
+        overflow-wrap: break-word !important;
+    }
 </style>
 
 <div id="chatbot-widget" class="fixed z-50">
@@ -109,14 +150,14 @@
 
                 <!-- Input Area -->
                 <div class="p-3 border-t border-gray-200 bg-white">
-                    <div class="flex space-x-2">
-                        <input id="chat-input" type="text" placeholder="Nhập tin nhắn của bạn..." class="flex-1 border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent text-sm" maxlength="500">
-                        <button id="send-btn" class="bg-[#D4AF37] text-white rounded-full p-2 hover:bg-[#B8941F] transition-colors disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Gửi tin nhắn">
+                    <div class="flex space-x-2 items-end">
+                        <textarea id="chat-input" placeholder="Nhập tin nhắn của bạn..." class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent text-sm resize-none overflow-hidden min-h-[40px] max-h-[120px]" maxlength="500" rows="1" style="word-wrap: break-word; white-space: pre-wrap; overflow-wrap: break-word;"></textarea>
+                        <button id="send-btn" class="bg-[#D4AF37] text-white rounded-full p-2 hover:bg-[#B8941F] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0" aria-label="Gửi tin nhắn">
                             <i data-lucide="send" class="h-4 w-4"></i>
                         </button>
                     </div>
                     <p class="text-xs text-gray-500 mt-1.5 text-center">
-                        Nhấn Enter để gửi • Tối đa 500 ký tự
+                        Nhấn Ctrl+Enter để gửi • Tối đa 500 ký tự
                     </p>
                 </div>
             </div>

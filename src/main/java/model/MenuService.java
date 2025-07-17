@@ -247,8 +247,8 @@ public class MenuService {
     serviceMgmt.addSubItem(new MenuItem("Thiết bị", contextPath + "/manager/service/equipment", "settings"));
     menuItems.add(serviceMgmt);
 
-    menuItems.add(new MenuItem("Lịch hẹn phòng ban", contextPath + "/manager/appointments", "calendar", "services"));
-    menuItems.add(new MenuItem("Quản lý phòng", contextPath + "/manager/rooms", "door-open", "services"));
+    
+    menuItems.add(new MenuItem("Quản lý phòng", contextPath + "/manager/rooms-management", "door-open", "services"));
 
     // Promotions Management (moved from Admin)
     MenuItem promotionMgmt = new MenuItem("Khuyến mãi", contextPath + "/promotion/list", "gift", "services");
@@ -590,5 +590,111 @@ public class MenuService {
     // Convert role ID to role name and get appropriate menu items
     String roleName = RoleConstants.getUserTypeFromRole(user.getRoleId());
     return getMenuItemsByRole(roleName, contextPath);
+  }
+
+  /**
+   * Get sidebar-specific menu items (navigation items for main application features)
+   * These are the main navigation items that should appear in the sidebar
+   */
+  public static List<MenuItem> getSidebarMenuItems(String roleName, String contextPath) {
+    // Return the full menu items for sidebar navigation
+    return getMenuItemsByRole(roleName, contextPath);
+  }
+
+  /**
+   * Get avatar dropdown-specific menu items (user-specific actions only)
+   * These are personal/account actions that should appear in the user avatar dropdown
+   */
+  public static List<MenuItem> getAvatarDropdownMenuItems(String roleName, String contextPath) {
+    List<MenuItem> avatarMenuItems = new ArrayList<>();
+
+    if (roleName == null) {
+      return avatarMenuItems;
+    }
+
+    switch (roleName.toUpperCase()) {
+      case "ADMIN":
+      avatarMenuItems.add(new MenuItem("Trang điều khiển", contextPath + "/dashboard", "bar-chart"));
+        avatarMenuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/profile", "user"));
+        avatarMenuItems.add(new MenuItem("Cài đặt tài khoản", contextPath + "/admin/settings", "settings"));
+        avatarMenuItems.add(new MenuItem("Thay đổi mật khẩu", contextPath + "/password/change", "key"));
+        avatarMenuItems.add(new MenuItem()); // Divider
+        avatarMenuItems.add(new MenuItem("Đăng xuất", contextPath + "/logout", "log-out"));
+        break;
+
+      case "MANAGER":
+              avatarMenuItems.add(new MenuItem("Trang điều khiển", contextPath + "/dashboard", "bar-chart"));
+
+        avatarMenuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/profile", "user"));
+        avatarMenuItems.add(new MenuItem("Cài đặt cá nhân", contextPath + "/manager/settings", "settings"));
+        avatarMenuItems.add(new MenuItem("Thay đổi mật khẩu", contextPath + "/password/change", "key"));
+        avatarMenuItems.add(new MenuItem()); // Divider
+        
+        avatarMenuItems.add(new MenuItem("Đăng xuất", contextPath + "/logout", "log-out"));
+        break;
+
+      case "THERAPIST":
+avatarMenuItems.add(new MenuItem("Trang điều khiển", contextPath + "/dashboard", "bar-chart"));
+        avatarMenuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/profile", "user"));
+        avatarMenuItems.add(new MenuItem("Cài đặt cá nhân", contextPath + "/therapist/settings", "settings"));
+        avatarMenuItems.add(new MenuItem("Thay đổi mật khẩu", contextPath + "/password/change", "key"));
+        avatarMenuItems.add(new MenuItem()); // Divider
+        avatarMenuItems.add(new MenuItem("Lịch cá nhân", contextPath + "/therapist/schedule", "calendar"));
+        
+        avatarMenuItems.add(new MenuItem()); // Divider
+        avatarMenuItems.add(new MenuItem("Đăng xuất", contextPath + "/logout", "log-out"));
+        break;
+
+      case "RECEPTIONIST":
+      avatarMenuItems.add(new MenuItem("Trang điều khiển", contextPath + "/dashboard", "bar-chart"));
+        avatarMenuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/profile", "user"));
+        avatarMenuItems.add(new MenuItem("Cài đặt cá nhân", contextPath + "/receptionist/settings", "settings"));
+        avatarMenuItems.add(new MenuItem("Thay đổi mật khẩu", contextPath + "/password/change", "key"));
+        avatarMenuItems.add(new MenuItem()); // Divider
+        avatarMenuItems.add(new MenuItem("Ca làm việc", contextPath + "/receptionist/shifts", "clock"));
+        avatarMenuItems.add(new MenuItem()); // Divider
+        avatarMenuItems.add(new MenuItem("Đăng xuất", contextPath + "/logout", "log-out"));
+        break;
+
+      case "MARKETING":
+      avatarMenuItems.add(new MenuItem("Trang điều khiển", contextPath + "/dashboard", "bar-chart"));
+        avatarMenuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/profile", "user"));
+        avatarMenuItems.add(new MenuItem("Cài đặt cá nhân", contextPath + "/marketing/settings", "settings"));
+        avatarMenuItems.add(new MenuItem("Thay đổi mật khẩu", contextPath + "/password/change", "key"));
+        avatarMenuItems.add(new MenuItem()); // Divider
+        avatarMenuItems.add(new MenuItem("Chiến dịch của tôi", contextPath + "/marketing/my-campaigns", "megaphone"));
+        avatarMenuItems.add(new MenuItem()); // Divider
+        avatarMenuItems.add(new MenuItem("Đăng xuất", contextPath + "/logout", "log-out"));
+        break;
+
+      case "INVENTORY_MANAGER":
+      avatarMenuItems.add(new MenuItem("Trang điều khiển", contextPath + "/dashboard", "bar-chart"));
+        avatarMenuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/profile", "user"));
+        avatarMenuItems.add(new MenuItem("Cài đặt cá nhân", contextPath + "/inventory-manager/settings", "settings"));
+        avatarMenuItems.add(new MenuItem("Thay đổi mật khẩu", contextPath + "/password/change", "key"));
+        avatarMenuItems.add(new MenuItem()); // Divider
+        avatarMenuItems.add(new MenuItem("Báo cáo cá nhân", contextPath + "/inventory-manager/personal-reports", "file-text"));
+        avatarMenuItems.add(new MenuItem()); // Divider
+        avatarMenuItems.add(new MenuItem("Đăng xuất", contextPath + "/logout", "log-out"));
+        break;
+
+      case "CUSTOMER":
+      avatarMenuItems.add(new MenuItem("Trang điều khiển", contextPath + "/dashboard", "bar-chart"));
+        avatarMenuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/profile", "user"));
+        avatarMenuItems.add(new MenuItem("Cài đặt tài khoản", contextPath + "/customer/settings", "settings"));
+        avatarMenuItems.add(new MenuItem("Thay đổi mật khẩu", contextPath + "/password/change", "key"));
+        avatarMenuItems.add(new MenuItem()); // Divider
+        avatarMenuItems.add(new MenuItem("Điểm tích lũy", contextPath + "/customer/loyalty", "gift"));
+        avatarMenuItems.add(new MenuItem("Lịch sử thanh toán", contextPath + "/customer/payments", "credit-card"));
+        avatarMenuItems.add(new MenuItem()); // Divider
+        avatarMenuItems.add(new MenuItem("Đăng xuất", contextPath + "/logout", "log-out"));
+        break;
+
+      default:
+        avatarMenuItems.add(new MenuItem("Đăng xuất", contextPath + "/logout", "log-out"));
+        break;
+    }
+
+    return avatarMenuItems;
   }
 }

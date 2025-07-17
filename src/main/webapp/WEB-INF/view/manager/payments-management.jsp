@@ -916,13 +916,16 @@ art.js -->
        
             // Filter functionality
             $('#applyFilters').on('click', function() {
-                applyFilters();
+                applyFilters(true); // Show notification for manual filter application
             });
             
             $('#resetFilters').on('click', function() {
                 resetFilters();
             });
-            
+
+            // Setup real-time filtering
+            setupRealTimeFilters();
+
             // Modal functionality
             const paymentModal = document.getElementById('paymentModal');
             const closeModal = document.getElementById('closeModal');
@@ -967,55 +970,97 @@ art.js -->
             initializeCharts();
         });
 
+        // Setup real-time filtering for all filter inputs
+        function setupRealTimeFilters() {
+            let filterTimeout;
+
+            // Debounced filter function
+            function debouncedFilter() {
+                clearTimeout(filterTimeout);
+                filterTimeout = setTimeout(function() {
+                    applyFilters();
+                    updateFilterStatus();
+                }, 300);
+            }
+
+            // Bind events to filter inputs for real-time filtering
+            $('#customerFilter').on('change', debouncedFilter);
+            $('#methodFilter').on('change', debouncedFilter);
+            $('#statusFilter').on('change', debouncedFilter);
+            $('#minAmount').on('input', debouncedFilter);
+            $('#maxAmount').on('input', debouncedFilter);
+
+            // Date range picker event (if implemented)
+            $('#dateRangePicker').on('change', function() {
+                const dateRange = $(this).val();
+                if (dateRange) {
+                    const dates = dateRange.split(' - ');
+                    if (dates.length === 2) {
+                        applyDateFilter(dates[0], dates[1]);
+                    }
+                } else {
+                    // Clear date filter
+                    clearDateFilter();
+                }
+            });
+
+            console.log('Real-time filtering setup completed');
+        }
+
         // Filter Functions
-        function applyFilters() {
+        function applyFilters(showNotification = false) {
             const table = $('#paymentsTable').DataTable();
-            
+
             // Get filter values
             const customerFilter = $('#customerFilter').val();
             const methodFilter = $('#methodFilter').val();
             const statusFilter = $('#statusFilter').val();
             const minAmount = $('#minAmount').val();
             const maxAmount = $('#maxAmount').val();
-            
-            // Clear existing filters
-            table.search('').columns().search('').draw();
-            
+
+            // Clear existing custom search functions
+            $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(function(fn) {
+                return fn.name !== 'amountRangeFilter';
+            });
+
+            // Clear existing column searches
+            table.columns().search('');
+
             // Apply customer filter (column 1)
             if (customerFilter) {
-                table.column(1).search(customerFilter).draw();
+                table.column(1).search(customerFilter, false, false);
             }
-            
+
             // Apply method filter (column 3)
             if (methodFilter) {
-                table.column(3).search(methodFilter).draw();
+                table.column(3).search(methodFilter, false, false);
             }
-            
+
             // Apply status filter (column 5)
             if (statusFilter) {
-                table.column(5).search(statusFilter).draw(false);
+                table.column(5).search(statusFilter, false, false);
             }
-            
-            // Apply amount filter (column 4)
+
+            // Apply amount filter (column 4) using custom search
             if (minAmount || maxAmount) {
-                $.fn.dataTable.ext.search.push(
-                    function(settings, data, dataIndex) {
-                        const amount = parseFloat(data[4].replace(/[^\d]/g, '')) || 0;
-                        const min = parseFloat(minAmount) || 0;
-                        const max = parseFloat(maxAmount) || Infinity;
-                        
-                        return (amount >= min && amount <= max);
-                    }
-                );
-                
-                table.draw(false);
-                
-                // Remove the custom filter after drawing
-                $.fn.dataTable.ext.search.pop();
+                const amountRangeFilter = function(settings, data, dataIndex) {
+                    const amount = parseFloat(data[4].replace(/[^\d.,]/g, '').replace(',', '')) || 0;
+                    const min = parseFloat(minAmount) || 0;
+                    const max = parseFloat(maxAmount) || Infinity;
+
+                    return (amount >= min && amount <= max);
+                };
+                amountRangeFilter.name = 'amountRangeFilter';
+                $.fn.dataTable.ext.search.push(amountRangeFilter);
             }
-            
-            // Show success notification
-            showNotification('Đã áp dụng bộ lọc thành công', 'success');
+
+            // Apply all filters with a single draw
+            table.draw();
+
+            // Show success notification only when manually triggered
+            if (showNotification) {
+                showNotification('Đã áp dụng bộ lọc thành công', 'success');
+            }
         }
         
         function resetFilters() {
@@ -1030,9 +1075,49 @@ art.js -->
             // Reset DataTable filters
             const table = $('#paymentsTable').DataTable();
             table.search('').columns().search('').draw(false);
-            
+
+            // Clear custom search functions
+            $.fn.dataTable.ext.search = [];
+
+            // Update filter status
+            updateFilterStatus();
+
             // Show notification
             showNotification('Đã đặt lại bộ lọc', 'info');
+        }
+
+        function clearDateFilter() {
+            // Clear any date-based filtering
+            const table = $('#paymentsTable').DataTable();
+
+            // Remove date filter from custom search functions
+            $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(function(fn) {
+                return fn.name !== 'dateRangeFilter';
+            });
+
+            table.draw();
+        }
+
+        function updateFilterStatus() {
+            // Check if any filters are active
+            const customerFilter = $('#customerFilter').val();
+            const methodFilter = $('#methodFilter').val();
+            const statusFilter = $('#statusFilter').val();
+            const minAmount = $('#minAmount').val();
+            const maxAmount = $('#maxAmount').val();
+            const dateRange = $('#dateRangePicker').val();
+
+            const hasActiveFilters = customerFilter || methodFilter || statusFilter || minAmount || maxAmount || dateRange;
+
+            // Update filter button appearance
+            const filterButton = $('#toggleFilters');
+            if (hasActiveFilters) {
+                filterButton.addClass('bg-primary text-white').removeClass('bg-gray-100 text-gray-700');
+                filterButton.find('i').addClass('text-white');
+            } else {
+                filterButton.removeClass('bg-primary text-white').addClass('bg-gray-100 text-gray-700');
+                filterButton.find('i').removeClass('text-white');
+            }
         }
         
         function applyDateFilter(startDate, endDate) {

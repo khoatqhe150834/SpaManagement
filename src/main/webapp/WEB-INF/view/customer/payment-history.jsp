@@ -107,14 +107,7 @@
             background-color: rgba(255, 248, 240, 0.5);
         }
 
-        /* Enhanced search input styling */
-        .dataTables_filter {
-            position: relative;
-        }
-
         .dataTables_filter input {
-            transition: all 0.3s ease;
-            min-width: 250px;
             border: 1px solid #d1d5db;
             border-radius: 8px;
             padding: 8px 12px;
@@ -125,28 +118,6 @@
             outline: none;
             border-color: #D4AF37;
             box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
-            transform: scale(1.02);
-            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1), 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-
-        .search-clear {
-            transition: all 0.2s ease;
-        }
-
-        .search-clear:hover {
-            background-color: rgba(212, 175, 55, 0.1);
-        }
-
-        /* Search results highlighting */
-        .dataTables_info {
-            font-weight: 500;
-        }
-
-        /* Responsive search input */
-        @media (max-width: 640px) {
-            .dataTables_filter input {
-                min-width: 200px;
-            }
         }
     </style>
 </head>
@@ -209,14 +180,6 @@
                 <c:choose>
                     <c:when test="${payments != null && not empty payments}">
                         <div class="p-6">
-                            <div class="dataTables_filter mb-4">
-                                <label>
-                                    <input type="search" id="customSearch" class="ml-2 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" placeholder="Tìm kiếm thanh toán...">
-                                    <button type="button" class="search-clear ml-2 px-2 py-1 text-gray-500 hover:text-gray-700 rounded" title="Xóa tìm kiếm">
-                                        <i data-lucide="x" class="h-4 w-4"></i>
-                                    </button>
-                                </label>
-                            </div>
                             <table id="paymentsTable" class="w-full display responsive nowrap" style="width:100%">
                                 <thead>
                                     <tr>
@@ -359,7 +322,7 @@
                     responsive: true,
                     dom: 'Blfrtip', // Add 'B' for buttons to the dom string
                     processing: true,
-                    searching: false, // Disable DataTables' default search
+                    searching: true, // Enable DataTables' default search
                     searchDelay: 300, // Built-in search delay
                     language: {
                         "sProcessing": "Đang xử lý...",
@@ -438,43 +401,20 @@
                             }
                         }
                     ],
-                    dom: '<"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4"<"flex items-center"l><"flex items-center gap-2"B>>rtip',
+                    dom: '<"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4"<"flex items-center"l><"flex items-center gap-2"Bf>>rtip',
 
                     initComplete: function() {
                         var table = this.api();
 
+                        // Apply custom styling after DataTables initialization
+                        $('.dataTables_filter input').addClass('ml-2 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary');
                         $('.dataTables_length select').addClass('mx-2 px-2 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary');
                         $('.dataTables_paginate .paginate_button').addClass('mx-1');
-                        $('.dataTables_wrapper').addClass('px-6 pb-6');
 
-                        // Enhanced real-time search functionality
-                        var searchInput = $('#customSearch');
+                        // Style the wrapper
+                        $('.dataTables_wrapper').addClass('px-0 pb-0');
 
-                        // Add debounce function
-                        var searchTimeout;
-                        searchInput.on('input keyup', function() {
-                            clearTimeout(searchTimeout);
-                            searchTimeout = setTimeout(function() {
-                                table.search(searchInput.val()).draw();
-                                var info = table.page.info();
-                                if (searchInput.val() && info.recordsDisplay !== info.recordsTotal) {
-                                    console.log('Search results: ' + info.recordsDisplay + ' of ' + info.recordsTotal + ' records');
-                                }
-                            }, 300);
-                        });
-
-                        // Clear search functionality
-                        searchInput.on('search', function() {
-                            if (this.value === '') {
-                                table.search('').draw();
-                            }
-                        });
-
-                        // Add clear button functionality
-                        $('.search-clear').on('click', function() {
-                            searchInput.val('').trigger('input').focus();
-                        });
-
+                        // Initialize Lucide icons in the table
                         if (typeof lucide !== 'undefined') {
                             lucide.createIcons();
                         }

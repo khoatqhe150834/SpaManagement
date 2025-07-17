@@ -165,8 +165,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="flex-shrink-0 w-8 h-8 rounded-full ${message.sender === 'user' ? 'bg-[#D4AF37] flex items-center justify-center' : 'bg-white border-2 border-[#D4AF37] flex items-center justify-center'}">
                         <i data-lucide="${message.sender === 'user' ? 'user' : 'bot'}" class="h-4 w-4 ${message.sender === 'user' ? 'text-white' : 'text-[#D4AF37]'}"></i>
                     </div>
-                    <div class="rounded-lg p-3 ${message.sender === 'user' ? 'bg-[#D4AF37] text-white' : 'bg-white border border-gray-200 text-gray-800'}">
-                        <p class="text-sm leading-relaxed">${message.text}</p>
+                    <div class="chat-message-bubble rounded-lg p-3 ${message.sender === 'user' ? 'bg-[#D4AF37] text-white' : 'bg-white border border-gray-200 text-gray-800'}">
+                        <p class="chat-message-content text-sm leading-relaxed">${message.text}</p>
                         <p class="text-xs mt-1 ${message.sender === 'user' ? 'text-white/80' : 'text-gray-500'}">
                             ${formatTime(message.timestamp)}
                         </p>
@@ -292,9 +292,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Handle key press
     function handleKeyPress(e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
+        if (e.key === 'Enter' && e.ctrlKey) {
             e.preventDefault();
             handleSendMessage();
+        }
+    }
+
+    // Auto-resize textarea
+    function autoResizeTextarea() {
+        chatInput.style.height = 'auto';
+        const scrollHeight = chatInput.scrollHeight;
+        const maxHeight = 120; // max-h-[120px] from CSS
+        const minHeight = 40;  // min-h-[40px] from CSS
+
+        if (scrollHeight > maxHeight) {
+            chatInput.style.height = maxHeight + 'px';
+            chatInput.style.overflowY = 'auto';
+        } else if (scrollHeight < minHeight) {
+            chatInput.style.height = minHeight + 'px';
+            chatInput.style.overflowY = 'hidden';
+        } else {
+            chatInput.style.height = scrollHeight + 'px';
+            chatInput.style.overflowY = 'hidden';
         }
     }
 
@@ -674,6 +693,7 @@ document.addEventListener('DOMContentLoaded', () => {
     minimizedIndicator.addEventListener('click', maximizeChat);
     sendBtn.addEventListener('click', handleSendMessage);
     chatInput.addEventListener('keypress', handleKeyPress);
+    chatInput.addEventListener('input', autoResizeTextarea);
     toggleSuggestionsBtn.addEventListener('click', toggleSuggestions);
     clearChatBtn.addEventListener('click', handleClearChat);
 
