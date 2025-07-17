@@ -52,8 +52,183 @@
 
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-    
+
+    <!-- Font Awesome for DataTables buttons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+
     <style>
+        /* Custom DataTables styling to match our theme */
+        .dataTables_wrapper {
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .dataTables_filter input {
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin-left: 8px;
+        }
+
+        .dataTables_filter input:focus {
+            outline: none;
+            border-color: #D4AF37;
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+        }
+
+        .dataTables_length select {
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 4px 8px;
+            margin: 0 8px;
+        }
+
+        .dataTables_paginate .paginate_button {
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin: 0 2px;
+            background: white;
+            color: #374151;
+        }
+
+        .dataTables_paginate .paginate_button:hover {
+            background: #FFF8F0;
+            border-color: #D4AF37;
+            color: #D4AF37;
+        }
+
+        .dataTables_paginate .paginate_button.current {
+            background: #D4AF37;
+            border-color: #D4AF37;
+            color: white;
+        }
+
+        .dataTables_info {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        table.dataTable thead th {
+            border-bottom: 2px solid #e5e7eb;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        table.dataTable tbody tr:hover {
+            background-color: rgba(255, 248, 240, 0.5);
+        }
+
+        /* Custom styles for payment items table */
+        .payment-items-table .service-name {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .payment-items-table .service-description {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+
+        .usage-progress {
+            width: 100px;
+            height: 8px;
+            background-color: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .usage-progress-bar {
+            height: 100%;
+            background-color: #D4AF37;
+            transition: width 0.3s ease;
+        }
+
+        .usage-info {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+
+        /* Column alignment styles */
+        .payment-items-table th:nth-child(1) { text-align: left; }    /* Dịch vụ */
+        .payment-items-table th:nth-child(2) { text-align: center; }  /* Số lượng */
+        .payment-items-table th:nth-child(3) { text-align: right; }   /* Đơn giá */
+        .payment-items-table th:nth-child(4) { text-align: center; }  /* Thời gian */
+        .payment-items-table th:nth-child(5) { text-align: right; }   /* Thành tiền */
+        .payment-items-table th:nth-child(6) { text-align: center; }  /* Tình trạng sử dụng */
+        .payment-items-table th:nth-child(7) { text-align: center; }  /* Thao tác */
+
+        .payment-items-table td:nth-child(1) { text-align: left; }    /* Dịch vụ */
+        .payment-items-table td:nth-child(2) { text-align: center; }  /* Số lượng */
+        .payment-items-table td:nth-child(3) { text-align: right; }   /* Đơn giá */
+        .payment-items-table td:nth-child(4) { text-align: center; }  /* Thời gian */
+        .payment-items-table td:nth-child(5) { text-align: right; }   /* Thành tiền */
+        .payment-items-table td:nth-child(6) { text-align: center; }  /* Tình trạng sử dụng */
+        .payment-items-table td:nth-child(7) { text-align: center; }  /* Thao tác */
+
+        /* Vertical alignment for all cells */
+        .payment-items-table th,
+        .payment-items-table td {
+            vertical-align: middle;
+            padding: 12px 8px;
+        }
+
+        /* Service column specific styling */
+        .payment-items-table td:nth-child(1) {
+            vertical-align: top;
+            padding-top: 16px;
+        }
+
+        /* Improve table readability */
+        .payment-items-table tbody tr {
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .payment-items-table tbody tr:hover {
+            background-color: rgba(255, 248, 240, 0.3);
+        }
+
+        /* Consistent width for numeric columns */
+        .payment-items-table th:nth-child(2),
+        .payment-items-table td:nth-child(2) { width: 80px; }   /* Số lượng */
+
+        .payment-items-table th:nth-child(3),
+        .payment-items-table td:nth-child(3) { width: 120px; }  /* Đơn giá */
+
+        .payment-items-table th:nth-child(4),
+        .payment-items-table td:nth-child(4) { width: 100px; }  /* Thời gian */
+
+        .payment-items-table th:nth-child(5),
+        .payment-items-table td:nth-child(5) { width: 130px; }  /* Thành tiền */
+
+        .payment-items-table th:nth-child(6),
+        .payment-items-table td:nth-child(6) { width: 150px; }  /* Tình trạng sử dụng */
+
+        .payment-items-table th:nth-child(7),
+        .payment-items-table td:nth-child(7) { width: 100px; }  /* Thao tác */
+
+        /* Progress bar container improvements */
+        .usage-progress {
+            width: 120px;
+            margin: 0 auto;
+        }
         .payment-header {
             background: linear-gradient(135deg, #D4AF37 0%, #B8941F 100%);
             color: white;
@@ -321,59 +496,117 @@
             </div>
 
             <!-- Payment Items -->
-            <div class="info-card">
-                <h5 class="mb-3">
-                    <iconify-icon icon="solar:list-outline" class="me-2"></iconify-icon>
-                    Dịch Vụ Đã Thanh Toán
-                </h5>
-                <c:choose>
-                    <c:when test="${not empty payment.paymentItems}">
-                        <c:forEach var="item" items="${payment.paymentItems}">
-                            <div class="service-item">
-                                <div class="row align-items-center">
-                                    <div class="col-md-6">
-                                        <h6 class="mb-1">${item.service.serviceName}</h6>
-                                        <small class="text-muted">
-                                            Thời gian: ${item.serviceDuration} phút
-                                        </small>
-                                    </div>
-                                    <div class="col-md-2 text-center">
-                                        <span class="fw-semibold">SL: ${item.quantity}</span>
-                                    </div>
-                                    <div class="col-md-2 text-center">
-                                        <span class="text-muted">
-                                            <fmt:formatNumber value="${item.unitPrice}" type="currency" currencySymbol="₫" groupingUsed="true"/>
-                                        </span>
-                                    </div>
-                                    <div class="col-md-2 text-end">
-                                        <span class="fw-bold text-success">
-                                            <fmt:formatNumber value="${item.totalPrice}" type="currency" currencySymbol="₫" groupingUsed="true"/>
-                                        </span>
-                                    </div>
-                                </div>
-                                
-                                <!-- Usage Information -->
-                                <c:if test="${not empty item.usage}">
-                                    <div class="mt-2 pt-2 border-top">
-                                        <small class="text-info">
-                                            <iconify-icon icon="solar:info-circle-outline" class="me-1"></iconify-icon>
-                                            Đã sử dụng: ${item.usage.usedQuantity}/${item.quantity} lần
-                                            <c:if test="${not empty item.usage.lastUsedDate}">
-                                                - Lần cuối: <fmt:formatDate value="${item.usage.lastUsedDate}" pattern="dd/MM/yyyy"/>
-                                            </c:if>
-                                        </small>
-                                    </div>
-                                </c:if>
+            <div class="bg-white rounded-xl shadow-md border border-primary/10 overflow-hidden mb-6">
+                <div class="p-6 border-b border-gray-200">
+                    <h2 class="text-xl font-semibold text-spa-dark flex items-center gap-2">
+                        <i data-lucide="shopping-bag" class="h-6 w-6 text-primary"></i>
+                        Dịch Vụ Đã Mua (${fn:length(payment.paymentItems)} dịch vụ)
+                    </h2>
+                </div>
+                <div class="p-6">
+                    <c:choose>
+                        <c:when test="${not empty payment.paymentItems}">
+                            <table id="paymentItemsTable" class="w-full display responsive nowrap payment-items-table" style="width:100%">
+                                <thead>
+                                    <tr>
+                                        <th>Dịch vụ</th>
+                                        <th>Số lượng</th>
+                                        <th>Đơn giá</th>
+                                        <th>Thời gian</th>
+                                        <th>Thành tiền</th>
+                                        <th>Tình trạng sử dụng</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <c:forEach var="item" items="${payment.paymentItems}">
+                                        <tr>
+                                            <td>
+                                                <div class="service-name">
+                                                    ${item.service != null && item.service.serviceName != null ? item.service.serviceName : 'Dịch vụ không xác định'}
+                                                </div>
+                                                <div class="service-description">
+                                                    <c:if test="${not empty item.service.description}">
+                                                        ${item.service.description}
+                                                    </c:if>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                    ${item.quantity}
+                                                </span>
+                                            </td>
+                                            <td class="text-right">
+                                                <span class="font-semibold text-gray-900">
+                                                    <fmt:formatNumber value="${item.unitPrice}" type="currency" currencySymbol="" pattern="#,##0"/> VNĐ
+                                                </span>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                    ${item.serviceDuration} phút
+                                                </span>
+                                            </td>
+                                            <td class="text-right">
+                                                <span class="font-bold text-green-600">
+                                                    <fmt:formatNumber value="${item.totalPrice}" type="currency" currencySymbol="" pattern="#,##0"/> VNĐ
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <c:choose>
+                                                    <c:when test="${not empty item.usage}">
+                                                        <div class="flex flex-col gap-1">
+                                                            <div class="flex items-center gap-2">
+                                                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                                                    <div class="bg-primary h-2 rounded-full" style="width: ${(item.usage.usedQuantity / item.quantity) * 100}%"></div>
+                                                                </div>
+                                                                <span class="text-xs text-gray-600 whitespace-nowrap">
+                                                                    ${item.usage.usedQuantity}/${item.quantity}
+                                                                </span>
+                                                            </div>
+                                                            <c:if test="${not empty item.usage.lastUsedDate}">
+                                                                <div class="text-xs text-gray-500">
+                                                                    Lần cuối: <fmt:formatDate value="${item.usage.lastUsedDate}" pattern="dd/MM/yyyy"/>
+                                                                </div>
+                                                            </c:if>
+                                                        </div>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                            Chưa sử dụng
+                                                        </span>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="flex justify-center gap-1">
+                                                    <button onclick="viewServiceDetails(${item.service.serviceId})"
+                                                            class="inline-flex items-center px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded text-xs font-medium transition-colors"
+                                                            title="Xem chi tiết dịch vụ">
+                                                        <i data-lucide="eye" class="h-3 w-3"></i>
+                                                    </button>
+                                                    <c:if test="${item.usage != null && item.usage.remainingQuantity > 0}">
+                                                        <button onclick="scheduleService(${item.paymentItemId})"
+                                                                class="inline-flex items-center px-2 py-1 bg-green-100 hover:bg-green-200 text-green-700 rounded text-xs font-medium transition-colors"
+                                                                title="Đặt lịch cho khách hàng">
+                                                            <i data-lucide="calendar-plus" class="h-3 w-3"></i>
+                                                        </button>
+                                                    </c:if>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </c:forEach>
+                                </tbody>
+                            </table>
+                        </c:when>
+                        <c:otherwise>
+                            <div class="text-center py-8 text-gray-500">
+                                <i data-lucide="inbox" class="h-12 w-12 mx-auto mb-4 text-gray-400"></i>
+                                <p class="text-lg font-medium">Không có dịch vụ nào</p>
+                                <p class="text-sm">Thanh toán này chưa có dịch vụ được mua.</p>
                             </div>
-                        </c:forEach>
-                    </c:when>
-                    <c:otherwise>
-                        <div class="text-center py-3 text-muted">
-                            <iconify-icon icon="solar:inbox-outline" style="font-size: 2rem;"></iconify-icon>
-                            <p class="mt-2">Không có thông tin dịch vụ</p>
-                        </div>
-                    </c:otherwise>
-                </c:choose>
+                        </c:otherwise>
+                    </c:choose>
+                </div>
             </div>
 
             <!-- Notes -->
@@ -417,10 +650,118 @@
     </main>
 
     <script>
-        // Initialize Lucide icons
-        if (typeof lucide !== 'undefined') {
-            lucide.createIcons();
-        }
+        $(document).ready(function() {
+            // Initialize Lucide icons
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+
+            // Initialize DataTables
+            if ($.fn.DataTable && document.getElementById('paymentItemsTable')) {
+                $('#paymentItemsTable').DataTable({
+                    responsive: true,
+                    dom: 'Blfrtip',
+                    processing: true,
+                    language: {
+                        "sProcessing": "Đang xử lý...",
+                        "sLengthMenu": "Hiển thị _MENU_ mục",
+                        "sZeroRecords": "Không tìm thấy dòng nào phù hợp",
+                        "sInfo": "Đang hiển thị _START_ đến _END_ trong tổng số _TOTAL_ mục",
+                        "sInfoEmpty": "Đang hiển thị 0 đến 0 trong tổng số 0 mục",
+                        "sInfoFiltered": "(được lọc từ _MAX_ mục)",
+                        "sSearch": "Tìm kiếm:",
+                        "oPaginate": {
+                            "sFirst": "Đầu",
+                            "sPrevious": "Trước",
+                            "sNext": "Tiếp",
+                            "sLast": "Cuối"
+                        }
+                    },
+                    order: [[0, 'asc']], // Sort by service name by default
+                    columnDefs: [
+                        {
+                            responsivePriority: 1,
+                            targets: [0, 1, 4, 6] // Service name, quantity, total price, actions are high priority
+                        },
+                        {
+                            responsivePriority: 2,
+                            targets: [2, 3] // Unit price and duration are medium priority
+                        },
+                        {
+                            responsivePriority: 3,
+                            targets: [5] // Usage status is low priority
+                        },
+                        {
+                            targets: 2, // Unit price column
+                            type: 'num',
+                            render: function(data, type, row) {
+                                if (type === 'sort' || type === 'type') {
+                                    // Extract numeric value from formatted currency
+                                    return parseFloat(data.replace(/[^\d.,]/g, '').replace(/\./g, '').replace(',', '.')) || 0;
+                                }
+                                return data;
+                            }
+                        },
+                        {
+                            targets: 4, // Total price column
+                            type: 'num',
+                            render: function(data, type, row) {
+                                if (type === 'sort' || type === 'type') {
+                                    // Extract numeric value from formatted currency
+                                    return parseFloat(data.replace(/[^\d.,]/g, '').replace(/\./g, '').replace(',', '.')) || 0;
+                                }
+                                return data;
+                            }
+                        },
+                        {
+                            targets: 6, // Actions column
+                            orderable: false,
+                            searchable: false
+                        }
+                    ],
+                    pageLength: 10,
+                    lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, "Tất cả"]],
+                    buttons: [
+                        {
+                            extend: 'excelHtml5',
+                            text: '<i class="fas fa-file-excel mr-1"></i> Xuất Excel',
+                            className: 'bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded',
+                            exportOptions: {
+                                columns: [0, 1, 2, 3] // Export only service info, quantity, prices
+                            }
+                        },
+                        {
+                            extend: 'print',
+                            text: '<i class="fas fa-print mr-1"></i> In',
+                            className: 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded',
+                            exportOptions: {
+                                columns: [0, 1, 2, 3] // Print only service info, quantity, prices
+                            }
+                        }
+                    ],
+                    dom: '<"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4"<"flex items-center"l><"flex items-center"Bf>>rtip',
+
+                    initComplete: function() {
+                        // Apply custom styling after DataTables initialization
+                        $('.dataTables_filter input').addClass('ml-2 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary');
+                        $('.dataTables_length select').addClass('mx-2 px-2 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary');
+                        $('.dataTables_paginate .paginate_button').addClass('mx-1');
+
+                        // Style the wrapper
+                        $('.dataTables_wrapper').addClass('px-0 pb-0');
+
+                        // Reinitialize Lucide icons for DataTables buttons
+                        setTimeout(function() {
+                            if (typeof lucide !== 'undefined') {
+                                lucide.createIcons();
+                            }
+                        }, 200);
+
+                        console.log('DataTables initialized successfully for manager payment details');
+                    }
+                });
+            }
+        });
 
         function editPayment(paymentId) {
             if (confirm('Bạn có chắc chắn muốn chỉnh sửa thanh toán #' + paymentId + '?')) {
@@ -439,6 +780,18 @@
         function printReceipt(paymentId) {
             // TODO: Implement print receipt functionality
             alert('Chức năng in hóa đơn đang được phát triển.');
+        }
+
+        function viewServiceDetails(serviceId) {
+            // Open service details in a new window or modal
+            window.open('${pageContext.request.contextPath}/services/details?id=' + serviceId, '_blank');
+        }
+
+        function scheduleService(paymentItemId) {
+            // TODO: Implement schedule service functionality for managers
+            if (confirm('Bạn có muốn đặt lịch dịch vụ này cho khách hàng?')) {
+                alert('Chức năng đặt lịch đang được phát triển.');
+            }
         }
     </script>
 </body>
