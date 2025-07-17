@@ -432,7 +432,7 @@
         // CRUD Functions for Payment Actions
         function viewPayment(paymentId) {
             // Open modal or redirect to view payment details
-            window.location.href = '${pageContext.request.contextPath}/customer/payment/view/' + paymentId;
+            window.location.href = '${pageContext.request.contextPath}/customer/payment-details?id=' + paymentId;
         }
 
         function editPayment(paymentId) {
