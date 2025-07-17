@@ -776,7 +776,7 @@ art.js -->
             
             // Initialize DataTables
             let paymentsTable;
-            if ($.fn.DataTable && document.getElementById('paymentsTable')) {
+            if ($.fn.DataTable && document.getElementById('paymentsTable') && !$.fn.DataTable.isDataTable('#paymentsTable')) {
                 paymentsTable = $('#paymentsTable').DataTable({
                     responsive: true,
                     dom: 'Blfrtip',
@@ -1489,108 +1489,7 @@ art.js -->
             }, 5000);
         }
 
-        // Initialize DataTables
-        if ($.fn.DataTable && document.getElementById('paymentsTable')) {
-            $('#paymentsTable').DataTable({
-                responsive: true,
-                dom: 'Blfrtip',
-                processing: true,
-                language: {
-                    "sProcessing": "Đang xử lý...",
-                    "sLengthMenu": "Hiển thị _MENU_ mục",
-                    "sZeroRecords": "Không tìm thấy dòng nào phù hợp",
-                    "sInfo": "Đang hiển thị _START_ đến _END_ trong tổng số _TOTAL_ mục",
-                    "sInfoEmpty": "Đang hiển thị 0 đến 0 trong tổng số 0 mục",
-                    "sInfoFiltered": "(được lọc từ _MAX_ mục)",
-                    "sSearch": "Tìm kiếm:",
-                    "oPaginate": {
-                        "sFirst": "Đầu",
-                        "sPrevious": "Trước",
-                        "sNext": "Tiếp",
-                        "sLast": "Cuối"
-                    }
-                },
-                order: [[2, 'desc']], // Sort by payment date (column 2) in descending order
-                columnDefs: [
-                    {
-                        responsivePriority: 1,
-                        targets: [0, 1, 2, 4, 5, 7] // Payment ID, Customer, Date, Amount, Status, Actions are high priority
-                    },
-                    {
-                        responsivePriority: 2,
-                        targets: [3] // Method is medium priority
-                    },
-                    {
-                        responsivePriority: 3,
-                        targets: [6] // Notes are low priority
-                    },
-                    {
-                        targets: 0, // Payment ID column
-                        type: 'num',
-                        render: function(data, type, row) {
-                            if (type === 'sort' || type === 'type') {
-                                // Extract numeric value from "#123" format
-                                var numericValue = data.replace(/[^\d]/g, '');
-                                return parseInt(numericValue) || 0;
-                            }
-                            return data;
-                        }
-                    },
-                    {
-                        targets: 4, // Amount column
-                        type: 'num',
-                        render: function(data, type, row) {
-                            if (type === 'display' || type === 'type') {
-                                return data;
-                            }
-                            // For sorting, extract the numeric value
-                            var numericValue = $(data).find('.hidden').text();
-                            if (numericValue) {
-                                return parseFloat(numericValue);
-                            }
-                            // Fallback: extract number from data-order attribute or text
-                            var match = data.match(/data-order="([^"]+)"/);
-                            if (match) {
-                                return parseFloat(match[1]);
-                            }
-                            // Last resort: try to extract number from the text
-                            var textMatch = data.replace(/[^\d]/g, '');
-                            return textMatch ? parseFloat(textMatch) : 0;
-                        }
-                    },
-                    {
-                        targets: 7, // Actions column
-                        orderable: false,
-                        searchable: false
-                    }
-                ],
-                pageLength: 25,
-                lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Tất cả"]],
-                buttons: [
-                    {
-                        extend: 'excelHtml5',
-                        text: '<i data-lucide="file-spreadsheet" class="h-4 w-4 mr-1"></i> Xuất Excel',
-                        className: 'bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded',
-                        exportOptions: {
-                            columns: ':not(:last-child)' // Exclude the last column (actions)
-                        }
-                    }
-                ],
-                dom: '<"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4"<"flex items-center"l><"flex items-center"Bf>>rtip',
 
-                initComplete: function() {
-                    // Apply custom styling after DataTables initialization
-                    $('.dataTables_filter input').addClass('ml-2 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary');
-                    $('.dataTables_length select').addClass('mx-2 px-2 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary');
-                    $('.dataTables_paginate .paginate_button').addClass('mx-1');
-
-                    // Style the wrapper
-                    $('.dataTables_wrapper').addClass('px-6 pb-6');
-
-                    console.log('DataTables initialized successfully for manager payments');
-                }
-            });
-        }
 
         console.log('Payments Management Page Loaded Successfully');
     </script>

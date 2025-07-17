@@ -623,9 +623,10 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
         }
 
         List<Service> services = new ArrayList<>();
-        String sql = "SELECT s.*, COUNT(b.booking_id) as purchase_count " +
+        String sql = "SELECT s.*, COALESCE(SUM(pi.quantity), 0) as purchase_count " +
                 "FROM services s " +
-                "LEFT JOIN bookings b ON s.service_id = b.service_id AND b.booking_status IN ('COMPLETED', 'IN_PROGRESS') " +
+                "LEFT JOIN payment_items pi ON s.service_id = pi.service_id " +
+                "LEFT JOIN payments p ON pi.payment_id = p.payment_id AND p.payment_status IN ('PAID', 'PENDING') " +
                 "WHERE s.is_active = 1 " +
                 "GROUP BY s.service_id " +
                 "ORDER BY purchase_count DESC, s.average_rating DESC " +

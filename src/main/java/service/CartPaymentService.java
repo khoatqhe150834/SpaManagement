@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Time;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -100,11 +101,14 @@ public class CartPaymentService {
             BigDecimal totalAmount = subtotal.add(taxAmount);
             
             // 4. Create payment record
-            Payment payment = new Payment(customerId, totalAmount, subtotal, paymentMethod, 
+            Payment payment = new Payment(customerId, totalAmount, subtotal, paymentMethod,
                                         Payment.generateReferenceNumber());
             payment.setTaxAmount(taxAmount);
             payment.setNotes(notes);
-            
+            // Set status to PAID since customer clicked "Tôi đã thanh toán" (I have paid)
+            payment.setPaymentStatus(Payment.PaymentStatus.PAID);
+            payment.setPaymentDate(new Timestamp(System.currentTimeMillis()));
+
             payment = paymentDAO.save(payment);
             
             // 5. Create payment items

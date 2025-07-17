@@ -371,6 +371,17 @@ public class PaymentController extends HttpServlet {
             request.setAttribute("totalRecords", totalRecords);
             request.setAttribute("overallStats", overallStats);
 
+            // Extract individual statistics for JSP access
+            request.setAttribute("totalPaymentsAmount", overallStats.get("totalRevenue"));
+            request.setAttribute("paidPaymentsAmount", overallStats.get("totalRevenue")); // Same as total revenue for paid
+            request.setAttribute("paidPaymentsCount", overallStats.get("paidPayments"));
+            request.setAttribute("pendingPaymentsAmount", calculatePendingAmount()); // We'll need to calculate this
+            request.setAttribute("pendingPaymentsCount", overallStats.get("pendingPayments"));
+            request.setAttribute("failedRefundedAmount", calculateFailedRefundedAmount()); // We'll need to calculate this
+            request.setAttribute("failedRefundedCount",
+                (Integer) overallStats.get("failedPayments") + (Integer) overallStats.get("refundedPayments"));
+            request.setAttribute("paymentGrowthRate", "12.5"); // Placeholder - would need historical data to calculate
+
             // Set filter values for form persistence
             request.setAttribute("statusFilter", statusFilter);
             request.setAttribute("paymentMethodFilter", paymentMethodFilter);

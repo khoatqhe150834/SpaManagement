@@ -852,6 +852,8 @@ public class PaymentDAO implements BaseDAO<Payment, Integer> {
         String sql = "SELECT " +
                     "COUNT(*) as total_payments, " +
                     "SUM(CASE WHEN payment_status = 'PAID' THEN total_amount ELSE 0 END) as total_revenue, " +
+                    "SUM(CASE WHEN payment_status = 'PENDING' THEN total_amount ELSE 0 END) as pending_amount, " +
+                    "SUM(CASE WHEN payment_status IN ('FAILED', 'REFUNDED') THEN total_amount ELSE 0 END) as failed_refunded_amount, " +
                     "COUNT(CASE WHEN payment_status = 'PAID' THEN 1 END) as paid_payments, " +
                     "COUNT(CASE WHEN payment_status = 'PENDING' THEN 1 END) as pending_payments, " +
                     "COUNT(CASE WHEN payment_status = 'FAILED' THEN 1 END) as failed_payments, " +
@@ -867,6 +869,8 @@ public class PaymentDAO implements BaseDAO<Payment, Integer> {
                 if (rs.next()) {
                     stats.put("totalPayments", rs.getInt("total_payments"));
                     stats.put("totalRevenue", rs.getBigDecimal("total_revenue"));
+                    stats.put("pendingAmount", rs.getBigDecimal("pending_amount"));
+                    stats.put("failedRefundedAmount", rs.getBigDecimal("failed_refunded_amount"));
                     stats.put("paidPayments", rs.getInt("paid_payments"));
                     stats.put("pendingPayments", rs.getInt("pending_payments"));
                     stats.put("failedPayments", rs.getInt("failed_payments"));
