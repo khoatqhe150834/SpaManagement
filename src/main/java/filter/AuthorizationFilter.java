@@ -27,10 +27,9 @@ import util.SecurityConfig;
  * Purpose: Enforces role-based access control after authentication is confirmed
  * 
  * Features:
- * - Role-based URL access restrictions with hierarchical permissions
- * - Configurable URL-to-role mappings
- * - Admin can access all areas, managers can access therapist/receptionist
- * areas, etc.
+ * - Role-based URL access restrictions without hierarchical permissions
+ * - Configurable URL-to-role mappings with support for wildcard patterns (e.g., /customer/*)
+ * - Strict role matching for specified URLs and patterns
  * - Logs unauthorized access attempts
  * - Returns appropriate error pages based on user role
  * 
@@ -38,404 +37,367 @@ import util.SecurityConfig;
  */
 public class AuthorizationFilter implements Filter {
 
-  // URL patterns and their required roles
-  private static final Map<String, Set<Integer>> URL_ROLE_MAPPINGS = new HashMap<>();
+    // URL patterns and their required roles (explicit mappings)
+    private static final Map<String, Set<Integer>> URL_ROLE_MAPPINGS = new HashMap<>();
 
-  // Role hierarchy - higher roles can access lower role resources
-  private static final Map<Integer, Set<Integer>> ROLE_HIERARCHY = new HashMap<>();
+    // Pattern-based URL mappings (supports wildcards like /customer/*)
+    private static final Map<String, Set<Integer>> PATTERN_ROLE_MAPPINGS = new HashMap<>();
 
-  static {
-    initializeUrlRoleMappings();
-    initializeRoleHierarchy();
-  }
+    // URLs that require strict role matching (no other roles allowed)
+    private static final Set<String> STRICT_ROLE_URLS = new HashSet<>();
 
-  /**
-   * Configure URL patterns and their required roles
-   */
-  private static void initializeUrlRoleMappings() {
-    // Admin-only areas
-    URL_ROLE_MAPPINGS.put("/admin", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID)));
-    URL_ROLE_MAPPINGS.put("/user/", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID)));
-    URL_ROLE_MAPPINGS.put("/system", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID)));
+    // Pattern-based strict role URLs (supports wildcards)
+    private static final Set<String> STRICT_ROLE_PATTERNS = new HashSet<>();
 
-    // Manager areas (Admin + Manager access)
-    URL_ROLE_MAPPINGS.put("/manager", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
-    URL_ROLE_MAPPINGS.put("/reports", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
-    URL_ROLE_MAPPINGS.put("/analytics", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
-    URL_ROLE_MAPPINGS.put("/staff", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
-    URL_ROLE_MAPPINGS.put("/servicetype",
-        new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
-
-    // Therapist areas (Admin + Manager + Therapist access)
-    URL_ROLE_MAPPINGS.put("/therapist", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID)));
-    URL_ROLE_MAPPINGS.put("/schedule", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID, RoleConstants.RECEPTIONIST_ID)));
-    URL_ROLE_MAPPINGS.put("/treatments", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID)));
-    URL_ROLE_MAPPINGS.put("/appointment", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID,
-        RoleConstants.RECEPTIONIST_ID)));
-
-    // Receptionist areas
-    URL_ROLE_MAPPINGS.put("/reception", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.RECEPTIONIST_ID)));
-    URL_ROLE_MAPPINGS.put("/booking", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID,
-        RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID)));
-    URL_ROLE_MAPPINGS.put("/booking-checkout", new HashSet<>(Arrays.asList(
-         RoleConstants.CUSTOMER_ID)));
-    URL_ROLE_MAPPINGS.put("/checkout/process", new HashSet<>(Arrays.asList(
-         RoleConstants.CUSTOMER_ID)));
-    URL_ROLE_MAPPINGS.put("/customer/payment-history", new HashSet<>(Arrays.asList(
-         RoleConstants.CUSTOMER_ID)));
-    URL_ROLE_MAPPINGS.put("/customer/payment-details", new HashSet<>(Arrays.asList(
-         RoleConstants.CUSTOMER_ID)));
-    URL_ROLE_MAPPINGS.put("/customer/payments", new HashSet<>(Arrays.asList(
-         RoleConstants.CUSTOMER_ID)));
-    URL_ROLE_MAPPINGS.put("/customer/booking-history", new HashSet<>(Arrays.asList(
-         RoleConstants.CUSTOMER_ID)));
-
-    // Marketing areas
-    URL_ROLE_MAPPINGS.put("/marketing", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.MARKETING_ID)));
-    URL_ROLE_MAPPINGS.put("/blog", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.MARKETING_ID)));
-    URL_ROLE_MAPPINGS.put("/promotions", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.MARKETING_ID)));
-    URL_ROLE_MAPPINGS.put("/promotion", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.MARKETING_ID)));
-
-    // Inventory Manager areas (Inventory Manager only)
-    URL_ROLE_MAPPINGS.put("/inventory-manager/", new HashSet<>(Arrays.asList(RoleConstants.INVENTORY_MANAGER_ID)));
-    URL_ROLE_MAPPINGS.put("/inventory-manager", new HashSet<>(Arrays.asList(RoleConstants.INVENTORY_MANAGER_ID)));
-
-    // Customer Management - Role-based separation
-    // Admin manages customer accounts (login credentials, account status)
-    URL_ROLE_MAPPINGS.put("/admin/customer-account", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID)));
-    
-    // Manager manages customer information (personal details, profile)
-    URL_ROLE_MAPPINGS.put("/manager/customer", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
-    
-    // Legacy customer path (deprecated - use specific paths above)
-    URL_ROLE_MAPPINGS.put("/customer/", new HashSet<>(Arrays.asList(RoleConstants.MANAGER_ID)));
-    
-    // Customer profile and appointment access
-    URL_ROLE_MAPPINGS.put("/profile", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID,
-        RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID)));
-    URL_ROLE_MAPPINGS.put("/appointments", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID,
-        RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID)));
-    
-    // Customer payment access
-    URL_ROLE_MAPPINGS.put("/customer/payment", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.CUSTOMER_ID)));
-    URL_ROLE_MAPPINGS.put("/customer/payments", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.CUSTOMER_ID)));
-    URL_ROLE_MAPPINGS.put("/payment-history", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.CUSTOMER_ID)));
-
-    // Manager payment management access (Admin + Manager only)
-    URL_ROLE_MAPPINGS.put("/manager/payments-management", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
-    URL_ROLE_MAPPINGS.put("/manager/payment-details", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
-    URL_ROLE_MAPPINGS.put("/manager/payment-statistics", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
-    URL_ROLE_MAPPINGS.put("/manager/payment-statistics/revenue", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
-    URL_ROLE_MAPPINGS.put("/manager/payment-statistics/methods", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
-    URL_ROLE_MAPPINGS.put("/manager/payment-statistics/timeline", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
-    URL_ROLE_MAPPINGS.put("/manager/payment-statistics/customers", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
-    URL_ROLE_MAPPINGS.put("/manager/payment-statistics/services", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
-
-    // Manager room management access (Admin + Manager only)
-    URL_ROLE_MAPPINGS.put("/manager/rooms-management", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
-    URL_ROLE_MAPPINGS.put("/manager/room-details", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
-    URL_ROLE_MAPPINGS.put("/manager/room/add", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
-    URL_ROLE_MAPPINGS.put("/manager/room/edit", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
-    URL_ROLE_MAPPINGS.put("/manager/room/update", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
-    URL_ROLE_MAPPINGS.put("/manager/room/delete", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
-    URL_ROLE_MAPPINGS.put("/manager/room/toggle-status", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
-
-    // Validation API endpoints
-    URL_ROLE_MAPPINGS.put("/api/validate/room/name", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
-    URL_ROLE_MAPPINGS.put("/api/validate/room/name/*", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
-    URL_ROLE_MAPPINGS.put("/api/validate/bed/name", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
-    URL_ROLE_MAPPINGS.put("/api/validate/bed/name/*", new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
-
-    // Paths accessible to any authenticated user
-    Set<Integer> allAuthenticatedRoles = new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID,
-        RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID, RoleConstants.MARKETING_ID, RoleConstants.INVENTORY_MANAGER_ID));
-    URL_ROLE_MAPPINGS.put("/dashboard", allAuthenticatedRoles);
-    URL_ROLE_MAPPINGS.put("/password/change", allAuthenticatedRoles);
-  }
-
-  /**
-   * Define role hierarchy for inherited permissions
-   */
-  private static void initializeRoleHierarchy() {
-    // Admin can access everything
-    ROLE_HIERARCHY.put(RoleConstants.ADMIN_ID, new HashSet<>(Arrays.asList(
-        RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID,
-        RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID, RoleConstants.MARKETING_ID, RoleConstants.INVENTORY_MANAGER_ID)));
-
-    // Manager can access manager, therapist, receptionist, customer, marketing, inventory_manager areas
-    ROLE_HIERARCHY.put(RoleConstants.MANAGER_ID, new HashSet<>(Arrays.asList(
-        RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID,
-        RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID, RoleConstants.MARKETING_ID, RoleConstants.INVENTORY_MANAGER_ID)));
-
-    // Therapist can access therapist and customer areas
-    ROLE_HIERARCHY.put(RoleConstants.THERAPIST_ID, new HashSet<>(Arrays.asList(
-        RoleConstants.THERAPIST_ID, RoleConstants.CUSTOMER_ID)));
-
-    // Receptionist can access receptionist and customer areas
-    ROLE_HIERARCHY.put(RoleConstants.RECEPTIONIST_ID, new HashSet<>(Arrays.asList(
-        RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID)));
-
-    // Marketing can only access marketing areas
-    ROLE_HIERARCHY.put(RoleConstants.MARKETING_ID, new HashSet<>(Arrays.asList(
-        RoleConstants.MARKETING_ID)));
-
-    // Inventory Manager can only access inventory_manager area
-    ROLE_HIERARCHY.put(RoleConstants.INVENTORY_MANAGER_ID, new HashSet<>(Arrays.asList(
-        RoleConstants.INVENTORY_MANAGER_ID)));
-
-    // Customer can only access customer areas
-    ROLE_HIERARCHY.put(RoleConstants.CUSTOMER_ID, new HashSet<>(Arrays.asList(
-        RoleConstants.CUSTOMER_ID)));
-  }
-
-  @Override
-  public void init(FilterConfig filterConfig) throws ServletException {
-    // Filter initialization if needed
-  }
-
-  @Override
-  public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-      throws IOException, ServletException {
-
-    System.out
-        .println("--- [DEBUG] AuthorizationFilter is running! Path: " + ((HttpServletRequest) request).getRequestURI());
-
-    HttpServletRequest httpRequest = (HttpServletRequest) request;
-    HttpServletResponse httpResponse = (HttpServletResponse) response;
-
-    // Get request path
-    String requestURI = httpRequest.getRequestURI();
-    String contextPath = httpRequest.getContextPath();
-    String path = requestURI.substring(contextPath.length());
-
-    // Skip authorization for public resources and error pages
-    if (SecurityConfig.isPublicResource(path) || isErrorPage(path)) {
-      chain.doFilter(request, response);
-      return;
+    static {
+        initializeUrlRoleMappings();
+        initializePatternRoleMappings();
+        initializeStrictRoleUrls();
     }
 
-    // If path requires no authorization and is not public, it's an unknown path
-    if (!requiresAuthorization(path)) {
-      System.out.println("[AuthorizationFilter] Path not found in authorization rules, forwarding to 404: " + path);
-      request.getRequestDispatcher("/WEB-INF/view/common/error/404.jsp").forward(request, response);
-      return;
+    /**
+     * Configure explicit URL patterns and their required roles
+     */
+    private static void initializeUrlRoleMappings() {
+        // Admin-only areas
+        URL_ROLE_MAPPINGS.put("/admin", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID)));
+        URL_ROLE_MAPPINGS.put("/user/", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID)));
+        URL_ROLE_MAPPINGS.put("/system", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID)));
+
+        // Manager areas
+        URL_ROLE_MAPPINGS.put("/manager", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
+        URL_ROLE_MAPPINGS.put("/reports", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
+        URL_ROLE_MAPPINGS.put("/analytics", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
+        URL_ROLE_MAPPINGS.put("/staff", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
+        URL_ROLE_MAPPINGS.put("/servicetype", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
+
+        // Therapist areas
+        URL_ROLE_MAPPINGS.put("/therapist", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID)));
+        URL_ROLE_MAPPINGS.put("/schedule", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID, RoleConstants.RECEPTIONIST_ID)));
+        URL_ROLE_MAPPINGS.put("/treatments", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID)));
+        URL_ROLE_MAPPINGS.put("/appointment", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID, RoleConstants.RECEPTIONIST_ID)));
+
+        // Receptionist areas
+        URL_ROLE_MAPPINGS.put("/reception", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.RECEPTIONIST_ID)));
+        URL_ROLE_MAPPINGS.put("/booking", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID, RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID)));
+
+        // Customer checkout URLs
+        URL_ROLE_MAPPINGS.put("/booking-checkout", new HashSet<>(Arrays.asList(RoleConstants.CUSTOMER_ID)));
+        URL_ROLE_MAPPINGS.put("/checkout/process", new HashSet<>(Arrays.asList(RoleConstants.CUSTOMER_ID)));
+
+        // Marketing areas
+        URL_ROLE_MAPPINGS.put("/marketing", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.MARKETING_ID)));
+        URL_ROLE_MAPPINGS.put("/blog", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.MARKETING_ID)));
+        URL_ROLE_MAPPINGS.put("/promotions", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.MARKETING_ID)));
+        URL_ROLE_MAPPINGS.put("/promotion", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.MARKETING_ID)));
+
+        // Inventory Manager areas
+        URL_ROLE_MAPPINGS.put("/inventory-manager", new HashSet<>(Arrays.asList(RoleConstants.INVENTORY_MANAGER_ID)));
+
+        // Customer Management
+        URL_ROLE_MAPPINGS.put("/admin/customer-account", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID)));
+        URL_ROLE_MAPPINGS.put("/manager/customer", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
+
+        // Legacy customer path (deprecated)
+        
+
+        // General authenticated user access
+        Set<Integer> allAuthenticatedRoles = new HashSet<>(Arrays.asList(
+            RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID,
+            RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID, RoleConstants.MARKETING_ID, RoleConstants.INVENTORY_MANAGER_ID));
+        URL_ROLE_MAPPINGS.put("/dashboard", allAuthenticatedRoles);
+        URL_ROLE_MAPPINGS.put("/password/change", allAuthenticatedRoles);
+        URL_ROLE_MAPPINGS.put("/profile", allAuthenticatedRoles);
+        URL_ROLE_MAPPINGS.put("/appointments", allAuthenticatedRoles);
     }
 
-    // Get user role from session
-    HttpSession session = httpRequest.getSession(false);
-    Integer userRoleId = getUserRoleId(session);
+    /**
+     * Configure pattern-based URL role mappings
+     */
+    private static void initializePatternRoleMappings() {
+        // Customer area patterns - customer-only access
+        PATTERN_ROLE_MAPPINGS.put("/customer/*", new HashSet<>(Arrays.asList(RoleConstants.CUSTOMER_ID)));
 
-    if (userRoleId == null) {
-      // This shouldn't happen if AuthenticationFilter is working correctly
-      httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication required");
-      return;
+        // Manager area patterns
+        PATTERN_ROLE_MAPPINGS.put("/manager/*", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
+
+        // Admin area patterns
+        PATTERN_ROLE_MAPPINGS.put("/admin/*", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID)));
+
+        // API patterns
+        PATTERN_ROLE_MAPPINGS.put("/api/customer/*", new HashSet<>(Arrays.asList(RoleConstants.CUSTOMER_ID)));
+        PATTERN_ROLE_MAPPINGS.put("/api/manager/*", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
+        PATTERN_ROLE_MAPPINGS.put("/api/admin/*", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID)));
+
+        // Therapist area patterns
+        PATTERN_ROLE_MAPPINGS.put("/therapist/*", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID)));
+
+        // Receptionist area patterns
+        PATTERN_ROLE_MAPPINGS.put("/receptionist/*", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.RECEPTIONIST_ID)));
+
+        // Marketing area patterns
+        PATTERN_ROLE_MAPPINGS.put("/marketing/*", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.MARKETING_ID)));
+
+        // Inventory area patterns
+        PATTERN_ROLE_MAPPINGS.put("/inventory/*", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.INVENTORY_MANAGER_ID)));
     }
 
-    // Check if user has permission to access the requested resource
-    if (!hasPermission(path, userRoleId)) {
-      // Log unauthorized access attempt
-      logUnauthorizedAccess(httpRequest, userRoleId, path);
+    /**
+     * Initialize URLs and patterns that require strict role matching
+     */
+    private static void initializeStrictRoleUrls() {
+        // Customer checkout URLs
+        STRICT_ROLE_URLS.add("/booking-checkout");
+        STRICT_ROLE_URLS.add("/checkout/process");
 
-      // Handle unauthorized access
-      handleUnauthorizedAccess(httpRequest, httpResponse, path, userRoleId);
-      return;
+        // Pattern-based strict role URLs
+        STRICT_ROLE_PATTERNS.add("/customer/*");
+        STRICT_ROLE_PATTERNS.add("/api/customer/*");
     }
 
-    // Add role information to request for downstream use
-    httpRequest.setAttribute("userRoleId", userRoleId);
-    httpRequest.setAttribute("userRoleName", RoleConstants.getUserTypeFromRole(userRoleId));
-
-    // Continue with the request
-    chain.doFilter(request, response);
-  }
-
-  /**
-   * Check if the resource requires authorization
-   */
-  private boolean requiresAuthorization(String path) {
-    // Check if any URL pattern matches the current path
-    for (String urlPattern : URL_ROLE_MAPPINGS.keySet()) {
-      if (path.startsWith(urlPattern)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Get user role ID from session
-   */
-  private Integer getUserRoleId(HttpSession session) {
-    if (session == null) {
-      return null;
+    @Override
+    public void init(FilterConfig filterConfig) throws ServletException {
+        // Filter initialization
     }
 
-    User user = (User) session.getAttribute("user");
-    if (user != null) {
-      return user.getRoleId();
-    }
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
+        System.out.println("--- [DEBUG] AuthorizationFilter is running! Path: " + ((HttpServletRequest) request).getRequestURI());
 
-    Customer customer = (Customer) session.getAttribute("customer");
-    if (customer != null) {
-      return customer.getRoleId();
-    }
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-    return null;
-  }
+        // Get request path
+        String requestURI = httpRequest.getRequestURI();
+        String contextPath = httpRequest.getContextPath();
+        String path = requestURI.substring(contextPath.length());
 
-  /**
-   * Check if user has permission to access the requested path
-   */
-  private boolean hasPermission(String path, Integer userRoleId) {
-    // Find the most specific matching URL pattern
-    String matchedPattern = null;
-    int maxMatchLength = 0;
-
-    for (String urlPattern : URL_ROLE_MAPPINGS.keySet()) {
-      if (path.startsWith(urlPattern) && urlPattern.length() > maxMatchLength) {
-        matchedPattern = urlPattern;
-        maxMatchLength = urlPattern.length();
-      }
-    }
-
-    if (matchedPattern == null) {
-      // No specific pattern found, allow access (default allow)
-      return true;
-    }
-
-    Set<Integer> allowedRoles = URL_ROLE_MAPPINGS.get(matchedPattern);
-
-    // Check direct role permission
-    if (allowedRoles.contains(userRoleId)) {
-      return true;
-    }
-
-    // Check hierarchical permissions
-    Set<Integer> inheritedRoles = ROLE_HIERARCHY.get(userRoleId);
-    if (inheritedRoles != null) {
-      for (Integer allowedRole : allowedRoles) {
-        if (inheritedRoles.contains(allowedRole)) {
-          return true;
+        // Skip authorization for public resources and error pages
+        if (SecurityConfig.isPublicResource(path) || isErrorPage(path)) {
+            chain.doFilter(request, response);
+            return;
         }
-      }
+
+        // Check if path requires authorization
+        if (!requiresAuthorization(path)) {
+            System.out.println("[AuthorizationFilter] Path not found in authorization rules, forwarding to 404: " + path);
+            request.getRequestDispatcher("/WEB-INF/view/common/error/404.jsp").forward(request, response);
+            return;
+        }
+
+        // Get user role from session
+        HttpSession session = httpRequest.getSession(false);
+        Integer userRoleId = getUserRoleId(session);
+
+        if (userRoleId == null) {
+            httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication required");
+            return;
+        }
+
+        // Check permission
+        if (!hasPermission(path, userRoleId)) {
+            logUnauthorizedAccess(httpRequest, userRoleId, path);
+            handleUnauthorizedAccess(httpRequest, httpResponse, path, userRoleId);
+            return;
+        }
+
+        // Add role information to request
+        httpRequest.setAttribute("userRoleId", userRoleId);
+        httpRequest.setAttribute("userRoleName", RoleConstants.getUserTypeFromRole(userRoleId));
+
+        chain.doFilter(request, response);
     }
 
-    return false;
-  }
+    /**
+     * Check if the resource requires authorization
+     */
+    private boolean requiresAuthorization(String path) {
+        // Check explicit URL patterns
+        for (String urlPattern : URL_ROLE_MAPPINGS.keySet()) {
+            if (path.startsWith(urlPattern)) {
+                return true;
+            }
+        }
 
-  /**
-   * Handle unauthorized access attempts
-   */
-  private void handleUnauthorizedAccess(HttpServletRequest request, HttpServletResponse response,
-      String path, Integer userRoleId) throws IOException, ServletException {
+        // Check pattern-based URL mappings
+        for (String pattern : PATTERN_ROLE_MAPPINGS.keySet()) {
+            if (matchesPattern(path, pattern)) {
+                return true;
+            }
+        }
 
-    // Check if it's an AJAX request
-    if (isAjaxRequest(request)) {
-      response.setContentType("application/json");
-      response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-      response.getWriter()
-          .write("{\"error\":\"Access denied\",\"message\":\"You don't have permission to access this resource\"}");
-      return;
+        return false;
     }
 
-    // For regular requests, forward to appropriate error page
-    if (userRoleId != null && userRoleId <= RoleConstants.RECEPTIONIST_ID) {
-      // Staff error page
-      request.getRequestDispatcher("/WEB-INF/view/common/error/403.jsp").forward(request, response);
-    } else {
-      // Customer error page
-      request.getRequestDispatcher("/WEB-INF/view/common/error/403.jsp").forward(request, response);
-    }
-  }
-
-  /**
-   * Check if the request is an AJAX request
-   */
-  private boolean isAjaxRequest(HttpServletRequest request) {
-    String xRequestedWith = request.getHeader("X-Requested-With");
-    String accept = request.getHeader("Accept");
-    String contentType = request.getContentType();
-
-    return "XMLHttpRequest".equals(xRequestedWith) ||
-        (accept != null && accept.contains("application/json")) ||
-        (contentType != null && contentType.contains("application/json"));
-  }
-
-  /**
-   * Log unauthorized access attempts for security monitoring
-   */
-  private void logUnauthorizedAccess(HttpServletRequest request, Integer userRoleId, String path) {
-    String userInfo = "Unknown";
-    HttpSession session = request.getSession(false);
-
-    if (session != null) {
-      User user = (User) session.getAttribute("user");
-      Customer customer = (Customer) session.getAttribute("customer");
-
-      if (user != null) {
-        userInfo = "User(ID:" + user.getUserId() + ", Email:" + user.getEmail() + ")";
-      } else if (customer != null) {
-        userInfo = "Customer(ID:" + customer.getCustomerId() + ", Email:" + customer.getEmail() + ")";
-      }
+    /**
+     * Check if a path matches a wildcard pattern
+     */
+    private boolean matchesPattern(String path, String pattern) {
+        if (pattern.endsWith("/*")) {
+            String prefix = pattern.substring(0, pattern.length() - 2);
+            return path.startsWith(prefix + "/") || path.equals(prefix);
+        }
+        return path.equals(pattern);
     }
 
-    System.err.println("[SECURITY WARNING] Unauthorized access attempt: " +
-        "User=" + userInfo +
-        ", Role=" + RoleConstants.getUserTypeFromRole(userRoleId) +
-        ", Path=" + path +
-        ", IP=" + request.getRemoteAddr() +
-        ", UserAgent=" + request.getHeader("User-Agent"));
-  }
+    /**
+     * Get user role ID from session
+     */
+    private Integer getUserRoleId(HttpSession session) {
+        if (session == null) {
+            return null;
+        }
 
-  /**
-   * Check if the path is an error page
-   */
-  private boolean isErrorPage(String path) {
-    return path.startsWith("/WEB-INF/view/common/error/") ||
-        path.startsWith("/error/") ||
-        path.equals("/404") ||
-        path.equals("/500") ||
-        path.equals("/403") ||
-        path.equals("/401");
-  }
+        User user = (User) session.getAttribute("user");
+        if (user != null) {
+            return user.getRoleId();
+        }
 
-  @Override
-  public void destroy() {
-    // Filter cleanup if needed
-  }
+        Customer customer = (Customer) session.getAttribute("customer");
+        if (customer != null) {
+            return customer.getRoleId();
+        }
+
+        return null;
+    }
+
+    /**
+     * Check if user has permission to access the requested path
+     */
+    private boolean hasPermission(String path, Integer userRoleId) {
+        System.out.println("[DEBUG] hasPermission called: path=" + path + ", userRoleId=" + userRoleId);
+
+        // Find the most specific matching URL pattern
+        String matchedPattern = null;
+        Set<Integer> allowedRoles = null;
+        int maxMatchLength = 0;
+
+        // Check explicit URL patterns first
+        for (String urlPattern : URL_ROLE_MAPPINGS.keySet()) {
+            if (path.startsWith(urlPattern) && urlPattern.length() > maxMatchLength) {
+                matchedPattern = urlPattern;
+                allowedRoles = URL_ROLE_MAPPINGS.get(urlPattern);
+                maxMatchLength = urlPattern.length();
+                System.out.println("[DEBUG] Explicit pattern matched: " + urlPattern + ", roles: " + allowedRoles);
+            }
+        }
+
+        // Check pattern-based URL mappings if no explicit match or if pattern is more specific
+        for (String pattern : PATTERN_ROLE_MAPPINGS.keySet()) {
+            if (matchesPattern(path, pattern)) {
+                int patternLength = pattern.endsWith("/*") ? pattern.length() - 2 : pattern.length();
+                if (matchedPattern == null || patternLength > maxMatchLength) {
+                    matchedPattern = pattern;
+                    allowedRoles = PATTERN_ROLE_MAPPINGS.get(pattern);
+                    maxMatchLength = patternLength;
+                    System.out.println("[DEBUG] Pattern selected: " + pattern + ", roles: " + allowedRoles);
+                }
+            }
+        }
+
+        System.out.println("[DEBUG] Final matched pattern: " + matchedPattern + ", allowedRoles: " + allowedRoles);
+
+        if (matchedPattern == null || allowedRoles == null) {
+            System.out.println("[DEBUG] No pattern matched, allowing access");
+            return true;
+        }
+
+        // Check if the URL requires strict role matching
+        if (isStrictRoleUrl(path, matchedPattern)) {
+            return allowedRoles.contains(userRoleId);
+        }
+
+        // Check direct role permission
+        return allowedRoles.contains(userRoleId);
+    }
+
+    /**
+     * Check if a URL requires strict role matching
+     */
+    private boolean isStrictRoleUrl(String path, String matchedPattern) {
+        if (STRICT_ROLE_URLS.contains(matchedPattern)) {
+            return true;
+        }
+
+        for (String strictPattern : STRICT_ROLE_PATTERNS) {
+            if (matchesPattern(path, strictPattern)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Handle unauthorized access attempts
+     */
+    private void handleUnauthorizedAccess(HttpServletRequest request, HttpServletResponse response,
+            String path, Integer userRoleId) throws IOException, ServletException {
+        if (isAjaxRequest(request)) {
+            response.setContentType("application/json");
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.getWriter()
+                    .write("{\"error\":\"Access denied\",\"message\":\"You don't have permission to access this resource\"}");
+            return;
+        }
+
+        request.getRequestDispatcher("/WEB-INF/view/common/error/403.jsp").forward(request, response);
+    }
+
+    /**
+     * Check if the request is an AJAX request
+     */
+    private boolean isAjaxRequest(HttpServletRequest request) {
+        String xRequestedWith = request.getHeader("X-Requested-With");
+        String accept = request.getHeader("Accept");
+        String contentType = request.getContentType();
+
+        return "XMLHttpRequest".equals(xRequestedWith) ||
+                (accept != null && accept.contains("application/json")) ||
+                (contentType != null && contentType.contains("application/json"));
+    }
+
+    /**
+     * Log unauthorized access attempts
+     */
+    private void logUnauthorizedAccess(HttpServletRequest request, Integer userRoleId, String path) {
+        String userInfo = "Unknown";
+        HttpSession session = request.getSession(false);
+
+        if (session != null) {
+            User user = (User) session.getAttribute("user");
+            Customer customer = (Customer) session.getAttribute("customer");
+
+            if (user != null) {
+                userInfo = "User(ID:" + user.getUserId() + ", Email:" + user.getEmail() + ")";
+            } else if (customer != null) {
+                userInfo = "Customer(ID:" + customer.getCustomerId() + ", Email:" + customer.getEmail() + ")";
+            }
+        }
+
+        System.err.println("[SECURITY WARNING] Unauthorized access attempt: " +
+                "User=" + userInfo +
+                ", Role=" + RoleConstants.getUserTypeFromRole(userRoleId) +
+                ", Path=" + path +
+                ", IP=" + request.getRemoteAddr() +
+                ", UserAgent=" + request.getHeader("User-Agent"));
+    }
+
+    /**
+     * Check if the path is an error page
+     */
+    private boolean isErrorPage(String path) {
+        return path.startsWith("/WEB-INF/view/common/error/") ||
+                path.startsWith("/error/") ||
+                path.equals("/404") ||
+                path.equals("/500") ||
+                path.equals("/403") ||
+                path.equals("/401");
+    }
+
+    @Override
+    public void destroy() {
+        // Filter cleanup
+    }
 }

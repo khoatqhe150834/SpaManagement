@@ -569,34 +569,8 @@
                     </c:choose>
                 </div>
             </div> 
-           <!-- Payment Analytics -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Payment Methods Chart -->
-                <div class="bg-white rounded-xl shadow-md border border-primary/10 overflow-hidden">
-                    <div class="p-6 border-b border-gray-200">
-                        <h2 class="text-lg font-semibold text-spa-dark flex items-center gap-2">
-                            <i data-lucide="pie-chart" class="h-5 w-5 text-primary"></i>
-                            Phân bố phương thức thanh toán
-                        </h2>
-                    </div>
-                    <div class="p-6">
-                        <canvas id="paymentMethodsChart" height="300"></canvas>
-                    </div>
-                </div>
-                
-                <!-- Monthly Revenue Chart -->
-                <div class="bg-white rounded-xl shadow-md border border-primary/10 overflow-hidden">
-                    <div class="p-6 border-b border-gray-200">
-                        <h2 class="text-lg font-semibold text-spa-dark flex items-center gap-2">
-                            <i data-lucide="bar-chart-2" class="h-5 w-5 text-primary"></i>
-                            Doanh thu theo tháng
-                        </h2>
-                    </div>
-                    <div class="p-6">
-                        <canvas id="monthlyRevenueChart" height="300"></canvas>
-                    </div>
-                </div>
-            </div>
+           
+            
         </div>
     </main>
 

@@ -472,7 +472,7 @@
                         <div class="info-row">
                             <span class="info-label">Tạm tính:</span>
                             <span class="info-value">
-                                ${payment.subtotalAmount} VNĐ
+                                <fmt:formatNumber value="${payment.subtotalAmount}" type="currency" currencySymbol="" pattern="#,##0"/> VNĐ
                             </span>
                         </div>
                     </div>
@@ -480,7 +480,7 @@
                         <div class="info-row">
                             <span class="info-label">Thuế:</span>
                             <span class="info-value">
-                                ${payment.taxAmount} VNĐ
+                                <fmt:formatNumber value="${payment.taxAmount}" type="currency" currencySymbol="" pattern="#,##0"/> VNĐ
                             </span>
                         </div>
                     </div>
@@ -488,7 +488,7 @@
                         <div class="info-row">
                             <span class="info-label">Tổng cộng:</span>
                             <span class="info-value amount-highlight">
-                                ${payment.totalAmount} VNĐ
+                                <fmt:formatNumber value="${payment.totalAmount}" type="currency" currencySymbol="" pattern="#,##0"/> VNĐ
                             </span>
                         </div>
                     </div>
@@ -538,7 +538,7 @@
                                             </td>
                                             <td class="text-right">
                                                 <span class="font-semibold text-gray-900">
-                                                    ${item.unitPrice} VNĐ
+                                                    <fmt:formatNumber value="${item.unitPrice}" type="currency" currencySymbol="" pattern="#,##0"/> VNĐ
                                                 </span>
                                             </td>
                                             <td class="text-center">
@@ -548,7 +548,7 @@
                                             </td>
                                             <td class="text-right">
                                                 <span class="font-bold text-primary">
-                                                    ${item.totalPrice} VNĐ
+                                                    <fmt:formatNumber value="${item.totalPrice}" type="currency" currencySymbol="" pattern="#,##0"/> VNĐ
                                                 </span>
                                             </td>
                                             <td>
@@ -667,6 +667,9 @@
                     responsive: true,
                     dom: 'Blfrtip',
                     processing: true,
+                    stateSave: true,
+                    stateDuration: 300, // 5 minutes state persistence
+                    pageResize: true,
                     language: {
                         "sProcessing": "Đang xử lý...",
                         "sLengthMenu": "Hiển thị _MENU_ mục",
@@ -696,8 +699,9 @@
                             responsivePriority: 3,
                             targets: [5] // Usage status is low priority
                         },
+                        // Đơn giá column (index 2) - numeric sorting
                         {
-                            targets: 2, // Unit price column
+                            targets: 2,
                             type: 'num',
                             render: function(data, type, row) {
                                 if (type === 'sort' || type === 'type') {
@@ -707,8 +711,22 @@
                                 return data;
                             }
                         },
+                        // Thời gian column (index 3) - numeric sorting
                         {
-                            targets: 4, // Total price column
+                            targets: 3,
+                            type: 'num',
+                            render: function(data, type, row) {
+                                if (type === 'sort' || type === 'type') {
+                                    // Extract numeric value from "X phút" format
+                                    var match = data.match(/(\d+)/);
+                                    return match ? parseInt(match[1]) : 0;
+                                }
+                                return data;
+                            }
+                        },
+                        // Thành tiền column (index 4) - numeric sorting
+                        {
+                            targets: 4,
                             type: 'num',
                             render: function(data, type, row) {
                                 if (type === 'sort' || type === 'type') {
@@ -718,8 +736,9 @@
                                 return data;
                             }
                         },
+                        // Make action column non-sortable
                         {
-                            targets: 6, // Actions column
+                            targets: 6,
                             orderable: false,
                             searchable: false
                         }
@@ -745,6 +764,62 @@
                         }
                     ],
                     dom: '<"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4"<"flex items-center"l><"flex items-center"Bf>>rtip',
+
+                    // Custom state saving callback to preserve pagination during sorting
+                    stateSaveCallback: function(settings, data) {
+                        // Store the current page info before any operations
+                        data.paymentItemsCurrentPage = this.api().page.info().page;
+                        data.paymentItemsPageLength = this.api().page.len();
+
+                        // Store in sessionStorage for this specific table
+                        sessionStorage.setItem('paymentItemsTableState', JSON.stringify(data));
+                    },
+
+                    stateLoadCallback: function(settings) {
+                        // Load state from sessionStorage
+                        var state = sessionStorage.getItem('paymentItemsTableState');
+                        return state ? JSON.parse(state) : null;
+                    },
+
+                    // Handle pre-sort to preserve current page context
+                    preDrawCallback: function(settings) {
+                        // Store current page before any redraw
+                        var api = this.api();
+                        var currentPage = api.page.info().page;
+                        var pageLength = api.page.len();
+
+                        // Store in data attribute for later use
+                        $(this).data('currentPage', currentPage);
+                        $(this).data('pageLength', pageLength);
+                    },
+
+                    // Handle post-draw to restore appropriate page
+                    drawCallback: function(settings) {
+                        var api = this.api();
+                        var storedPage = $(this).data('currentPage');
+                        var currentInfo = api.page.info();
+
+                        // If we have a stored page and it's different from current
+                        if (storedPage !== undefined && storedPage !== currentInfo.page) {
+                            // Check if the stored page is still valid
+                            var maxPage = Math.ceil(currentInfo.recordsDisplay / currentInfo.length) - 1;
+
+                            if (storedPage <= maxPage && storedPage >= 0) {
+                                // Restore the previous page if it's still valid
+                                api.page(storedPage).draw(false);
+                            } else if (storedPage > maxPage) {
+                                // If stored page is beyond available pages, go to last page
+                                api.page(maxPage).draw(false);
+                            }
+                        }
+
+                        // Reinitialize Lucide icons
+                        setTimeout(function() {
+                            if (typeof lucide !== 'undefined') {
+                                lucide.createIcons();
+                            }
+                        }, 100);
+                    },
 
                     initComplete: function() {
                         // Apply custom styling after DataTables initialization
@@ -795,7 +870,7 @@
 
         function viewServiceDetails(serviceId) {
             // Open service details in a new window or modal
-            window.open('${pageContext.request.contextPath}/services-details?id=' + serviceId, '_blank');
+            window.open('${pageContext.request.contextPath}/service-details?id=' + serviceId, '_blank');
         }
 
         function scheduleService(paymentItemId) {

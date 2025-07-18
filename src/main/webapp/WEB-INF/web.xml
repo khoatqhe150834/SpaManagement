@@ -188,8 +188,8 @@
         <servlet-name>CustomerController</servlet-name>
         <url-pattern>/customer/*</url-pattern>
     </servlet-mapping>
-    --> >>>>>>>
-    d07ad0a6981b721dd5751982ea529b9fea30dcd6 <!-- BookingSession API Servlet -->
+    -->
+     <!-- BookingSession API Servlet -->
     <servlet>
         <servlet-name>BookingSessionApiServlet</servlet-name>
         <servlet-class>controller.api.BookingSessionApiServlet</servlet-class>

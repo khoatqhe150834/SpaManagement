@@ -14,7 +14,6 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import model.Bed;
 import model.Room;
 
@@ -46,15 +45,7 @@ public class ValidationController extends HttpServlet {
         // Set response content type to JSON
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-        
-        // Check authentication and authorization
-        HttpSession session = request.getSession();
-        String userRole = (String) session.getAttribute("userRole");
-        
-        if (!"MANAGER".equals(userRole) && !"ADMIN".equals(userRole)) {
-            sendErrorResponse(response, "Không có quyền truy cập", 403);
-            return;
-        }
+       
         
         String pathInfo = request.getPathInfo();
         String servletPath = request.getServletPath();
