@@ -40,8 +40,7 @@
     </style>
   </head>
   <body class="bg-spa-cream min-h-screen flex flex-col">
-    <!-- Include Header -->
-    <jsp:include page="/WEB-INF/view/common/header.jsp" />
+
 
     <!-- Main Content -->
     <main class="flex-grow">
@@ -89,7 +88,6 @@
       </div>
     </main>
 
-    <!-- Include Footer -->
-    <jsp:include page="/WEB-INF/view/common/footer.jsp" />
+
   </body>
 </html> 

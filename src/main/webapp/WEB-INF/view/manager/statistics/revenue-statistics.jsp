@@ -33,12 +33,9 @@
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <body class="bg-spa-cream min-h-screen">
-    <!-- Include Header -->
-    <jsp:include page="../../common/header.jsp" />
-    
+
     <!-- Include Sidebar -->
     <jsp:include page="../../common/sidebar.jsp" />
-    
     <!-- Main Content -->
     <div class="ml-64 pt-16 p-6">
         <!-- Breadcrumb -->
@@ -179,8 +176,7 @@
         </div>
     </div>
 
-    <!-- Include Footer -->
-    <jsp:include page="../../common/footer.jsp" />
+
 
     <script>
         // Initialize Lucide icons

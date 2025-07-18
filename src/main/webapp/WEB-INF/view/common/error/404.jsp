@@ -34,8 +34,7 @@
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
   </head>
   <body class="bg-spa-cream min-h-screen flex flex-col">
-    <!-- Include Header -->
-    <jsp:include page="/WEB-INF/view/common/header.jsp" />
+
 
     <!-- Main Content -->
     <main class="flex-grow flex items-center justify-center p-4">
@@ -80,8 +79,7 @@
       </div>
     </main>
 
-    <!-- Include Footer -->
-    <jsp:include page="/WEB-INF/view/common/footer.jsp" />
+
 
     <script>
       // Initialize Lucide icons
