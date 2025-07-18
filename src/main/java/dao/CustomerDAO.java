@@ -7,7 +7,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -188,11 +190,23 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
     public <S extends Customer> S save(S customer) {
         AccountDAO accountDAO = new AccountDAO();
 
-        if (accountDAO.isEmailTakenInSystem(customer.getEmail())) {
-            throw new IllegalArgumentException("Email already exists");
+        // Validate required fields
+        if (customer.getFullName() == null || customer.getFullName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Tên khách hàng là bắt buộc");
         }
-        if (accountDAO.isPhoneTakenInSystem(customer.getPhoneNumber())) {
-            throw new IllegalArgumentException("Phone number already exists");
+
+        // Validate email if provided
+        if (customer.getEmail() != null && !customer.getEmail().trim().isEmpty()) {
+            if (accountDAO.isEmailTakenInSystem(customer.getEmail())) {
+                throw new IllegalArgumentException("Email đã tồn tại trong hệ thống");
+            }
+        }
+        
+        // Validate phone if provided
+        if (customer.getPhoneNumber() != null && !customer.getPhoneNumber().trim().isEmpty()) {
+            if (accountDAO.isPhoneTakenInSystem(customer.getPhoneNumber())) {
+                throw new IllegalArgumentException("Số điện thoại đã tồn tại trong hệ thống");
+            }
         }
 
         String sql = "INSERT INTO customers (full_name, email, hash_password, phone_number, role_id, is_active, loyalty_points, is_verified, created_at, updated_at, notes, gender, birthday, address, avatar_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -200,9 +214,16 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
                 PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, customer.getFullName());
             ps.setString(2, customer.getEmail());
-            ps.setString(3, BCrypt.hashpw(customer.getHashPassword(), BCrypt.gensalt()));
+            
+            // Handle password - only hash if not null and not empty
+            if (customer.getHashPassword() != null && !customer.getHashPassword().trim().isEmpty()) {
+                ps.setString(3, BCrypt.hashpw(customer.getHashPassword(), BCrypt.gensalt()));
+            } else {
+                ps.setString(3, null);
+            }
+            
             ps.setString(4, customer.getPhoneNumber());
-            ps.setInt(5, customer.getRoleId());
+            ps.setObject(5, customer.getRoleId());
             ps.setBoolean(6, customer.getIsActive() != null ? customer.getIsActive() : true);
             ps.setInt(7, customer.getLoyaltyPoints() != null ? customer.getLoyaltyPoints() : 0);
             ps.setBoolean(8, customer.getIsVerified() != null ? customer.getIsVerified() : false);
@@ -213,17 +234,24 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
             ps.setDate(13, customer.getBirthday() != null ? new java.sql.Date(customer.getBirthday().getTime()) : null);
             ps.setString(14, customer.getAddress());
             ps.setString(15, customer.getAvatarUrl());
+            
             int rows = ps.executeUpdate();
             if (rows > 0) {
                 ResultSet rs = ps.getGeneratedKeys();
                 if (rs.next()) {
                     customer.setCustomerId(rs.getInt(1));
                 }
+                Logger.getLogger(CustomerDAO.class.getName()).log(Level.INFO, 
+                    "Successfully saved customer with ID: " + customer.getCustomerId());
+                return customer;
+            } else {
+                throw new RuntimeException("Không thể lưu khách hàng - không có dòng nào được tạo");
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Error saving customer: " + e.getMessage(), e);
+            Logger.getLogger(CustomerDAO.class.getName()).log(Level.SEVERE, 
+                "SQL Error saving customer: " + e.getMessage(), e);
+            throw new RuntimeException("Lỗi database khi lưu khách hàng: " + e.getMessage(), e);
         }
-        return customer;
     }
 
     @Override
@@ -316,6 +344,15 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
 
     @Override
     public <S extends Customer> S update(S customer) {
+        // Validate required fields
+        if (customer.getCustomerId() == null || customer.getCustomerId() <= 0) {
+            throw new IllegalArgumentException("ID khách hàng không hợp lệ");
+        }
+        
+        if (customer.getFullName() == null || customer.getFullName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Tên khách hàng là bắt buộc");
+        }
+
         String sql = "UPDATE customers SET full_name=?, email=?, phone_number=?, gender=?, birthday=?, address=?, is_active=?, loyalty_points=?, role_id=?, is_verified=?, updated_at=?, avatar_url=?, notes=? WHERE customer_id=?";
         
         // DEBUG LOGGING
@@ -326,26 +363,36 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         Logger.getLogger(CustomerDAO.class.getName()).log(Level.INFO, "Phone: " + customer.getPhoneNumber());
         Logger.getLogger(CustomerDAO.class.getName()).log(Level.INFO, "=== END DAO DEBUG ===");
         
-        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBContext.getConnection(); 
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, customer.getFullName());
             ps.setString(2, customer.getEmail());
             ps.setString(3, customer.getPhoneNumber());
             ps.setString(4, customer.getGender());
             ps.setDate(5, customer.getBirthday() != null ? new java.sql.Date(customer.getBirthday().getTime()) : null);
             ps.setString(6, customer.getAddress());
-            ps.setBoolean(7, customer.getIsActive());
-            ps.setInt(8, customer.getLoyaltyPoints());
-            ps.setInt(9, customer.getRoleId());
+            ps.setBoolean(7, customer.getIsActive() != null ? customer.getIsActive() : true);
+            ps.setInt(8, customer.getLoyaltyPoints() != null ? customer.getLoyaltyPoints() : 0);
+            ps.setObject(9, customer.getRoleId());
             ps.setBoolean(10, customer.getIsVerified() != null ? customer.getIsVerified() : false);
             ps.setTimestamp(11, Timestamp.valueOf(java.time.LocalDateTime.now()));
             ps.setString(12, customer.getAvatarUrl());
             ps.setString(13, customer.getNotes());
             ps.setInt(14, customer.getCustomerId());
-            ps.executeUpdate();
+            
+            int rowsAffected = ps.executeUpdate();
+            if (rowsAffected > 0) {
+                Logger.getLogger(CustomerDAO.class.getName()).log(Level.INFO, 
+                    "Successfully updated customer with ID: " + customer.getCustomerId());
+                return customer;
+            } else {
+                throw new RuntimeException("Không thể cập nhật khách hàng - không tìm thấy khách hàng với ID: " + customer.getCustomerId());
+            }
         } catch (SQLException e) {
-            throw new RuntimeException("Error updating customer: " + e.getMessage(), e);
+            Logger.getLogger(CustomerDAO.class.getName()).log(Level.SEVERE, 
+                "SQL Error updating customer: " + e.getMessage(), e);
+            throw new RuntimeException("Lỗi database khi cập nhật khách hàng: " + e.getMessage(), e);
         }
-        return customer;
     }
 
     @Override
@@ -688,12 +735,12 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
 
         if (status != null && !status.trim().isEmpty()) {
             sql.append(" AND is_active = ?");
-            params.add("active".equalsIgnoreCase(status));
+            params.add("true".equalsIgnoreCase(status));
         }
 
         if (verification != null && !verification.trim().isEmpty()) {
             sql.append(" AND is_verified = ?");
-            params.add("verified".equalsIgnoreCase(verification));
+            params.add("true".equalsIgnoreCase(verification));
         }
 
         // Validate sortBy parameter to prevent SQL injection
@@ -770,12 +817,12 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
 
         if (status != null && !status.trim().isEmpty()) {
             sql.append(" AND is_active = ?");
-            params.add("active".equalsIgnoreCase(status));
+            params.add("true".equalsIgnoreCase(status));
         }
 
         if (verification != null && !verification.trim().isEmpty()) {
             sql.append(" AND is_verified = ?");
-            params.add("verified".equalsIgnoreCase(verification));
+            params.add("true".equalsIgnoreCase(verification));
         }
 
         try (Connection conn = DBContext.getConnection();
@@ -1069,4 +1116,591 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
     }
 
     private static final Logger logger = Logger.getLogger(CustomerDAO.class.getName());
+
+    // ===== ADDITIONAL METHODS FOR UNIFIED CUSTOMER MANAGEMENT =====
+
+    /**
+     * Validate customer data before saving or updating
+     */
+    public void validateCustomerData(Customer customer) throws IllegalArgumentException {
+        if (customer == null) {
+            throw new IllegalArgumentException("Customer cannot be null");
+        }
+        
+        if (customer.getFullName() == null || customer.getFullName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Full name is required");
+        }
+        
+        if (customer.getFullName().trim().length() < 2) {
+            throw new IllegalArgumentException("Full name must be at least 2 characters long");
+        }
+        
+        if (customer.getFullName().trim().length() > 100) {
+            throw new IllegalArgumentException("Full name must be less than 100 characters");
+        }
+        
+        // Validate email format if provided
+        if (customer.getEmail() != null && !customer.getEmail().trim().isEmpty()) {
+            String email = customer.getEmail().trim();
+            if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+                throw new IllegalArgumentException("Invalid email format");
+            }
+        }
+        
+        // Validate phone format if provided
+        if (customer.getPhoneNumber() != null && !customer.getPhoneNumber().trim().isEmpty()) {
+            String phone = customer.getPhoneNumber().trim();
+            if (!phone.matches("^[0-9+\\-\\s()]{10,15}$")) {
+                throw new IllegalArgumentException("Invalid phone number format");
+            }
+        }
+    }
+
+    /**
+     * Save customer with validation
+     */
+    public <S extends Customer> S saveWithValidation(S customer) {
+        validateCustomerData(customer);
+        return save(customer);
+    }
+
+    /**
+     * Update customer with validation
+     */
+    public <S extends Customer> S updateWithValidation(S customer) {
+        validateCustomerData(customer);
+        return update(customer);
+    }
+
+    /**
+     * Bulk activate customers
+     */
+    public int bulkActivateCustomers(List<Integer> customerIds) {
+        if (customerIds == null || customerIds.isEmpty()) {
+            return 0;
+        }
+        
+        String sql = "UPDATE customers SET is_active = true, updated_at = ? WHERE customer_id = ?";
+        int successCount = 0;
+        
+        try (Connection conn = DBContext.getConnection()) {
+            conn.setAutoCommit(false); // Start transaction
+            
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                Timestamp now = Timestamp.valueOf(java.time.LocalDateTime.now());
+                
+                for (Integer customerId : customerIds) {
+                    ps.setTimestamp(1, now);
+                    ps.setInt(2, customerId);
+                    ps.addBatch();
+                }
+                
+                int[] results = ps.executeBatch();
+                for (int result : results) {
+                    if (result > 0) {
+                        successCount++;
+                    }
+                }
+                
+                conn.commit(); // Commit transaction
+                logger.info("Bulk activated " + successCount + " customers");
+                
+            } catch (SQLException e) {
+                conn.rollback(); // Rollback on error
+                throw e;
+            }
+            
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error in bulk activate customers", e);
+            throw new RuntimeException("Error in bulk activate customers: " + e.getMessage(), e);
+        }
+        
+        return successCount;
+    }
+
+    /**
+     * Bulk deactivate customers
+     */
+    public int bulkDeactivateCustomers(List<Integer> customerIds) {
+        if (customerIds == null || customerIds.isEmpty()) {
+            return 0;
+        }
+        
+        String sql = "UPDATE customers SET is_active = false, updated_at = ? WHERE customer_id = ?";
+        int successCount = 0;
+        
+        try (Connection conn = DBContext.getConnection()) {
+            conn.setAutoCommit(false); // Start transaction
+            
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                Timestamp now = Timestamp.valueOf(java.time.LocalDateTime.now());
+                
+                for (Integer customerId : customerIds) {
+                    ps.setTimestamp(1, now);
+                    ps.setInt(2, customerId);
+                    ps.addBatch();
+                }
+                
+                int[] results = ps.executeBatch();
+                for (int result : results) {
+                    if (result > 0) {
+                        successCount++;
+                    }
+                }
+                
+                conn.commit(); // Commit transaction
+                logger.info("Bulk deactivated " + successCount + " customers");
+                
+            } catch (SQLException e) {
+                conn.rollback(); // Rollback on error
+                throw e;
+            }
+            
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error in bulk deactivate customers", e);
+            throw new RuntimeException("Error in bulk deactivate customers: " + e.getMessage(), e);
+        }
+        
+        return successCount;
+    }
+
+    /**
+     * Bulk verify customer emails
+     */
+    public int bulkVerifyCustomerEmails(List<Integer> customerIds) {
+        if (customerIds == null || customerIds.isEmpty()) {
+            return 0;
+        }
+        
+        String sql = "UPDATE customers SET is_verified = true, updated_at = ? WHERE customer_id = ? AND email IS NOT NULL";
+        int successCount = 0;
+        
+        try (Connection conn = DBContext.getConnection()) {
+            conn.setAutoCommit(false); // Start transaction
+            
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                Timestamp now = Timestamp.valueOf(java.time.LocalDateTime.now());
+                
+                for (Integer customerId : customerIds) {
+                    ps.setTimestamp(1, now);
+                    ps.setInt(2, customerId);
+                    ps.addBatch();
+                }
+                
+                int[] results = ps.executeBatch();
+                for (int result : results) {
+                    if (result > 0) {
+                        successCount++;
+                    }
+                }
+                
+                conn.commit(); // Commit transaction
+                logger.info("Bulk verified " + successCount + " customer emails");
+                
+            } catch (SQLException e) {
+                conn.rollback(); // Rollback on error
+                throw e;
+            }
+            
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error in bulk verify customer emails", e);
+            throw new RuntimeException("Error in bulk verify customer emails: " + e.getMessage(), e);
+        }
+        
+        return successCount;
+    }
+
+    /**
+     * Bulk unverify customer emails
+     */
+    public int bulkUnverifyCustomerEmails(List<Integer> customerIds) {
+        if (customerIds == null || customerIds.isEmpty()) {
+            return 0;
+        }
+        
+        String sql = "UPDATE customers SET is_verified = false, updated_at = ? WHERE customer_id = ? AND email IS NOT NULL";
+        int successCount = 0;
+        
+        try (Connection conn = DBContext.getConnection()) {
+            conn.setAutoCommit(false); // Start transaction
+            
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                Timestamp now = Timestamp.valueOf(java.time.LocalDateTime.now());
+                
+                for (Integer customerId : customerIds) {
+                    ps.setTimestamp(1, now);
+                    ps.setInt(2, customerId);
+                    ps.addBatch();
+                }
+                
+                int[] results = ps.executeBatch();
+                for (int result : results) {
+                    if (result > 0) {
+                        successCount++;
+                    }
+                }
+                
+                conn.commit(); // Commit transaction
+                logger.info("Bulk unverified " + successCount + " customer emails");
+                
+            } catch (SQLException e) {
+                conn.rollback(); // Rollback on error
+                throw e;
+            }
+            
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error in bulk unverify customer emails", e);
+            throw new RuntimeException("Error in bulk unverify customer emails: " + e.getMessage(), e);
+        }
+        
+        return successCount;
+    }
+
+    /**
+     * Bulk reset passwords for customers (generates secure random passwords)
+     */
+    public int bulkResetPasswords(List<Integer> customerIds) {
+        if (customerIds == null || customerIds.isEmpty()) {
+            return 0;
+        }
+        
+        String sql = "UPDATE customers SET hash_password = ?, updated_at = ? WHERE customer_id = ? AND email IS NOT NULL";
+        int successCount = 0;
+        
+        try (Connection conn = DBContext.getConnection()) {
+            conn.setAutoCommit(false); // Start transaction
+            
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                Timestamp now = Timestamp.valueOf(java.time.LocalDateTime.now());
+                
+                for (Integer customerId : customerIds) {
+                    // Generate secure random password
+                    String newPassword = generateSecureRandomPassword();
+                    String hashedPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt());
+                    
+                    ps.setString(1, hashedPassword);
+                    ps.setTimestamp(2, now);
+                    ps.setInt(3, customerId);
+                    ps.addBatch();
+                }
+                
+                int[] results = ps.executeBatch();
+                for (int result : results) {
+                    if (result > 0) {
+                        successCount++;
+                    }
+                }
+                
+                conn.commit(); // Commit transaction
+                logger.info("Bulk reset passwords for " + successCount + " customers");
+                
+            } catch (SQLException e) {
+                conn.rollback(); // Rollback on error
+                throw e;
+            }
+            
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error in bulk reset passwords", e);
+            throw new RuntimeException("Error in bulk reset passwords: " + e.getMessage(), e);
+        }
+        
+        return successCount;
+    }
+
+    /**
+     * Generate secure random password
+     */
+    private String generateSecureRandomPassword() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+        StringBuilder password = new StringBuilder();
+        java.security.SecureRandom random = new java.security.SecureRandom();
+        
+        for (int i = 0; i < 12; i++) {
+            password.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        
+        return password.toString();
+    }
+
+    /**
+     * Get customers by role ID
+     */
+    public List<Customer> getCustomersByRole(int roleId) {
+        List<Customer> customers = new ArrayList<>();
+        String sql = "SELECT * FROM customers WHERE role_id = ? ORDER BY full_name";
+        
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, roleId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    customers.add(buildCustomerFromResultSet(rs));
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error getting customers by role", e);
+            throw new RuntimeException("Error getting customers by role: " + e.getMessage(), e);
+        }
+        
+        return customers;
+    }
+
+    /**
+     * Get customer statistics
+     */
+    public Map<String, Integer> getCustomerStatistics() {
+        Map<String, Integer> stats = new HashMap<>();
+        
+        // Get total customers
+        stats.put("total", getTotalCustomers());
+        
+        // Get active/inactive counts
+        stats.put("active", countCustomersByStatus(true));
+        stats.put("inactive", countCustomersByStatus(false));
+        
+        // Get verified/unverified counts
+        stats.put("verified", countCustomersByVerification(true));
+        stats.put("unverified", countCustomersByVerification(false));
+        
+        // Get customers with email
+        String sqlWithEmail = "SELECT COUNT(*) FROM customers WHERE email IS NOT NULL AND email != ''";
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sqlWithEmail);
+                ResultSet rs = ps.executeQuery()) {
+            stats.put("withEmail", rs.next() ? rs.getInt(1) : 0);
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error getting customers with email count", e);
+            stats.put("withEmail", 0);
+        }
+        
+        // Get customers with phone
+        String sqlWithPhone = "SELECT COUNT(*) FROM customers WHERE phone_number IS NOT NULL AND phone_number != ''";
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sqlWithPhone);
+                ResultSet rs = ps.executeQuery()) {
+            stats.put("withPhone", rs.next() ? rs.getInt(1) : 0);
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error getting customers with phone count", e);
+            stats.put("withPhone", 0);
+        }
+        
+        return stats;
+    }
+
+    /**
+     * Check if customer exists by email
+     */
+    public boolean existsByEmail(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            return false;
+        }
+        
+        String sql = "SELECT COUNT(*) FROM customers WHERE email = ?";
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, email.trim());
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() && rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error checking if customer exists by email", e);
+            return false;
+        }
+    }
+
+    /**
+     * Check if customer exists by phone
+     */
+    public boolean existsByPhone(String phone) {
+        if (phone == null || phone.trim().isEmpty()) {
+            return false;
+        }
+        
+        String sql = "SELECT COUNT(*) FROM customers WHERE phone_number = ?";
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, phone.trim());
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() && rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error checking if customer exists by phone", e);
+            return false;
+        }
+    }
+
+    /**
+     * Update customer password by ID
+     */
+    public boolean updateCustomerPassword(int customerId, String newPassword) {
+        if (newPassword == null || newPassword.trim().isEmpty()) {
+            return false;
+        }
+        
+        String sql = "UPDATE customers SET hash_password = ?, updated_at = ? WHERE customer_id = ?";
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, BCrypt.hashpw(newPassword, BCrypt.gensalt()));
+            ps.setTimestamp(2, Timestamp.valueOf(java.time.LocalDateTime.now()));
+            ps.setInt(3, customerId);
+            
+            int rowsAffected = ps.executeUpdate();
+            if (rowsAffected > 0) {
+                logger.info("Successfully updated password for customer ID: " + customerId);
+                return true;
+            }
+            
+            return false;
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error updating customer password", e);
+            return false;
+        }
+    }
+
+    /**
+     * Get customers needing password reset (inactive or unverified)
+     */
+    public List<Customer> getCustomersNeedingPasswordReset() {
+        List<Customer> customers = new ArrayList<>();
+        String sql = "SELECT * FROM customers WHERE (is_active = false OR is_verified = false) AND email IS NOT NULL ORDER BY created_at DESC";
+        
+        try (Connection conn = DBContext.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    customers.add(buildCustomerFromResultSet(rs));
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error getting customers needing password reset", e);
+            throw new RuntimeException("Error getting customers needing password reset: " + e.getMessage(), e);
+        }
+        
+        return customers;
+    }
+
+    /**
+     * Delete multiple customers by IDs (for admin use only)
+     */
+    public int bulkDeleteCustomers(List<Integer> customerIds) {
+        if (customerIds == null || customerIds.isEmpty()) {
+            return 0;
+        }
+        
+        String sql = "DELETE FROM customers WHERE customer_id = ?";
+        int successCount = 0;
+        
+        try (Connection conn = DBContext.getConnection()) {
+            conn.setAutoCommit(false); // Start transaction
+            
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                for (Integer customerId : customerIds) {
+                    ps.setInt(1, customerId);
+                    ps.addBatch();
+                }
+                
+                int[] results = ps.executeBatch();
+                for (int result : results) {
+                    if (result > 0) {
+                        successCount++;
+                    }
+                }
+                
+                conn.commit(); // Commit transaction
+                logger.info("Bulk deleted " + successCount + " customers");
+                
+            } catch (SQLException e) {
+                conn.rollback(); // Rollback on error
+                throw e;
+            }
+            
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error in bulk delete customers", e);
+            throw new RuntimeException("Error in bulk delete customers: " + e.getMessage(), e);
+        }
+        
+        return successCount;
+    }
+
+    /**
+     * Check if customer has related data that prevents deletion
+     */
+    public boolean hasRelatedData(int customerId) {
+        String[] queries = {
+            "SELECT COUNT(*) FROM payments WHERE customer_id = ?",
+            "SELECT COUNT(*) FROM bookings WHERE customer_id = ?",
+            "SELECT COUNT(*) FROM shopping_carts WHERE customer_id = ?",
+            "SELECT COUNT(*) FROM checkins WHERE customer_id = ?"
+        };
+        
+        try (Connection conn = DBContext.getConnection()) {
+            for (String query : queries) {
+                try (PreparedStatement ps = conn.prepareStatement(query)) {
+                    ps.setInt(1, customerId);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next() && rs.getInt(1) > 0) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error checking related data for customer: " + customerId, e);
+            return true; // Return true to prevent deletion on error
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Get related data summary for a customer
+     */
+    public Map<String, Integer> getRelatedDataSummary(int customerId) {
+        Map<String, Integer> summary = new HashMap<>();
+        
+        String[] queries = {
+            "SELECT COUNT(*) FROM payments WHERE customer_id = ?",
+            "SELECT COUNT(*) FROM bookings WHERE customer_id = ?", 
+            "SELECT COUNT(*) FROM shopping_carts WHERE customer_id = ?",
+            "SELECT COUNT(*) FROM checkins WHERE customer_id = ?"
+        };
+        
+        String[] keys = {"payments", "bookings", "shopping_carts", "checkins"};
+        
+        try (Connection conn = DBContext.getConnection()) {
+            for (int i = 0; i < queries.length; i++) {
+                try (PreparedStatement ps = conn.prepareStatement(queries[i])) {
+                    ps.setInt(1, customerId);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()) {
+                            summary.put(keys[i], rs.getInt(1));
+                        }
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error getting related data summary for customer: " + customerId, e);
+        }
+        
+        return summary;
+    }
+    
+    /**
+     * Safe delete customer with related data check
+     */
+    public boolean safeDeleteCustomer(int customerId) {
+        // Check if customer has related data
+        if (hasRelatedData(customerId)) {
+            return false;
+        }
+        
+        try {
+            deleteById(customerId);
+            logger.info("Successfully deleted customer with ID: " + customerId);
+            return true;
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error deleting customer: " + customerId, e);
+            return false;
+        }
+    }
 }

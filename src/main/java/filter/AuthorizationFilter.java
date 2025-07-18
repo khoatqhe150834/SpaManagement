@@ -94,11 +94,15 @@ public class AuthorizationFilter implements Filter {
         // Inventory Manager areas
         URL_ROLE_MAPPINGS.put("/inventory-manager", new HashSet<>(Arrays.asList(RoleConstants.INVENTORY_MANAGER_ID)));
 
-        // Customer Management
+        // Customer Management (Admin, Manager, Receptionist)
+        URL_ROLE_MAPPINGS.put("/customer-management", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.RECEPTIONIST_ID)));
+
+        // User Management (Admin, Manager, and staff can view their own info)
+        URL_ROLE_MAPPINGS.put("/user-management", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID, RoleConstants.RECEPTIONIST_ID, RoleConstants.MARKETING_ID, RoleConstants.INVENTORY_MANAGER_ID)));
+
+        // Legacy customer paths (deprecated - for backward compatibility)
         URL_ROLE_MAPPINGS.put("/admin/customer-account", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID)));
         URL_ROLE_MAPPINGS.put("/manager/customer", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
-
-        // Legacy customer path (deprecated)
         
 
         // General authenticated user access
@@ -140,6 +144,9 @@ public class AuthorizationFilter implements Filter {
 
         // Inventory area patterns
         PATTERN_ROLE_MAPPINGS.put("/inventory/*", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.INVENTORY_MANAGER_ID)));
+
+        // User Management area patterns
+        PATTERN_ROLE_MAPPINGS.put("/user-management/*", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID, RoleConstants.RECEPTIONIST_ID, RoleConstants.MARKETING_ID, RoleConstants.INVENTORY_MANAGER_ID)));
     }
 
     /**

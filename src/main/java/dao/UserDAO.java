@@ -669,35 +669,25 @@ public class UserDAO implements BaseDAO<User, Integer> {
         }
     }
 
-    // Existing methods remain unchanged
-    @Override
-    public <S extends User> S save(S user) {
-        String sql = "INSERT INTO users (role_id, full_name, email, hash_password, phone_number, gender, birthday, avatar_url, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setInt(1, user.getRoleId());
-            ps.setString(2, user.getFullName());
-            ps.setString(3, user.getEmail());
-            ps.setString(4, user.getHashPassword());
-            ps.setString(5, user.getPhoneNumber());
-            ps.setString(6, user.getGender());
-            ps.setDate(7, user.getBirthday() != null ? new java.sql.Date(user.getBirthday().getTime()) : null);
-            ps.setString(8, user.getAvatarUrl());
-            ps.setBoolean(9, user.getIsActive());
-            ps.setTimestamp(10, new Timestamp(System.currentTimeMillis()));
-
-            int rows = ps.executeUpdate();
-            if (rows > 0) {
-                try (ResultSet rs = ps.getGeneratedKeys()) {
-                    if (rs.next()) {
-                        user.setUserId(rs.getInt(1));
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return user;
+    public boolean existsByEmail(String email) {
+        if (email == null || email.trim().isEmpty()) return false;
+        return findAll().stream().anyMatch(u -> email.equalsIgnoreCase(u.getEmail()));
     }
+    public boolean existsByPhone(String phone) {
+        if (phone == null || phone.trim().isEmpty()) return false;
+        return findAll().stream().anyMatch(u -> phone.equals(u.getPhoneNumber()));
+    }
+    public boolean existsByEmailExceptId(String email, int userId) {
+        if (email == null || email.trim().isEmpty()) return false;
+        return findAll().stream().anyMatch(u -> email.equalsIgnoreCase(u.getEmail()) && u.getUserId() != null && u.getUserId() != userId);
+    }
+    public boolean existsByPhoneExceptId(String phone, int userId) {
+        if (phone == null || phone.trim().isEmpty()) return false;
+        return findAll().stream().anyMatch(u -> phone.equals(u.getPhoneNumber()) && u.getUserId() != null && u.getUserId() != userId);
+    }
+
+    // Existing methods remain unchanged
+    // Removed - implemented below with proper error handling
 
     public Optional<User> findById(int userId) {
         try (Connection connection = DBContext.getConnection();
@@ -789,10 +779,7 @@ public class UserDAO implements BaseDAO<User, Integer> {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    @Override
-    public <S extends User> S update(S entity) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
+    // Removed - implemented below
 
     @Override
     public void delete(User entity) {
@@ -887,6 +874,156 @@ public class UserDAO implements BaseDAO<User, Integer> {
     @Override
     public Optional<User> findById(Integer id) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    // Trả về tất cả nhân viên (roleId=3) do manager quản lý (dummy, có thể thay đổi sau)
+    public List<User> findAllManagedBy(Integer managerId) {
+        List<User> all = findAll();
+        List<User> managed = new java.util.ArrayList<>();
+        for (User u : all) {
+            // Manager chỉ quản lý nhân viên (roleId = 3)
+            if (u.getRoleId() != null && u.getRoleId() == 3) {
+                managed.add(u);
+            }
+        }
+        return managed;
+    }
+
+    // Kiểm tra userId có phải là nhân viên do managerId quản lý không (dummy, có thể thay đổi sau)
+    public boolean isManagedBy(int userId, Integer managerId) {
+        Optional<User> userOpt = findById(userId);
+        // Manager chỉ quản lý nhân viên (roleId = 3)
+        return userOpt.isPresent() && userOpt.get().getRoleId() != null && userOpt.get().getRoleId() == 3;
+    }
+
+    // Trả về tất cả nhân viên (không bao gồm khách hàng roleId=5)
+    public List<User> findAllStaff() {
+        List<User> all = findAll();
+        List<User> staff = new java.util.ArrayList<>();
+        for (User u : all) {
+            // Lấy tất cả user trừ khách hàng (roleId = 5)
+            if (u.getRoleId() != null && u.getRoleId() != 5) {
+                staff.add(u);
+            }
+        }
+        return staff;
+    }
+
+    // Xóa user (chỉ Admin)
+    public boolean deleteUser(int userId) {
+        String sql = "DELETE FROM users WHERE user_id = ?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            int rowsAffected = ps.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error deleting user", e);
+            return false;
+        }
+    }
+
+    // Thêm method saveUser để tạo user mới (không throws SQLException)
+    public boolean saveUser(User entity) {
+        try {
+            return save(entity) != null;
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error saving user", e);
+            return false;
+        }
+    }
+    
+    // Thêm method save để tạo user mới
+    @Override
+    public <S extends User> S save(S entity) throws SQLException {
+        String sql = "INSERT INTO users (role_id, full_name, email, hash_password, phone_number, is_active, gender, birthday, address, avatar_url, is_email_verified, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            
+            java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
+            
+            ps.setInt(1, entity.getRoleId());
+            ps.setString(2, entity.getFullName());
+            ps.setString(3, entity.getEmail());
+            ps.setString(4, entity.getHashPassword());
+            ps.setString(5, entity.getPhoneNumber());
+            ps.setBoolean(6, entity.getIsActive());
+            ps.setString(7, entity.getGender());
+            ps.setDate(8, entity.getBirthday() != null ? new java.sql.Date(entity.getBirthday().getTime()) : null);
+            ps.setString(9, entity.getAddress());
+            ps.setString(10, entity.getAvatarUrl());
+            ps.setBoolean(11, false); // Default email not verified
+            ps.setTimestamp(12, now);
+            ps.setTimestamp(13, now);
+            
+            int rowsAffected = ps.executeUpdate();
+            
+            if (rowsAffected > 0) {
+                try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        entity.setUserId(generatedKeys.getInt(1));
+                        entity.setCreatedAt(now);
+                        entity.setUpdatedAt(now);
+                        return entity;
+                    }
+                }
+            }
+            
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error saving user", e);
+            throw e;
+        }
+        
+        return null;
+    }
+
+    // Thêm method updateUser (không throws SQLException)
+    public boolean updateUser(User entity) {
+        try {
+            return update(entity) != null;
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error updating user", e);
+            return false;
+        }
+    }
+    
+    // Cập nhật method update
+    @Override
+    public <S extends User> S update(S entity) throws SQLException {
+        String sql = "UPDATE users SET role_id = ?, full_name = ?, email = ?, hash_password = ?, phone_number = ?, is_active = ?, gender = ?, birthday = ?, address = ?, avatar_url = ?, updated_at = ? WHERE user_id = ?";
+        
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
+            
+            ps.setInt(1, entity.getRoleId());
+            ps.setString(2, entity.getFullName());
+            ps.setString(3, entity.getEmail());
+            ps.setString(4, entity.getHashPassword());
+            ps.setString(5, entity.getPhoneNumber());
+            ps.setBoolean(6, entity.getIsActive());
+            ps.setString(7, entity.getGender());
+            ps.setDate(8, entity.getBirthday() != null ? new java.sql.Date(entity.getBirthday().getTime()) : null);
+            ps.setString(9, entity.getAddress());
+            ps.setString(10, entity.getAvatarUrl());
+            ps.setTimestamp(11, now);
+            ps.setInt(12, entity.getUserId());
+            
+            int rowsAffected = ps.executeUpdate();
+            
+            if (rowsAffected > 0) {
+                entity.setUpdatedAt(now);
+                return entity;
+            }
+            
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error updating user", e);
+            throw e;
+        }
+        
+        return null;
     }
 
 }

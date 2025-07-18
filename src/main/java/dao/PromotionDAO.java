@@ -18,6 +18,25 @@ import model.Promotion;
 
 public class PromotionDAO {
     private static final Logger logger = Logger.getLogger(PromotionDAO.class.getName());
+    private static Boolean customerConditionColumnExists = null;
+    
+    // Utility method to check if customer_condition column exists
+    private boolean hasCustomerConditionColumn() {
+        if (customerConditionColumnExists != null) {
+            return customerConditionColumnExists;
+        }
+        
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement("SELECT customer_condition FROM promotions LIMIT 1")) {
+            ps.executeQuery();
+            customerConditionColumnExists = true;
+            return true;
+        } catch (SQLException e) {
+            customerConditionColumnExists = false;
+            logger.warning("Column 'customer_condition' not found in promotions table. Please run add_customer_condition_column.sql to add this column.");
+            return false;
+        }
+    }
 
     private Promotion mapResultSet(ResultSet rs) throws SQLException {
         Promotion p = new Promotion();
@@ -32,7 +51,15 @@ public class PromotionDAO {
         p.setIsAutoApply(rs.getBoolean("is_auto_apply"));
         p.setMinimumAppointmentValue(rs.getBigDecimal("minimum_appointment_value"));
         p.setApplicableScope(rs.getString("applicable_scope"));
-        p.setCustomerCondition(rs.getString("customer_condition"));
+        
+        // Handle customer_condition column that might not exist in database
+        try {
+            p.setCustomerCondition(rs.getString("customer_condition"));
+        } catch (SQLException e) {
+            // Column doesn't exist, set default value
+            p.setCustomerCondition("ALL");
+            logger.warning("Column 'customer_condition' not found in database. Using default value 'ALL'. Please run add_customer_condition_column.sql to add this column.");
+        }
 
         Timestamp start = rs.getTimestamp("start_date");
         if (start != null) p.setStartDate(start.toLocalDateTime());
@@ -44,7 +71,15 @@ public class PromotionDAO {
 
     // Thêm khuyến mãi mới
     public boolean save(Promotion p) {
-        String sql = "INSERT INTO promotions (title, promotion_code, discount_type, discount_value, description, status, start_date, end_date, current_usage_count, is_auto_apply, minimum_appointment_value, applicable_scope, customer_condition, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql;
+        boolean hasCustomerCondition = hasCustomerConditionColumn();
+        
+        if (hasCustomerCondition) {
+            sql = "INSERT INTO promotions (title, promotion_code, discount_type, discount_value, description, status, start_date, end_date, current_usage_count, is_auto_apply, minimum_appointment_value, applicable_scope, customer_condition, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        } else {
+            sql = "INSERT INTO promotions (title, promotion_code, discount_type, discount_value, description, status, start_date, end_date, current_usage_count, is_auto_apply, minimum_appointment_value, applicable_scope, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        }
+        
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, p.getTitle());
@@ -59,8 +94,14 @@ public class PromotionDAO {
             ps.setBoolean(10, p.getIsAutoApply() != null ? p.getIsAutoApply() : false);
             ps.setBigDecimal(11, p.getMinimumAppointmentValue() != null ? p.getMinimumAppointmentValue() : BigDecimal.ZERO);
             ps.setString(12, p.getApplicableScope());
-            ps.setString(13, p.getCustomerCondition() != null ? p.getCustomerCondition() : "ALL");
-            ps.setString(14, p.getImageUrl());
+            
+            if (hasCustomerCondition) {
+                ps.setString(13, p.getCustomerCondition() != null ? p.getCustomerCondition() : "ALL");
+                ps.setString(14, p.getImageUrl());
+            } else {
+                ps.setString(13, p.getImageUrl());
+            }
+            
             int row = ps.executeUpdate();
             if (row > 0) {
                 ResultSet rs = ps.getGeneratedKeys();
@@ -75,7 +116,15 @@ public class PromotionDAO {
 
     // Update khuyến mãi
     public boolean update(Promotion p) {
-        String sql = "UPDATE promotions SET title=?, promotion_code=?, discount_type=?, discount_value=?, description=?, status=?, start_date=?, end_date=?, current_usage_count=?, is_auto_apply=?, minimum_appointment_value=?, applicable_scope=?, customer_condition=?, image_url=? WHERE promotion_id=?";
+        String sql;
+        boolean hasCustomerCondition = hasCustomerConditionColumn();
+        
+        if (hasCustomerCondition) {
+            sql = "UPDATE promotions SET title=?, promotion_code=?, discount_type=?, discount_value=?, description=?, status=?, start_date=?, end_date=?, current_usage_count=?, is_auto_apply=?, minimum_appointment_value=?, applicable_scope=?, customer_condition=?, image_url=? WHERE promotion_id=?";
+        } else {
+            sql = "UPDATE promotions SET title=?, promotion_code=?, discount_type=?, discount_value=?, description=?, status=?, start_date=?, end_date=?, current_usage_count=?, is_auto_apply=?, minimum_appointment_value=?, applicable_scope=?, image_url=? WHERE promotion_id=?";
+        }
+        
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, p.getTitle());
@@ -90,9 +139,16 @@ public class PromotionDAO {
             ps.setBoolean(10, p.getIsAutoApply() != null ? p.getIsAutoApply() : false);
             ps.setBigDecimal(11, p.getMinimumAppointmentValue() != null ? p.getMinimumAppointmentValue() : BigDecimal.ZERO);
             ps.setString(12, p.getApplicableScope());
-            ps.setString(13, p.getCustomerCondition() != null ? p.getCustomerCondition() : "ALL");
-            ps.setString(14, p.getImageUrl());
-            ps.setInt(15, p.getPromotionId());
+            
+            if (hasCustomerCondition) {
+                ps.setString(13, p.getCustomerCondition() != null ? p.getCustomerCondition() : "ALL");
+                ps.setString(14, p.getImageUrl());
+                ps.setInt(15, p.getPromotionId());
+            } else {
+                ps.setString(13, p.getImageUrl());
+                ps.setInt(14, p.getPromotionId());
+            }
+            
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Update Promotion Error", e);
@@ -424,7 +480,16 @@ public class PromotionDAO {
     promotion.setTotalUsageLimit((Integer) rs.getObject("total_usage_limit"));
     promotion.setCurrentUsageCount(rs.getInt("current_usage_count"));
     promotion.setApplicableScope(rs.getString("applicable_scope"));
-    promotion.setCustomerCondition(rs.getString("customer_condition"));
+    
+    // Handle customer_condition column that might not exist in database
+    try {
+        promotion.setCustomerCondition(rs.getString("customer_condition"));
+    } catch (SQLException e) {
+        // Column doesn't exist, set default value
+        promotion.setCustomerCondition("ALL");
+        logger.warning("Column 'customer_condition' not found in database. Using default value 'ALL'. Please run add_customer_condition_column.sql to add this column.");
+    }
+    
     promotion.setApplicableServiceIdsJson(rs.getString("applicable_service_ids_json"));
     promotion.setImageUrl(rs.getString("image_url"));
     promotion.setTermsAndConditions(rs.getString("terms_and_conditions"));

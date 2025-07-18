@@ -239,4 +239,15 @@
         <url-pattern>/api/chatbot</url-pattern>
     </servlet-mapping>
 
+    <!-- User Management Controller -->
+    <servlet>
+        <servlet-name>UserManagementController</servlet-name>
+        <servlet-class>controller.UserManagementController</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>UserManagementController</servlet-name>
+        <url-pattern>/user-management/*</url-pattern>
+    </servlet-mapping>
+
 </web-app>
