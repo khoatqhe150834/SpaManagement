@@ -29,10 +29,8 @@ class ManagerSchedulingSystem {
     }
     
     getContextPath() {
-        // Get context path from current URL
-        const path = window.location.pathname;
-        const contextPath = path.substring(0, path.indexOf('/', 1));
-        return contextPath || '';
+        // Get context path from global variable set by JSP, fallback to /spa
+        return '/spa';
     }
     
     setupEventListeners() {
@@ -110,9 +108,12 @@ class ManagerSchedulingSystem {
     
     async loadSchedulableItems() {
         try {
-            console.log('[MANAGER-SCHEDULING] Loading schedulable items from:', `${this.contextPath}/api/manager/scheduling/schedulable-items`);
+            const url = `${this.contextPath}/api/manager/scheduling/schedulable-items`;
+            console.log('[MANAGER-SCHEDULING] Loading schedulable items from:', url);
+            console.log('[MANAGER-SCHEDULING] Context path:', this.contextPath);
+            console.log('[MANAGER-SCHEDULING] Full URL:', window.location.origin + url);
 
-            const response = await fetch(`${this.contextPath}/api/manager/scheduling/schedulable-items`, {
+            const response = await fetch(url, {
                 method: 'GET',
                 credentials: 'same-origin', // Include session cookies
                 headers: {
@@ -168,23 +169,39 @@ class ManagerSchedulingSystem {
     
     async loadTherapists() {
         try {
+            const url = `${this.contextPath}/manager/scheduling`;
             console.log('[MANAGER-SCHEDULING] Loading therapists...');
+            console.log('[MANAGER-SCHEDULING] Context path:', this.contextPath);
+            console.log('[MANAGER-SCHEDULING] Therapists URL:', url);
+            console.log('[MANAGER-SCHEDULING] Full URL:', window.location.origin + url);
 
-            const formData = new FormData();
+            // Use URLSearchParams instead of FormData for better compatibility
+            const formData = new URLSearchParams();
             formData.append('action', 'get_therapists');
+            console.log('[MANAGER-SCHEDULING] Form data:', Array.from(formData.entries()));
 
-            const response = await fetch(`${this.contextPath}/manager/scheduling`, {
+            const requestHeaders = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            };
+            console.log('[MANAGER-SCHEDULING] Request headers:', requestHeaders);
+
+            const response = await fetch(url, {
                 method: 'POST',
                 credentials: 'same-origin', // Include session cookies
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest' // Mark as AJAX request
-                },
+                headers: requestHeaders,
                 body: formData
             });
 
             console.log('[MANAGER-SCHEDULING] Therapists response status:', response.status);
+            console.log('[MANAGER-SCHEDULING] Response headers:', Object.fromEntries(response.headers.entries()));
+            console.log('[MANAGER-SCHEDULING] Response URL:', response.url);
 
             if (!response.ok) {
+                // Get response body for debugging
+                const responseText = await response.text();
+                console.error('[MANAGER-SCHEDULING] Error response body:', responseText);
+
                 if (response.status === 401) {
                     console.error('[MANAGER-SCHEDULING] Authentication required for therapists');
                     this.showAlert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.', 'danger');
@@ -196,8 +213,12 @@ class ManagerSchedulingSystem {
                     console.error('[MANAGER-SCHEDULING] Access denied for therapists');
                     this.showAlert('Bạn không có quyền truy cập danh sách nhân viên.', 'danger');
                     return;
+                } else if (response.status === 400) {
+                    console.error('[MANAGER-SCHEDULING] Bad Request - Response:', responseText);
+                    this.showAlert('Lỗi yêu cầu không hợp lệ. Vui lòng thử lại.', 'danger');
+                    return;
                 }
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                throw new Error(`HTTP ${response.status}: ${responseText}`);
             }
 
             const text = await response.text();

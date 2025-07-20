@@ -66,6 +66,7 @@ public class AuthorizationFilter implements Filter {
 
         // Manager areas
         URL_ROLE_MAPPINGS.put("/manager", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
+        URL_ROLE_MAPPINGS.put("/manager/scheduling", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
         URL_ROLE_MAPPINGS.put("/reports", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
         URL_ROLE_MAPPINGS.put("/analytics", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
         URL_ROLE_MAPPINGS.put("/staff", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));

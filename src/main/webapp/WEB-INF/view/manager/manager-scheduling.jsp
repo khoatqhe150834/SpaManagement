@@ -1152,30 +1152,40 @@
         function findAvailableSlots(customerId, serviceId, preferredTherapistId = null, preferredDate = null) {
             console.log('[CSP] Finding available slots for customer:', customerId, 'service:', serviceId);
 
-            const params = new URLSearchParams({
-                customerId: customerId,
-                serviceId: serviceId,
-                maxResults: 20
-            });
+            // Use URLSearchParams for POST body (like the working therapists API)
+            const formData = new URLSearchParams();
+            formData.append('action', 'find_available_slots');
+            formData.append('customerId', customerId);
+            formData.append('serviceId', serviceId);
+            formData.append('maxResults', '20');
 
             if (preferredTherapistId) {
-                params.append('preferredTherapistId', preferredTherapistId);
+                formData.append('preferredTherapistId', preferredTherapistId);
             }
 
             if (preferredDate) {
-                params.append('preferredDate', preferredDate);
+                formData.append('preferredDate', preferredDate);
             }
 
-            return fetch('${pageContext.request.contextPath}/manager/scheduling?action=find_available_slots&' + params, {
-                method: 'GET',
+            const url = '${pageContext.request.contextPath}/manager/scheduling';
+            console.log('[CSP] Request URL:', url);
+            console.log('[CSP] Form data:', Array.from(formData.entries()));
+
+            return fetch(url, {
+                method: 'POST',
                 credentials: 'same-origin', // Include session cookies
                 headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
                     'Accept': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest' // Mark as AJAX request
-                }
+                },
+                body: formData
             })
                 .then(response => {
                     console.log('[CSP] Response status:', response.status);
+                    console.log('[CSP] Response headers:', Object.fromEntries(response.headers.entries()));
+                    console.log('[CSP] Response URL:', response.url);
+
                     if (!response.ok) {
                         if (response.status === 401) {
                             console.error('[CSP] Authentication required - redirecting to login');
@@ -1467,6 +1477,12 @@
         window.displayAvailableSlotsInModal = displayAvailableSlotsInModal;
 
         console.log('Manager Scheduling Page with CSP Solver Loaded Successfully');
+    </script>
+
+    <!-- Set context path for JavaScript -->
+    <script>
+        window.contextPath = '${pageContext.request.contextPath}';
+        console.log('[DEBUG] Context path set to:', window.contextPath);
     </script>
 
     <!-- Manager Scheduling JavaScript -->

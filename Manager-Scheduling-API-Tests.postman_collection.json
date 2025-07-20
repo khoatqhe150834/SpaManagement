@@ -1,0 +1,211 @@
+{
+  "info": {
+    "name": "Manager Scheduling API Tests",
+    "description": "Test collection for debugging manager scheduling endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Login as Manager",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "email",
+              "value": "manager@spa.com",
+              "type": "text"
+            },
+            {
+              "key": "password",
+              "value": "manager123",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:8080/spa/login",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["spa", "login"]
+        },
+        "description": "Login with manager credentials to establish session"
+      }
+    },
+    {
+      "name": "2. Get Therapists",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-Requested-With",
+            "value": "XMLHttpRequest"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "action",
+              "value": "get_therapists",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:8080/spa/manager/scheduling",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["spa", "manager", "scheduling"]
+        },
+        "description": "Test getting therapists list - this is the failing endpoint"
+      }
+    },
+    {
+      "name": "3. Get Schedulable Items",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "XMLHttpRequest"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/spa/api/manager/scheduling/schedulable-items",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["spa", "api", "manager", "scheduling", "schedulable-items"]
+        },
+        "description": "Test getting schedulable items"
+      }
+    },
+    {
+      "name": "4. Get Rooms",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-Requested-With",
+            "value": "XMLHttpRequest"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "action",
+              "value": "get_rooms",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:8080/spa/manager/scheduling",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["spa", "manager", "scheduling"]
+        },
+        "description": "Test getting rooms list"
+      }
+    },
+    {
+      "name": "5. Check Availability",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-Requested-With",
+            "value": "XMLHttpRequest"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "action",
+              "value": "check_availability",
+              "type": "text"
+            },
+            {
+              "key": "therapistId",
+              "value": "1",
+              "type": "text"
+            },
+            {
+              "key": "roomId",
+              "value": "1",
+              "type": "text"
+            },
+            {
+              "key": "startTime",
+              "value": "2025-07-21 10:00:00",
+              "type": "text"
+            },
+            {
+              "key": "duration",
+              "value": "60",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:8080/spa/manager/scheduling",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["spa", "manager", "scheduling"]
+        },
+        "description": "Test checking availability for booking"
+      }
+    },
+    {
+      "name": "6. Test Manager Scheduling Page Access",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/spa/manager/scheduling",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["spa", "manager", "scheduling"]
+        },
+        "description": "Test if manager scheduling page is accessible"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/spa"
+    }
+  ]
+}
