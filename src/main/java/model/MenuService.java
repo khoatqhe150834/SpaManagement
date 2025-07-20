@@ -258,7 +258,7 @@ public class MenuService {
     // Promotions Management (moved from Admin)
     MenuItem promotionMgmt = new MenuItem("Khuyến mãi", contextPath + "/promotion/list", "gift", "services");
     promotionMgmt.addSubItem(new MenuItem("Tất cả khuyến mãi", contextPath + "/promotion/list", "list"));
-    promotionMgmt.addSubItem(new MenuItem("Tạo khuyến mãi", contextPath + "/promotion/create", "plus"));
+    promotionMgmt.addSubItem(new MenuItem("Tạo khuyến mãi", contextPath + "/promotion/add", "plus"));
     menuItems.add(promotionMgmt);
 
     // Operations Section
@@ -505,7 +505,9 @@ public class MenuService {
     menuItems.add(new MenuItem("Điểm tích lũy", contextPath + "/customer/loyalty", "gift", "account")
         .withNotification("2,450", "yellow"));
     menuItems.add(new MenuItem("Lịch sử thanh toán", contextPath + "/customer/payments", "credit-card", "account"));
-    menuItems.add(new MenuItem("Ưu đãi đặc biệt", contextPath + "/promotions", "star", "account").withNotification("Mới", "red"));
+    menuItems.add(new MenuItem("Khuyến mãi của tôi", contextPath + "/promotions/my-promotions", "gift", "account").withNotification("Mới", "red"));
+    menuItems.add(new MenuItem("Tất cả khuyến mãi", contextPath + "/promotions/available", "star", "account"));
+    menuItems.add(new MenuItem("Thông báo khuyến mãi", contextPath + "/promotions/notification", "bell", "account").withNotification("3", "blue"));
     menuItems.add(new MenuItem("Đăng xuất", contextPath + "/logout", "log-out", "account"));
 
     return menuItems;

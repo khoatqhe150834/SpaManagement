@@ -49,14 +49,39 @@
                 </div>
 
                 <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                    <%-- Hiển thị thông báo lỗi nếu có --%>
+                    <c:if test="${not empty errorMessage}">
+                        <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <i data-lucide="alert-circle" class="h-5 w-5 text-red-400"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-red-700">
+                                        ${errorMessage}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </c:if>
+                    
                     <c:if test="${not empty promotion}">
                         <%-- Header with image and basic info --%>
                         <div class="bg-gradient-to-r from-primary to-primary-dark p-8 text-white">
                             <div class="flex flex-col md:flex-row gap-6">
                                 <div class="flex-shrink-0">
-                                    <img src="${not empty promotion.imageUrl ? promotion.imageUrl : 'https://placehold.co/300x300/D4AF37/FFFFFF?text=PROMO'}" 
-                                         alt="${promotion.title}"
-                                         class="w-48 h-48 object-cover rounded-lg shadow-lg border-4 border-white">
+                                    <c:choose>
+                                        <c:when test="${not empty promotion.imageUrl}">
+                                            <img src="${pageContext.request.contextPath}${promotion.imageUrl}?v=${System.currentTimeMillis()}" 
+                                                 alt="${promotion.title}"
+                                                 class="w-48 h-48 object-cover rounded-lg shadow-lg border-4 border-white">
+                                        </c:when>
+                                        <c:otherwise>
+                                            <img src="https://placehold.co/300x300/D4AF37/FFFFFF?text=PROMO" 
+                                                 alt="${promotion.title}"
+                                                 class="w-48 h-48 object-cover rounded-lg shadow-lg border-4 border-white">
+                                        </c:otherwise>
+                                    </c:choose>
                                 </div>
                                 <div class="flex-1">
                                     <h1 class="text-3xl font-bold mb-4">${promotion.title}</h1>
@@ -236,15 +261,19 @@
                                                     <div class="flex justify-between text-sm">
                                                         <span class="text-gray-600">Tỷ lệ sử dụng:</span>
                                                         <span class="font-medium text-purple-600">
-                                                            <fmt:formatNumber value="${(promotion.currentUsageCount / promotion.totalUsageLimit) * 100}" maxFractionDigits="1"/>%
+                                                            <c:choose>
+                                                                <c:when test="${promotion.currentUsageCount != null && promotion.totalUsageLimit != null && promotion.totalUsageLimit > 0}">
+                                                                    <fmt:formatNumber value="${(promotion.currentUsageCount / promotion.totalUsageLimit) * 100}" maxFractionDigits="1"/>%
+                                                                </c:when>
+                                                                <c:otherwise>
+                                                                    <span class="text-orange-600">0%</span>
+                                                                </c:otherwise>
+                                                            </c:choose>
                                                         </span>
                                                     </div>
                                                     <c:if test="${promotion.currentUsageCount != null && promotion.totalUsageLimit != null && promotion.totalUsageLimit > 0}">
                                                         <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
-                                                            <c:set var="currentUsage" value="${promotion.currentUsageCount}" />
-                                                            <c:set var="totalLimit" value="${promotion.totalUsageLimit}" />
-                                                            <c:set var="widthPercent" value="${(currentUsage / totalLimit) * 100}" />
-                                                            <div class="bg-purple-600 h-2 rounded-full" style="width: <fmt:formatNumber value='${widthPercent > 100 ? 100 : widthPercent}' maxFractionDigits='0'/>%"></div>
+                                                            <div class="bg-purple-600 h-2 rounded-full" style="width: 0%"></div>
                                                         </div>
                                                     </c:if>
                                                 </div>
@@ -462,111 +491,4 @@
         if (window.lucide) lucide.createIcons();
     </script>
 </body>
-</html>
-
-<html lang="vi">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Chi tiết khuyến mãi</title>
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/admin/css/style.css">
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    </head>
-    <body>
-        <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
-        <jsp:include page="/WEB-INF/view/common/admin/header.jsp" />
-        
-        <div class="container mt-5">
-            <div class="card">
-                <div class="card-header">
-                    <h3>Chi tiết khuyến mãi</h3>
-                </div>
-                <div class="card-body">
-                    <c:if test="${not empty promotion}">
-                        <%-- Khởi tạo các đối tượng định dạng một lần để tái sử dụng --%>
-                        <%
-                            Promotion promo = (Promotion) request.getAttribute("promotion");
-                            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy");
-                            NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
-                        %>
-
-                        <div class="row mb-4">
-                            <div class="col-md-4 text-center">
-                                <img src="${not empty promotion.imageUrl ? promotion.imageUrl : 'https://placehold.co/300x300/7C3AED/FFFFFF?text=PROMO'}" 
-                                     alt="${promotion.title}"
-                                     class="img-fluid rounded shadow-sm"
-                                     style="max-width: 300px; height: auto;">
-                            </div>
-                            <div class="col-md-8">
-                                <h4 class="mb-3">${promotion.title}</h4>
-                                <p><strong>Mã khuyến mãi:</strong> <span class="badge bg-secondary">${promotion.promotionCode}</span></p>
-                                <p><strong>Trạng thái:</strong>
-                                    <c:choose>
-                                        <c:when test="${promotion.status eq 'ACTIVE'}">
-                                            <span class="badge bg-success">Đang áp dụng</span>
-                                        </c:when>
-                                        <c:when test="${promotion.status eq 'SCHEDULED'}">
-                                            <span class="badge bg-primary">Sắp diễn ra</span>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <span class="badge bg-secondary">Không hoạt động</span>
-                                        </c:otherwise>
-                                    </c:choose>
-                                </p>
-                                <p><strong>Mô tả:</strong> ${promotion.description}</p>
-                            </div>
-                        </div>
-                        <hr>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <p><strong>Loại giảm giá:</strong> <c:out value="${promotion.discountType}"/></p>
-                                <p><strong>Giá trị giảm:</strong> <c:out value="${promotion.discountValue}"/></p>
-                                <p><strong>Giá trị đơn tối thiểu:</strong> <c:out value="${promotion.minimumAppointmentValue}"/></p>
-                                <p><strong>Tự động áp dụng:</strong>
-                                    <c:choose>
-                                        <c:when test="${promotion.isAutoApply}"><span class="badge bg-info">Có</span></c:when>
-                                        <c:otherwise><span class="badge bg-secondary">Không</span></c:otherwise>
-                                    </c:choose>
-                                </p>
-                            </div>
-                        </div>
-                        <hr>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <p><strong>Ngày bắt đầu:</strong> <c:out value="${promotion.startDate}"/></p>
-                                <p><strong>Ngày kết thúc:</strong> <c:out value="${promotion.endDate}"/></p>
-                                <p><strong>Số lần sử dụng/khách:</strong> <c:out value="${promotion.usageLimitPerCustomer}"/></p>
-                                <p><strong>Tổng số lượt sử dụng:</strong> <c:out value="${promotion.totalUsageLimit}"/></p>
-                                <p><strong>Lượt sử dụng hiện tại:</strong> <c:out value="${promotion.currentUsageCount}"/></p>
-                            </div>
-
-                            <div class="col-md-6">
-                                <p><strong>Phạm vi áp dụng:</strong> <c:out value="${promotion.applicableScope}"/></p>
-                                <p><strong>Dịch vụ áp dụng (ID):</strong> <c:out value="${promotion.applicableServiceIdsJson}"/></p>
-                                <p><strong>Ngày tạo:</strong> <c:out value="${promotion.createdAt}"/></p>
-                                <p><strong>Ngày cập nhật:</strong> <c:out value="${promotion.updatedAt}"/></p>
-                            </div>
-                        </div>
-                        <hr>
-                        <div class="row">
-                            <div class="col-12">
-                                <p><strong>Điều kiện và điều khoản:</strong></p>
-                                <div class="bg-light p-2 rounded"><c:out value="${promotion.termsAndConditions}"/></div>
-                            </div>
-                        </div>
-                    </c:if>
-                    <c:if test="${empty promotion}">
-                        <div class="alert alert-warning" role="alert">
-                            Không tìm thấy thông tin khuyến mãi.
-                        </div>
-                    </c:if>
-                </div>
-                <div class="card-footer">
-                    <a href="${pageContext.request.contextPath}/promotion/list" class="btn btn-primary">Quay lại danh sách</a>
-                </div>
-            </div>
-        </div>
-                
-        <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
-    </body>
 </html>

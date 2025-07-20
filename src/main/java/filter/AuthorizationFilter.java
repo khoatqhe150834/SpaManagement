@@ -88,8 +88,12 @@ public class AuthorizationFilter implements Filter {
         // Marketing areas
         URL_ROLE_MAPPINGS.put("/marketing", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.MARKETING_ID)));
         URL_ROLE_MAPPINGS.put("/blog", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.MARKETING_ID)));
-        URL_ROLE_MAPPINGS.put("/promotions", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.MARKETING_ID)));
+        
+        // Promotion management (Admin/Manager/Marketing only)
         URL_ROLE_MAPPINGS.put("/promotion", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.MARKETING_ID)));
+        
+        // Customer promotions (Customer can access)
+        URL_ROLE_MAPPINGS.put("/promotions", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.MARKETING_ID, RoleConstants.CUSTOMER_ID)));
 
         // Inventory Manager areas
         URL_ROLE_MAPPINGS.put("/inventory-manager", new HashSet<>(Arrays.asList(RoleConstants.INVENTORY_MANAGER_ID)));
@@ -141,6 +145,9 @@ public class AuthorizationFilter implements Filter {
 
         // Marketing area patterns
         PATTERN_ROLE_MAPPINGS.put("/marketing/*", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.MARKETING_ID)));
+        
+        // Promotion patterns (Admin/Manager/Marketing can manage, Customer can view)
+        PATTERN_ROLE_MAPPINGS.put("/promotions/*", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.MARKETING_ID, RoleConstants.CUSTOMER_ID)));
 
         // Inventory area patterns
         PATTERN_ROLE_MAPPINGS.put("/inventory/*", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.INVENTORY_MANAGER_ID)));

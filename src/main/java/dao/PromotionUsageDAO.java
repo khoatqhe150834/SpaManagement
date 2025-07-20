@@ -310,6 +310,137 @@ public class PromotionUsageDAO {
         }
         return Optional.empty();
     }
+
+    /**
+     * Get remaining usage count for a customer for a specific promotion
+     * @param promotionId The promotion ID
+     * @param customerId The customer ID
+     * @return Remaining usage count (null if unlimited, 0 if used up, positive number if still available)
+     */
+    public Integer getRemainingUsageCount(Integer promotionId, Integer customerId) {
+        String sql = "SELECT p.usage_limit_per_customer, COUNT(pu.usage_id) as used_count " +
+                    "FROM promotions p " +
+                    "LEFT JOIN promotion_usage pu ON p.promotion_id = pu.promotion_id AND pu.customer_id = ? " +
+                    "WHERE p.promotion_id = ? " +
+                    "GROUP BY p.promotion_id, p.usage_limit_per_customer";
+        
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setInt(1, customerId);
+            ps.setInt(2, promotionId);
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Integer usageLimit = (Integer) rs.getObject("usage_limit_per_customer");
+                    int usedCount = rs.getInt("used_count");
+                    
+                    if (usageLimit == null) {
+                        return null; // Unlimited
+                    } else {
+                        return Math.max(0, usageLimit - usedCount);
+                    }
+                }
+            }
+            
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error getting remaining usage count", e);
+        }
+        return 0;
+    }
+
+    /**
+     * Get all promotions with remaining usage count for a customer
+     * @param customerId The customer ID
+     * @return List of maps containing promotion info and remaining usage
+     */
+    public List<java.util.Map<String, Object>> getCustomerPromotionsWithRemainingCount(Integer customerId) {
+        List<java.util.Map<String, Object>> promotions = new ArrayList<>();
+        String sql = "SELECT p.promotion_id, p.title, p.promotion_code, p.discount_type, " +
+                    "p.discount_value, p.usage_limit_per_customer, p.status, p.start_date, p.end_date, " +
+                    "COUNT(pu.usage_id) as used_count, " +
+                    "CASE " +
+                    "  WHEN p.usage_limit_per_customer IS NULL THEN NULL " +
+                    "  ELSE GREATEST(0, p.usage_limit_per_customer - COUNT(pu.usage_id)) " +
+                    "END as remaining_count " +
+                    "FROM promotions p " +
+                    "LEFT JOIN promotion_usage pu ON p.promotion_id = pu.promotion_id AND pu.customer_id = ? " +
+                    "WHERE p.status = 'ACTIVE' " +
+                    "GROUP BY p.promotion_id, p.title, p.promotion_code, p.discount_type, " +
+                    "p.discount_value, p.usage_limit_per_customer, p.status, p.start_date, p.end_date " +
+                    "ORDER BY p.start_date DESC";
+        
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setInt(1, customerId);
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    java.util.Map<String, Object> promotion = new java.util.HashMap<>();
+                    promotion.put("promotionId", rs.getInt("promotion_id"));
+                    promotion.put("title", rs.getString("title"));
+                    promotion.put("promotionCode", rs.getString("promotion_code"));
+                    promotion.put("discountType", rs.getString("discount_type"));
+                    promotion.put("discountValue", rs.getBigDecimal("discount_value"));
+                    promotion.put("usageLimitPerCustomer", rs.getObject("usage_limit_per_customer"));
+                    promotion.put("status", rs.getString("status"));
+                    promotion.put("startDate", rs.getTimestamp("start_date"));
+                    promotion.put("endDate", rs.getTimestamp("end_date"));
+                    promotion.put("usedCount", rs.getInt("used_count"));
+                    promotion.put("remainingCount", rs.getObject("remaining_count"));
+                    
+                    promotions.add(promotion);
+                }
+            }
+            
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error getting customer promotions with remaining count", e);
+        }
+        return promotions;
+    }
+
+    /**
+     * Get total remaining usage across all promotions for a customer
+     * @param customerId The customer ID
+     * @return Map containing total promotions available and total remaining uses
+     */
+    public java.util.Map<String, Object> getCustomerPromotionSummary(Integer customerId) {
+        java.util.Map<String, Object> summary = new java.util.HashMap<>();
+        String sql = "SELECT " +
+                    "COUNT(DISTINCT p.promotion_id) as total_promotions, " +
+                    "SUM(CASE WHEN p.usage_limit_per_customer IS NULL THEN 1 ELSE 0 END) as unlimited_promotions, " +
+                    "SUM(CASE " +
+                    "  WHEN p.usage_limit_per_customer IS NULL THEN 0 " +
+                    "  ELSE GREATEST(0, p.usage_limit_per_customer - COALESCE(pu.used_count, 0)) " +
+                    "END) as total_remaining_uses " +
+                    "FROM promotions p " +
+                    "LEFT JOIN ( " +
+                    "  SELECT promotion_id, COUNT(*) as used_count " +
+                    "  FROM promotion_usage " +
+                    "  WHERE customer_id = ? " +
+                    "  GROUP BY promotion_id " +
+                    ") pu ON p.promotion_id = pu.promotion_id " +
+                    "WHERE p.status = 'ACTIVE'";
+        
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setInt(1, customerId);
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    summary.put("totalPromotions", rs.getInt("total_promotions"));
+                    summary.put("unlimitedPromotions", rs.getInt("unlimited_promotions"));
+                    summary.put("totalRemainingUses", rs.getInt("total_remaining_uses"));
+                }
+            }
+            
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error getting customer promotion summary", e);
+        }
+        return summary;
+    }
 } 
  
  

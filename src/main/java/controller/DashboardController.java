@@ -191,8 +191,8 @@ public class DashboardController extends HttpServlet {
     // Admin sub-handlers
     private void handleAdminUsers(HttpServletRequest request, HttpServletResponse response, String path)
             throws ServletException, IOException {
-        // TODO: Implement admin user management
-        request.getRequestDispatcher("/WEB-INF/view/admin/users/list.jsp").forward(request, response);
+        // Redirect to UserManagementController
+        response.sendRedirect(request.getContextPath() + "/user-management/list");
     }
 
     private void handleAdminCustomers(HttpServletRequest request, HttpServletResponse response, String path)

@@ -7,7 +7,6 @@ import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -172,20 +171,40 @@ public class PromotionController extends HttpServlet {
 
             Optional<Promotion> promotionOpt = promotionDAO.findById(promotionId);
             if (promotionOpt.isPresent()) {
-                request.setAttribute("promotion", promotionOpt.get());
+                Promotion promotion = promotionOpt.get();
+                
+                // Đảm bảo các giá trị null được xử lý an toàn
+                if (promotion.getCurrentUsageCount() == null) {
+                    promotion.setCurrentUsageCount(0);
+                }
+                if (promotion.getUsageLimitPerCustomer() == null) {
+                    promotion.setUsageLimitPerCustomer(0);
+                }
+                if (promotion.getTotalUsageLimit() == null) {
+                    promotion.setTotalUsageLimit(0);
+                }
+                if (promotion.getMinimumAppointmentValue() == null) {
+                    promotion.setMinimumAppointmentValue(BigDecimal.ZERO);
+                }
+                
+                request.setAttribute("promotion", promotion);
                 request.getRequestDispatcher("/WEB-INF/view/admin_pages/Promotion/promotion_details.jsp").forward(request, response);
             } else {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "Promotion not found with ID: " + promotionId);
             }
         } catch (NumberFormatException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid promotion ID format.");
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error viewing promotion details", e);
+            request.setAttribute("errorMessage", "Đã xảy ra lỗi hệ thống khi tải thông tin khuyến mãi. Vui lòng thử lại sau.");
+            request.getRequestDispatcher("/WEB-INF/view/admin_pages/Promotion/promotion_details.jsp").forward(request, response);
         }
     }
 
     private void handleShowCreateForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         request.setAttribute("promotion", new Promotion()); // Dùng 'promotion' cho nhất quán
         request.setAttribute("isEdit", false);
-        request.getRequestDispatcher("/WEB-INF/view/admin_pages/Promotion/promotion_form.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/view/admin_pages/Promotion/promotion_add.jsp").forward(request, response);
     }
 
     private void handleShowEditForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -200,7 +219,7 @@ public class PromotionController extends HttpServlet {
             if (promotionOpt.isPresent()) {
                 request.setAttribute("promotion", promotionOpt.get());
                 request.setAttribute("isEdit", true);
-                request.getRequestDispatcher("/WEB-INF/view/admin_pages/Promotion/promotion_form.jsp").forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/view/admin_pages/Promotion/promotion_edit.jsp").forward(request, response);
             } else {
                 handleError(request, response, "Promotion not found with ID: " + promotionId);
             }
@@ -240,14 +259,17 @@ public class PromotionController extends HttpServlet {
                 promotion.setImageUrl(newImageUrl);
             }
         } catch (IOException e) {
+            logger.log(Level.WARNING, "Image upload error: " + e.getMessage(), e);
             errors.put("imageUrl", e.getMessage());
         }
 
         if (!errors.isEmpty()) {
+            logger.warning("Validation errors: " + errors);
             request.setAttribute("errors", errors);
             request.setAttribute("promotion", promotion);
             request.setAttribute("isEdit", isEdit);
-            request.getRequestDispatcher("/WEB-INF/view/admin_pages/Promotion/promotion_form.jsp").forward(request, response);
+            String jspPath = isEdit ? "/WEB-INF/view/admin_pages/Promotion/promotion_edit.jsp" : "/WEB-INF/view/admin_pages/Promotion/promotion_add.jsp";
+            request.getRequestDispatcher(jspPath).forward(request, response);
             return;
         }
 
@@ -255,23 +277,48 @@ public class PromotionController extends HttpServlet {
         boolean success;
         String successMessage;
 
-        if (isEdit) {
-            success = promotionDAO.update(promotion);
-            successMessage = "Khuyến mãi đã được cập nhật thành công!";
-        } else {
-            success = promotionDAO.save(promotion);
-            successMessage = "Khuyến mãi đã được tạo thành công!";
-        }
+        try {
+            if (isEdit) {
+                success = promotionDAO.update(promotion);
+                successMessage = "Khuyến mãi đã được cập nhật thành công!";
+            } else {
+                success = promotionDAO.save(promotion);
+                successMessage = "Khuyến mãi đã được tạo thành công!";
+                
+                // Gửi thông báo cho khách hàng khi tạo promotion mới
+                if (success && "ACTIVE".equals(promotion.getStatus())) {
+                    try {
+                        service.PromotionNotificationService notificationService = new service.PromotionNotificationService();
+                        notificationService.notifyNewPromotion(promotion);
+                        logger.info("Promotion notification sent to customers for new promotion: " + promotion.getPromotionCode());
+                    } catch (Exception e) {
+                        logger.log(Level.WARNING, "Failed to send promotion notifications", e);
+                        // Không block việc tạo promotion nếu gửi thông báo thất bại
+                    }
+                }
+            }
 
-        if (success) {
-            request.getSession().setAttribute("successMessage", successMessage);
-            response.sendRedirect(request.getContextPath() + "/promotion/list");
-        } else {
-            errors.put("general", "Không thể lưu khuyến mãi vào cơ sở dữ liệu. Vui lòng thử lại.");
+            if (success) {
+                logger.info("Promotion " + (isEdit ? "updated" : "created") + " successfully with ID: " + promotion.getPromotionId());
+                request.getSession().setAttribute("successMessage", successMessage);
+                response.sendRedirect(request.getContextPath() + "/promotion/list");
+            } else {
+                logger.severe("Failed to " + (isEdit ? "update" : "save") + " promotion to database");
+                errors.put("general", "Không thể lưu khuyến mãi vào cơ sở dữ liệu. Vui lòng thử lại.");
+                request.setAttribute("errors", errors);
+                request.setAttribute("promotion", promotion);
+                request.setAttribute("isEdit", isEdit);
+                String jspPath = isEdit ? "/WEB-INF/view/admin_pages/Promotion/promotion_edit.jsp" : "/WEB-INF/view/admin_pages/Promotion/promotion_add.jsp";
+                request.getRequestDispatcher(jspPath).forward(request, response);
+            }
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error saving promotion", e);
+            errors.put("general", "Lỗi hệ thống: " + e.getMessage());
             request.setAttribute("errors", errors);
             request.setAttribute("promotion", promotion);
             request.setAttribute("isEdit", isEdit);
-            request.getRequestDispatcher("/WEB-INF/view/admin_pages/Promotion/promotion_form.jsp").forward(request, response);
+            String jspPath = isEdit ? "/WEB-INF/view/admin_pages/Promotion/promotion_edit.jsp" : "/WEB-INF/view/admin_pages/Promotion/promotion_add.jsp";
+            request.getRequestDispatcher(jspPath).forward(request, response);
         }
     }
 
@@ -291,62 +338,111 @@ public class PromotionController extends HttpServlet {
 
         // Validate và gán dữ liệu vào object
         // Title
-        if (title == null || title.trim().length() < 3) errors.put("title", "Tên khuyến mãi phải có ít nhất 3 ký tự");
-        else if (title.trim().length() > 255) errors.put("title", "Tên khuyến mãi không được vượt quá 255 ký tự");
-        promotion.setTitle(title);
+        if (title == null || title.trim().length() < 3) {
+            errors.put("title", "Tên khuyến mãi phải có ít nhất 3 ký tự");
+        } else if (title.trim().length() > 255) {
+            errors.put("title", "Tên khuyến mãi không được vượt quá 255 ký tự");
+        } else {
+            // Kiểm tra trùng tên (không phân biệt chữ hoa/thường)
+            Optional<Promotion> existingByTitle = promotionDAO.findByTitleIgnoreCase(title.trim());
+            if (existingByTitle.isPresent() && (!isEdit || existingByTitle.get().getPromotionId() != promotion.getPromotionId())) {
+                errors.put("title", "Tên khuyến mãi đã tồn tại (không phân biệt chữ hoa/thường)");
+            } else {
+                promotion.setTitle(title.trim());
+            }
+        }
         
         // Promotion Code
-        if (promotionCode != null && !promotionCode.trim().isEmpty()) {
-            if (!promotionCode.matches("^[A-Z0-9]{3,50}$")) {
-                errors.put("promotionCode", "Mã khuyến mãi phải từ 3-50 ký tự, chỉ chứa chữ hoa và số.");
+        if (promotionCode == null || promotionCode.trim().isEmpty()) {
+            errors.put("promotionCode", "Mã khuyến mãi không được để trống");
+        } else {
+            String code = promotionCode.trim();
+            
+            // Kiểm tra ký tự tiếng Việt
+            if (code.matches(".*[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ].*")) {
+                errors.put("promotionCode", "Mã khuyến mãi không được chứa ký tự tiếng Việt");
+            } else if (!code.matches("^[A-Z0-9]{3,10}$")) {
+                errors.put("promotionCode", "Mã khuyến mãi phải từ 3-10 ký tự, chỉ chứa chữ hoa và số.");
             } else {
-                // Kiểm tra trùng lặp, bỏ qua chính nó khi đang edit
-                Optional<Promotion> existing = promotionDAO.findByCode(promotionCode.toUpperCase());
+                // Kiểm tra trùng lặp (không phân biệt chữ hoa/thường), bỏ qua chính nó khi đang edit
+                Optional<Promotion> existing = promotionDAO.findByCodeIgnoreCase(code);
                 if (existing.isPresent() && (!isEdit || existing.get().getPromotionId() != promotion.getPromotionId())) {
-                    errors.put("promotionCode", "Mã khuyến mãi đã tồn tại.");
+                    errors.put("promotionCode", "Mã khuyến mãi đã tồn tại (không phân biệt chữ hoa/thường)");
+                } else {
+                    promotion.setPromotionCode(code.toUpperCase());
                 }
             }
-            promotion.setPromotionCode(promotionCode.toUpperCase());
         }
 
         // Discount Type and Value
-        if (discountType == null || discountType.trim().isEmpty()) errors.put("discountType", "Vui lòng chọn loại giảm giá");
-        promotion.setDiscountType(discountType);
+        if (discountType == null || discountType.trim().isEmpty()) {
+            errors.put("discountType", "Vui lòng chọn loại giảm giá");
+        } else {
+            promotion.setDiscountType(discountType);
+        }
 
         if (discountValueStr == null || discountValueStr.trim().isEmpty()) {
             errors.put("discountValue", "Vui lòng nhập giá trị giảm giá");
         } else {
             try {
                 BigDecimal discountValue = new BigDecimal(discountValueStr);
-                if (discountValue.compareTo(BigDecimal.ZERO) <= 0) errors.put("discountValue", "Giá trị giảm giá phải lớn hơn 0");
-                if ("PERCENTAGE".equalsIgnoreCase(discountType) && discountValue.compareTo(new BigDecimal("100")) > 0) errors.put("discountValue", "Giảm giá theo % không được vượt quá 100");
-                promotion.setDiscountValue(discountValue);
+                if (discountValue.compareTo(BigDecimal.ZERO) <= 0) {
+                    errors.put("discountValue", "Giá trị giảm giá phải lớn hơn 0");
+                } else if ("PERCENTAGE".equalsIgnoreCase(discountType) && discountValue.compareTo(new BigDecimal("100")) > 0) {
+                    errors.put("discountValue", "Giảm giá theo % không được vượt quá 100");
+                } else {
+                    promotion.setDiscountValue(discountValue);
+                }
             } catch (NumberFormatException e) {
                 errors.put("discountValue", "Giá trị giảm giá không hợp lệ");
             }
         }
         
         // Description
-        if (description == null || description.trim().isEmpty()) errors.put("description", "Vui lòng nhập mô tả");
-        else if (description.trim().length() > 1000) errors.put("description", "Mô tả không được vượt quá 1000 ký tự");
-        promotion.setDescription(description);
+        if (description == null || description.trim().isEmpty()) {
+            errors.put("description", "Vui lòng nhập mô tả");
+        } else if (description.trim().length() > 1000) {
+            errors.put("description", "Mô tả không được vượt quá 1000 ký tự");
+        } else {
+            promotion.setDescription(description);
+        }
 
         // Dates
         LocalDateTime startDate = null, endDate = null;
-        if (startDateStr == null || startDateStr.trim().isEmpty()) errors.put("startDate", "Vui lòng chọn ngày bắt đầu");
-        else {
-            try { startDate = LocalDate.parse(startDateStr).atStartOfDay(); promotion.setStartDate(startDate); } 
-            catch (Exception e) { errors.put("startDate", "Định dạng ngày bắt đầu không hợp lệ"); }
+        if (startDateStr == null || startDateStr.trim().isEmpty()) {
+            errors.put("startDate", "Vui lòng chọn ngày bắt đầu");
+        } else {
+            try { 
+                startDate = LocalDate.parse(startDateStr).atStartOfDay(); 
+                promotion.setStartDate(startDate); 
+            } catch (Exception e) { 
+                errors.put("startDate", "Định dạng ngày bắt đầu không hợp lệ"); 
+            }
         }
-        if (endDateStr == null || endDateStr.trim().isEmpty()) errors.put("endDate", "Vui lòng chọn ngày kết thúc");
-        else {
-            try { endDate = LocalDate.parse(endDateStr).atTime(23, 59, 59); promotion.setEndDate(endDate); }
-            catch (Exception e) { errors.put("endDate", "Định dạng ngày kết thúc không hợp lệ"); }
+        if (endDateStr == null || endDateStr.trim().isEmpty()) {
+            errors.put("endDate", "Vui lòng chọn ngày kết thúc");
+        } else {
+            try { 
+                endDate = LocalDate.parse(endDateStr).atTime(23, 59, 59); 
+                promotion.setEndDate(endDate); 
+            } catch (Exception e) { 
+                errors.put("endDate", "Định dạng ngày kết thúc không hợp lệ"); 
+            }
         }
-        if (startDate != null && endDate != null && !endDate.isAfter(startDate)) errors.put("endDate", "Ngày kết thúc phải sau ngày bắt đầu");
+        if (startDate != null && endDate != null && !endDate.isAfter(startDate)) {
+            errors.put("endDate", "Ngày kết thúc phải sau ngày bắt đầu");
+        }
         
         promotion.setStatus(status);
-        promotion.setCustomerCondition(customerCondition);
+        
+        // Validate customer condition
+        if (customerCondition == null || customerCondition.trim().isEmpty()) {
+            errors.put("customerCondition", "Vui lòng chọn điều kiện khách hàng");
+        } else if (!customerCondition.matches("^(ALL|INDIVIDUAL|COUPLE|GROUP)$")) {
+            errors.put("customerCondition", "Điều kiện khách hàng không hợp lệ");
+        } else {
+            promotion.setCustomerCondition(customerCondition);
+        }
         
         // Các giá trị mặc định cho các trường mới
         if (!isEdit) {
@@ -355,7 +451,8 @@ public class PromotionController extends HttpServlet {
             promotion.setMinimumAppointmentValue(BigDecimal.ZERO);
             promotion.setApplicableScope("ENTIRE_APPOINTMENT");
         }
-
+        
+        logger.info("Validation completed. Errors: " + errors.size());
         return errors;
     }
 
@@ -365,24 +462,48 @@ public class PromotionController extends HttpServlet {
             return null; // Không có file mới được upload
         }
     
+        // Validate file
         if (!ImageUploadValidator.isValidImage(filePart)) {
             throw new IOException(ImageUploadValidator.getErrorMessage(filePart));
         }
 
+        // Get file name and create unique name
         String fileName = getSubmittedFileName(filePart);
-        String uniqueFileName = System.currentTimeMillis() + "_" + fileName.replaceAll("[^a-zA-Z0-9.-]", "_");
+        if (fileName == null || fileName.trim().isEmpty()) {
+            throw new IOException("Tên file không hợp lệ");
+        }
         
+        String fileExtension = "";
+        int lastDotIndex = fileName.lastIndexOf('.');
+        if (lastDotIndex > 0) {
+            fileExtension = fileName.substring(lastDotIndex);
+        }
+        
+        String uniqueFileName = System.currentTimeMillis() + "_promotion" + fileExtension;
+        
+        // Create upload directory
         String uploadPath = getServletContext().getRealPath(UPLOAD_DIR);
+        if (uploadPath == null) {
+            // Fallback to a default path if getRealPath returns null
+            uploadPath = System.getProperty("user.home") + "/spa-uploads/promotions/";
+        }
+        
         File uploadDir = new File(uploadPath);
         if (!uploadDir.exists()) {
-            uploadDir.mkdirs();
+            boolean created = uploadDir.mkdirs();
+            if (!created) {
+                throw new IOException("Không thể tạo thư mục upload: " + uploadPath);
+            }
         }
 
+        // Save file
+        File targetFile = new File(uploadDir, uniqueFileName);
         try (InputStream input = filePart.getInputStream()) {
-            Files.copy(input, Paths.get(uploadPath, uniqueFileName), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(input, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         }
         
-        return request.getContextPath() + UPLOAD_DIR + uniqueFileName;
+        // Return the URL path
+        return UPLOAD_DIR + uniqueFileName;
     }
     
     private void handleDeactivatePromotion(HttpServletRequest request, HttpServletResponse response) throws IOException {
