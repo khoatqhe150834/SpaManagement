@@ -88,12 +88,8 @@ public class AuthorizationFilter implements Filter {
         // Marketing areas
         URL_ROLE_MAPPINGS.put("/marketing", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.MARKETING_ID)));
         URL_ROLE_MAPPINGS.put("/blog", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.MARKETING_ID)));
-        
-        // Promotion management (Admin/Manager/Marketing only)
+        URL_ROLE_MAPPINGS.put("/promotions", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.MARKETING_ID)));
         URL_ROLE_MAPPINGS.put("/promotion", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.MARKETING_ID)));
-        
-        // Customer promotions (Customer can access)
-        URL_ROLE_MAPPINGS.put("/promotions", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.MARKETING_ID, RoleConstants.CUSTOMER_ID)));
 
         // Inventory Manager areas
         URL_ROLE_MAPPINGS.put("/inventory-manager", new HashSet<>(Arrays.asList(RoleConstants.INVENTORY_MANAGER_ID)));
@@ -145,9 +141,6 @@ public class AuthorizationFilter implements Filter {
 
         // Marketing area patterns
         PATTERN_ROLE_MAPPINGS.put("/marketing/*", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.MARKETING_ID)));
-        
-        // Promotion patterns (Admin/Manager/Marketing can manage, Customer can view)
-        PATTERN_ROLE_MAPPINGS.put("/promotions/*", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.MARKETING_ID, RoleConstants.CUSTOMER_ID)));
 
         // Inventory area patterns
         PATTERN_ROLE_MAPPINGS.put("/inventory/*", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.INVENTORY_MANAGER_ID)));
@@ -350,9 +343,19 @@ public class AuthorizationFilter implements Filter {
             String path, Integer userRoleId) throws IOException, ServletException {
         if (isAjaxRequest(request)) {
             response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            response.getWriter()
-                    .write("{\"error\":\"Access denied\",\"message\":\"You don't have permission to access this resource\"}");
+
+            String jsonResponse = "{" +
+                "\"success\": false," +
+                "\"error\": \"Access denied\"," +
+                "\"message\": \"You don't have permission to access this resource\"," +
+                "\"path\": \"" + path + "\"," +
+                "\"userRole\": " + userRoleId +
+                "}";
+
+            System.out.println("[AuthorizationFilter] Sending JSON error response for unauthorized AJAX request: " + jsonResponse);
+            response.getWriter().write(jsonResponse);
             return;
         }
 
@@ -366,10 +369,27 @@ public class AuthorizationFilter implements Filter {
         String xRequestedWith = request.getHeader("X-Requested-With");
         String accept = request.getHeader("Accept");
         String contentType = request.getContentType();
+        String requestURI = request.getRequestURI();
 
-        return "XMLHttpRequest".equals(xRequestedWith) ||
+        // Check standard AJAX headers
+        boolean isAjax = "XMLHttpRequest".equals(xRequestedWith) ||
                 (accept != null && accept.contains("application/json")) ||
                 (contentType != null && contentType.contains("application/json"));
+
+        // Also check if the request is to an API endpoint that should return JSON
+        boolean isApiEndpoint = requestURI.contains("/api/") ||
+                               requestURI.contains("action=") ||
+                               requestURI.endsWith("/scheduling") ||
+                               (request.getParameter("action") != null);
+
+        System.out.println("[AuthorizationFilter] AJAX detection - URI: " + requestURI +
+                          ", X-Requested-With: " + xRequestedWith +
+                          ", Accept: " + accept +
+                          ", ContentType: " + contentType +
+                          ", isAjax: " + isAjax +
+                          ", isApiEndpoint: " + isApiEndpoint);
+
+        return isAjax || isApiEndpoint;
     }
 
     /**

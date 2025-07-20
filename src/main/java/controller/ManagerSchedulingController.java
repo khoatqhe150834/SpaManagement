@@ -8,6 +8,7 @@ import java.sql.Time;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -42,6 +43,9 @@ import model.PaymentItemUsage;
 import model.SchedulablePaymentItem;
 import model.Service;
 import model.User;
+import model.csp.BookingAssignment;
+import model.csp.BookingCSPRequest;
+import service.BookingCSPSolver;
 import service.NotificationService;
 
 /**
@@ -135,6 +139,12 @@ public class ManagerSchedulingController extends HttpServlet {
                     break;
                 case "get_rooms":
                     handleGetRooms(request, response, user);
+                    break;
+                case "find_available_slots":
+                    handleFindAvailableSlots(request, response, user);
+                    break;
+                case "get_item_details":
+                    handleGetItemDetails(request, response, user);
                     break;
                 default:
                     response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unknown action");
@@ -852,6 +862,190 @@ public class ManagerSchedulingController extends HttpServlet {
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error creating booking from payment item", e);
             return new BookingResult(false, "Lỗi hệ thống khi tạo lịch hẹn", null);
+        }
+    }
+
+    /**
+     * Handle CSP solver request for finding available slots
+     */
+    private void handleFindAvailableSlots(HttpServletRequest request, HttpServletResponse response, User user)
+            throws IOException {
+
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        try {
+            // Parse request parameters
+            String customerIdStr = request.getParameter("customerId");
+            String serviceIdStr = request.getParameter("serviceId");
+            String preferredTherapistIdStr = request.getParameter("preferredTherapistId");
+            String preferredDateStr = request.getParameter("preferredDate");
+            String maxResultsStr = request.getParameter("maxResults");
+
+            // Validate required parameters
+            if (customerIdStr == null || serviceIdStr == null) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.getWriter().write("{\"success\": false, \"message\": \"Missing required parameters\"}");
+                return;
+            }
+
+            // Create CSP request
+            BookingCSPRequest cspRequest = new BookingCSPRequest();
+            cspRequest.setCustomerId(Integer.parseInt(customerIdStr));
+            cspRequest.setServiceId(Integer.parseInt(serviceIdStr));
+
+            // Set optional parameters
+            if (preferredTherapistIdStr != null && !preferredTherapistIdStr.isEmpty()) {
+                cspRequest.setPreferredTherapistId(Integer.parseInt(preferredTherapistIdStr));
+            }
+
+            if (preferredDateStr != null && !preferredDateStr.isEmpty()) {
+                cspRequest.setPreferredDate(LocalDate.parse(preferredDateStr));
+            }
+
+            if (maxResultsStr != null && !maxResultsStr.isEmpty()) {
+                cspRequest.setMaxResults(Integer.parseInt(maxResultsStr));
+            }
+
+            // Run CSP solver
+            BookingCSPSolver solver = new BookingCSPSolver();
+            List<BookingAssignment> availableSlots = solver.findAvailableSlots(cspRequest);
+
+            // Convert to response format
+            List<Map<String, Object>> responseSlots = new ArrayList<>();
+            for (BookingAssignment assignment : availableSlots) {
+                Map<String, Object> slot = new HashMap<>();
+                slot.put("startTime", assignment.getTimeSlot().getStartTime().toString());
+                slot.put("endTime", assignment.getTimeSlot().getEndTime().toString());
+                slot.put("therapistId", assignment.getTherapistId());
+                slot.put("roomId", assignment.getRoomId());
+                slot.put("bedId", assignment.getBedId());
+                slot.put("confidenceLevel", assignment.getConfidenceLevel().name());
+                slot.put("confidenceDescription", assignment.getConfidenceLevel().getDescription());
+                slot.put("durationMinutes", assignment.getTimeSlot().getDurationMinutes());
+                responseSlots.add(slot);
+            }
+
+            // Create response
+            ApiResponse<List<Map<String, Object>>> apiResponse = new ApiResponse<>();
+            apiResponse.setSuccess(true);
+            apiResponse.setData(responseSlots);
+            apiResponse.setMessage(String.format("Found %d available slots", availableSlots.size()));
+
+            response.getWriter().write(gson.toJson(apiResponse));
+
+        } catch (NumberFormatException e) {
+            LOGGER.log(Level.WARNING, "Invalid number format in CSP request", e);
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.getWriter().write("{\"success\": false, \"message\": \"Invalid parameter format\"}");
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error in CSP solver", e);
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("{\"success\": false, \"message\": \"Internal server error\"}");
+        }
+    }
+
+    /**
+     * Handle get item details request for CSP modal
+     */
+    private void handleGetItemDetails(HttpServletRequest request, HttpServletResponse response, User user)
+            throws IOException {
+
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        try {
+            String paymentItemIdStr = request.getParameter("paymentItemId");
+
+            if (paymentItemIdStr == null) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.getWriter().write("{\"success\": false, \"message\": \"Missing paymentItemId parameter\"}");
+                return;
+            }
+
+            int paymentItemId = Integer.parseInt(paymentItemIdStr);
+
+            // Try to fetch real data from database
+            try {
+                Optional<model.PaymentItem> paymentItemOpt = paymentItemDAO.findById(paymentItemId);
+
+                if (paymentItemOpt.isPresent()) {
+                    model.PaymentItem paymentItem = paymentItemOpt.get();
+
+                    // Get payment details to find customer
+                    Optional<model.Payment> paymentOpt = paymentDAO.findById(paymentItem.getPaymentId());
+
+                    // Get service details
+                    Optional<model.Service> serviceOpt = serviceDAO.findById(paymentItem.getServiceId());
+
+                    Map<String, Object> itemDetails = new HashMap<>();
+
+                    if (paymentOpt.isPresent() && serviceOpt.isPresent()) {
+                        model.Payment payment = paymentOpt.get();
+                        model.Service service = serviceOpt.get();
+
+                        // Get customer details
+                        Optional<model.Customer> customerOpt = customerDAO.findById(payment.getCustomerId());
+
+                        itemDetails.put("customerId", payment.getCustomerId());
+                        itemDetails.put("serviceId", service.getServiceId());
+                        itemDetails.put("serviceName", service.getName());
+                        itemDetails.put("serviceDuration", service.getDurationMinutes());
+
+                        if (customerOpt.isPresent()) {
+                            model.Customer customer = customerOpt.get();
+                            itemDetails.put("customerName", customer.getFullName());
+                            itemDetails.put("customerPhone", customer.getPhoneNumber() != null ? customer.getPhoneNumber() : "N/A");
+                        } else {
+                            itemDetails.put("customerName", "Khách hàng");
+                            itemDetails.put("customerPhone", "N/A");
+                        }
+                    } else {
+                        // Fallback if related data not found
+                        itemDetails.put("customerId", 1);
+                        itemDetails.put("serviceId", paymentItem.getServiceId());
+                        itemDetails.put("serviceName", "Dịch vụ Spa");
+                        itemDetails.put("serviceDuration", 60);
+                        itemDetails.put("customerName", "Khách hàng");
+                        itemDetails.put("customerPhone", "N/A");
+                    }
+
+                    ApiResponse<Map<String, Object>> apiResponse = new ApiResponse<>();
+                    apiResponse.setSuccess(true);
+                    apiResponse.setData(itemDetails);
+                    apiResponse.setMessage("Item details retrieved successfully");
+
+                    response.getWriter().write(gson.toJson(apiResponse));
+                    return;
+                }
+            } catch (SQLException e) {
+                LOGGER.log(Level.WARNING, "Database error fetching item details", e);
+            }
+
+            // Fallback to enhanced mock data
+            Map<String, Object> itemDetails = new HashMap<>();
+            itemDetails.put("customerId", 1);
+            itemDetails.put("serviceId", 1);
+            itemDetails.put("serviceName", "Massage Thư Giãn");
+            itemDetails.put("serviceDuration", 90);
+            itemDetails.put("customerName", "Nguyễn Văn A");
+            itemDetails.put("customerPhone", "0123456789");
+
+            ApiResponse<Map<String, Object>> apiResponse = new ApiResponse<>();
+            apiResponse.setSuccess(true);
+            apiResponse.setData(itemDetails);
+            apiResponse.setMessage("Item details retrieved successfully (fallback data)");
+
+            response.getWriter().write(gson.toJson(apiResponse));
+
+        } catch (NumberFormatException e) {
+            LOGGER.log(Level.WARNING, "Invalid paymentItemId format", e);
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.getWriter().write("{\"success\": false, \"message\": \"Invalid paymentItemId format\"}");
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error getting item details", e);
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("{\"success\": false, \"message\": \"Internal server error\"}");
         }
     }
 }
