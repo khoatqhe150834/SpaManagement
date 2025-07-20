@@ -49,6 +49,13 @@
             <version>10.1.15</version>
         </dependency>
 
+        <!-- Tomcat WebSocket Support -->
+        <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-websocket</artifactId>
+            <version>10.1.15</version>
+        </dependency>
+
         <!-- Jakarta Servlet JSP API -->
         <dependency>
             <groupId>jakarta.servlet.jsp</groupId>
