@@ -110,44 +110,129 @@ class ManagerSchedulingSystem {
     
     async loadSchedulableItems() {
         try {
-            const response = await fetch(`${this.contextPath}/api/manager/scheduling/schedulable-items`);
-            const data = await response.json();
-            
+            console.log('[MANAGER-SCHEDULING] Loading schedulable items from:', `${this.contextPath}/api/manager/scheduling/schedulable-items`);
+
+            const response = await fetch(`${this.contextPath}/api/manager/scheduling/schedulable-items`, {
+                method: 'GET',
+                credentials: 'same-origin', // Include session cookies
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest' // Mark as AJAX request
+                }
+            });
+
+            console.log('[MANAGER-SCHEDULING] Response status:', response.status);
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    console.error('[MANAGER-SCHEDULING] Authentication required - redirecting to login');
+                    this.showAlert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.', 'danger');
+                    setTimeout(() => {
+                        window.location.href = `${this.contextPath}/login`;
+                    }, 2000);
+                    return;
+                } else if (response.status === 403) {
+                    console.error('[MANAGER-SCHEDULING] Access denied - insufficient permissions');
+                    this.showAlert('Bạn không có quyền truy cập chức năng này.', 'danger');
+                    return;
+                }
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const text = await response.text();
+            console.log('[MANAGER-SCHEDULING] Raw response:', text.substring(0, 200));
+
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (parseError) {
+                console.error('[MANAGER-SCHEDULING] JSON parse error:', parseError);
+                console.error('[MANAGER-SCHEDULING] Response text:', text);
+                throw new Error('Invalid JSON response from server');
+            }
+
             if (data.success) {
                 this.currentSchedulableItems = data.data || [];
                 this.populateSchedulableItemsTable();
                 this.updateStatistics();
+                console.log('[MANAGER-SCHEDULING] Loaded', this.currentSchedulableItems.length, 'schedulable items');
             } else {
                 throw new Error(data.message || 'Failed to load schedulable items');
             }
-            
+
         } catch (error) {
             console.error('[MANAGER-SCHEDULING] Error loading schedulable items:', error);
-            this.showAlert('Lỗi tải danh sách dịch vụ cần đặt lịch', 'danger');
+            this.showAlert('Lỗi tải danh sách dịch vụ cần đặt lịch: ' + error.message, 'danger');
         }
     }
     
     async loadTherapists() {
         try {
+            console.log('[MANAGER-SCHEDULING] Loading therapists...');
+
             const formData = new FormData();
             formData.append('action', 'get_therapists');
-            
+
             const response = await fetch(`${this.contextPath}/manager/scheduling`, {
                 method: 'POST',
+                credentials: 'same-origin', // Include session cookies
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest' // Mark as AJAX request
+                },
                 body: formData
             });
-            
-            const data = await response.json();
-            
+
+            console.log('[MANAGER-SCHEDULING] Therapists response status:', response.status);
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    console.error('[MANAGER-SCHEDULING] Authentication required for therapists');
+                    this.showAlert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.', 'danger');
+                    setTimeout(() => {
+                        window.location.href = `${this.contextPath}/login`;
+                    }, 2000);
+                    return;
+                } else if (response.status === 403) {
+                    console.error('[MANAGER-SCHEDULING] Access denied for therapists');
+                    this.showAlert('Bạn không có quyền truy cập danh sách nhân viên.', 'danger');
+                    return;
+                }
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const text = await response.text();
+            console.log('[MANAGER-SCHEDULING] Therapists raw response:', text.substring(0, 200));
+
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (parseError) {
+                console.error('[MANAGER-SCHEDULING] Therapists JSON parse error:', parseError);
+                console.error('[MANAGER-SCHEDULING] Response text:', text);
+                // If it's HTML (likely an error page), show a generic message
+                if (text.includes('<!doctype') || text.includes('<html') || text.includes('<!DOCTYPE')) {
+                    console.warn('[MANAGER-SCHEDULING] Server returned HTML instead of JSON for therapists - likely authentication/authorization issue');
+                    this.showAlert('Lỗi xác thực. Vui lòng đăng nhập lại.', 'warning');
+                    setTimeout(() => {
+                        window.location.href = `${this.contextPath}/login`;
+                    }, 2000);
+                    return;
+                }
+                throw new Error('Invalid JSON response from server');
+            }
+
             if (data.success) {
                 this.therapists = data.data || [];
                 this.populateTherapistSelect();
+                console.log('[MANAGER-SCHEDULING] Loaded', this.therapists.length, 'therapists');
             } else {
                 console.warn('[MANAGER-SCHEDULING] Failed to load therapists:', data.message);
+                this.showAlert('Không thể tải danh sách nhân viên: ' + (data.message || 'Lỗi không xác định'), 'warning');
             }
-            
+
         } catch (error) {
             console.error('[MANAGER-SCHEDULING] Error loading therapists:', error);
+            this.showAlert('Lỗi tải danh sách nhân viên: ' + error.message, 'danger');
         }
     }
     
@@ -715,13 +800,6 @@ class ManagerSchedulingSystem {
                     notification.parentNode.removeChild(notification);
                 }
             }, 300);
-        }, 5000);
-        setTimeout(() => {
-            const alert = document.getElementById(alertId);
-            if (alert) {
-                const bsAlert = new bootstrap.Alert(alert);
-                bsAlert.close();
-            }
         }, 5000);
     }
 

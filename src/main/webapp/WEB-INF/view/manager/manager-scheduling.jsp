@@ -37,36 +37,11 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
-    <!-- FullCalendar CSS -->
-    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css' rel='stylesheet' />
+    <!-- FullCalendar CSS - REMOVED: Using custom fallback calendar implementation -->
 
     <!-- Custom CSS for CSP Modal -->
     <style>
-        /* FullCalendar customization */
-        .fc-day-disabled {
-            background-color: #f3f4f6 !important;
-            color: #9ca3af !important;
-            cursor: not-allowed !important;
-        }
-
-        .fc-day-today {
-            background-color: #fef3c7 !important;
-        }
-
-        .fc-daygrid-day:hover:not(.fc-day-disabled) {
-            background-color: #e5e7eb !important;
-            cursor: pointer;
-        }
-
-        .fc-button-primary {
-            background-color: #D4AF37 !important;
-            border-color: #D4AF37 !important;
-        }
-
-        .fc-button-primary:hover {
-            background-color: #B8941F !important;
-            border-color: #B8941F !important;
-        }
+        /* FullCalendar customization - REMOVED: Using custom fallback calendar */
 
         /* Slot item animations */
         .slot-item {
@@ -107,17 +82,7 @@
             background: #B8941F;
         }
 
-        /* Enhanced Calendar Styles */
-        .fc-day-selectable:hover {
-            background-color: #dbeafe !important;
-            cursor: pointer !important;
-        }
-
-        .fc-day-selected {
-            background-color: #3b82f6 !important;
-            color: white !important;
-            font-weight: bold !important;
-        }
+        /* Enhanced Calendar Styles - FullCalendar styles removed, using fallback calendar */
 
         /* Fallback Calendar Enhancements */
         .fallback-calendar {
@@ -192,8 +157,7 @@
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
-    <!-- FullCalendar JS -->
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.js'></script>
+    <!-- FullCalendar JS - REMOVED: Using custom fallback calendar implementation -->
 
     <!-- DataTables JS -->
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
@@ -606,15 +570,89 @@
             }, 5000);
         }
 
-        // CSP-Enhanced Modal Functions
-        let cspCalendar = null;
+        // CSP-Enhanced Modal Functions - Using fallback calendar only
         let currentBookingData = {};
+
+        // Extract service information from DataTable row
+        function extractRowDataFromTable(paymentItemId) {
+            console.log('[CSP Modal] Extracting row data for payment item:', paymentItemId);
+
+            try {
+                // Try to get data from the manager scheduling system
+                if (typeof window.managerSchedulingSystem !== 'undefined' && window.managerSchedulingSystem.currentSchedulableItems) {
+                    const items = window.managerSchedulingSystem.currentSchedulableItems;
+                    const item = items.find(i => i.paymentItemId == paymentItemId);
+
+                    if (item) {
+                        console.log('[CSP Modal] Found item in scheduling system:', item);
+                        return {
+                            paymentItemId: paymentItemId,
+                            customerId: item.customerId,
+                            serviceId: item.serviceId,
+                            serviceName: item.serviceName,
+                            serviceDuration: item.serviceDuration || 60,
+                            customerName: item.customerName,
+                            customerPhone: item.customerPhone
+                        };
+                    }
+                }
+
+                // Fallback: Try to extract from DOM table
+                const table = document.getElementById('schedulingTable');
+                if (table) {
+                    const rows = table.querySelectorAll('tbody tr');
+                    for (const row of rows) {
+                        const button = row.querySelector(`button[onclick*="${paymentItemId}"]`);
+                        if (button) {
+                            const cells = row.querySelectorAll('td');
+                            if (cells.length >= 6) {
+                                console.log('[CSP Modal] Extracting from table row:', row);
+                                return {
+                                    paymentItemId: paymentItemId,
+                                    customerId: 1, // Default
+                                    serviceId: 1, // Default
+                                    serviceName: cells[2]?.textContent?.trim() || 'Dịch vụ không xác định',
+                                    serviceDuration: 60, // Default
+                                    customerName: cells[0]?.textContent?.trim() || 'Khách hàng không xác định',
+                                    customerPhone: cells[1]?.textContent?.trim() || 'Chưa có thông tin'
+                                };
+                            }
+                        }
+                    }
+                }
+
+                console.warn('[CSP Modal] Could not extract row data from table');
+                return null;
+
+            } catch (error) {
+                console.error('[CSP Modal] Error extracting row data:', error);
+                return null;
+            }
+        }
 
         // Enhanced openSchedulingModal with CSP integration
         function openSchedulingModal(paymentItemId) {
             console.log('[CSP Modal] Opening scheduling modal for payment item:', paymentItemId);
-            console.log('[CSP Modal] FullCalendar available:', typeof FullCalendar !== 'undefined');
+            console.log('[CSP Modal] Using fallback calendar implementation');
             console.log('[CSP Modal] jQuery available:', typeof $ !== 'undefined');
+
+            // Extract data from the DataTable row first
+            const rowData = extractRowDataFromTable(paymentItemId);
+            if (rowData) {
+                console.log('[CSP Modal] Extracted row data:', rowData);
+                currentBookingData = {
+                    paymentItemId: paymentItemId,
+                    customerId: rowData.customerId || 1,
+                    serviceId: rowData.serviceId || 1,
+                    serviceName: rowData.serviceName || 'Dịch vụ không xác định',
+                    serviceDuration: rowData.serviceDuration || 60,
+                    customerName: rowData.customerName || 'Khách hàng không xác định',
+                    customerPhone: rowData.customerPhone || 'Chưa có thông tin'
+                };
+                console.log('[CSP Modal] Using extracted row data:', currentBookingData);
+                // Update service info display immediately with row data
+                updateServiceInfoDisplay();
+            }
 
             // Show modal
             const modal = document.getElementById('schedulingModal');
@@ -637,28 +675,31 @@
                 console.log('[CSP Modal] Item details loaded, initializing calendar...');
 
                 // Verify that service info was updated
-                if (currentBookingData) {
-                    console.log('[CSP Modal] Booking data available:', currentBookingData);
+                if (currentBookingData && currentBookingData.serviceName && currentBookingData.customerName) {
+                    console.log('[CSP Modal] Complete booking data available:', currentBookingData);
                 } else {
-                    console.warn('[CSP Modal] No booking data after loading, creating fallback');
-                    currentBookingData = {
-                        paymentItemId: paymentItemId,
-                        serviceName: 'Dịch vụ Spa',
-                        serviceDuration: 60,
-                        customerName: 'Khách hàng',
-                        customerPhone: 'Chưa có thông tin'
-                    };
+                    console.warn('[CSP Modal] Incomplete booking data, using enhanced fallback');
+                    // Preserve any existing row data, or use generic fallback
+                    if (!currentBookingData || !currentBookingData.serviceName) {
+                        currentBookingData = rowData || {
+                            paymentItemId: paymentItemId,
+                            serviceName: 'Dịch vụ Spa',
+                            serviceDuration: 60,
+                            customerName: 'Khách hàng',
+                            customerPhone: 'Chưa có thông tin'
+                        };
+                    }
                     updateServiceInfoDisplay();
                 }
 
                 setTimeout(() => {
-                    initializeCSPCalendar();
+                    initializeFallbackCalendar();
                 }, 500); // Small delay to ensure DOM is ready
             }).catch(error => {
                 console.error('[CSP Modal] Error in loadSchedulingItemDetails:', error);
 
-                // Create fallback data even if loading fails
-                currentBookingData = {
+                // Use row data if available, otherwise use generic fallback
+                currentBookingData = rowData || {
                     paymentItemId: paymentItemId,
                     serviceName: 'Dịch vụ Spa',
                     serviceDuration: 60,
@@ -666,7 +707,7 @@
                     customerPhone: 'Chưa có thông tin'
                 };
                 updateServiceInfoDisplay();
-                initializeCSPCalendar(); // Try to initialize anyway
+                initializeFallbackCalendar(); // Initialize fallback calendar
             });
         }
 
@@ -676,7 +717,14 @@
                 console.log('[CSP Modal] Loading details for payment item:', paymentItemId);
 
                 // Try to fetch real data from the existing system
-                const response = await fetch('${pageContext.request.contextPath}/manager/scheduling?action=get_item_details&paymentItemId=' + paymentItemId);
+                const response = await fetch('${pageContext.request.contextPath}/manager/scheduling?action=get_item_details&paymentItemId=' + paymentItemId, {
+                    method: 'GET',
+                    credentials: 'same-origin', // Include session cookies
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest' // Mark as AJAX request
+                    }
+                });
 
                 if (response.ok) {
                     const data = await response.json();
@@ -858,134 +906,7 @@
             });
         }
 
-        // Initialize FullCalendar for CSP
-        function initializeCSPCalendar() {
-            const calendarEl = document.getElementById('cspCalendarContainer');
-
-            // Check if FullCalendar is loaded
-            if (typeof FullCalendar === 'undefined') {
-                console.error('[CSP Modal] FullCalendar is not loaded. Using fallback calendar...');
-                initializeFallbackCalendar();
-                return;
-            }
-
-            if (cspCalendar) {
-                cspCalendar.destroy();
-            }
-
-            cspCalendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
-                locale: 'vi',
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'dayGridMonth'
-                },
-                height: 'auto',
-                selectable: true,
-                selectMirror: true,
-                dayMaxEvents: true,
-                weekends: true,
-
-                // Enhanced button text in Vietnamese
-                buttonText: {
-                    today: 'Hôm nay',
-                    month: 'Tháng',
-                    week: 'Tuần',
-                    day: 'Ngày',
-                    prev: '◀ Tháng trước',
-                    next: 'Tháng sau ▶'
-                },
-
-                // Disable past dates
-                selectConstraint: {
-                    start: new Date().toISOString().split('T')[0]
-                },
-
-                // Handle date selection with enhanced feedback
-                dateClick: function(info) {
-                    const clickedDate = info.dateStr;
-                    const today = new Date();
-                    const clickedDateObj = new Date(clickedDate);
-
-                    // Prevent selection of past dates
-                    if (clickedDateObj >= today.setHours(0, 0, 0, 0)) {
-                        console.log('[CSP Modal] FullCalendar date clicked:', clickedDate);
-                        selectedDate = clickedDate;
-
-                        // Remove previous selection highlighting
-                        document.querySelectorAll('.fc-day-selected').forEach(el => {
-                            el.classList.remove('fc-day-selected');
-                        });
-
-                        // Highlight selected date
-                        info.dayEl.classList.add('fc-day-selected');
-                        info.dayEl.style.backgroundColor = '#3b82f6';
-                        info.dayEl.style.color = 'white';
-
-                        handleDateSelection(clickedDate);
-                    } else {
-                        console.warn('[CSP Modal] Cannot select past date:', clickedDate);
-                    }
-                },
-
-                // Custom styling for better visual feedback
-                dayCellClassNames: function(info) {
-                    const today = new Date();
-                    const cellDate = new Date(info.date);
-
-                    if (cellDate < today) {
-                        return ['fc-day-disabled'];
-                    }
-                    return ['fc-day-selectable'];
-                },
-
-                // Enhanced day cell mounting with tooltips
-                dayCellDidMount: function(info) {
-                    const today = new Date();
-                    const cellDate = new Date(info.date);
-
-                    if (cellDate < today) {
-                        info.el.style.backgroundColor = '#f3f4f6';
-                        info.el.style.color = '#9ca3af';
-                        info.el.style.cursor = 'not-allowed';
-                        info.el.title = 'Không thể chọn ngày đã qua';
-                    } else {
-                        info.el.style.cursor = 'pointer';
-                        info.el.title = 'Chọn ngày này để xem lịch trống';
-
-                        // Add hover effects
-                        info.el.addEventListener('mouseenter', function() {
-                            if (!this.classList.contains('fc-day-disabled')) {
-                                this.style.backgroundColor = '#dbeafe';
-                            }
-                        });
-
-                        info.el.addEventListener('mouseleave', function() {
-                            if (!this.classList.contains('fc-day-selected') && !this.classList.contains('fc-day-disabled')) {
-                                this.style.backgroundColor = '';
-                            }
-                        });
-                    }
-                },
-
-                // Handle view changes (month navigation)
-                datesSet: function(info) {
-                    console.log('[CSP Modal] FullCalendar view changed to:', info.view.title);
-
-                    // Clear previous selection when navigating
-                    selectedDate = null;
-                    document.querySelectorAll('.fc-day-selected').forEach(el => {
-                        el.classList.remove('fc-day-selected');
-                        el.style.backgroundColor = '';
-                        el.style.color = '';
-                    });
-                }
-            });
-
-            cspCalendar.render();
-            console.log('[CSP Modal] Calendar initialized');
-        }
+        // FullCalendar initialization function REMOVED - Using fallback calendar only
 
         // Enhanced fallback calendar with navigation
         let currentCalendarDate = new Date();
@@ -1245,10 +1166,29 @@
                 params.append('preferredDate', preferredDate);
             }
 
-            return fetch('${pageContext.request.contextPath}/manager/scheduling?action=find_available_slots&' + params)
+            return fetch('${pageContext.request.contextPath}/manager/scheduling?action=find_available_slots&' + params, {
+                method: 'GET',
+                credentials: 'same-origin', // Include session cookies
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest' // Mark as AJAX request
+                }
+            })
                 .then(response => {
                     console.log('[CSP] Response status:', response.status);
                     if (!response.ok) {
+                        if (response.status === 401) {
+                            console.error('[CSP] Authentication required - redirecting to login');
+                            showNotification('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.', 'error');
+                            setTimeout(() => {
+                                window.location.href = '${pageContext.request.contextPath}/login';
+                            }, 2000);
+                            return Promise.reject(new Error('Authentication required'));
+                        } else if (response.status === 403) {
+                            console.error('[CSP] Access denied - insufficient permissions');
+                            showNotification('Bạn không có quyền truy cập chức năng này.', 'error');
+                            return Promise.reject(new Error('Access denied'));
+                        }
                         throw new Error('HTTP ' + response.status + ': ' + response.statusText);
                     }
                     return response.text(); // Get as text first to check if it's valid JSON
