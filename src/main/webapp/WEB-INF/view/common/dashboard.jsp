@@ -49,6 +49,11 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
+    <!-- Sidebar Notifications Script for Managers and Admins -->
+    <c:if test="${sessionScope.userType == 'ADMIN' || sessionScope.userType == 'MANAGER'}">
+        <script src="<c:url value='/js/sidebar-notifications.js'/>"></script>
+    </c:if>
+
     <!-- Box Icons and Remix Icons for backward compatibility -->
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">

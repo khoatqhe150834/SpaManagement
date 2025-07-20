@@ -167,6 +167,10 @@ public class MenuService {
     menuItems.add(new MenuItem("QUẢN LÝ", true));
     menuItems.add(new MenuItem("Dashboard", contextPath + "/dashboard", "layout-dashboard", "management"));
 
+    // Notifications Section
+    menuItems.add(new MenuItem("Thông báo", contextPath + "/notifications", "bell", "management")
+        .withNotification("0", "red"));
+
     // User Management (Admin - full access)
     MenuItem userMgmt = new MenuItem("Quản lý nhân viên", contextPath + "/user-management/list", "users", "management");
     userMgmt.addSubItem(new MenuItem("Danh sách nhân viên", contextPath + "/user-management/list", "list"));
@@ -205,6 +209,12 @@ public class MenuService {
     // Dashboard Section
     menuItems.add(new MenuItem("QUẢN LÝ", true));
     menuItems.add(new MenuItem("Dashboard", contextPath + "/dashboard", "layout-dashboard", "management"));
+
+    // Notifications Section
+    menuItems.add(new MenuItem("Thông báo", contextPath + "/notifications", "bell", "management")
+        .withNotification("0", "red"));
+    menuItems.add(new MenuItem("Thông báo thanh toán", contextPath + "/manager/payment-notifications", "credit-card", "management")
+        .withNotification("0", "red"));
 
     // User Management (Manager - limited access)
     MenuItem userMgmt = new MenuItem("Quản lý nhân viên", contextPath + "/user-management/list", "users", "management");
@@ -253,6 +263,7 @@ public class MenuService {
 
     // Operations Section
     menuItems.add(new MenuItem("VẬN HÀNH", true));
+    menuItems.add(new MenuItem("Quản lý lịch hẹn", contextPath + "/manager/scheduling", "calendar-plus", "operations"));
     menuItems.add(new MenuItem("Kho & Vật tư", contextPath + "/manager/inventory", "package", "operations"));
     menuItems.add(new MenuItem("Báo cáo phòng ban", contextPath + "/manager/reports", "bar-chart", "operations"));
     menuItems.add(new MenuItem("Khách hàng", contextPath + "/manager/customers", "users", "operations"));
@@ -621,7 +632,34 @@ public class MenuService {
    */
   public static List<MenuItem> getSidebarMenuItems(String roleName, String contextPath) {
     // Return the full menu items for sidebar navigation
-    return getMenuItemsByRole(roleName, contextPath);
+    List<MenuItem> menuItems = getMenuItemsByRole(roleName, contextPath);
+
+    // Update notification counts for managers and admins
+    if ("ADMIN".equals(roleName) || "MANAGER".equals(roleName)) {
+      updateNotificationCounts(menuItems);
+    }
+
+    return menuItems;
+  }
+
+  /**
+   * Update notification counts for menu items
+   */
+  private static void updateNotificationCounts(List<MenuItem> menuItems) {
+    try {
+      // This would be called from a service to get actual counts
+      // For now, we'll set default values that can be updated via JavaScript
+      for (MenuItem item : menuItems) {
+        if ("Thông báo".equals(item.getLabel())) {
+          item.withNotification("0", "red");
+        } else if ("Thông báo thanh toán".equals(item.getLabel())) {
+          item.withNotification("0", "red");
+        }
+      }
+    } catch (Exception e) {
+      // Log error but don't break menu rendering
+      System.err.println("Error updating notification counts: " + e.getMessage());
+    }
   }
 
   /**

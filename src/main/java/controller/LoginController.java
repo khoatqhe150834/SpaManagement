@@ -320,7 +320,7 @@ public class LoginController extends HttpServlet {
             throws IOException, ServletException {
 
         HttpSession session = request.getSession();
-        session.setAttribute("authenticated", true);
+        session.setAttribute("authenticated", Boolean.TRUE);
 
         Integer roleId;
         String userType;

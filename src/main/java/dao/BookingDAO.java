@@ -36,8 +36,8 @@ public class BookingDAO implements BaseDAO<Booking, Integer> {
     @Override
     public <S extends Booking> S save(S booking) throws SQLException {
         String sql = "INSERT INTO bookings (customer_id, payment_item_id, service_id, therapist_user_id, " +
-                    "appointment_date, appointment_time, duration_minutes, booking_status, booking_notes) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    "appointment_date, appointment_time, duration_minutes, booking_status, booking_notes, " +
+                    "room_id, bed_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
         try (Connection conn = DBContext.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -51,6 +51,12 @@ public class BookingDAO implements BaseDAO<Booking, Integer> {
             stmt.setInt(7, booking.getDurationMinutes());
             stmt.setString(8, booking.getBookingStatus().name());
             stmt.setString(9, booking.getBookingNotes());
+            stmt.setInt(10, booking.getRoomId());
+            if (booking.getBedId() != null) {
+                stmt.setInt(11, booking.getBedId());
+            } else {
+                stmt.setNull(11, Types.INTEGER);
+            }
             
             int affectedRows = stmt.executeUpdate();
             if (affectedRows == 0) {
@@ -146,7 +152,7 @@ public class BookingDAO implements BaseDAO<Booking, Integer> {
                     "therapist_user_id = ?, appointment_date = ?, appointment_time = ?, " +
                     "duration_minutes = ?, booking_status = ?, booking_notes = ?, " +
                     "cancellation_reason = ?, cancelled_at = ?, cancelled_by = ?, " +
-                    "updated_at = CURRENT_TIMESTAMP WHERE booking_id = ?";
+                    "room_id = ?, bed_id = ?, updated_at = CURRENT_TIMESTAMP WHERE booking_id = ?";
         
         try (Connection conn = DBContext.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -167,7 +173,13 @@ public class BookingDAO implements BaseDAO<Booking, Integer> {
             } else {
                 stmt.setNull(12, Types.INTEGER);
             }
-            stmt.setInt(13, booking.getBookingId());
+            stmt.setInt(13, booking.getRoomId());
+            if (booking.getBedId() != null) {
+                stmt.setInt(14, booking.getBedId());
+            } else {
+                stmt.setNull(14, Types.INTEGER);
+            }
+            stmt.setInt(15, booking.getBookingId());
             
             int affectedRows = stmt.executeUpdate();
             if (affectedRows == 0) {
@@ -577,6 +589,13 @@ public class BookingDAO implements BaseDAO<Booking, Integer> {
         booking.setCreatedAt(rs.getTimestamp("created_at"));
         booking.setUpdatedAt(rs.getTimestamp("updated_at"));
 
+        // Map room and bed IDs
+        booking.setRoomId(rs.getInt("room_id"));
+        Integer bedId = rs.getInt("bed_id");
+        if (!rs.wasNull()) {
+            booking.setBedId(bedId);
+        }
+
         // Map related entities if available
         String customerName = rs.getString("customer_name");
         if (customerName != null) {
@@ -743,5 +762,33 @@ public class BookingDAO implements BaseDAO<Booking, Integer> {
         }
 
         return stats;
+    }
+
+    /**
+     * Find bookings by therapist and date
+     */
+    public List<Booking> findByTherapistAndDate(int therapistId, Date appointmentDate) throws SQLException {
+        List<Booking> bookings = new ArrayList<>();
+        String sql = "SELECT * FROM bookings WHERE therapist_user_id = ? AND appointment_date = ? " +
+                    "ORDER BY appointment_time";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, therapistId);
+            stmt.setDate(2, appointmentDate);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    bookings.add(mapResultSetToBooking(rs));
+                }
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error finding bookings by therapist and date", ex);
+            throw ex;
+        }
+
+        return bookings;
     }
 }

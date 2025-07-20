@@ -520,11 +520,11 @@ public class BookingController extends HttpServlet {
         if (user != null) {
             request.setAttribute("currentUser", user);
             request.setAttribute("userType", "user");
-            request.setAttribute("isAuthenticated", true);
+            request.setAttribute("isAuthenticated", Boolean.TRUE);
         } else if (customer != null) {
             request.setAttribute("currentCustomer", customer);
             request.setAttribute("userType", "customer");
-            request.setAttribute("isAuthenticated", true);
+            request.setAttribute("isAuthenticated", Boolean.TRUE);
         } else {
             // No valid user found, redirect to login
             response.sendRedirect(request.getContextPath() + "/login");

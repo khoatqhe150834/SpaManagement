@@ -1,11 +1,12 @@
 package model;
 
-import lombok.ToString;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalTime;
+
+import lombok.ToString;
 
 /**
  * Booking model class for individual service bookings linked to paid services
@@ -30,6 +31,8 @@ public class Booking {
     private Integer cancelledBy; // User ID who cancelled
     private Timestamp createdAt;
     private Timestamp updatedAt;
+    private Integer roomId; // Room assignment
+    private Integer bedId; // Bed assignment (nullable)
     
     // Related entities (for joins)
     private Customer customer;
@@ -225,7 +228,23 @@ public class Booking {
     public void setCancelledByUser(User cancelledByUser) {
         this.cancelledByUser = cancelledByUser;
     }
-    
+
+    public Integer getRoomId() {
+        return roomId;
+    }
+
+    public void setRoomId(Integer roomId) {
+        this.roomId = roomId;
+    }
+
+    public Integer getBedId() {
+        return bedId;
+    }
+
+    public void setBedId(Integer bedId) {
+        this.bedId = bedId;
+    }
+
     // Utility methods
     
     /**

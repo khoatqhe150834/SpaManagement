@@ -2,6 +2,7 @@ package model;
 
 import java.util.Date;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
@@ -11,7 +12,7 @@ import lombok.Setter;
 @Data
 @Builder
 @NoArgsConstructor
-
+@AllArgsConstructor
 @Getter
 @Setter
 public class User {
@@ -31,29 +32,5 @@ public class User {
   private Date createdAt;
   private Date updatedAt;
 
-    
-    public User(Integer userId, Integer roleId, String fullName, String email, String hashPassword, String phoneNumber, String gender, Date birthday, String avatarUrl, String address, Boolean isActive, Boolean isEmailVerified, Date lastLoginAt, Date createdAt, Date updatedAt) {
-        this.userId = userId;
-        this.roleId = roleId;
-        this.fullName = fullName;
-        this.email = email;
-        this.hashPassword = hashPassword;
-        this.phoneNumber = phoneNumber;
-        this.gender = gender;
-        this.birthday = birthday;
-        this.avatarUrl = avatarUrl;
-        this.address = address;
-        this.isActive = isActive;
-        this.isEmailVerified = isEmailVerified;
-        this.lastLoginAt = lastLoginAt;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-    }
 
-    public Integer getRoleId() {
-        return roleId;
-    }
-  
-  
-  
 }

@@ -69,7 +69,45 @@ prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
           <!-- User Actions -->
           <div class="flex items-center space-x-4">
-            
+
+            <!-- Notification Bell Icon - Only for Managers and Admins -->
+            <c:if test="${not empty sessionScope.user}">
+              <c:set var="userRoleName" value="<%= RoleConstants.getUserTypeFromRole(((model.User)session.getAttribute(\"user\")).getRoleId()) %>" />
+              <c:if test="${userRoleName == 'ADMIN' || userRoleName == 'MANAGER'}">
+                <div class="relative">
+                  <button id="notification-bell-btn" class="relative p-2 text-spa-dark hover:text-primary transition-colors">
+                    <i data-lucide="bell" class="w-6 h-6 pointer-events-none"></i>
+                    <span id="notification-badge" class="absolute inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-600 border-2 border-white rounded-full -top-1 -right-1" style="display: none;">0</span>
+                  </button>
+
+                  <!-- Notification Dropdown -->
+                  <div id="notification-dropdown" class="absolute right-0 z-20 mt-2 w-80 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none hidden">
+                    <div class="py-1">
+                      <!-- Notification Header -->
+                      <div class="px-4 py-3 border-b border-gray-200">
+                        <div class="flex justify-between items-center">
+                          <h3 class="text-sm font-medium text-spa-dark">Thông báo</h3>
+                          <a href="${pageContext.request.contextPath}/notifications" class="text-xs text-primary hover:text-primary-dark">Xem tất cả</a>
+                        </div>
+                      </div>
+
+                      <!-- Notification List -->
+                      <div id="notification-list" class="max-h-64 overflow-y-auto">
+                        <div class="px-4 py-3 text-sm text-gray-500 text-center">
+                          Đang tải thông báo...
+                        </div>
+                      </div>
+
+                      <!-- Notification Footer -->
+                      <div class="px-4 py-2 border-t border-gray-200 text-center">
+                        <a href="${pageContext.request.contextPath}/notifications" class="text-xs text-primary hover:text-primary-dark">Xem tất cả thông báo</a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </c:if>
+            </c:if>
+
             <c:choose>
               <c:when test="${not empty sessionScope.authenticated and sessionScope.authenticated}">
                   
@@ -382,6 +420,14 @@ prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
 <!-- Cart Script -->
 <script src="${pageContext.request.contextPath}/js/cart.js"></script>
+</c:if>
+
+<!-- Notification Script for Managers and Admins -->
+<c:if test="${not empty sessionScope.user}">
+  <c:set var="userRoleName" value="<%= RoleConstants.getUserTypeFromRole(((model.User)session.getAttribute(\"user\")).getRoleId()) %>" />
+  <c:if test="${userRoleName == 'ADMIN' || userRoleName == 'MANAGER'}">
+    <script src="${pageContext.request.contextPath}/js/header-notifications.js"></script>
+  </c:if>
 </c:if>
   </body>
 </html>

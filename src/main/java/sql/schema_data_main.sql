@@ -300,6 +300,47 @@ LOCK TABLES `checkins` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `customer_appointment_notifications`
+--
+
+DROP TABLE IF EXISTS `customer_appointment_notifications`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `customer_appointment_notifications` (
+  `notification_id` int NOT NULL AUTO_INCREMENT,
+  `customer_id` int NOT NULL,
+  `booking_id` int NOT NULL,
+  `notification_type` enum('APPOINTMENT_CONFIRMED','APPOINTMENT_REMINDER','APPOINTMENT_CANCELLED','APPOINTMENT_RESCHEDULED') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `message` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `is_read` tinyint(1) NOT NULL DEFAULT '0',
+  `delivery_method` enum('WEB','EMAIL','SMS') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'WEB',
+  `delivery_status` enum('PENDING','SENT','FAILED') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PENDING',
+  `scheduled_send_time` timestamp NULL DEFAULT NULL COMMENT 'For reminder notifications',
+  `sent_at` timestamp NULL DEFAULT NULL,
+  `read_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`notification_id`),
+  KEY `idx_customer_id` (`customer_id`),
+  KEY `idx_booking_id` (`booking_id`),
+  KEY `idx_notification_type` (`notification_type`),
+  KEY `idx_delivery_status` (`delivery_status`),
+  KEY `idx_scheduled_send_time` (`scheduled_send_time`),
+  CONSTRAINT `customer_appointment_notifications_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `customer_appointment_notifications_ibfk_2` FOREIGN KEY (`booking_id`) REFERENCES `bookings` (`booking_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Notifications sent to customers about their appointments';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `customer_appointment_notifications`
+--
+
+LOCK TABLES `customer_appointment_notifications` WRITE;
+/*!40000 ALTER TABLE `customer_appointment_notifications` DISABLE KEYS */;
+/*!40000 ALTER TABLE `customer_appointment_notifications` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `customers`
 --
 
@@ -407,6 +448,54 @@ LOCK TABLES `email_verification_tokens` WRITE;
 /*!40000 ALTER TABLE `email_verification_tokens` DISABLE KEYS */;
 INSERT INTO `email_verification_tokens` VALUES (81,'c216559d-da40-447e-b38a-a5e88f1c3b0e','quangkhoa51132@5dulieu.com','2025-06-07 13:13:15','2025-06-08 13:13:15',0),(99,'0a27e432-4208-483b-8ebf-d0214ed8cbea','quangkhoa5112@gmail.com','2025-06-10 01:36:32','2025-06-11 01:36:32',1),(118,'7b75cfe9-c519-475b-a133-d5adb8764a72','khoatqhe150834@fpt.edu.vn','2025-06-16 01:24:40','2025-06-17 01:24:41',1),(129,'63df4db1-b921-47f3-93bf-c088ff4e76af','khoatqhe150834@gmail.com','2025-06-22 12:35:41','2025-06-23 12:35:42',1),(131,'a7e5c4f4-0933-4c00-9d7c-75748172217e','abc@gmail.com','2025-06-25 11:38:30','2025-06-26 11:38:31',0),(134,'945e4624-40d4-48e2-a8ba-a4bc5ab8dc1b','dohoangduong2708@gmail.com','2025-06-25 11:41:16','2025-06-26 11:41:16',0),(135,'9103a486-0b60-47bc-901f-7925909d0293','khoatqhe150834@gmail.com','2025-07-03 11:11:21','2025-07-04 04:11:21',1),(136,'3cead5ea-d921-4ae2-80e4-ff1b3823c99b','khoatqhe150834@gmail.com','2025-07-15 12:58:16','2025-07-16 05:58:17',1);
 /*!40000 ALTER TABLE `email_verification_tokens` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `general_notifications`
+--
+
+DROP TABLE IF EXISTS `general_notifications`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `general_notifications` (
+  `notification_id` int NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Tiêu đề thông báo',
+  `message` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Nội dung thông báo',
+  `notification_type` enum('SYSTEM_ANNOUNCEMENT','PROMOTION','MAINTENANCE','POLICY_UPDATE','BOOKING_REMINDER','PAYMENT_NOTIFICATION','SERVICE_UPDATE','EMERGENCY','MARKETING_CAMPAIGN','INVENTORY_ALERT') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'SYSTEM_ANNOUNCEMENT' COMMENT 'Loại thông báo',
+  `priority` enum('LOW','MEDIUM','HIGH','URGENT') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'MEDIUM' COMMENT 'Mức độ ưu tiên',
+  `target_type` enum('ALL_USERS','ROLE_BASED','INDIVIDUAL','CUSTOMER_SEGMENT') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'ALL_USERS' COMMENT 'Đối tượng nhận thông báo',
+  `target_role_ids` json DEFAULT NULL COMMENT 'Danh sách role_id nhận thông báo (cho ROLE_BASED)',
+  `target_user_ids` json DEFAULT NULL COMMENT 'Danh sách user_id cụ thể (cho INDIVIDUAL)',
+  `target_customer_ids` json DEFAULT NULL COMMENT 'Danh sách customer_id cụ thể',
+  `image_url` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'URL hình ảnh đính kèm',
+  `attachment_url` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'URL file đính kèm',
+  `action_url` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'URL hành động khi click thông báo',
+  `action_text` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Text nút hành động',
+  `is_active` tinyint(1) NOT NULL DEFAULT '1' COMMENT 'Thông báo có hoạt động không',
+  `start_date` datetime DEFAULT NULL COMMENT 'Thời gian bắt đầu hiển thị',
+  `end_date` datetime DEFAULT NULL COMMENT 'Thời gian kết thúc hiển thị',
+  `created_by_user_id` int NOT NULL COMMENT 'User tạo thông báo',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`notification_id`),
+  KEY `idx_notification_type` (`notification_type`),
+  KEY `idx_priority` (`priority`),
+  KEY `idx_target_type` (`target_type`),
+  KEY `idx_active_dates` (`is_active`,`start_date`,`end_date`),
+  KEY `idx_created_by` (`created_by_user_id`),
+  KEY `idx_notifications_active_priority` (`is_active`,`priority`,`created_at`),
+  CONSTRAINT `general_notifications_ibfk_1` FOREIGN KEY (`created_by_user_id`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Bảng thông báo chung cho tất cả user roles';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `general_notifications`
+--
+
+LOCK TABLES `general_notifications` WRITE;
+/*!40000 ALTER TABLE `general_notifications` DISABLE KEYS */;
+INSERT INTO `general_notifications` VALUES (1,'Chào Mừng Hệ Thống Thông Báo Mới','Chúng tôi vui mừng giới thiệu hệ thống thông báo mới giúp bạn cập nhật thông tin kịp thời. Hãy kiểm tra thông báo thường xuyên để không bỏ lỡ thông tin quan trọng!','SYSTEM_ANNOUNCEMENT','MEDIUM','ALL_USERS',NULL,NULL,NULL,NULL,NULL,NULL,NULL,1,'2025-07-20 15:27:42','2025-08-19 15:27:42',1,'2025-07-20 08:27:42','2025-07-20 08:27:42'),(2,'Khuyến Mãi Tháng 8 - Giảm 30% Massage','Chương trình khuyến mãi đặc biệt tháng 8! Giảm 30% cho tất cả dịch vụ massage. Áp dụng từ 01/08 đến 31/08. Đặt lịch ngay để nhận ưu đãi!','PROMOTION','HIGH','ROLE_BASED','[5]',NULL,NULL,NULL,NULL,NULL,NULL,1,'2025-07-20 15:27:42','2025-08-04 15:27:42',1,'2025-07-20 08:27:42','2025-07-20 08:27:42'),(3,'Bảo Trì Hệ Thống Cuối Tuần','Hệ thống sẽ được bảo trì vào Chủ nhật từ 2:00 - 6:00 sáng. Một số chức năng có thể bị gián đoạn. Xin lỗi vì sự bất tiện.','MAINTENANCE','HIGH','ROLE_BASED','[1, 2, 3, 4]',NULL,NULL,NULL,NULL,NULL,NULL,1,'2025-07-20 15:27:42','2025-07-27 15:27:42',1,'2025-07-20 08:27:42','2025-07-20 08:27:42'),(4,'Cập Nhật Chính Sách Mới','Chính sách hủy lịch hẹn đã được cập nhật. Khách hàng có thể hủy miễn phí trước 24 giờ. Vui lòng thông báo cho khách hàng.','POLICY_UPDATE','MEDIUM','ROLE_BASED','[2, 3, 4]',NULL,NULL,NULL,NULL,NULL,NULL,1,'2025-07-20 15:27:42','2025-09-18 15:27:42',1,'2025-07-20 08:27:42','2025-07-20 08:27:42');
+/*!40000 ALTER TABLE `general_notifications` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -635,6 +724,165 @@ INSERT INTO `inventory_transaction` VALUES (1,1,'IN',2000,'2025-06-20 09:00:00',
 UNLOCK TABLES;
 
 --
+-- Table structure for table `notification_preferences`
+--
+
+DROP TABLE IF EXISTS `notification_preferences`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `notification_preferences` (
+  `preference_id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int DEFAULT NULL COMMENT 'User preferences (staff)',
+  `customer_id` int DEFAULT NULL COMMENT 'Customer preferences',
+  `notification_type` enum('SYSTEM_ANNOUNCEMENT','PROMOTION','MAINTENANCE','POLICY_UPDATE','BOOKING_REMINDER','PAYMENT_NOTIFICATION','SERVICE_UPDATE','EMERGENCY','MARKETING_CAMPAIGN','INVENTORY_ALERT') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `web_enabled` tinyint(1) NOT NULL DEFAULT '1' COMMENT 'Nhận thông báo trên web',
+  `email_enabled` tinyint(1) NOT NULL DEFAULT '1' COMMENT 'Nhận thông báo qua email',
+  `sms_enabled` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Nhận thông báo qua SMS',
+  `push_enabled` tinyint(1) NOT NULL DEFAULT '1' COMMENT 'Nhận push notification',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`preference_id`),
+  UNIQUE KEY `unique_user_notification_type` (`user_id`,`notification_type`),
+  UNIQUE KEY `unique_customer_notification_type` (`customer_id`,`notification_type`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_customer_id` (`customer_id`),
+  CONSTRAINT `notification_preferences_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
+  CONSTRAINT `notification_preferences_ibfk_2` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`),
+  CONSTRAINT `chk_preference_type` CHECK ((((`user_id` is not null) and (`customer_id` is null)) or ((`user_id` is null) and (`customer_id` is not null))))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Cài đặt thông báo của từng user/customer';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `notification_preferences`
+--
+
+LOCK TABLES `notification_preferences` WRITE;
+/*!40000 ALTER TABLE `notification_preferences` DISABLE KEYS */;
+/*!40000 ALTER TABLE `notification_preferences` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `notification_recipients`
+--
+
+DROP TABLE IF EXISTS `notification_recipients`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `notification_recipients` (
+  `recipient_id` int NOT NULL AUTO_INCREMENT,
+  `notification_id` int NOT NULL,
+  `user_id` int DEFAULT NULL COMMENT 'User nhận thông báo (staff)',
+  `customer_id` int DEFAULT NULL COMMENT 'Customer nhận thông báo',
+  `is_read` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Đã đọc chưa',
+  `read_at` timestamp NULL DEFAULT NULL COMMENT 'Thời gian đọc',
+  `is_dismissed` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Đã dismiss chưa',
+  `dismissed_at` timestamp NULL DEFAULT NULL COMMENT 'Thời gian dismiss',
+  `delivery_status` enum('PENDING','DELIVERED','FAILED','EXPIRED') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PENDING' COMMENT 'Trạng thái gửi',
+  `delivery_method` enum('WEB','EMAIL','SMS','PUSH') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'WEB' COMMENT 'Phương thức gửi',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`recipient_id`),
+  UNIQUE KEY `unique_notification_recipient` (`notification_id`,`user_id`,`customer_id`),
+  KEY `idx_notification_id` (`notification_id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_customer_id` (`customer_id`),
+  KEY `idx_read_status` (`is_read`,`read_at`),
+  KEY `idx_delivery_status` (`delivery_status`),
+  KEY `idx_recipients_unread` (`user_id`,`customer_id`,`is_read`,`created_at`),
+  KEY `idx_recipients_delivery` (`delivery_status`,`delivery_method`,`created_at`),
+  CONSTRAINT `notification_recipients_ibfk_1` FOREIGN KEY (`notification_id`) REFERENCES `general_notifications` (`notification_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `notification_recipients_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
+  CONSTRAINT `notification_recipients_ibfk_3` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`),
+  CONSTRAINT `chk_recipient_type` CHECK ((((`user_id` is not null) and (`customer_id` is null)) or ((`user_id` is null) and (`customer_id` is not null))))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Bảng theo dõi người nhận thông báo và trạng thái đọc';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `notification_recipients`
+--
+
+LOCK TABLES `notification_recipients` WRITE;
+/*!40000 ALTER TABLE `notification_recipients` DISABLE KEYS */;
+/*!40000 ALTER TABLE `notification_recipients` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `notification_statistics`
+--
+
+DROP TABLE IF EXISTS `notification_statistics`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `notification_statistics` (
+  `stat_id` int NOT NULL AUTO_INCREMENT,
+  `notification_id` int NOT NULL,
+  `total_recipients` int NOT NULL DEFAULT '0' COMMENT 'Tổng số người nhận',
+  `delivered_count` int NOT NULL DEFAULT '0' COMMENT 'Số lượng đã gửi thành công',
+  `read_count` int NOT NULL DEFAULT '0' COMMENT 'Số lượng đã đọc',
+  `dismissed_count` int NOT NULL DEFAULT '0' COMMENT 'Số lượng đã dismiss',
+  `failed_count` int NOT NULL DEFAULT '0' COMMENT 'Số lượng gửi thất bại',
+  `click_count` int NOT NULL DEFAULT '0' COMMENT 'Số lượng click action',
+  `delivery_rate` decimal(5,2) DEFAULT '0.00' COMMENT 'Tỷ lệ gửi thành công (%)',
+  `read_rate` decimal(5,2) DEFAULT '0.00' COMMENT 'Tỷ lệ đọc (%)',
+  `engagement_rate` decimal(5,2) DEFAULT '0.00' COMMENT 'Tỷ lệ tương tác (%)',
+  `last_updated` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`stat_id`),
+  UNIQUE KEY `notification_id` (`notification_id`),
+  CONSTRAINT `notification_statistics_ibfk_1` FOREIGN KEY (`notification_id`) REFERENCES `general_notifications` (`notification_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Thống kê hiệu quả thông báo';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `notification_statistics`
+--
+
+LOCK TABLES `notification_statistics` WRITE;
+/*!40000 ALTER TABLE `notification_statistics` DISABLE KEYS */;
+/*!40000 ALTER TABLE `notification_statistics` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `notification_templates`
+--
+
+DROP TABLE IF EXISTS `notification_templates`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `notification_templates` (
+  `template_id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Tên template',
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT 'Mô tả template',
+  `notification_type` enum('SYSTEM_ANNOUNCEMENT','PROMOTION','MAINTENANCE','POLICY_UPDATE','BOOKING_REMINDER','PAYMENT_NOTIFICATION','SERVICE_UPDATE','EMERGENCY','MARKETING_CAMPAIGN','INVENTORY_ALERT') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Loại thông báo',
+  `title_template` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Template tiêu đề với placeholders',
+  `message_template` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Template nội dung với placeholders',
+  `default_priority` enum('LOW','MEDIUM','HIGH','URGENT') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'MEDIUM',
+  `default_target_type` enum('ALL_USERS','ROLE_BASED','INDIVIDUAL','CUSTOMER_SEGMENT') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'ALL_USERS',
+  `default_role_ids` json DEFAULT NULL COMMENT 'Role mặc định cho template',
+  `placeholders` json DEFAULT NULL COMMENT 'Danh sách placeholders và mô tả',
+  `is_active` tinyint(1) NOT NULL DEFAULT '1',
+  `created_by_user_id` int NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`template_id`),
+  UNIQUE KEY `name` (`name`),
+  KEY `idx_notification_type` (`notification_type`),
+  KEY `idx_active` (`is_active`),
+  KEY `idx_created_by` (`created_by_user_id`),
+  CONSTRAINT `notification_templates_ibfk_1` FOREIGN KEY (`created_by_user_id`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Templates cho thông báo có thể tái sử dụng';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `notification_templates`
+--
+
+LOCK TABLES `notification_templates` WRITE;
+/*!40000 ALTER TABLE `notification_templates` DISABLE KEYS */;
+INSERT INTO `notification_templates` VALUES (1,'system_maintenance','Thông báo bảo trì hệ thống','MAINTENANCE','Thông Báo Bảo Trì Hệ Thống - {maintenance_date}','Hệ thống sẽ được bảo trì vào {maintenance_date} từ {start_time} đến {end_time}. Trong thời gian này, một số chức năng có thể bị gián đoạn. Xin lỗi vì sự bất tiện này.','HIGH','ALL_USERS',NULL,'{\"end_time\": \"Giờ kết thúc\", \"start_time\": \"Giờ bắt đầu\", \"maintenance_date\": \"Ngày bảo trì\"}',1,1,'2025-07-20 08:27:42','2025-07-20 08:27:42'),(2,'new_promotion','Thông báo khuyến mãi mới','PROMOTION','Khuyến Mãi Mới: {promotion_title}','Chúng tôi vui mừng thông báo chương trình khuyến mãi mới: {promotion_title}. Giảm giá {discount_percent}% cho {service_names}. Thời gian áp dụng: {start_date} - {end_date}. Đặt lịch ngay!','MEDIUM','ROLE_BASED','[5]','{\"end_date\": \"Ngày kết thúc\", \"start_date\": \"Ngày bắt đầu\", \"service_names\": \"Tên dịch vụ\", \"promotion_title\": \"Tên chương trình\", \"discount_percent\": \"Phần trăm giảm giá\"}',1,1,'2025-07-20 08:27:42','2025-07-20 08:27:42'),(3,'booking_reminder','Nhắc nhở lịch hẹn','BOOKING_REMINDER','Nhắc Nhở: Lịch Hẹn Của Bạn Vào {appointment_date}','Xin chào {customer_name}, bạn có lịch hẹn {service_name} vào {appointment_date} lúc {appointment_time} với {therapist_name}. Vui lòng đến đúng giờ. Cảm ơn!','MEDIUM','INDIVIDUAL',NULL,'{\"service_name\": \"Tên dịch vụ\", \"customer_name\": \"Tên khách hàng\", \"therapist_name\": \"Tên kỹ thuật viên\", \"appointment_date\": \"Ngày hẹn\", \"appointment_time\": \"Giờ hẹn\"}',1,1,'2025-07-20 08:27:42','2025-07-20 08:27:42'),(4,'payment_success','Thông báo thanh toán thành công','PAYMENT_NOTIFICATION','Thanh Toán Thành Công - Đơn Hàng #{order_id}','Cảm ơn {customer_name} đã thanh toán thành công đơn hàng #{order_id} với số tiền {amount}. Chúng tôi sẽ liên hệ để sắp xếp lịch hẹn sớm nhất.','MEDIUM','INDIVIDUAL',NULL,'{\"amount\": \"Số tiền\", \"order_id\": \"Mã đơn hàng\", \"customer_name\": \"Tên khách hàng\"}',1,1,'2025-07-20 08:27:42','2025-07-20 08:27:42'),(5,'inventory_low_stock','Cảnh báo hết hàng','INVENTORY_ALERT','Cảnh Báo: Sản Phẩm {product_name} Sắp Hết','Sản phẩm {product_name} chỉ còn {quantity} {unit} trong kho. Vui lòng nhập thêm hàng để đảm bảo hoạt động kinh doanh.','HIGH','ROLE_BASED','[1, 2, 7]','{\"unit\": \"Đơn vị\", \"quantity\": \"Số lượng còn lại\", \"product_name\": \"Tên sản phẩm\"}',1,1,'2025-07-20 08:27:42','2025-07-20 08:27:42'),(6,'emergency_alert','Thông báo khẩn cấp','EMERGENCY','KHẨN CẤP: {alert_title}','{alert_message}. Vui lòng thực hiện ngay các biện pháp cần thiết. Liên hệ quản lý nếu cần hỗ trợ.','URGENT','ALL_USERS',NULL,'{\"alert_title\": \"Tiêu đề cảnh báo\", \"alert_message\": \"Nội dung cảnh báo\"}',1,1,'2025-07-20 08:27:42','2025-07-20 08:27:42');
+/*!40000 ALTER TABLE `notification_templates` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `password_reset_tokens`
 --
 
@@ -733,6 +981,58 @@ LOCK TABLES `payment_items` WRITE;
 /*!40000 ALTER TABLE `payment_items` DISABLE KEYS */;
 INSERT INTO `payment_items` VALUES (4,2,3,1,400000.00,400000.00,60,'2025-07-16 04:14:56'),(5,2,5,1,450000.00,450000.00,45,'2025-07-16 04:14:56'),(6,2,2,1,700000.00,700000.00,90,'2025-07-16 04:14:56'),(7,3,6,2,300000.00,600000.00,60,'2025-07-16 04:26:07'),(8,3,8,1,750000.00,750000.00,75,'2025-07-16 04:26:07'),(9,3,7,1,650000.00,650000.00,90,'2025-07-16 04:26:07'),(10,110,2,1,700000.00,700000.00,90,'2025-07-16 18:00:06'),(11,110,5,1,450000.00,450000.00,45,'2025-07-16 18:00:06'),(12,110,8,1,750000.00,750000.00,75,'2025-07-16 18:00:06'),(13,110,1,1,500000.00,500000.00,60,'2025-07-16 18:00:06'),(14,111,2,1,700000.00,700000.00,90,'2025-07-17 04:00:38'),(15,111,3,1,400000.00,400000.00,60,'2025-07-17 04:00:38'),(16,111,5,1,450000.00,450000.00,45,'2025-07-17 04:00:38'),(17,111,6,1,300000.00,300000.00,60,'2025-07-17 04:00:38'),(18,111,1,1,500000.00,500000.00,60,'2025-07-17 04:00:38'),(19,111,4,1,650000.00,650000.00,75,'2025-07-17 04:00:38'),(20,111,7,1,650000.00,650000.00,90,'2025-07-17 04:00:38'),(21,111,8,1,750000.00,750000.00,75,'2025-07-17 04:00:38'),(22,111,83,1,300000.00,300000.00,45,'2025-07-17 04:00:38'),(23,111,84,1,250000.00,250000.00,30,'2025-07-17 04:00:38'),(24,111,85,1,200000.00,200000.00,30,'2025-07-17 04:00:38'),(25,111,86,1,350000.00,350000.00,60,'2025-07-17 04:00:38'),(26,111,88,1,600000.00,600000.00,75,'2025-07-17 04:00:38'),(27,111,87,1,1500000.00,1500000.00,60,'2025-07-17 04:00:38'),(28,111,89,1,3000000.00,3000000.00,120,'2025-07-17 04:00:38'),(29,111,90,1,2000000.00,2000000.00,90,'2025-07-17 04:00:38'),(30,111,91,1,2500000.00,2500000.00,60,'2025-07-17 04:00:38'),(31,112,88,2,600000.00,1200000.00,75,'2025-07-17 10:50:46'),(32,112,86,1,350000.00,350000.00,60,'2025-07-17 10:50:46'),(33,112,85,4,200000.00,800000.00,30,'2025-07-17 10:50:46'),(34,112,84,1,250000.00,250000.00,30,'2025-07-17 10:50:46'),(35,113,83,1,300000.00,300000.00,45,'2025-07-17 14:20:34'),(36,113,85,1,200000.00,200000.00,30,'2025-07-17 14:20:34'),(37,113,84,1,250000.00,250000.00,30,'2025-07-17 14:20:34'),(38,113,87,1,1500000.00,1500000.00,60,'2025-07-17 14:20:34'),(39,113,88,1,600000.00,600000.00,75,'2025-07-17 14:20:34'),(40,113,86,1,350000.00,350000.00,60,'2025-07-17 14:20:34'),(41,113,89,1,3000000.00,3000000.00,120,'2025-07-17 14:20:34'),(42,113,90,1,2000000.00,2000000.00,90,'2025-07-17 14:20:34'),(43,113,91,1,2500000.00,2500000.00,60,'2025-07-17 14:20:34'),(44,114,86,1,350000.00,350000.00,60,'2025-07-17 22:29:15'),(45,114,8,1,750000.00,750000.00,75,'2025-07-17 22:29:15'),(46,114,84,1,250000.00,250000.00,30,'2025-07-17 22:29:15'),(47,114,5,1,450000.00,450000.00,45,'2025-07-17 22:29:15');
 /*!40000 ALTER TABLE `payment_items` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `payment_scheduling_notifications`
+--
+
+DROP TABLE IF EXISTS `payment_scheduling_notifications`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `payment_scheduling_notifications` (
+  `notification_id` int NOT NULL AUTO_INCREMENT,
+  `payment_id` int NOT NULL COMMENT 'Links to payments table',
+  `customer_id` int NOT NULL COMMENT 'Customer who made the payment',
+  `recipient_user_id` int NOT NULL COMMENT 'Manager/Admin who receives notification',
+  `notification_type` enum('PAYMENT_COMPLETED','SCHEDULING_REQUIRED','BOOKING_REMINDER','PAYMENT_UPDATED') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PAYMENT_COMPLETED',
+  `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `message` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `priority` enum('LOW','MEDIUM','HIGH','URGENT') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'HIGH',
+  `is_read` tinyint(1) NOT NULL DEFAULT '0',
+  `is_acknowledged` tinyint(1) NOT NULL DEFAULT '0',
+  `related_data` json DEFAULT NULL COMMENT 'Payment details, services, amounts, etc.',
+  `websocket_sent` tinyint(1) NOT NULL DEFAULT '0',
+  `email_sent` tinyint(1) NOT NULL DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `read_at` timestamp NULL DEFAULT NULL,
+  `acknowledged_at` timestamp NULL DEFAULT NULL,
+  `acknowledged_by` int DEFAULT NULL COMMENT 'User who acknowledged the notification',
+  PRIMARY KEY (`notification_id`),
+  KEY `idx_payment_id` (`payment_id`),
+  KEY `idx_customer_id` (`customer_id`),
+  KEY `idx_recipient_user_id` (`recipient_user_id`),
+  KEY `idx_notification_type` (`notification_type`),
+  KEY `idx_priority` (`priority`),
+  KEY `idx_read_status` (`is_read`,`read_at`),
+  KEY `idx_acknowledged_status` (`is_acknowledged`,`acknowledged_at`),
+  KEY `idx_created_at` (`created_at`),
+  KEY `payment_scheduling_notifications_ibfk_4` (`acknowledged_by`),
+  CONSTRAINT `payment_scheduling_notifications_ibfk_1` FOREIGN KEY (`payment_id`) REFERENCES `payments` (`payment_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `payment_scheduling_notifications_ibfk_2` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `payment_scheduling_notifications_ibfk_3` FOREIGN KEY (`recipient_user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `payment_scheduling_notifications_ibfk_4` FOREIGN KEY (`acknowledged_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Specialized notifications for payment-to-scheduling workflow';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `payment_scheduling_notifications`
+--
+
+LOCK TABLES `payment_scheduling_notifications` WRITE;
+/*!40000 ALTER TABLE `payment_scheduling_notifications` DISABLE KEYS */;
+/*!40000 ALTER TABLE `payment_scheduling_notifications` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -911,6 +1211,46 @@ LOCK TABLES `rooms` WRITE;
 /*!40000 ALTER TABLE `rooms` DISABLE KEYS */;
 INSERT INTO `rooms` VALUES (1,'Room A','Standard room for individual treatments',1,1,'2025-07-17 16:22:20','2025-07-17 18:27:36'),(2,'VIP Suite','Luxury suite for couples with two beds',2,1,'2025-07-17 16:22:20','2025-07-17 16:22:20'),(3,'Room B','Room for facial or massage treatments',1,1,'2025-07-17 16:22:20','2025-07-17 16:22:20'),(4,'Maintenance Room','Under maintenance, not available',1,1,'2025-07-17 16:22:20','2025-07-17 18:24:59');
 /*!40000 ALTER TABLE `rooms` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `scheduling_sessions`
+--
+
+DROP TABLE IF EXISTS `scheduling_sessions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `scheduling_sessions` (
+  `session_id` int NOT NULL AUTO_INCREMENT,
+  `payment_id` int NOT NULL COMMENT 'Payment being scheduled',
+  `manager_user_id` int NOT NULL COMMENT 'Manager handling the scheduling',
+  `session_status` enum('ACTIVE','COMPLETED','ABANDONED','EXPIRED') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'ACTIVE',
+  `total_services` int NOT NULL DEFAULT '0' COMMENT 'Total services to schedule',
+  `scheduled_services` int NOT NULL DEFAULT '0' COMMENT 'Services already scheduled',
+  `remaining_services` int GENERATED ALWAYS AS ((`total_services` - `scheduled_services`)) STORED,
+  `session_data` json DEFAULT NULL COMMENT 'Temporary scheduling data',
+  `started_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `completed_at` timestamp NULL DEFAULT NULL,
+  `expires_at` timestamp NULL DEFAULT NULL COMMENT 'Session expiration time',
+  `last_activity` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`session_id`),
+  UNIQUE KEY `unique_active_payment_session` (`payment_id`,`manager_user_id`),
+  KEY `idx_payment_id` (`payment_id`),
+  KEY `idx_manager_user_id` (`manager_user_id`),
+  KEY `idx_session_status` (`session_status`),
+  KEY `idx_expires_at` (`expires_at`),
+  CONSTRAINT `scheduling_sessions_ibfk_1` FOREIGN KEY (`payment_id`) REFERENCES `payments` (`payment_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `scheduling_sessions_ibfk_2` FOREIGN KEY (`manager_user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Track scheduling sessions to prevent conflicts';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `scheduling_sessions`
+--
+
+LOCK TABLES `scheduling_sessions` WRITE;
+/*!40000 ALTER TABLE `scheduling_sessions` DISABLE KEYS */;
+/*!40000 ALTER TABLE `scheduling_sessions` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -1270,4 +1610,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-07-20 14:38:06
+-- Dump completed on 2025-07-20 15:28:18

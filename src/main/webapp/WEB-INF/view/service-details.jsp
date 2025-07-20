@@ -4,7 +4,7 @@ uri="http://java.sun.com/jsp/jstl/fmt" %> <%@ taglib prefix="fn"
 uri="http://java.sun.com/jsp/jstl/functions" %>
 <c:set
   var="isAuthenticated"
-  value="${sessionScope.authenticated != null && sessionScope.authenticated}"
+  value="${sessionScope.authenticated != null and sessionScope.authenticated eq true}"
 />
 <c:set var="isCustomer" value="${sessionScope.customer != null}" />
 <!DOCTYPE html>

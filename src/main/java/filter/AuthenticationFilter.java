@@ -1,19 +1,20 @@
 package filter;
 
+import java.io.IOException;
+
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.FilterConfig;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
+import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import java.io.IOException;
 import model.Customer;
 import model.RoleConstants;
 import model.User;
-import jakarta.servlet.annotation.WebFilter;
 import util.SecurityConfig;
 
 /**
@@ -110,8 +111,10 @@ public class AuthenticationFilter implements Filter {
     // Add security headers
     addSecurityHeaders(httpResponse);
 
-    // Set user context
-    setUserContext(httpRequest, session);
+    // Set user context only if authenticated
+    if (isAuthenticated) {
+      setUserContext(httpRequest, session);
+    }
 
     // Continue with the request
     chain.doFilter(request, response);
@@ -184,6 +187,10 @@ public class AuthenticationFilter implements Filter {
    * Set user context for downstream components
    */
   private void setUserContext(HttpServletRequest request, HttpSession session) {
+    if (session == null) {
+      return;
+    }
+
     User user = (User) session.getAttribute("user");
     Customer customer = (Customer) session.getAttribute("customer");
 
@@ -191,13 +198,16 @@ public class AuthenticationFilter implements Filter {
       request.setAttribute("currentUser", user);
       request.setAttribute("userRoleId", user.getRoleId());
       request.setAttribute("userType", RoleConstants.getUserTypeFromRole(user.getRoleId()));
+      request.setAttribute("isAuthenticated", Boolean.TRUE);
     } else if (customer != null) {
       request.setAttribute("currentCustomer", customer);
       request.setAttribute("userRoleId", customer.getRoleId());
       request.setAttribute("userType", RoleConstants.getUserTypeFromRole(customer.getRoleId()));
+      request.setAttribute("isAuthenticated", Boolean.TRUE);
+    } else {
+      // No user or customer found - should not happen if called only when authenticated
+      request.setAttribute("isAuthenticated", Boolean.FALSE);
     }
-
-    request.setAttribute("isAuthenticated", true);
   }
 
   @Override
