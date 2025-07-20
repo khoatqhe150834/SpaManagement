@@ -16,6 +16,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
+        <tomcat.version>10.1.33</tomcat.version>
         <jakarta.servlet.version>6.0.0</jakarta.servlet.version>
         <jakarta.servlet.jsp.version>3.1.1</jakarta.servlet.jsp.version>
         <jakarta.servlet.jstl.version>2.0.0</jakarta.servlet.jstl.version>
@@ -40,20 +41,20 @@
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-core</artifactId>
-            <version>10.1.15</version>
+            <version>${tomcat.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-jasper</artifactId>
-            <version>10.1.15</version>
+            <version>${tomcat.version}</version>
         </dependency>
 
         <!-- Tomcat WebSocket Support -->
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-websocket</artifactId>
-            <version>10.1.15</version>
+            <version>${tomcat.version}</version>
         </dependency>
 
         <!-- Jakarta Servlet JSP API -->
@@ -227,11 +228,7 @@
             <version>0.21.0</version>
         </dependency>
 
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.28</version>
-        </dependency>
+
 
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -300,17 +297,32 @@
                 <version>3.1.2</version>
             </plugin>
 
-            <!-- Tomcat Maven Plugin -->
+            <!-- Cargo Maven Plugin for Tomcat 10 -->
             <plugin>
-                <groupId>org.apache.tomcat.maven</groupId>
-                <artifactId>tomcat7-maven-plugin</artifactId>
-                <version>2.2</version>
+                <groupId>org.codehaus.cargo</groupId>
+                <artifactId>cargo-maven3-plugin</artifactId>
+                <version>1.10.13</version>
                 <configuration>
-                    <port>8080</port>
-                    <username>admin</username>
-                    <password>yourpassword</password>
-                    <path>/spa</path>
-                    <update>true</update>
+                    <container>
+                        <containerId>tomcat10x</containerId>
+                        <type>embedded</type>
+                    </container>
+                    <configuration>
+                        <properties>
+                            <cargo.servlet.port>8080</cargo.servlet.port>
+                            <cargo.tomcat.context.reloadable>true</cargo.tomcat.context.reloadable>
+                        </properties>
+                    </configuration>
+                    <deployables>
+                        <deployable>
+                            <groupId>${project.groupId}</groupId>
+                            <artifactId>${project.artifactId}</artifactId>
+                            <type>war</type>
+                            <properties>
+                                <context>/spa</context>
+                            </properties>
+                        </deployable>
+                    </deployables>
                 </configuration>
             </plugin>
 
@@ -330,7 +342,7 @@
                                 <artifactItem>
                                     <groupId>com.heroku</groupId>
                                     <artifactId>webapp-runner</artifactId>
-                                    <version>10.1.41.0</version>
+                                    <version>10.1.31.0</version>
                                     <destFileName>webapp-runner.jar</destFileName>
                                 </artifactItem>
                             </artifactItems>
