@@ -302,6 +302,7 @@ public class PromotionController extends HttpServlet {
                 logger.info("Promotion " + (isEdit ? "updated" : "created") + " successfully with ID: " + promotion.getPromotionId());
                 request.getSession().setAttribute("successMessage", successMessage);
                 response.sendRedirect(request.getContextPath() + "/promotion/list");
+                return;
             } else {
                 logger.severe("Failed to " + (isEdit ? "update" : "save") + " promotion to database");
                 errors.put("general", "Không thể lưu khuyến mãi vào cơ sở dữ liệu. Vui lòng thử lại.");
@@ -310,6 +311,7 @@ public class PromotionController extends HttpServlet {
                 request.setAttribute("isEdit", isEdit);
                 String jspPath = isEdit ? "/WEB-INF/view/admin_pages/Promotion/promotion_edit.jsp" : "/WEB-INF/view/admin_pages/Promotion/promotion_add.jsp";
                 request.getRequestDispatcher(jspPath).forward(request, response);
+                return;
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error saving promotion", e);
@@ -319,6 +321,7 @@ public class PromotionController extends HttpServlet {
             request.setAttribute("isEdit", isEdit);
             String jspPath = isEdit ? "/WEB-INF/view/admin_pages/Promotion/promotion_edit.jsp" : "/WEB-INF/view/admin_pages/Promotion/promotion_add.jsp";
             request.getRequestDispatcher(jspPath).forward(request, response);
+            return;
         }
     }
 
