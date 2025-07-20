@@ -346,8 +346,8 @@ class ManagerSchedulingSystem {
                         </td>
                         <td class="text-center">
                             <button class="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-primary hover:bg-primary-dark rounded-md transition-colors duration-200"
-                                    onclick="managerSchedulingSystem.openSchedulingModal(${item.paymentItemId})"
-                                    title="Đặt lịch dịch vụ">
+                                    onclick="openSchedulingModal(${item.paymentItemId})"
+                                    title="Đặt lịch thông minh với CSP Solver">
                                 <i data-lucide="calendar-plus" class="h-4 w-4 mr-1"></i>
                                 Đặt lịch
                             </button>

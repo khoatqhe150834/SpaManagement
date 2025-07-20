@@ -91,9 +91,18 @@ public class AuthenticationFilter implements Filter {
       // Handle AJAX requests
       if (isAjaxRequest(httpRequest)) {
         httpResponse.setContentType("application/json");
+        httpResponse.setCharacterEncoding("UTF-8");
         httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        httpResponse.getWriter().write("{\"error\":\"Authentication required\",\"redirectUrl\":\""
-            + contextPath + "/login\"}");
+
+        String jsonResponse = "{" +
+            "\"success\": false," +
+            "\"error\": \"Authentication required\"," +
+            "\"message\": \"You must be logged in to access this resource\"," +
+            "\"redirectUrl\": \"" + contextPath + "/login\"" +
+            "}";
+
+        System.out.println("[AuthenticationFilter] Sending JSON error response for AJAX request: " + jsonResponse);
+        httpResponse.getWriter().write(jsonResponse);
         return;
       }
 
@@ -164,10 +173,27 @@ public class AuthenticationFilter implements Filter {
     String xRequestedWith = request.getHeader("X-Requested-With");
     String accept = request.getHeader("Accept");
     String contentType = request.getContentType();
+    String requestURI = request.getRequestURI();
 
-    return "XMLHttpRequest".equals(xRequestedWith) ||
+    // Check standard AJAX headers
+    boolean isAjax = "XMLHttpRequest".equals(xRequestedWith) ||
         (accept != null && accept.contains("application/json")) ||
         (contentType != null && contentType.contains("application/json"));
+
+    // Also check if the request is to an API endpoint that should return JSON
+    boolean isApiEndpoint = requestURI.contains("/api/") ||
+                           requestURI.contains("action=") ||
+                           requestURI.endsWith("/scheduling") ||
+                           (request.getParameter("action") != null);
+
+    System.out.println("[AuthenticationFilter] AJAX detection - URI: " + requestURI +
+                      ", X-Requested-With: " + xRequestedWith +
+                      ", Accept: " + accept +
+                      ", ContentType: " + contentType +
+                      ", isAjax: " + isAjax +
+                      ", isApiEndpoint: " + isApiEndpoint);
+
+    return isAjax || isApiEndpoint;
   }
 
   /**
