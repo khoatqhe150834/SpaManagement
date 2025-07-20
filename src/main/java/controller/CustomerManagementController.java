@@ -14,6 +14,7 @@ import org.mindrot.jbcrypt.BCrypt;
 
 import dao.AccountDAO;
 import dao.CustomerDAO;
+import dao.PromotionUsageDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -297,6 +298,14 @@ public class CustomerManagementController extends HttpServlet {
                 request.setAttribute("totalBookings", 0); // placeholder
                 request.setAttribute("totalSpent", 0.0); // placeholder
                 request.setAttribute("lastVisit", null); // placeholder
+
+                // Get promotion usage information
+                PromotionUsageDAO promotionUsageDAO = new PromotionUsageDAO();
+                java.util.Map<String, Object> promotionSummary = promotionUsageDAO.getCustomerPromotionSummary(customerId);
+                List<java.util.Map<String, Object>> customerPromotions = promotionUsageDAO.getCustomerPromotionsWithRemainingCount(customerId);
+                
+                request.setAttribute("promotionSummary", promotionSummary);
+                request.setAttribute("customerPromotions", customerPromotions);
 
                 // Pass role information to JSP for conditional display
                 request.setAttribute("isAdmin", AuthenticationContext.hasRole(request, RoleConstants.ADMIN_ID));

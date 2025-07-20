@@ -928,34 +928,121 @@ public class UserDAO implements BaseDAO<User, Integer> {
         try {
             return save(entity) != null;
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Error saving user", e);
+            String errorMessage = e.getMessage();
+            logger.log(Level.SEVERE, "Error saving user: " + errorMessage, e);
+            
+            // Log chi tiết lỗi phổ biến
+            if (errorMessage.contains("Duplicate entry")) {
+                if (errorMessage.contains("email")) {
+                    logger.severe("Duplicate email: " + entity.getEmail());
+                } else if (errorMessage.contains("phone")) {
+                    logger.severe("Duplicate phone: " + entity.getPhoneNumber());
+                }
+            } else if (errorMessage.contains("cannot be null")) {
+                logger.severe("Required field is null");
+            } else if (errorMessage.contains("Data too long")) {
+                logger.severe("Data too long for field");
+            }
+            
             return false;
         }
+    }
+    
+    // Hàm tự động sinh email ngẫu nhiên
+    private String generateRandomEmail() {
+        String chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+        StringBuilder email = new StringBuilder();
+        java.security.SecureRandom random = new java.security.SecureRandom();
+        
+        // Sinh username ngẫu nhiên (8 ký tự)
+        for (int i = 0; i < 8; i++) {
+            email.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        
+        return email.toString() + "@spamanagement.com";
+    }
+    
+    // Hàm tự động sinh mật khẩu ngẫu nhiên an toàn
+    private String generateRandomPassword() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+        StringBuilder password = new StringBuilder();
+        java.security.SecureRandom random = new java.security.SecureRandom();
+        
+        for (int i = 0; i < 12; i++) {
+            password.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        
+        return password.toString();
     }
     
     // Thêm method save để tạo user mới
     @Override
     public <S extends User> S save(S entity) throws SQLException {
-        String sql = "INSERT INTO users (role_id, full_name, email, hash_password, phone_number, is_active, gender, birthday, address, avatar_url, is_email_verified, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        // Tự động sinh email và password nếu chưa có
+        if (entity.getEmail() == null || entity.getEmail().trim().isEmpty()) {
+            String randomEmail = generateRandomEmail();
+            // Đảm bảo email không trùng lặp
+            while (isEmailExists(randomEmail)) {
+                randomEmail = generateRandomEmail();
+            }
+            entity.setEmail(randomEmail);
+        }
+        
+        if (entity.getHashPassword() == null || entity.getHashPassword().trim().isEmpty()) {
+            String randomPassword = generateRandomPassword();
+            entity.setHashPassword(BCrypt.hashpw(randomPassword, BCrypt.gensalt()));
+            
+            // Log mật khẩu gốc để admin có thể thông báo cho user (chỉ trong development)
+            logger.info("Generated password for user " + entity.getEmail() + ": " + randomPassword);
+        }
+        
+        String sql = "INSERT INTO users (role_id, full_name, email, hash_password, phone_number, is_active, gender, birthday, address, avatar_url, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
             java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
             
+            // Log giá trị trước khi insert để debug
+            logger.info("Inserting user: roleId=" + entity.getRoleId() 
+                + ", fullName=" + entity.getFullName() 
+                + ", email=" + entity.getEmail() 
+                + ", phoneNumber=" + entity.getPhoneNumber() 
+                + ", isActive=" + entity.getIsActive() 
+                + ", gender=" + entity.getGender() 
+                + ", birthday=" + entity.getBirthday() 
+                + ", address=" + entity.getAddress() 
+                + ", avatarUrl=" + entity.getAvatarUrl());
+            
+            // Validate dữ liệu trước khi insert
+            if (entity.getRoleId() == null || entity.getRoleId() <= 0) {
+                throw new SQLException("Role ID is required and must be positive");
+            }
+            if (entity.getFullName() == null || entity.getFullName().trim().isEmpty()) {
+                throw new SQLException("Full name is required");
+            }
+            if (entity.getEmail() == null || entity.getEmail().trim().isEmpty()) {
+                throw new SQLException("Email is required");
+            }
+            if (entity.getHashPassword() == null || entity.getHashPassword().trim().isEmpty()) {
+                throw new SQLException("Password is required");
+            }
+            if (entity.getIsActive() == null) {
+                entity.setIsActive(true); // Default active
+            }
+            
             ps.setInt(1, entity.getRoleId());
-            ps.setString(2, entity.getFullName());
-            ps.setString(3, entity.getEmail());
+            ps.setString(2, entity.getFullName().trim());
+            ps.setString(3, entity.getEmail().trim());
             ps.setString(4, entity.getHashPassword());
-            ps.setString(5, entity.getPhoneNumber());
+            ps.setString(5, entity.getPhoneNumber() != null ? entity.getPhoneNumber().trim() : null);
             ps.setBoolean(6, entity.getIsActive());
             ps.setString(7, entity.getGender());
             ps.setDate(8, entity.getBirthday() != null ? new java.sql.Date(entity.getBirthday().getTime()) : null);
-            ps.setString(9, entity.getAddress());
+            ps.setString(9, entity.getAddress() != null ? entity.getAddress().trim() : null);
             ps.setString(10, entity.getAvatarUrl());
-            ps.setBoolean(11, false); // Default email not verified
+            ps.setTimestamp(11, now);
             ps.setTimestamp(12, now);
-            ps.setTimestamp(13, now);
             
             int rowsAffected = ps.executeUpdate();
             
@@ -971,7 +1058,7 @@ public class UserDAO implements BaseDAO<User, Integer> {
             }
             
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Error saving user", e);
+            logger.log(Level.SEVERE, "Error saving user: " + e.getMessage(), e);
             throw e;
         }
         

@@ -67,6 +67,16 @@
                 </c:if>
 
                 <div class="bg-white rounded-2xl shadow-lg p-8">
+                    <!-- Thông báo lỗi tổng quát -->
+                    <c:if test="${not empty errors.general}">
+                        <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="alert-circle" class="w-5 h-5 text-red-500"></i>
+                                <p class="text-red-700 font-medium">${errors.general}</p>
+                            </div>
+                        </div>
+                    </c:if>
+                    
                     <form action="${pageContext.request.contextPath}/promotion" method="post" enctype="multipart/form-data" id="promotionForm">
                         <input type="hidden" name="action" value="create" />
                         
@@ -82,6 +92,7 @@
                                            placeholder="Nhập tiêu đề khuyến mãi" 
                                            value="${not empty promotionInput.title ? promotionInput.title : ''}"
                                            class="w-full border rounded-lg px-3 py-2 focus:ring-primary focus:border-primary ${not empty errors.title ? 'border-red-500' : ''}" />
+                                    <p class="text-gray-500 text-xs mt-1">Tối thiểu 3 ký tự, tối đa 100 ký tự. Không được trùng với tên khuyến mãi khác</p>
                                     <c:if test="${not empty errors.title}">
                                         <p class="text-red-500 text-sm mt-1">${errors.title}</p>
                                     </c:if>
@@ -93,7 +104,7 @@
                                            placeholder="VD: SUMMER2024" 
                                            value="${not empty promotionInput.promotionCode ? promotionInput.promotionCode : ''}"
                                            class="w-full border rounded-lg px-3 py-2 focus:ring-primary focus:border-primary ${not empty errors.promotionCode ? 'border-red-500' : ''}" />
-                                    <p class="text-gray-500 text-xs mt-1">3-10 ký tự, chỉ chữ hoa và số</p>
+                                    <p class="text-gray-500 text-xs mt-1">3-10 ký tự, chỉ chữ hoa và số. Hệ thống sẽ tự động chuyển thành chữ hoa</p>
                                     <c:if test="${not empty errors.promotionCode}">
                                         <p class="text-red-500 text-sm mt-1">${errors.promotionCode}</p>
                                     </c:if>
@@ -112,7 +123,8 @@
                                     <select name="discountType" id="discountType" required class="w-full border rounded-lg px-3 py-2 focus:ring-primary focus:border-primary ${not empty errors.discountType ? 'border-red-500' : ''}">
                                         <option value="">-- Chọn hình thức --</option>
                                         <option value="PERCENTAGE" ${promotionInput.discountType == 'PERCENTAGE' ? 'selected' : ''}>Phần trăm (%)</option>
-                                        <option value="FIXED" ${promotionInput.discountType == 'FIXED' ? 'selected' : ''}>Số tiền cố định (VND)</option>
+                                        <option value="FIXED_AMOUNT" ${promotionInput.discountType == 'FIXED_AMOUNT' ? 'selected' : ''}>Số tiền cố định (VND)</option>
+                                        <option value="FREE_SERVICE" ${promotionInput.discountType == 'FREE_SERVICE' ? 'selected' : ''}>Miễn phí dịch vụ</option>
                                     </select>
                                     <c:if test="${not empty errors.discountType}">
                                         <p class="text-red-500 text-sm mt-1">${errors.discountType}</p>
@@ -140,7 +152,7 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label for="startDate" class="block font-medium text-gray-700 mb-1">Ngày bắt đầu <span class="text-red-600">*</span></label>
-                                    <input type="datetime-local" name="startDate" id="startDate" required 
+                                    <input type="date" name="startDate" id="startDate" required 
                                            class="w-full border rounded-lg px-3 py-2 focus:ring-primary focus:border-primary ${not empty errors.startDate ? 'border-red-500' : ''}" />
                                     <c:if test="${not empty errors.startDate}">
                                         <p class="text-red-500 text-sm mt-1">${errors.startDate}</p>
@@ -149,7 +161,7 @@
                                 
                                 <div>
                                     <label for="endDate" class="block font-medium text-gray-700 mb-1">Ngày kết thúc <span class="text-red-600">*</span></label>
-                                    <input type="datetime-local" name="endDate" id="endDate" required 
+                                    <input type="date" name="endDate" id="endDate" required 
                                            class="w-full border rounded-lg px-3 py-2 focus:ring-primary focus:border-primary ${not empty errors.endDate ? 'border-red-500' : ''}" />
                                     <c:if test="${not empty errors.endDate}">
                                         <p class="text-red-500 text-sm mt-1">${errors.endDate}</p>
@@ -158,7 +170,7 @@
                             </div>
                         </div>
 
-                        <!-- Cài đặt khác -->
+                        <!-- Cài đặt -->
                         <div class="mb-8">
                             <h2 class="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
                                 <i data-lucide="settings" class="w-5 h-5"></i> Cài đặt
@@ -192,9 +204,22 @@
 
                             <div class="mb-4">
                                 <label for="imageUrl" class="block font-medium text-gray-700 mb-1">Ảnh khuyến mãi</label>
-                                <input type="file" name="imageUrl" id="imageUrl" accept="image/*" 
-                                       class="w-full border rounded-lg px-3 py-2 focus:ring-primary focus:border-primary" />
-                                <p class="text-gray-500 text-sm mt-1">Chọn ảnh cho khuyến mãi (không bắt buộc, tối đa 10MB)</p>
+                                <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-primary transition-colors">
+                                    <div class="space-y-1 text-center">
+                                        <i data-lucide="upload" class="mx-auto h-12 w-12 text-gray-400"></i>
+                                        <div class="flex text-sm text-gray-600">
+                                            <label for="imageUrl" class="relative cursor-pointer bg-white rounded-md font-medium text-primary hover:text-primary-dark focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary">
+                                                <span>Tải ảnh lên</span>
+                                                <input id="imageUrl" name="imageUrl" type="file" class="sr-only" accept="image/*" onchange="previewImage(this)">
+                                            </label>
+                                            <p class="pl-1">hoặc kéo thả vào đây</p>
+                                        </div>
+                                        <p class="text-xs text-gray-500">PNG, JPG, GIF, WEBP tối đa 10MB</p>
+                                    </div>
+                                </div>
+                                <div id="imagePreview" class="mt-2 hidden">
+                                    <img src="" alt="Preview" class="w-32 h-32 object-cover rounded-lg border">
+                                </div>
                                 <c:if test="${not empty errors.imageUrl}">
                                     <p class="text-red-500 text-sm mt-1">${errors.imageUrl}</p>
                                 </c:if>
@@ -274,61 +299,187 @@
         document.getElementById('startDate').addEventListener('change', updateStatus);
         document.getElementById('endDate').addEventListener('change', updateStatus);
 
+        // Auto convert promotion code to uppercase and validate
+        document.getElementById('promotionCode').addEventListener('input', function(e) {
+            this.value = this.value.toUpperCase();
+            validatePromotionCode(this.value);
+        });
+
+        // Validate promotion code
+        function validatePromotionCode(code) {
+            const promotionCodeInput = document.getElementById('promotionCode');
+            const errorElement = promotionCodeInput.parentNode.querySelector('.promotion-code-error');
+            
+            // Remove existing error message
+            if (errorElement) {
+                errorElement.remove();
+            }
+            
+            // Check for Vietnamese characters
+            const vietnameseRegex = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i;
+            if (vietnameseRegex.test(code)) {
+                showPromotionCodeError('Mã khuyến mãi không được chứa ký tự tiếng Việt!');
+                return false;
+            }
+            
+            // Check format (only uppercase letters and numbers)
+            const formatRegex = /^[A-Z0-9]*$/;
+            if (code && !formatRegex.test(code)) {
+                showPromotionCodeError('Mã khuyến mãi chỉ được chứa chữ hoa và số!');
+                return false;
+            }
+            
+            // Check length
+            if (code.length > 0 && (code.length < 3 || code.length > 10)) {
+                showPromotionCodeError('Mã khuyến mãi phải từ 3-10 ký tự!');
+                return false;
+            }
+            
+            return true;
+        }
+
+        // Show promotion code error
+        function showPromotionCodeError(message) {
+            const promotionCodeInput = document.getElementById('promotionCode');
+            const errorDiv = document.createElement('p');
+            errorDiv.className = 'text-red-500 text-sm mt-1 promotion-code-error';
+            errorDiv.textContent = message;
+            
+            // Remove existing error
+            const existingError = promotionCodeInput.parentNode.querySelector('.promotion-code-error');
+            if (existingError) {
+                existingError.remove();
+            }
+            
+            promotionCodeInput.parentNode.appendChild(errorDiv);
+            promotionCodeInput.classList.add('border-red-500');
+        }
+
+        // Validate dates
+        function validateDates() {
+            const startDateInput = document.getElementById('startDate');
+            const endDateInput = document.getElementById('endDate');
+            const startDate = new Date(startDateInput.value);
+            const endDate = new Date(endDateInput.value);
+            
+            // Remove existing error messages
+            removeDateError('startDate');
+            removeDateError('endDate');
+            
+            if (startDateInput.value && endDateInput.value) {
+                if (endDate <= startDate) {
+                    showDateError('endDate', 'Ngày kết thúc phải sau ngày bắt đầu!');
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+
+        // Show date error
+        function showDateError(fieldId, message) {
+            const field = document.getElementById(fieldId);
+            const errorDiv = document.createElement('p');
+            errorDiv.className = 'text-red-500 text-sm mt-1 date-error';
+            errorDiv.textContent = message;
+            
+            field.parentNode.appendChild(errorDiv);
+            field.classList.add('border-red-500');
+        }
+
+        // Remove date error
+        function removeDateError(fieldId) {
+            const field = document.getElementById(fieldId);
+            const errorElement = field.parentNode.querySelector('.date-error');
+            if (errorElement) {
+                errorElement.remove();
+            }
+            field.classList.remove('border-red-500');
+        }
+
+        // Add date validation listeners
+        document.getElementById('startDate').addEventListener('change', function() {
+            validateDates();
+            updateStatus();
+        });
+        
+        document.getElementById('endDate').addEventListener('change', function() {
+            validateDates();
+            updateStatus();
+        });
+
         // Xem trước ảnh
-        document.getElementById('imageUrl').addEventListener('change', function(e) {
-            const file = e.target.files[0];
+        function previewImage(input) {
+            const file = input.files[0];
             const previewContainer = document.getElementById('imagePreview');
             
             if (file) {
                 // Kiểm tra định dạng ảnh
                 if (!file.type.startsWith('image/')) {
                     alert('Vui lòng chọn đúng file ảnh!');
-                    this.value = '';
+                    input.value = '';
+                    previewContainer.classList.add('hidden');
                     return;
                 }
                 
                 // Kiểm tra dung lượng (tối đa 10MB)
                 if (file.size > 10 * 1024 * 1024) {
                     alert('Dung lượng ảnh phải nhỏ hơn 10MB!');
-                    this.value = '';
+                    input.value = '';
+                    previewContainer.classList.add('hidden');
                     return;
                 }
                 
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    if (!previewContainer) {
-                        const container = document.createElement('div');
-                        container.id = 'imagePreview';
-                        container.className = 'mt-2';
-                        container.innerHTML = '<img src="' + e.target.result + '" alt="Preview" class="w-32 h-32 object-cover rounded-lg border">';
-                        document.getElementById('imageUrl').parentNode.appendChild(container);
-                    } else {
-                        previewContainer.innerHTML = '<img src="' + e.target.result + '" alt="Preview" class="w-32 h-32 object-cover rounded-lg border">';
-                    }
+                    previewContainer.src = e.target.result;
+                    previewContainer.classList.remove('hidden');
                 };
                 reader.readAsDataURL(file);
             } else {
-                if (previewContainer) {
-                    previewContainer.remove();
-                }
+                previewContainer.classList.add('hidden');
             }
-        });
+        }
 
-        // Validation
+        // Form validation
         document.getElementById('promotionForm').addEventListener('submit', function(e) {
-            const startDate = new Date(document.getElementById('startDate').value);
-            const endDate = new Date(document.getElementById('endDate').value);
+            let isValid = true;
             
-            if (endDate <= startDate) {
+            // Validate promotion code
+            const promotionCode = document.getElementById('promotionCode').value;
+            if (!validatePromotionCode(promotionCode)) {
+                isValid = false;
+            }
+            
+            // Validate dates
+            if (!validateDates()) {
+                isValid = false;
+            }
+            
+            // Check if promotion code is empty
+            if (!promotionCode.trim()) {
+                showPromotionCodeError('Mã khuyến mãi không được để trống!');
+                isValid = false;
+            }
+            
+            // Check if dates are empty
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            if (!startDate) {
+                showDateError('startDate', 'Vui lòng chọn ngày bắt đầu!');
+                isValid = false;
+            }
+            
+            if (!endDate) {
+                showDateError('endDate', 'Vui lòng chọn ngày kết thúc!');
+                isValid = false;
+            }
+            
+            if (!isValid) {
                 e.preventDefault();
-                alert('Ngày kết thúc phải sau ngày bắt đầu!');
                 return false;
             }
-        });
-
-        // Auto uppercase promotion code
-        document.getElementById('promotionCode').addEventListener('input', function(e) {
-            this.value = this.value.toUpperCase();
         });
 
         // Initialize status on page load
@@ -337,265 +488,4 @@
 </body>
 </html>
 
-    <title>Thêm khuyến mãi mới - Quản trị</title>
-    <link rel="icon" type="image/png" href="${pageContext.request.contextPath}/assets/images/favicon.png" sizes="16x16">
-    <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp"></jsp:include>
-    <style>
-        .form-label { font-weight: 500; }
-        .error-text { width: 100%; margin-top: .25rem; font-size: 80%; color: #dc3545; }
-        .is-invalid { border-color: #dc3545 !important; }
-    </style>
-</head>
-<body>
-    <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
-    <jsp:include page="/WEB-INF/view/common/admin/header.jsp" />
-    
-    <div class="dashboard-main-body">
-        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
-            <h4 class="fw-bold mb-0">Thêm khuyến mãi mới</h4>
-            <a href="${pageContext.request.contextPath}/promotion/list" class="btn btn-outline-primary">
-                <iconify-icon icon="solar:arrow-left-linear" class="icon text-lg me-8"></iconify-icon>
-                Quay lại danh sách
-            </a>
-        </div>
-        
-        <div class="card h-100 p-0 radius-12">
-            <div class="card-header border-bottom bg-base py-16 px-24">
-                <h5 class="card-title mb-0">Thông tin khuyến mãi</h5>
-            </div>
-            
-            <div class="card-body p-24">
-    <c:if test="${not empty error}">
-                    <div class="alert alert-danger mb-24">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        ${error}
-                    </div>
-    </c:if>
-                
-    <form action="${pageContext.request.contextPath}/promotion" method="post" enctype="multipart/form-data" novalidate>
-        <input type="hidden" name="action" value="create" />
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-4">
-            <label for="title" class="form-label">Tiêu đề <span class="text-danger">*</span></label>
-            <input type="text" class="form-control ${not empty errors.title ? 'is-invalid' : ''}" 
-                   id="title" name="title" required maxlength="100" 
-                   value="${not empty promotionInput.title ? promotionInput.title : ''}" placeholder="Nhập tiêu đề">
-            <div class="error-text"></div>
-        </div>
-                        
-                        <div class="col-md-6 mb-4">
-            <label for="promotionCode" class="form-label">Mã khuyến mãi <span class="text-danger">*</span></label>
-            <input type="text" class="form-control ${not empty errors.promotionCode ? 'is-invalid' : ''}" 
-                   id="promotionCode" name="promotionCode" required maxlength="10" 
-                   value="${not empty promotionInput.promotionCode ? promotionInput.promotionCode : ''}" placeholder="Nhập mã khuyến mãi">
-            <div class="error-text"></div>
-        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-4">
-                            <label class="form-label" for="discountType">Hình thức giảm <span class="text-danger">*</span></label>
-                            <select class="form-select ${not empty errors.discountType ? 'is-invalid' : ''}" id="discountType" name="discountType" required>
-                                <option value="">-- Chọn --</option>
-                                <option value="PERCENTAGE" ${promotionInput.discountType == 'PERCENTAGE' ? 'selected' : ''}>Phần trăm (%)</option>
-                                <option value="FIXED" ${promotionInput.discountType == 'FIXED' ? 'selected' : ''}>Số tiền cố định (VND)</option>
-                            </select>
-                            <div class="error-text"></div>
-                        </div>
-                        
-                        <div class="col-md-6 mb-4">
-                            <label for="discountValue" class="form-label">Giá trị giảm <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control ${not empty errors.discountValue ? 'is-invalid' : ''}" 
-                                   id="discountValue" name="discountValue" required min="1" step="0.01"
-                                   value="${not empty promotionInput.discountValue ? promotionInput.discountValue : ''}" placeholder="Nhập giá trị giảm">
-                            <div class="error-text"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-4">
-                            <label class="form-label" for="startDate">Ngày bắt đầu <span class="text-danger">*</span></label>
-                            <input type="datetime-local" class="form-control" id="startDate" name="startDate" required>
-                            <div class="error-text"></div>
-                        </div>
-                        
-                        <div class="col-md-6 mb-4">
-                            <label class="form-label" for="endDate">Ngày kết thúc <span class="text-danger">*</span></label>
-                            <input type="datetime-local" class="form-control" id="endDate" name="endDate" required>
-                            <div class="error-text"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-4">
-                        <label class="form-label" for="status">Trạng thái</label>
-                        <select class="form-select" id="status" name="status">
-                            <option value="SCHEDULED" ${promotionInput.status == 'SCHEDULED' ? 'selected' : ''}>Chưa áp dụng</option>
-                            <option value="ACTIVE" ${promotionInput.status == 'ACTIVE' ? 'selected' : ''}>Đang áp dụng</option>
-                            <option value="INACTIVE" ${promotionInput.status == 'INACTIVE' ? 'selected' : ''}>Không áp dụng</option>
-                        </select>
-                    </div>
-                    
-                    <div class="mb-4">
-            <label class="form-label" for="imageUrl">Ảnh khuyến mãi</label>
-            <input type="file" class="form-control ${not empty errors.imageUrl ? 'is-invalid' : ''}" 
-                   id="imageUrl" name="imageUrl" accept="image/*">
-            <small class="form-text text-muted">Chọn ảnh cho khuyến mãi (không bắt buộc)</small>
-            <div class="error-text">${errors.imageUrl}</div>
-            <c:if test="${not empty promotionInput.imageUrl}">
-                <div class="mt-2">
-                    <img src="${promotionInput.imageUrl}" alt="Ảnh khuyến mãi hiện tại" 
-                         class="img-thumbnail" style="max-width: 200px;">
-                </div>
-            </c:if>
-        </div>
-                    
-                    <div class="mb-4">
-            <label class="form-label" for="description">Mô tả <span class="text-danger">*</span></label>
-            <textarea class="form-control" id="description" name="description" rows="3" placeholder="Nhập mô tả"></textarea>
-            <div class="error-text"></div>
-        </div>
-                    
-                    <div class="d-flex gap-16 justify-content-end mt-24">
-                        <a href="${pageContext.request.contextPath}/promotion/list" class="btn btn-outline-secondary btn-sm px-20 py-11 radius-8">
-                            <iconify-icon icon="solar:arrow-left-linear" class="icon text-lg me-8"></iconify-icon>
-                            Hủy bỏ
-                        </a>
-                        <button type="submit" class="btn btn-primary btn-sm px-20 py-11 radius-8">
-                            <iconify-icon icon="solar:check-circle-bold" class="icon text-lg me-8"></iconify-icon>
-                            Thêm khuyến mãi
-                        </button>
-        </div>
-                </form>
-        </div>
-        </div>
-</div>
-    
-<jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
-<script>
-    // Xem trước ảnh
-    document.getElementById('imageUrl').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        const previewContainer = document.getElementById('imagePreview');
-        
-        if (file) {
-            // Kiểm tra định dạng ảnh
-            if (!file.type.startsWith('image/')) {
-                alert('Vui lòng chọn đúng file ảnh!');
-                this.value = '';
-                return;
-            }
-            
-            // Kiểm tra dung lượng (tối đa 10MB)
-            if (file.size > 10 * 1024 * 1024) {
-                alert('Dung lượng ảnh phải nhỏ hơn 10MB!');
-                this.value = '';
-                return;
-            }
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                if (!previewContainer) {
-                    const container = document.createElement('div');
-                    container.id = 'imagePreview';
-                    container.className = 'mt-2';
-                    container.innerHTML = '<img src="' + e.target.result + '" alt="Preview" class="img-thumbnail" style="max-width: 200px;">';
-                    document.getElementById('imageUrl').parentNode.appendChild(container);
-                } else {
-                    previewContainer.innerHTML = '<img src="' + e.target.result + '" alt="Preview" class="img-thumbnail" style="max-width: 200px;">';
-                }
-            };
-            reader.readAsDataURL(file);
-        } else {
-            if (previewContainer) {
-                previewContainer.remove();
-            }
-        }
-    });
 
-$(document).ready(function() {
-    function showError(input, message) {
-        input.addClass('is-invalid');
-        input.next('.error-text').text(message);
-    }
-    function clearError(input) {
-        input.removeClass('is-invalid');
-        input.next('.error-text').text('');
-    }
-    // Khi submit: kiểm tra tất cả trường
-    $('form').on('submit', function(e) {
-        let valid = true;
-        // Tiêu đề
-        const title = $('#title').val().trim();
-        if (!title) {
-            showError($('#title'), 'Vui lòng nhập tiêu đề!');
-            valid = false;
-        } else if (title.length > 100) {
-            showError($('#title'), 'Tiêu đề tối đa 100 ký tự!');
-            valid = false;
-        } else {
-            clearError($('#title'));
-        }
-        // Mã khuyến mãi
-        const code = $('#promotionCode').val().trim();
-        if (!code) {
-            showError($('#promotionCode'), 'Vui lòng nhập mã khuyến mãi!');
-            valid = false;
-        } else if (code.length > 10) {
-            showError($('#promotionCode'), 'Mã tối đa 10 ký tự!');
-            valid = false;
-        } else {
-            clearError($('#promotionCode'));
-        }
-        // Hình thức giảm
-        const discountType = $('#discountType').val();
-        if (!discountType) {
-            showError($('#discountType'), 'Vui lòng chọn hình thức giảm!');
-            valid = false;
-        } else {
-            clearError($('#discountType'));
-        }
-        // Giá trị giảm
-        const discountValue = $('#discountValue').val();
-        if (!discountValue) {
-            showError($('#discountValue'), 'Vui lòng nhập giá trị giảm!');
-            valid = false;
-        } else if (isNaN(discountValue) || Number(discountValue) <= 0) {
-            showError($('#discountValue'), 'Giá trị giảm phải là số dương!');
-            valid = false;
-        } else {
-            clearError($('#discountValue'));
-        }
-        // Ngày bắt đầu
-        const startDate = $('#startDate').val();
-        if (!startDate) {
-            showError($('#startDate'), 'Vui lòng chọn ngày bắt đầu!');
-            valid = false;
-        } else {
-            clearError($('#startDate'));
-        }
-        // Ngày kết thúc
-        const endDate = $('#endDate').val();
-        if (!endDate) {
-            showError($('#endDate'), 'Vui lòng chọn ngày kết thúc!');
-            valid = false;
-        } else if (startDate && endDate < startDate) {
-            showError($('#endDate'), 'Ngày kết thúc phải sau ngày bắt đầu!');
-            valid = false;
-        } else {
-            clearError($('#endDate'));
-        }
-        // Mô tả
-        const description = $('#description').val().trim();
-        if (!description) {
-            showError($('#description'), 'Vui lòng nhập mô tả!');
-            valid = false;
-        } else {
-            clearError($('#description'));
-        }
-        if (!valid) e.preventDefault();
-    });
-});
-</script>
-</body>
-</html>

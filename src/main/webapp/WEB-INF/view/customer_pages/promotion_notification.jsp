@@ -1,233 +1,299 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thông Báo Khuyến Mãi - Spa Hương Sen</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8f9fa;
-        }
-        .notification-card {
-            background: white;
-            border-radius: 8px;
-            border-left: 4px solid #28a745;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-            overflow: hidden;
-        }
-        .notification-header {
-            background: linear-gradient(135deg, #28a745, #20c997);
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-        .notification-body {
-            padding: 25px;
-        }
-        .promotion-highlight {
-            background: #e7f3ff;
-            border: 1px solid #bee5eb;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 15px 0;
-        }
-        .promo-code {
-            background: #17a2b8;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-weight: bold;
-            display: inline-block;
-            margin: 10px 5px;
-        }
-        .cta-button {
-            background: #007bff;
-            border: none;
-            color: white;
-            padding: 12px 30px;
-            border-radius: 25px;
-            font-weight: bold;
-            text-decoration: none;
-            display: inline-block;
-            margin: 10px 5px;
-            transition: all 0.3s ease;
-        }
-        .cta-button:hover {
-            background: #0056b3;
-            color: white;
-            transform: translateY(-2px);
-        }
-        .benefit-list {
-            list-style: none;
-            padding: 0;
-        }
-        .benefit-list li {
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
-        }
-        .benefit-list li:last-child {
-            border-bottom: none;
-        }
-        .discount-badge {
-            background: #fd7e14;
-            color: white;
-            padding: 4px 12px;
-            border-radius: 15px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#D4AF37",
+              "primary-dark": "#B8941F",
+              secondary: "#FADADD",
+              "spa-cream": "#FFF8F0",
+              "spa-dark": "#333333",
+            },
+            fontFamily: {
+              serif: ["Playfair Display", "serif"],
+              sans: ["Roboto", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Roboto:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link rel="stylesheet" href="<c:url value='/css/style.css'/>" />
 </head>
-<body>
+<body class="bg-spa-cream font-sans">
     <jsp:include page="/WEB-INF/view/common/header.jsp" />
+    
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Breadcrumb -->
+        <nav class="flex mb-8" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                <li class="inline-flex items-center">
+                    <a href="${pageContext.request.contextPath}/" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-primary">
+                        <i data-lucide="home" class="w-4 h-4 mr-2"></i>
+                        Trang chủ
+                    </a>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
+                        <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">Thông báo khuyến mãi</span>
+                    </div>
+                </li>
+            </ol>
+        </nav>
 
-    <div class="container mt-4">
         <!-- Page Header -->
-        <div class="text-center mb-4">
-            <h2><i class="fas fa-bell text-warning"></i> Thông Báo Khuyến Mãi</h2>
-            <p class="text-muted">Những ưu đãi đặc biệt dành riêng cho bạn</p>
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-serif text-spa-dark font-bold mb-2">Thông Báo Khuyến Mãi</h1>
+            <p class="text-gray-600">Những ưu đãi đặc biệt dành riêng cho bạn</p>
         </div>
 
-        <!-- Main Notification -->
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
-                <div class="notification-card">
-                    <div class="notification-header">
-                        <i class="fas fa-gift fa-3x mb-3"></i>
-                        <h3>🎉 Bạn Có Mã Giảm Giá Mới!</h3>
-                        <p class="mb-0">Spa Hương Sen dành tặng những ưu đãi đặc biệt cho bạn</p>
-                    </div>
+        <!-- Main Notification Card -->
+        <div class="max-w-4xl mx-auto">
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <!-- Header -->
+                <div class="bg-gradient-to-r from-primary to-primary-dark text-white p-8 text-center">
+                    <i data-lucide="gift" class="w-16 h-16 mx-auto mb-4"></i>
+                    <h2 class="text-2xl font-serif font-bold mb-2">🎉 Bạn Có Mã Giảm Giá Mới!</h2>
+                    <p class="text-lg opacity-90">Spa Hương Sen dành tặng những ưu đãi đặc biệt cho bạn</p>
+                </div>
 
-                    <div class="notification-body">
-                        <c:choose>
-                            <c:when test="${not empty newPromotions}">
-                                <div class="text-center mb-4">
-                                    <h5 class="text-primary">
-                                        <i class="fas fa-stars"></i> 
-                                        Chúc mừng! Bạn có ${fn:length(newPromotions)} mã khuyến mãi mới
-                                    </h5>
+                <!-- Content -->
+                <div class="p-8">
+                    <c:choose>
+                        <c:when test="${not empty newPromotions}">
+                            <!-- Có khuyến mãi mới -->
+                            <div class="text-center mb-8">
+                                <div class="inline-flex items-center gap-2 bg-blue-100 text-blue-800 px-4 py-2 rounded-full">
+                                    <i data-lucide="star" class="w-5 h-5"></i>
+                                    <span class="font-semibold">Chúc mừng! Bạn có ${fn:length(newPromotions)} mã khuyến mãi mới</span>
                                 </div>
+                            </div>
 
-                                <!-- Danh sách mã mới -->
+                            <!-- Danh sách khuyến mãi -->
+                            <div class="space-y-6">
                                 <c:forEach var="promotion" items="${newPromotions}">
-                                    <div class="promotion-highlight">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <h6 class="mb-1 text-primary">${promotion.title}</h6>
-                                                <span class="promo-code">${promotion.promotionCode}</span>
-                                            </div>
-                                            <div class="text-end">
-                                                <span class="discount-badge">
+                                    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6">
+                                        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                                            <div class="flex-1">
+                                                <h3 class="text-xl font-semibold text-gray-900 mb-2">
                                                     <c:choose>
-                                                        <c:when test="${promotion.discountType == 'PERCENTAGE'}">
-                                                            Giảm ${promotion.discountValue}%
+                                                        <c:when test="${not empty promotion.title}">
+                                                            ${promotion.title}
                                                         </c:when>
                                                         <c:otherwise>
-                                                            Giảm <fmt:formatNumber value="${promotion.discountValue}" type="currency" currencySymbol=""/>đ
+                                                            Khuyến mãi
                                                         </c:otherwise>
                                                     </c:choose>
-                                                </span>
+                                                </h3>
+                                                <div class="flex items-center gap-3 mb-3">
+                                                    <span class="bg-primary text-white px-3 py-1 rounded-full text-sm font-mono">
+                                                        <c:choose>
+                                                            <c:when test="${not empty promotion.promotionCode}">
+                                                                ${promotion.promotionCode}
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                N/A
+                                                            </c:otherwise>
+                                                        </c:choose>
+                                                    </span>
+                                                    <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold">
+                                                        <c:choose>
+                                                            <c:when test="${promotion.discountType == 'PERCENTAGE'}">
+                                                                Giảm 
+                                                                <c:choose>
+                                                                    <c:when test="${not empty promotion.discountValue}">
+                                                                        ${promotion.discountValue}%
+                                                                    </c:when>
+                                                                    <c:otherwise>
+                                                                        0%
+                                                                    </c:otherwise>
+                                                                </c:choose>
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                Giảm 
+                                                                <c:choose>
+                                                                    <c:when test="${not empty promotion.discountValue}">
+                                                                        ₫<c:out value="${promotion.discountValue}"/>
+                                                                    </c:when>
+                                                                    <c:otherwise>
+                                                                        ₫0
+                                                                    </c:otherwise>
+                                                                </c:choose>
+                                                            </c:otherwise>
+                                                        </c:choose>
+                                                    </span>
+                                                </div>
+                                                <p class="text-gray-600 mb-3">
+                                                    <c:choose>
+                                                        <c:when test="${not empty promotion.description}">
+                                                            ${promotion.description}
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            Không có mô tả
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </p>
+                                                <div class="flex items-center gap-2 text-sm text-blue-600">
+                                                    <i data-lucide="calendar" class="w-4 h-4"></i>
+                                                    <span>Có hiệu lực đến: 
+                                                        <c:choose>
+                                                            <c:when test="${not empty promotion.endDate}">
+                                                                <c:out value="${promotion.endDate}"/>
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                Chưa xác định
+                                                            </c:otherwise>
+                                                        </c:choose>
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
-                                        <p class="text-muted mt-2 mb-1">${promotion.description}</p>
-                                        <small class="text-info">
-                                            <i class="fas fa-clock"></i>
-                                            Có hiệu lực đến: ${promotion.endDate.toString().substring(0,10)}
-                                        </small>
                                     </div>
                                 </c:forEach>
-                            </c:when>
-                            <c:otherwise>
-                                <!-- Thông báo chung về khuyến mãi -->
-                                <div class="text-center mb-4">
-                                    <h5 class="text-success">
-                                        <i class="fas fa-heart"></i> 
-                                        Cảm ơn bạn đã tin tướng Spa Hương Sen!
-                                    </h5>
-                                    <p class="text-muted">Chúng tôi có những ưu đãi đặc biệt đang chờ bạn</p>
+                            </div>
+                        </c:when>
+                        <c:otherwise>
+                            <!-- Không có khuyến mãi mới -->
+                            <div class="text-center mb-8">
+                                <div class="inline-flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-full">
+                                    <i data-lucide="heart" class="w-5 h-5"></i>
+                                    <span class="font-semibold">Cảm ơn bạn đã tin tưởng Spa Hương Sen!</span>
                                 </div>
+                                <p class="text-gray-600 mt-2">Chúng tôi có những ưu đãi đặc biệt đang chờ bạn</p>
+                            </div>
 
-                                <div class="promotion-highlight">
-                                    <h6 class="text-primary">✨ Những lợi ích dành cho bạn:</h6>
-                                    <ul class="benefit-list">
-                                        <li><i class="fas fa-check text-success"></i> Giảm giá lên đến 30% cho dịch vụ spa</li>
-                                        <li><i class="fas fa-check text-success"></i> Ưu đãi đặc biệt cho khách hàng thân thiết</li>
-                                        <li><i class="fas fa-check text-success"></i> Quà tặng miễn phí khi sử dụng dịch vụ</li>
-                                        <li><i class="fas fa-check text-success"></i> Thông báo sớm về các chương trình mới</li>
-                                    </ul>
+                            <!-- Lợi ích -->
+                            <div class="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-6">
+                                <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                    <i data-lucide="sparkles" class="w-6 h-6 text-primary"></i>
+                                    Những lợi ích dành cho bạn
+                                </h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="flex items-center gap-3">
+                                        <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
+                                        <span class="text-gray-700">Giảm giá lên đến 30% cho dịch vụ spa</span>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
+                                        <span class="text-gray-700">Ưu đãi đặc biệt cho khách hàng thân thiết</span>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
+                                        <span class="text-gray-700">Quà tặng miễn phí khi sử dụng dịch vụ</span>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
+                                        <span class="text-gray-700">Thông báo sớm về các chương trình mới</span>
+                                    </div>
                                 </div>
-                            </c:otherwise>
-                        </c:choose>
+                            </div>
+                        </c:otherwise>
+                    </c:choose>
 
-                        <!-- Call to Action -->
-                        <div class="text-center mt-4">
-                            <h6 class="mb-3">🚀 Hành động ngay để không bỏ lỡ ưu đãi!</h6>
-                            
-                            <a href="${pageContext.request.contextPath}/promotions/available" class="cta-button">
-                                <i class="fas fa-tags"></i> Xem Tất Cả Khuyến Mãi
+                    <!-- Call to Action -->
+                    <div class="text-center mt-8">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-6 flex items-center justify-center gap-2">
+                            <i data-lucide="rocket" class="w-6 h-6 text-primary"></i>
+                            Hành động ngay để không bỏ lỡ ưu đãi!
+                        </h3>
+                        
+                        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                            <a href="${pageContext.request.contextPath}/promotions/available" 
+                               class="inline-flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-dark transition-colors">
+                                <i data-lucide="tags" class="w-5 h-5"></i>
+                                Xem Tất Cả Khuyến Mãi
                             </a>
                             
-                            <a href="${pageContext.request.contextPath}/services" class="cta-button">
-                                <i class="fas fa-spa"></i> Đặt Dịch Vụ Ngay
+                            <a href="${pageContext.request.contextPath}/services" 
+                               class="inline-flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors">
+                                <i data-lucide="spa" class="w-5 h-5"></i>
+                                Đặt Dịch Vụ Ngay
                             </a>
                         </div>
+                    </div>
 
-                        <!-- Tips -->
-                        <div class="alert alert-light mt-4">
-                            <h6><i class="fas fa-lightbulb text-warning"></i> Mẹo sử dụng mã khuyến mãi:</h6>
-                            <ul class="mb-0">
-                                <li>Sao chép mã khuyến mãi trước khi đặt dịch vụ</li>
-                                <li>Kiểm tra điều kiện áp dụng (giá trị tối thiểu, thời hạn)</li>
-                                <li>Áp dụng mã tại bước thanh toán</li>
-                                <li>Một đơn hàng chỉ sử dụng được 1 mã khuyến mãi</li>
-                            </ul>
+                    <!-- Tips -->
+                    <div class="mt-8 bg-yellow-50 border border-yellow-200 rounded-xl p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                            <i data-lucide="lightbulb" class="w-5 h-5 text-yellow-600"></i>
+                            Mẹo sử dụng mã khuyến mãi
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div class="flex items-start gap-2">
+                                <i data-lucide="check" class="w-4 h-4 text-green-500 mt-0.5"></i>
+                                <span class="text-gray-700">Sao chép mã khuyến mãi trước khi đặt dịch vụ</span>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <i data-lucide="check" class="w-4 h-4 text-green-500 mt-0.5"></i>
+                                <span class="text-gray-700">Kiểm tra điều kiện áp dụng (giá trị tối thiểu, thời hạn)</span>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <i data-lucide="check" class="w-4 h-4 text-green-500 mt-0.5"></i>
+                                <span class="text-gray-700">Áp dụng mã tại bước thanh toán</span>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <i data-lucide="check" class="w-4 h-4 text-green-500 mt-0.5"></i>
+                                <span class="text-gray-700">Một đơn hàng chỉ sử dụng được 1 mã khuyến mãi</span>
+                            </div>
                         </div>
+                    </div>
 
-                        <!-- Contact Info -->
-                        <div class="text-center mt-4 pt-3 border-top">
-                            <p class="text-muted mb-2">
-                                <i class="fas fa-question-circle"></i> 
-                                Cần hỗ trợ? Liên hệ ngay với chúng tôi
-                            </p>
-                            <p class="mb-0">
-                                <i class="fas fa-phone text-success"></i> Hotline: 
-                                <strong>1900-xxxx</strong>
-                                |
-                                <i class="fas fa-envelope text-primary"></i> Email: 
-                                <strong>info@spahuongsen.com</strong>
-                            </p>
+                    <!-- Contact Info -->
+                    <div class="mt-8 pt-6 border-t border-gray-200 text-center">
+                        <p class="text-gray-600 mb-4 flex items-center justify-center gap-2">
+                            <i data-lucide="help-circle" class="w-5 h-5"></i>
+                            Cần hỗ trợ? Liên hệ ngay với chúng tôi
+                        </p>
+                        <div class="flex flex-col sm:flex-row gap-4 justify-center text-sm">
+                            <div class="flex items-center gap-2 text-green-600">
+                                <i data-lucide="phone" class="w-4 h-4"></i>
+                                <span>Hotline: <strong>1900-xxxx</strong></span>
+                            </div>
+                            <div class="flex items-center gap-2 text-blue-600">
+                                <i data-lucide="mail" class="w-4 h-4"></i>
+                                <span>Email: <strong>info@spahuongsen.com</strong></span>
+                            </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Additional Actions -->
-                <div class="text-center mt-4">
-                    <a href="${pageContext.request.contextPath}/" class="btn btn-outline-secondary">
-                        <i class="fas fa-home"></i> Về Trang Chủ
-                    </a>
-                    
-                    <button class="btn btn-outline-info" onclick="sharePromotion()">
-                        <i class="fas fa-share"></i> Chia Sẻ Với Bạn Bè
-                    </button>
-                </div>
+            <!-- Additional Actions -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-center mt-6">
+                <a href="${pageContext.request.contextPath}/" 
+                   class="inline-flex items-center gap-2 bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-colors">
+                    <i data-lucide="home" class="w-5 h-5"></i>
+                    Về Trang Chủ
+                </a>
+                
+                <button onclick="sharePromotion()" 
+                        class="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-6 py-3 rounded-lg font-semibold hover:bg-blue-200 transition-colors">
+                    <i data-lucide="share-2" class="w-5 h-5"></i>
+                    Chia Sẻ Với Bạn Bè
+                </button>
             </div>
         </div>
     </div>
 
     <jsp:include page="/WEB-INF/view/common/footer.jsp" />
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function sharePromotion() {
-            const text = 'Spa Hương Sen đang có khuyến mãi đặc biệt! Cùng nhau đến trải nghiệm dịch vụ spa tuyệt vời nhé! 🌸';
-            const url = window.location.origin + '${pageContext.request.contextPath}/promotions/available';
+            var text = 'Spa Hương Sen đang có khuyến mãi đặc biệt! Cùng nhau đến trải nghiệm dịch vụ spa tuyệt vời nhé! 🌸';
+            var url = window.location.origin + '${pageContext.request.contextPath}/promotions/available';
             
             if (navigator.share) {
                 // Sử dụng Web Share API nếu có
@@ -238,20 +304,40 @@
                 }).catch(console.error);
             } else {
                 // Fallback: copy to clipboard
-                const fullText = text + ' ' + url;
-                navigator.clipboard.writeText(fullText).then(() => {
-                    alert('Đã sao chép link chia sẻ! Hãy gửi cho bạn bè nhé 😊');
-                }).catch(() => {
+                var fullText = text + ' ' + url;
+                navigator.clipboard.writeText(fullText).then(function() {
+                    // Hiển thị toast notification
+                    showToast('Đã sao chép link chia sẻ! Hãy gửi cho bạn bè nhé 😊', 'success');
+                }).catch(function() {
                     // Fallback cuối cùng
                     prompt('Sao chép link này để chia sẻ:', fullText);
                 });
             }
         }
 
-        // Auto redirect sau 30 giây (nếu muốn)
-        // setTimeout(() => {
-        //     window.location.href = '${pageContext.request.contextPath}/promotions/available';
-        // }, 30000);
+        function showToast(message, type) {
+            if (!type) type = 'info';
+            var toast = document.createElement('div');
+            var bgClass = type === 'success' ? 'bg-green-500 text-white' : 'bg-blue-500 text-white';
+            var iconName = type === 'success' ? 'check-circle' : 'info';
+            
+            toast.className = 'fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm ' + bgClass;
+            toast.innerHTML = '<div class="flex items-center gap-2">' +
+                '<i data-lucide="' + iconName + '" class="w-5 h-5"></i>' +
+                '<span>' + message + '</span>' +
+                '</div>';
+            document.body.appendChild(toast);
+            
+            // Auto remove after 3 seconds
+            setTimeout(function() {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 3000);
+        }
+
+        // Initialize Lucide icons
+        lucide.createIcons();
     </script>
 </body>
 </html> 

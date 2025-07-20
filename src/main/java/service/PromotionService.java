@@ -99,7 +99,7 @@ public class PromotionService {
             BigDecimal discountAmount = calculateDiscount(promotion, originalAmount);
             BigDecimal finalAmount = originalAmount.subtract(discountAmount);
             
-            // 4. Record usage
+            // 4. Record usage and update counts
             PromotionUsage usage = new PromotionUsage(promotion.getPromotionId(), customerId, 
                                                     discountAmount, originalAmount, finalAmount);
             usage.setPaymentId(paymentId);
@@ -107,21 +107,22 @@ public class PromotionService {
             
             boolean saved = promotionUsageDAO.save(usage);
             if (!saved) {
-                return new PromotionApplicationResult(false, "Không thể ghi nhận việc sử dụng mã khuyến mãi");
+                return new PromotionApplicationResult(false, "Không thể ghi nhận sử dụng mã khuyến mãi");
             }
             
             // 5. Update promotion usage count
             updatePromotionUsageCount(promotion.getPromotionId());
             
-            logger.info(String.format("Applied promotion %s for customer %d: %.2f discount", 
-                                     promotionCode, customerId, discountAmount));
+            logger.info("Successfully applied promotion code: " + promotionCode + 
+                       " for customer: " + customerId + 
+                       " with discount: " + discountAmount);
             
             return new PromotionApplicationResult(true, "Áp dụng mã khuyến mãi thành công", 
                                                 discountAmount, finalAmount, promotion);
             
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error applying promotion code: " + promotionCode, e);
-            return new PromotionApplicationResult(false, "Lỗi hệ thống khi áp dụng mã khuyến mãi");
+            return new PromotionApplicationResult(false, "Lỗi khi áp dụng mã khuyến mãi: " + e.getMessage());
         }
     }
 
@@ -168,7 +169,104 @@ public class PromotionService {
             }
         }
         
+        // Check customer condition (INDIVIDUAL, COUPLE, GROUP, ALL)
+        if (promotion.getCustomerCondition() != null && !"ALL".equals(promotion.getCustomerCondition())) {
+            String customerConditionError = validateCustomerCondition(promotion.getCustomerCondition(), customerId);
+            if (customerConditionError != null) {
+                return customerConditionError;
+            }
+        }
+        
+        // Check applicable scope
+        if (promotion.getApplicableScope() != null && !"ENTIRE_APPOINTMENT".equals(promotion.getApplicableScope())) {
+            String scopeError = validateApplicableScope(promotion.getApplicableScope(), promotion.getApplicableServiceIdsJson());
+            if (scopeError != null) {
+                return scopeError;
+            }
+        }
+        
         return null; // Valid
+    }
+
+    /**
+     * Validate customer condition based on booking/appointment data
+     */
+    private String validateCustomerCondition(String customerCondition, Integer customerId) {
+        try {
+            // TODO: Implement actual booking validation logic
+            // This would require checking booking data to determine number of people
+            // For now, we'll implement a basic validation that allows all conditions
+            
+            switch (customerCondition) {
+                case "ALL":
+                    // Applies to all customers - always valid
+                    return null;
+                    
+                case "INDIVIDUAL":
+                    // Check if booking is for 1 person
+                    // TODO: Query booking table to check number of people
+                    logger.info("Validating INDIVIDUAL condition for customer: " + customerId);
+                    // For now, assume valid - implement actual logic later
+                    return null;
+                    
+                case "COUPLE":
+                    // Check if booking is for 2 people
+                    logger.info("Validating COUPLE condition for customer: " + customerId);
+                    // TODO: Query booking table to check number of people
+                    return null;
+                    
+                case "GROUP":
+                    // Check if booking is for 3+ people
+                    logger.info("Validating GROUP condition for customer: " + customerId);
+                    // TODO: Query booking table to check number of people
+                    return null;
+                    
+                default:
+                    logger.warning("Unknown customer condition: " + customerCondition);
+                    return "Điều kiện khách hàng không hợp lệ";
+            }
+            
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Error validating customer condition", e);
+            return "Lỗi kiểm tra điều kiện khách hàng";
+        }
+    }
+
+    /**
+     * Validate applicable scope for promotion
+     */
+    private String validateApplicableScope(String applicableScope, String applicableServiceIdsJson) {
+        try {
+            switch (applicableScope) {
+                case "ALL_SERVICES":
+                    // Applies to all services - always valid
+                    return null;
+                    
+                case "SPECIFIC_SERVICES":
+                    // Check if selected services are in the applicable list
+                    if (applicableServiceIdsJson == null || applicableServiceIdsJson.trim().isEmpty()) {
+                        return "Khuyến mãi không áp dụng cho dịch vụ này";
+                    }
+                    // TODO: Parse JSON and check if current services are in the list
+                    logger.info("Validating SPECIFIC_SERVICES scope: " + applicableServiceIdsJson);
+                    break;
+                    
+                case "ENTIRE_APPOINTMENT":
+                    // Applies to entire appointment - always valid
+                    return null;
+                    
+                default:
+                    logger.warning("Unknown applicable scope: " + applicableScope);
+                    return "Phạm vi áp dụng không hợp lệ";
+            }
+            
+            // For now, return null (valid) - actual implementation would check service data
+            return null;
+            
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Error validating applicable scope", e);
+            return "Lỗi kiểm tra phạm vi áp dụng";
+        }
     }
 
     /**
@@ -208,19 +306,25 @@ public class PromotionService {
     }
 
     /**
-     * Update promotion current usage count
+     * Update promotion usage count in the promotions table
+     * This method updates the current_usage_count field based on actual usage records
      */
     private void updatePromotionUsageCount(Integer promotionId) {
         try {
+            // Get actual usage count from promotion_usage table
+            int actualUsageCount = promotionUsageDAO.getTotalUsageCount(promotionId);
+            
+            // Update the promotion record
             Optional<Promotion> promotionOpt = promotionDAO.findById(promotionId);
             if (promotionOpt.isPresent()) {
                 Promotion promotion = promotionOpt.get();
-                int currentCount = promotion.getCurrentUsageCount() != null ? promotion.getCurrentUsageCount() : 0;
-                promotion.setCurrentUsageCount(currentCount + 1);
+                promotion.setCurrentUsageCount(actualUsageCount);
                 promotionDAO.update(promotion);
+                
+                logger.info("Updated promotion " + promotionId + " usage count to: " + actualUsageCount);
             }
         } catch (Exception e) {
-            logger.log(Level.WARNING, "Failed to update promotion usage count", e);
+            logger.log(Level.WARNING, "Failed to update promotion usage count for promotion: " + promotionId, e);
         }
     }
 

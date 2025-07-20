@@ -5,9 +5,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import dao.PromotionDAO;
 import jakarta.servlet.ServletException;
@@ -16,21 +16,26 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import model.Customer;
 import model.Promotion;
+import service.PromotionService;
 
 /**
  * Controller để xử lý khuyến mãi cho khách hàng
  * Cho phép khách hàng xem và áp dụng mã khuyến mãi
+ * Implement quy trình 5 bước áp dụng mã khuyến mãi
  */
 @WebServlet(urlPatterns = {"/promotions/*", "/apply-promotion", "/remove-promotion"})
 public class CustomerPromotionController extends HttpServlet {
 
     private PromotionDAO promotionDAO;
+    private PromotionService promotionService;
     private static final Logger logger = Logger.getLogger(CustomerPromotionController.class.getName());
 
     @Override
     public void init() throws ServletException {
         promotionDAO = new PromotionDAO();
+        promotionService = new PromotionService();
         logger.info("CustomerPromotionController initialized successfully");
     }
 
@@ -59,8 +64,14 @@ public class CustomerPromotionController extends HttpServlet {
                 case "available":
                     handleListAvailablePromotions(request, response);
                     break;
+                case "my-promotions":
+                    handleMyPromotions(request, response);
+                    break;
                 case "apply":
                     handleShowApplyForm(request, response);
+                    break;
+                case "notification":
+                    handleShowNotification(request, response);
                     break;
                 default:
                     response.sendError(HttpServletResponse.SC_NOT_FOUND, "Action not found: " + action);
@@ -92,6 +103,47 @@ public class CustomerPromotionController extends HttpServlet {
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error in POST request", e);
             handleError(request, response, "Đã xảy ra lỗi: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Hiển thị khuyến mãi của khách hàng với thông tin chi tiết
+     */
+    private void handleMyPromotions(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        try {
+            // Lấy customer ID từ session
+            HttpSession session = request.getSession();
+            Customer customer = (Customer) session.getAttribute("customer");
+            
+            if (customer == null) {
+                response.sendRedirect(request.getContextPath() + "/login");
+                return;
+            }
+            
+            // Lấy customer ID
+            Integer customerId = customer.getCustomerId();
+            
+            if (customerId == null) {
+                response.sendRedirect(request.getContextPath() + "/login");
+                return;
+            }
+            
+            // Lấy thông tin khuyến mãi của khách hàng
+            dao.PromotionUsageDAO promotionUsageDAO = new dao.PromotionUsageDAO();
+            java.util.Map<String, Object> promotionSummary = promotionUsageDAO.getCustomerPromotionSummary(customerId);
+            java.util.List<java.util.Map<String, Object>> customerPromotions = promotionUsageDAO.getCustomerPromotionsWithRemainingCount(customerId);
+            
+            request.setAttribute("promotionSummary", promotionSummary);
+            request.setAttribute("customerPromotions", customerPromotions);
+            request.setAttribute("customerId", customerId);
+            
+            request.getRequestDispatcher("/WEB-INF/view/customer_pages/my_promotions.jsp")
+                    .forward(request, response);
+                    
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error loading customer promotions", e);
+            handleError(request, response, "Không thể tải thông tin khuyến mãi của bạn");
         }
     }
 
@@ -160,15 +212,16 @@ public class CustomerPromotionController extends HttpServlet {
     }
 
     /**
-     * Xử lý áp dụng mã khuyến mãi
+     * Xử lý áp dụng mã khuyến mãi - Quy trình 5 bước
      */
     private void handleApplyPromotion(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
             String promotionCode = request.getParameter("promotionCode");
             String totalAmountStr = request.getParameter("totalAmount");
+            String customerIdStr = request.getParameter("customerId");
 
-            // Validate input
+            // Bước 1: Validate input
             if (promotionCode == null || promotionCode.trim().isEmpty()) {
                 request.setAttribute("errorMessage", "Vui lòng nhập mã khuyến mãi");
                 handleShowApplyForm(request, response);
@@ -177,7 +230,7 @@ public class CustomerPromotionController extends HttpServlet {
 
             promotionCode = promotionCode.trim().toUpperCase();
 
-            // Tìm promotion theo code
+            // Bước 2: Tìm promotion theo code
             Optional<Promotion> promotionOpt = promotionDAO.findByCode(promotionCode);
             if (!promotionOpt.isPresent()) {
                 request.setAttribute("errorMessage", "Mã khuyến mãi không tồn tại hoặc đã hết hạn");
@@ -187,22 +240,68 @@ public class CustomerPromotionController extends HttpServlet {
 
             Promotion promotion = promotionOpt.get();
 
-            // Kiểm tra điều kiện áp dụng
-            String validationError = validatePromotionUsage(promotion, totalAmountStr);
-            if (validationError != null) {
-                request.setAttribute("errorMessage", validationError);
+            // Bước 3: Validate promotion (sử dụng PromotionService)
+            Integer customerId = null;
+            if (customerIdStr != null && !customerIdStr.isEmpty()) {
+                try {
+                    customerId = Integer.parseInt(customerIdStr);
+                } catch (NumberFormatException e) {
+                    logger.warning("Invalid customer ID: " + customerIdStr);
+                }
+            }
+
+            BigDecimal totalAmount = BigDecimal.ZERO;
+            if (totalAmountStr != null && !totalAmountStr.isEmpty()) {
+                try {
+                    totalAmount = new BigDecimal(totalAmountStr);
+                } catch (NumberFormatException e) {
+                    request.setAttribute("errorMessage", "Giá trị đơn hàng không hợp lệ");
+                    handleShowApplyForm(request, response);
+                    return;
+                }
+            }
+
+            // Sử dụng PromotionService để validate và tính toán
+            PromotionService.PromotionApplicationResult result = promotionService.previewPromotion(promotionCode, customerId, totalAmount);
+            if (!result.isSuccess()) {
+                request.setAttribute("errorMessage", result.getMessage());
                 handleShowApplyForm(request, response);
                 return;
             }
 
-            // Lưu promotion vào session
+            // Bước 4: Lấy kết quả từ PromotionService
+            BigDecimal discountAmount = result.getDiscountAmount();
+            BigDecimal finalAmount = result.getFinalAmount();
+
+            // Bước 5: Lưu thông tin vào session
             HttpSession session = request.getSession();
             session.setAttribute("appliedPromotion", promotion);
-            
-            // Tính toán và lưu số tiền giảm
-            calculateDiscountAmount(request, promotion);
+            session.setAttribute("discountAmount", discountAmount);
+            session.setAttribute("finalAmount", finalAmount);
+            session.setAttribute("originalAmount", totalAmount);
 
-            request.setAttribute("successMessage", "Áp dụng mã khuyến mãi thành công!");
+            // Ghi nhận sử dụng promotion (nếu có customerId)
+            if (customerId != null) {
+                try {
+                    // Sử dụng PromotionService để ghi nhận sử dụng
+                    PromotionService.PromotionApplicationResult applyResult = 
+                        promotionService.applyPromotionCode(promotionCode, customerId, totalAmount, null, null);
+                    if (applyResult.isSuccess()) {
+                        logger.info("Recorded promotion usage - Promotion Code: " + promotionCode + ", Customer ID: " + customerId);
+                    } else {
+                        logger.warning("Failed to record promotion usage: " + applyResult.getMessage());
+                    }
+                } catch (Exception e) {
+                    logger.log(Level.WARNING, "Failed to record promotion usage", e);
+                    // Không block việc áp dụng promotion nếu ghi nhận thất bại
+                }
+            }
+
+            request.setAttribute("successMessage", "Áp dụng mã khuyến mãi thành công! Giảm giá: " + 
+                               discountAmount + "đ");
+            request.setAttribute("discountAmount", discountAmount);
+            request.setAttribute("finalAmount", finalAmount);
+            
             handleShowApplyForm(request, response);
 
         } catch (Exception e) {
@@ -234,48 +333,29 @@ public class CustomerPromotionController extends HttpServlet {
     }
 
     /**
-     * Validate điều kiện sử dụng promotion
+     * Validate điều kiện sử dụng promotion - Đã được thay thế bằng PromotionService
+     * @deprecated Sử dụng PromotionService.previewPromotion() thay thế
      */
+    @Deprecated
     private String validatePromotionUsage(Promotion promotion, String totalAmountStr) {
-        // Kiểm tra trạng thái
-        if (!"ACTIVE".equals(promotion.getStatus())) {
-            return "Mã khuyến mãi hiện không có hiệu lực";
-        }
-
-        // Kiểm tra thời gian
-        LocalDateTime now = LocalDateTime.now();
-        if (promotion.getStartDate() != null && promotion.getStartDate().isAfter(now)) {
-            return "Mã khuyến mãi chưa có hiệu lực";
-        }
-        if (promotion.getEndDate() != null && promotion.getEndDate().isBefore(now)) {
-            return "Mã khuyến mãi đã hết hạn";
-        }
-
-        // Kiểm tra giá trị đơn hàng tối thiểu
-        if (totalAmountStr != null && !totalAmountStr.isEmpty()) {
-            try {
-                BigDecimal totalAmount = new BigDecimal(totalAmountStr);
-                if (promotion.getMinimumAppointmentValue() != null && 
-                    promotion.getMinimumAppointmentValue().compareTo(BigDecimal.ZERO) > 0) {
-                    if (totalAmount.compareTo(promotion.getMinimumAppointmentValue()) < 0) {
-                        return "Đơn hàng chưa đạt giá trị tối thiểu: " + 
-                               promotion.getMinimumAppointmentValue() + "đ";
-                    }
-                }
-            } catch (NumberFormatException e) {
-                return "Giá trị đơn hàng không hợp lệ";
+        // Chuyển sang sử dụng PromotionService
+        try {
+            BigDecimal totalAmount = BigDecimal.ZERO;
+            if (totalAmountStr != null && !totalAmountStr.isEmpty()) {
+                totalAmount = new BigDecimal(totalAmountStr);
             }
+            PromotionService.PromotionApplicationResult result = promotionService.previewPromotion(promotion.getPromotionCode(), null, totalAmount);
+            return result.isSuccess() ? null : result.getMessage();
+        } catch (Exception e) {
+            return "Lỗi validate promotion: " + e.getMessage();
         }
-
-        // TODO: Kiểm tra giới hạn sử dụng theo khách hàng
-        // TODO: Kiểm tra điều kiện khách hàng (INDIVIDUAL, COUPLE, GROUP)
-
-        return null; // Hợp lệ
     }
 
     /**
-     * Tính toán số tiền giảm giá
+     * Tính toán số tiền giảm giá - Đã được thay thế bằng PromotionService
+     * @deprecated Sử dụng PromotionService.previewPromotion() thay thế
      */
+    @Deprecated
     private void calculateDiscountAmount(HttpServletRequest request, Promotion promotion) {
         try {
             String totalAmountStr = request.getParameter("totalAmount");
@@ -290,38 +370,63 @@ public class CustomerPromotionController extends HttpServlet {
 
             if (totalAmountStr != null && !totalAmountStr.isEmpty()) {
                 BigDecimal totalAmount = new BigDecimal(totalAmountStr);
-                BigDecimal discountAmount = BigDecimal.ZERO;
-
-                if ("PERCENTAGE".equals(promotion.getDiscountType())) {
-                    // Giảm theo phần trăm
-                    discountAmount = totalAmount.multiply(promotion.getDiscountValue())
-                                              .divide(new BigDecimal("100"));
-                } else if ("FIXED".equals(promotion.getDiscountType())) {
-                    // Giảm số tiền cố định
-                    discountAmount = promotion.getDiscountValue();
-                    
-                    // Không được giảm quá tổng tiền
-                    if (discountAmount.compareTo(totalAmount) > 0) {
-                        discountAmount = totalAmount;
-                    }
-                }
-
-                BigDecimal finalAmount = totalAmount.subtract(discountAmount);
-                if (finalAmount.compareTo(BigDecimal.ZERO) < 0) {
-                    finalAmount = BigDecimal.ZERO;
-                }
-
-                request.setAttribute("discountAmount", discountAmount);
-                request.setAttribute("finalAmount", finalAmount);
                 
-                // Lưu vào session
-                HttpSession session = request.getSession();
-                session.setAttribute("discountAmount", discountAmount);
-                session.setAttribute("finalAmount", finalAmount);
+                // Sử dụng PromotionService để tính toán
+                PromotionService.PromotionApplicationResult result = promotionService.previewPromotion(promotion.getPromotionCode(), null, totalAmount);
+                if (result.isSuccess()) {
+                    BigDecimal discountAmount = result.getDiscountAmount();
+                    BigDecimal finalAmount = result.getFinalAmount();
+
+                    request.setAttribute("discountAmount", discountAmount);
+                    request.setAttribute("finalAmount", finalAmount);
+                    
+                    // Lưu vào session
+                    HttpSession session = request.getSession();
+                    session.setAttribute("discountAmount", discountAmount);
+                    session.setAttribute("finalAmount", finalAmount);
+                }
             }
 
         } catch (Exception e) {
             logger.log(Level.WARNING, "Error calculating discount amount", e);
+        }
+    }
+
+    /**
+     * Hiển thị trang thông báo promotion cho khách hàng
+     */
+    private void handleShowNotification(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        try {
+            // Lấy customer ID từ session
+            HttpSession session = request.getSession();
+            Customer customer = (Customer) session.getAttribute("customer");
+            
+            if (customer == null) {
+                response.sendRedirect(request.getContextPath() + "/login");
+                return;
+            }
+            
+            // Lấy customer ID
+            Integer customerId = customer.getCustomerId();
+            
+            if (customerId == null) {
+                response.sendRedirect(request.getContextPath() + "/login");
+                return;
+            }
+            
+            // Lấy promotions mới cho khách hàng này (tạm thời lấy tất cả ACTIVE)
+            List<Promotion> newPromotions = promotionDAO.findByStatus("ACTIVE", 1, 10, "created_at", "DESC");
+            
+            request.setAttribute("newPromotions", newPromotions);
+            request.setAttribute("customerId", customerId);
+            
+            request.getRequestDispatcher("/WEB-INF/view/customer_pages/promotion_notification.jsp")
+                    .forward(request, response);
+                    
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error loading promotion notification", e);
+            handleError(request, response, "Không thể tải thông báo khuyến mãi");
         }
     }
 

@@ -39,34 +39,54 @@ public class PromotionDAO {
     }
 
     private Promotion mapResultSet(ResultSet rs) throws SQLException {
-        Promotion p = new Promotion();
-        p.setPromotionId(rs.getInt("promotion_id"));
-        p.setTitle(rs.getString("title"));
-        p.setPromotionCode(rs.getString("promotion_code"));
-        p.setDiscountType(rs.getString("discount_type"));
-        p.setDiscountValue(rs.getBigDecimal("discount_value"));
-        p.setDescription(rs.getString("description"));
-        p.setStatus(rs.getString("status"));
-        p.setCurrentUsageCount(rs.getInt("current_usage_count"));
-        p.setIsAutoApply(rs.getBoolean("is_auto_apply"));
-        p.setMinimumAppointmentValue(rs.getBigDecimal("minimum_appointment_value"));
-        p.setApplicableScope(rs.getString("applicable_scope"));
+        Promotion promotion = new Promotion();
+        // Đã sửa lại thành snake_case để khớp với database
+        promotion.setPromotionId(rs.getInt("promotion_id"));
+        promotion.setTitle(rs.getString("title"));
+        promotion.setDescription(rs.getString("description"));
+        promotion.setPromotionCode(rs.getString("promotion_code"));
+        promotion.setDiscountType(rs.getString("discount_type"));
+        promotion.setDiscountValue(rs.getBigDecimal("discount_value"));
+
+        promotion.setAppliesToServiceId((Integer) rs.getObject("applies_to_service_id"));
+        promotion.setMinimumAppointmentValue(rs.getBigDecimal("minimum_appointment_value"));
+
+        if (rs.getTimestamp("start_date") != null) {
+            promotion.setStartDate(rs.getTimestamp("start_date").toLocalDateTime());
+        }
+        if (rs.getTimestamp("end_date") != null) {
+            promotion.setEndDate(rs.getTimestamp("end_date").toLocalDateTime());
+        }
+
+        promotion.setStatus(rs.getString("status"));
+        promotion.setUsageLimitPerCustomer((Integer) rs.getObject("usage_limit_per_customer"));
+        promotion.setTotalUsageLimit((Integer) rs.getObject("total_usage_limit"));
+        promotion.setCurrentUsageCount(rs.getInt("current_usage_count"));
+        promotion.setApplicableScope(rs.getString("applicable_scope"));
         
         // Handle customer_condition column that might not exist in database
         try {
-            p.setCustomerCondition(rs.getString("customer_condition"));
+            promotion.setCustomerCondition(rs.getString("customer_condition"));
         } catch (SQLException e) {
             // Column doesn't exist, set default value
-            p.setCustomerCondition("ALL");
+            promotion.setCustomerCondition("ALL");
             logger.warning("Column 'customer_condition' not found in database. Using default value 'ALL'. Please run add_customer_condition_column.sql to add this column.");
         }
+        
+        promotion.setApplicableServiceIdsJson(rs.getString("applicable_service_ids_json"));
+        promotion.setImageUrl(rs.getString("image_url"));
+        promotion.setTermsAndConditions(rs.getString("terms_and_conditions"));
+        promotion.setCreatedByUserId((Integer) rs.getObject("created_by_user_id"));
+        promotion.setIsAutoApply(rs.getBoolean("is_auto_apply"));
 
-        Timestamp start = rs.getTimestamp("start_date");
-        if (start != null) p.setStartDate(start.toLocalDateTime());
-        Timestamp end = rs.getTimestamp("end_date");
-        if (end != null) p.setEndDate(end.toLocalDateTime());
-        // Thêm các trường khác nếu Model có
-        return p;
+        if (rs.getTimestamp("created_at") != null) {
+            promotion.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+        }
+        if (rs.getTimestamp("updated_at") != null) {
+            promotion.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
+        }
+
+        return promotion;
     }
 
     // Thêm khuyến mãi mới
@@ -82,6 +102,9 @@ public class PromotionDAO {
         
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            
+            logger.info("Saving promotion: " + p.getTitle() + " with code: " + p.getPromotionCode());
+            
             ps.setString(1, p.getTitle());
             ps.setString(2, p.getPromotionCode());
             ps.setString(3, p.getDiscountType());
@@ -103,13 +126,19 @@ public class PromotionDAO {
             }
             
             int row = ps.executeUpdate();
+            logger.info("Rows affected: " + row);
+            
             if (row > 0) {
                 ResultSet rs = ps.getGeneratedKeys();
-                if (rs.next()) p.setPromotionId(rs.getInt(1));
+                if (rs.next()) {
+                    int generatedId = rs.getInt(1);
+                    p.setPromotionId(generatedId);
+                    logger.info("Generated promotion ID: " + generatedId);
+                }
                 return true;
             }
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Save Promotion Error", e);
+            logger.log(Level.SEVERE, "Save Promotion Error: " + e.getMessage(), e);
         }
         return false;
     }
@@ -382,8 +411,8 @@ public class PromotionDAO {
     }
 
   public Optional<Promotion> findByCode(String promotionCode) {
-        String sql = "SELECT * FROM Promotions WHERE PromotionCode = ?";
-        try (Connection conn = new DBContext().getConnection();
+        String sql = "SELECT * FROM promotions WHERE promotion_code = ?";
+        try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, promotionCode);
@@ -391,7 +420,7 @@ public class PromotionDAO {
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     // Nếu tìm thấy, map dữ liệu từ ResultSet sang đối tượng Promotion
-                    Promotion promotion = mapRowToPromotion(rs);
+                    Promotion promotion = mapResultSet(rs);
                     return Optional.of(promotion);
                 }
             }
@@ -405,106 +434,60 @@ public class PromotionDAO {
         return Optional.empty();
     }
 
-    /**
-     * Helper method to map a ResultSet row to a Promotion object.
-     * This avoids code duplication.
-     * * @param rs The ResultSet to map from.
-     * @return A populated Promotion object.
-     * @throws SQLException if a database access error occurs.
-     */
-//    private Promotion mapRowToPromotion(ResultSet rs) throws SQLException {
-//        Promotion promotion = new Promotion();
-//        promotion.setPromotionId(rs.getInt("PromotionID"));
-//        promotion.setTitle(rs.getString("Title"));
-//        promotion.setDescription(rs.getString("Description"));
-//        promotion.setPromotionCode(rs.getString("PromotionCode"));
-//        promotion.setDiscountType(rs.getString("DiscountType"));
-//        promotion.setDiscountValue(rs.getBigDecimal("DiscountValue"));
-//        
-//        // Dùng getObject để tránh lỗi nếu giá trị trong CSDL là NULL
-//        promotion.setAppliesToServiceId((Integer) rs.getObject("AppliesToServiceID"));
-//        promotion.setMinimumAppointmentValue(rs.getBigDecimal("MinimumAppointmentValue"));
-//        
-//        // Chuyển đổi Timestamp từ SQL sang LocalDateTime
-//        if (rs.getTimestamp("StartDate") != null) {
-//            promotion.setStartDate(rs.getTimestamp("StartDate").toLocalDateTime());
-//        }
-//        if (rs.getTimestamp("EndDate") != null) {
-//            promotion.setEndDate(rs.getTimestamp("EndDate").toLocalDateTime());
-//        }
-//        
-//        promotion.setStatus(rs.getString("Status"));
-//        promotion.setUsageLimitPerCustomer((Integer) rs.getObject("UsageLimitPerCustomer"));
-//        promotion.setTotalUsageLimit((Integer) rs.getObject("TotalUsageLimit"));
-//        promotion.setCurrentUsageCount(rs.getInt("CurrentUsageCount"));
-//        promotion.setApplicableScope(rs.getString("ApplicableScope"));
-//        promotion.setApplicableServiceIdsJson(rs.getString("ApplicableServiceIDsJson"));
-//        promotion.setImageUrl(rs.getString("ImageURL"));
-//        promotion.setTermsAndConditions(rs.getString("TermsAndConditions"));
-//        promotion.setCreatedByUserId((Integer) rs.getObject("CreatedByUserID"));
-//        promotion.setIsAutoApply(rs.getBoolean("IsAutoApply"));
-//        
-//        if (rs.getTimestamp("CreatedAt") != null) {
-//            promotion.setCreatedAt(rs.getTimestamp("CreatedAt").toLocalDateTime());
-//        }
-//        if (rs.getTimestamp("UpdatedAt") != null) {
-//            promotion.setUpdatedAt(rs.getTimestamp("UpdatedAt").toLocalDateTime());
-//        }
-//
-//        return promotion;
-//    }
+  // Tìm promotion theo tên (không phân biệt chữ hoa/thường)
+  public Optional<Promotion> findByTitleIgnoreCase(String title) {
+        String sql = "SELECT * FROM promotions WHERE LOWER(title) = LOWER(?)";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, title);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    // Nếu tìm thấy, map dữ liệu từ ResultSet sang đối tượng Promotion
+                    Promotion promotion = mapResultSet(rs);
+                    return Optional.of(promotion);
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Database error finding promotion by title (ignore case): " + title, e);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "An unexpected error occurred finding promotion by title (ignore case): " + title, e);
+        }
+        
+        // Trả về Optional rỗng nếu không tìm thấy hoặc có lỗi xảy ra
+        return Optional.empty();
+    }
+
+  // Tìm promotion theo mã (không phân biệt chữ hoa/thường)
+  public Optional<Promotion> findByCodeIgnoreCase(String promotionCode) {
+        String sql = "SELECT * FROM promotions WHERE LOWER(promotion_code) = LOWER(?)";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, promotionCode);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    // Nếu tìm thấy, map dữ liệu từ ResultSet sang đối tượng Promotion
+                    Promotion promotion = mapResultSet(rs);
+                    return Optional.of(promotion);
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Database error finding promotion by code (ignore case): " + promotionCode, e);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "An unexpected error occurred finding promotion by code (ignore case): " + promotionCode, e);
+        }
+        
+        // Trả về Optional rỗng nếu không tìm thấy hoặc có lỗi xảy ra
+        return Optional.empty();
+    }
+
+
   
   
-  private Promotion mapRowToPromotion(ResultSet rs) throws SQLException {
-    Promotion promotion = new Promotion();
-    // Đã sửa lại thành snake_case để khớp với database
-    promotion.setPromotionId(rs.getInt("promotion_id"));
-    promotion.setTitle(rs.getString("title"));
-    promotion.setDescription(rs.getString("description"));
-    promotion.setPromotionCode(rs.getString("promotion_code"));
-    promotion.setDiscountType(rs.getString("discount_type"));
-    promotion.setDiscountValue(rs.getBigDecimal("discount_value"));
 
-    promotion.setAppliesToServiceId((Integer) rs.getObject("applies_to_service_id"));
-    promotion.setMinimumAppointmentValue(rs.getBigDecimal("minimum_appointment_value"));
-
-    if (rs.getTimestamp("start_date") != null) {
-        promotion.setStartDate(rs.getTimestamp("start_date").toLocalDateTime());
-    }
-    if (rs.getTimestamp("end_date") != null) {
-        promotion.setEndDate(rs.getTimestamp("end_date").toLocalDateTime());
-    }
-
-    promotion.setStatus(rs.getString("status"));
-    promotion.setUsageLimitPerCustomer((Integer) rs.getObject("usage_limit_per_customer"));
-    promotion.setTotalUsageLimit((Integer) rs.getObject("total_usage_limit"));
-    promotion.setCurrentUsageCount(rs.getInt("current_usage_count"));
-    promotion.setApplicableScope(rs.getString("applicable_scope"));
-    
-    // Handle customer_condition column that might not exist in database
-    try {
-        promotion.setCustomerCondition(rs.getString("customer_condition"));
-    } catch (SQLException e) {
-        // Column doesn't exist, set default value
-        promotion.setCustomerCondition("ALL");
-        logger.warning("Column 'customer_condition' not found in database. Using default value 'ALL'. Please run add_customer_condition_column.sql to add this column.");
-    }
-    
-    promotion.setApplicableServiceIdsJson(rs.getString("applicable_service_ids_json"));
-    promotion.setImageUrl(rs.getString("image_url"));
-    promotion.setTermsAndConditions(rs.getString("terms_and_conditions"));
-    promotion.setCreatedByUserId((Integer) rs.getObject("created_by_user_id"));
-    promotion.setIsAutoApply(rs.getBoolean("is_auto_apply"));
-
-    if (rs.getTimestamp("created_at") != null) {
-        promotion.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
-    }
-    if (rs.getTimestamp("updated_at") != null) {
-        promotion.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
-    }
-
-    return promotion;
-}
     
     
      public static void main(String[] args) {

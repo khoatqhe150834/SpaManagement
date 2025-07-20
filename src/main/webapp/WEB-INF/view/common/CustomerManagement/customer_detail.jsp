@@ -379,6 +379,22 @@
                                     </span>
                                 </div>
                                 
+                                <!-- Promotion Usage Summary -->
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                    <span class="text-gray-700">Khuyến mãi có sẵn:</span>
+                                    <span class="font-semibold text-primary">
+                                        <c:choose>
+                                            <c:when test="${not empty promotionSummary}">
+                                                ${promotionSummary.totalPromotions} mã
+                                                <c:if test="${promotionSummary.totalRemainingUses > 0}">
+                                                    (${promotionSummary.totalRemainingUses} lượt còn lại)
+                                                </c:if>
+                                            </c:when>
+                                            <c:otherwise>0 mã</c:otherwise>
+                                        </c:choose>
+                                    </span>
+                                </div>
+                                
                                 <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                                     <span class="text-gray-700">Ngày tạo:</span>
                                     <span class="text-gray-900">
@@ -466,6 +482,106 @@
             </div>
         </main>
     </div>
+
+    <!-- Promotion Usage Details -->
+    <c:if test="${not empty customerPromotions}">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <h2 class="text-xl font-bold text-spa-dark mb-6 flex items-center gap-2">
+                    <i data-lucide="gift" class="w-6 h-6 text-primary"></i>
+                    Chi tiết khuyến mãi có thể sử dụng
+                </h2>
+                
+                <div class="space-y-4">
+                    <c:forEach var="promotion" items="${customerPromotions}">
+                        <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                            <div class="flex justify-between items-start mb-3">
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-gray-900 mb-1">${promotion.title}</h3>
+                                    <p class="text-sm text-gray-600 mb-2">Mã: <span class="font-mono bg-gray-100 px-2 py-1 rounded">${promotion.promotionCode}</span></p>
+                                    <div class="flex items-center gap-4 text-sm text-gray-600">
+                                        <span>
+                                            <i data-lucide="percent" class="w-4 h-4 inline mr-1"></i>
+                                            <c:choose>
+                                                <c:when test="${promotion.discountType == 'PERCENTAGE'}">
+                                                    Giảm ${promotion.discountValue}%
+                                                </c:when>
+                                                <c:when test="${promotion.discountType == 'FIXED_AMOUNT'}">
+                                                    Giảm <fmt:formatNumber value="${promotion.discountValue}" type="currency" currencySymbol="₫"/>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    ${promotion.discountType}
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </span>
+                                        <span>
+                                            <i data-lucide="calendar" class="w-4 h-4 inline mr-1"></i>
+                                            <fmt:formatDate value="${promotion.endDate}" pattern="dd/MM/yyyy"/>
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div class="text-right">
+                                    <c:choose>
+                                        <c:when test="${promotion.remainingCount == null}">
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                <i data-lucide="infinity" class="w-3 h-3 mr-1"></i>
+                                                Không giới hạn
+                                            </span>
+                                        </c:when>
+                                        <c:when test="${promotion.remainingCount > 0}">
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                <i data-lucide="check-circle" class="w-3 h-3 mr-1"></i>
+                                                Còn ${promotion.remainingCount} lượt
+                                            </span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                <i data-lucide="x-circle" class="w-3 h-3 mr-1"></i>
+                                                Đã hết lượt
+                                            </span>
+                                        </c:otherwise>
+                                    </c:choose>
+                                    
+                                    <c:if test="${promotion.usageLimitPerCustomer != null}">
+                                        <div class="text-xs text-gray-500 mt-1">
+                                            Đã dùng: ${promotion.usedCount}/${promotion.usageLimitPerCustomer}
+                                        </div>
+                                    </c:if>
+                                </div>
+                            </div>
+                            
+                            <c:if test="${promotion.remainingCount != null && promotion.remainingCount > 0}">
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <c:set var="usagePercentage" value="${(promotion.usedCount / promotion.usageLimitPerCustomer) * 100}" />
+                                    <div class="bg-primary h-2 rounded-full" style="width: ${usagePercentage}%"></div>
+                                </div>
+                            </c:if>
+                        </div>
+                    </c:forEach>
+                </div>
+                
+                <c:if test="${not empty promotionSummary}">
+                    <div class="mt-6 p-4 bg-primary/10 rounded-lg">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                            <div>
+                                <div class="text-2xl font-bold text-primary">${promotionSummary.totalPromotions}</div>
+                                <div class="text-sm text-gray-600">Tổng mã khuyến mãi</div>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold text-green-600">${promotionSummary.unlimitedPromotions}</div>
+                                <div class="text-sm text-gray-600">Mã không giới hạn</div>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold text-blue-600">${promotionSummary.totalRemainingUses}</div>
+                                <div class="text-sm text-gray-600">Lượt còn lại</div>
+                            </div>
+                        </div>
+                    </div>
+                </c:if>
+            </div>
+        </div>
+    </c:if>
 
     <script>
         // Initialize Lucide icons

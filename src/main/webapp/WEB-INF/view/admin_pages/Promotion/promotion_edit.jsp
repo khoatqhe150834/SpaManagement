@@ -184,12 +184,26 @@
 
                                     <div class="mt-6">
                                         <label for="imageUrl" class="block font-medium text-gray-700 mb-1">Ảnh khuyến mãi</label>
-                                        <input type="file" name="imageUrl" id="imageUrl" accept="image/*"
-                                               class="w-full border rounded-lg px-3 py-2 focus:ring-primary focus:border-primary">
-                                        <p class="text-gray-500 text-sm mt-1">Chọn ảnh cho khuyến mãi (tùy chọn, tối đa 10MB)</p>
+                                        <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-primary transition-colors">
+                                            <div class="space-y-1 text-center">
+                                                <i data-lucide="upload" class="mx-auto h-12 w-12 text-gray-400"></i>
+                                                <div class="flex text-sm text-gray-600">
+                                                    <label for="imageUrl" class="relative cursor-pointer bg-white rounded-md font-medium text-primary hover:text-primary-dark focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary">
+                                                        <span>Tải ảnh lên</span>
+                                                        <input id="imageUrl" name="imageUrl" type="file" class="sr-only" accept="image/*" onchange="previewImage(this)">
+                                                    </label>
+                                                    <p class="pl-1">hoặc kéo thả vào đây</p>
+                                                </div>
+                                                <p class="text-xs text-gray-500">PNG, JPG, GIF, WEBP tối đa 10MB</p>
+                                            </div>
+                                        </div>
+                                        <div id="imagePreview" class="mt-2 hidden">
+                                            <img src="" alt="Preview" class="w-32 h-32 object-cover rounded-lg border">
+                                        </div>
                                         <c:if test="${not empty promotion.imageUrl}">
                                             <div class="mt-2">
-                                                <img src="${promotion.imageUrl}" alt="Ảnh khuyến mãi hiện tại" 
+                                                <p class="text-sm text-gray-600 mb-2">Ảnh hiện tại:</p>
+                                                <img src="${pageContext.request.contextPath}${promotion.imageUrl}" alt="Ảnh khuyến mãi hiện tại" 
                                                      class="w-32 h-32 object-cover rounded-lg border">
                                             </div>
                                         </c:if>
@@ -266,47 +280,22 @@
         document.getElementById('endDate').addEventListener('change', updateStatus);
 
         // Image preview functionality
-        document.getElementById('imageUrl').addEventListener('change', function(e) {
-            const file = e.target.files[0];
+        function previewImage(input) {
             const previewContainer = document.getElementById('imagePreview');
-            
-            if (file) {
-                // Validate file type
-                if (!file.type.startsWith('image/')) {
-                    alert('Vui lòng chọn file ảnh hợp lệ');
-                    this.value = '';
-                    return;
-                }
-                
-                // Validate file size (max 10MB)
-                if (file.size > 10 * 1024 * 1024) {
-                    alert('Kích thước file phải nhỏ hơn 10MB');
-                    this.value = '';
-                    return;
-                }
-                
+            const image = previewContainer.querySelector('img');
+
+            if (input.files && input.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    if (!previewContainer) {
-                        // Create preview container if it doesn't exist
-                        const container = document.createElement('div');
-                        container.id = 'imagePreview';
-                        container.className = 'mt-2';
-                        container.innerHTML = '<img src="' + e.target.result + '" alt="Preview" class="w-32 h-32 object-cover rounded-lg border">';
-                        document.getElementById('imageUrl').parentNode.appendChild(container);
-                    } else {
-                        // Update existing preview
-                        previewContainer.innerHTML = '<img src="' + e.target.result + '" alt="Preview" class="w-32 h-32 object-cover rounded-lg border">';
-                    }
-                };
-                reader.readAsDataURL(file);
-            } else {
-                // Remove preview if no file selected
-                if (previewContainer) {
-                    previewContainer.remove();
+                    image.src = e.target.result;
+                    previewContainer.classList.remove('hidden');
                 }
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                image.src = ''; // Clear preview if no file selected
+                previewContainer.classList.add('hidden');
             }
-        });
+        }
 
         // Auto uppercase promotion code
         document.getElementById('promotionCode').addEventListener('input', function(e) {

@@ -138,11 +138,6 @@
                                 <table class="w-full">
                                     <thead class="bg-gray-50">
                                         <tr>
-                                            <%-- Helper function to create sortable headers --%>
-                                            <%-- <c:macro name="sortableHeader"> ... </c:macro> --%>
-                                            
-                                            <%-- Sử dụng macro để tạo các header --%>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable-header">ID</th>
                                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable-header">Khuyến mãi</th>
                                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable-header">Mã</th>
                                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable-header">Giảm giá</th>
@@ -153,7 +148,6 @@
                                     <tbody class="bg-white divide-y divide-gray-200">
                                         <c:forEach var="promotion" items="${listPromotion}">
                                             <tr class="hover:bg-gray-50">
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#${promotion.promotionId}</td>
                                                 <td class="px-6 py-4 whitespace-nowrap">
                                                     <div class="flex items-center">
                                                         <c:choose>
@@ -204,18 +198,18 @@
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                     <div class="flex items-center justify-center gap-2">
                                                         <a href="${pageContext.request.contextPath}/promotion/view?id=${promotion.promotionId}" class="p-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-full transition-colors" title="Xem chi tiết">
-                                                            <i data-lucide="eye" class="w-4 h-4"></i>
+                                                            <i data-lucide="eye" class="w-5 h-5"></i>
                                                         </a>
                                                         <a href="${pageContext.request.contextPath}/promotion/edit?id=${promotion.promotionId}" class="p-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-full transition-colors" title="Chỉnh sửa">
-                                                            <i data-lucide="edit" class="w-4 h-4"></i>
+                                                            <i data-lucide="edit" class="w-5 h-5"></i>
                                                         </a>
                                                         <c:choose>
                                                             <c:when test="${promotion.status == 'ACTIVE'}">
                                                                 <c:url var="deactivateUrl" value="/promotion/deactivate">
-                                                                    <c:param name="id" value="${promotion.promotionId}" /><c:param name="page" value="${currentPage}" /><c:param name="searchValue" value="${searchValue}" /><c:param name="status" value="${status}" />
+                                                                     <c:param name="id" value="${promotion.promotionId}" /><c:param name="page" value="${currentPage}" /><c:param name="searchValue" value="${searchValue}" /><c:param name="status" value="${status}" />
                                                                 </c:url>
-                                                                <a href="${deactivateUrl}" onclick="confirmAction(event, this.href, 'Bạn muốn vô hiệu hóa khuyến mãi này?')" class="p-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-full transition-colors" title="Vô hiệu hóa">
-                                                                    <i data-lucide="pause" class="w-4 h-4"></i>
+                                                                <a href="${deactivateUrl}" onclick="confirmAction(event, this.href, 'Bạn muốn tắt khuyến mãi này?')" class="p-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-full transition-colors" title="Tắt">
+                                                                     <i data-lucide="ban" class="w-5 h-5"></i>
                                                                 </a>
                                                             </c:when>
                                                             <c:when test="${promotion.status == 'INACTIVE' || promotion.status == 'SCHEDULED'}">
@@ -223,7 +217,7 @@
                                                                      <c:param name="id" value="${promotion.promotionId}" /><c:param name="page" value="${currentPage}" /><c:param name="searchValue" value="${searchValue}" /><c:param name="status" value="${status}" />
                                                                 </c:url>
                                                                 <a href="${activateUrl}" onclick="confirmAction(event, this.href, 'Bạn muốn kích hoạt khuyến mãi này?')" class="p-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-full transition-colors" title="Kích hoạt">
-                                                                     <i data-lucide="play" class="w-4 h-4"></i>
+                                                                     <i data-lucide="refresh-ccw" class="w-5 h-5"></i>
                                                                 </a>
                                                             </c:when>
                                                         </c:choose>
