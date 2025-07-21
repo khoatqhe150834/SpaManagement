@@ -236,6 +236,14 @@ public class MenuService {
     menuItems.add(new MenuItem("Báo cáo phòng ban", contextPath + "/manager/reports", "bar-chart", "operations"));
     menuItems.add(new MenuItem("Khách hàng", contextPath + "/manager/customers", "users", "operations"));
     
+    // Inventory Management Section (for Manager)
+    menuItems.add(new MenuItem("QUẢN LÝ KHO", true));
+    menuItems.add(new MenuItem("Phê duyệt phiếu nhập kho", contextPath + "/manager/inventory/receipt/approve", "check-circle", "inventory"));
+    menuItems.add(new MenuItem("Phê duyệt phiếu xuất kho", contextPath + "/manager/inventory/issue/approve", "check-circle", "inventory"));
+    menuItems.add(new MenuItem("Thiết lập định mức vật tư", contextPath + "/manager/inventory/servicematerial", "settings", "inventory"));
+    menuItems.add(new MenuItem("Báo cáo tổng hợp", contextPath + "/manager/inventory/report", "bar-chart", "inventory"));
+    menuItems.add(new MenuItem("Thống kê sử dụng vật tư", contextPath + "/manager/inventory/usage", "trending-up", "inventory"));
+    
     // Financial Section
     menuItems.add(new MenuItem("TÀI CHÍNH", true));
     menuItems.add(new MenuItem("Doanh thu phòng ban", contextPath + "/manager/revenue", "trending-up", "financial"));
@@ -274,6 +282,12 @@ public class MenuService {
     menuItems.add(new MenuItem("Khách hàng của tôi", contextPath + "/therapist/clients", "users", "clients"));
     menuItems.add(new MenuItem("Hồ sơ điều trị", contextPath + "/therapist/treatment-records", "file-text", "clients"));
     menuItems.add(new MenuItem("Ghi chú điều trị", contextPath + "/therapist/notes", "book-open", "clients"));
+
+    // Inventory Section (for Therapist)
+    menuItems.add(new MenuItem("VẬT TƯ", true));
+    menuItems.add(new MenuItem("Xem tồn kho", contextPath + "/therapist/inventory/stock", "package", "inventory"));
+    menuItems.add(new MenuItem("Đề xuất vật tư", contextPath + "/therapist/inventory/propose", "plus", "inventory"));
+    menuItems.add(new MenuItem("Xác nhận nhận vật tư", contextPath + "/therapist/inventory/confirm", "check-circle", "inventory"));
 
     // Performance Section
     menuItems.add(new MenuItem("HIỆU SUẤT", true));
@@ -314,6 +328,11 @@ public class MenuService {
     menuItems.add(new MenuItem("Đăng ký khách mới", contextPath + "/receptionist/register", "user-plus", "customers"));
     menuItems.add(new MenuItem("Chương trình thành viên", contextPath + "/receptionist/loyalty", "star", "customers"));
 
+    // Inventory Section (for Receptionist)
+    menuItems.add(new MenuItem("VẬT TƯ", true));
+    menuItems.add(new MenuItem("Xem tồn kho", contextPath + "/receptionist/inventory/stock", "package", "inventory"));
+    menuItems.add(new MenuItem("Yêu cầu xuất vật tư", contextPath + "/receptionist/inventory/request", "file-text", "inventory"));
+
     return menuItems;
   }
 
@@ -348,6 +367,65 @@ public class MenuService {
     menuItems.add(new MenuItem("Quản lý Blog", contextPath + "/marketing/blog", "file-text", "marketing"));
     menuItems.add(new MenuItem("Thư viện media", contextPath + "/marketing/media", "image", "content"));
     menuItems.add(new MenuItem("Thương hiệu", contextPath + "/marketing/brand", "heart", "content"));
+
+    return menuItems;
+  }
+
+  /**
+   * Generate menu items for INVENTORY_MANAGER role
+   * Inventory management focused with comprehensive stock control
+   */
+  public static List<MenuItem> getInventoryManagerMenuItems(String contextPath) {
+    List<MenuItem> menuItems = new ArrayList<>();
+
+    // Dashboard Section
+    menuItems.add(new MenuItem("QUẢN LÝ KHO", true));
+    menuItems.add(new MenuItem("Dashboard", contextPath + "/dashboard", "layout-dashboard", "inventory"));
+
+    // Inventory Management Section
+    menuItems.add(new MenuItem("VẬT TƯ", true));
+    
+    MenuItem itemMgmt = new MenuItem("Quản lý vật tư", contextPath + "/inventory-manager/item", "package", "inventory");
+    itemMgmt.addSubItem(new MenuItem("Danh sách vật tư", contextPath + "/inventory-manager/item", "list"));
+    itemMgmt.addSubItem(new MenuItem("Thêm vật tư mới", contextPath + "/inventory-manager/item?action=create", "plus"));
+    itemMgmt.addSubItem(new MenuItem("Vật tư sắp hết", contextPath + "/inventory-manager/item?action=low-stock", "alert-triangle"));
+    menuItems.add(itemMgmt);
+
+    MenuItem categoryMgmt = new MenuItem("Loại vật tư", contextPath + "/inventory-manager/category", "grid", "inventory");
+    categoryMgmt.addSubItem(new MenuItem("Danh sách loại", contextPath + "/inventory-manager/category", "list"));
+    categoryMgmt.addSubItem(new MenuItem("Thêm loại mới", contextPath + "/inventory-manager/category?action=create", "plus"));
+    menuItems.add(categoryMgmt);
+
+    MenuItem supplierMgmt = new MenuItem("Nhà cung cấp", contextPath + "/inventory-manager/supplier", "truck", "inventory");
+    supplierMgmt.addSubItem(new MenuItem("Danh sách NCC", contextPath + "/inventory-manager/supplier", "list"));
+    supplierMgmt.addSubItem(new MenuItem("Thêm NCC mới", contextPath + "/inventory-manager/supplier?action=create", "plus"));
+    menuItems.add(supplierMgmt);
+
+    // Stock Operations Section
+    menuItems.add(new MenuItem("NHẬP XUẤT KHO", true));
+    
+    MenuItem receiptMgmt = new MenuItem("Phiếu nhập kho", contextPath + "/inventory-manager/receipt", "download", "operations");
+    receiptMgmt.addSubItem(new MenuItem("Danh sách phiếu nhập", contextPath + "/inventory-manager/receipt", "list"));
+    receiptMgmt.addSubItem(new MenuItem("Tạo phiếu nhập", contextPath + "/inventory-manager/receipt/create", "plus"));
+    menuItems.add(receiptMgmt);
+
+    MenuItem issueMgmt = new MenuItem("Phiếu xuất kho", contextPath + "/inventory-manager/issue", "upload", "operations");
+    issueMgmt.addSubItem(new MenuItem("Danh sách phiếu xuất", contextPath + "/inventory-manager/issue", "list"));
+    issueMgmt.addSubItem(new MenuItem("Tạo phiếu xuất", contextPath + "/inventory-manager/issue/create", "plus"));
+    issueMgmt.addSubItem(new MenuItem("Yêu cầu xuất kho", contextPath + "/inventory-manager/issue/requests", "file-text"));
+    menuItems.add(issueMgmt);
+
+    // Service Materials Section
+    menuItems.add(new MenuItem("ĐỊNH MỨC DỊCH VỤ", true));
+    menuItems.add(new MenuItem("Định mức vật tư", contextPath + "/inventory-manager/servicematerial", "settings", "service"));
+    menuItems.add(new MenuItem("Thiết lập cảnh báo", contextPath + "/inventory-manager/alerts", "bell", "service"));
+
+    // Reports Section
+    menuItems.add(new MenuItem("BÁO CÁO", true));
+    menuItems.add(new MenuItem("Báo cáo tồn kho", contextPath + "/inventory-manager/report/stock", "bar-chart", "reports"));
+    menuItems.add(new MenuItem("Lịch sử giao dịch", contextPath + "/inventory-manager/report/transactions", "history", "reports"));
+    menuItems.add(new MenuItem("Thống kê sử dụng", contextPath + "/inventory-manager/report/usage", "trending-up", "reports"));
+    menuItems.add(new MenuItem("Kiểm kê định kỳ", contextPath + "/inventory-manager/report/audit", "clipboard-check", "reports"));
 
     return menuItems;
   }
@@ -400,6 +478,8 @@ public class MenuService {
         return getReceptionistMenuItems(contextPath);
       case "MARKETING":
         return getMarketingMenuItems(contextPath);
+      case "INVENTORY_MANAGER":
+        return getInventoryManagerMenuItems(contextPath);
       case "CUSTOMER":
         return getCustomerMenuItems(contextPath);
       default:

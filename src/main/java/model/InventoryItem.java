@@ -13,10 +13,11 @@ public class InventoryItem {
     private String description;
     private Timestamp createdAt;
     private Timestamp updatedAt;
+    private boolean isActive;
 
     public InventoryItem() {}
 
-    public InventoryItem(int inventoryItemId, String name, Integer inventoryCategoryId, Integer supplierId, String unit, int quantity, int minQuantity, String description, Timestamp createdAt, Timestamp updatedAt) {
+    public InventoryItem(int inventoryItemId, String name, Integer inventoryCategoryId, Integer supplierId, String unit, int quantity, int minQuantity, String description, Timestamp createdAt, Timestamp updatedAt, boolean isActive) {
         this.inventoryItemId = inventoryItemId;
         this.name = name;
         this.inventoryCategoryId = inventoryCategoryId;
@@ -27,6 +28,7 @@ public class InventoryItem {
         this.description = description;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.isActive = isActive;
     }
 
     public int getInventoryItemId() { return inventoryItemId; }
@@ -49,6 +51,8 @@ public class InventoryItem {
     public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
     public Timestamp getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Timestamp updatedAt) { this.updatedAt = updatedAt; }
+    public boolean isActive() { return isActive; }
+    public void setActive(boolean active) { isActive = active; }
 
     @Override
     public String toString() {
@@ -63,6 +67,7 @@ public class InventoryItem {
                 ", description='" + description + '\'' +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
+                ", isActive=" + isActive +
                 '}';
     }
 } 

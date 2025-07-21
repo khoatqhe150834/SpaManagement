@@ -20,7 +20,8 @@ public class DataSource {
       config.setJdbcUrl(
           "jdbc:mysql://localhost:3306/spamanagement?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC");
       config.setUsername("root");
-      config.setPassword("root");
+     config.setPassword("root");
+      // config.setPassword("12345");
 
       // --- Pool Settings ---
       config.setDriverClassName("com.mysql.cj.jdbc.Driver");

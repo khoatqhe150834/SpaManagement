@@ -12,6 +12,9 @@ public class InventoryReceipt {
     private Timestamp createdAt;
     private Timestamp updatedAt;
 
+    private Supplier supplier;
+    private User user;
+
     public InventoryReceipt() {}
 
     public InventoryReceipt(int inventoryReceiptId, Date receiptDate, int supplierId, int createdBy, String note, Timestamp createdAt, Timestamp updatedAt) {
@@ -22,6 +25,15 @@ public class InventoryReceipt {
         this.note = note;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+    }
+
+    public InventoryReceipt(int inventoryReceiptId, Date receiptDate, int supplierId, int createdBy, String note, Timestamp createdAt) {
+        this.inventoryReceiptId = inventoryReceiptId;
+        this.receiptDate = receiptDate;
+        this.supplierId = supplierId;
+        this.createdBy = createdBy;
+        this.note = note;
+        this.createdAt = createdAt;
     }
 
     public int getInventoryReceiptId() { return inventoryReceiptId; }
@@ -38,6 +50,22 @@ public class InventoryReceipt {
     public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
     public Timestamp getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Timestamp updatedAt) { this.updatedAt = updatedAt; }
+
+    public Supplier getSupplier() {
+        return supplier;
+    }
+
+    public void setSupplier(Supplier supplier) {
+        this.supplier = supplier;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
 
     @Override
     public String toString() {
