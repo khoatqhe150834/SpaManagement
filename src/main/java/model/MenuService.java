@@ -505,7 +505,15 @@ public class MenuService {
     menuItems.add(new MenuItem("Điểm tích lũy", contextPath + "/customer/loyalty", "gift", "account")
         .withNotification("2,450", "yellow"));
     menuItems.add(new MenuItem("Lịch sử thanh toán", contextPath + "/customer/payments", "credit-card", "account"));
-    menuItems.add(new MenuItem("Ưu đãi đặc biệt", contextPath + "/promotions", "star", "account").withNotification("Mới", "red"));
+    
+    // Promotion Section
+    MenuItem promotionMenu = new MenuItem("Kho khuyến mãi", contextPath + "/promotions/available", "star", "account")
+        .withNotification("Mới", "red");
+    promotionMenu.addSubItem(new MenuItem("Kho khuyến mãi", contextPath + "/promotions/available", "gift"));
+    promotionMenu.addSubItem(new MenuItem("Lịch sử khuyến mãi", contextPath + "/promotions/my-promotions", "history"));
+    promotionMenu.addSubItem(new MenuItem("Thông báo khuyến mãi", contextPath + "/promotions/notification", "bell"));
+    menuItems.add(promotionMenu);
+    
     menuItems.add(new MenuItem("Đăng xuất", contextPath + "/logout", "log-out", "account"));
 
     return menuItems;

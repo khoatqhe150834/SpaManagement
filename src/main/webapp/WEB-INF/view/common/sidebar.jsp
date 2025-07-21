@@ -263,6 +263,12 @@
             <span class="text-primary/70 font-bold text-xs uppercase tracking-wider mt-6 block">CÁ NHÂN</span>
             <div class="mt-2">
                 <div class="mb-1 group">
+                    <a href="${pageContext.request.contextPath}/user-management/view?id=self" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
+                        <i data-lucide="user" class="mr-3 h-4 w-4"></i>                
+                        <span class="text-sm">Hồ sơ cá nhân</span>
+                    </a>
+                </div>
+                <div class="mb-1 group">
                     <a href="${pageContext.request.contextPath}/profile" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
                         <i data-lucide="settings" class="mr-3 h-4 w-4"></i>                
                         <span class="text-sm">Cài đặt</span>

@@ -72,7 +72,7 @@ public class PromotionDAO {
             promotion.setCustomerCondition("ALL");
             logger.warning("Column 'customer_condition' not found in database. Using default value 'ALL'. Please run add_customer_condition_column.sql to add this column.");
         }
-        
+
         promotion.setApplicableServiceIdsJson(rs.getString("applicable_service_ids_json"));
         promotion.setImageUrl(rs.getString("image_url"));
         promotion.setTermsAndConditions(rs.getString("terms_and_conditions"));
@@ -205,7 +205,28 @@ public class PromotionDAO {
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) return Optional.of(mapResultSet(rs));
+            if (rs.next()) {
+                Promotion promotion = mapResultSet(rs);
+                
+                // Đảm bảo các giá trị null được xử lý an toàn
+                if (promotion.getCurrentUsageCount() == null) {
+                    promotion.setCurrentUsageCount(0);
+                }
+                if (promotion.getUsageLimitPerCustomer() == null) {
+                    promotion.setUsageLimitPerCustomer(0);
+                }
+                if (promotion.getTotalUsageLimit() == null) {
+                    promotion.setTotalUsageLimit(0);
+                }
+                if (promotion.getMinimumAppointmentValue() == null) {
+                    promotion.setMinimumAppointmentValue(BigDecimal.ZERO);
+                }
+                if (promotion.getCustomerCondition() == null) {
+                    promotion.setCustomerCondition("ALL");
+                }
+                
+                return Optional.of(promotion);
+            }
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "FindById Promotion Error", e);
         }

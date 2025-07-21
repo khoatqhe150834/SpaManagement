@@ -34,7 +34,7 @@
 </head>
 <body class="bg-spa-cream font-sans">
     <jsp:include page="/WEB-INF/view/common/header.jsp" />
-    
+
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Breadcrumb -->
         <nav class="flex mb-8" aria-label="Breadcrumb">
@@ -68,19 +68,19 @@
                     <i data-lucide="gift" class="w-16 h-16 mx-auto mb-4"></i>
                     <h2 class="text-2xl font-serif font-bold mb-2">🎉 Bạn Có Mã Giảm Giá Mới!</h2>
                     <p class="text-lg opacity-90">Spa Hương Sen dành tặng những ưu đãi đặc biệt cho bạn</p>
-                </div>
+                    </div>
 
                 <!-- Content -->
                 <div class="p-8">
-                    <c:choose>
-                        <c:when test="${not empty newPromotions}">
+                        <c:choose>
+                            <c:when test="${not empty newPromotions}">
                             <!-- Có khuyến mãi mới -->
                             <div class="text-center mb-8">
                                 <div class="inline-flex items-center gap-2 bg-blue-100 text-blue-800 px-4 py-2 rounded-full">
                                     <i data-lucide="star" class="w-5 h-5"></i>
                                     <span class="font-semibold">Chúc mừng! Bạn có ${fn:length(newPromotions)} mã khuyến mãi mới</span>
                                 </div>
-                            </div>
+                                </div>
 
                             <!-- Danh sách khuyến mãi -->
                             <div class="space-y-6">
@@ -135,7 +135,7 @@
                                                             </c:otherwise>
                                                         </c:choose>
                                                     </span>
-                                                </div>
+                                            </div>
                                                 <p class="text-gray-600 mb-3">
                                                     <c:choose>
                                                         <c:when test="${not empty promotion.description}">
@@ -155,17 +155,17 @@
                                                             </c:when>
                                                             <c:otherwise>
                                                                 Chưa xác định
-                                                            </c:otherwise>
-                                                        </c:choose>
-                                                    </span>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </span>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </c:forEach>
                             </div>
-                        </c:when>
-                        <c:otherwise>
+                            </c:when>
+                            <c:otherwise>
                             <!-- Không có khuyến mãi mới -->
                             <div class="text-center mb-8">
                                 <div class="inline-flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-full">
@@ -173,7 +173,7 @@
                                     <span class="font-semibold">Cảm ơn bạn đã tin tưởng Spa Hương Sen!</span>
                                 </div>
                                 <p class="text-gray-600 mt-2">Chúng tôi có những ưu đãi đặc biệt đang chờ bạn</p>
-                            </div>
+                                </div>
 
                             <!-- Lợi ích -->
                             <div class="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-6">
@@ -199,17 +199,17 @@
                                         <span class="text-gray-700">Thông báo sớm về các chương trình mới</span>
                                     </div>
                                 </div>
-                            </div>
-                        </c:otherwise>
-                    </c:choose>
+                                </div>
+                            </c:otherwise>
+                        </c:choose>
 
-                    <!-- Call to Action -->
+                        <!-- Call to Action -->
                     <div class="text-center mt-8">
                         <h3 class="text-xl font-semibold text-gray-900 mb-6 flex items-center justify-center gap-2">
                             <i data-lucide="rocket" class="w-6 h-6 text-primary"></i>
                             Hành động ngay để không bỏ lỡ ưu đãi!
                         </h3>
-                        
+                            
                         <div class="flex flex-col sm:flex-row gap-4 justify-center">
                             <a href="${pageContext.request.contextPath}/promotions/available" 
                                class="inline-flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-dark transition-colors">
@@ -223,9 +223,9 @@
                                 Đặt Dịch Vụ Ngay
                             </a>
                         </div>
-                    </div>
+                        </div>
 
-                    <!-- Tips -->
+                        <!-- Tips -->
                     <div class="mt-8 bg-yellow-50 border border-yellow-200 rounded-xl p-6">
                         <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                             <i data-lucide="lightbulb" class="w-5 h-5 text-yellow-600"></i>
@@ -249,14 +249,14 @@
                                 <span class="text-gray-700">Một đơn hàng chỉ sử dụng được 1 mã khuyến mãi</span>
                             </div>
                         </div>
-                    </div>
+                        </div>
 
-                    <!-- Contact Info -->
+                        <!-- Contact Info -->
                     <div class="mt-8 pt-6 border-t border-gray-200 text-center">
                         <p class="text-gray-600 mb-4 flex items-center justify-center gap-2">
                             <i data-lucide="help-circle" class="w-5 h-5"></i>
-                            Cần hỗ trợ? Liên hệ ngay với chúng tôi
-                        </p>
+                                Cần hỗ trợ? Liên hệ ngay với chúng tôi
+                            </p>
                         <div class="flex flex-col sm:flex-row gap-4 justify-center text-sm">
                             <div class="flex items-center gap-2 text-green-600">
                                 <i data-lucide="phone" class="w-4 h-4"></i>
@@ -267,23 +267,23 @@
                                 <span>Email: <strong>info@spahuongsen.com</strong></span>
                             </div>
                         </div>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Additional Actions -->
+                <!-- Additional Actions -->
             <div class="flex flex-col sm:flex-row gap-4 justify-center mt-6">
                 <a href="${pageContext.request.contextPath}/" 
                    class="inline-flex items-center gap-2 bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-colors">
                     <i data-lucide="home" class="w-5 h-5"></i>
                     Về Trang Chủ
-                </a>
-                
+                    </a>
+                    
                 <button onclick="sharePromotion()" 
                         class="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-6 py-3 rounded-lg font-semibold hover:bg-blue-200 transition-colors">
                     <i data-lucide="share-2" class="w-5 h-5"></i>
                     Chia Sẻ Với Bạn Bè
-                </button>
+                    </button>
             </div>
         </div>
     </div>

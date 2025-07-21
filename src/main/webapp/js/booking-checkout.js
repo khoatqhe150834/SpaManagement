@@ -7,7 +7,9 @@ class BookingCheckout {
         this.isLoading = false;
         this.paymentTimer = null;
         this.paymentTimeLeft = 15 * 60; // 15 minutes in seconds
-        
+        this.promotionCode = '';
+        this.discountAmount = 0;
+        this.finalTotal = 0;
         this.init();
     }
 
@@ -30,6 +32,11 @@ class BookingCheckout {
             // Setup event listeners
             this.setupEventListeners();
             
+            // Không tự động áp mã khi load trang, chỉ điền nếu có
+            const promoInput = document.getElementById('promotionCode');
+            if (promoInput) {
+                this.promotionCode = promoInput.value.trim();
+            }
             // Initialize UI
             this.updateCartDisplay();
             this.updateSummary();
@@ -287,22 +294,97 @@ class BookingCheckout {
         }
     }
 
+    // Xóa toàn bộ logic áp mã vào từng sản phẩm (không có logic này trong file này)
+    // Chỉ giữ lại 1 ô nhập mã giảm giá ở trang thanh toán (đã có trong HTML)
+    // Khi nhấn 'Áp dụng', gửi tổng tiền và danh sách dịch vụ lên backend để kiểm tra
+    async applyPromotionCode(code) {
+        if (!code || code.length < 3) {
+            this.discountAmount = 0;
+            this.finalTotal = 0;
+            this.updateSummary();
+            return;
+        }
+        // Tính tổng tiền hiện tại (tất cả dịch vụ trong giỏ)
+        const subtotal = this.cartItems.reduce((sum, item) => sum + (item.servicePrice * item.quantity), 0);
+        const tax = subtotal * 0.1;
+        const total = subtotal + tax;
+        // Lấy danh sách ID dịch vụ khách chọn
+        const serviceIds = this.cartItems.map(item => item.serviceId).join(',');
+        try {
+            const response = await fetch(`${window.spaConfig.contextPath}/apply-promotion`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: `promotionCode=${encodeURIComponent(code)}&totalAmount=${total}&serviceIds=${encodeURIComponent(serviceIds)}`
+            });
+            const data = await response.json();
+            if (data.success) {
+                this.discountAmount = parseFloat(data.discountAmount) || 0;
+                this.finalTotal = parseFloat(data.finalAmount) || (total - this.discountAmount);
+                this.showNotification(data.message || 'Áp dụng mã giảm giá thành công!', 'success');
+                this.setPromoUIState(true);
+            } else {
+                this.discountAmount = 0;
+                this.finalTotal = total;
+                this.showNotification(data.message || 'Mã giảm giá không hợp lệ hoặc không áp dụng được', 'error');
+                this.setPromoUIState(false);
+            }
+        } catch (e) {
+            this.discountAmount = 0;
+            this.finalTotal = total;
+            this.showNotification('Lỗi khi kiểm tra mã giảm giá', 'error');
+            this.setPromoUIState(false);
+        }
+        this.updateSummary();
+    }
+
+    setPromoUIState(isApplied) {
+        const promoInput = document.getElementById('promotionCode');
+        const applyBtn = document.getElementById('applyPromoBtn');
+        const removeBtn = document.getElementById('removePromoBtn');
+        if (isApplied) {
+            if (promoInput) promoInput.setAttribute('disabled', 'disabled');
+            if (applyBtn) applyBtn.style.display = 'none';
+            if (removeBtn) removeBtn.style.display = '';
+        } else {
+            if (promoInput) promoInput.removeAttribute('disabled');
+            if (applyBtn) applyBtn.style.display = '';
+            if (removeBtn) removeBtn.style.display = 'none';
+        }
+    }
+
     updateSummary() {
         // Calculate totals
         const subtotal = this.cartItems.reduce((sum, item) => sum + (item.servicePrice * item.quantity), 0);
         const tax = subtotal * 0.1; // 10% VAT
         const total = subtotal + tax;
-        
+        let finalTotal = total;
+        if (this.discountAmount > 0) {
+            finalTotal = total - this.discountAmount;
+        }
         // Update summary display
         const subtotalElement = document.getElementById('subtotalAmount');
         const taxElement = document.getElementById('taxAmount');
         const totalElement = document.getElementById('totalAmount');
         const paymentTotalElement = document.getElementById('paymentTotalAmount');
-        
         if (subtotalElement) subtotalElement.textContent = this.formatCurrency(subtotal);
         if (taxElement) taxElement.textContent = this.formatCurrency(tax);
-        if (totalElement) totalElement.textContent = this.formatCurrency(total);
-        if (paymentTotalElement) paymentTotalElement.textContent = this.formatCurrency(total);
+        if (totalElement) totalElement.textContent = this.formatCurrency(finalTotal);
+        if (paymentTotalElement) paymentTotalElement.textContent = this.formatCurrency(finalTotal);
+        // Hiển thị giảm giá nếu có
+        const discountRow = document.getElementById('discountRow');
+        const discountAmountSpan = document.getElementById('discountAmount');
+        if (discountRow && discountAmountSpan) {
+            if (this.discountAmount > 0) {
+                discountRow.style.display = '';
+                discountAmountSpan.textContent = '-'+this.formatCurrency(this.discountAmount);
+            } else {
+                discountRow.style.display = 'none';
+                discountAmountSpan.textContent = '-0đ';
+            }
+        }
     }
 
     setupEventListeners() {
@@ -329,6 +411,32 @@ class BookingCheckout {
         if (copyRefBtn) {
             copyRefBtn.addEventListener('click', () => this.copyReferenceNumber());
         }
+
+        // Lắng nghe thay đổi mã giảm giá
+        // Nút áp dụng mã
+        const applyBtn = document.getElementById('applyPromoBtn');
+        if (applyBtn) {
+            applyBtn.addEventListener('click', async () => {
+                const promoInput = document.getElementById('promotionCode');
+                this.promotionCode = promoInput.value.trim();
+                await this.applyPromotionCode(this.promotionCode);
+            });
+        }
+        // Nút bỏ mã
+        const removeBtn = document.getElementById('removePromoBtn');
+        if (removeBtn) {
+            removeBtn.addEventListener('click', () => {
+                const promoInput = document.getElementById('promotionCode');
+                promoInput.value = '';
+                this.promotionCode = '';
+                this.discountAmount = 0;
+                this.finalTotal = 0;
+                this.setPromoUIState(false);
+                this.updateSummary();
+                this.showNotification('Đã bỏ mã giảm giá', 'info');
+            });
+        }
+        // Không tự động kiểm tra khi thay đổi input
     }
 
     proceedToPayment() {

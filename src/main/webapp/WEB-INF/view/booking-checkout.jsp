@@ -23,6 +23,8 @@
     }
 
     pageContext.setAttribute("showBookingFeatures", showBookingFeatures);
+
+    String pendingPromotionCode = (String) session.getAttribute("pendingPromotionCode");
 %>
 
 <!DOCTYPE html>
@@ -262,6 +264,23 @@
                                 <div class="flex justify-between text-base">
                                     <span class="text-gray-600">VAT (10%):</span>
                                     <span class="font-semibold text-spa-dark" id="taxAmount">0đ</span>
+                                </div>
+                                <!-- Mã giảm giá (đặt ở đây) -->
+                                <div class="mb-2">
+                                    <label for="promotionCode" class="block text-sm font-medium text-gray-700 mb-1">Mã giảm giá</label>
+                                    <div class="flex items-center gap-2">
+                                        <input type="text" id="promotionCode" name="promotionCode"
+                                               value="<%= pendingPromotionCode != null ? pendingPromotionCode : "" %>"
+                                               placeholder="Nhập mã giảm giá..."
+                                               class="flex-1 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary" />
+                                        <button id="applyPromoBtn" type="button" class="px-3 py-2 bg-primary text-white rounded hover:bg-primary-dark transition-colors whitespace-nowrap">Áp dụng</button>
+                                        <button id="removePromoBtn" type="button" class="px-3 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors whitespace-nowrap" style="display:none;">Bỏ mã</button>
+                                    </div>
+                                </div>
+                                <!-- Dòng giảm giá động (JS sẽ cập nhật) -->
+                                <div class="flex justify-between text-base text-green-600" id="discountRow" style="display:none;">
+                                    <span>Giảm giá:</span>
+                                    <span id="discountAmount">-0đ</span>
                                 </div>
                                 <div class="border-t border-gray-200 pt-3">
                                     <div class="flex justify-between text-lg font-bold">
