@@ -137,7 +137,7 @@
                                                 </a>
                                                 <form action="item/delete" method="post" style="display:inline">
                                                     <input type="hidden" name="id" value="${item.inventoryItemId}" />
-                                                    <button type="submit" onclick="return confirm('Xác nhận vô hiệu hóa vật tư?')" class="p-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-full border-none cursor-pointer" title="Xóa vật tư">
+                                                    <button type="submit" onclick="return confirm('Xác nhận xóa vật tư?')" class="p-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-full border-none cursor-pointer" title="Xóa vật tư">
                                                         <i data-lucide="trash-2" class="w-5 h-5"></i>
                                                     </button>
                                                 </form>

@@ -204,6 +204,15 @@
         <param-value>ABahQ3j9UOU245iSBmlAwqCCN0Q</param-value>
     </context-param>
 
+    <servlet>
+        <servlet-name>InventoryManagerController</servlet-name>
+        <servlet-class>controller.InventoryManagerController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>InventoryManagerController</servlet-name>
+        <url-pattern>/inventory-manager/*</url-pattern>
+    </servlet-mapping>
+
     <!-- Chatbot API Configuration -->
     <context-param>
         <param-name>chatbot.api.url</param-name>

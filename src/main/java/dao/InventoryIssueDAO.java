@@ -9,105 +9,74 @@ import java.util.Optional;
 
 public class InventoryIssueDAO {
     // Dynamic search, filter, pagination for InventoryIssue
-    public List<InventoryIssue> findIssues(java.sql.Date fromDate, java.sql.Date toDate, Integer bookingAppointmentId, Integer requestedBy, Integer approvedBy, String status, int page, int pageSize) throws SQLException {
+    public List<InventoryIssue> findIssues(String search, int page, int pageSize) throws SQLException {
         List<InventoryIssue> list = new ArrayList<>();
-        StringBuilder sql = new StringBuilder("SELECT inventory_issue_id, issue_date, booking_appointment_id, requested_by, approved_by, status, note, created_at, updated_at FROM inventory_issue WHERE 1=1 ");
+        StringBuilder sql = new StringBuilder("SELECT inventory_issue_id, issue_date, booking_appointment_id, requested_by, approved_by, status, note, created_at FROM inventory_issue WHERE 1=1 ");
         List<Object> params = new ArrayList<>();
-        if (fromDate != null) {
-            sql.append("AND issue_date >= ? ");
-            params.add(fromDate);
+
+        if (search != null && !search.trim().isEmpty()) {
+            sql.append("AND note LIKE ? ");
+            params.add("%" + search.trim() + "%");
         }
-        if (toDate != null) {
-            sql.append("AND issue_date <= ? ");
-            params.add(toDate);
-        }
-        if (bookingAppointmentId != null) {
-            sql.append("AND booking_appointment_id = ? ");
-            params.add(bookingAppointmentId);
-        }
-        if (requestedBy != null) {
-            sql.append("AND requested_by = ? ");
-            params.add(requestedBy);
-        }
-        if (approvedBy != null) {
-            sql.append("AND approved_by = ? ");
-            params.add(approvedBy);
-        }
-        if (status != null && !status.trim().isEmpty()) {
-            sql.append("AND status = ? ");
-            params.add(status.trim());
-        }
+
         sql.append("ORDER BY issue_date DESC LIMIT ? OFFSET ?");
         params.add(pageSize);
         params.add((page - 1) * pageSize);
+
         try (Connection conn = db.DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
             for (int i = 0; i < params.size(); i++) {
                 ps.setObject(i + 1, params.get(i));
             }
+
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     InventoryIssue issue = new InventoryIssue(
-                        rs.getInt("inventory_issue_id"),
-                        rs.getDate("issue_date"),
-                        (Integer)rs.getObject("booking_appointment_id"),
-                        rs.getInt("requested_by"),
-                        rs.getInt("approved_by"),
-                        rs.getString("status"),
-                        rs.getString("note"),
-                        rs.getTimestamp("created_at"),
-                        rs.getTimestamp("updated_at")
-                    );
+                            rs.getInt("inventory_issue_id"),
+                            rs.getDate("issue_date"),
+                            (Integer) rs.getObject("booking_appointment_id"),
+                            rs.getInt("requested_by"),
+                            rs.getInt("approved_by"),
+                            rs.getString("status"),
+                            rs.getString("note"),
+                            rs.getTimestamp("created_at"));
                     list.add(issue);
                 }
             }
         }
+
         return list;
     }
 
-    public int countIssues(java.sql.Date fromDate, java.sql.Date toDate, Integer bookingAppointmentId, Integer requestedBy, Integer approvedBy, String status) throws SQLException {
+    public int countIssues(String search) throws SQLException {
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM inventory_issue WHERE 1=1 ");
         List<Object> params = new ArrayList<>();
-        if (fromDate != null) {
-            sql.append("AND issue_date >= ? ");
-            params.add(fromDate);
+
+        if (search != null && !search.trim().isEmpty()) {
+            sql.append("AND note LIKE ? ");
+            params.add("%" + search.trim() + "%");
         }
-        if (toDate != null) {
-            sql.append("AND issue_date <= ? ");
-            params.add(toDate);
-        }
-        if (bookingAppointmentId != null) {
-            sql.append("AND booking_appointment_id = ? ");
-            params.add(bookingAppointmentId);
-        }
-        if (requestedBy != null) {
-            sql.append("AND requested_by = ? ");
-            params.add(requestedBy);
-        }
-        if (approvedBy != null) {
-            sql.append("AND approved_by = ? ");
-            params.add(approvedBy);
-        }
-        if (status != null && !status.trim().isEmpty()) {
-            sql.append("AND status = ? ");
-            params.add(status.trim());
-        }
+
         try (Connection conn = db.DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
             for (int i = 0; i < params.size(); i++) {
                 ps.setObject(i + 1, params.get(i));
             }
+
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt(1);
                 }
             }
         }
+
         return 0;
     }
 
     public Optional<InventoryIssue> findIssueById(int id) throws SQLException {
-        String sql = "SELECT inventory_issue_id, issue_date, booking_appointment_id, requested_by, approved_by, status, note, created_at, updated_at FROM inventory_issue WHERE inventory_issue_id = ?";
+        String sql = "SELECT inventory_issue_id, issue_date, booking_appointment_id, requested_by, approved_by, status, note, created_at FROM inventory_issue WHERE inventory_issue_id = ?";
         try (Connection conn = db.DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
@@ -121,9 +90,7 @@ public class InventoryIssueDAO {
                         rs.getInt("approved_by"),
                         rs.getString("status"),
                         rs.getString("note"),
-                        rs.getTimestamp("created_at"),
-                        rs.getTimestamp("updated_at")
-                    );
+                        rs.getTimestamp("created_at"));
                     return Optional.of(issue);
                 }
             }
@@ -211,4 +178,32 @@ public class InventoryIssueDAO {
         }
         return true;
     }
+
+    public void deleteIssue(int issueId) throws SQLException {
+        String deleteDetailsSQL = "DELETE FROM inventory_issue_detail WHERE inventory_issue_id = ?";
+        String deleteIssueSQL = "DELETE FROM inventory_issue WHERE inventory_issue_id = ?";
+
+        try (Connection conn = db.DBContext.getConnection()) {
+            conn.setAutoCommit(false); // Bắt đầu transaction
+
+            try (
+                    PreparedStatement psDetails = conn.prepareStatement(deleteDetailsSQL);
+                    PreparedStatement psIssue = conn.prepareStatement(deleteIssueSQL)
+            ) {
+                // Xóa chi tiết trước
+                psDetails.setInt(1, issueId);
+                psDetails.executeUpdate();
+
+                // Sau đó xóa phiếu xuất
+                psIssue.setInt(1, issueId);
+                psIssue.executeUpdate();
+
+                conn.commit(); // Commit nếu không lỗi
+            } catch (SQLException e) {
+                conn.rollback(); // Rollback nếu có lỗi
+                throw e;
+            }
+        }
+    }
+
 } 

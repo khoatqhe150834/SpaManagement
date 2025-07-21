@@ -270,11 +270,11 @@ public class MenuService {
     
     // Inventory Management Section (for Manager)
     menuItems.add(new MenuItem("QUẢN LÝ KHO", true));
-    menuItems.add(new MenuItem("Phê duyệt phiếu nhập kho", contextPath + "/manager/inventory/receipt/approve", "check-circle", "inventory"));
-    menuItems.add(new MenuItem("Phê duyệt phiếu xuất kho", contextPath + "/manager/inventory/issue/approve", "check-circle", "inventory"));
+    menuItems.add(new MenuItem("Phê duyệt phiếu xuất kho", contextPath + "/manager-admin/inventory/issue", "check-circle", "management"));
     menuItems.add(new MenuItem("Thiết lập định mức vật tư", contextPath + "/manager/inventory/servicematerial", "settings", "inventory"));
     menuItems.add(new MenuItem("Báo cáo tổng hợp", contextPath + "/manager/inventory/report", "bar-chart", "inventory"));
     menuItems.add(new MenuItem("Thống kê sử dụng vật tư", contextPath + "/manager/inventory/usage", "trending-up", "inventory"));
+
     
     // Financial Section
     menuItems.add(new MenuItem("TÀI CHÍNH", true));
@@ -328,6 +328,11 @@ public class MenuService {
     menuItems.add(new MenuItem("Hồ sơ điều trị", contextPath + "/therapist/treatment-records", "file-text", "clients"));
     menuItems.add(new MenuItem("Ghi chú điều trị", contextPath + "/therapist/notes", "book-open", "clients"));
 
+    // Inventory Section (for Therapist)
+    menuItems.add(new MenuItem("VẬT TƯ", true));
+    menuItems.add(new MenuItem("Xem tồn kho", contextPath + "/therapist/inventory/stock", "package", "inventory"));
+    menuItems.add(new MenuItem("Đề xuất vật tư", contextPath + "/therapist/inventory/propose", "plus", "inventory"));
+    menuItems.add(new MenuItem("Xác nhận nhận vật tư", contextPath + "/therapist/inventory/confirm", "check-circle", "inventory"));
 
     // Performance Section
     menuItems.add(new MenuItem("HIỆU SUẤT", true));
@@ -378,6 +383,10 @@ public class MenuService {
     
     menuItems.add(new MenuItem("Chương trình thành viên", contextPath + "/receptionist/loyalty", "star", "customers"));
 
+    // Inventory Section (for Receptionist)
+    menuItems.add(new MenuItem("VẬT TƯ", true));
+    menuItems.add(new MenuItem("Xem tồn kho", contextPath + "/receptionist/inventory/stock", "package", "inventory"));
+    menuItems.add(new MenuItem("Yêu cầu xuất vật tư", contextPath + "/receptionist/inventory/request", "file-text", "inventory"));
 
     return menuItems;
   }
@@ -430,9 +439,6 @@ public class MenuService {
     menuItems.add(new MenuItem("QUẢN LÝ KHO", true));
     menuItems.add(new MenuItem("Dashboard", contextPath + "/dashboard", "layout-dashboard", "inventory"));
 
-    // Personal Information
-    menuItems.add(new MenuItem("Thông tin cá nhân", contextPath + "/user-management/view?id=self", "user", "inventory"));
-
     // Inventory Management Section
     menuItems.add(new MenuItem("VẬT TƯ", true));
     
@@ -457,12 +463,12 @@ public class MenuService {
     
     MenuItem receiptMgmt = new MenuItem("Phiếu nhập kho", contextPath + "/inventory-manager/receipt", "download", "operations");
     receiptMgmt.addSubItem(new MenuItem("Danh sách phiếu nhập", contextPath + "/inventory-manager/receipt", "list"));
-    receiptMgmt.addSubItem(new MenuItem("Tạo phiếu nhập", contextPath + "/inventory-manager/receipt?action=create", "plus"));
+    receiptMgmt.addSubItem(new MenuItem("Tạo phiếu nhập", contextPath + "/inventory-manager/receipt/create", "plus"));
     menuItems.add(receiptMgmt);
 
     MenuItem issueMgmt = new MenuItem("Phiếu xuất kho", contextPath + "/inventory-manager/issue", "upload", "operations");
     issueMgmt.addSubItem(new MenuItem("Danh sách phiếu xuất", contextPath + "/inventory-manager/issue", "list"));
-    issueMgmt.addSubItem(new MenuItem("Tạo phiếu xuất", contextPath + "/inventory-manager/issue?action=create", "plus"));
+    issueMgmt.addSubItem(new MenuItem("Tạo phiếu xuất", contextPath + "/inventory-manager/issue/create", "plus"));
     issueMgmt.addSubItem(new MenuItem("Yêu cầu xuất kho", contextPath + "/inventory-manager/issue/requests", "file-text"));
     menuItems.add(issueMgmt);
 
