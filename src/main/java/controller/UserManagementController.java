@@ -3,6 +3,7 @@ package controller;
 import java.io.IOException;
 import java.sql.Date;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,6 +79,13 @@ public class UserManagementController extends HttpServlet {
                 }
                 handleDeleteUser(request, response, currentUser);
                 break;
+            case "reset-password":
+                if (currentRole != 1 && currentRole != 2) {
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền đặt lại mật khẩu.");
+                    return;
+                }
+                handleResetPassword(request, response, currentUser);
+                break;
             default:
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "Không tìm thấy chức năng: " + action);
         }
@@ -127,6 +135,13 @@ public class UserManagementController extends HttpServlet {
                 }
                 handleDeleteUser(request, response, currentUser);
                 break;
+            case "reset-password":
+                if (currentRole != 1 && currentRole != 2) {
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền đặt lại mật khẩu.");
+                    return;
+                }
+                handleResetPassword(request, response, currentUser);
+                break;
             default:
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Hành động không hợp lệ: " + action);
         }
@@ -134,27 +149,78 @@ public class UserManagementController extends HttpServlet {
 
     private void handleListUsers(HttpServletRequest request, HttpServletResponse response, User currentUser)
             throws ServletException, IOException {
-        List<User> users;
-        if (currentUser.getRoleId() == 1) { // Admin - xem tất cả nhân viên
-            users = userDAO.findAllStaff();
-        } else if (currentUser.getRoleId() == 2) { // Manager - chỉ xem cấp dưới
-            users = userDAO.findAllManagedBy(currentUser.getUserId());
-        } else { // Nhân viên - chỉ xem chính mình
-            users = List.of(currentUser);
+        int page = 1;
+        int pageSize = 10;
+        String pageParam = request.getParameter("page");
+        String pageSizeParam = request.getParameter("pageSize");
+        
+        // Validate page parameter
+        if (pageParam != null) {
+            try { 
+                page = Integer.parseInt(pageParam); 
+                if (page < 1) page = 1;
+            } catch (Exception e) {
+                page = 1;
+            }
         }
         
-        // Sắp xếp danh sách
-        String sortBy = request.getParameter("sortBy");
-        String sortOrder = request.getParameter("sortOrder");
-        
-        if (sortBy != null && !sortBy.isEmpty()) {
-            sortUsers(users, sortBy, sortOrder);
+        // Validate pageSize parameter
+        if (pageSizeParam != null) {
+            if ("all".equals(pageSizeParam)) {
+                pageSize = Integer.MAX_VALUE;
+            } else {
+                try { 
+                    int tempPageSize = Integer.parseInt(pageSizeParam);
+                    // Chỉ cho phép các giá trị hợp lệ
+                    if (tempPageSize == 5 || tempPageSize == 10 || tempPageSize == 20 || 
+                        tempPageSize == 50 || tempPageSize == 100) {
+                        pageSize = tempPageSize;
+                    } else {
+                        pageSize = 10; // Default fallback
+                    }
+                } catch (Exception e) {
+                    pageSize = 10; // Default fallback
+                }
+            }
+        }
+        try {
+            List<Integer> adminRoles = Arrays.asList(2,3,4,6,7);
+            List<Integer> managerRoles = Arrays.asList(3,4,6,7);
+            List<User> users;
+            int totalUsers;
+            
+            if (currentUser.getRoleId() == 1) { // Admin
+                totalUsers = userDAO.countStaffByRoles(adminRoles);
+                users = userDAO.findStaffByRoles(adminRoles, page, pageSize);
+            } else if (currentUser.getRoleId() == 2) { // Manager
+                totalUsers = userDAO.countStaffByRoles(managerRoles);
+                users = userDAO.findStaffByRoles(managerRoles, page, pageSize);
+            } else { // Nhân viên - chỉ xem chính mình
+                users = List.of(currentUser);
+                totalUsers = 1;
+            }
+            
+            int totalPages = (int) Math.ceil((double) totalUsers / (pageSize == Integer.MAX_VALUE ? totalUsers : pageSize));
+            
+            request.setAttribute("users", users);
+            request.setAttribute("currentUser", currentUser);
+            request.setAttribute("currentPage", page);
+            request.setAttribute("pageSize", pageSize == Integer.MAX_VALUE ? "all" : pageSize);
+            request.setAttribute("totalUsers", totalUsers);
+            request.setAttribute("totalPages", totalPages);
+            
+        } catch (Exception e) {
+            logger.severe("Error in handleListUsers: " + e.getMessage());
+            // Set default values on error
+            request.setAttribute("users", List.of());
+            request.setAttribute("currentUser", currentUser);
+            request.setAttribute("currentPage", 1);
+            request.setAttribute("pageSize", 10);
+            request.setAttribute("totalUsers", 0);
+            request.setAttribute("totalPages", 1);
+            request.setAttribute("error", "Có lỗi xảy ra khi tải danh sách nhân viên.");
         }
         
-        request.setAttribute("users", users);
-        request.setAttribute("currentUser", currentUser);
-        request.setAttribute("sortBy", sortBy);
-        request.setAttribute("sortOrder", sortOrder);
         request.getRequestDispatcher("/WEB-INF/view/user/user_list.jsp").forward(request, response);
     }
     
@@ -507,6 +573,30 @@ public class UserManagementController extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/user-management/list");
     }
 
+    // Đặt lại mật khẩu cho user dưới quyền
+    private void handleResetPassword(HttpServletRequest request, HttpServletResponse response, User currentUser)
+            throws ServletException, IOException {
+        int userId = getIntParameter(request, "userId", 0);
+        Optional<User> userOpt = userDAO.findById(userId);
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            // Chỉ admin hoặc manager quản lý user này mới được reset
+            if (currentUser.getRoleId() == 1 || (currentUser.getRoleId() == 2 && userDAO.isManagedBy(userId, currentUser.getUserId()))) {
+                String newPassword = userDAO.resetPassword(userId);
+                if (newPassword != null) {
+                    request.getSession().setAttribute("flash_success", "Đã đặt lại mật khẩu thành công! Mật khẩu mới: " + newPassword);
+                } else {
+                    request.getSession().setAttribute("flash_error", "Có lỗi khi đặt lại mật khẩu.");
+                }
+            } else {
+                request.getSession().setAttribute("flash_error", "Bạn không có quyền đặt lại mật khẩu cho user này.");
+            }
+        } else {
+            request.getSession().setAttribute("flash_error", "Không tìm thấy user.");
+        }
+        response.sendRedirect(request.getContextPath() + "/user-management/list");
+    }
+
     // Helper methods for permission checking
     private boolean canViewUser(User currentUser, User targetUser) {
         if (currentUser.getRoleId() == 1) { // Admin - xem tất cả
@@ -543,8 +633,8 @@ public class UserManagementController extends HttpServlet {
     private boolean canCreateRole(User currentUser, int roleId) {
         if (currentUser.getRoleId() == 1) { // Admin - tạo tất cả role
             return true;
-        } else if (currentUser.getRoleId() == 2) { // Manager - chỉ tạo nhân viên (role 3)
-            return roleId == 3;
+        } else if (currentUser.getRoleId() == 2) { // Manager - chỉ tạo các role dưới quyền
+            return roleId == 3 || roleId == 4 || roleId == 6 || roleId == 7;
         } else { // Nhân viên - không có quyền tạo
             return false;
         }

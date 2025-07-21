@@ -3,11 +3,14 @@ package controller;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
+import com.google.gson.Gson;
 
 import dao.PromotionDAO;
 import jakarta.servlet.ServletException;
@@ -96,6 +99,8 @@ public class CustomerPromotionController extends HttpServlet {
                 handleApplyPromotion(request, response);
             } else if (requestURI.endsWith("/remove-promotion")) {
                 handleRemovePromotion(request, response);
+            } else if (requestURI.endsWith("/use-now")) {
+                handleUseNow(request, response);
             } else {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid request");
             }
@@ -220,9 +225,14 @@ public class CustomerPromotionController extends HttpServlet {
             String promotionCode = request.getParameter("promotionCode");
             String totalAmountStr = request.getParameter("totalAmount");
             String customerIdStr = request.getParameter("customerId");
+            String serviceIdsStr = request.getParameter("serviceIds");
 
             // Bước 1: Validate input
             if (promotionCode == null || promotionCode.trim().isEmpty()) {
+                if (isAjaxRequest(request)) {
+                    sendJsonResponse(response, false, 0, 0, "Vui lòng nhập mã khuyến mãi");
+                    return;
+                }
                 request.setAttribute("errorMessage", "Vui lòng nhập mã khuyến mãi");
                 handleShowApplyForm(request, response);
                 return;
@@ -233,6 +243,10 @@ public class CustomerPromotionController extends HttpServlet {
             // Bước 2: Tìm promotion theo code
             Optional<Promotion> promotionOpt = promotionDAO.findByCode(promotionCode);
             if (!promotionOpt.isPresent()) {
+                if (isAjaxRequest(request)) {
+                    sendJsonResponse(response, false, 0, 0, "Mã khuyến mãi không tồn tại hoặc đã hết hạn");
+                    return;
+                }
                 request.setAttribute("errorMessage", "Mã khuyến mãi không tồn tại hoặc đã hết hạn");
                 handleShowApplyForm(request, response);
                 return;
@@ -240,7 +254,20 @@ public class CustomerPromotionController extends HttpServlet {
 
             Promotion promotion = promotionOpt.get();
 
-            // Bước 3: Validate promotion (sử dụng PromotionService)
+            // Bước 3: Parse serviceIds
+            List<Integer> selectedServiceIds = null;
+            if (serviceIdsStr != null && !serviceIdsStr.trim().isEmpty()) {
+                try {
+                    selectedServiceIds = Arrays.stream(serviceIdsStr.split(","))
+                        .map(String::trim)
+                        .map(Integer::parseInt)
+                        .collect(Collectors.toList());
+                } catch (NumberFormatException e) {
+                    logger.warning("Invalid serviceIds format: " + serviceIdsStr);
+                }
+            }
+
+            // Bước 4: Validate promotion (sử dụng PromotionService)
             Integer customerId = null;
             if (customerIdStr != null && !customerIdStr.isEmpty()) {
                 try {
@@ -255,25 +282,39 @@ public class CustomerPromotionController extends HttpServlet {
                 try {
                     totalAmount = new BigDecimal(totalAmountStr);
                 } catch (NumberFormatException e) {
+                    if (isAjaxRequest(request)) {
+                        sendJsonResponse(response, false, 0, 0, "Giá trị đơn hàng không hợp lệ");
+                        return;
+                    }
                     request.setAttribute("errorMessage", "Giá trị đơn hàng không hợp lệ");
                     handleShowApplyForm(request, response);
                     return;
                 }
             }
 
-            // Sử dụng PromotionService để validate và tính toán
-            PromotionService.PromotionApplicationResult result = promotionService.previewPromotion(promotionCode, customerId, totalAmount);
+            // Sử dụng PromotionService để validate và tính toán với selectedServiceIds
+            PromotionService.PromotionApplicationResult result = promotionService.previewPromotionWithServices(promotionCode, customerId, totalAmount, selectedServiceIds);
             if (!result.isSuccess()) {
+                if (isAjaxRequest(request)) {
+                    sendJsonResponse(response, false, 0, 0, result.getMessage());
+                    return;
+                }
                 request.setAttribute("errorMessage", result.getMessage());
                 handleShowApplyForm(request, response);
                 return;
             }
 
-            // Bước 4: Lấy kết quả từ PromotionService
+            // Bước 5: Lấy kết quả từ PromotionService
             BigDecimal discountAmount = result.getDiscountAmount();
             BigDecimal finalAmount = result.getFinalAmount();
 
-            // Bước 5: Lưu thông tin vào session
+            // Nếu là AJAX, trả về JSON
+            if (isAjaxRequest(request)) {
+                sendJsonResponse(response, true, discountAmount, finalAmount, "Áp dụng mã giảm giá thành công!");
+                return;
+            }
+
+            // Bước 6: Lưu thông tin vào session
             HttpSession session = request.getSession();
             session.setAttribute("appliedPromotion", promotion);
             session.setAttribute("discountAmount", discountAmount);
@@ -306,6 +347,10 @@ public class CustomerPromotionController extends HttpServlet {
 
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error applying promotion", e);
+            if (isAjaxRequest(request)) {
+                sendJsonResponse(response, false, 0, 0, "Không thể áp dụng mã khuyến mãi: " + e.getMessage());
+                return;
+            }
             request.setAttribute("errorMessage", "Không thể áp dụng mã khuyến mãi: " + e.getMessage());
             handleShowApplyForm(request, response);
         }
@@ -329,6 +374,30 @@ public class CustomerPromotionController extends HttpServlet {
             logger.log(Level.SEVERE, "Error removing promotion", e);
             request.setAttribute("errorMessage", "Không thể bỏ mã khuyến mãi");
             handleShowApplyForm(request, response);
+        }
+    }
+
+    /**
+     * Xử lý nút "Dùng ngay" - lưu mã khuyến mãi vào session và chuyển sang trang dịch vụ
+     */
+    private void handleUseNow(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        try {
+            String promotionCode = request.getParameter("promotionCode");
+            logger.info("Use Now request - Promotion Code: " + promotionCode);
+            
+            if (promotionCode != null && !promotionCode.isEmpty()) {
+                HttpSession session = request.getSession();
+                session.setAttribute("pendingPromotionCode", promotionCode);
+                logger.info("Saved promotion code to session: " + promotionCode);
+            }
+            
+            // Redirect sang trang chọn dịch vụ
+            response.sendRedirect(request.getContextPath() + "/services");
+            
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error in handleUseNow", e);
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Không thể xử lý yêu cầu");
         }
     }
 
@@ -438,6 +507,24 @@ public class CustomerPromotionController extends HttpServlet {
         request.setAttribute("errorMessage", errorMessage);
         request.getRequestDispatcher("/WEB-INF/view/customer_pages/available_promotions.jsp")
                 .forward(request, response);
+    }
+
+    private boolean isAjaxRequest(HttpServletRequest request) {
+        String requestedWith = request.getHeader("X-Requested-With");
+        return requestedWith != null && requestedWith.equalsIgnoreCase("XMLHttpRequest");
+    }
+
+    private void sendJsonResponse(HttpServletResponse response, boolean success, Number discountAmount, Number finalAmount, String message) throws IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        Gson gson = new Gson();
+        String json = gson.toJson(new java.util.HashMap<String, Object>() {{
+            put("success", success);
+            put("discountAmount", discountAmount);
+            put("finalAmount", finalAmount);
+            put("message", message);
+        }});
+        response.getWriter().write(json);
     }
 } 
  
