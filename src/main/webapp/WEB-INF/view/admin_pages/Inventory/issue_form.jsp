@@ -41,7 +41,6 @@
 </head>
 <body class="bg-spa-cream font-sans">
 <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
-
 <main class="w-full md:w-[calc(100%-256px)] md:ml-64 min-h-screen transition-all">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
     <!-- Header -->
@@ -59,11 +58,11 @@
           <a href="../issue" class="hover:text-primary">Phiếu xuất</a>
           <span>/</span>
           <span>
-                            <c:choose>
-                              <c:when test="${formAction eq 'edit'}">Chỉnh sửa</c:when>
-                              <c:otherwise>Tạo mới</c:otherwise>
-                            </c:choose>
-                        </span>
+            <c:choose>
+              <c:when test="${formAction eq 'edit'}">Chỉnh sửa</c:when>
+              <c:otherwise>Tạo mới</c:otherwise>
+            </c:choose>
+          </span>
         </nav>
       </div>
       <a href="../issue" class="inline-flex items-center gap-2 h-10 px-4 bg-gray-500 text-white font-semibold rounded-lg hover:bg-gray-600 transition-colors">
@@ -71,7 +70,6 @@
         <span>Quay lại</span>
       </a>
     </div>
-
     <form method="post" action="/inventory-manager/issue/create">
       <!-- Issue Info Card -->
       <div class="bg-white rounded-2xl shadow-lg mb-6">
@@ -82,7 +80,6 @@
           </h3>
           <p class="text-gray-600 mt-1">Thông tin cơ bản của phiếu xuất kho</p>
         </div>
-
         <div class="p-6">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Issue Date -->
@@ -97,7 +94,6 @@
                 <input type="date" name="issueDate" value="<fmt:formatDate value='${issue.issueDate}' pattern='yyyy-MM-dd'/>" required class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors" />
               </div>
             </div>
-
             <!-- Booking Appointment -->
             <div class="space-y-2">
               <label class="block text-sm font-medium text-spa-dark">
@@ -122,7 +118,6 @@
               <p class="text-xs text-gray-500">Chọn lịch hẹn nếu phiếu xuất này phục vụ cho một cuộc hẹn cụ thể</p>
             </div>
           </div>
-
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
             <!-- Status -->
             <div class="space-y-2">
@@ -142,7 +137,6 @@
               </div>
             </div>
           </div>
-
           <!-- Note -->
           <div class="space-y-2 mt-6">
             <label class="block text-sm font-medium text-spa-dark">Ghi chú</label>
@@ -155,7 +149,6 @@
           </div>
         </div>
       </div>
-
       <!-- Issue Details Card -->
       <div class="bg-white rounded-2xl shadow-lg mb-6">
         <div class="p-6 border-b border-gray-200 flex items-center justify-between">
@@ -171,7 +164,6 @@
             <span>Thêm vật tư</span>
           </button>
         </div>
-
         <div class="p-6">
           <div class="overflow-x-auto">
             <table class="w-full text-sm">
@@ -191,10 +183,10 @@
                   <c:forEach var="detail" items="${issueDetails}" varStatus="status">
                     <tr class="border-b hover:bg-gray-50">
                       <td class="px-4 py-3">
-                        <select name="details[${status.index}].inventoryItemId" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors appearance-none">
+                        <select name="details[${status.index}].inventoryItemId" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors appearance-none" onchange="updateQuantityMax(this)">
                           <option value="">Chọn vật tư</option>
                           <c:forEach var="item" items="${items}">
-                            <option value="${item.inventoryItemId}" <c:if test="${item.inventoryItemId == detail.inventoryItemId}">selected</c:if>>${item.name} (${item.unit}) - SL: ${item.quantity}</option>
+                            <option value="${item.inventoryItemId}" data-quantity="${item.quantity}" <c:if test="${item.inventoryItemId == detail.inventoryItemId}">selected</c:if>>${item.name} (${item.unit}) - SL: ${item.quantity}</option>
                           </c:forEach>
                         </select>
                       </td>
@@ -243,7 +235,6 @@
           </div>
         </div>
       </div>
-
       <!-- Form Actions -->
       <div class="flex flex-col sm:flex-row gap-3">
         <button type="submit" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary-dark focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors">
@@ -258,12 +249,10 @@
     </form>
   </div>
 </main>
-
 <script>
   if (typeof lucide !== 'undefined') {
     lucide.createIcons();
   }
-
   let detailIndex = ${not empty issueDetails ? issueDetails.size() : 0};
 
   function addIssueDetail() {
@@ -271,16 +260,15 @@
     if (emptyRow) {
       emptyRow.remove();
     }
-
     const tbody = document.getElementById('issueDetailsTable');
     const row = document.createElement('tr');
     row.className = 'border-b hover:bg-gray-50';
     row.innerHTML = `
                 <td class="px-4 py-3">
-                    <select name="details[` + detailIndex + `].inventoryItemId" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors appearance-none">
+                    <select name="details[` + detailIndex + `].inventoryItemId" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors appearance-none" onchange="updateQuantityMax(this)">
                         <option value="">Chọn vật tư</option>
                         <c:forEach var="item" items="${items}">
-                            <option value="${item.inventoryItemId}">${item.name} (${item.unit}) - SL: ${item.quantity}</option>
+                            <option value="${item.inventoryItemId}" data-quantity="${item.quantity}">${item.name} (${item.unit}) - SL: ${item.quantity}</option>
                         </c:forEach>
                     </select>
                 </td>
@@ -311,7 +299,6 @@
   function removeIssueDetail(button) {
     const row = button.closest('tr');
     row.remove();
-
     const tbody = document.getElementById('issueDetailsTable');
     if (tbody.children.length === 0) {
       tbody.innerHTML = `
@@ -329,12 +316,27 @@
     updateGrandTotal();
   }
 
+  function updateQuantityMax(selectElement) {
+    const selectedOption = selectElement.options[selectElement.selectedIndex];
+    const maxQuantity = selectedOption.getAttribute('data-quantity');
+    const row = selectElement.closest('tr');
+    const quantityInput = row.querySelector('input[name*=".quantity"]');
+
+    if (maxQuantity && quantityInput) {
+      quantityInput.setAttribute('max', maxQuantity);
+      // Reset quantity if current value exceeds max
+      if (parseInt(quantityInput.value) > parseInt(maxQuantity)) {
+        quantityInput.value = maxQuantity;
+        calculateRowTotal(quantityInput);
+      }
+    }
+  }
+
   function calculateRowTotal(input) {
     const row = input.closest('tr');
     const quantity = parseFloat(row.querySelector('input[name*=".quantity"]').value) || 0;
     const unitPrice = parseFloat(row.querySelector('input[name*=".unitPrice"]').value) || 0;
     const total = quantity * unitPrice;
-
     row.querySelector('.row-total').textContent = total.toLocaleString('vi-VN');
     updateGrandTotal();
   }
@@ -344,16 +346,24 @@
     let grandTotal = 0;
 
     rowTotals.forEach(span => {
-      const value = parseFloat(span.textContent.replace(/,/g, '')) || 0;
+      // Loại dấu "." (ngăn cách hàng nghìn theo kiểu Việt Nam)
+      const rawValue = span.textContent.replace(/\./g, '');
+      const value = parseFloat(rawValue) || 0;
       grandTotal += value;
     });
 
+    // Hiển thị kết quả với định dạng có dấu "." kiểu Việt
     document.getElementById('grandTotal').textContent = grandTotal.toLocaleString('vi-VN');
   }
 
-  // Initialize calculations on page load
+
+  // Initialize calculations and max attributes on page load
   document.addEventListener('DOMContentLoaded', function() {
     updateGrandTotal();
+    // Set max attributes for existing rows
+    document.querySelectorAll('select[name*=".inventoryItemId"]').forEach(function(select) {
+      updateQuantityMax(select);
+    });
   });
 </script>
 </body>

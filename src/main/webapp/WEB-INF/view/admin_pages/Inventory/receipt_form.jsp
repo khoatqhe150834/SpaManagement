@@ -321,10 +321,13 @@
     let grandTotal = 0;
 
     rowTotals.forEach(span => {
-      const value = parseFloat(span.textContent.replace(/,/g, '')) || 0;
+      // Loại dấu "." (ngăn cách hàng nghìn theo kiểu Việt Nam)
+      const rawValue = span.textContent.replace(/\./g, '');
+      const value = parseFloat(rawValue) || 0;
       grandTotal += value;
     });
 
+    // Hiển thị kết quả với định dạng có dấu "." kiểu Việt
     document.getElementById('grandTotal').textContent = grandTotal.toLocaleString('vi-VN');
   }
 

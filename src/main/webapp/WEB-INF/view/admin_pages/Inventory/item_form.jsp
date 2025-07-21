@@ -133,7 +133,13 @@
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <i data-lucide="ruler" class="h-5 w-5 text-gray-400"></i>
                             </div>
-                            <input type="text" name="unit" value="${item.unit}" class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors" placeholder="VD: kg, lít, cái..." />
+                            <select name="unit" required class="block w-full pl-10 pr-8 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors appearance-none">
+                                <option value="" disabled <c:if test="${empty item.unit}">selected</c:if>>-- Chọn đơn vị --</option>
+                                <option value="kg" <c:if test="${item.unit == 'kg'}">selected</c:if>>kg</option>
+                                <option value="lít" <c:if test="${item.unit == 'lít'}">selected</c:if>>lít</option>
+                                <option value="cái" <c:if test="${item.unit == 'cái'}">selected</c:if>>cái</option>
+                                <option value="hộp" <c:if test="${item.unit == 'hộp'}">selected</c:if>>hộp</option>
+                            </select>
                         </div>
                     </div>
 
@@ -170,6 +176,13 @@
                         </div>
                     </div>
 
+                    <c:if test="${formAction eq 'edit'}">
+                        <div class="flex items-center space-x-3">
+                            <input type="checkbox" id="isActive" name="isActive" class="h-5 w-5 text-primary border-gray-300 rounded focus:ring-2 focus:ring-primary" <c:if test="${item.active}">checked</c:if> />
+                            <label for="isActive" class="text-sm text-spa-dark font-medium">Đang hoạt động</label>
+                        </div>
+                    </c:if>
+
                     <!-- Form Actions -->
                     <div class="flex flex-col sm:flex-row gap-3 pt-6 border-t border-gray-200">
                         <button type="submit" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary-dark focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors">
@@ -191,6 +204,16 @@
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
+    document.querySelector("form").addEventListener("submit", function (e) {
+        const nameInput = document.querySelector("input[name='name']");
+        const nameValue = nameInput.value.trim();
+
+        if (nameValue.length === 0) {
+            e.preventDefault();
+            alert("Tên vật tư không được để trống hoặc chỉ chứa khoảng trắng!");
+            nameInput.focus();
+        }
+    });
 </script>
 </body>
 </html>

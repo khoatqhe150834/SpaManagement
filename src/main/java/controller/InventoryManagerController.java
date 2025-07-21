@@ -235,6 +235,7 @@ public class InventoryManagerController extends HttpServlet {
         InventoryItemDAO itemDAO = new InventoryItemDAO();
         InventoryItem updateItem = extractItemFromRequest(request);
         updateItem.setInventoryItemId(Integer.parseInt(request.getParameter("id")));
+        updateItem.setActive("on".equals(request.getParameter("isActive")));
         itemDAO.updateItem(updateItem);
         response.sendRedirect(request.getContextPath() + "/inventory-manager/item");
     }
@@ -340,6 +341,7 @@ public class InventoryManagerController extends HttpServlet {
         InventoryMasterDataDAO masterDAO = new InventoryMasterDataDAO();
         InventoryCategory category = extractCategoryFromRequest(request);
         category.setInventoryCategoryId(Integer.parseInt(request.getParameter("id")));
+        category.setActive("on".equals(request.getParameter("isActive")));
         masterDAO.updateCategory(category);
         response.sendRedirect(request.getContextPath() + "/inventory-manager/category");
     }
@@ -426,6 +428,7 @@ public class InventoryManagerController extends HttpServlet {
         InventoryMasterDataDAO masterDAO = new InventoryMasterDataDAO();
         Supplier supplier = extractSupplierFromRequest(request);
         supplier.setSupplierId(Integer.parseInt(request.getParameter("id")));
+        supplier.setActive("on".equals(request.getParameter("isActive")));
         masterDAO.updateSupplier(supplier);
         response.sendRedirect(request.getContextPath() + "/inventory-manager/supplier");
     }

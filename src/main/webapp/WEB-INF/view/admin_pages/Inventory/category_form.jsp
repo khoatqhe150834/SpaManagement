@@ -125,6 +125,14 @@
                         <p class="text-xs text-gray-500">Mô tả chi tiết về loại vật tư này (tùy chọn)</p>
                     </div>
 
+
+                    <c:if test="${formAction eq 'edit'}">
+                        <div class="flex items-center space-x-3">
+                            <input type="checkbox" id="isActive" name="isActive" class="h-5 w-5 text-primary border-gray-300 rounded focus:ring-2 focus:ring-primary" <c:if test="${category.active}">checked</c:if> />
+                            <label for="isActive" class="text-sm text-spa-dark font-medium">Đang hoạt động</label>
+                        </div>
+                    </c:if>
+
                     <!-- Form Actions -->
                     <div class="flex flex-col sm:flex-row gap-3 pt-6 border-t border-gray-200">
                         <button

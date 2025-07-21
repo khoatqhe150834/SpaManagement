@@ -54,7 +54,7 @@
                 </nav>
             </div>
             <div class="flex items-center gap-3">
-                <a href="${pageContext.request.contextPath}/inventory-manager/issue"
+                <a href="${pageContext.request.contextPath}/manager-admin/inventory/issue"
                    class="inline-flex items-center gap-2 h-10 px-4 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-colors">
                     <i data-lucide="arrow-left" class="h-5 w-5"></i>
                     <span>Quay lại</span>

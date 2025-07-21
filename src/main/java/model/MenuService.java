@@ -270,19 +270,11 @@ public class MenuService {
     
     // Inventory Management Section (for Manager)
     menuItems.add(new MenuItem("QUẢN LÝ KHO", true));
-    menuItems.add(new MenuItem("Phê duyệt phiếu nhập kho", contextPath + "/manager/inventory/receipt/approve", "check-circle", "inventory"));
-    menuItems.add(new MenuItem("Phê duyệt phiếu xuất kho", contextPath + "/manager/inventory/issue/approve", "check-circle", "inventory"));
+    menuItems.add(new MenuItem("Phê duyệt phiếu xuất kho", contextPath + "/manager-admin/inventory/issue", "check-circle", "management"));
     menuItems.add(new MenuItem("Thiết lập định mức vật tư", contextPath + "/manager/inventory/servicematerial", "settings", "inventory"));
     menuItems.add(new MenuItem("Báo cáo tổng hợp", contextPath + "/manager/inventory/report", "bar-chart", "inventory"));
     menuItems.add(new MenuItem("Thống kê sử dụng vật tư", contextPath + "/manager/inventory/usage", "trending-up", "inventory"));
-    
-    // Inventory Management Section (for Manager)
-    menuItems.add(new MenuItem("QUẢN LÝ KHO", true));
-    menuItems.add(new MenuItem("Phê duyệt phiếu nhập kho", contextPath + "/manager/inventory/receipt/approve", "check-circle", "inventory"));
-    menuItems.add(new MenuItem("Phê duyệt phiếu xuất kho", contextPath + "/manager/inventory/issue/approve", "check-circle", "inventory"));
-    menuItems.add(new MenuItem("Thiết lập định mức vật tư", contextPath + "/manager/inventory/servicematerial", "settings", "inventory"));
-    menuItems.add(new MenuItem("Báo cáo tổng hợp", contextPath + "/manager/inventory/report", "bar-chart", "inventory"));
-    menuItems.add(new MenuItem("Thống kê sử dụng vật tư", contextPath + "/manager/inventory/usage", "trending-up", "inventory"));
+
     
     // Financial Section
     menuItems.add(new MenuItem("TÀI CHÍNH", true));

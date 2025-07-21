@@ -98,6 +98,13 @@
                         <p class="text-xs text-gray-500">Thông tin liên hệ như số điện thoại, email hoặc địa chỉ</p>
                     </div>
 
+                    <c:if test="${formAction eq 'edit'}">
+                        <div class="flex items-center space-x-3">
+                            <input type="checkbox" id="isActive" name="isActive" class="h-5 w-5 text-primary border-gray-300 rounded focus:ring-2 focus:ring-primary" <c:if test="${supplier.active}">checked</c:if> />
+                            <label for="isActive" class="text-sm text-spa-dark font-medium">Đang hoạt động</label>
+                        </div>
+                    </c:if>
+
                     <!-- Form Actions -->
                     <div class="flex flex-col sm:flex-row gap-3 pt-6 border-t border-gray-200">
                         <button type="submit" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary-dark focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors">
@@ -134,6 +141,17 @@
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
+    // Kiểm tra tên nhà cung cấp không được để trống hoặc toàn khoảng trắng
+    document.querySelector("form").addEventListener("submit", function (e) {
+        const nameInput = document.querySelector("input[name='name']");
+        const trimmedName = nameInput.value.trim();
+
+        if (trimmedName.length === 0) {
+            e.preventDefault();
+            alert("Tên nhà cung cấp không được để trống hoặc chỉ chứa khoảng trắng!");
+            nameInput.focus();
+        }
+    });
 </script>
 </body>
 </html>
