@@ -1,0 +1,108 @@
+/* Manager Dashboard Scrollbar Styles */
+
+/* Main dashboard body with scrollbar */
+.dashboard-main-body {
+    max-height: calc(100vh - 100px); /* Adjust based on header height */
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* Custom scrollbar styling */
+.dashboard-main-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.dashboard-main-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.dashboard-main-body::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.dashboard-main-body::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* For Firefox */
+.dashboard-main-body {
+    scrollbar-width: thin;
+    scrollbar-color: #c1c1c1 #f1f1f1;
+}
+
+/* Card containers with proper spacing */
+.card {
+    margin-bottom: 1.5rem;
+}
+
+/* Ensure content doesn't overflow horizontally */
+.row {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.col-xxl-3, .col-xxl-4, .col-xxl-6, .col-xxl-8 {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+}
+
+/* Make sure the main container has proper height */
+body {
+    overflow: hidden; /* Prevent body scroll, use dashboard scroll instead */
+}
+
+.dashboard-main {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1199px) {
+    .dashboard-main-body {
+        max-height: calc(100vh - 80px);
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-main-body {
+        max-height: calc(100vh - 70px);
+        padding: 1rem;
+    }
+    
+    .dashboard-main-body::-webkit-scrollbar {
+        width: 6px;
+    }
+}
+
+/* Smooth scrolling behavior */
+.dashboard-main-body {
+    scroll-behavior: smooth;
+}
+
+/* Loading state for dashboard */
+.dashboard-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+}
+
+.dashboard-loading::after {
+    content: '';
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+} 

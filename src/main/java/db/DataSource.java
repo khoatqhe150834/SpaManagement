@@ -41,9 +41,9 @@ public class DataSource {
     }
   }
 
-  public static Connection getConnection() throws SQLException {
+  public static synchronized Connection getConnection() throws SQLException {
     if (dataSource == null) {
-      throw new SQLException("Connection pool is not initialized. Please call DataSource.initialize() first.");
+      initialize();
     }
     return dataSource.getConnection();
   }

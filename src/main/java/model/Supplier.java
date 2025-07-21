@@ -8,10 +8,12 @@ public class Supplier {
 
     public Supplier() {}
 
+
     public Supplier(int supplierId, String name, String contactInfo, boolean isActive) {
         this.supplierId = supplierId;
         this.name = name;
         this.contactInfo = contactInfo;
+        this.isActive = isActive;
         this.isActive = isActive;
     }
 
@@ -32,6 +34,7 @@ public class Supplier {
                 "supplierId=" + supplierId +
                 ", name='" + name + '\'' +
                 ", contactInfo='" + contactInfo + '\'' +
+                ", isActive=" + isActive +
                 ", isActive=" + isActive +
                 '}';
     }

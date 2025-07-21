@@ -7,11 +7,13 @@ import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,52 +27,45 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 import model.Promotion;
+import util.ImageUploadValidator;
 
 /**
- * Controller handling promotion-related requests URL Pattern: /promotion/*
- * Supports actions: list, view, create, edit, delete, search
+ * Controller xử lý các yêu cầu liên quan đến khuyến mãi.
+ * URL Pattern: /promotion/*
+ * Hỗ trợ các hành động: list, view, create, edit, activate, deactivate, usage-report.
  */
 @WebServlet(urlPatterns = {"/promotion/*"})
 @MultipartConfig(
-    fileSizeThreshold = 1024 * 1024, // 1 MB
-    maxFileSize = 1024 * 1024 * 10,  // 10 MB
-    maxRequestSize = 1024 * 1024 * 50 // 50 MB
+    fileSizeThreshold = 1024 * 1024,    // 1 MB
+    maxFileSize = 1024 * 1024 * 10,     // 10 MB
+    maxRequestSize = 1024 * 1024 * 50   // 50 MB
 )
 public class PromotionController extends HttpServlet {
 
     private PromotionDAO promotionDAO;
     private static final Logger logger = Logger.getLogger(PromotionController.class.getName());
     private static final int DEFAULT_PAGE_SIZE = 10;
+    private static final String UPLOAD_DIR = "/uploads/promotions/";
 
     @Override
-    public void init() throws ServletException {
+    public void init() {
         promotionDAO = new PromotionDAO();
-        logger.info("PromotionController initialized successfully");
+        logger.info("PromotionController initialized successfully.");
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        
 
         String pathInfo = request.getPathInfo();
-        logger.info("GET request - PathInfo: " + pathInfo);
+        logger.info("GET request received for path: " + pathInfo);
 
         try {
-            if (pathInfo == null || pathInfo.equals("/") || pathInfo.equals("/list")) {
-                handleListPromotions(request, response);
-                return;
-            }
-
-            String[] pathParts = pathInfo.split("/");
-            if (pathParts.length < 2) {
-                handleListPromotions(request, response);
-                return;
-            }
-
-            String action = pathParts[1].toLowerCase();
+            String action = (pathInfo == null || pathInfo.equals("/")) ? "list" : pathInfo.split("/")[1].toLowerCase();
 
             switch (action) {
                 case "list":
+                case "search":
                     handleListPromotions(request, response);
                     break;
                 case "view":
@@ -88,626 +83,568 @@ public class PromotionController extends HttpServlet {
                 case "activate":
                     handleActivatePromotion(request, response);
                     break;
-                case "scheduled":
-                    handleScheduledPromotion(request, response);
-                    break;
-                case "search":
-                    handleListPromotions(request, response);
+                case "usage-report":
+                    handleUsageReport(request, response);
                     break;
                 default:
-                    logger.warning("Invalid action: " + action);
+                    logger.warning("Invalid action in GET request: " + action);
                     response.sendError(HttpServletResponse.SC_NOT_FOUND, "Action not found: " + action);
                     break;
             }
-
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error in GET request", e);
-            handleError(request, response, "An error occurred: " + e.getMessage(), "error");
+            logger.log(Level.SEVERE, "Error processing GET request", e);
+            handleError(request, response, "An unexpected error occurred: " + e.getMessage());
         }
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        
 
         String action = request.getParameter("action");
-        logger.info("POST request - Action: " + action);
+        logger.info("POST request received for action: " + action);
 
         try {
             if (action == null || action.trim().isEmpty()) {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Action parameter is missing");
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Action parameter is missing.");
                 return;
             }
 
             switch (action.toLowerCase()) {
                 case "create":
-                    handleCreatePromotion(request, response);
+                    handleCreateOrUpdatePromotion(request, response, false);
                     break;
                 case "update":
-                    handleUpdatePromotion(request, response);
+                    handleCreateOrUpdatePromotion(request, response, true);
                     break;
                 default:
-                    response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid action: " + action);
+                    logger.warning("Invalid action in POST request: " + action);
+                    response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid action specified.");
                     break;
             }
-
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error in POST request", e);
-            handleError(request, response, "An error occurred: " + e.getMessage(), "error");
+            logger.log(Level.SEVERE, "Error processing POST request", e);
+            handleError(request, response, "An unexpected error occurred: " + e.getMessage());
         }
     }
 
-    /**
-     * Handle promotion list with pagination and filtering
-     */
-    private void handleListPromotions(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        try {
-            int page = getIntParameter(request, "page", 1);
-            int pageSize = getIntParameter(request, "pageSize", DEFAULT_PAGE_SIZE);
-            String searchValue = request.getParameter("searchValue");
-            String status = request.getParameter("status");
-            String sortBy = request.getParameter("sortBy");
-            String sortOrder = request.getParameter("sortOrder");
+    private void handleListPromotions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        int page = getIntParameter(request, "page", 1);
+        int pageSize = getIntParameter(request, "pageSize", DEFAULT_PAGE_SIZE);
+        String searchValue = request.getParameter("searchValue");
+        String status = request.getParameter("status");
+        String sortBy = Optional.ofNullable(request.getParameter("sortBy")).filter(s -> s.matches("^(id|title|status|code|discount_value)$")).orElse("id");
+        String sortOrder = Optional.ofNullable(request.getParameter("sortOrder")).filter(s -> s.matches("^(asc|desc)$")).orElse("asc");
 
-            // Validate sort parameters
-            if (sortBy != null && !sortBy.matches("^(id|title)$")) {
-                sortBy = "id"; // Default sort by ID
-            }
-            if (sortOrder == null || !sortOrder.matches("^(asc|desc)$")) {
-                sortOrder = "asc"; // Default ascending order
-            }
+        List<Promotion> promotions;
+        int totalPromotions;
 
-            List<Promotion> promotions;
-            int totalPromotions;
-
-            if (searchValue != null && !searchValue.trim().isEmpty()) {
-                promotions = promotionDAO.search(searchValue, status, page, pageSize, sortBy, sortOrder);
-                totalPromotions = promotionDAO.countSearchResults(searchValue, status);
-            } else {
-                promotions = promotionDAO.findAll(status, page, pageSize, sortBy, sortOrder);
-                totalPromotions = promotionDAO.countAll(status);
-            }
-
-            int totalPages = (int) Math.ceil((double) totalPromotions / pageSize);
-
-            request.setAttribute("listPromotion", promotions);
-            request.setAttribute("currentPage", page);
-            request.setAttribute("totalPages", totalPages);
-            request.setAttribute("pageSize", pageSize);
-            request.setAttribute("status", status);
-            request.setAttribute("sortBy", sortBy);
-            request.setAttribute("sortOrder", sortOrder);
-            request.setAttribute("searchValue", searchValue);
-
-            logger.info(String.format("Loaded promotion list - Page: %d, Size: %d, Total: %d, Found: %d, Sort: %s %s",
-                    page, pageSize, totalPromotions, promotions.size(), sortBy, sortOrder));
-
-            request.getRequestDispatcher("/WEB-INF/view/admin_pages/Promotion/promotion_list.jsp")
-                    .forward(request, response);
-
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error loading promotion list", e);
-            handleError(request, response, "Error loading promotion list: " + e.getMessage(), "error");
+        if (searchValue != null && !searchValue.trim().isEmpty()) {
+            promotions = promotionDAO.search(searchValue, status, page, pageSize, sortBy, sortOrder);
+            totalPromotions = promotionDAO.countSearchResults(searchValue, status);
+        } else {
+            promotions = promotionDAO.findAll(status, page, pageSize, sortBy, sortOrder);
+            totalPromotions = promotionDAO.countAll(status);
         }
+
+        int totalPages = (int) Math.ceil((double) totalPromotions / pageSize);
+
+        request.setAttribute("listPromotion", promotions);
+        request.setAttribute("currentPage", page);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("pageSize", pageSize);
+        request.setAttribute("status", status);
+        request.setAttribute("sortBy", sortBy);
+        request.setAttribute("sortOrder", sortOrder);
+        request.setAttribute("searchValue", searchValue);
+        request.setAttribute("totalPromotions", totalPromotions);
+        request.getRequestDispatcher("/WEB-INF/view/admin_pages/Promotion/promotion_list.jsp").forward(request, response);
     }
 
-    /**
-     * Handle viewing promotion details
-     */
-    private void handleViewPromotion(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    private void handleViewPromotion(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
-
-            String promotionIdStr = request.getParameter("id");
-
-            // Kiểm tra xem parameter 'id' có tồn tại và không rỗng hay không
-            if (promotionIdStr == null || promotionIdStr.trim().isEmpty()) {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Promotion ID is missing in the URL. Please provide an 'id' parameter.");
-                return;
-            }
-            // --- ĐẾN ĐÂY ---
-
-            // Phần còn lại của phương thức giữ nguyên
-            int promotionId = Integer.parseInt(promotionIdStr);
-
+            int promotionId = getIntParameter(request, "id", 0);
             if (promotionId <= 0) {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid promotion ID.");
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid or missing Promotion ID.");
                 return;
             }
 
-            Optional<Promotion> promotionOpt = this.promotionDAO.findById(promotionId);
-
+            Optional<Promotion> promotionOpt = promotionDAO.findById(promotionId);
             if (promotionOpt.isPresent()) {
-                request.setAttribute("promotion", promotionOpt.get());
-
+                Promotion promotion = promotionOpt.get();
+                
+                // Đảm bảo các giá trị null được xử lý an toàn
+                if (promotion.getCurrentUsageCount() == null) {
+                    promotion.setCurrentUsageCount(0);
+                }
+                if (promotion.getUsageLimitPerCustomer() == null) {
+                    promotion.setUsageLimitPerCustomer(0);
+                }
+                if (promotion.getTotalUsageLimit() == null) {
+                    promotion.setTotalUsageLimit(0);
+                }
+                if (promotion.getMinimumAppointmentValue() == null) {
+                    promotion.setMinimumAppointmentValue(BigDecimal.ZERO);
+                }
+                
+                request.setAttribute("promotion", promotion);
                 request.getRequestDispatcher("/WEB-INF/view/admin_pages/Promotion/promotion_details.jsp").forward(request, response);
             } else {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "Promotion not found with ID: " + promotionId);
             }
         } catch (NumberFormatException e) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid promotion ID format. ID must be a number.");
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid promotion ID format.");
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error viewing promotion", e);
-            // Giả sử bạn có phương thức handleError
-            handleError(request, response, "An error occurred while retrieving promotion details.", "error");
+            logger.log(Level.SEVERE, "Error viewing promotion details", e);
+            request.setAttribute("errorMessage", "Đã xảy ra lỗi hệ thống khi tải thông tin khuyến mãi. Vui lòng thử lại sau.");
+            request.getRequestDispatcher("/WEB-INF/view/admin_pages/Promotion/promotion_details.jsp").forward(request, response);
         }
     }
 
-    /**
-     * Display create promotion form
-     */
-    private void handleShowCreateForm(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        request.setAttribute("promotionInput", new Promotion());
-        request.getRequestDispatcher("/WEB-INF/view/admin_pages/Promotion/promotion_add.jsp")
-                .forward(request, response);
+    private void handleShowCreateForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        request.setAttribute("promotion", new Promotion()); // Dùng 'promotion' cho nhất quán
+        request.setAttribute("isEdit", false);
+        request.getRequestDispatcher("/WEB-INF/view/admin_pages/Promotion/promotion_add.jsp").forward(request, response);
     }
 
-    /**
-     * Display edit promotion form
-     */
-    private void handleShowEditForm(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-
+    private void handleShowEditForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
             int promotionId = getIntParameter(request, "id", 0);
             if (promotionId <= 0) {
-                throw new IllegalArgumentException("Invalid promotion ID");
+                handleError(request, response, "Invalid Promotion ID.");
+                return;
             }
 
             Optional<Promotion> promotionOpt = promotionDAO.findById(promotionId);
             if (promotionOpt.isPresent()) {
                 request.setAttribute("promotion", promotionOpt.get());
                 request.setAttribute("isEdit", true);
-                request.getRequestDispatcher("/WEB-INF/view/admin_pages/Promotion/promotion_edit.jsp")
-                        .forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/view/admin_pages/Promotion/promotion_edit.jsp").forward(request, response);
             } else {
-                throw new IllegalArgumentException("Promotion not found with ID: " + promotionId);
+                handleError(request, response, "Promotion not found with ID: " + promotionId);
             }
-
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error displaying edit form", e);
-            request.setAttribute("error", "Error displaying edit form: " + e.getMessage());
-            request.setAttribute("isEdit", true);
-            request.getRequestDispatcher("/WEB-INF/view/admin_pages/Promotion/promotion_edit.jsp")
-                    .forward(request, response);
+            handleError(request, response, "Error loading promotion for editing.");
         }
     }
+    
+    private void handleCreateOrUpdatePromotion(HttpServletRequest request, HttpServletResponse response, boolean isEdit) throws ServletException, IOException {
+        Promotion promotion;
+        int promotionId = 0;
 
-    /**
-     * Handle creating a promotion
-     */
-    private void handleCreatePromotion(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        java.util.Map<String, String> errors = new java.util.HashMap<>();
-        Promotion promotionInput = new Promotion();
+        if (isEdit) {
+            promotionId = getIntParameter(request, "id", 0);
+            Optional<Promotion> existingPromotionOpt = promotionDAO.findById(promotionId);
+            if (!existingPromotionOpt.isPresent()) {
+                handleError(request, response, "Promotion not found for update.");
+                return;
+            }
+            promotion = existingPromotionOpt.get();
+        } else {
+            promotion = new Promotion();
+        }
+        
+        // Gán dữ liệu từ request vào object và validate
+        Map<String, String> errors = mapAndValidateRequestToPromotion(request, promotion, isEdit);
+
+        // Xử lý upload ảnh
         try {
-            // Lấy và validate dữ liệu
-            String title = getStringParameter(request, "title");
-            String promotionCode = getStringParameter(request, "promotionCode");
-            String discountType = getStringParameter(request, "discountType");
-            String discountValueStr = getStringParameter(request, "discountValue");
-            String description = getStringParameter(request, "description");
-            String status = getStringParameter(request, "status", "SCHEDULED");
-            String startDateStr = getStringParameter(request, "startDate");
-            String endDateStr = getStringParameter(request, "endDate");
+            String newImageUrl = handleImageUpload(request);
+            if (newImageUrl != null) {
+                // Xóa ảnh cũ nếu có và đang cập nhật ảnh mới
+                if (isEdit && promotion.getImageUrl() != null && !promotion.getImageUrl().isEmpty()) {
+                    // Cần có logic xóa file ảnh cũ tại đây
+                }
+                promotion.setImageUrl(newImageUrl);
+            }
+        } catch (IOException e) {
+            logger.log(Level.WARNING, "Image upload error: " + e.getMessage(), e);
+            errors.put("imageUrl", e.getMessage());
+        }
 
-            // Xử lý file upload
-            String imageUrl = null;
-            Part filePart = request.getPart("imageUrl");
-            if (filePart != null && filePart.getSize() > 0) {
-                String fileName = getSubmittedFileName(filePart);
-                if (fileName != null && !fileName.isEmpty()) {
-                    // Validate file type
-                    String contentType = filePart.getContentType();
-                    if (contentType != null && contentType.startsWith("image/")) {
-                        // Create upload directory if it doesn't exist
-                        String uploadPath = getServletContext().getRealPath("/uploads/promotions/");
-                        File uploadDir = new File(uploadPath);
-                        if (!uploadDir.exists()) {
-                            uploadDir.mkdirs();
-                        }
-                        
-                        // Generate unique filename
-                        String fileExtension = fileName.substring(fileName.lastIndexOf("."));
-                        String uniqueFileName = System.currentTimeMillis() + "_" + fileName;
-                        String filePath = uploadPath + uniqueFileName;
-                        
-                        // Save file
-                        try (InputStream input = filePart.getInputStream()) {
-                            Files.copy(input, Paths.get(filePath), StandardCopyOption.REPLACE_EXISTING);
-                        }
-                        
-                        imageUrl = request.getContextPath() + "/uploads/promotions/" + uniqueFileName;
-                    } else {
-                        errors.put("imageUrl", "Please select a valid image file");
+        if (!errors.isEmpty()) {
+            logger.warning("Validation errors: " + errors);
+            request.setAttribute("errors", errors);
+            request.setAttribute("promotion", promotion);
+            request.setAttribute("isEdit", isEdit);
+            String jspPath = isEdit ? "/WEB-INF/view/admin_pages/Promotion/promotion_edit.jsp" : "/WEB-INF/view/admin_pages/Promotion/promotion_add.jsp";
+            request.getRequestDispatcher(jspPath).forward(request, response);
+            return;
+        }
+
+        // Lưu hoặc cập nhật
+        boolean success;
+        String successMessage;
+
+        try {
+            if (isEdit) {
+                success = promotionDAO.update(promotion);
+                successMessage = "Khuyến mãi đã được cập nhật thành công!";
+            } else {
+                success = promotionDAO.save(promotion);
+                successMessage = "Khuyến mãi đã được tạo thành công!";
+                
+                // Gửi thông báo cho khách hàng khi tạo promotion mới
+                if (success && "ACTIVE".equals(promotion.getStatus())) {
+                    try {
+                        service.PromotionNotificationService notificationService = new service.PromotionNotificationService();
+                        notificationService.notifyNewPromotion(promotion);
+                        logger.info("Promotion notification sent to customers for new promotion: " + promotion.getPromotionCode());
+                    } catch (Exception e) {
+                        logger.log(Level.WARNING, "Failed to send promotion notifications", e);
+                        // Không block việc tạo promotion nếu gửi thông báo thất bại
                     }
                 }
             }
 
-            // Gán lại dữ liệu nhập cho promotionInput để giữ lại khi có lỗi
-            promotionInput.setTitle(title);
-            promotionInput.setPromotionCode(promotionCode);
-            promotionInput.setDiscountType(discountType);
-            promotionInput.setDescription(description);
-            promotionInput.setStatus(status);
-            promotionInput.setImageUrl(imageUrl);
-            promotionInput.setDiscountValue(discountValueStr != null && !discountValueStr.isEmpty() ? new BigDecimal(discountValueStr) : null);
-            promotionInput.setStartDate(startDateStr != null && !startDateStr.isEmpty() ? java.time.LocalDate.parse(startDateStr).atStartOfDay() : null);
-            promotionInput.setEndDate(endDateStr != null && !endDateStr.isEmpty() ? java.time.LocalDate.parse(endDateStr).atStartOfDay() : null);
+            if (success) {
+                logger.info("Promotion " + (isEdit ? "updated" : "created") + " successfully with ID: " + promotion.getPromotionId());
+                request.getSession().setAttribute("successMessage", successMessage);
+                response.sendRedirect(request.getContextPath() + "/promotion/list");
+                return;
+            } else {
+                logger.severe("Failed to " + (isEdit ? "update" : "save") + " promotion to database");
+                errors.put("general", "Không thể lưu khuyến mãi vào cơ sở dữ liệu. Vui lòng thử lại.");
+                request.setAttribute("errors", errors);
+                request.setAttribute("promotion", promotion);
+                request.setAttribute("isEdit", isEdit);
+                String jspPath = isEdit ? "/WEB-INF/view/admin_pages/Promotion/promotion_edit.jsp" : "/WEB-INF/view/admin_pages/Promotion/promotion_add.jsp";
+                request.getRequestDispatcher(jspPath).forward(request, response);
+                return;
+            }
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error saving promotion", e);
+            errors.put("general", "Lỗi hệ thống: " + e.getMessage());
+            request.setAttribute("errors", errors);
+            request.setAttribute("promotion", promotion);
+            request.setAttribute("isEdit", isEdit);
+            String jspPath = isEdit ? "/WEB-INF/view/admin_pages/Promotion/promotion_edit.jsp" : "/WEB-INF/view/admin_pages/Promotion/promotion_add.jsp";
+            request.getRequestDispatcher(jspPath).forward(request, response);
+            return;
+        }
+    }
 
-            // Validate từng trường
-            if (title == null || title.trim().length() < 3) {
-                errors.put("title", "Title must be at least 3 characters long");
+    private Map<String, String> mapAndValidateRequestToPromotion(HttpServletRequest request, Promotion promotion, boolean isEdit) {
+        Map<String, String> errors = new HashMap<>();
+        
+        // Lấy dữ liệu từ request
+        String title = getStringParameter(request, "title");
+        String promotionCode = getStringParameter(request, "promotionCode");
+        String discountType = getStringParameter(request, "discountType");
+        String discountValueStr = getStringParameter(request, "discountValue");
+        String description = getStringParameter(request, "description");
+        String status = getStringParameter(request, "status", "SCHEDULED");
+        String startDateStr = getStringParameter(request, "startDate");
+        String endDateStr = getStringParameter(request, "endDate");
+        String customerCondition = getStringParameter(request, "customerCondition", "ALL");
+
+        // Validate và gán dữ liệu vào object
+        // Title
+        if (title == null || title.trim().length() < 3) {
+            errors.put("title", "Tên khuyến mãi phải có ít nhất 3 ký tự");
+        } else if (title.trim().length() > 255) {
+            errors.put("title", "Tên khuyến mãi không được vượt quá 255 ký tự");
+        } else {
+            // Kiểm tra trùng tên (không phân biệt chữ hoa/thường)
+            Optional<Promotion> existingByTitle = promotionDAO.findByTitleIgnoreCase(title.trim());
+            if (existingByTitle.isPresent() && (!isEdit || existingByTitle.get().getPromotionId() != promotion.getPromotionId())) {
+                errors.put("title", "Tên khuyến mãi đã tồn tại (không phân biệt chữ hoa/thường)");
+            } else {
+                promotion.setTitle(title.trim());
             }
-            if (promotionCode == null || !promotionCode.matches("^[A-Z0-9]{3,10}$")) {
-                errors.put("promotionCode", "Promotion code must be 3-10 characters, containing only uppercase letters and numbers");
+        }
+        
+        // Promotion Code
+        if (promotionCode == null || promotionCode.trim().isEmpty()) {
+            errors.put("promotionCode", "Mã khuyến mãi không được để trống");
+        } else {
+            String code = promotionCode.trim();
+            
+            // Kiểm tra ký tự tiếng Việt
+            if (code.matches(".*[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ].*")) {
+                errors.put("promotionCode", "Mã khuyến mãi không được chứa ký tự tiếng Việt");
+            } else if (!code.matches("^[A-Z0-9]{3,10}$")) {
+                errors.put("promotionCode", "Mã khuyến mãi phải từ 3-10 ký tự, chỉ chứa chữ hoa và số.");
+            } else {
+                // Kiểm tra trùng lặp (không phân biệt chữ hoa/thường), bỏ qua chính nó khi đang edit
+                Optional<Promotion> existing = promotionDAO.findByCodeIgnoreCase(code);
+                if (existing.isPresent() && (!isEdit || existing.get().getPromotionId() != promotion.getPromotionId())) {
+                    errors.put("promotionCode", "Mã khuyến mãi đã tồn tại (không phân biệt chữ hoa/thường)");
+                } else {
+                    promotion.setPromotionCode(code.toUpperCase());
+                }
             }
-            if (!"PERCENTAGE".equalsIgnoreCase(discountType) && !"FIXED".equalsIgnoreCase(discountType)) {
-                errors.put("discountType", "Discount type must be 'PERCENTAGE' or 'FIXED'");
-            }
+        }
+
+        // Discount Type and Value
+        if (discountType == null || discountType.trim().isEmpty()) {
+            errors.put("discountType", "Vui lòng chọn loại giảm giá");
+        } else {
+            promotion.setDiscountType(discountType);
+        }
+
+        if (discountValueStr == null || discountValueStr.trim().isEmpty()) {
+            errors.put("discountValue", "Vui lòng nhập giá trị giảm giá");
+        } else {
             try {
                 BigDecimal discountValue = new BigDecimal(discountValueStr);
                 if (discountValue.compareTo(BigDecimal.ZERO) <= 0) {
-                    errors.put("discountValue", "Discount value must be greater than 0");
+                    errors.put("discountValue", "Giá trị giảm giá phải lớn hơn 0");
+                } else if ("PERCENTAGE".equalsIgnoreCase(discountType) && discountValue.compareTo(new BigDecimal("100")) > 0) {
+                    errors.put("discountValue", "Giảm giá theo % không được vượt quá 100");
+                } else {
+                    promotion.setDiscountValue(discountValue);
                 }
-            } catch (Exception e) {
-                errors.put("discountValue", "Invalid discount value");
+            } catch (NumberFormatException e) {
+                errors.put("discountValue", "Giá trị giảm giá không hợp lệ");
             }
-            if (description == null || description.trim().isEmpty()) {
-                errors.put("description", "Description is required");
-            }
-            if (startDateStr == null || startDateStr.isEmpty()) {
-                errors.put("startDate", "Start date is required");
-            }
-            if (endDateStr == null || endDateStr.isEmpty()) {
-                errors.put("endDate", "End date is required");
-            }
-            // Nếu có lỗi, forward lại form với dữ liệu và lỗi
-            if (!errors.isEmpty()) {
-                request.setAttribute("errors", errors);
-                request.setAttribute("promotionInput", promotionInput);
-                request.getRequestDispatcher("/WEB-INF/view/admin_pages/Promotion/promotion_add.jsp").forward(request, response);
-                return;
-            }
-
-            // Nếu hợp lệ, tạo promotion mới và lưu
-            Promotion promotion = new Promotion();
-            promotion.setTitle(title);
-            promotion.setPromotionCode(promotionCode != null ? promotionCode.toUpperCase() : null);
-            promotion.setDiscountType(discountType);
-            promotion.setDiscountValue(new BigDecimal(discountValueStr));
+        }
+        
+        // Description
+        if (description == null || description.trim().isEmpty()) {
+            errors.put("description", "Vui lòng nhập mô tả");
+        } else if (description.trim().length() > 1000) {
+            errors.put("description", "Mô tả không được vượt quá 1000 ký tự");
+        } else {
             promotion.setDescription(description);
-            promotion.setStatus(status);
-            promotion.setImageUrl(imageUrl);
-            promotion.setStartDate(startDateStr != null && !startDateStr.isEmpty() ? java.time.LocalDate.parse(startDateStr).atStartOfDay() : null);
-            promotion.setEndDate(endDateStr != null && !endDateStr.isEmpty() ? java.time.LocalDate.parse(endDateStr).atStartOfDay() : null);
+        }
+
+        // Dates
+        LocalDateTime startDate = null, endDate = null;
+        if (startDateStr == null || startDateStr.trim().isEmpty()) {
+            errors.put("startDate", "Vui lòng chọn ngày bắt đầu");
+        } else {
+            try { 
+                startDate = LocalDate.parse(startDateStr).atStartOfDay(); 
+                promotion.setStartDate(startDate); 
+            } catch (Exception e) { 
+                errors.put("startDate", "Định dạng ngày bắt đầu không hợp lệ"); 
+            }
+        }
+        if (endDateStr == null || endDateStr.trim().isEmpty()) {
+            errors.put("endDate", "Vui lòng chọn ngày kết thúc");
+        } else {
+            try { 
+                endDate = LocalDate.parse(endDateStr).atTime(23, 59, 59); 
+                promotion.setEndDate(endDate); 
+            } catch (Exception e) { 
+                errors.put("endDate", "Định dạng ngày kết thúc không hợp lệ"); 
+            }
+        }
+        if (startDate != null && endDate != null && !endDate.isAfter(startDate)) {
+            errors.put("endDate", "Ngày kết thúc phải sau ngày bắt đầu");
+        }
+        
+        promotion.setStatus(status);
+        
+        // Validate customer condition
+        if (customerCondition == null || customerCondition.trim().isEmpty()) {
+            errors.put("customerCondition", "Vui lòng chọn điều kiện khách hàng");
+        } else if (!customerCondition.matches("^(ALL|INDIVIDUAL|COUPLE|GROUP)$")) {
+            errors.put("customerCondition", "Điều kiện khách hàng không hợp lệ");
+        } else {
+            promotion.setCustomerCondition(customerCondition);
+        }
+        
+        // Các giá trị mặc định cho các trường mới
+        if (!isEdit) {
             promotion.setCurrentUsageCount(0);
             promotion.setIsAutoApply(false);
             promotion.setMinimumAppointmentValue(BigDecimal.ZERO);
             promotion.setApplicableScope("ENTIRE_APPOINTMENT");
-
-            promotionDAO.save(promotion);
-            logger.info("Promotion created successfully: " + promotion.getPromotionId());
-            request.setAttribute("toastMessage", "Promotion created successfully!");
-            request.setAttribute("toastType", "success");
-            handleListPromotions(request, response);
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error creating promotion", e);
-            request.setAttribute("toastMessage", "Error creating promotion: " + e.getMessage());
-            request.setAttribute("toastType", "error");
-            request.setAttribute("promotionInput", promotionInput);
-            request.setAttribute("errors", errors);
-            request.getRequestDispatcher("/WEB-INF/view/admin_pages/Promotion/promotion_add.jsp").forward(request, response);
         }
+        
+        logger.info("Validation completed. Errors: " + errors.size());
+        return errors;
     }
 
-    /**
-     * Handle updating a promotion
-     */
-    private void handleUpdatePromotion(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    private String handleImageUpload(HttpServletRequest request) throws IOException, ServletException {
+        Part filePart = request.getPart("imageUrl");
+        if (filePart == null || filePart.getSize() == 0) {
+            return null; // Không có file mới được upload
+        }
+    
+        // Validate file
+        if (!ImageUploadValidator.isValidImage(filePart)) {
+            throw new IOException(ImageUploadValidator.getErrorMessage(filePart));
+        }
 
+        // Get file name and create unique name
+        String fileName = getSubmittedFileName(filePart);
+        if (fileName == null || fileName.trim().isEmpty()) {
+            throw new IOException("Tên file không hợp lệ");
+        }
+        
+        String fileExtension = "";
+        int lastDotIndex = fileName.lastIndexOf('.');
+        if (lastDotIndex > 0) {
+            fileExtension = fileName.substring(lastDotIndex);
+        }
+        
+        String uniqueFileName = System.currentTimeMillis() + "_promotion" + fileExtension;
+        
+        // Create upload directory
+        String uploadPath = getServletContext().getRealPath(UPLOAD_DIR);
+        if (uploadPath == null) {
+            // Fallback to a default path if getRealPath returns null
+            uploadPath = System.getProperty("user.home") + "/spa-uploads/promotions/";
+        }
+        
+        File uploadDir = new File(uploadPath);
+        if (!uploadDir.exists()) {
+            boolean created = uploadDir.mkdirs();
+            if (!created) {
+                throw new IOException("Không thể tạo thư mục upload: " + uploadPath);
+            }
+        }
+
+        // Save file
+        File targetFile = new File(uploadDir, uniqueFileName);
+        try (InputStream input = filePart.getInputStream()) {
+            Files.copy(input, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        }
+        
+        // Return the URL path
+        return UPLOAD_DIR + uniqueFileName;
+    }
+    
+    private void handleDeactivatePromotion(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        updatePromotionStatus(request, response, "deactivate");
+    }
+
+    private void handleActivatePromotion(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        updatePromotionStatus(request, response, "activate");
+    }
+
+    private void updatePromotionStatus(HttpServletRequest request, HttpServletResponse response, String statusAction) throws IOException {
+        String redirectUrl = buildListRedirectUrl(request);
         try {
-            // Get and validate ID
             int promotionId = getIntParameter(request, "id", 0);
             if (promotionId <= 0) {
-                throw new IllegalArgumentException("Invalid promotion ID");
+                request.getSession().setAttribute("errorMessage", "Invalid promotion ID.");
+            } else {
+                boolean success = false;
+                String actionVerb = "";
+
+                if ("activate".equals(statusAction)) {
+                    success = promotionDAO.activatePromotion(promotionId);
+                    actionVerb = "activated";
+                } else {
+                    success = promotionDAO.deactivatePromotion(promotionId);
+                    actionVerb = "deactivated";
+                }
+
+                if (success) {
+                    request.getSession().setAttribute("successMessage", "Promotion has been " + actionVerb + " successfully.");
+                } else {
+                    request.getSession().setAttribute("errorMessage", "Failed to " + statusAction + " the promotion.");
+                }
+            }
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error updating promotion status to " + statusAction, e);
+            request.getSession().setAttribute("errorMessage", "Error: " + e.getMessage());
+        }
+        response.sendRedirect(redirectUrl);
+    }
+    
+    private void handleUsageReport(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        try {
+            int promotionId = getIntParameter(request, "id", 0);
+            if (promotionId <= 0) {
+                handleError(request, response, "Invalid promotion ID for usage report.");
+                return;
             }
 
             Optional<Promotion> promotionOpt = promotionDAO.findById(promotionId);
             if (!promotionOpt.isPresent()) {
-                throw new IllegalArgumentException("Promotion not found with ID: " + promotionId);
+                handleError(request, response, "Promotion not found with ID: " + promotionId);
+                return;
             }
 
             Promotion promotion = promotionOpt.get();
+            request.setAttribute("promotion", promotion);
 
-            // Get and validate data
-            String title = getStringParameter(request, "title");
-            String promotionCode = getStringParameter(request, "promotionCode");
-            String discountType = getStringParameter(request, "discountType");
-            String discountValueStr = getStringParameter(request, "discountValue");
-            String description = getStringParameter(request, "description");
-            String status = getStringParameter(request, "status", promotion.getStatus());
-            String startDateStr = getStringParameter(request, "startDate");
-            String endDateStr = getStringParameter(request, "endDate");
+            int page = getIntParameter(request, "page", 1);
+            int pageSize = getIntParameter(request, "pageSize", 10);
 
-            // Xử lý file upload
-            Part filePart = request.getPart("imageUrl");
-            if (filePart != null && filePart.getSize() > 0) {
-                String fileName = getSubmittedFileName(filePart);
-                if (fileName != null && !fileName.isEmpty()) {
-                    // Validate file type
-                    String contentType = filePart.getContentType();
-                    if (contentType != null && contentType.startsWith("image/")) {
-                        // Create upload directory if it doesn't exist
-                        String uploadPath = getServletContext().getRealPath("/uploads/promotions/");
-                        File uploadDir = new File(uploadPath);
-                        if (!uploadDir.exists()) {
-                            uploadDir.mkdirs();
-                        }
-                        
-                        // Generate unique filename
-                        String uniqueFileName = System.currentTimeMillis() + "_" + fileName;
-                        String filePath = uploadPath + uniqueFileName;
-                        
-                        // Save file
-                        try (InputStream input = filePart.getInputStream()) {
-                            Files.copy(input, Paths.get(filePath), StandardCopyOption.REPLACE_EXISTING);
-                        }
-                        
-                        // Update image URL
-                        promotion.setImageUrl(request.getContextPath() + "/uploads/promotions/" + uniqueFileName);
-                    }
-                }
-            }
+            List<Map<String, Object>> usageReportData = promotionDAO.getPromotionUsageReport(promotionId, page, pageSize);
+            int totalUsage = promotionDAO.getTotalUsageCount(promotionId);
+            int totalPages = (int) Math.ceil((double) totalUsage / pageSize);
 
-            validatePromotionData(title, promotionCode, discountType, discountValueStr);
+            request.setAttribute("usageReportData", usageReportData);
+            request.setAttribute("currentPage", page);
+            request.setAttribute("totalPages", totalPages);
+            request.setAttribute("totalUsage", totalUsage);
 
-            // Update data
-            promotion.setTitle(title);
-            promotion.setPromotionCode(promotionCode != null ? promotionCode.toUpperCase() : null);
-            promotion.setDiscountType(discountType);
-            promotion.setDiscountValue(new BigDecimal(discountValueStr));
-            promotion.setDescription(description);
-            promotion.setStatus(status);
-
-            // Update dates if provided
-            if (startDateStr != null && !startDateStr.isEmpty()) {
-                promotion.setStartDate(LocalDateTime.parse(startDateStr + "T00:00:00"));
-            }
-            if (endDateStr != null && !endDateStr.isEmpty()) {
-                promotion.setEndDate(LocalDateTime.parse(endDateStr + "T23:59:59"));
-            }
-
-            // Update promotion
-            promotionDAO.update(promotion);
-
-            logger.info("Promotion updated successfully: " + promotionId);
-
-            request.setAttribute("toastMessage", "Promotion updated successfully!");
-            request.setAttribute("toastType", "success");
-
-            // Redirect to list with parameters
-            response.sendRedirect(request.getContextPath() + "/promotion/list");
-
+            request.getRequestDispatcher("/WEB-INF/view/admin_pages/Promotion/promotion_usage_report.jsp").forward(request, response);
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error updating promotion", e);
-            request.setAttribute("toastMessage", "Error updating promotion: " + e.getMessage());
-            request.setAttribute("toastType", "error");
-            request.setAttribute("isEdit", true);
-            request.getRequestDispatcher("/WEB-INF/view/admin_pages/Promotion/promotion_edit.jsp")
-                    .forward(request, response);
+            logger.log(Level.SEVERE, "Error generating usage report", e);
+            handleError(request, response, "Error generating usage report: " + e.getMessage());
         }
     }
+    
+    // --- UTILITY METHODS ---
 
-    /**
-     * Handle deleting a promotion
-     */
-    private void handleDeletePromotion(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-
-        try {
-            int promotionId = getIntParameter(request, "id", 0);
-            if (promotionId <= 0) {
-                throw new IllegalArgumentException("Invalid promotion ID");
-            }
-
-            promotionDAO.deleteById(promotionId);
-            logger.info("Promotion deleted successfully: " + promotionId);
-
-            request.setAttribute("toastMessage", "Promotion deleted successfully!");
-            request.setAttribute("toastType", "success");
-            handleListPromotions(request, response);
-
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error deleting promotion", e);
-            request.setAttribute("toastMessage", "Error deleting promotion: " + e.getMessage());
-            request.setAttribute("toastType", "error");
-            response.sendRedirect(request.getContextPath() + "/promotion/list");
-        }
-    }
-
-    /**
-     * Handle errors
-     */
-    private void handleError(HttpServletRequest request, HttpServletResponse response, String errorMessage, String toastType)
-            throws ServletException, IOException {
-
-        request.setAttribute("toastMessage", errorMessage);
-        request.setAttribute("toastType", toastType);
-        request.getRequestDispatcher("/WEB-INF/view/admin_pages/Promotion/promotion_list.jsp")
-                .forward(request, response);
-    }
-
-    /**
-     * Get integer parameter
-     */
     private int getIntParameter(HttpServletRequest request, String paramName, int defaultValue) {
         String paramValue = request.getParameter(paramName);
         if (paramValue != null && !paramValue.trim().isEmpty()) {
             try {
                 return Integer.parseInt(paramValue.trim());
             } catch (NumberFormatException e) {
-                logger.warning("Invalid number parameter " + paramName + ": " + paramValue);
+                logger.warning("Invalid number format for parameter " + paramName + ": " + paramValue);
             }
         }
         return defaultValue;
     }
 
-    /**
-     * Get string parameter
-     */
     private String getStringParameter(HttpServletRequest request, String paramName, String defaultValue) {
         String paramValue = request.getParameter(paramName);
-        return (paramValue != null && !paramValue.trim().isEmpty()) ? paramValue.trim() : defaultValue;
+        return (paramValue != null) ? paramValue.trim() : defaultValue;
     }
 
     private String getStringParameter(HttpServletRequest request, String paramName) {
         return getStringParameter(request, paramName, null);
     }
 
-    /**
-     * Validate promotion data
-     */
-    private void validatePromotionData(String title, String promotionCode, String discountType, String discountValueStr)
-            throws IllegalArgumentException {
-
-        if (title == null || title.trim().length() < 3) {
-            throw new IllegalArgumentException("Title must be at least 3 characters long");
-        }
-        if (promotionCode != null && !promotionCode.matches("^[A-Z0-9]{3,10}$")) {
-            throw new IllegalArgumentException("Promotion code must be 3-10 characters, containing only uppercase letters and numbers");
-        }
-        if (!"PERCENTAGE".equalsIgnoreCase(discountType) && !"FIXED".equalsIgnoreCase(discountType)) {
-            throw new IllegalArgumentException("Discount type must be 'PERCENTAGE' or 'FIXED'");
-        }
-        try {
-            BigDecimal discountValue = new BigDecimal(discountValueStr);
-            if (discountValue.compareTo(BigDecimal.ZERO) <= 0) {
-                throw new IllegalArgumentException("Discount value must be greater than 0");
-            }
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid discount value");
-        }
-    }
-
-    private void handleDeactivatePromotion(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        String redirectUrl = buildListRedirectUrl(request);
-
-        try {
-            int promotionId = getIntParameter(request, "id", 0);
-            if (promotionId <= 0) {
-                request.getSession().setAttribute("errorMessage", "Invalid promotion ID provided.");
-                response.sendRedirect(redirectUrl);
-                return;
-            }
-
-            if (promotionDAO.deactivatePromotion(promotionId)) {
-                request.getSession().setAttribute("successMessage", "promotion has been deactivated successfully.");
-            } else {
-                request.getSession().setAttribute("errorMessage", "Failed to deactivate the promotion.");
-            }
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error deactivating promotion", e);
-            request.getSession().setAttribute("errorMessage", "Error deactivating promotion: " + e.getMessage());
-        }
-
-        response.sendRedirect(redirectUrl);
-    }
-
-    private void handleActivatePromotion(HttpServletRequest request, HttpServletResponse response) throws IOException {
-          String redirectUrl = buildListRedirectUrl(request);
-
-        try {
-            int promotionId = getIntParameter(request, "id", 0);
-            if (promotionId <= 0) {
-                request.getSession().setAttribute("errorMessage", "Invalid promotion ID provided.");
-                response.sendRedirect(redirectUrl);
-                return;
-            }
-
-            if (promotionDAO.activatePromotion(promotionId)) {
-                request.getSession().setAttribute("successMessage", "promotion has been deactivated successfully.");
-            } else {
-                request.getSession().setAttribute("errorMessage", "Failed to activate the promotion.");
-            }
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error activating promotion", e);
-            request.getSession().setAttribute("errorMessage", "Error activating promotion: " + e.getMessage());
-        }
-
-        response.sendRedirect(redirectUrl);
-    }
-
-    private void handleScheduledPromotion(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        String redirectUrl = buildListRedirectUrl(request);
-
-        try {
-            int promotionId = getIntParameter(request, "id", 0);
-            if (promotionId <= 0) {
-                request.getSession().setAttribute("errorMessage", "Invalid promotion ID provided.");
-                response.sendRedirect(redirectUrl);
-                return;
-            }
-
-            if (promotionDAO.scheduledPromotion(promotionId)) {
-                request.getSession().setAttribute("successMessage", "promotion has been scheduled successfully.");
-            } else {
-                request.getSession().setAttribute("errorMessage", "Failed to scheduled the promotion.");
-            }
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error scheduleding promotion", e);
-            request.getSession().setAttribute("errorMessage", "Error scheduledting promotion: " + e.getMessage());
-        }
-
-        response.sendRedirect(redirectUrl);
-    }
-
-    private String buildListRedirectUrl(HttpServletRequest request) {
-        String page = request.getParameter("page");
-        String search = request.getParameter("search");
-        String status = request.getParameter("status");
-
-        List<String> params = new ArrayList<>();
-        if (page != null && !page.isEmpty()) {
-            params.add("page=" + page);
-        }
-        if (search != null && !search.isEmpty()) {
-            try {
-                // Quan trọng: Mã hóa giá trị tìm kiếm để tránh lỗi URL
-                params.add("search=" + URLEncoder.encode(search, StandardCharsets.UTF_8.toString()));
-            } catch (Exception e) {
-                logger.warning("Could not encode search parameter: " + e.getMessage());
-            }
-        }
-        if (status != null && !status.isEmpty()) {
-            params.add("status=" + status);
-        }
-
-        String queryString = String.join("&", params);
-        if (queryString.isEmpty()) {
-            return request.getContextPath() + "/promotion/list";
-        } else {
-            return request.getContextPath() + "/promotion/list?" + queryString;
-        }
-    }
-
-    private String escapeJson(String str) {
-        if (str == null) {
-            return "";
-        }
-        return str.replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t");
-    }
-
     private String getSubmittedFileName(Part part) {
-        for (String contentDisposition : part.getHeader("content-disposition").split(";")) {
-            if (contentDisposition.trim().startsWith("filename")) {
-                return contentDisposition.substring(contentDisposition.indexOf('=') + 1).trim().replace("\"", "");
+        for (String cd : part.getHeader("content-disposition").split(";")) {
+            if (cd.trim().startsWith("filename")) {
+                return cd.substring(cd.indexOf('=') + 1).trim().replace("\"", "");
             }
         }
         return null;
     }
 
+    private String buildListRedirectUrl(HttpServletRequest request) {
+        List<String> params = new ArrayList<>();
+        addParamIfPresent(params, "page", request.getParameter("page"));
+        addParamIfPresent(params, "status", request.getParameter("status"));
+        addParamIfPresent(params, "sortBy", request.getParameter("sortBy"));
+        addParamIfPresent(params, "sortOrder", request.getParameter("sortOrder"));
+        
+        try {
+            if (request.getParameter("searchValue") != null && !request.getParameter("searchValue").isEmpty()) {
+                params.add("searchValue=" + URLEncoder.encode(request.getParameter("searchValue"), StandardCharsets.UTF_8.toString()));
+            }
+        } catch (Exception e) {
+            logger.warning("Could not encode search parameter: " + e.getMessage());
+        }
+
+        String queryString = String.join("&", params);
+        return request.getContextPath() + "/promotion/list" + (queryString.isEmpty() ? "" : "?" + queryString);
+    }
+    
+    private void addParamIfPresent(List<String> params, String key, String value) {
+        if (value != null && !value.isEmpty()) {
+            params.add(key + "=" + value);
+        }
+    }
+
+    private void handleError(HttpServletRequest request, HttpServletResponse response, String errorMessage) throws ServletException, IOException {
+        request.setAttribute("errorMessage", errorMessage);
+        request.getRequestDispatcher("/WEB-INF/view/admin_pages/Promotion/promotion_list.jsp").forward(request, response);
+    }
+
+    
 }

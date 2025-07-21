@@ -1,0 +1,64 @@
+{
+  "info": {
+    "name": "Simple Manager API Tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "email",
+              "value": "manager@spa.com"
+            },
+            {
+              "key": "password",
+              "value": "manager123"
+            }
+          ]
+        },
+        "url": "http://localhost:8080/spa/login"
+      }
+    },
+    {
+      "name": "Get Therapists",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-Requested-With",
+            "value": "XMLHttpRequest"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "action",
+              "value": "get_therapists"
+            }
+          ]
+        },
+        "url": "http://localhost:8080/spa/manager/scheduling"
+      }
+    },
+    {
+      "name": "Get Schedulable Items",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:8080/spa/api/manager/scheduling/schedulable-items"
+      }
+    }
+  ]
+}

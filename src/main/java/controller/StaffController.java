@@ -1,20 +1,24 @@
 package controller;
 
-import dao.StaffDAO;
+import java.io.IOException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import dao.ServiceTypeDAO;
+import dao.StaffDAO;
 import dao.UserDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.*;
-import model.Staff;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import model.Certificate;
 import model.ServiceType;
+import model.Staff;
 import model.User;
-import java.io.IOException;
-import java.sql.Timestamp;
-import java.util.List;
-import java.util.Optional;
-import java.util.Arrays;
-import java.util.stream.Collectors;
 
 @WebServlet(name = "StaffController", urlPatterns = {"/admin/staff"})
 public class StaffController extends HttpServlet {
@@ -224,6 +228,34 @@ public class StaffController extends HttpServlet {
                 staffDAO.save(staff);
                 request.setAttribute("toastType", "success");
                 request.setAttribute("toastMessage", "Thêm nhân viên thành công!");
+
+                // Nhận chứng chỉ từ form
+                String[] certNames = request.getParameterValues("certificateName");
+                String[] certNumbers = request.getParameterValues("certificateNumber");
+                String[] issuedDates = request.getParameterValues("issuedDate");
+                String[] expiryDates = request.getParameterValues("expiryDate");
+                String[] fileUrls = request.getParameterValues("fileUrl");
+                String[] notes = request.getParameterValues("note");
+
+                List<Certificate> certificates = new ArrayList<>();
+                if (certNames != null) {
+                    for (int i = 0; i < certNames.length; i++) {
+                        Certificate cert = new Certificate();
+                        cert.setCertificateName(certNames[i]);
+                        cert.setCertificateNumber(certNumbers[i]);
+                        cert.setIssuedDate(java.sql.Date.valueOf(issuedDates[i]));
+                        cert.setExpiryDate(expiryDates[i] != null && !expiryDates[i].isEmpty() ? java.sql.Date.valueOf(expiryDates[i]) : null);
+                        cert.setFileUrl(fileUrls[i]);
+                        cert.setNote(notes[i]);
+                        cert.setStaffUserId(staff.getUser().getUserId());
+                        certificates.add(cert);
+                    }
+                }
+
+//                CertificateDAO certificateDAO = new CertificateDAO();
+//                for (Certificate cert : certificates) {
+//                    certificateDAO.addCertificate(cert);
+//                }
             } else {
                 System.out.println("Update staff userId: " + staff.getUser().getUserId());
                 staff.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
@@ -315,6 +347,30 @@ public class StaffController extends HttpServlet {
             staff.setBio(bio);
             staff.setAvailabilityStatus(Staff.AvailabilityStatus.valueOf(availabilityStatus));
             staff.setYearsOfExperience(yearsOfExperience);
+
+            // Xử lý chứng chỉ
+            String[] certNames = request.getParameterValues("certificateName");
+            String[] certNumbers = request.getParameterValues("certificateNumber");
+            String[] issuedDates = request.getParameterValues("issuedDate");
+            String[] expiryDates = request.getParameterValues("expiryDate");
+            String[] fileUrls = request.getParameterValues("fileUrl");
+            String[] notes = request.getParameterValues("note");
+
+            List<Certificate> certificates = new ArrayList<>();
+            if (certNames != null) {
+                for (int i = 0; i < certNames.length; i++) {
+                    Certificate cert = new Certificate();
+                    cert.setCertificateName(certNames[i]);
+                    cert.setCertificateNumber(certNumbers[i]);
+                    cert.setIssuedDate(java.sql.Date.valueOf(issuedDates[i]));
+                    cert.setExpiryDate(expiryDates[i] != null && !expiryDates[i].isEmpty() ? java.sql.Date.valueOf(expiryDates[i]) : null);
+                    cert.setFileUrl(fileUrls[i]);
+                    cert.setNote(notes[i]);
+                    // staffUserId sẽ set sau khi insert staff
+                    certificates.add(cert);
+                }
+            }
+            staff.setCertificates(certificates);
 
             return staff;
         } catch (NumberFormatException e) {

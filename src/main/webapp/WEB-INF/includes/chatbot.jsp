@@ -1,9 +1,103 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 
+<style>
+    /* Chatbot resize styles */
+    .resize-handle {
+        background-color: transparent;
+        transition: background-color 0.2s ease;
+    }
+
+    .resize-handle:hover {
+        background-color: rgba(212, 175, 55, 0.2) !important;
+    }
+
+    .resizing {
+        user-select: none;
+        pointer-events: none;
+    }
+
+    .resizing .resize-handle {
+        pointer-events: auto;
+    }
+
+    /* Improve corner handle visibility */
+    .resize-handle-top-left,
+    .resize-handle-top-right,
+    .resize-handle-bottom-left,
+    .resize-handle-bottom-right {
+        border-radius: 2px;
+    }
+
+    .resize-handle-top-left:hover,
+    .resize-handle-top-right:hover,
+    .resize-handle-bottom-left:hover,
+    .resize-handle-bottom-right:hover {
+        background-color: rgba(212, 175, 55, 0.4) !important;
+    }
+
+    /* Enhanced text wrapping styles for chatbot */
+    #chat-input {
+        word-wrap: break-word !important;
+        white-space: pre-wrap !important;
+        overflow-wrap: break-word !important;
+        line-height: 1.4 !important;
+        transition: height 0.2s ease !important;
+    }
+
+    /* Message bubble text wrapping */
+    .chat-message-content {
+        word-wrap: break-word !important;
+        white-space: pre-wrap !important;
+        overflow-wrap: break-word !important;
+        word-break: break-word !important;
+        hyphens: auto !important;
+        line-height: 1.4 !important;
+        max-width: 100% !important;
+    }
+
+    /* Ensure message containers don't overflow */
+    .chat-message-bubble {
+        max-width: 100% !important;
+        overflow: hidden !important;
+    }
+
+    /* Responsive text wrapping for different window sizes */
+    @media (max-width: 480px) {
+        .chat-message-content {
+            font-size: 0.875rem !important;
+            line-height: 1.3 !important;
+        }
+    }
+
+    /* Handle long URLs and continuous text */
+    .chat-message-content a,
+    .chat-message-content code {
+        word-break: break-all !important;
+        overflow-wrap: break-word !important;
+    }
+</style>
+
 <div id="chatbot-widget" class="fixed z-50">
     <!-- Chat Window (initially hidden) -->
-    <div id="chat-window" class="fixed bottom-20 right-4 w-96 max-w-[calc(100vw-2rem)] transition-all duration-300 ease-in-out transform scale-100 opacity-100" style="display: none;">
-        <div class="bg-white rounded-lg shadow-2xl border border-gray-200 overflow-hidden">
+    <div id="chat-window" class="fixed bottom-20 right-4 max-w-[calc(100vw-2rem)] transition-none transform scale-100 opacity-100" style="display: none; width: 384px; height: 480px; min-width: 300px; min-height: 350px; max-width: 600px; max-height: 700px;">
+        <div class="bg-white rounded-lg shadow-2xl border border-gray-200 overflow-hidden h-full relative">
+            <!-- Resize Handles -->
+            <!-- Top resize handle -->
+            <div class="resize-handle resize-handle-top absolute top-0 left-0 right-0 h-1 cursor-n-resize hover:bg-primary/20 transition-colors z-10"></div>
+            <!-- Right resize handle -->
+            <div class="resize-handle resize-handle-right absolute top-0 right-0 bottom-0 w-1 cursor-e-resize hover:bg-primary/20 transition-colors z-10"></div>
+            <!-- Bottom resize handle -->
+            <div class="resize-handle resize-handle-bottom absolute bottom-0 left-0 right-0 h-1 cursor-s-resize hover:bg-primary/20 transition-colors z-10"></div>
+            <!-- Left resize handle -->
+            <div class="resize-handle resize-handle-left absolute top-0 left-0 bottom-0 w-1 cursor-w-resize hover:bg-primary/20 transition-colors z-10"></div>
+            <!-- Corner resize handles -->
+            <div class="resize-handle resize-handle-top-left absolute top-0 left-0 w-3 h-3 cursor-nw-resize hover:bg-primary/30 transition-colors z-10"></div>
+            <div class="resize-handle resize-handle-top-right absolute top-0 right-0 w-3 h-3 cursor-ne-resize hover:bg-primary/30 transition-colors z-10"></div>
+            <div class="resize-handle resize-handle-bottom-left absolute bottom-0 left-0 w-3 h-3 cursor-sw-resize hover:bg-primary/30 transition-colors z-10"></div>
+            <div class="resize-handle resize-handle-bottom-right absolute bottom-0 right-0 w-3 h-3 cursor-se-resize hover:bg-primary/30 transition-colors z-10"></div>
+
+            <!-- Chat Content Container -->
+            <div class="flex flex-col h-full">
             <!-- Chat Header -->
             <div class="bg-gradient-to-r from-[#D4AF37] to-[#B8941F] p-4 flex items-center justify-between">
                 <div class="flex items-center">
@@ -26,7 +120,7 @@
             </div>
 
             <!-- Messages Area -->
-            <div id="messages-area" class="h-64 overflow-y-auto p-4 space-y-4 bg-gray-50">
+            <div id="messages-area" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
                 <!-- Messages will be appended here -->
                 <div ref="messagesEndRef"></div>
             </div>
@@ -56,17 +150,18 @@
 
                 <!-- Input Area -->
                 <div class="p-3 border-t border-gray-200 bg-white">
-                    <div class="flex space-x-2">
-                        <input id="chat-input" type="text" placeholder="Nhập tin nhắn của bạn..." class="flex-1 border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent text-sm" maxlength="500">
-                        <button id="send-btn" class="bg-[#D4AF37] text-white rounded-full p-2 hover:bg-[#B8941F] transition-colors disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Gửi tin nhắn">
+                    <div class="flex space-x-2 items-end">
+                        <textarea id="chat-input" placeholder="Nhập tin nhắn của bạn..." class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent text-sm resize-none overflow-hidden min-h-[40px] max-h-[120px]" maxlength="500" rows="1" style="word-wrap: break-word; white-space: pre-wrap; overflow-wrap: break-word;"></textarea>
+                        <button id="send-btn" class="bg-[#D4AF37] text-white rounded-full p-2 hover:bg-[#B8941F] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0" aria-label="Gửi tin nhắn">
                             <i data-lucide="send" class="h-4 w-4"></i>
                         </button>
                     </div>
                     <p class="text-xs text-gray-500 mt-1.5 text-center">
-                        Nhấn Enter để gửi • Tối đa 500 ký tự
+                        Nhấn Ctrl+Enter để gửi • Tối đa 500 ký tự
                     </p>
                 </div>
             </div>
+            </div> <!-- Close flex container -->
         </div>
     </div>
 

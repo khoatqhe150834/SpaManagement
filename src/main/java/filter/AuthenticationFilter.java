@@ -1,19 +1,20 @@
 package filter;
 
+import java.io.IOException;
+
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.FilterConfig;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
+import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import java.io.IOException;
 import model.Customer;
 import model.RoleConstants;
 import model.User;
-import jakarta.servlet.annotation.WebFilter;
 import util.SecurityConfig;
 
 /**
@@ -90,9 +91,18 @@ public class AuthenticationFilter implements Filter {
       // Handle AJAX requests
       if (isAjaxRequest(httpRequest)) {
         httpResponse.setContentType("application/json");
+        httpResponse.setCharacterEncoding("UTF-8");
         httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        httpResponse.getWriter().write("{\"error\":\"Authentication required\",\"redirectUrl\":\""
-            + contextPath + "/login\"}");
+
+        String jsonResponse = "{" +
+            "\"success\": false," +
+            "\"error\": \"Authentication required\"," +
+            "\"message\": \"You must be logged in to access this resource\"," +
+            "\"redirectUrl\": \"" + contextPath + "/login\"" +
+            "}";
+
+        System.out.println("[AuthenticationFilter] Sending JSON error response for AJAX request: " + jsonResponse);
+        httpResponse.getWriter().write(jsonResponse);
         return;
       }
 
@@ -110,8 +120,10 @@ public class AuthenticationFilter implements Filter {
     // Add security headers
     addSecurityHeaders(httpResponse);
 
-    // Set user context
-    setUserContext(httpRequest, session);
+    // Set user context only if authenticated
+    if (isAuthenticated) {
+      setUserContext(httpRequest, session);
+    }
 
     // Continue with the request
     chain.doFilter(request, response);
@@ -161,10 +173,27 @@ public class AuthenticationFilter implements Filter {
     String xRequestedWith = request.getHeader("X-Requested-With");
     String accept = request.getHeader("Accept");
     String contentType = request.getContentType();
+    String requestURI = request.getRequestURI();
 
-    return "XMLHttpRequest".equals(xRequestedWith) ||
+    // Check standard AJAX headers
+    boolean isAjax = "XMLHttpRequest".equals(xRequestedWith) ||
         (accept != null && accept.contains("application/json")) ||
         (contentType != null && contentType.contains("application/json"));
+
+    // Also check if the request is to an API endpoint that should return JSON
+    boolean isApiEndpoint = requestURI.contains("/api/") ||
+                           requestURI.contains("action=") ||
+                           requestURI.endsWith("/scheduling") ||
+                           (request.getParameter("action") != null);
+
+    System.out.println("[AuthenticationFilter] AJAX detection - URI: " + requestURI +
+                      ", X-Requested-With: " + xRequestedWith +
+                      ", Accept: " + accept +
+                      ", ContentType: " + contentType +
+                      ", isAjax: " + isAjax +
+                      ", isApiEndpoint: " + isApiEndpoint);
+
+    return isAjax || isApiEndpoint;
   }
 
   /**
@@ -184,6 +213,10 @@ public class AuthenticationFilter implements Filter {
    * Set user context for downstream components
    */
   private void setUserContext(HttpServletRequest request, HttpSession session) {
+    if (session == null) {
+      return;
+    }
+
     User user = (User) session.getAttribute("user");
     Customer customer = (Customer) session.getAttribute("customer");
 
@@ -191,13 +224,16 @@ public class AuthenticationFilter implements Filter {
       request.setAttribute("currentUser", user);
       request.setAttribute("userRoleId", user.getRoleId());
       request.setAttribute("userType", RoleConstants.getUserTypeFromRole(user.getRoleId()));
+      request.setAttribute("isAuthenticated", Boolean.TRUE);
     } else if (customer != null) {
       request.setAttribute("currentCustomer", customer);
       request.setAttribute("userRoleId", customer.getRoleId());
       request.setAttribute("userType", RoleConstants.getUserTypeFromRole(customer.getRoleId()));
+      request.setAttribute("isAuthenticated", Boolean.TRUE);
+    } else {
+      // No user or customer found - should not happen if called only when authenticated
+      request.setAttribute("isAuthenticated", Boolean.FALSE);
     }
-
-    request.setAttribute("isAuthenticated", true);
   }
 
   @Override

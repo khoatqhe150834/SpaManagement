@@ -35,6 +35,15 @@ public class UserDAO implements BaseDAO<User, Integer> {
         user.setBirthday(rs.getDate("birthday"));
         user.setAddress(rs.getString("address"));
         user.setAvatarUrl(rs.getString("avatar_url"));
+        
+        // Handle email verification field (may not exist in old database)
+        try {
+            user.setIsEmailVerified(rs.getBoolean("is_email_verified"));
+        } catch (SQLException e) {
+            // Column doesn't exist yet, set default value
+            user.setIsEmailVerified(false);
+        }
+        
         user.setLastLoginAt(rs.getDate("last_login_at"));
         user.setCreatedAt(rs.getDate("created_at"));
         user.setUpdatedAt(rs.getDate("updated_at"));
@@ -323,10 +332,21 @@ public class UserDAO implements BaseDAO<User, Integer> {
             }
         }
 
+        // Loại bỏ admin (1) và khách hàng (5) nếu không truyền role (chỉ lấy nhân viên: 2,3,4,6)
+        if (role == null || role.trim().isEmpty()) {
+            sql.append(" AND role_id IN (2,3,4,6)");
+        }
+
         // Add role condition
         if (role != null && !role.trim().isEmpty()) {
-            sql.append(" AND role_id = ?");
-            parameters.add(Integer.parseInt(role.trim()));
+            int roleId = Integer.parseInt(role.trim());
+            if (roleId != 5) { // Không lấy khách hàng
+                sql.append(" AND role_id = ?");
+                parameters.add(roleId);
+            } else {
+                // Nếu là role khách hàng thì không lấy user nào
+                sql.append(" AND 1=0");
+            }
         }
 
         // Add sorting
@@ -390,6 +410,11 @@ public class UserDAO implements BaseDAO<User, Integer> {
             }
         }
 
+        // Loại bỏ admin và customer nếu không truyền role (chỉ lấy nhân viên)
+        if (role == null || role.trim().isEmpty()) {
+            sql.append(" AND role_id != 1 AND role_id != 5");
+        }
+
         // Add role condition
         if (role != null && !role.trim().isEmpty()) {
             sql.append(" AND role_id = ?");
@@ -409,6 +434,83 @@ public class UserDAO implements BaseDAO<User, Integer> {
 
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Error getting total user count", e);
+            return 0;
+        }
+    }
+
+    // New methods for Profile Management (only Manager role)
+    public List<User> getPaginatedUsersForProfile(int page, int pageSize, String searchValue, String role) {
+        List<User> users = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT * FROM users WHERE 1=1");
+        List<Object> parameters = new ArrayList<>();
+
+        // Add search condition
+        if (searchValue != null && !searchValue.trim().isEmpty()) {
+            sql.append(" AND (full_name LIKE ? OR email LIKE ? OR phone_number LIKE ?)");
+            String searchPattern = "%" + searchValue.trim() + "%";
+            parameters.add(searchPattern);
+            parameters.add(searchPattern);
+            parameters.add(searchPattern);
+        }
+
+        // Force role to be Manager only (role_id = 2)
+        sql.append(" AND role_id = 2");
+
+        sql.append(" ORDER BY user_id ASC");
+        sql.append(" LIMIT ? OFFSET ?");
+        parameters.add(pageSize);
+        parameters.add((page - 1) * pageSize);
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
+            for (int i = 0; i < parameters.size(); i++) {
+                ps.setObject(i + 1, parameters.get(i));
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    users.add(buildUserFromResultSet(rs));
+                }
+            }
+
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error getting paginated users for profile", e);
+            throw new RuntimeException("Error getting paginated users for profile: " + e.getMessage(), e);
+        }
+
+        return users;
+    }
+
+    public int getTotalUserCountForProfile(String searchValue, String role) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM users WHERE 1=1");
+        List<Object> parameters = new ArrayList<>();
+
+        // Add search condition
+        if (searchValue != null && !searchValue.trim().isEmpty()) {
+            sql.append(" AND (full_name LIKE ? OR email LIKE ? OR phone_number LIKE ?)");
+            String searchPattern = "%" + searchValue.trim() + "%";
+            parameters.add(searchPattern);
+            parameters.add(searchPattern);
+            parameters.add(searchPattern);
+        }
+
+        // Force role to be Manager only (role_id = 2)
+        sql.append(" AND role_id = 2");
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
+            for (int i = 0; i < parameters.size(); i++) {
+                ps.setObject(i + 1, parameters.get(i));
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt(1) : 0;
+            }
+
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error getting total user count for profile", e);
             return 0;
         }
     }
@@ -482,6 +584,63 @@ public class UserDAO implements BaseDAO<User, Integer> {
         }
     }
 
+    /**
+     * Generate secure random password for user reset
+     * @return randomly generated password with mixed characters
+     */
+    public String generateSecurePassword() {
+        java.security.SecureRandom random = new java.security.SecureRandom();
+        
+        // Character sets
+        String upperCase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        String lowerCase = "abcdefghijklmnopqrstuvwxyz";
+        String digits = "0123456789";
+        String special = "!@#$%";
+        
+        StringBuilder password = new StringBuilder();
+        
+        // Ensure at least 2 characters from each category (8 total)
+        for (int i = 0; i < 2; i++) {
+            password.append(upperCase.charAt(random.nextInt(upperCase.length())));
+            password.append(lowerCase.charAt(random.nextInt(lowerCase.length())));
+            password.append(digits.charAt(random.nextInt(digits.length())));
+            password.append(special.charAt(random.nextInt(special.length())));
+        }
+        
+        // Shuffle the password characters
+        char[] chars = password.toString().toCharArray();
+        for (int i = chars.length - 1; i > 0; i--) {
+            int j = random.nextInt(i + 1);
+            char temp = chars[i];
+            chars[i] = chars[j];
+            chars[j] = temp;
+        }
+        
+        return new String(chars);
+    }
+
+    /**
+     * Reset password for a user and return the new password
+     * @param userId user ID to reset password for
+     * @return new password if successful, null if failed
+     */
+    public String resetPassword(int userId) {
+        try {
+            String newPassword = generateSecurePassword();
+            boolean updated = updatePassword(userId, newPassword);
+            if (updated) {
+                logger.info("Password reset successful for user ID: " + userId);
+                return newPassword;
+            } else {
+                logger.warning("Password reset failed for user ID: " + userId);
+                return null;
+            }
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error resetting password for user ID: " + userId, e);
+            return null;
+        }
+    }
+
     public boolean isEmailExists(String email) {
         String sql = "SELECT COUNT(*) FROM users WHERE email = ?";
         try (Connection conn = DBContext.getConnection();
@@ -510,34 +669,25 @@ public class UserDAO implements BaseDAO<User, Integer> {
         }
     }
 
-    // Existing methods remain unchanged
-    @Override
-    public <S extends User> S save(S user) {
-        String sql = "INSERT INTO users (role_id, full_name, email, hash_password, phone_number, gender, birthday, avatar_url, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        try (Connection conn = DBContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setInt(1, user.getRoleId());
-            ps.setString(2, user.getFullName());
-            ps.setString(3, user.getEmail());
-            ps.setString(4, user.getHashPassword());
-            ps.setString(5, user.getPhoneNumber());
-            ps.setString(6, user.getGender());
-            ps.setDate(7, user.getBirthday() != null ? new java.sql.Date(user.getBirthday().getTime()) : null);
-            ps.setString(8, user.getAvatarUrl());
-            ps.setBoolean(9, user.getIsActive());
-
-            int rows = ps.executeUpdate();
-            if (rows > 0) {
-                try (ResultSet rs = ps.getGeneratedKeys()) {
-                    if (rs.next()) {
-                        user.setUserId(rs.getInt(1));
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return user;
+    public boolean existsByEmail(String email) {
+        if (email == null || email.trim().isEmpty()) return false;
+        return findAll().stream().anyMatch(u -> email.equalsIgnoreCase(u.getEmail()));
     }
+    public boolean existsByPhone(String phone) {
+        if (phone == null || phone.trim().isEmpty()) return false;
+        return findAll().stream().anyMatch(u -> phone.equals(u.getPhoneNumber()));
+    }
+    public boolean existsByEmailExceptId(String email, int userId) {
+        if (email == null || email.trim().isEmpty()) return false;
+        return findAll().stream().anyMatch(u -> email.equalsIgnoreCase(u.getEmail()) && u.getUserId() != null && u.getUserId() != userId);
+    }
+    public boolean existsByPhoneExceptId(String phone, int userId) {
+        if (phone == null || phone.trim().isEmpty()) return false;
+        return findAll().stream().anyMatch(u -> phone.equals(u.getPhoneNumber()) && u.getUserId() != null && u.getUserId() != userId);
+    }
+
+    // Existing methods remain unchanged
+    // Removed - implemented below with proper error handling
 
     public Optional<User> findById(int userId) {
         try (Connection connection = DBContext.getConnection();
@@ -558,6 +708,15 @@ public class UserDAO implements BaseDAO<User, Integer> {
                 user.setBirthday(rs.getDate("birthday"));
                 user.setAddress(rs.getString("address"));
                 user.setAvatarUrl(rs.getString("avatar_url"));
+                
+                // Handle email verification field (may not exist in old database)
+                try {
+                    user.setIsEmailVerified(rs.getBoolean("is_email_verified"));
+                } catch (SQLException e) {
+                    // Column doesn't exist yet, set default value
+                    user.setIsEmailVerified(false);
+                }
+                
                 user.setLastLoginAt(rs.getDate("last_login_at"));
                 user.setCreatedAt(rs.getDate("created_at"));
                 user.setUpdatedAt(rs.getDate("updated_at"));
@@ -588,6 +747,15 @@ public class UserDAO implements BaseDAO<User, Integer> {
                 user.setGender(rs.getString("gender"));
                 user.setBirthday(rs.getDate("birthday"));
                 user.setAvatarUrl(rs.getString("avatar_url"));
+                
+                // Handle email verification field (may not exist in old database)
+                try {
+                    user.setIsEmailVerified(rs.getBoolean("is_email_verified"));
+                } catch (SQLException e) {
+                    // Column doesn't exist yet, set default value
+                    user.setIsEmailVerified(false);
+                }
+                
                 user.setLastLoginAt(rs.getDate("last_login_at"));
                 user.setCreatedAt(rs.getDate("created_at"));
                 user.setUpdatedAt(rs.getDate("updated_at"));
@@ -611,10 +779,7 @@ public class UserDAO implements BaseDAO<User, Integer> {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    @Override
-    public <S extends User> S update(S entity) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
+    // Removed - implemented below
 
     @Override
     public void delete(User entity) {
@@ -658,6 +823,15 @@ public class UserDAO implements BaseDAO<User, Integer> {
                 user.setGender(rs.getString("gender"));
                 user.setBirthday(rs.getDate("birthday"));
                 user.setAvatarUrl(rs.getString("avatar_url"));
+                
+                // Handle email verification field (may not exist in old database)
+                try {
+                    user.setIsEmailVerified(rs.getBoolean("is_email_verified"));
+                } catch (SQLException e) {
+                    // Column doesn't exist yet, set default value
+                    user.setIsEmailVerified(false);
+                }
+                
                 user.setLastLoginAt(rs.getDate("last_login_at"));
                 user.setCreatedAt(rs.getDate("created_at"));
                 user.setUpdatedAt(rs.getDate("updated_at"));
@@ -700,6 +874,243 @@ public class UserDAO implements BaseDAO<User, Integer> {
     @Override
     public Optional<User> findById(Integer id) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    // Trả về tất cả nhân viên (roleId=3) do manager quản lý (dummy, có thể thay đổi sau)
+    public List<User> findAllManagedBy(Integer managerId) {
+        List<User> all = findAll();
+        List<User> managed = new java.util.ArrayList<>();
+        for (User u : all) {
+            // Manager chỉ quản lý nhân viên (roleId = 3)
+            if (u.getRoleId() != null && u.getRoleId() == 3) {
+                managed.add(u);
+            }
+        }
+        return managed;
+    }
+
+    // Kiểm tra userId có phải là nhân viên do managerId quản lý không (dummy, có thể thay đổi sau)
+    public boolean isManagedBy(int userId, Integer managerId) {
+        Optional<User> userOpt = findById(userId);
+        // Manager chỉ quản lý nhân viên (roleId = 3)
+        return userOpt.isPresent() && userOpt.get().getRoleId() != null && userOpt.get().getRoleId() == 3;
+    }
+
+    // Trả về tất cả nhân viên (không bao gồm khách hàng roleId=5)
+    public List<User> findAllStaff() {
+        List<User> all = findAll();
+        List<User> staff = new java.util.ArrayList<>();
+        for (User u : all) {
+            // Lấy tất cả user trừ khách hàng (roleId = 5)
+            if (u.getRoleId() != null && u.getRoleId() != 5) {
+                staff.add(u);
+            }
+        }
+        return staff;
+    }
+
+    // Xóa user (chỉ Admin)
+    public boolean deleteUser(int userId) {
+        String sql = "DELETE FROM users WHERE user_id = ?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            int rowsAffected = ps.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error deleting user", e);
+            return false;
+        }
+    }
+
+    // Thêm method saveUser để tạo user mới (không throws SQLException)
+    public boolean saveUser(User entity) {
+        try {
+            return save(entity) != null;
+        } catch (SQLException e) {
+            String errorMessage = e.getMessage();
+            logger.log(Level.SEVERE, "Error saving user: " + errorMessage, e);
+            
+            // Log chi tiết lỗi phổ biến
+            if (errorMessage.contains("Duplicate entry")) {
+                if (errorMessage.contains("email")) {
+                    logger.severe("Duplicate email: " + entity.getEmail());
+                } else if (errorMessage.contains("phone")) {
+                    logger.severe("Duplicate phone: " + entity.getPhoneNumber());
+                }
+            } else if (errorMessage.contains("cannot be null")) {
+                logger.severe("Required field is null");
+            } else if (errorMessage.contains("Data too long")) {
+                logger.severe("Data too long for field");
+            }
+            
+            return false;
+        }
+    }
+    
+    // Hàm tự động sinh email ngẫu nhiên
+    private String generateRandomEmail() {
+        String chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+        StringBuilder email = new StringBuilder();
+        java.security.SecureRandom random = new java.security.SecureRandom();
+        
+        // Sinh username ngẫu nhiên (8 ký tự)
+        for (int i = 0; i < 8; i++) {
+            email.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        
+        return email.toString() + "@spamanagement.com";
+    }
+    
+    // Hàm tự động sinh mật khẩu ngẫu nhiên an toàn
+    private String generateRandomPassword() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+        StringBuilder password = new StringBuilder();
+        java.security.SecureRandom random = new java.security.SecureRandom();
+        
+        for (int i = 0; i < 12; i++) {
+            password.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        
+        return password.toString();
+    }
+    
+    // Thêm method save để tạo user mới
+    @Override
+    public <S extends User> S save(S entity) throws SQLException {
+        // Tự động sinh email và password nếu chưa có
+        if (entity.getEmail() == null || entity.getEmail().trim().isEmpty()) {
+            String randomEmail = generateRandomEmail();
+            // Đảm bảo email không trùng lặp
+            while (isEmailExists(randomEmail)) {
+                randomEmail = generateRandomEmail();
+            }
+            entity.setEmail(randomEmail);
+        }
+        
+        if (entity.getHashPassword() == null || entity.getHashPassword().trim().isEmpty()) {
+            String randomPassword = generateRandomPassword();
+            entity.setHashPassword(BCrypt.hashpw(randomPassword, BCrypt.gensalt()));
+            
+            // Log mật khẩu gốc để admin có thể thông báo cho user (chỉ trong development)
+            logger.info("Generated password for user " + entity.getEmail() + ": " + randomPassword);
+        }
+        
+        String sql = "INSERT INTO users (role_id, full_name, email, hash_password, phone_number, is_active, gender, birthday, address, avatar_url, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            
+            java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
+            
+            // Log giá trị trước khi insert để debug
+            logger.info("Inserting user: roleId=" + entity.getRoleId() 
+                + ", fullName=" + entity.getFullName() 
+                + ", email=" + entity.getEmail() 
+                + ", phoneNumber=" + entity.getPhoneNumber() 
+                + ", isActive=" + entity.getIsActive() 
+                + ", gender=" + entity.getGender() 
+                + ", birthday=" + entity.getBirthday() 
+                + ", address=" + entity.getAddress() 
+                + ", avatarUrl=" + entity.getAvatarUrl());
+            
+            // Validate dữ liệu trước khi insert
+            if (entity.getRoleId() == null || entity.getRoleId() <= 0) {
+                throw new SQLException("Role ID is required and must be positive");
+            }
+            if (entity.getFullName() == null || entity.getFullName().trim().isEmpty()) {
+                throw new SQLException("Full name is required");
+            }
+            if (entity.getEmail() == null || entity.getEmail().trim().isEmpty()) {
+                throw new SQLException("Email is required");
+            }
+            if (entity.getHashPassword() == null || entity.getHashPassword().trim().isEmpty()) {
+                throw new SQLException("Password is required");
+            }
+            if (entity.getIsActive() == null) {
+                entity.setIsActive(true); // Default active
+            }
+            
+            ps.setInt(1, entity.getRoleId());
+            ps.setString(2, entity.getFullName().trim());
+            ps.setString(3, entity.getEmail().trim());
+            ps.setString(4, entity.getHashPassword());
+            ps.setString(5, entity.getPhoneNumber() != null ? entity.getPhoneNumber().trim() : null);
+            ps.setBoolean(6, entity.getIsActive());
+            ps.setString(7, entity.getGender());
+            ps.setDate(8, entity.getBirthday() != null ? new java.sql.Date(entity.getBirthday().getTime()) : null);
+            ps.setString(9, entity.getAddress() != null ? entity.getAddress().trim() : null);
+            ps.setString(10, entity.getAvatarUrl());
+            ps.setTimestamp(11, now);
+            ps.setTimestamp(12, now);
+            
+            int rowsAffected = ps.executeUpdate();
+            
+            if (rowsAffected > 0) {
+                try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        entity.setUserId(generatedKeys.getInt(1));
+                        entity.setCreatedAt(now);
+                        entity.setUpdatedAt(now);
+                        return entity;
+                    }
+                }
+            }
+            
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error saving user: " + e.getMessage(), e);
+            throw e;
+        }
+        
+        return null;
+    }
+
+    // Thêm method updateUser (không throws SQLException)
+    public boolean updateUser(User entity) {
+        try {
+            return update(entity) != null;
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error updating user", e);
+            return false;
+        }
+    }
+    
+    // Cập nhật method update
+    @Override
+    public <S extends User> S update(S entity) throws SQLException {
+        String sql = "UPDATE users SET role_id = ?, full_name = ?, email = ?, hash_password = ?, phone_number = ?, is_active = ?, gender = ?, birthday = ?, address = ?, avatar_url = ?, updated_at = ? WHERE user_id = ?";
+        
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
+            
+            ps.setInt(1, entity.getRoleId());
+            ps.setString(2, entity.getFullName());
+            ps.setString(3, entity.getEmail());
+            ps.setString(4, entity.getHashPassword());
+            ps.setString(5, entity.getPhoneNumber());
+            ps.setBoolean(6, entity.getIsActive());
+            ps.setString(7, entity.getGender());
+            ps.setDate(8, entity.getBirthday() != null ? new java.sql.Date(entity.getBirthday().getTime()) : null);
+            ps.setString(9, entity.getAddress());
+            ps.setString(10, entity.getAvatarUrl());
+            ps.setTimestamp(11, now);
+            ps.setInt(12, entity.getUserId());
+            
+            int rowsAffected = ps.executeUpdate();
+            
+            if (rowsAffected > 0) {
+                entity.setUpdatedAt(now);
+                return entity;
+            }
+            
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error updating user", e);
+            throw e;
+        }
+        
+        return null;
     }
 
 }

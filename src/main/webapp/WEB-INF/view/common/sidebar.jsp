@@ -61,7 +61,7 @@
     }
 
     // Generate role-based menu items using MenuService
-    List<MenuItem> menuItems = MenuService.getMenuItemsByRole(userRole, request.getContextPath());
+    List<MenuItem> menuItems = MenuService.getSidebarMenuItems(userRole, request.getContextPath());
 
     pageContext.setAttribute("userRole", userRole);
     pageContext.setAttribute("contextPath", request.getContextPath());
@@ -71,17 +71,58 @@
     pageContext.setAttribute("menuItems", menuItems);
 %>
 
+<!-- Custom Scrollbar Styling for Sidebar Navigation -->
+<style>
+    /* Custom scrollbar for sidebar navigation */
+    .sidebar-nav-container {
+        scrollbar-width: thin;
+        scrollbar-color: #D4AF37 #FFF8F0;
+    }
+
+    /* Webkit browsers (Chrome, Safari, Edge) */
+    .sidebar-nav-container::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .sidebar-nav-container::-webkit-scrollbar-track {
+        background: #FFF8F0;
+        border-radius: 3px;
+    }
+
+    .sidebar-nav-container::-webkit-scrollbar-thumb {
+        background: #D4AF37;
+        border-radius: 3px;
+        transition: background-color 0.2s ease;
+    }
+
+    .sidebar-nav-container::-webkit-scrollbar-thumb:hover {
+        background: #B8941F;
+    }
+
+    /* Smooth scrolling behavior */
+    .sidebar-nav-container {
+        scroll-behavior: smooth;
+    }
+
+    /* Mobile responsive adjustments */
+    @media (max-width: 768px) {
+        .sidebar-nav-container::-webkit-scrollbar {
+            width: 4px;
+        }
+    }
+</style>
+
 <!-- Enhanced Role-Based Sidebar with MenuService Integration -->
-<div class="fixed left-0 top-0 w-64 h-full bg-spa-cream p-4 z-50 sidebar-menu transition-transform border-r border-primary/20">
-    <a href="${pageContext.request.contextPath}/dashboard" class="flex items-center pb-4 border-b border-primary/30">
+<div class="fixed left-0 top-0 w-64 h-full bg-spa-cream p-4 z-50 sidebar-menu transition-transform border-r border-primary/20 flex flex-col">
+    <a href="${pageContext.request.contextPath}/dashboard" class="flex items-center pb-4 border-b border-primary/30 flex-shrink-0">
         <h2 class="font-bold text-2xl text-spa-dark">Spa <span class="bg-primary text-white px-2 rounded-md">Hương Sen</span></h2>
     </a>
     
-    <div class="mt-4">
+    <div class="mt-4 flex-1 overflow-hidden">
             <c:choose>
             <%-- ============================ DYNAMIC ROLE-BASED NAVIGATION ============================ --%>
             <c:when test="${userRole != 'GUEST'}">
-                <div class="space-y-1">
+                <div class="space-y-1 h-full overflow-y-auto pr-2 sidebar-nav-container">
                     <c:set var="currentSection" value="" />
                     <c:forEach var="menuItem" items="${menuItems}">
                         <%
@@ -174,8 +215,9 @@
 
             <%-- ============================ GUEST/UNAUTHENTICATED NAVIGATION ============================ --%>
             <c:otherwise>
-                <span class="text-primary/70 font-bold text-xs uppercase tracking-wider">TỔNG QUAN</span>
-                <div class="mt-2">
+                <div class="h-full overflow-y-auto pr-2 sidebar-nav-container">
+                    <span class="text-primary/70 font-bold text-xs uppercase tracking-wider">TỔNG QUAN</span>
+                    <div class="mt-2">
                     <div class="mb-1 group">
                         <a href="${pageContext.request.contextPath}/login" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
                             <i data-lucide="log-in" class="mr-3 h-4 w-4"></i>
@@ -188,6 +230,7 @@
                             <span class="text-sm">Đăng ký</span>
                         </a>
                     </div>
+                </div>
                 </div>
             </c:otherwise>
         </c:choose>

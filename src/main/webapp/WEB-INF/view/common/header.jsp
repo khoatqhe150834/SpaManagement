@@ -29,7 +29,7 @@ prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
             showBookingFeatures = false; // Hide for staff/admin roles
         }
         if (userRole != null) {
-            userMenuItems = MenuService.getMenuItemsByRole(userRole, request.getContextPath());
+            userMenuItems = MenuService.getAvatarDropdownMenuItems(userRole, request.getContextPath());
         }
     }
     
@@ -41,22 +41,24 @@ prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <!-- Header -->
     <header
       id="header"
-      class="fixed top-0 left-0 w-full bg-white/95 backdrop-blur-sm border-b border-gray-200 z-50 transition-all duration-300 pl-64"
+      class="fixed top-0 left-0 w-full bg-white/95 backdrop-blur-sm border-b border-gray-200 z-50 transition-all duration-300"
     >
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center py-4">
           <!-- Logo -->
           <div class="flex items-center">
-            <div class="text-2xl font-serif font-bold text-primary">
+            <a href="${pageContext.request.contextPath}/"
+               class="text-2xl font-serif font-bold text-primary hover:text-primary-dark transition-colors duration-200 cursor-pointer"
+               aria-label="Về trang chủ">
               Spa Hương Sen
-            </div>
+            </a>
           </div>
 
           <!-- Navigation -->
           <nav class="hidden md:flex space-x-8">
             <c:forEach var="item" items="${mainNavItems}">
-              <!-- Hide booking and services links for staff users -->
-              <c:if test="${showBookingFeatures or (item.label != 'Đặt lịch' and item.label != 'Dịch vụ')}">
+              <!-- Hide booking link for staff users -->
+              <c:if test="${showBookingFeatures or item.label != 'Đặt lịch'}">
               <a
                 href="${item.url}"
                 class="text-spa-dark hover:text-primary transition-colors font-medium <c:if test='${item.url.endsWith(currentPath)}'>border-b-2 border-primary</c:if>"
@@ -67,7 +69,45 @@ prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
           <!-- User Actions -->
           <div class="flex items-center space-x-4">
-            
+
+            <!-- Notification Bell Icon - Only for Managers and Admins -->
+            <c:if test="${not empty sessionScope.user}">
+              <c:set var="userRoleName" value="<%= RoleConstants.getUserTypeFromRole(((model.User)session.getAttribute(\"user\")).getRoleId()) %>" />
+              <c:if test="${userRoleName == 'ADMIN' || userRoleName == 'MANAGER'}">
+                <div class="relative">
+                  <button id="notification-bell-btn" class="relative p-2 text-spa-dark hover:text-primary transition-colors">
+                    <i data-lucide="bell" class="w-6 h-6 pointer-events-none"></i>
+                    <span id="notification-badge" class="absolute inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-600 border-2 border-white rounded-full -top-1 -right-1" style="display: none;">0</span>
+                  </button>
+
+                  <!-- Notification Dropdown -->
+                  <div id="notification-dropdown" class="absolute right-0 z-20 mt-2 w-80 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none hidden">
+                    <div class="py-1">
+                      <!-- Notification Header -->
+                      <div class="px-4 py-3 border-b border-gray-200">
+                        <div class="flex justify-between items-center">
+                          <h3 class="text-sm font-medium text-spa-dark">Thông báo</h3>
+                          <a href="${pageContext.request.contextPath}/notifications" class="text-xs text-primary hover:text-primary-dark">Xem tất cả</a>
+                        </div>
+                      </div>
+
+                      <!-- Notification List -->
+                      <div id="notification-list" class="max-h-64 overflow-y-auto">
+                        <div class="px-4 py-3 text-sm text-gray-500 text-center">
+                          Đang tải thông báo...
+                        </div>
+                      </div>
+
+                      <!-- Notification Footer -->
+                      <div class="px-4 py-2 border-t border-gray-200 text-center">
+                        <a href="${pageContext.request.contextPath}/notifications" class="text-xs text-primary hover:text-primary-dark">Xem tất cả thông báo</a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </c:if>
+            </c:if>
+
             <c:choose>
               <c:when test="${not empty sessionScope.authenticated and sessionScope.authenticated}">
                   
@@ -180,34 +220,17 @@ prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
                             <c:when test="${item.divider}">
                               <div class="border-t border-gray-200 my-1"></div>
                             </c:when>
-                            <%-- Skip section headers (items with null URL) and only show actual menu items --%>
-                            <c:when test="${not empty item.url and not empty item.label}">
+                            <c:otherwise>
                               <a href="${item.url}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
                                 <i data-lucide="${item.icon}" class="mr-3 h-4 w-4"></i>
                                 ${item.label}
                               </a>
-                            </c:when>
+                            </c:otherwise>
                           </c:choose>
                         </c:forEach>
-                        
-                        <!-- Logout button -->
-                        <div class="border-t border-gray-200 my-1"></div>
-                        <button onclick="confirmLogout()" class="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50" role="menuitem">
-                            <i data-lucide="log-out" class="mr-3 h-4 w-4"></i>
-                            Đăng xuất
-                        </button>
                       </div>
                     </div>
       </div>
-
-                <!-- Logout confirmation script -->
-                <script>
-                    function confirmLogout() {
-                        if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
-                            window.location.href = '${pageContext.request.contextPath}/logout';
-                        }
-                    }
-                </script>
               </c:when>
               <c:otherwise>
                 <a
@@ -245,8 +268,8 @@ prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
         >
           <nav class="space-y-2">
             <c:forEach var="item" items="${mainNavItems}">
-              <!-- Hide booking and services links for staff users -->
-              <c:if test="${showBookingFeatures or (item.label != 'Đặt lịch' and item.label != 'Dịch vụ')}">
+              <!-- Hide booking link for staff users -->
+              <c:if test="${showBookingFeatures or item.label != 'Đặt lịch'}">
               <a href="${item.url}" class="block py-2 text-spa-dark hover:text-primary">${item.label}</a>
               </c:if>
             </c:forEach>
@@ -323,8 +346,7 @@ prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
                   </div>
                   
                   <c:forEach var="item" items="${userMenuItems}">
-                    <%-- Skip dividers and section headers (items with null URL) --%>
-                    <c:if test="${not item.divider and not empty item.url and not empty item.label}">
+                    <c:if test="${not item.divider}">
                       <a href="${item.url}" class="block py-2 text-spa-dark hover:text-primary">${item.label}</a>
                     </c:if>
                   </c:forEach>
@@ -399,6 +421,13 @@ prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <!-- Cart Script -->
 <script src="${pageContext.request.contextPath}/js/cart.js"></script>
 </c:if>
+
+<!-- Notification Script for Managers and Admins -->
+<c:if test="${not empty sessionScope.user}">
+  <c:set var="userRoleName" value="<%= RoleConstants.getUserTypeFromRole(((model.User)session.getAttribute(\"user\")).getRoleId()) %>" />
+  <c:if test="${userRoleName == 'ADMIN' || userRoleName == 'MANAGER'}">
+    <script src="${pageContext.request.contextPath}/js/header-notifications.js"></script>
+  </c:if>
+</c:if>
   </body>
 </html>
-

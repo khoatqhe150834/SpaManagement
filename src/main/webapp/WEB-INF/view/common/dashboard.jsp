@@ -49,6 +49,11 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
+    <!-- Sidebar Notifications Script for Managers and Admins -->
+    <c:if test="${sessionScope.userType == 'ADMIN' || sessionScope.userType == 'MANAGER'}">
+        <script src="<c:url value='/js/sidebar-notifications.js'/>"></script>
+    </c:if>
+
     <!-- Box Icons and Remix Icons for backward compatibility -->
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
@@ -477,6 +482,10 @@
                                 <a href="${pageContext.request.contextPath}/customer/history" class="p-4 border border-gray-200 rounded-lg hover:border-primary hover:bg-spa-cream transition-all text-center group">
                                         <div class="mb-3 flex justify-center"><i data-lucide="file-text" class="h-8 w-8 text-blue-500"></i></div>
                                         <h4 class="font-semibold text-gray-900 group-hover:text-primary transition-colors">Xem lịch sử</h4>
+                                </a>
+                                <a href="${pageContext.request.contextPath}/customer/payment-history" class="p-4 border border-gray-200 rounded-lg hover:border-primary hover:bg-spa-cream transition-all text-center group">
+                                        <div class="mb-3 flex justify-center"><i data-lucide="credit-card" class="h-8 w-8 text-purple-500"></i></div>
+                                        <h4 class="font-semibold text-gray-900 group-hover:text-primary transition-colors">Lịch sử thanh toán</h4>
                                 </a>
                                 <a href="${pageContext.request.contextPath}/customer/loyalty" class="p-4 border border-gray-200 rounded-lg hover:border-primary hover:bg-spa-cream transition-all text-center group">
                                         <div class="mb-3 flex justify-center"><i data-lucide="gift" class="h-8 w-8 text-green-500"></i></div>

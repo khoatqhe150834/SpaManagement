@@ -1,7 +1,5 @@
 package model;
 
-import model.User;
-import model.Customer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -150,8 +148,10 @@ public class MenuService {
     menuItems.add(new MenuItem("Giới thiệu", contextPath + "/about", "info"));
     menuItems.add(new MenuItem("Blog", contextPath + "/blog", "book-open"));
     menuItems.add(new MenuItem("Dịch vụ", contextPath + "/services", "sparkles"));
-    menuItems.add(new MenuItem("Khuyến mãi", contextPath + "/promotions", "gift"));
+    // menuItems.add(new MenuItem("Khuyến mãi", contextPath + "/promotions",
+    // "gift"));
     menuItems.add(new MenuItem("Đặt lịch", contextPath + "/booking", "calendar-plus"));
+
     menuItems.add(new MenuItem("Liên hệ", contextPath + "/contact", "phone"));
     return menuItems;
   }
@@ -167,12 +167,24 @@ public class MenuService {
     menuItems.add(new MenuItem("QUẢN LÝ", true));
     menuItems.add(new MenuItem("Dashboard", contextPath + "/dashboard", "layout-dashboard", "management"));
 
-    // User Management with sub-items
-    MenuItem userMgmt = new MenuItem("Quản lý người dùng", contextPath + "/user/list", "users", "management");
-    userMgmt.addSubItem(new MenuItem("Tất cả người dùng", contextPath + "/user/list", "users"));
-    userMgmt.addSubItem(new MenuItem("Vai trò & Quyền", contextPath + "/user/roles", "shield"));
-    userMgmt.addSubItem(new MenuItem("Thêm người dùng", contextPath + "/user/add", "user-plus"));
+    // Notifications Section
+    menuItems.add(new MenuItem("Thông báo", contextPath + "/notifications", "bell", "management")
+        .withNotification("0", "red"));
+
+    // User Management (Admin - full access)
+    MenuItem userMgmt = new MenuItem("Quản lý nhân viên", contextPath + "/user-management/list", "users", "management");
+    userMgmt.addSubItem(new MenuItem("Danh sách nhân viên", contextPath + "/user-management/list", "list"));
+    userMgmt.addSubItem(new MenuItem("Thêm nhân viên", contextPath + "/user-management/add", "user-plus"));
+    userMgmt.addSubItem(new MenuItem("Phân quyền hệ thống", contextPath + "/user-management/permissions", "shield"));
     menuItems.add(userMgmt);
+
+    // Customer Management
+    MenuItem customerMgmt = new MenuItem("Quản lý thông tin khách hàng", contextPath + "/customer-management/list", "users", "management");
+    customerMgmt.addSubItem(new MenuItem("Danh sách khách hàng", contextPath + "/customer-management/list", "list"));
+    customerMgmt.addSubItem(new MenuItem("Thêm khách hàng", contextPath + "/customer-management/add", "user-plus"));
+    customerMgmt.addSubItem(new MenuItem("Kích hoạt tài khoản", contextPath + "/customer-management/activate", "toggle-right"));
+    customerMgmt.addSubItem(new MenuItem("Đặt lại mật khẩu", contextPath + "/customer-management/reset-password", "key"));
+    menuItems.add(customerMgmt);
 
     // System Management
     menuItems.add(new MenuItem("Cài đặt hệ thống", contextPath + "/admin/settings", "settings", "management"));
@@ -182,8 +194,7 @@ public class MenuService {
     menuItems.add(new MenuItem("TÀI CHÍNH", true));
     menuItems.add(new MenuItem("Báo cáo doanh thu", contextPath + "/admin/revenue", "bar-chart", "financial"));
     menuItems.add(new MenuItem("Quản lý thanh toán", contextPath + "/admin/payments", "credit-card", "financial"));
-    menuItems
-        .add(new MenuItem("Báo cáo tài chính", contextPath + "/admin/financial-reports", "file-text", "financial"));
+    menuItems.add(new MenuItem("Báo cáo tài chính", contextPath + "/admin/financial-reports", "file-text", "financial"));
 
     return menuItems;
   }
@@ -199,14 +210,34 @@ public class MenuService {
     menuItems.add(new MenuItem("QUẢN LÝ", true));
     menuItems.add(new MenuItem("Dashboard", contextPath + "/dashboard", "layout-dashboard", "management"));
 
-    // Staff Management Section
-    MenuItem staffMgmt = new MenuItem("Quản lý nhân viên", contextPath + "/manager/staff", "users", "management");
-    staffMgmt.addSubItem(new MenuItem("Tất cả nhân viên", contextPath + "/manager/staff/all", "users"));
-    staffMgmt.addSubItem(new MenuItem("Tuyển dụng", contextPath + "/manager/staff/recruitment", "user-plus"));
-    staffMgmt.addSubItem(new MenuItem("Đánh giá hiệu suất", contextPath + "/manager/staff/performance", "star"));
-    staffMgmt.addSubItem(new MenuItem("Đào tạo", contextPath + "/manager/staff/training", "book-open"));
-    staffMgmt.addSubItem(new MenuItem("Lịch làm việc", contextPath + "/manager/staff/schedules", "calendar"));
-    menuItems.add(staffMgmt);
+    // Notifications Section
+    menuItems.add(new MenuItem("Thông báo", contextPath + "/notifications", "bell", "management")
+        .withNotification("0", "red"));
+    menuItems.add(new MenuItem("Thông báo thanh toán", contextPath + "/manager/payment-notifications", "credit-card", "management")
+        .withNotification("0", "red"));
+
+    // User Management (Manager - limited access)
+    MenuItem userMgmt = new MenuItem("Quản lý nhân viên", contextPath + "/user-management/list", "users", "management");
+    userMgmt.addSubItem(new MenuItem("Danh sách cấp dưới", contextPath + "/user-management/list", "list"));
+    userMgmt.addSubItem(new MenuItem("Thêm nhân viên", contextPath + "/user-management/add", "user-plus"));
+    userMgmt.addSubItem(new MenuItem("Thông tin cá nhân", contextPath + "/user-management/view?id=self", "user"));
+    menuItems.add(userMgmt);
+
+    // Customer Management
+    MenuItem customerMgmt = new MenuItem("Quản lý thông tin khách hàng", contextPath + "/customer-management/list", "users", "management");
+    customerMgmt.addSubItem(new MenuItem("Danh sách khách hàng", contextPath + "/customer-management/list", "list"));
+    customerMgmt.addSubItem(new MenuItem("Thêm khách hàng", contextPath + "/customer-management/add", "user-plus"));
+    customerMgmt.addSubItem(new MenuItem("Kích hoạt tài khoản", contextPath + "/customer-management/activate", "toggle-right"));
+    customerMgmt.addSubItem(new MenuItem("Đặt lại mật khẩu", contextPath + "/customer-management/reset-password", "key"));
+    menuItems.add(customerMgmt);
+
+    // Payment Management Section
+    MenuItem paymentMgmt = new MenuItem("Quản lý thanh toán", contextPath + "/manager/payments-management", "credit-card", "payments");
+    paymentMgmt.addSubItem(new MenuItem("Tất cả thanh toán", contextPath + "/manager/payments-management", "list"));
+    paymentMgmt.addSubItem(new MenuItem("Thanh toán chờ xử lý", contextPath + "/manager/payments-management?status=PENDING", "clock"));
+    paymentMgmt.addSubItem(new MenuItem("Thanh toán thất bại", contextPath + "/manager/payments-management?status=FAILED", "x-circle"));
+    paymentMgmt.addSubItem(new MenuItem("Yêu cầu hoàn tiền", contextPath + "/manager/payments-management?status=REFUNDED", "refresh-cw"));
+    menuItems.add(paymentMgmt);
 
     // Service Management Section
     menuItems.add(new MenuItem("DỊCH VỤ & VẬN HÀNH", true));
@@ -221,17 +252,18 @@ public class MenuService {
     serviceMgmt.addSubItem(new MenuItem("Thiết bị", contextPath + "/manager/service/equipment", "settings"));
     menuItems.add(serviceMgmt);
 
-    menuItems.add(new MenuItem("Lịch hẹn phòng ban", contextPath + "/manager/appointments", "calendar", "services"));
-    menuItems.add(new MenuItem("Quản lý phòng", contextPath + "/manager/rooms", "door-open", "services"));
+    
+    menuItems.add(new MenuItem("Quản lý phòng", contextPath + "/manager/rooms-management", "door-open", "services"));
 
     // Promotions Management (moved from Admin)
     MenuItem promotionMgmt = new MenuItem("Khuyến mãi", contextPath + "/promotion/list", "gift", "services");
     promotionMgmt.addSubItem(new MenuItem("Tất cả khuyến mãi", contextPath + "/promotion/list", "list"));
-    promotionMgmt.addSubItem(new MenuItem("Tạo khuyến mãi", contextPath + "/promotion/add", "plus"));
+    promotionMgmt.addSubItem(new MenuItem("Tạo khuyến mãi", contextPath + "/promotion/create", "plus"));
     menuItems.add(promotionMgmt);
 
     // Operations Section
     menuItems.add(new MenuItem("VẬN HÀNH", true));
+    menuItems.add(new MenuItem("Quản lý lịch hẹn", contextPath + "/manager/scheduling", "calendar-plus", "operations"));
     menuItems.add(new MenuItem("Kho & Vật tư", contextPath + "/manager/inventory", "package", "operations"));
     menuItems.add(new MenuItem("Báo cáo phòng ban", contextPath + "/manager/reports", "bar-chart", "operations"));
     menuItems.add(new MenuItem("Khách hàng", contextPath + "/manager/customers", "users", "operations"));
@@ -244,8 +276,26 @@ public class MenuService {
     menuItems.add(new MenuItem("Báo cáo tổng hợp", contextPath + "/manager/inventory/report", "bar-chart", "inventory"));
     menuItems.add(new MenuItem("Thống kê sử dụng vật tư", contextPath + "/manager/inventory/usage", "trending-up", "inventory"));
     
+    // Inventory Management Section (for Manager)
+    menuItems.add(new MenuItem("QUẢN LÝ KHO", true));
+    menuItems.add(new MenuItem("Phê duyệt phiếu nhập kho", contextPath + "/manager/inventory/receipt/approve", "check-circle", "inventory"));
+    menuItems.add(new MenuItem("Phê duyệt phiếu xuất kho", contextPath + "/manager/inventory/issue/approve", "check-circle", "inventory"));
+    menuItems.add(new MenuItem("Thiết lập định mức vật tư", contextPath + "/manager/inventory/servicematerial", "settings", "inventory"));
+    menuItems.add(new MenuItem("Báo cáo tổng hợp", contextPath + "/manager/inventory/report", "bar-chart", "inventory"));
+    menuItems.add(new MenuItem("Thống kê sử dụng vật tư", contextPath + "/manager/inventory/usage", "trending-up", "inventory"));
+    
     // Financial Section
     menuItems.add(new MenuItem("TÀI CHÍNH", true));
+
+    // Payment Statistics with sub-menu
+    MenuItem paymentStats = new MenuItem("Thống kê thanh toán", contextPath + "/manager/payment-statistics", "bar-chart-3", "financial");
+    paymentStats.addSubItem(new MenuItem("Tổng quan doanh thu", contextPath + "/manager/payment-statistics/revenue", "trending-up", "financial"));
+    paymentStats.addSubItem(new MenuItem("Phân tích phương thức", contextPath + "/manager/payment-statistics/methods", "credit-card", "financial"));
+    paymentStats.addSubItem(new MenuItem("Thống kê theo thời gian", contextPath + "/manager/payment-statistics/timeline", "calendar", "financial"));
+    paymentStats.addSubItem(new MenuItem("Báo cáo khách hàng", contextPath + "/manager/payment-statistics/customers", "users", "financial"));
+    paymentStats.addSubItem(new MenuItem("Doanh thu dịch vụ", contextPath + "/manager/payment-statistics/services", "package", "financial"));
+    menuItems.add(paymentStats);
+
     menuItems.add(new MenuItem("Doanh thu phòng ban", contextPath + "/manager/revenue", "trending-up", "financial"));
     menuItems.add(new MenuItem("Hoa hồng nhân viên", contextPath + "/manager/commissions", "coins", "financial"));
 
@@ -270,6 +320,9 @@ public class MenuService {
     // Dashboard Section
     menuItems.add(new MenuItem("NHÂN VIÊN", true));
     menuItems.add(new MenuItem("Dashboard", contextPath + "/dashboard", "layout-dashboard", "staff"));
+
+    // Personal Information
+    menuItems.add(new MenuItem("Thông tin cá nhân", contextPath + "/user-management/view?id=self", "user", "staff"));
 
     // Schedule & Appointments
     menuItems.add(new MenuItem("Lịch hôm nay", contextPath + "/therapist/schedule", "clock", "staff")
@@ -309,6 +362,9 @@ public class MenuService {
     menuItems.add(new MenuItem("LỄ TÂN", true));
     menuItems.add(new MenuItem("Dashboard", contextPath + "/dashboard", "layout-dashboard", "frontdesk"));
 
+    // Personal Information
+    menuItems.add(new MenuItem("Thông tin cá nhân", contextPath + "/user-management/view?id=self", "user", "frontdesk"));
+
     // Customer Service Section
     menuItems.add(new MenuItem("DỊCH VỤ KHÁCH HÀNG", true));
     menuItems.add(new MenuItem("Đặt lịch hẹn", contextPath + "/receptionist/booking", "calendar-plus", "customer"));
@@ -324,8 +380,15 @@ public class MenuService {
 
     // Customer Database
     menuItems.add(new MenuItem("KHÁCH HÀNG", true));
-    menuItems.add(new MenuItem("Hồ sơ khách hàng", contextPath + "/receptionist/customers", "users", "customers"));
-    menuItems.add(new MenuItem("Đăng ký khách mới", contextPath + "/receptionist/register", "user-plus", "customers"));
+    
+    // Customer Management (Admin, Manager, Receptionist)
+    MenuItem customerMgmt = new MenuItem("Quản lý thông tin khách hàng", contextPath + "/customer-management/list", "users", "customers");
+    customerMgmt.addSubItem(new MenuItem("Danh sách khách hàng", contextPath + "/customer-management/list", "list"));
+    customerMgmt.addSubItem(new MenuItem("Thêm khách hàng", contextPath + "/customer-management/add", "user-plus"));
+    customerMgmt.addSubItem(new MenuItem("Kích hoạt tài khoản", contextPath + "/customer-management/activate", "toggle-right"));
+    customerMgmt.addSubItem(new MenuItem("Đặt lại mật khẩu", contextPath + "/customer-management/reset-password", "key"));
+    menuItems.add(customerMgmt);
+    
     menuItems.add(new MenuItem("Chương trình thành viên", contextPath + "/receptionist/loyalty", "star", "customers"));
 
     // Inventory Section (for Receptionist)
@@ -346,7 +409,9 @@ public class MenuService {
     // Dashboard Section
     menuItems.add(new MenuItem("MARKETING", true));
     menuItems.add(new MenuItem("Dashboard", contextPath + "/dashboard", "layout-dashboard", "marketing"));
-   
+
+    // Personal Information
+    menuItems.add(new MenuItem("Thông tin cá nhân", contextPath + "/user-management/view?id=self", "user", "marketing"));
 
     // Campaign Management
     menuItems.add(new MenuItem("CHIẾN DỊCH", true));
@@ -438,23 +503,24 @@ public class MenuService {
     List<MenuItem> menuItems = new ArrayList<>();
 
     // Dashboard Section
-    menuItems.add(new MenuItem("KHÁCH HÀNG", true));
+    // menuItems.add(new MenuItem("KHÁCH HÀNG", true));
     menuItems.add(new MenuItem("Dashboard", contextPath + "/dashboard", "layout-dashboard", "customer"));
 
     // Appointments Section
-    menuItems.add(new MenuItem("LỊCH HẸN", true));
+    // menuItems.add(new MenuItem("LỊCH HẸN", true));
     menuItems.add(new MenuItem("Lịch hẹn của tôi", contextPath + "/customer/view", "calendar", "appointments")
         .withNotification("3", "yellow"));
     menuItems.add(new MenuItem("Đặt dịch vụ", contextPath + "/booking", "calendar-plus", "appointments"));
+    menuItems.add(new MenuItem("Lịch sử đặt lịch", contextPath + "/customer/booking-history", "clock", "appointments"));
     menuItems.add(new MenuItem("Lịch sử điều trị", contextPath + "/customer/history", "history", "appointments"));
 
     // Account Management
-    menuItems.add(new MenuItem("TÀI KHOẢN", true));
+    // menuItems.add(new MenuItem("TÀI KHOẢN", true));
     menuItems.add(new MenuItem("Điểm tích lũy", contextPath + "/customer/loyalty", "gift", "account")
         .withNotification("2,450", "yellow"));
     menuItems.add(new MenuItem("Lịch sử thanh toán", contextPath + "/customer/payments", "credit-card", "account"));
-    menuItems.add(new MenuItem("Ưu đãi đặc biệt", contextPath + "/promotions", "star", "account")
-        .withNotification("Mới", "red"));
+    menuItems.add(new MenuItem("Ưu đãi đặc biệt", contextPath + "/promotions", "star", "account").withNotification("Mới", "red"));
+    menuItems.add(new MenuItem("Đăng xuất", contextPath + "/logout", "log-out", "account"));
 
     return menuItems;
   }
@@ -572,5 +638,138 @@ public class MenuService {
     // Convert role ID to role name and get appropriate menu items
     String roleName = RoleConstants.getUserTypeFromRole(user.getRoleId());
     return getMenuItemsByRole(roleName, contextPath);
+  }
+
+  /**
+   * Get sidebar-specific menu items (navigation items for main application features)
+   * These are the main navigation items that should appear in the sidebar
+   */
+  public static List<MenuItem> getSidebarMenuItems(String roleName, String contextPath) {
+    // Return the full menu items for sidebar navigation
+    List<MenuItem> menuItems = getMenuItemsByRole(roleName, contextPath);
+
+    // Update notification counts for managers and admins
+    if ("ADMIN".equals(roleName) || "MANAGER".equals(roleName)) {
+      updateNotificationCounts(menuItems);
+    }
+
+    return menuItems;
+  }
+
+  /**
+   * Update notification counts for menu items
+   */
+  private static void updateNotificationCounts(List<MenuItem> menuItems) {
+    try {
+      // This would be called from a service to get actual counts
+      // For now, we'll set default values that can be updated via JavaScript
+      for (MenuItem item : menuItems) {
+        if ("Thông báo".equals(item.getLabel())) {
+          item.withNotification("0", "red");
+        } else if ("Thông báo thanh toán".equals(item.getLabel())) {
+          item.withNotification("0", "red");
+        }
+      }
+    } catch (Exception e) {
+      // Log error but don't break menu rendering
+      System.err.println("Error updating notification counts: " + e.getMessage());
+    }
+  }
+
+  /**
+   * Get avatar dropdown-specific menu items (user-specific actions only)
+   * These are personal/account actions that should appear in the user avatar dropdown
+   */
+  public static List<MenuItem> getAvatarDropdownMenuItems(String roleName, String contextPath) {
+    List<MenuItem> avatarMenuItems = new ArrayList<>();
+
+    if (roleName == null) {
+      return avatarMenuItems;
+    }
+
+    switch (roleName.toUpperCase()) {
+      case "ADMIN":
+      avatarMenuItems.add(new MenuItem("Trang điều khiển", contextPath + "/dashboard", "bar-chart"));
+        avatarMenuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/profile", "user"));
+        avatarMenuItems.add(new MenuItem("Cài đặt tài khoản", contextPath + "/admin/settings", "settings"));
+        avatarMenuItems.add(new MenuItem("Thay đổi mật khẩu", contextPath + "/password/change", "key"));
+        avatarMenuItems.add(new MenuItem()); // Divider
+        avatarMenuItems.add(new MenuItem("Đăng xuất", contextPath + "/logout", "log-out"));
+        break;
+
+      case "MANAGER":
+              avatarMenuItems.add(new MenuItem("Trang điều khiển", contextPath + "/dashboard", "bar-chart"));
+
+        avatarMenuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/profile", "user"));
+        avatarMenuItems.add(new MenuItem("Cài đặt cá nhân", contextPath + "/manager/settings", "settings"));
+        avatarMenuItems.add(new MenuItem("Thay đổi mật khẩu", contextPath + "/password/change", "key"));
+        avatarMenuItems.add(new MenuItem()); // Divider
+        
+        avatarMenuItems.add(new MenuItem("Đăng xuất", contextPath + "/logout", "log-out"));
+        break;
+
+      case "THERAPIST":
+avatarMenuItems.add(new MenuItem("Trang điều khiển", contextPath + "/dashboard", "bar-chart"));
+        avatarMenuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/profile", "user"));
+        avatarMenuItems.add(new MenuItem("Cài đặt cá nhân", contextPath + "/therapist/settings", "settings"));
+        avatarMenuItems.add(new MenuItem("Thay đổi mật khẩu", contextPath + "/password/change", "key"));
+        avatarMenuItems.add(new MenuItem()); // Divider
+        avatarMenuItems.add(new MenuItem("Lịch cá nhân", contextPath + "/therapist/schedule", "calendar"));
+        
+        avatarMenuItems.add(new MenuItem()); // Divider
+        avatarMenuItems.add(new MenuItem("Đăng xuất", contextPath + "/logout", "log-out"));
+        break;
+
+      case "RECEPTIONIST":
+      avatarMenuItems.add(new MenuItem("Trang điều khiển", contextPath + "/dashboard", "bar-chart"));
+        avatarMenuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/profile", "user"));
+        avatarMenuItems.add(new MenuItem("Cài đặt cá nhân", contextPath + "/receptionist/settings", "settings"));
+        avatarMenuItems.add(new MenuItem("Thay đổi mật khẩu", contextPath + "/password/change", "key"));
+        avatarMenuItems.add(new MenuItem()); // Divider
+        avatarMenuItems.add(new MenuItem("Ca làm việc", contextPath + "/receptionist/shifts", "clock"));
+        avatarMenuItems.add(new MenuItem()); // Divider
+        avatarMenuItems.add(new MenuItem("Đăng xuất", contextPath + "/logout", "log-out"));
+        break;
+
+      case "MARKETING":
+      avatarMenuItems.add(new MenuItem("Trang điều khiển", contextPath + "/dashboard", "bar-chart"));
+        avatarMenuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/profile", "user"));
+        avatarMenuItems.add(new MenuItem("Cài đặt cá nhân", contextPath + "/marketing/settings", "settings"));
+        avatarMenuItems.add(new MenuItem("Thay đổi mật khẩu", contextPath + "/password/change", "key"));
+        avatarMenuItems.add(new MenuItem()); // Divider
+        avatarMenuItems.add(new MenuItem("Chiến dịch của tôi", contextPath + "/marketing/my-campaigns", "megaphone"));
+        avatarMenuItems.add(new MenuItem()); // Divider
+        avatarMenuItems.add(new MenuItem("Đăng xuất", contextPath + "/logout", "log-out"));
+        break;
+
+      case "INVENTORY_MANAGER":
+      avatarMenuItems.add(new MenuItem("Trang điều khiển", contextPath + "/dashboard", "bar-chart"));
+        avatarMenuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/profile", "user"));
+        avatarMenuItems.add(new MenuItem("Cài đặt cá nhân", contextPath + "/inventory-manager/settings", "settings"));
+        avatarMenuItems.add(new MenuItem("Thay đổi mật khẩu", contextPath + "/password/change", "key"));
+        avatarMenuItems.add(new MenuItem()); // Divider
+        avatarMenuItems.add(new MenuItem("Báo cáo cá nhân", contextPath + "/inventory-manager/personal-reports", "file-text"));
+        avatarMenuItems.add(new MenuItem()); // Divider
+        avatarMenuItems.add(new MenuItem("Đăng xuất", contextPath + "/logout", "log-out"));
+        break;
+
+      case "CUSTOMER":
+      avatarMenuItems.add(new MenuItem("Trang điều khiển", contextPath + "/dashboard", "bar-chart"));
+        avatarMenuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/profile", "user"));
+        avatarMenuItems.add(new MenuItem("Cài đặt tài khoản", contextPath + "/customer/settings", "settings"));
+        avatarMenuItems.add(new MenuItem("Thay đổi mật khẩu", contextPath + "/password/change", "key"));
+        avatarMenuItems.add(new MenuItem()); // Divider
+        avatarMenuItems.add(new MenuItem("Điểm tích lũy", contextPath + "/customer/loyalty", "gift"));
+        avatarMenuItems.add(new MenuItem("Lịch sử thanh toán", contextPath + "/customer/payments", "credit-card"));
+        avatarMenuItems.add(new MenuItem()); // Divider
+        avatarMenuItems.add(new MenuItem("Đăng xuất", contextPath + "/logout", "log-out"));
+        break;
+
+      default:
+        avatarMenuItems.add(new MenuItem("Đăng xuất", contextPath + "/logout", "log-out"));
+        break;
+    }
+
+    return avatarMenuItems;
   }
 }
