@@ -105,7 +105,7 @@
     <div class="flex">
         <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
         <main class="w-full md:w-[calc(100%-256px)] md:ml-64 bg-spa-cream min-h-screen transition-all main">
-            <jsp:include page="/WEB-INF/view/admin_pages/Common/AdminHeader.jsp" />
+            <jsp:include page="/WEB-INF/view/admin_pages/Common/Header.jsp" />
                 <div class="w-full mx-auto px-4 sm:px-6 lg:px-8 mt-8">
                 <!-- Page Header -->
                 <div class="flex flex-wrap items-center justify-between gap-4 mb-8">

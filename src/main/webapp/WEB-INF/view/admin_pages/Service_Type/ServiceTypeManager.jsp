@@ -37,7 +37,7 @@
 </head>
 <body class="bg-spa-cream font-sans">
     <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
-    <jsp:include page="/WEB-INF/view/admin_pages/Common/AdminHeader.jsp" />
+    <jsp:include page="/WEB-INF/view/admin_pages/Common/Header.jsp" />
     <div class="flex">
         <main class="w-full md:w-[calc(100%-256px)] md:ml-64 bg-spa-cream min-h-screen transition-all main">
             <div class="w-full mx-auto px-4 sm:px-6 lg:px-8 mt-8">
