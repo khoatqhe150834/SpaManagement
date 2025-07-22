@@ -61,33 +61,19 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <!-- Left: Thông tin dịch vụ -->
                         <div>
-                            <div class="flex flex-wrap items-start justify-between gap-2 mb-4">
-                                <div>
-                                    <h1 class="text-2xl md:text-3xl font-serif font-bold text-spa-dark mb-2">${service.name}</h1>
-                                    <div class="text-gray-500 text-sm mb-1">Loại dịch vụ: 
-                                        <c:choose>
-                                            <c:when test="${not empty service.serviceTypeId}">
-                                                <span class="text-primary font-semibold">${service.serviceTypeId.name}</span>
-                                            </c:when>
-                                            <c:otherwise>
-                                                <span class="text-red-600">Không xác định</span>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </div>
-                                </div>
-                                <c:choose>
-                                    <c:when test="${service.isActive}">
-                                        <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-3 py-1 rounded-full">Active</span>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <span class="inline-block bg-red-100 text-red-800 text-xs font-medium px-3 py-1 rounded-full">Inactive</span>
-                                    </c:otherwise>
-                                </c:choose>
-                            </div>
-                            <hr class="my-4">
+                            <h1 class="text-3xl font-serif font-bold text-spa-dark mb-1">${service.name}</h1>
+                            <c:choose>
+                                <c:when test="${service.isActive}">
+                                    <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-3 py-1 rounded-full mb-2">Active</span>
+                                </c:when>
+                                <c:otherwise>
+                                    <span class="inline-block bg-red-100 text-red-800 text-xs font-medium px-3 py-1 rounded-full mb-2">Inactive</span>
+                                </c:otherwise>
+                            </c:choose>
+                            <div class="text-gray-500 text-sm mb-4">Loại dịch vụ: <span class="text-primary font-semibold">${service.serviceTypeId.name}</span></div>
                             <div class="mb-6">
                                 <h2 class="font-semibold text-gray-700 mb-2">Mô tả</h2>
-                                <p class="text-gray-600 whitespace-pre-line">${service.description}</p>
+                                <p class="text-gray-600 whitespace-pre-line break-words word-break break-all max-w-full overflow-x-auto">${service.description}</p>
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                                 <div class="flex items-center gap-3 bg-gray-50 rounded-lg p-4">
@@ -128,35 +114,15 @@
                                     </div>
                                 </div>
                             </div>
-                            <hr class="my-4">
-                            <div class="mb-4">
-                                <h2 class="font-semibold text-gray-700 mb-2">Cài đặt</h2>
-                                <div class="space-y-2">
-                                    <div class="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-2">
-                                        <span>Cho phép đặt online</span>
-                                        <c:choose>
-                                            <c:when test="${service.bookableOnline}"><i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i></c:when>
-                                            <c:otherwise><i data-lucide="x-circle" class="w-5 h-5 text-red-500"></i></c:otherwise>
-                                        </c:choose>
-                                    </div>
-                                    <div class="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-2">
-                                        <span>Yêu cầu tư vấn</span>
-                                        <c:choose>
-                                            <c:when test="${service.requiresConsultation}"><i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i></c:when>
-                                            <c:otherwise><i data-lucide="x-circle" class="w-5 h-5 text-red-500"></i></c:otherwise>
-                                        </c:choose>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                         <!-- Right: Hình ảnh dịch vụ -->
                         <div>
                             <c:choose>
                                 <c:when test="${not empty serviceImages}">
-                                    <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(serviceImages[0].url, '/services/')}" alt="Service Image" class="w-full h-72 object-cover rounded-xl shadow mb-4 hover:scale-105 transition-transform duration-200" id="mainImage" style="cursor: zoom-in;" onclick="showImageModal(this.src)" />
+                                    <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(serviceImages[0].url, '/services/')}" alt="Service Image" class="w-full h-72 object-cover rounded-xl shadow mb-4 hover:scale-105 transition-transform duration-200" id="mainImage" style="cursor: zoom-in;" />
                                     <div class="grid grid-cols-4 gap-2">
                                         <c:forEach var="img" items="${serviceImages}" varStatus="loop">
-                                            <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(img.url, '/services/')}" alt="Thumbnail" class="w-full h-16 object-cover rounded shadow cursor-pointer hover:scale-105 transition-transform duration-200" onclick="showImageModal(this.src)" />
+                                            <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(img.url, '/services/')}" alt="Thumbnail" class="w-full h-16 object-cover rounded shadow cursor-pointer hover:scale-105 transition-transform duration-200 border-2 border-transparent" onclick="changeImage(this.src, this)" />
                                         </c:forEach>
                                     </div>
                                 </c:when>
@@ -169,7 +135,7 @@
                         </div>
                     </div>
                     <!-- Footer buttons -->
-                    <div class="flex flex-wrap justify-end gap-3 mt-8">
+                    <div class="flex flex-col sm:flex-row justify-between items-center gap-3 mt-8">
                         <a href="service?service=list-all&page=${page}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}${not empty serviceTypeId ? '&serviceTypeId='.concat(serviceTypeId) : ''}" class="inline-flex items-center gap-2 px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
                             <i data-lucide="arrow-left" class="w-5 h-5"></i> Quay lại
                         </a>
@@ -189,7 +155,9 @@
     </div>
     <script>
         function changeImage(src, thumbElement) {
-            document.getElementById('mainImage').src = src;
+            const mainImg = document.getElementById('mainImage');
+            mainImg.src = src;
+            // Highlight selected thumbnail
             document.querySelectorAll('.grid img').forEach(thumb => thumb.classList.remove('border-primary'));
             thumbElement.classList.add('border-primary');
         }
@@ -197,6 +165,19 @@
             document.getElementById('modalImg').src = src;
             document.getElementById('imageModal').classList.remove('hidden');
         }
+        // Chỉ mở modal khi click vào ảnh lớn
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.lucide) lucide.createIcons();
+            const mainImg = document.getElementById('mainImage');
+            if (mainImg) {
+                mainImg.onclick = function() {
+                    showImageModal(this.src);
+                };
+            }
+            // Mặc định chọn thumbnail đầu tiên
+            const thumbs = document.querySelectorAll('.grid img');
+            if (thumbs.length > 0) thumbs[0].classList.add('border-primary');
+        });
         document.getElementById('closeModal').onclick = function() {
             document.getElementById('imageModal').classList.add('hidden');
             document.getElementById('modalImg').src = '';
@@ -207,9 +188,6 @@
                 document.getElementById('modalImg').src = '';
             }
         };
-        window.addEventListener('DOMContentLoaded', () => {
-            if (window.lucide) lucide.createIcons();
-        });
     </script>
 </body>
 </html>
