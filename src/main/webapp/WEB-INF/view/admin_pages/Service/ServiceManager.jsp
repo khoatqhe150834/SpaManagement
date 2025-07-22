@@ -88,14 +88,25 @@
   min-width: 220px;
   vertical-align: middle;
 }
+.max-w-xs {
+  max-width: 220px;
+}
+.max-w-\[160px\] {
+  max-width: 160px;
+}
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 </style>
 </head>
 <body class="bg-spa-cream font-sans">
-    <jsp:include page="/WEB-INF/view/common/header.jsp" />
     <div class="flex">
         <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
-        <main class="flex-1 py-12 lg:py-20 ml-64">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <main class="w-full md:w-[calc(100%-256px)] md:ml-64 bg-spa-cream min-h-screen transition-all main">
+            <jsp:include page="/WEB-INF/view/admin_pages/Common/AdminHeader.jsp" />
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <!-- Page Header -->
                 <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
                     <h1 class="text-3xl font-serif text-spa-dark font-bold">Danh Sách Dịch Vụ</h1>
@@ -147,18 +158,18 @@
                     <!-- Table -->
                     <div class="p-6">
                         <div class="overflow-x-auto">
-                            <table id="serviceTable" class="w-full text-sm text-left text-gray-500">
+                            <table id="serviceTable" class="table-fixed w-full text-sm text-left text-gray-500">
                                 <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                                     <tr>
-                                        <th scope="col" class="px-6 py-3">ID</th>
-                                        <th scope="col" class="px-6 py-3 text-center">Hình Ảnh</th>
-                                        <th scope="col" class="px-6 py-3">Tên Dịch Vụ</th>
-                                        <th scope="col" class="px-6 py-3">Loại Dịch Vụ</th>
-                                        <th scope="col" class="px-6 py-3 text-center">Thời Gian</th>
-                                        <th scope="col" class="px-6 py-3 text-center">Đánh Giá</th>
-                                        <th scope="col" class="px-6 py-3">Giá</th>
-                                        <th scope="col" class="px-6 py-3 text-center">Trạng Thái</th>
-                                        <th scope="col" class="px-6 py-3 text-center">Thao Tác</th>
+                                        <th scope="col" class="px-6 py-3" style="width:5%">ID</th>
+                                        <th scope="col" class="px-6 py-3 text-center" style="width:10%">Hình Ảnh</th>
+                                        <th scope="col" class="px-6 py-3" style="width:18%">Tên Dịch Vụ</th>
+                                        <th scope="col" class="px-6 py-3" style="width:15%">Loại Dịch Vụ</th>
+                                        <th scope="col" class="px-6 py-3 text-center" style="width:8%">Thời Gian</th>
+                                        <th scope="col" class="px-6 py-3 text-center" style="width:8%">Đánh Giá</th>
+                                        <th scope="col" class="px-6 py-3" style="width:12%">Giá</th>
+                                        <th scope="col" class="px-6 py-3 text-center" style="width:10%">Trạng Thái</th>
+                                        <th scope="col" class="px-6 py-3 text-center" style="width:14%">Thao Tác</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -187,8 +198,12 @@
                                                             </c:choose>
                                                         </div>
                                                     </td>
-                                                    <td class="px-6 py-4 max-w-xs truncate" title="${service.name}">${service.name}</td>
-                                                    <td class="px-6 py-4 max-w-xs truncate" title="${service.serviceTypeId.name}">${service.serviceTypeId.name}</td>
+                                                    <td class="px-6 py-4">
+                                                        <div class="truncate max-w-[160px] w-full" title="${service.name}">${service.name}</div>
+                                                    </td>
+                                                    <td class="px-6 py-4">
+                                                        <div class="truncate max-w-[160px] w-full" title="${service.serviceTypeId.name}">${service.serviceTypeId.name}</div>
+                                                    </td>
                                                     <td class="px-6 py-4 text-center">${service.durationMinutes} phút</td>
                                                     <td class="px-6 py-4 text-center">
                                                         <span class="text-yellow-500 font-medium">(${service.averageRating})</span>
