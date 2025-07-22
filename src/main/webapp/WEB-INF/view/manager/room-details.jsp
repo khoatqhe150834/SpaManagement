@@ -235,7 +235,14 @@
                 <!-- Beds Table -->
                 <div class="bg-white rounded-lg shadow-sm">
                     <div class="p-6 border-b border-gray-200">
-                        <h2 class="text-xl font-semibold text-gray-900">Danh Sách Giường</h2>
+                        <div class="flex items-center justify-between">
+                            <h2 class="text-xl font-semibold text-gray-900">Danh Sách Giường</h2>
+                            <a href="${pageContext.request.contextPath}/manager/bed/add/${room.roomId}"
+                               class="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center">
+                                <i data-lucide="plus" class="h-4 w-4 mr-2"></i>
+                                Thêm Giường
+                            </a>
+                        </div>
                     </div>
                     
                     <div class="p-6">
@@ -251,45 +258,58 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <!-- Sample data for VIP Suite beds -->
-                                <tr>
-                                    <td>2</td>
-                                    <td>VIP Bed 1</td>
-                                    <td>Luxury bed for couples massage</td>
-                                    <td><span class="px-2 py-1 text-xs font-medium rounded-full status-active">Hoạt động</span></td>
-                                    <td>17/07/2025</td>
-                                    <td>
-                                        <div class="flex items-center gap-2">
-                                            <button onclick="editBed(2)" class="inline-flex items-center px-3 py-1 text-xs font-medium text-yellow-600 bg-yellow-50 rounded-md hover:bg-yellow-100 transition-colors duration-200" title="Chỉnh sửa">
-                                                <i data-lucide="edit" class="h-3 w-3 mr-1"></i>
-                                                Sửa
-                                            </button>
-                                            <button onclick="deleteBed(2)" class="inline-flex items-center px-3 py-1 text-xs font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100 transition-colors duration-200" title="Xóa">
-                                                <i data-lucide="trash-2" class="h-3 w-3 mr-1"></i>
-                                                Xóa
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>3</td>
-                                    <td>VIP Bed 2</td>
-                                    <td>Luxury bed for couples massage</td>
-                                    <td><span class="px-2 py-1 text-xs font-medium rounded-full status-active">Hoạt động</span></td>
-                                    <td>17/07/2025</td>
-                                    <td>
-                                        <div class="flex items-center gap-2">
-                                            <button onclick="editBed(3)" class="inline-flex items-center px-3 py-1 text-xs font-medium text-yellow-600 bg-yellow-50 rounded-md hover:bg-yellow-100 transition-colors duration-200" title="Chỉnh sửa">
-                                                <i data-lucide="edit" class="h-3 w-3 mr-1"></i>
-                                                Sửa
-                                            </button>
-                                            <button onclick="deleteBed(3)" class="inline-flex items-center px-3 py-1 text-xs font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100 transition-colors duration-200" title="Xóa">
-                                                <i data-lucide="trash-2" class="h-3 w-3 mr-1"></i>
-                                                Xóa
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
+                                <c:forEach var="bed" items="${beds}">
+                                    <tr>
+                                        <td>${bed.bedId}</td>
+                                        <td>${bed.name}</td>
+                                        <td>${bed.description != null && !empty bed.description ? bed.description : 'Chưa có mô tả'}</td>
+                                        <td>
+                                            <c:choose>
+                                                <c:when test="${bed.isActive}">
+                                                    <span class="px-2 py-1 text-xs font-medium rounded-full status-active">
+                                                        <i data-lucide="check-circle" class="w-3 h-3 inline mr-1"></i>
+                                                        Hoạt động
+                                                    </span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="px-2 py-1 text-xs font-medium rounded-full status-inactive">
+                                                        <i data-lucide="x-circle" class="w-3 h-3 inline mr-1"></i>
+                                                        Bảo trì
+                                                    </span>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </td>
+                                        <td>
+                                            <fmt:formatDate value="${bed.createdAt}" pattern="dd/MM/yyyy" />
+                                        </td>
+                                        <td>
+                                            <div class="flex items-center gap-2">
+                                                <a href="${pageContext.request.contextPath}/manager/bed/edit/${bed.bedId}"
+                                                   class="inline-flex items-center px-3 py-1 text-xs font-medium text-yellow-600 bg-yellow-50 rounded-md hover:bg-yellow-100 transition-colors duration-200"
+                                                   title="Chỉnh sửa">
+                                                    <i data-lucide="edit" class="h-3 w-3 mr-1"></i>
+                                                    Sửa
+                                                </a>
+                                                <a href="${pageContext.request.contextPath}/manager/bed/delete/${bed.bedId}"
+                                                   class="inline-flex items-center px-3 py-1 text-xs font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100 transition-colors duration-200"
+                                                   title="Xóa"
+                                                   onclick="return confirm('Bạn có chắc chắn muốn xóa giường này? Hành động này không thể hoàn tác.')">
+                                                    <i data-lucide="trash-2" class="h-3 w-3 mr-1"></i>
+                                                    Xóa
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </c:forEach>
+                                <c:if test="${empty beds}">
+                                    <tr>
+                                        <td colspan="6" class="text-center py-8 text-gray-500">
+                                            <i data-lucide="bed" class="h-12 w-12 mx-auto mb-4 text-gray-300"></i>
+                                            <p class="text-lg font-medium">Chưa có giường nào</p>
+                                            <p class="text-sm">Nhấn "Thêm Giường" để tạo giường mới cho phòng này</p>
+                                        </td>
+                                    </tr>
+                                </c:if>
                             </tbody>
                         </table>
                     </div>
@@ -378,16 +398,5 @@
             }
         });
 
-        // Bed management functions
-        function editBed(bedId) {
-            // TODO: Implement edit bed functionality
-            alert('Chức năng chỉnh sửa giường sẽ được triển khai sau');
-        }
 
-        function deleteBed(bedId) {
-            if (confirm('Bạn có chắc chắn muốn xóa giường này?')) {
-                // TODO: Implement delete bed functionality
-                alert('Chức năng xóa giường sẽ được triển khai sau');
-            }
-        }
     </script>
