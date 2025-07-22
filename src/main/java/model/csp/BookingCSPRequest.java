@@ -19,7 +19,7 @@ public class BookingCSPRequest {
     private LocalDate searchStartDate;
     private LocalDate searchEndDate;
     private int maxResults = 50; // Limit results for performance
-    private boolean includeWeekends = false;
+    private boolean includeWeekends = true;
     private int minimumNoticeHours = 2;
     private int bufferTimeMinutes = 15;
     
@@ -150,8 +150,16 @@ public class BookingCSPRequest {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime minimumTime = now.plusHours(minimumNoticeHours);
         LocalDateTime searchStart = searchStartDate.atTime(8, 0); // Business start time
-        
-        return minimumTime.isAfter(searchStart) ? minimumTime : searchStart;
+
+        // FIXED: For future dates, use business start time instead of minimum notice
+        // Only apply minimum notice constraint for same-day or next-day bookings
+        if (searchStartDate.isAfter(now.toLocalDate().plusDays(1))) {
+            // For dates more than 1 day in the future, start from business hours
+            return searchStart;
+        } else {
+            // For same-day or next-day bookings, apply minimum notice constraint
+            return minimumTime.isAfter(searchStart) ? minimumTime : searchStart;
+        }
     }
     
     @Override
