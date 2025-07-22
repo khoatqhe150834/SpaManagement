@@ -154,10 +154,9 @@
                                         <div class="font-semibold">Active</div>
                                         <div class="text-xs text-gray-400">Dịch vụ sẽ hiển thị và có thể được đặt lịch.</div>
                                     </div>
-                                    <label class="inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" name="is_active" id="is_active" class="sr-only peer" ${service.isActive ? "checked" : "" }>
-                                        <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-primary transition-all"></div>
-                                        <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-all peer-checked:translate-x-5"></div>
+                                    <label class="switch">
+                                        <input type="checkbox" name="is_active" id="is_active" ${service.isActive ? "checked" : "" }>
+                                        <span class="slider"></span>
                                     </label>
                                 </div>
                                 <div class="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-2">
@@ -165,10 +164,9 @@
                                         <div class="font-semibold">Cho phép đặt online</div>
                                         <div class="text-xs text-gray-400">Cho phép khách hàng tự đặt lịch cho dịch vụ này qua website.</div>
                                     </div>
-                                    <label class="inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" name="bookable_online" id="bookable_online" class="sr-only peer" ${service.bookableOnline ? "checked" : "" }>
-                                        <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-primary transition-all"></div>
-                                        <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-all peer-checked:translate-x-5"></div>
+                                    <label class="switch">
+                                        <input type="checkbox" name="bookable_online" id="bookable_online" ${service.bookableOnline ? "checked" : "" }>
+                                        <span class="slider"></span>
                                     </label>
                                 </div>
                                 <div class="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-2">
@@ -176,10 +174,9 @@
                                         <div class="font-semibold">Yêu cầu tư vấn</div>
                                         <div class="text-xs text-gray-400">Yêu cầu khách hàng phải được tư vấn trước khi đặt dịch vụ.</div>
                                     </div>
-                                    <label class="inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" name="requires_consultation" id="requires_consultation" class="sr-only peer" ${service.requiresConsultation ? "checked" : "" }>
-                                        <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-primary transition-all"></div>
-                                        <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-all peer-checked:translate-x-5"></div>
+                                    <label class="switch">
+                                        <input type="checkbox" name="requires_consultation" id="requires_consultation" ${service.requiresConsultation ? "checked" : "" }>
+                                        <span class="slider"></span>
                                     </label>
                                 </div>
                             </div>
@@ -586,6 +583,46 @@
         .border-green-500 {
             border-color: #22c55e !important;
         }
+        .switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 28px;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 34px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+.switch input:checked + .slider {
+  background-color: #D4AF37;
+}
+.switch input:focus + .slider {
+  box-shadow: 0 0 1px #D4AF37;
+}
+.switch input:checked + .slider:before {
+  transform: translateX(20px);
+}
     </style>
 </body>
 </html>
