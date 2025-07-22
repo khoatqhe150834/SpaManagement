@@ -1,4 +1,5 @@
 <%-- AdminHeader.jsp: Modern Navbar dùng chung cho admin pages --%>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!-- Modern Navbar (giống dashboard) -->
 <div class="h-16 px-6 bg-spa-cream flex items-center shadow-sm border-b border-primary/10 sticky top-0 left-0 z-30">
@@ -19,7 +20,7 @@
                 </form>
             </div>
         </li>
-        <!-- User Profile Dropdown -->
+        <!-- User Profile Dropdown --> 
         <li class="dropdown ml-3">
             <button type="button" class="dropdown-toggle flex items-center hover:bg-primary/10 rounded-lg p-2 transition-all duration-200">
                 <div class="flex-shrink-0 w-10 h-10 relative">
@@ -64,4 +65,37 @@
             </ul>
         </li>
     </ul>
-</div> 
+</div>
+<script>
+    // Initialize Lucide icons
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+    // Dropdown functionality (giống dashboard)
+    document.addEventListener('DOMContentLoaded', function() {
+        // Toggle dropdowns
+        document.querySelectorAll('.dropdown-toggle').forEach(function(item) {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const dropdown = item.closest('.dropdown');
+                const menu = dropdown.querySelector('.dropdown-menu');
+                // Close other dropdowns
+                document.querySelectorAll('.dropdown-menu').forEach(function(otherMenu) {
+                    if (otherMenu !== menu) {
+                        otherMenu.classList.add('hidden');
+                    }
+                });
+                // Toggle current dropdown
+                menu.classList.toggle('hidden');
+            });
+        });
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.dropdown')) {
+                document.querySelectorAll('.dropdown-menu').forEach(function(menu) {
+                    menu.classList.add('hidden');
+                });
+            }
+        });
+    });
+</script> 
