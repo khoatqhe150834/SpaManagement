@@ -264,16 +264,12 @@ public class MenuService {
     // Operations Section
     menuItems.add(new MenuItem("VẬN HÀNH", true));
     menuItems.add(new MenuItem("Quản lý lịch hẹn", contextPath + "/manager/scheduling", "calendar-plus", "operations"));
-    menuItems.add(new MenuItem("Kho & Vật tư", contextPath + "/manager/inventory", "package", "operations"));
     menuItems.add(new MenuItem("Báo cáo phòng ban", contextPath + "/manager/reports", "bar-chart", "operations"));
     menuItems.add(new MenuItem("Khách hàng", contextPath + "/manager/customers", "users", "operations"));
     
     // Inventory Management Section (for Manager)
     menuItems.add(new MenuItem("QUẢN LÝ KHO", true));
     menuItems.add(new MenuItem("Phê duyệt phiếu xuất kho", contextPath + "/manager-admin/inventory/issue", "check-circle", "management"));
-    menuItems.add(new MenuItem("Thiết lập định mức vật tư", contextPath + "/manager/inventory/servicematerial", "settings", "inventory"));
-    menuItems.add(new MenuItem("Báo cáo tổng hợp", contextPath + "/manager/inventory/report", "bar-chart", "inventory"));
-    menuItems.add(new MenuItem("Thống kê sử dụng vật tư", contextPath + "/manager/inventory/usage", "trending-up", "inventory"));
 
     
     // Financial Section
@@ -469,20 +465,9 @@ public class MenuService {
     MenuItem issueMgmt = new MenuItem("Phiếu xuất kho", contextPath + "/inventory-manager/issue", "upload", "operations");
     issueMgmt.addSubItem(new MenuItem("Danh sách phiếu xuất", contextPath + "/inventory-manager/issue", "list"));
     issueMgmt.addSubItem(new MenuItem("Tạo phiếu xuất", contextPath + "/inventory-manager/issue/create", "plus"));
-    issueMgmt.addSubItem(new MenuItem("Yêu cầu xuất kho", contextPath + "/inventory-manager/issue/requests", "file-text"));
     menuItems.add(issueMgmt);
 
-    // Service Materials Section
-    menuItems.add(new MenuItem("ĐỊNH MỨC DỊCH VỤ", true));
-    menuItems.add(new MenuItem("Định mức vật tư", contextPath + "/inventory-manager/servicematerial", "settings", "service"));
-    menuItems.add(new MenuItem("Thiết lập cảnh báo", contextPath + "/inventory-manager/alerts", "bell", "service"));
 
-    // Reports Section
-    menuItems.add(new MenuItem("BÁO CÁO", true));
-    menuItems.add(new MenuItem("Báo cáo tồn kho", contextPath + "/inventory-manager/report/stock", "bar-chart", "reports"));
-    menuItems.add(new MenuItem("Lịch sử giao dịch", contextPath + "/inventory-manager/report/transactions", "history", "reports"));
-    menuItems.add(new MenuItem("Thống kê sử dụng", contextPath + "/inventory-manager/report/usage", "trending-up", "reports"));
-    menuItems.add(new MenuItem("Kiểm kê định kỳ", contextPath + "/inventory-manager/report/audit", "clipboard-check", "reports"));
 
     return menuItems;
   }
