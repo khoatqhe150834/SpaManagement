@@ -36,7 +36,7 @@
     <link rel="stylesheet" href="<c:url value='/css/style.css'/>" />
 </head>
 <body class="bg-spa-cream font-sans min-h-screen">
-    <jsp:include page="/WEB-INF/view/common/header.jsp" />
+    <jsp:include page="/WEB-INF/view/admin_pages/Common/header.jsp" />
     <div class="flex">
         <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
         <main class="flex-1 py-12 lg:py-20 ml-64">
@@ -614,7 +614,7 @@
 }
 .switch input:checked + .slider:before {
   transform: translateX(20px);
-}
+        }
     </style>
 </body>
 </html>

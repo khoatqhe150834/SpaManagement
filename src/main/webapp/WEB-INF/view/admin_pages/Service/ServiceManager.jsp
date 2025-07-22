@@ -182,22 +182,22 @@
                                             </tr>
                                         </c:when>
                                         <c:otherwise>
-                                            <c:forEach var="service" items="${services}">
-                                                <tr class="bg-white border-b hover:bg-gray-50">
+                                    <c:forEach var="service" items="${services}">
+                                        <tr class="bg-white border-b hover:bg-gray-50">
                                                     <td class="px-2 py-4 font-medium text-gray-900">${service.serviceId}</td>
                                                     <td class="px-2 py-4 text-center">
-                                                        <div class="flex justify-center items-center h-16">
-                                                            <c:set var="imgUrl" value="${serviceThumbnails[service.serviceId]}" />
-                                                            <c:choose>
-                                                                <c:when test="${not empty imgUrl}">
-                                                                    <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(imgUrl, '/services/')}" alt="Service Image" class="w-16 h-16 object-cover rounded shadow mx-auto hover:scale-105 transition-transform duration-200" style="cursor: zoom-in;" onclick="showImageModal(this.src)" />
-                                                                </c:when>
-                                                                <c:otherwise>
-                                                                    <img src="${pageContext.request.contextPath}/assets/images/no-image.png" alt="No image" class="w-16 h-16 object-cover rounded-xl border bg-gray-50 shadow" />
-                                                                </c:otherwise>
-                                                            </c:choose>
-                                                        </div>
-                                                    </td>
+                                                <div class="flex justify-center items-center h-16">
+                                                    <c:set var="imgUrl" value="${serviceThumbnails[service.serviceId]}" />
+                                                    <c:choose>
+                                                        <c:when test="${not empty imgUrl}">
+                                                            <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(imgUrl, '/services/')}" alt="Service Image" class="w-16 h-16 object-cover rounded shadow mx-auto hover:scale-105 transition-transform duration-200" style="cursor: zoom-in;" onclick="showImageModal(this.src)" />
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <img src="${pageContext.request.contextPath}/assets/images/no-image.png" alt="No image" class="w-16 h-16 object-cover rounded-xl border bg-gray-50 shadow" />
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </div>
+                                            </td>
                                                     <td class="px-2 py-4">
                                                         <div class="truncate w-full max-w-[220px]" title="${service.name}">${service.name}</div>
                                                     </td>
@@ -206,54 +206,54 @@
                                                     </td>
                                                     <td class="px-2 py-4 text-center">${service.durationMinutes} phút</td>
                                                     <td class="px-2 py-4 text-center">
-                                                        <span class="text-yellow-500 font-medium">(${service.averageRating})</span>
-                                                    </td>
+                                                <span class="text-yellow-500 font-medium">(${service.averageRating})</span>
+                                            </td>
                                                     <td class="px-2 py-4 text-center align-middle">
                                                         <span class="font-semibold text-[#15803d] text-lg">
                                                             <fmt:formatNumber value="${service.price}" type="number" maxFractionDigits="0" />
                                                         </span>
                                                         <span class="text-xs text-gray-400 ml-1">VND</span>
-                                                    </td>
+                                            </td>
                                                     <td class="px-2 py-4 text-center align-middle">
-                                                        <c:choose>
-                                                            <c:when test="${service.isActive}">
+                                                <c:choose>
+                                                    <c:when test="${service.isActive}">
                                                                 <span class="inline-block rounded-full bg-green-100 text-green-700 px-4 py-1 font-semibold text-base">Active</span>
-                                                            </c:when>
-                                                            <c:otherwise>
+                                                    </c:when>
+                                                    <c:otherwise>
                                                                 <span class="inline-block rounded-full bg-red-100 text-red-700 px-4 py-1 font-semibold text-base">Inactive</span>
-                                                            </c:otherwise>
-                                                        </c:choose>
-                                                    </td>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </td>
                                                     <td class="px-2 py-4 text-center">
-                                                        <div class="flex items-center justify-center gap-2">
-                                                            <!-- Nút xem chi tiết -->
-                                                            <a href="service?service=view-detail&id=${service.serviceId}&page=${currentPage}&limit=${limit}" class="p-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-full" title="Xem chi tiết dịch vụ">
-                                                                <i data-lucide="eye" class="w-5 h-5"></i>
+                                                <div class="flex items-center justify-center gap-2">
+                                                    <!-- Nút xem chi tiết -->
+                                                    <a href="service?service=view-detail&id=${service.serviceId}&page=${currentPage}&limit=${limit}" class="p-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-full" title="Xem chi tiết dịch vụ">
+                                                        <i data-lucide="eye" class="w-5 h-5"></i>
+                                                    </a>
+                                                    <!-- Nút chỉnh sửa dịch vụ -->
+                                                    <a href="service?service=pre-update&id=${service.serviceId}&page=${currentPage}&limit=${limit}" class="p-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-full" title="Chỉnh sửa dịch vụ">
+                                                        <i data-lucide="edit" class="w-5 h-5"></i>
+                                                    </a>
+                                                    <!-- Nút quản lý hình ảnh -->
+                                                    <a href="${pageContext.request.contextPath}/manager/service-images/single-upload?serviceId=${service.serviceId}" class="p-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 rounded-full" title="Quản lý hình ảnh">
+                                                        <i data-lucide="image" class="w-5 h-5"></i>
+                                                    </a>
+                                                    <c:choose>
+                                                        <c:when test="${service.isActive}">
+                                                            <a href="service?service=deactivate&id=${service.serviceId}&page=${currentPage}&limit=${limit}" class="p-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-full" title="Vô hiệu hóa dịch vụ" onclick="return confirmAction('Bạn có chắc chắn muốn vô hiệu hóa dịch vụ này?')">
+                                                                <i data-lucide="ban" class="w-5 h-5"></i>
                                                             </a>
-                                                            <!-- Nút chỉnh sửa dịch vụ -->
-                                                            <a href="service?service=pre-update&id=${service.serviceId}&page=${currentPage}&limit=${limit}" class="p-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-full" title="Chỉnh sửa dịch vụ">
-                                                                <i data-lucide="edit" class="w-5 h-5"></i>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <a href="service?service=activate&id=${service.serviceId}&page=${currentPage}&limit=${limit}" class="p-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-full hover:text-green-800 transition-colors" title="Kích hoạt lại dịch vụ" onclick="return confirmAction('Bạn có chắc chắn muốn kích hoạt lại dịch vụ này?')">
+                                                                <i data-lucide="refresh-ccw" class="w-5 h-5"></i>
                                                             </a>
-                                                            <!-- Nút quản lý hình ảnh -->
-                                                            <a href="${pageContext.request.contextPath}/manager/service-images/single-upload?serviceId=${service.serviceId}" class="p-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 rounded-full" title="Quản lý hình ảnh">
-                                                                <i data-lucide="image" class="w-5 h-5"></i>
-                                                            </a>
-                                                            <c:choose>
-                                                                <c:when test="${service.isActive}">
-                                                                    <a href="service?service=deactivate&id=${service.serviceId}&page=${currentPage}&limit=${limit}" class="p-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-full" title="Vô hiệu hóa dịch vụ" onclick="return confirmAction('Bạn có chắc chắn muốn vô hiệu hóa dịch vụ này?')">
-                                                                        <i data-lucide="ban" class="w-5 h-5"></i>
-                                                                    </a>
-                                                                </c:when>
-                                                                <c:otherwise>
-                                                                    <a href="service?service=activate&id=${service.serviceId}&page=${currentPage}&limit=${limit}" class="p-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-full hover:text-green-800 transition-colors" title="Kích hoạt lại dịch vụ" onclick="return confirmAction('Bạn có chắc chắn muốn kích hoạt lại dịch vụ này?')">
-                                                                        <i data-lucide="refresh-ccw" class="w-5 h-5"></i>
-                                                                    </a>
-                                                                </c:otherwise>
-                                                            </c:choose>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            </c:forEach>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </c:forEach>
                                         </c:otherwise>
                                     </c:choose>
                                 </tbody>
