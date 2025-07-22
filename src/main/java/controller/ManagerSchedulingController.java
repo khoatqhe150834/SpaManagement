@@ -46,6 +46,8 @@ import model.User;
 import model.csp.BookingAssignment;
 import model.csp.BookingCSPRequest;
 import service.BookingCSPSolver;
+import service.RealTimeAvailabilityService;
+import service.TimeSlotGenerationTest;
 import service.NotificationService;
 
 /**
@@ -71,6 +73,7 @@ public class ManagerSchedulingController extends HttpServlet {
     private final UserDAO userDAO;
     private final BookingDAO bookingDAO;
     private final NotificationService notificationService;
+    private final RealTimeAvailabilityService availabilityService;
     
     public ManagerSchedulingController() {
         this.paymentDAO = new PaymentDAO();
@@ -81,6 +84,7 @@ public class ManagerSchedulingController extends HttpServlet {
         this.userDAO = new UserDAO();
         this.bookingDAO = new BookingDAO();
         this.notificationService = new NotificationService();
+        this.availabilityService = new RealTimeAvailabilityService();
     }
     
     @Override
@@ -142,6 +146,12 @@ public class ManagerSchedulingController extends HttpServlet {
                     break;
                 case "find_available_slots":
                     handleFindAvailableSlots(request, response, user);
+                    break;
+                case "get_realtime_availability":
+                    handleGetRealtimeAvailability(request, response, user);
+                    break;
+                case "test_timeslot_generation":
+                    handleTestTimeslotGeneration(request, response, user);
                     break;
                 case "get_item_details":
                     handleGetItemDetails(request, response, user);
@@ -862,6 +872,88 @@ public class ManagerSchedulingController extends HttpServlet {
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error creating booking from payment item", e);
             return new BookingResult(false, "Lỗi hệ thống khi tạo lịch hẹn", null);
+        }
+    }
+
+    /**
+     * Handle real-time availability request for calendar display
+     */
+    private void handleGetRealtimeAvailability(HttpServletRequest request, HttpServletResponse response, User user)
+            throws IOException, ServletException {
+
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        try {
+            // Get parameters
+            String dateStr = request.getParameter("date");
+            String serviceIdStr = request.getParameter("serviceId");
+            String customerIdStr = request.getParameter("customerId");
+
+            if (dateStr == null || serviceIdStr == null || customerIdStr == null) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.getWriter().write("{\"success\":false,\"message\":\"Missing required parameters\"}");
+                return;
+            }
+
+            LocalDate date = LocalDate.parse(dateStr);
+            int serviceId = Integer.parseInt(serviceIdStr);
+            int customerId = Integer.parseInt(customerIdStr);
+
+            // Get real-time availability
+            List<RealTimeAvailabilityService.AvailabilitySlot> availabilitySlots =
+                availabilityService.getAvailabilityForDate(date, serviceId, customerId);
+
+            // Convert to JSON response
+            StringBuilder jsonBuilder = new StringBuilder();
+            jsonBuilder.append("{\"success\":true,\"message\":\"Availability retrieved successfully\",\"data\":[");
+
+            for (int i = 0; i < availabilitySlots.size(); i++) {
+                RealTimeAvailabilityService.AvailabilitySlot slot = availabilitySlots.get(i);
+
+                if (i > 0) jsonBuilder.append(",");
+
+                jsonBuilder.append("{")
+                    .append("\"startTime\":\"").append(slot.getStartTime().toString()).append("\",")
+                    .append("\"endTime\":\"").append(slot.getEndTime().toString()).append("\",")
+                    .append("\"available\":").append(slot.isAvailable()).append(",")
+                    .append("\"resourceCount\":").append(slot.getAvailableResources().size())
+                    .append("}");
+            }
+
+            jsonBuilder.append("],\"timestamp\":").append(System.currentTimeMillis()).append("}");
+
+            response.getWriter().write(jsonBuilder.toString());
+
+        } catch (Exception e) {
+            LOGGER.severe("Error getting real-time availability: " + e.getMessage());
+            e.printStackTrace();
+
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("{\"success\":false,\"message\":\"Error retrieving availability: " +
+                e.getMessage().replace("\"", "\\\"") + "\"}");
+        }
+    }
+
+    /**
+     * Handle time slot generation test request
+     */
+    private void handleTestTimeslotGeneration(HttpServletRequest request, HttpServletResponse response, User user)
+            throws IOException, ServletException {
+
+        response.setContentType("text/plain");
+        response.setCharacterEncoding("UTF-8");
+
+        try {
+            String testResult = TimeSlotGenerationTest.runDiagnosticTest();
+            response.getWriter().write(testResult);
+
+        } catch (Exception e) {
+            LOGGER.severe("Error running time slot generation test: " + e.getMessage());
+            e.printStackTrace();
+
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("Error running test: " + e.getMessage());
         }
     }
 
