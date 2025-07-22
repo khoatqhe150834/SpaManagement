@@ -25,8 +25,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.logging.Logger;
-import model.Bed;
-import model.Room;
 import model.Service;
 import model.ServiceType;
 import model.User;
@@ -34,7 +32,6 @@ import model.csp.BookingAssignment;
 import model.csp.BookingCSPRequest;
 import service.BookingCSPSolver;
 import service.RealTimeAvailabilityService;
-import service.TimeSlotGenerationTest;
 
 /**
  * Test Booking Controller for debugging CSP solver functionality
@@ -129,9 +126,7 @@ public class TestBookingController extends HttpServlet {
                 case "test_availability_service":
                     handleTestAvailabilityService(request, response);
                     break;
-                case "test_time_generation":
-                    handleTestTimeGeneration(request, response);
-                    break;
+                
                 case "simulate_conflicts":
                     handleSimulateConflicts(request, response);
                     break;
@@ -715,50 +710,7 @@ public class TestBookingController extends HttpServlet {
     /**
      * Test time slot generation algorithm
      */
-    private void handleTestTimeGeneration(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-
-        long startTime = System.currentTimeMillis();
-
-        try {
-            String dateStr = request.getParameter("date");
-            int serviceDuration = Integer.parseInt(request.getParameter("serviceDuration") != null ?
-                request.getParameter("serviceDuration") : "75");
-
-            // Run time slot generation test
-            String testResult = TimeSlotGenerationTest.runDiagnosticTest();
-
-            long executionTime = System.currentTimeMillis() - startTime;
-
-            Map<String, Object> result = new HashMap<>();
-            result.put("success", true);
-            result.put("message", "Time generation test completed");
-            result.put("executionTime", executionTime);
-            result.put("testOutput", testResult);
-            result.put("parameters", Map.of(
-                "date", dateStr != null ? dateStr : "2025-07-25",
-                "serviceDuration", serviceDuration
-            ));
-            result.put("timestamp", System.currentTimeMillis());
-
-            response.getWriter().write(gson.toJson(result));
-
-        } catch (Exception e) {
-            long executionTime = System.currentTimeMillis() - startTime;
-
-            Map<String, Object> result = new HashMap<>();
-            result.put("success", false);
-            result.put("message", "Time generation test failed: " + e.getMessage());
-            result.put("error", e.getClass().getSimpleName());
-            result.put("executionTime", executionTime);
-            result.put("timestamp", System.currentTimeMillis());
-
-            response.getWriter().write(gson.toJson(result));
-        }
-    }
+   
 
     /**
      * Simulate booking conflicts for testing
@@ -897,9 +849,7 @@ public class TestBookingController extends HttpServlet {
                             case "Service Loading":
                                 serviceDAO.findAll(); // Actual database call
                                 break;
-                            case "Time Generation":
-                                TimeSlotGenerationTest.runDiagnosticTest(); // Actual time generation
-                                break;
+                            
                         }
 
                         totalTime += (System.currentTimeMillis() - startTime);

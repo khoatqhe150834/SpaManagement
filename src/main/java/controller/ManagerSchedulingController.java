@@ -1,5 +1,20 @@
 package controller;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import dao.BookingDAO;
+import dao.CustomerDAO;
+import dao.PaymentDAO;
+import dao.PaymentItemDAO;
+import dao.PaymentItemUsageDAO;
+import dao.ServiceDAO;
+import dao.UserDAO;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Date;
@@ -14,23 +29,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
-import dao.BookingDAO;
-import dao.CustomerDAO;
-import dao.PaymentDAO;
-import dao.PaymentItemDAO;
-import dao.PaymentItemUsageDAO;
-import dao.ServiceDAO;
-import dao.UserDAO;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import model.ApiResponse;
 import model.AvailabilityResult;
 import model.Booking;
@@ -46,9 +44,8 @@ import model.User;
 import model.csp.BookingAssignment;
 import model.csp.BookingCSPRequest;
 import service.BookingCSPSolver;
-import service.RealTimeAvailabilityService;
-import service.TimeSlotGenerationTest;
 import service.NotificationService;
+import service.RealTimeAvailabilityService;
 
 /**
  * Controller for Manager Scheduling Interface
@@ -150,9 +147,7 @@ public class ManagerSchedulingController extends HttpServlet {
                 case "get_realtime_availability":
                     handleGetRealtimeAvailability(request, response, user);
                     break;
-                case "test_timeslot_generation":
-                    handleTestTimeslotGeneration(request, response, user);
-                    break;
+                
                 case "get_item_details":
                     handleGetItemDetails(request, response, user);
                     break;
@@ -938,24 +933,8 @@ public class ManagerSchedulingController extends HttpServlet {
     /**
      * Handle time slot generation test request
      */
-    private void handleTestTimeslotGeneration(HttpServletRequest request, HttpServletResponse response, User user)
-            throws IOException, ServletException {
-
-        response.setContentType("text/plain");
-        response.setCharacterEncoding("UTF-8");
-
-        try {
-            String testResult = TimeSlotGenerationTest.runDiagnosticTest();
-            response.getWriter().write(testResult);
-
-        } catch (Exception e) {
-            LOGGER.severe("Error running time slot generation test: " + e.getMessage());
-            e.printStackTrace();
-
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write("Error running test: " + e.getMessage());
-        }
-    }
+   
+    
 
     /**
      * Handle CSP solver request for finding available slots
