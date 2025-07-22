@@ -102,6 +102,9 @@ public class ServiceImageUploadController extends HttpServlet {
             case "delete":
                 handleDeleteImage(request, response);
                 break;
+            case "update-order-and-primary":
+                handleUpdateOrderAndPrimary(request, response);
+                break;
             default:
                 sendErrorResponse(response, "Hành động không hợp lệ");
                 break;
@@ -592,6 +595,42 @@ public class ServiceImageUploadController extends HttpServlet {
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error deleting image", e);
             sendErrorResponse(response, "Không thể xóa ảnh: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Handles updating image order and primary image
+     */
+    private void handleUpdateOrderAndPrimary(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType("application/json");
+        try {
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = request.getReader().readLine()) != null) {
+                sb.append(line);
+            }
+            String body = sb.toString();
+            Gson gson = new Gson();
+            Map<String, Object> json = gson.fromJson(body, Map.class);
+            java.util.List<?> orderList = (java.util.List<?>) json.get("order");
+            if (orderList == null || orderList.isEmpty()) {
+                sendErrorResponse(response, "Tham số thứ tự là bắt buộc");
+                return;
+            }
+            for (int i = 0; i < orderList.size(); i++) {
+                int imageId = Integer.parseInt(orderList.get(i).toString());
+                int sortOrder = i;
+                serviceImageDAO.updateSortOrderOnly(imageId, sortOrder);
+            }
+            JsonObject result = new JsonObject();
+            result.addProperty("success", true);
+            result.addProperty("message", "Đã cập nhật thứ tự ảnh thành công");
+            PrintWriter out = response.getWriter();
+            out.print(gson.toJson(result));
+            out.flush();
+        } catch (Exception e) {
+            sendErrorResponse(response, "Không thể cập nhật thứ tự ảnh: " + e.getMessage());
         }
     }
 

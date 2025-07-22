@@ -202,9 +202,9 @@
                 </c:if>
                 
                 <div class="image-preview-container" id="existingImagesContainer">
-                    <c:forEach var="image" items="${existingImages}">
+                    <c:forEach var="image" items="${existingImages}" varStatus="status">
                         <div class="image-preview-item" data-image-id="${image.imageId}">
-                            <c:if test="${image.isPrimary}">
+                            <c:if test="${status.index == 0 || image.isPrimary}">
                                 <div class="absolute top-3 left-3 bg-yellow-400 text-white text-xs font-bold px-2 py-1 rounded-full z-10 flex items-center gap-1">
                                     <i data-lucide="star" class="w-3 h-3"></i>
                                     Chính
@@ -282,36 +282,56 @@
     window.serviceId = ${service.serviceId};
 </script>
 <script src="<c:url value='/js/single-image-upload.js'/>"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        if (window.lucide) lucide.createIcons();
-        
-        window.showImageModal = function(src) {
-            document.getElementById('modalImg').src = src;
-            document.getElementById('imageModal').classList.remove('hidden');
-        };
-        
-        document.getElementById('closeModal').onclick = function() {
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.lucide) lucide.createIcons();
+    // Modal logic ...
+    window.showImageModal = function(src) {
+        document.getElementById('modalImg').src = src;
+        document.getElementById('imageModal').classList.remove('hidden');
+    };
+    document.getElementById('closeModal').onclick = function() {
+        document.getElementById('imageModal').classList.add('hidden');
+        document.getElementById('modalImg').src = '';
+    };
+    document.getElementById('imageModal').onclick = function(e) {
+        if (e.target === this) {
+            this.classList.add('hidden');
+            document.getElementById('modalImg').src = '';
+        }
+    };
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
             document.getElementById('imageModal').classList.add('hidden');
             document.getElementById('modalImg').src = '';
-        };
-        
-        document.getElementById('imageModal').onclick = function(e) {
-            if (e.target === this) {
-                this.classList.add('hidden');
-                document.getElementById('modalImg').src = '';
-            }
-        };
-        
-        // Close modal with Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                document.getElementById('imageModal').classList.add('hidden');
-                document.getElementById('modalImg').src = '';
+        }
+    });
+    // SortableJS logic
+    var el = document.getElementById('existingImagesContainer');
+    if (el) {
+        new Sortable(el, {
+            animation: 150,
+            onEnd: function (evt) {
+                var imageIds = [];
+                el.querySelectorAll('.image-preview-item').forEach(function(item) {
+                    imageIds.push(item.getAttribute('data-image-id'));
+                });
+                fetch(window.contextPath + '/manager/service-images/update-order-and-primary', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ order: imageIds, serviceId: window.serviceId })
+                })
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    if (data.success) {
+                        location.reload();
+                    }
+                });
             }
         });
-    });
+    }
+});
 </script>
 
 </body>
