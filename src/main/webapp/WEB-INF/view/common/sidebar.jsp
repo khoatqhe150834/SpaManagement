@@ -114,7 +114,7 @@
 
 <!-- Enhanced Role-Based Sidebar with MenuService Integration -->
 <div class="fixed left-0 top-0 w-64 h-full bg-spa-cream p-4 z-50 sidebar-menu transition-transform border-r border-primary/20 flex flex-col">
-    <a href="${pageContext.request.contextPath}/dashboard" class="flex items-center pb-4 border-b border-primary/30 flex-shrink-0">
+    <a href="${pageContext.request.contextPath}/" class="flex items-center pb-4 border-b border-primary/30 flex-shrink-0">
         <h2 class="font-bold text-2xl text-spa-dark">Spa <span class="bg-primary text-white px-2 rounded-md">Hương Sen</span></h2>
     </a>
     

@@ -531,59 +531,7 @@ class ServiceDetailsManager {
         }
     }
 
-    prevImage() {
-        if (this.currentImageIndex > 0) {
-            this.currentImageIndex--;
-            this.updateMainImage();
-        }
-    }
 
-    nextImage() {
-        if (this.currentImageIndex < this.serviceImages.length - 1) {
-            this.currentImageIndex++;
-            this.updateMainImage();
-        }
-    }
-
-    goToImage(index) {
-        if (index >= 0 && index < this.serviceImages.length) {
-            this.currentImageIndex = index;
-            this.updateMainImage();
-        }
-    }
-
-    updateMainImage() {
-        const mainImage = document.getElementById('main-service-image');
-        const currentImageSpan = document.getElementById('current-image');
-        const prevBtn = document.getElementById('prev-btn');
-        const nextBtn = document.getElementById('next-btn');
-
-        if (mainImage && this.serviceImages[this.currentImageIndex]) {
-            const currentImage = this.serviceImages[this.currentImageIndex];
-            mainImage.src = currentImage.url;
-            mainImage.alt = currentImage.altText;
-
-            // Update counter
-            if (currentImageSpan) {
-                currentImageSpan.textContent = this.currentImageIndex + 1;
-            }
-
-            // Update navigation buttons
-            if (prevBtn) prevBtn.disabled = this.currentImageIndex === 0;
-            if (nextBtn) nextBtn.disabled = this.currentImageIndex === this.serviceImages.length - 1;
-
-            // Update active thumbnail
-            document.querySelectorAll('.thumbnail-item').forEach((thumb, index) => {
-                if (index === this.currentImageIndex) {
-                    thumb.classList.add('border-primary');
-                    thumb.classList.remove('border-transparent');
-                } else {
-                    thumb.classList.remove('border-primary');
-                    thumb.classList.add('border-transparent');
-                }
-            });
-        }
-    }
 
 
 
@@ -886,98 +834,7 @@ class ServiceDetailsManager {
         }
     }
 
-    // Image zoom functions
-    openImageZoom(imageUrl, altText) {
-        console.log('[IMAGE_ZOOM] Opening zoom modal for image:', imageUrl);
 
-        const modal = document.getElementById('image-zoom-modal');
-        const zoomImage = document.getElementById('zoom-image');
-        const zoomCounter = document.getElementById('zoom-counter');
-        const zoomCurrent = document.getElementById('zoom-current');
-        const zoomTotal = document.getElementById('zoom-total');
-        const zoomPrevBtn = document.getElementById('zoom-prev-btn');
-        const zoomNextBtn = document.getElementById('zoom-next-btn');
-
-        console.log('[IMAGE_ZOOM] Modal elements found:', {
-            modal: !!modal,
-            zoomImage: !!zoomImage,
-            zoomCounter: !!zoomCounter,
-            zoomCurrent: !!zoomCurrent,
-            zoomTotal: !!zoomTotal,
-            zoomPrevBtn: !!zoomPrevBtn,
-            zoomNextBtn: !!zoomNextBtn
-        });
-
-        // Find the index of the clicked image
-        this.zoomImageIndex = this.serviceImages.findIndex(img => img.url === imageUrl);
-        if (this.zoomImageIndex === -1) this.zoomImageIndex = 0;
-
-        // Set up the modal
-        zoomImage.src = imageUrl;
-        zoomImage.alt = altText;
-        this.zoomLevel = 1;
-        zoomImage.style.transform = 'scale(1)';
-
-        // Show/hide navigation and counter based on image count
-        if (this.serviceImages.length > 1) {
-            zoomCounter.classList.remove('hidden');
-            zoomCurrent.textContent = this.zoomImageIndex + 1;
-            zoomTotal.textContent = this.serviceImages.length;
-
-            if (this.zoomImageIndex > 0) zoomPrevBtn.classList.remove('hidden');
-            else zoomPrevBtn.classList.add('hidden');
-
-            if (this.zoomImageIndex < this.serviceImages.length - 1) zoomNextBtn.classList.remove('hidden');
-            else zoomNextBtn.classList.add('hidden');
-        } else {
-            zoomCounter.classList.add('hidden');
-            zoomPrevBtn.classList.add('hidden');
-            zoomNextBtn.classList.add('hidden');
-        }
-
-        modal.classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
-    }
-
-    closeImageZoom() {
-        const modal = document.getElementById('image-zoom-modal');
-        modal.classList.add('hidden');
-        document.body.style.overflow = 'auto';
-    }
-
-    zoomIn() {
-        const zoomImage = document.getElementById('zoom-image');
-        this.zoomLevel = Math.min(this.zoomLevel * 1.2, 3);
-        zoomImage.style.transform = `scale(${this.zoomLevel})`;
-    }
-
-    zoomOut() {
-        const zoomImage = document.getElementById('zoom-image');
-        this.zoomLevel = Math.max(this.zoomLevel / 1.2, 0.5);
-        zoomImage.style.transform = `scale(${this.zoomLevel})`;
-    }
-
-    resetZoom() {
-        const zoomImage = document.getElementById('zoom-image');
-        this.zoomLevel = 1;
-        zoomImage.style.transform = 'scale(1)';
-    }
-
-    zoomPrevImage() {
-        if (this.zoomImageIndex > 0) {
-            this.zoomImageIndex--;
-            const image = this.serviceImages[this.zoomImageIndex];
-            this.openImageZoom(image.url, image.altText);
-        }
-    }
-
-    zoomNextImage() {
-        if (this.zoomImageIndex < this.serviceImages.length - 1) {
-            this.zoomImageIndex++;
-            const image = this.serviceImages[this.zoomImageIndex];
-            this.openImageZoom(image.url, image.altText);
-        }
-    }
 
     // Get service image URL with fallback
     getServiceImageUrl() {
