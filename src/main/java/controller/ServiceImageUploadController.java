@@ -17,6 +17,7 @@ import com.google.gson.JsonObject;
 
 import dao.ServiceDAO;
 import dao.ServiceImageDAO;
+import dao.ServiceTypeDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
@@ -26,6 +27,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 import model.Service;
 import model.ServiceImage;
+import model.ServiceType;
 import util.ImageUploadUtil;
 import util.ImageUploadUtil.ProcessedImageResult;
 import util.ImageUploadUtil.ValidationResult;
@@ -178,6 +180,8 @@ public class ServiceImageUploadController extends HttpServlet {
 
         List<Service> services = serviceDAO.findAll();
         request.setAttribute("services", services);
+        List<ServiceType> serviceTypes = new ServiceTypeDAO().findAll();
+        request.setAttribute("serviceTypes", serviceTypes);
         request.getRequestDispatcher("/WEB-INF/view/admin_pages/Service/ImageManagement.jsp")
                 .forward(request, response);
     }

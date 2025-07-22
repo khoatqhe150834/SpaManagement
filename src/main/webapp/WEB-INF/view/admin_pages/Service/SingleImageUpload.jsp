@@ -113,49 +113,25 @@
     </style>
 </head>
 <body class="bg-spa-cream font-sans min-h-screen">
-<jsp:include page="/WEB-INF/view/common/header.jsp" />
+<jsp:include page="/WEB-INF/view/admin_pages/Common/Header.jsp" />
 <div class="flex">
 <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
 <main class="flex-1 py-12 lg:py-20 ml-64">
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <!-- Breadcrumb Navigation -->
-    <nav class="flex items-center space-x-2 text-sm text-gray-600 mb-8">
-        <a href="${pageContext.request.contextPath}/manager/dashboard" class="hover:text-primary transition-colors">
-            <i data-lucide="home" class="w-4 h-4 inline mr-1"></i>
-            Dashboard
-        </a>
-        <i data-lucide="chevron-right" class="w-4 h-4"></i>
-        <a href="${pageContext.request.contextPath}/manager/service" class="hover:text-primary transition-colors">
-            <i data-lucide="list" class="w-4 h-4 inline mr-1"></i>
-            Quản lý dịch vụ
-        </a>
-        <i data-lucide="chevron-right" class="w-4 h-4"></i>
-        <a href="${pageContext.request.contextPath}/manager/service-images/manage" class="hover:text-primary transition-colors">
-            <i data-lucide="gallery-horizontal" class="w-4 h-4 inline mr-1"></i>
-            Quản lý ảnh
-        </a>
-        <i data-lucide="chevron-right" class="w-4 h-4"></i>
-        <span class="text-primary font-semibold">Upload ảnh - ${service.name}</span>
-    </nav>
-
-    <!-- Header Section -->
+    <!-- Header Section - theo phong cách ServiceManager.jsp -->
     <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
-        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-            <div>
-                <h1 class="text-3xl font-serif font-bold text-spa-dark mb-2 flex items-center gap-3">
-                    <i data-lucide="upload" class="w-8 h-8 text-primary"></i>
-                    Upload Ảnh Dịch Vụ
-                </h1>
-                <p class="text-gray-600">Tải lên ảnh cho dịch vụ: <span class="font-semibold text-primary">${service.name}</span></p>
+        <div class="flex flex-col gap-2">
+            <div class="flex items-center gap-3 mb-2">
+                <i data-lucide="upload" class="w-8 h-8 text-primary"></i>
+                <h1 class="text-3xl font-serif font-bold text-spa-dark">Upload Ảnh Dịch Vụ</h1>
             </div>
-            <div class="flex flex-wrap gap-3">
-                <a href="${pageContext.request.contextPath}/manager/service-images/manage?serviceId=${service.serviceId}" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+            <div class="text-gray-600 text-base">
+                Tải lên ảnh cho dịch vụ: <span class="font-semibold text-primary">${service.name}</span>
+            </div>
+            <div class="mt-4">
+                <a href="${pageContext.request.contextPath}/manager/service" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
                     <i data-lucide="arrow-left" class="w-4 h-4"></i>
                     Quay về
-                </a>
-                <a href="${pageContext.request.contextPath}/manager/service" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-800 rounded-lg hover:bg-blue-200 transition-colors">
-                    <i data-lucide="list" class="w-4 h-4"></i>
-                    Danh sách dịch vụ
                 </a>
             </div>
         </div>
