@@ -445,35 +445,31 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
 
     // Kiểm tra tên dịch vụ đã tồn tại (không phân biệt loại)
     public boolean existsByName(String name) {
-        String sql = "SELECT COUNT(*) FROM services WHERE LOWER(name) = ?";
-        try (Connection conn = DBContext.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, name.toLowerCase());
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1) > 0;
-                }
+        String sql = "SELECT 1 FROM services WHERE LOWER(name) = LOWER(?)";
+        try (Connection connection = DBContext.getConnection();
+                PreparedStatement stm = connection.prepareStatement(sql)) {
+            stm.setString(1, name.trim());
+            try (ResultSet rs = stm.executeQuery()) {
+                return rs.next();
             }
         } catch (SQLException ex) {
-            ex.printStackTrace();
+            Logger.getLogger(ServiceDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
         return false;
     }
 
     // Kiểm tra tên dịch vụ đã tồn tại, loại trừ 1 id (dùng cho update)
     public boolean existsByNameExceptId(String name, int excludeId) {
-        String sql = "SELECT COUNT(*) FROM services WHERE LOWER(name) = ? AND service_id <> ?";
-        try (Connection conn = DBContext.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, name.toLowerCase());
-            stmt.setInt(2, excludeId);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1) > 0;
-                }
+        String sql = "SELECT 1 FROM services WHERE LOWER(name) = LOWER(?) AND service_id <> ?";
+        try (Connection connection = DBContext.getConnection();
+                PreparedStatement stm = connection.prepareStatement(sql)) {
+            stm.setString(1, name.trim());
+            stm.setInt(2, excludeId);
+            try (ResultSet rs = stm.executeQuery()) {
+                return rs.next();
             }
         } catch (SQLException ex) {
-            ex.printStackTrace();
+            Logger.getLogger(ServiceDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
         return false;
     }
@@ -835,5 +831,49 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
         List<Service> services = getMostPurchasedServices(limit);
         loadFirstAvailableImages(services);
         return services;
+    }
+
+    /**
+     * Check if a service name already exists in the database
+     * @param name The service name to check
+     * @return true if the name exists, false otherwise
+     */
+    public boolean isNameDuplicate(String name) {
+        String sql = "SELECT COUNT(*) FROM services WHERE LOWER(name) = ?";
+        try (Connection con = DBContext.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, name.toLowerCase());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            Logger.getLogger(ServiceDAO.class.getName()).log(Level.SEVERE, "Error checking service name duplicate", e);
+        }
+        return false;
+    }
+
+    /**
+     * Check if a service name exists for any service other than the one with the given ID
+     * @param name The service name to check
+     * @param id The ID of the service to exclude from the check
+     * @return true if the name exists for another service, false otherwise
+     */
+    public boolean isNameDuplicateExcludingId(String name, int id) {
+        String sql = "SELECT COUNT(*) FROM services WHERE LOWER(name) = ? AND service_id <> ?";
+        try (Connection con = DBContext.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, name.toLowerCase());
+            ps.setInt(2, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            Logger.getLogger(ServiceDAO.class.getName()).log(Level.SEVERE, "Error checking service name duplicate excluding ID", e);
+        }
+        return false;
     }
 }

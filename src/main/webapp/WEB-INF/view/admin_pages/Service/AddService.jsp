@@ -6,6 +6,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thêm mới dịch vụ</title>
+    <!-- jQuery CDN -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -182,78 +184,53 @@
     <script>
         var contextPath = "${pageContext.request.contextPath}";
         if (window.lucide) lucide.createIcons();
-    </script>
-    <!-- Giữ lại toàn bộ script validation, upload ảnh, ... ở cuối file như cũ -->
-    <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
-    <script>
-        // Utility functions for validation
-        function setValid(input, errorDiv, message) {
-            input.classList.remove('is-invalid');
-            input.classList.add('is-valid');
-            errorDiv.textContent = message;
-            errorDiv.style.color = '#22c55e';
+
+        // Helper functions
+        function setValid(input, errorDiv, msg) {
+            if (!input || !errorDiv) return;
+            input.classList.remove('border-red-500', 'focus:ring-red-500', 'border-gray-300', 'focus:ring-primary');
+            input.classList.add('border-green-500', 'focus:ring-green-500');
+            errorDiv.textContent = msg;
+            errorDiv.style.color = 'green';
         }
 
-        function setInvalid(input, errorDiv, message) {
-            input.classList.remove('is-valid');
-            input.classList.add('is-invalid');
-            errorDiv.textContent = message;
-            errorDiv.style.color = '#f44336';
+        function setInvalid(input, errorDiv, msg) {
+            if (!input || !errorDiv) return;
+            input.classList.remove('border-green-500', 'focus:ring-green-500', 'border-gray-300', 'focus:ring-primary');
+            input.classList.add('border-red-500', 'focus:ring-red-500');
+            errorDiv.textContent = msg;
+            errorDiv.style.color = 'red';
         }
 
         function setDefault(input, errorDiv) {
-            input.classList.remove('is-valid', 'is-invalid');
+            if (!input || !errorDiv) return;
+            input.classList.remove('border-red-500', 'focus:ring-red-500', 'border-green-500', 'focus:ring-green-500');
+            input.classList.add('border-gray-300', 'focus:ring-primary');
             errorDiv.textContent = '';
         }
 
-        // Character count functions
         function updateCharCount(input, counterId, maxLength) {
-            try {
-                const counter = document.getElementById(counterId);
-                if (!counter) {
-                    console.error('Counter element not found:', counterId);
-                    return;
-                }
-                if (!input) {
-                    console.error('Input element not found');
-                    return;
-                }
-                
-                const value = input.value || "";
-                const currentLength = value.length;
-                
-                console.log('Debug values:', {
-                    counterId: counterId,
-                    value: value,
-                    currentLength: currentLength,
-                    maxLength: maxLength,
-                    currentLengthType: typeof currentLength,
-                    maxLengthType: typeof maxLength
-                });
-                
-                const displayText = currentLength + '/' + maxLength;
-                
-                console.log('Final display text:', displayText);
-                
-                counter.textContent = displayText;
-                
-                if (currentLength > maxLength * 0.8) {
-                    counter.style.color = '#f59e0b';
-                } else if (currentLength > maxLength) {
-                    counter.style.color = '#f44336';
-                } else {
-                    counter.style.color = '#6b7280';
-                }
-            } catch (error) {
-                console.error('Error in updateCharCount:', error);
+            const counter = document.getElementById(counterId);
+            const currentLength = input.value.length;
+            counter.textContent = currentLength + '/' + maxLength;
+            
+            if (currentLength > maxLength * 0.8) {
+                counter.style.color = '#f59e0b';
+            } else if (currentLength > maxLength) {
+                counter.style.color = '#f44336';
+            } else {
+                counter.style.color = '#6b7280';
             }
         }
 
-        // Validation functions
         function validateName(input) {
+            if (!input) return false;
+            
             const vietnameseNamePattern = /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂẾưăạảấầẩẫậắằẳẵặẹẻẽềềểếỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s]+$/;
             const value = input.value.trim();
             const errorDiv = document.getElementById('nameError');
+            
+            if (!errorDiv) return false;
             
             if (value === '') {
                 setInvalid(input, errorDiv, 'Tên dịch vụ không được để trống');
@@ -271,7 +248,6 @@
                 setInvalid(input, errorDiv, 'Tên dịch vụ chỉ được chứa chữ cái và khoảng trắng');
                 return false;
             }
-            setValid(input, errorDiv, 'Tên hợp lệ');
             return true;
         }
 
@@ -424,12 +400,15 @@
             $.ajax({
                 url: contextPath + '/manager/service',
                 type: 'GET',
-                data: { service: 'check-duplicate-name', name: name },
+                data: { 
+                    service: 'check-duplicate-name', 
+                    name: name 
+                },
                 dataType: 'json',
-                success: function (response) {
+                success: function(response) {
                     callback(!response.valid, response.message);
                 },
-                error: function () {
+                error: function() {
                     callback(false, 'Không thể kiểm tra tên. Vui lòng thử lại.');
                 }
             });
@@ -446,91 +425,109 @@
             return nameValid && descValid && priceValid && durationValid && bufferValid;
         }
 
-        // Event listeners
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM Content Loaded');
-            
+        $(document).ready(function() {
             const nameInput = document.getElementById('name');
             const descInput = document.getElementById('description');
-            const priceInput = document.getElementById('price');
-            const durationInput = document.getElementById('duration_minutes');
-            const bufferInput = document.getElementById('buffer_time_after_minutes');
-            const imageInput = document.getElementById('upload-file-multiple');
 
-            console.log('Elements found:', {
-                nameInput: !!nameInput,
-                descInput: !!descInput,
-                nameCounter: !!document.getElementById('nameCharCount'),
-                descCounter: !!document.getElementById('descCharCount')
-            });
-
-            // Initialize character counts on page load
+            // Initialize character counts
             updateCharCount(nameInput, 'nameCharCount', 200);
             updateCharCount(descInput, 'descCharCount', 500);
 
-            // Name validation
-            nameInput.addEventListener('input', function() {
+            // Real-time name validation
+            $('#name').on('input', function() {
+                const input = this;
+                const errorDiv = document.getElementById('nameError');
                 updateCharCount(this, 'nameCharCount', 200);
                 if (validateName(this)) {
                     checkServiceNameDuplicate(this.value.trim(), function(isDuplicate, msg) {
                         if (isDuplicate) {
-                            setInvalid(nameInput, document.getElementById('nameError'), msg || 'Tên này đã tồn tại trong hệ thống');
+                            setInvalid(input, errorDiv, msg || 'Tên này đã tồn tại trong hệ thống');
                         } else {
-                            setValid(nameInput, document.getElementById('nameError'), 'Tên hợp lệ');
+                            setValid(input, errorDiv, 'Tên hợp lệ');
                         }
                     });
                 }
             });
-            
-            nameInput.addEventListener('blur', function() {
+
+            $('#name').on('blur', function() {
+                const input = this;
+                const errorDiv = document.getElementById('nameError');
                 this.value = this.value.replace(/\s+/g, ' ').trim();
                 updateCharCount(this, 'nameCharCount', 200);
                 if (validateName(this)) {
                     checkServiceNameDuplicate(this.value.trim(), function(isDuplicate, msg) {
                         if (isDuplicate) {
-                            setInvalid(nameInput, document.getElementById('nameError'), msg || 'Tên này đã tồn tại trong hệ thống');
+                            setInvalid(input, errorDiv, msg || 'Tên này đã tồn tại trong hệ thống');
                         } else {
-                            setValid(nameInput, document.getElementById('nameError'), 'Tên hợp lệ');
+                            setValid(input, errorDiv, 'Tên hợp lệ');
                         }
                     });
                 }
             });
 
             // Description validation
-            descInput.addEventListener('input', function() {
+            $('#description').on('input', function() {
                 updateCharCount(this, 'descCharCount', 500);
                 validateDescription(this);
             });
-            
-            descInput.addEventListener('blur', function() {
+
+            $('#description').on('blur', function() {
                 this.value = this.value.replace(/\s+/g, ' ').trim();
                 updateCharCount(this, 'descCharCount', 500);
                 validateDescription(this);
             });
 
             // Price validation
-            priceInput.addEventListener('input', validatePrice.bind(null, priceInput));
-            priceInput.addEventListener('blur', validatePrice.bind(null, priceInput));
+            $('#price').on('input', validatePrice.bind(null, $('#price')));
+            $('#price').on('blur', validatePrice.bind(null, $('#price')));
 
             // Duration validation
-            durationInput.addEventListener('input', validateDuration.bind(null, durationInput));
-            durationInput.addEventListener('blur', validateDuration.bind(null, durationInput));
+            $('#duration_minutes').on('input', validateDuration.bind(null, $('#duration_minutes')));
+            $('#duration_minutes').on('blur', validateDuration.bind(null, $('#duration_minutes')));
 
             // Buffer time validation
-            bufferInput.addEventListener('input', validateBufferTime.bind(null, bufferInput));
-            bufferInput.addEventListener('blur', validateBufferTime.bind(null, bufferInput));
+            $('#buffer_time_after_minutes').on('input', validateBufferTime.bind(null, $('#buffer_time_after_minutes')));
+            $('#buffer_time_after_minutes').on('blur', validateBufferTime.bind(null, $('#buffer_time_after_minutes')));
 
-            // Image upload
-            imageInput.addEventListener('change', function() {
-                handleImageUpload(this);
-            });
+            if ($('#upload-file-multiple')) {
+                $('#upload-file-multiple').on('change', function () {
+                    handleImageUpload(this);
+                });
+            }
 
             // Form submission
-            document.getElementById('service-form').addEventListener('submit', function(e) {
-                if (!validateForm()) {
-                    e.preventDefault();
+            $('#service-form').on('submit', function(e) {
+                e.preventDefault();
+                const nameInput = document.getElementById('name');
+                const errorDiv = document.getElementById('nameError');
+                let nameValue = nameInput.value.trim();
+                nameInput.value = nameValue;
+                
+                const isValid = validateName(nameInput);
+                if (!isValid || !validateForm()) {
                     alert('Vui lòng kiểm tra lại thông tin trước khi lưu!');
+                    return;
                 }
+
+                $.ajax({
+                    url: contextPath + '/manager/service',
+                    type: 'GET',
+                    data: { 
+                        service: 'check-duplicate-name', 
+                        name: nameValue 
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (!response.valid) {
+                            setInvalid(nameInput, errorDiv, response.message);
+                        } else {
+                            e.target.submit();
+                        }
+                    },
+                    error: function() {
+                        setInvalid(nameInput, errorDiv, 'Không thể kiểm tra tên dịch vụ. Vui lòng thử lại.');
+                    }
+                });
             });
         });
     </script>
@@ -550,6 +547,20 @@
         }
         .is-valid ~ .invalid-feedback {
             color: #22c55e;
+        }
+        #nameError, #descriptionError, #priceError, #durationError, #bufferError {
+            min-height: 20px;
+            margin-top: 4px;
+            font-size: 0.875rem;
+        }
+        #nameError:empty, #descriptionError:empty, #priceError:empty, #durationError:empty, #bufferError:empty {
+            display: none;
+        }
+        .border-red-500 {
+            border-color: #ef4444 !important;
+        }
+        .border-green-500 {
+            border-color: #22c55e !important;
         }
     </style>
 </body>

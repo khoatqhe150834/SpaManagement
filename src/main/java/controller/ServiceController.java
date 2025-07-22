@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import com.google.gson.JsonObject;
 
 @WebServlet(name = "ServiceController", urlPatterns = { "/manager/service" })
 @MultipartConfig(fileSizeThreshold = 0, maxFileSize = 2097152, // 2MB
@@ -297,25 +298,8 @@ public class ServiceController extends HttpServlet {
                 return;
             }
             case "check-duplicate-name": {
-                String name = request.getParameter("name");
-                String idParam = request.getParameter("id");
-                boolean isDuplicate;
-                if (idParam != null && !idParam.isEmpty()) {
-                    try {
-                        int id = Integer.parseInt(idParam);
-                        isDuplicate = serviceDAO.existsByNameExceptId(name, id);
-                    } catch (NumberFormatException e) {
-                        LOGGER.warning("Invalid service ID format: " + idParam);
-                        isDuplicate = false;
-                    }
-                } else {
-                    isDuplicate = serviceDAO.existsByName(name);
-                }
-                response.setContentType("application/json");
-                response.setCharacterEncoding("UTF-8");
-                String message = isDuplicate ? "Tên này đã tồn tại trong hệ thống." : "Tên hợp lệ";
-                response.getWriter().write("{\"valid\": " + !isDuplicate + ", \"message\": \"" + message + "\"}");
-                return;
+                handleCheckDuplicateName(request, response);
+                return; // DỪNG LUỒNG, KHÔNG FORWARD JSP NỮA
             }
         }
 
@@ -505,6 +489,40 @@ public class ServiceController extends HttpServlet {
             }
         }
         return "";
+    }
+
+    // Add this method to handle duplicate name check
+    private void handleCheckDuplicateName(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String name = request.getParameter("name");
+        String idParam = request.getParameter("id");
+        
+        if (name == null || name.trim().isEmpty()) {
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write("{\"valid\": false, \"message\": \"Tên dịch vụ không được để trống\"}");
+            return;
+        }
+
+        name = name.trim();
+        ServiceDAO serviceDAO = new ServiceDAO();
+        ServiceTypeDAO serviceTypeDAO = new ServiceTypeDAO();
+        boolean isDuplicate;
+
+        if (idParam != null && !idParam.isEmpty()) {
+            try {
+                int id = Integer.parseInt(idParam);
+                isDuplicate = serviceDAO.existsByNameExceptId(name, id) || serviceTypeDAO.existsByName(name);
+            } catch (NumberFormatException e) {
+                isDuplicate = serviceDAO.existsByName(name) || serviceTypeDAO.existsByName(name);
+            }
+        } else {
+            isDuplicate = serviceDAO.existsByName(name) || serviceTypeDAO.existsByName(name);
+        }
+        
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        String message = isDuplicate ? "Tên này đã tồn tại trong hệ thống." : "Tên hợp lệ.";
+        response.getWriter().write("{\"valid\": " + !isDuplicate + ", \"message\": \"" + message + "\"}");
     }
 
     @Override
