@@ -251,10 +251,16 @@
             return true;
         }
 
+        // Validate Description
         function validateDescription(input) {
+            if (!input) return false;
             const errorDiv = document.getElementById('descriptionError');
+            if (!errorDiv) return false;
             const value = input.value.trim();
-            
+            if (value.length < 20) {
+                setInvalid(input, errorDiv, 'Mô tả phải có ít nhất 20 ký tự');
+                return false;
+            }
             if (value.length > 500) {
                 setInvalid(input, errorDiv, 'Mô tả không được vượt quá 500 ký tự');
                 return false;
@@ -263,10 +269,12 @@
             return true;
         }
 
+        // Validate Price
         function validatePrice(input) {
+            if (!input) return false;
             const errorDiv = document.getElementById('priceError');
+            if (!errorDiv) return false;
             const value = parseFloat(input.value);
-            
             if (isNaN(value) || value <= 0) {
                 setInvalid(input, errorDiv, 'Giá phải là số dương');
                 return false;
@@ -279,10 +287,12 @@
             return true;
         }
 
+        // Validate Duration
         function validateDuration(input) {
+            if (!input) return false;
             const errorDiv = document.getElementById('durationError');
+            if (!errorDiv) return false;
             const value = parseInt(input.value);
-            
             if (isNaN(value) || value <= 0) {
                 setInvalid(input, errorDiv, 'Thời lượng phải là số dương');
                 return false;
@@ -299,10 +309,12 @@
             return true;
         }
 
+        // Validate Buffer Time
         function validateBufferTime(input) {
+            if (!input) return false;
             const errorDiv = document.getElementById('bufferError');
+            if (!errorDiv) return false;
             const value = parseInt(input.value);
-            
             if (isNaN(value) || value < 0) {
                 setInvalid(input, errorDiv, 'Thời gian chờ phải là số không âm');
                 return false;
@@ -425,6 +437,7 @@
             return nameValid && descValid && priceValid && durationValid && bufferValid;
         }
 
+        // Real-time validation event bindings
         $(document).ready(function() {
             const nameInput = document.getElementById('name');
             const descInput = document.getElementById('description');
@@ -465,7 +478,7 @@
                 }
             });
 
-            // Description validation
+            // Description
             $('#description').on('input', function() {
                 updateCharCount(this, 'descCharCount', 500);
                 validateDescription(this);
@@ -477,17 +490,29 @@
                 validateDescription(this);
             });
 
-            // Price validation
-            $('#price').on('input', validatePrice.bind(null, $('#price')));
-            $('#price').on('blur', validatePrice.bind(null, $('#price')));
+            // Price
+            $('#price').on('input', function() {
+                validatePrice(this);
+            });
+            $('#price').on('blur', function() {
+                validatePrice(this);
+            });
 
-            // Duration validation
-            $('#duration_minutes').on('input', validateDuration.bind(null, $('#duration_minutes')));
-            $('#duration_minutes').on('blur', validateDuration.bind(null, $('#duration_minutes')));
+            // Duration
+            $('#duration_minutes').on('input', function() {
+                validateDuration(this);
+            });
+            $('#duration_minutes').on('blur', function() {
+                validateDuration(this);
+            });
 
-            // Buffer time validation
-            $('#buffer_time_after_minutes').on('input', validateBufferTime.bind(null, $('#buffer_time_after_minutes')));
-            $('#buffer_time_after_minutes').on('blur', validateBufferTime.bind(null, $('#buffer_time_after_minutes')));
+            // Buffer Time
+            $('#buffer_time_after_minutes').on('input', function() {
+                validateBufferTime(this);
+            });
+            $('#buffer_time_after_minutes').on('blur', function() {
+                validateBufferTime(this);
+            });
 
             if ($('#upload-file-multiple')) {
                 $('#upload-file-multiple').on('change', function () {
