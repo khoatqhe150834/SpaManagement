@@ -58,6 +58,9 @@
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
+    <!-- Customer Payment History JS -->
+    <script src="${pageContext.request.contextPath}/js/customer-payment-history.js?v=<%= System.currentTimeMillis() %>"></script>
+
     <style>
         /* Custom DataTables styling to match our theme */
         .dataTables_wrapper {
@@ -119,6 +122,32 @@
             border-color: #D4AF37;
             box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
         }
+
+        /* Filter panel styling */
+        #filterPanel {
+            transition: all 0.3s ease-in-out;
+        }
+
+        #filterPanel.hidden {
+            max-height: 0;
+            overflow: hidden;
+            padding: 0;
+        }
+
+        #toggleFilters i {
+            transition: transform 0.3s ease;
+        }
+
+        #toggleFilters i.rotate-180 {
+            transform: rotate(180deg);
+        }
+
+        /* Responsive adjustments for filters */
+        @media (max-width: 768px) {
+            .grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-4 {
+                grid-template-columns: repeat(1, minmax(0, 1fr));
+            }
+        }
     </style>
 </head>
 <body class="bg-spa-cream font-sans text-spa-dark">
@@ -171,10 +200,82 @@
             <!-- Payment History Table -->
             <div class="bg-white rounded-xl shadow-md border border-primary/10 overflow-hidden">
                 <div class="p-6 border-b border-gray-200">
-                    <h2 class="text-xl font-semibold text-spa-dark flex items-center gap-2">
-                        <i data-lucide="credit-card" class="h-6 w-6 text-primary"></i>
-                        Lịch sử thanh toán
-                    </h2>
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <h2 class="text-xl font-semibold text-spa-dark flex items-center gap-2">
+                            <i data-lucide="credit-card" class="h-6 w-6 text-primary"></i>
+                            Lịch sử thanh toán
+                        </h2>
+
+                        <div class="flex flex-wrap items-center gap-3">
+                            <!-- Filter Toggle Button -->
+                            <button id="toggleFilters" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary/20">
+                                <i data-lucide="filter" class="h-4 w-4 mr-2"></i>
+                                Bộ lọc
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filter Panel -->
+                <div id="filterPanel" class="hidden border-b border-gray-200 bg-gray-50">
+                    <div class="p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <!-- Payment Method Filter -->
+                            <div>
+                                <label for="methodFilter" class="block text-sm font-medium text-gray-700 mb-2">Phương thức</label>
+                                <select id="methodFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                    <option value="">Tất cả phương thức</option>
+                                    <option value="BANK_TRANSFER">Chuyển khoản</option>
+                                    <option value="CREDIT_CARD">Thẻ tín dụng</option>
+                                    <option value="VNPAY">VNPay</option>
+                                    <option value="MOMO">MoMo</option>
+                                    <option value="ZALOPAY">ZaloPay</option>
+                                    <option value="CASH">Tiền mặt</option>
+                                </select>
+                            </div>
+
+                            <!-- Status Filter -->
+                            <div>
+                                <label for="statusFilter" class="block text-sm font-medium text-gray-700 mb-2">Trạng thái</label>
+                                <select id="statusFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                    <option value="">Tất cả trạng thái</option>
+                                    <option value="PAID">Đã thanh toán</option>
+                                    <option value="PENDING">Chờ xử lý</option>
+                                    <option value="FAILED">Thất bại</option>
+                                    <option value="REFUNDED">Đã hoàn tiền</option>
+                                </select>
+                            </div>
+
+                            <!-- Amount Range -->
+                            <div>
+                                <label for="minAmount" class="block text-sm font-medium text-gray-700 mb-2">Số tiền từ</label>
+                                <input type="number" id="minAmount" placeholder="0" min="0" step="1000"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                            </div>
+
+                            <div>
+                                <label for="maxAmount" class="block text-sm font-medium text-gray-700 mb-2">Số tiền đến</label>
+                                <input type="number" id="maxAmount" placeholder="10,000,000" min="0" step="1000"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                            </div>
+                        </div>
+
+                        <!-- Date Range Picker -->
+                        <div class="mt-4">
+                            <label for="dateRangePicker" class="block text-sm font-medium text-gray-700 mb-2">Khoảng thời gian</label>
+                            <input type="text" id="dateRangePicker" class="px-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" placeholder="Chọn khoảng thời gian" readonly />
+                        </div>
+                    </div>
+
+                    <!-- Filter Actions -->
+                    <div class="flex justify-end py-3 px-6 gap-3 border-t border-gray-200">
+                        <button id="resetFilters" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary/20">
+                            Đặt lại
+                        </button>
+                        <button id="applyFilters" class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary/20">
+                            Áp dụng
+                        </button>
+                    </div>
                 </div>
 
                 <c:choose>
@@ -316,6 +417,11 @@
                 }
             });
             
+            // Initialize filter functionality (handled by external JS)
+            if (typeof initializePaymentHistoryFilters === 'function') {
+                initializePaymentHistoryFilters();
+            }
+
             // Initialize DataTables
             if ($.fn.DataTable && document.getElementById('paymentsTable')) {
                 var table = $('#paymentsTable').DataTable({
@@ -454,7 +560,9 @@
                 })
                 .then(data => {
                     if (data.success) {
-                        showNotification('Xóa thanh toán thành công!', 'success');
+                        if (typeof showPaymentNotification === 'function') {
+                            showPaymentNotification('Xóa thanh toán thành công!', 'success');
+                        }
                         setTimeout(() => {
                             location.reload();
                         }, 1500);
@@ -464,7 +572,9 @@
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    showNotification('Có lỗi xảy ra khi xóa thanh toán: ' + error.message, 'error');
+                    if (typeof showPaymentNotification === 'function') {
+                        showPaymentNotification('Có lỗi xảy ra khi xóa thanh toán: ' + error.message, 'error');
+                    }
                     button.innerHTML = originalContent;
                     button.disabled = false;
                     lucide.createIcons();
@@ -484,50 +594,16 @@
                     receiptWindow.print();
                 };
             } else {
-                showNotification('Không thể mở cửa sổ in hóa đơn. Vui lòng kiểm tra trình duyệt.', 'error');
+                if (typeof showPaymentNotification === 'function') {
+                    showPaymentNotification('Không thể mở cửa sổ in hóa đơn. Vui lòng kiểm tra trình duyệt.', 'error');
+                }
             }
         }
 
-        // Notification function
-        function showNotification(message, type = 'info') {
-            const notification = document.createElement('div');
-            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm transition-all duration-300 transform translate-x-full`;
-            
-            const colors = {
-                success: 'bg-green-500 text-white',
-                error: 'bg-red-500 text-white',
-                warning: 'bg-yellow-500 text-white',
-                info: 'bg-blue-500 text-white'
-            };
-            notification.className += ' ' + (colors[type] || colors.info);
-            
-            let iconName = 'info';
-            if (type === 'success') iconName = 'check-circle';
-            else if (type === 'error') iconName = 'x-circle';
-            else if (type === 'warning') iconName = 'alert-triangle';
-            
-            notification.innerHTML = 
-                '<div class="flex items-center gap-2">' +
-                    '<i data-lucide="' + iconName + '" class="h-5 w-5"></i>' +
-                    '<span>' + message + '</span>' +
-                '</div>';
-            
-            document.body.appendChild(notification);
-            lucide.createIcons();
-            
-            setTimeout(() => {
-                notification.classList.remove('translate-x-full');
-            }, 100);
-            
-            setTimeout(() => {
-                notification.classList.add('translate-x-full');
-                setTimeout(() => {
-                    if (notification.parentNode) {
-                        notification.parentNode.removeChild(notification);
-                    }
-                }, 300);
-            }, 5000);
-        }
+        // Notification function is now handled by external JavaScript file
+
+        // Filter functionality is now handled by external JavaScript file
+        // customer-payment-history.js
 
         console.log('Payment History Page Loaded Successfully');
     </script>
