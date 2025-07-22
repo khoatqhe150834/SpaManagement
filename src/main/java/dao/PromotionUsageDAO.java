@@ -369,12 +369,9 @@ public class PromotionUsageDAO {
                     "GROUP BY p.promotion_id, p.title, p.promotion_code, p.discount_type, " +
                     "p.discount_value, p.usage_limit_per_customer, p.status, p.start_date, p.end_date " +
                     "ORDER BY p.start_date DESC";
-        
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            
             ps.setInt(1, customerId);
-            
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     java.util.Map<String, Object> promotion = new java.util.HashMap<>();
@@ -388,23 +385,19 @@ public class PromotionUsageDAO {
                     promotion.put("startDate", rs.getTimestamp("start_date"));
                     promotion.put("endDate", rs.getTimestamp("end_date"));
                     promotion.put("usedCount", rs.getInt("used_count"));
-                    promotion.put("remainingCount", rs.getObject("remaining_count"));
-                    
+                    Object remaining = rs.getObject("remaining_count");
+                    promotion.put("remainingCount", remaining != null ? remaining : 0);
                     promotions.add(promotion);
                 }
             }
-            
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Error getting customer promotions with remaining count", e);
+        } catch (Exception ex) {
+            logger.log(Level.SEVERE, "Unexpected error in getCustomerPromotionsWithRemainingCount", ex);
         }
         return promotions;
     }
 
-    /**
-     * Get total remaining usage across all promotions for a customer
-     * @param customerId The customer ID
-     * @return Map containing total promotions available and total remaining uses
-     */
     public java.util.Map<String, Object> getCustomerPromotionSummary(Integer customerId) {
         java.util.Map<String, Object> summary = new java.util.HashMap<>();
         String sql = "SELECT " +
@@ -422,12 +415,9 @@ public class PromotionUsageDAO {
                     "  GROUP BY promotion_id " +
                     ") pu ON p.promotion_id = pu.promotion_id " +
                     "WHERE p.status = 'ACTIVE'";
-        
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            
             ps.setInt(1, customerId);
-            
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     summary.put("totalPromotions", rs.getInt("total_promotions"));
@@ -435,10 +425,15 @@ public class PromotionUsageDAO {
                     summary.put("totalRemainingUses", rs.getInt("total_remaining_uses"));
                 }
             }
-            
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Error getting customer promotion summary", e);
+        } catch (Exception ex) {
+            logger.log(Level.SEVERE, "Unexpected error in getCustomerPromotionSummary", ex);
         }
+        // Đảm bảo luôn trả về giá trị mặc định nếu thiếu
+        if (!summary.containsKey("totalPromotions")) summary.put("totalPromotions", 0);
+        if (!summary.containsKey("unlimitedPromotions")) summary.put("unlimitedPromotions", 0);
+        if (!summary.containsKey("totalRemainingUses")) summary.put("totalRemainingUses", 0);
         return summary;
     }
 } 

@@ -106,21 +106,7 @@
 
                 <!-- Validation Errors Summary -->
                 <c:if test="${not empty errors}">
-                    <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-lg" role="alert">
-                        <div class="flex">
-                            <div class="flex-shrink-0">
-                                <i data-lucide="alert-triangle" class="w-5 h-5 text-red-500"></i>
-                            </div>
-                            <div class="ml-3">
-                                <p class="text-sm font-medium">Vui lòng kiểm tra lại thông tin:</p>
-                                <ul class="mt-2 text-sm list-disc list-inside">
-                                    <c:forEach items="${errors}" var="error">
-                                        <li>${error.value}</li>
-                                    </c:forEach>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
+                    <div style="display:none"></div>
                 </c:if>
 
                 <!-- Add User Form -->
@@ -213,7 +199,13 @@
                                 <i data-lucide="mail" class="w-5 h-5 text-primary"></i> 
                                 Thông tin tài khoản
                             </h2>
-                            
+                            <div class="mb-4">
+                                <button type="button" id="auto-generate-btn" class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 font-semibold flex items-center gap-2">
+                                    <i data-lucide="wand-2" class="w-4 h-4"></i>
+                                    Tự động tạo email & mật khẩu
+                                </button>
+                                <div class="text-xs text-gray-500 mt-1">* Email hiển thị chỉ là tạm thời, sau khi lưu sẽ tự động chuyển thành <b>role + mã nhân viên + @spamanagement.com</b></div>
+                            </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div class="md:col-span-2">
                                     <label for="email" class="form-label">
@@ -241,6 +233,7 @@
                                            class="form-input ${errors.password != null ? 'is-invalid' : ''}"
                                            placeholder="Mật khẩu đăng nhập"
                                            required>
+                                    <button type="button" id="toggle-password" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary"><i data-lucide="eye"></i></button>
                                     <c:if test="${errors.password != null}">
                                         <div class="invalid-feedback">${errors.password}</div>
                                     </c:if>
@@ -470,6 +463,40 @@
                     }
                 }
             });
+        });
+
+        // Auto-generate email & password
+        document.getElementById('auto-generate-btn').addEventListener('click', function() {
+            // Sinh email tạm thời theo vai trò
+            const roleId = document.getElementById('roleId').value;
+            let rolePrefix = 'user';
+            switch (roleId) {
+                case '2': rolePrefix = 'manager'; break;
+                case '3': rolePrefix = 'therapist'; break;
+                case '4': rolePrefix = 'receptionist'; break;
+                case '6': rolePrefix = 'marketing'; break;
+                case '7': rolePrefix = 'inventory'; break;
+            }
+            let randomNum = Math.floor(Math.random() * 9000 + 1000);
+            const email = `${rolePrefix}${randomNum}@spamanagement.com`;
+            document.getElementById('email').value = email;
+            // Sinh mật khẩu mạnh
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%';
+            let password = '';
+            for (let i = 0; i < 10; i++) password += chars.charAt(Math.floor(Math.random() * chars.length));
+            document.getElementById('password').value = password;
+        });
+        // Toggle password visibility
+        document.getElementById('toggle-password').addEventListener('click', function() {
+            const pwd = document.getElementById('password');
+            if (pwd.type === 'password') {
+                pwd.type = 'text';
+                this.innerHTML = '<i data-lucide="eye-off"></i>';
+            } else {
+                pwd.type = 'password';
+                this.innerHTML = '<i data-lucide="eye"></i>';
+            }
+            lucide.createIcons();
         });
     </script>
 </body>

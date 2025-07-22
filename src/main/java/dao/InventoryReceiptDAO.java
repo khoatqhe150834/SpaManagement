@@ -9,10 +9,15 @@ import java.util.Optional;
 
 public class InventoryReceiptDAO {
     // Dynamic search, filter, pagination for InventoryReceipt
-    public List<InventoryReceipt> findReceipts(java.sql.Date fromDate, java.sql.Date toDate, Integer supplierId, Integer createdBy, int page, int pageSize) throws SQLException {
+    public List<InventoryReceipt> findReceipts(String search, java.sql.Date fromDate, java.sql.Date toDate, Integer supplierId, Integer createdBy, int page, int pageSize) throws SQLException {
         List<InventoryReceipt> list = new ArrayList<>();
-        StringBuilder sql = new StringBuilder("SELECT inventory_receipt_id, receipt_date, supplier_id, created_by, note, created_at, updated_at FROM inventory_receipt WHERE 1=1 ");
+        StringBuilder sql = new StringBuilder("SELECT inventory_receipt_id, receipt_date, supplier_id, created_by, note, created_at FROM inventory_receipt WHERE 1=1 ");
         List<Object> params = new ArrayList<>();
+
+        if (search != null && !search.trim().isEmpty()) {
+            sql.append("AND note LIKE ? ");
+            params.add("%" + search.trim() + "%");
+        }
         if (fromDate != null) {
             sql.append("AND receipt_date >= ? ");
             params.add(fromDate);
@@ -29,9 +34,11 @@ public class InventoryReceiptDAO {
             sql.append("AND created_by = ? ");
             params.add(createdBy);
         }
+
         sql.append("ORDER BY receipt_date DESC LIMIT ? OFFSET ?");
         params.add(pageSize);
         params.add((page - 1) * pageSize);
+
         try (Connection conn = db.DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql.toString())) {
             for (int i = 0; i < params.size(); i++) {
@@ -40,24 +47,32 @@ public class InventoryReceiptDAO {
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     InventoryReceipt r = new InventoryReceipt(
-                        rs.getInt("inventory_receipt_id"),
-                        rs.getDate("receipt_date"),
-                        rs.getInt("supplier_id"),
-                        rs.getInt("created_by"),
-                        rs.getString("note"),
-                        rs.getTimestamp("created_at"),
-                        rs.getTimestamp("updated_at")
+                            rs.getInt("inventory_receipt_id"),
+                            rs.getDate("receipt_date"),
+                            rs.getInt("supplier_id"),
+                            rs.getInt("created_by"),
+                            rs.getString("note"),
+                            rs.getTimestamp("created_at")
                     );
                     list.add(r);
                 }
             }
         }
+
         return list;
     }
 
-    public int countReceipts(java.sql.Date fromDate, java.sql.Date toDate, Integer supplierId, Integer createdBy) throws SQLException {
+
+    public int countReceipts(String search, java.sql.Date fromDate, java.sql.Date toDate,
+                             Integer supplierId, Integer createdBy) throws SQLException {
+        int total = 0;
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM inventory_receipt WHERE 1=1 ");
         List<Object> params = new ArrayList<>();
+
+        if (search != null && !search.trim().isEmpty()) {
+            sql.append("AND note LIKE ? ");
+            params.add("%" + search.trim() + "%");
+        }
         if (fromDate != null) {
             sql.append("AND receipt_date >= ? ");
             params.add(fromDate);
@@ -74,22 +89,26 @@ public class InventoryReceiptDAO {
             sql.append("AND created_by = ? ");
             params.add(createdBy);
         }
+
         try (Connection conn = db.DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
             for (int i = 0; i < params.size(); i++) {
                 ps.setObject(i + 1, params.get(i));
             }
+
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return rs.getInt(1);
+                    total = rs.getInt(1);
                 }
             }
         }
-        return 0;
+
+        return total;
     }
 
     public Optional<InventoryReceipt> findReceiptById(int id) throws SQLException {
-        String sql = "SELECT inventory_receipt_id, receipt_date, supplier_id, created_by, note, created_at, updated_at FROM inventory_receipt WHERE inventory_receipt_id = ?";
+        String sql = "SELECT inventory_receipt_id, receipt_date, supplier_id, created_by, note, created_at FROM inventory_receipt WHERE inventory_receipt_id = ?";
         try (Connection conn = db.DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
@@ -101,9 +120,7 @@ public class InventoryReceiptDAO {
                         rs.getInt("supplier_id"),
                         rs.getInt("created_by"),
                         rs.getString("note"),
-                        rs.getTimestamp("created_at"),
-                        rs.getTimestamp("updated_at")
-                    );
+                        rs.getTimestamp("created_at"));
                     return Optional.of(r);
                 }
             }

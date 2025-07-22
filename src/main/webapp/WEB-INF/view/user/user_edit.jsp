@@ -113,21 +113,7 @@
 
                 <!-- Validation Errors Summary -->
                 <c:if test="${not empty errors}">
-                    <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-lg" role="alert">
-                        <div class="flex">
-                            <div class="flex-shrink-0">
-                                <i data-lucide="alert-triangle" class="w-5 h-5 text-red-500"></i>
-                            </div>
-                            <div class="ml-3">
-                                <p class="text-sm font-medium">Vui lòng kiểm tra lại thông tin:</p>
-                                <ul class="mt-2 text-sm list-disc list-inside">
-                                    <c:forEach items="${errors}" var="error">
-                                        <li>${error.value}</li>
-                                    </c:forEach>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
+                    <div style="display:none"></div>
                 </c:if>
 
                 <!-- Edit User Form -->

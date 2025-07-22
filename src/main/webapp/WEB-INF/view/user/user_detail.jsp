@@ -335,7 +335,14 @@
                                 <div>
                                     <label class="info-label">Ngày tạo</label>
                                     <p class="info-value">
-                                        <fmt:formatDate value="${user.createdAt}" pattern="dd/MM/yyyy HH:mm" />
+                                        <c:choose>
+                                            <c:when test="${not empty user.createdAt}">
+                                                <fmt:formatDate value="${user.createdAt}" pattern="dd/MM/yyyy HH:mm" />
+                                            </c:when>
+                                            <c:otherwise>
+                                                <span class="text-gray-400 italic">Chưa cập nhật</span>
+                                            </c:otherwise>
+                                        </c:choose>
                                     </p>
                                 </div>
                                 
@@ -491,6 +498,18 @@
                                     onclick="return confirm('Bạn có chắc muốn xóa nhân viên này? Hành động này không thể hoàn tác!')">
                                 <i data-lucide="trash-2" class="w-5 h-5 mr-2"></i>
                                 Xóa nhân viên
+                            </button>
+                        </form>
+                    </c:if>
+                    <!-- Reset Password Button (Admin & Manager with quyền) -->
+                    <c:if test="${(currentUser.roleId == 1 || (currentUser.roleId == 2 && user.roleId > 2)) && user.userId != currentUser.userId}">
+                        <form method="post" action="${pageContext.request.contextPath}/user-management/reset-password" class="inline">
+                            <input type="hidden" name="userId" value="${user.userId}" />
+                            <button type="submit" 
+                                    class="inline-flex items-center px-6 py-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors font-semibold shadow-lg"
+                                    onclick="return confirm('Bạn có chắc muốn đặt lại mật khẩu cho nhân viên này?')">
+                                <i data-lucide="key" class="w-5 h-5 mr-2"></i>
+                                Đặt lại mật khẩu
                             </button>
                         </form>
                     </c:if>

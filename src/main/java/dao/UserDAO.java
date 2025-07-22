@@ -876,24 +876,26 @@ public class UserDAO implements BaseDAO<User, Integer> {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
-    // Trả về tất cả nhân viên (roleId=3) do manager quản lý (dummy, có thể thay đổi sau)
+    // Trả về tất cả nhân viên dưới quyền manager (roleId = 3, 4, 6, 7)
     public List<User> findAllManagedBy(Integer managerId) {
         List<User> all = findAll();
         List<User> managed = new java.util.ArrayList<>();
         for (User u : all) {
-            // Manager chỉ quản lý nhân viên (roleId = 3)
-            if (u.getRoleId() != null && u.getRoleId() == 3) {
+            // Manager chỉ quản lý các role dưới quyền (3, 4, 6, 7)
+            if (u.getRoleId() != null && (u.getRoleId() == 3 || u.getRoleId() == 4 || u.getRoleId() == 6 || u.getRoleId() == 7)) {
                 managed.add(u);
             }
         }
         return managed;
     }
 
-    // Kiểm tra userId có phải là nhân viên do managerId quản lý không (dummy, có thể thay đổi sau)
+    // Kiểm tra userId có phải là nhân viên do managerId quản lý không (roleId = 3, 4, 6, 7)
     public boolean isManagedBy(int userId, Integer managerId) {
         Optional<User> userOpt = findById(userId);
-        // Manager chỉ quản lý nhân viên (roleId = 3)
-        return userOpt.isPresent() && userOpt.get().getRoleId() != null && userOpt.get().getRoleId() == 3;
+        // Manager chỉ quản lý các role dưới quyền (3, 4, 6, 7)
+        return userOpt.isPresent() && userOpt.get().getRoleId() != null &&
+               (userOpt.get().getRoleId() == 3 || userOpt.get().getRoleId() == 4 ||
+                userOpt.get().getRoleId() == 6 || userOpt.get().getRoleId() == 7);
     }
 
     // Trả về tất cả nhân viên (không bao gồm khách hàng roleId=5)
@@ -1052,6 +1054,28 @@ public class UserDAO implements BaseDAO<User, Integer> {
                         entity.setUserId(generatedKeys.getInt(1));
                         entity.setCreatedAt(now);
                         entity.setUpdatedAt(now);
+                        // Sau khi có userId, cập nhật lại email nếu là nhân viên
+                        if (entity.getRoleId() != null && (entity.getRoleId() == 2 || entity.getRoleId() == 3 || entity.getRoleId() == 4 || entity.getRoleId() == 6 || entity.getRoleId() == 7)) {
+                            String rolePrefix = "user";
+                            switch (entity.getRoleId()) {
+                                case 2: rolePrefix = "manager"; break;
+                                case 3: rolePrefix = "therapist"; break;
+                                case 4: rolePrefix = "receptionist"; break;
+                                case 6: rolePrefix = "marketing"; break;
+                                case 7: rolePrefix = "inventory"; break;
+                            }
+                            String newEmail = rolePrefix + entity.getUserId() + "@spamanagement.com";
+                            // Nếu email chưa đúng định dạng này thì update lại
+                            if (!entity.getEmail().equalsIgnoreCase(newEmail)) {
+                                String updateEmailSql = "UPDATE users SET email = ? WHERE user_id = ?";
+                                try (PreparedStatement updatePs = conn.prepareStatement(updateEmailSql)) {
+                                    updatePs.setString(1, newEmail);
+                                    updatePs.setInt(2, entity.getUserId());
+                                    updatePs.executeUpdate();
+                                    entity.setEmail(newEmail);
+                                }
+                            }
+                        }
                         return entity;
                     }
                 }
@@ -1111,6 +1135,58 @@ public class UserDAO implements BaseDAO<User, Integer> {
         }
         
         return null;
+    }
+
+    // Lấy danh sách user theo danh sách role, phân trang
+    public List<User> findStaffByRoles(List<Integer> roles, int page, int pageSize) {
+        List<User> users = new ArrayList<>();
+        if (roles == null || roles.isEmpty()) return users;
+        StringBuilder sql = new StringBuilder("SELECT * FROM users WHERE role_id IN (");
+        for (int i = 0; i < roles.size(); i++) {
+            sql.append("?");
+            if (i < roles.size() - 1) sql.append(",");
+        }
+        sql.append(") ORDER BY user_id ASC LIMIT ? OFFSET ?");
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            int idx = 1;
+            for (Integer role : roles) {
+                ps.setInt(idx++, role);
+            }
+            ps.setInt(idx++, pageSize);
+            ps.setInt(idx, (page - 1) * pageSize);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    users.add(buildUserFromResultSet(rs));
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error finding staff by roles with pagination", e);
+        }
+        return users;
+    }
+    // Đếm tổng số user theo danh sách role
+    public int countStaffByRoles(List<Integer> roles) {
+        if (roles == null || roles.isEmpty()) return 0;
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM users WHERE role_id IN (");
+        for (int i = 0; i < roles.size(); i++) {
+            sql.append("?");
+            if (i < roles.size() - 1) sql.append(",");
+        }
+        sql.append(")");
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            int idx = 1;
+            for (Integer role : roles) {
+                ps.setInt(idx++, role);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt(1) : 0;
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error counting staff by roles", e);
+        }
+        return 0;
     }
 
 }

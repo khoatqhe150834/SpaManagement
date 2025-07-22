@@ -271,11 +271,9 @@
                                                             </c:choose>
                                                         </span>
                                                     </div>
-                                                    <c:if test="${promotion.currentUsageCount != null && promotion.totalUsageLimit != null && promotion.totalUsageLimit > 0}">
-                                                        <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
-                                                            <div class="bg-purple-600 h-2 rounded-full" style="width: 0%"></div>
-                                                        </div>
-                                                    </c:if>
+                                                    <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                                                        <div class="bg-purple-600 h-2 rounded-full" style="width: 0%"></div>
+                                                    </div>
                                                 </div>
                                             </c:if>
                                         </div>

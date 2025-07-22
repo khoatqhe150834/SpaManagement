@@ -2,9 +2,13 @@ package service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import dao.PromotionDAO;
 import dao.PromotionUsageDAO;
@@ -90,7 +94,7 @@ public class PromotionService {
             Promotion promotion = promotionOpt.get();
             
             // 2. Validate promotion
-            String validationError = validatePromotion(promotion, customerId, originalAmount);
+            String validationError = validatePromotion(promotion, customerId, originalAmount, null); // Pass null for selectedServiceIds for now
             if (validationError != null) {
                 return new PromotionApplicationResult(false, validationError);
             }
@@ -129,7 +133,7 @@ public class PromotionService {
     /**
      * Validate if promotion can be applied
      */
-    private String validatePromotion(Promotion promotion, Integer customerId, BigDecimal orderAmount) {
+    private String validatePromotion(Promotion promotion, Integer customerId, BigDecimal orderAmount, List<Integer> selectedServiceIds) {
         LocalDateTime now = LocalDateTime.now();
         
         // Check if promotion is active
@@ -179,7 +183,7 @@ public class PromotionService {
         
         // Check applicable scope
         if (promotion.getApplicableScope() != null && !"ENTIRE_APPOINTMENT".equals(promotion.getApplicableScope())) {
-            String scopeError = validateApplicableScope(promotion.getApplicableScope(), promotion.getApplicableServiceIdsJson());
+            String scopeError = validateApplicableScope(promotion.getApplicableScope(), promotion.getApplicableServiceIdsJson(), selectedServiceIds);
             if (scopeError != null) {
                 return scopeError;
             }
@@ -235,36 +239,28 @@ public class PromotionService {
     /**
      * Validate applicable scope for promotion
      */
-    private String validateApplicableScope(String applicableScope, String applicableServiceIdsJson) {
+    private String validateApplicableScope(String applicableScope, String applicableServiceIdsJson, List<Integer> selectedServiceIds) {
         try {
             switch (applicableScope) {
                 case "ALL_SERVICES":
-                    // Applies to all services - always valid
                     return null;
-                    
                 case "SPECIFIC_SERVICES":
-                    // Check if selected services are in the applicable list
                     if (applicableServiceIdsJson == null || applicableServiceIdsJson.trim().isEmpty()) {
                         return "Khuyến mãi không áp dụng cho dịch vụ này";
                     }
-                    // TODO: Parse JSON and check if current services are in the list
-                    logger.info("Validating SPECIFIC_SERVICES scope: " + applicableServiceIdsJson);
+                    List<Integer> allowedIds = new Gson().fromJson(applicableServiceIdsJson, new TypeToken<List<Integer>>(){}.getType());
+                    boolean valid = selectedServiceIds != null && selectedServiceIds.stream().anyMatch(allowedIds::contains);
+                    if (!valid) {
+                        return "Mã giảm giá này chỉ áp dụng cho một số dịch vụ nhất định. Vui lòng kiểm tra lại.";
+                    }
                     break;
-                    
                 case "ENTIRE_APPOINTMENT":
-                    // Applies to entire appointment - always valid
                     return null;
-                    
                 default:
-                    logger.warning("Unknown applicable scope: " + applicableScope);
                     return "Phạm vi áp dụng không hợp lệ";
             }
-            
-            // For now, return null (valid) - actual implementation would check service data
             return null;
-            
         } catch (Exception e) {
-            logger.log(Level.WARNING, "Error validating applicable scope", e);
             return "Lỗi kiểm tra phạm vi áp dụng";
         }
     }
@@ -274,34 +270,25 @@ public class PromotionService {
      */
     private BigDecimal calculateDiscount(Promotion promotion, BigDecimal originalAmount) {
         BigDecimal discountAmount = BigDecimal.ZERO;
-        
+        if (promotion == null || promotion.getDiscountType() == null) return BigDecimal.ZERO;
         switch (promotion.getDiscountType()) {
             case "PERCENTAGE":
-                // Percentage discount: amount * (percentage / 100)
-                discountAmount = originalAmount.multiply(promotion.getDiscountValue())
-                                             .divide(new BigDecimal("100"));
+                discountAmount = originalAmount.multiply(promotion.getDiscountValue()).divide(new BigDecimal("100"));
                 break;
-                
             case "FIXED":
             case "FIXED_AMOUNT":
-                // Fixed amount discount
                 discountAmount = promotion.getDiscountValue();
-                // Don't let discount exceed original amount
                 if (discountAmount.compareTo(originalAmount) > 0) {
                     discountAmount = originalAmount;
                 }
                 break;
-                
             case "FREE_SERVICE":
-                // For free service, the discount value might represent the service price
                 discountAmount = promotion.getDiscountValue();
                 break;
-                
             default:
-                logger.warning("Unknown discount type: " + promotion.getDiscountType());
-                break;
+                logger.warning("[DEBUG] Unknown discount type: " + promotion.getDiscountType());
+                return BigDecimal.ZERO;
         }
-        
         return discountAmount;
     }
 
@@ -338,7 +325,7 @@ public class PromotionService {
                 return false;
             }
             
-            String validationError = validatePromotion(promotionOpt.get(), customerId, orderAmount);
+            String validationError = validatePromotion(promotionOpt.get(), customerId, orderAmount, null); // Pass null for selectedServiceIds for now
             return validationError == null;
             
         } catch (Exception e) {
@@ -355,31 +342,39 @@ public class PromotionService {
     }
 
     /**
-     * Calculate potential discount without applying
+     * Calculate potential discount without applying - with service validation
      */
-    public PromotionApplicationResult previewPromotion(String promotionCode, Integer customerId, BigDecimal originalAmount) {
+    public PromotionApplicationResult previewPromotionWithServices(String promotionCode, Integer customerId, BigDecimal originalAmount, List<Integer> selectedServiceIds) {
         try {
+            logger.info("[DEBUG] previewPromotionWithServices: code=" + promotionCode + ", customerId=" + customerId + ", amount=" + originalAmount + ", serviceIds=" + selectedServiceIds);
             Optional<Promotion> promotionOpt = promotionDAO.findByCode(promotionCode);
             if (!promotionOpt.isPresent()) {
                 return new PromotionApplicationResult(false, "Mã khuyến mãi không hợp lệ");
             }
-            
             Promotion promotion = promotionOpt.get();
-            String validationError = validatePromotion(promotion, customerId, originalAmount);
+            String validationError = validatePromotion(promotion, customerId, originalAmount, selectedServiceIds);
             if (validationError != null) {
+                logger.warning("[DEBUG] validatePromotion failed: " + validationError);
                 return new PromotionApplicationResult(false, validationError);
             }
-            
             BigDecimal discountAmount = calculateDiscount(promotion, originalAmount);
             BigDecimal finalAmount = originalAmount.subtract(discountAmount);
-            
-            return new PromotionApplicationResult(true, "Mã khuyến mãi hợp lệ", 
-                                                discountAmount, finalAmount, promotion);
-            
+            logger.info("[DEBUG] Discount calculated: " + discountAmount + ", finalAmount: " + finalAmount);
+            if (discountAmount.compareTo(BigDecimal.ZERO) <= 0) {
+                return new PromotionApplicationResult(false, "Mã giảm giá không hợp lệ hoặc không có giá trị giảm giá.");
+            }
+            return new PromotionApplicationResult(true, "Mã khuyến mãi hợp lệ", discountAmount, finalAmount, promotion);
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error previewing promotion", e);
+            logger.log(Level.SEVERE, "Error previewing promotion with services", e);
             return new PromotionApplicationResult(false, "Lỗi hệ thống");
         }
+    }
+
+    /**
+     * Calculate potential discount without applying
+     */
+    public PromotionApplicationResult previewPromotion(String promotionCode, Integer customerId, BigDecimal originalAmount) {
+        return previewPromotionWithServices(promotionCode, customerId, originalAmount, null);
     }
 } 
  
