@@ -121,8 +121,7 @@
     </style>
 </head>
 <body class="bg-gray-50">
-    <!-- Include Header -->
-    <jsp:include page="../common/header.jsp" />
+    
     
     <div class="flex min-h-screen">
         <!-- Include Sidebar -->
@@ -155,55 +154,13 @@
                     </ol>
                 </nav>
 
-                <!-- Success/Error Messages -->
-                <c:if test="${not empty sessionScope.successMessage}">
-                    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6" role="alert">
-                        <div class="flex items-center">
-                            <i data-lucide="check-circle" class="h-5 w-5 mr-2"></i>
-                            <span class="block sm:inline">${sessionScope.successMessage}</span>
-                        </div>
-                    </div>
-                    <c:remove var="successMessage" scope="session" />
-                </c:if>
 
-                <c:if test="${not empty sessionScope.errorMessage}">
-                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6" role="alert">
-                        <div class="flex items-center">
-                            <i data-lucide="alert-circle" class="h-5 w-5 mr-2"></i>
-                            <span class="block sm:inline">${sessionScope.errorMessage}</span>
-                        </div>
-                    </div>
-                    <c:remove var="errorMessage" scope="session" />
-                </c:if>
 
                 <!-- Page Header -->
                 <div class="mb-8">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h1 class="text-3xl font-bold text-gray-900">Chi Tiết Phòng: ${room.name}</h1>
-                            <p class="text-gray-600 mt-2">Thông tin chi tiết về phòng và các giường trong phòng</p>
-                        </div>
-                        <div class="flex items-center space-x-4">
-                            <a href="${pageContext.request.contextPath}/manager/room/edit/${room.roomId}" class="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center">
-                                <i data-lucide="edit" class="h-4 w-4 mr-2"></i>
-                                Chỉnh Sửa Phòng
-                            </a>
-                            <a href="${pageContext.request.contextPath}/manager/room/toggle-status/${room.roomId}"
-                               class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center"
-                               onclick="return confirm('Bạn có chắc chắn muốn thay đổi trạng thái phòng này?')">
-                                <i data-lucide="refresh-cw" class="h-4 w-4 mr-2"></i>
-                                <c:choose>
-                                    <c:when test="${room.isActive}">Tắt Phòng</c:when>
-                                    <c:otherwise>Bật Phòng</c:otherwise>
-                                </c:choose>
-                            </a>
-                            <a href="${pageContext.request.contextPath}/manager/room/delete/${room.roomId}"
-                               class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center"
-                               onclick="return confirm('Bạn có chắc chắn muốn xóa phòng này? Hành động này không thể hoàn tác.')">
-                                <i data-lucide="trash-2" class="h-4 w-4 mr-2"></i>
-                                Xóa Phòng
-                            </a>
-                        </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900">Chi Tiết Phòng: ${room.name}</h1>
+                        <p class="text-gray-600 mt-2">Thông tin chi tiết về phòng và các giường trong phòng</p>
                     </div>
                 </div>
 
@@ -270,18 +227,6 @@
                                         <span class="text-sm text-gray-500 ml-1">lượt đặt</span>
                                     </p>
                                 </div>
-                            </div>
-                        </div>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Ngày Tạo</label>
-                                <p class="text-gray-900">17/07/2025 16:22:20</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Cập Nhật Lần Cuối</label>
-                                <p class="text-gray-900">17/07/2025 16:22:20</p>
                             </div>
                         </div>
                     </div>

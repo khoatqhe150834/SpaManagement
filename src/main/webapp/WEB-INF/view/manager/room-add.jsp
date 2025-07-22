@@ -67,20 +67,8 @@
             <p class="text-gray-600">Tạo phòng mới cho hệ thống spa</p>
         </div>
 
-        <!-- Success/Error Messages -->
-        <c:if test="${not empty sessionScope.successMessage}">
-            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6" role="alert">
-                <span class="block sm:inline">${sessionScope.successMessage}</span>
-            </div>
-            <c:remove var="successMessage" scope="session" />
-        </c:if>
-
-        <c:if test="${not empty sessionScope.errorMessage}">
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6" role="alert">
-                <span class="block sm:inline">${sessionScope.errorMessage}</span>
-            </div>
-            <c:remove var="errorMessage" scope="session" />
-        </c:if>
+        <!-- Error Messages -->
+        
 
         <!-- Add Room Form -->
         <div class="bg-white rounded-xl shadow-md border border-primary/10 overflow-hidden">
