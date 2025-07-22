@@ -37,7 +37,7 @@
     <link rel="stylesheet" href="<c:url value='/css/style.css'/>" />
 </head>
 <body class="bg-spa-cream font-sans min-h-screen">
-    <jsp:include page="/WEB-INF/view/admin_pages/Common/header.jsp" />
+    <jsp:include page="/WEB-INF/view/admin_pages/Common/Header.jsp" />
     <div class="flex">
         <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
         <main class="flex-1 py-12 lg:py-20 ml-64">
@@ -471,9 +471,8 @@
                 const errorDiv = document.getElementById('nameError');
                 updateCharCount(this, 'nameCharCount', 200);
                 if (validateName(this)) {
-                    // Nếu tên mới giống tên gốc thì báo lỗi
                     if (this.value.trim() === originalName) {
-                        setInvalid(input, errorDiv, 'Tên dịch vụ phải khác tên hiện tại.');
+                        setValid(input, errorDiv, 'Tên hợp lệ');
                         return;
                     }
                     checkServiceNameDuplicate(this.value.trim(), serviceId, function (isDuplicate, msg) {
@@ -491,7 +490,7 @@
                 updateCharCount(this, 'nameCharCount', 200);
                 if (validateName(this)) {
                     if (this.value.trim() === originalName) {
-                        setInvalid(nameInput, document.getElementById('nameError'), 'Tên dịch vụ phải khác tên hiện tại.');
+                        setValid(nameInput, document.getElementById('nameError'), 'Tên hợp lệ');
                         return;
                     }
                     checkServiceNameDuplicate(this.value.trim(), serviceId, function (isDuplicate, msg) {
@@ -560,7 +559,8 @@
                 const serviceId = document.querySelector('input[name="id"]').value;
                 if (nameValid && descValid && priceValid && durationValid && bufferValid) {
                     if (nameValue === originalName) {
-                        setInvalid(document.getElementById('name'), document.getElementById('nameError'), 'Tên dịch vụ phải khác tên hiện tại.');
+                        setValid(document.getElementById('name'), document.getElementById('nameError'), 'Tên hợp lệ');
+                        e.target.submit();
                         return;
                     }
                     checkServiceNameDuplicate(nameValue, serviceId, function(isDuplicate, msg) {
