@@ -459,6 +459,7 @@
             const nameInput = document.getElementById('name');
             const descInput = document.getElementById('description');
             const serviceId = document.querySelector('input[name="id"]').value;
+            const originalName = "${service.name}".trim();
 
             // Initialize character counts
             updateCharCount(nameInput, 'nameCharCount', 200);
@@ -470,6 +471,11 @@
                 const errorDiv = document.getElementById('nameError');
                 updateCharCount(this, 'nameCharCount', 200);
                 if (validateName(this)) {
+                    // Nếu tên mới giống tên gốc thì báo lỗi
+                    if (this.value.trim() === originalName) {
+                        setInvalid(input, errorDiv, 'Tên dịch vụ phải khác tên hiện tại.');
+                        return;
+                    }
                     checkServiceNameDuplicate(this.value.trim(), serviceId, function (isDuplicate, msg) {
                         if (isDuplicate) {
                             setInvalid(input, errorDiv, msg || 'Tên này đã tồn tại trong hệ thống');
@@ -484,6 +490,10 @@
                 this.value = this.value.replace(/\s+/g, ' ').trim();
                 updateCharCount(this, 'nameCharCount', 200);
                 if (validateName(this)) {
+                    if (this.value.trim() === originalName) {
+                        setInvalid(nameInput, document.getElementById('nameError'), 'Tên dịch vụ phải khác tên hiện tại.');
+                        return;
+                    }
                     checkServiceNameDuplicate(this.value.trim(), serviceId, function (isDuplicate, msg) {
                         if (isDuplicate) {
                             setInvalid(nameInput, document.getElementById('nameError'), msg || 'Tên này đã tồn tại trong hệ thống');
@@ -549,6 +559,10 @@
                 const bufferValid = validateBufferTime(document.getElementById('buffer_time_after_minutes'));
                 const serviceId = document.querySelector('input[name="id"]').value;
                 if (nameValid && descValid && priceValid && durationValid && bufferValid) {
+                    if (nameValue === originalName) {
+                        setInvalid(document.getElementById('name'), document.getElementById('nameError'), 'Tên dịch vụ phải khác tên hiện tại.');
+                        return;
+                    }
                     checkServiceNameDuplicate(nameValue, serviceId, function(isDuplicate, msg) {
                         if (isDuplicate) {
                             setInvalid(document.getElementById('name'), document.getElementById('nameError'), msg || 'Tên này đã tồn tại trong hệ thống');
