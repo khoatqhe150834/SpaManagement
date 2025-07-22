@@ -339,61 +339,85 @@
             return true;
         }
 
+        // DataTransfer to accumulate files
+        let dt = new DataTransfer();
+
         function handleImageUpload(input) {
             const files = input.files;
             const container = document.querySelector('.uploaded-imgs-container');
             const errorDiv = document.getElementById('imageError');
+            let hasValid = false;
+            let errorMsg = '';
+
             if (files.length === 0) {
                 setDefault(input, errorDiv);
                 return;
             }
+
+            let filesProcessed = 0;
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
-                if (file.size > 5 * 1024 * 1024) {
-                    setInvalid(input, errorDiv, `File ${file.name} vượt quá 5MB`);
-                    return;
+                // Check file size (max 2MB)
+                if (file.size > 2 * 1024 * 1024) {
+                    errorMsg += `File ${file.name} vượt quá 2MB. `;
+                    filesProcessed++;
+                    continue;
                 }
+                // Check file type
                 const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
                 if (!validTypes.includes(file.type)) {
-                    setInvalid(input, errorDiv, `File ${file.name} không phải là ảnh hợp lệ`);
-                    return;
+                    errorMsg += `File ${file.name} không phải là ảnh hợp lệ. `;
+                    filesProcessed++;
+                    continue;
                 }
-            }
-            setValid(input, errorDiv, `${files.length} ảnh đã được chọn`);
-            container.innerHTML = '';
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const previewDiv = document.createElement('div');
-                    previewDiv.className = 'relative h-28 w-28 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 overflow-hidden flex items-center justify-center mr-2 mb-2';
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    img.className = 'w-full h-full object-cover';
-                    const removeBtn = document.createElement('button');
-                    removeBtn.type = 'button';
-                    removeBtn.className = 'absolute top-1 right-1 bg-white rounded-full p-1 shadow hover:bg-red-50';
-                    removeBtn.innerHTML = '<i data-lucide="x" class="w-4 h-4 text-red-600"></i>';
-                    removeBtn.onclick = function() {
-                        previewDiv.remove();
-                        const dt = new DataTransfer();
-                        const input = document.getElementById('upload-file-multiple');
-                        const { files } = input;
-                        for (let i = 0; i < files.length; i++) {
-                            if (i !== Array.from(container.children).indexOf(previewDiv)) {
-                                dt.items.add(files[i]);
-                            }
-                        }
+                // Check image dimensions
+                const url = URL.createObjectURL(file);
+                const img = new Image();
+                img.onload = function() {
+                    if (img.width < 200 || img.height < 200) {
+                        errorMsg += `File ${file.name} nhỏ hơn 200x200px. `;
+                        URL.revokeObjectURL(url);
+                    } else {
+                        hasValid = true;
+                        dt.items.add(file); // accumulate file
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            const previewDiv = document.createElement('div');
+                            previewDiv.className = 'relative h-28 w-28 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 overflow-hidden flex items-center justify-center mr-2 mb-2';
+                            const imgElem = document.createElement('img');
+                            imgElem.src = e.target.result;
+                            imgElem.className = 'w-full h-full object-cover';
+                            previewDiv.appendChild(imgElem);
+                            container.appendChild(previewDiv);
+                        };
+                        reader.readAsDataURL(file);
+                        URL.revokeObjectURL(url);
+                    }
+                    filesProcessed++;
+                    if (filesProcessed === files.length) {
+                        // Set the input's files to the accumulated DataTransfer
                         input.files = dt.files;
-                    };
-                    previewDiv.appendChild(img);
-                    previewDiv.appendChild(removeBtn);
-                    container.appendChild(previewDiv);
-                    if (window.lucide) {
-                        lucide.createIcons();
+                        if (hasValid) {
+                            setValid(input, errorDiv, 'Ảnh đã được chọn');
+                        } else {
+                            setInvalid(input, errorDiv, errorMsg || 'Không có ảnh hợp lệ');
+                        }
                     }
                 };
-                reader.readAsDataURL(file);
+                img.onerror = function() {
+                    errorMsg += `File ${file.name} không phải là ảnh hợp lệ. `;
+                    URL.revokeObjectURL(url);
+                    filesProcessed++;
+                    if (filesProcessed === files.length) {
+                        input.files = dt.files;
+                        if (hasValid) {
+                            setValid(input, errorDiv, 'Ảnh đã được chọn');
+                        } else {
+                            setInvalid(input, errorDiv, errorMsg || 'Không có ảnh hợp lệ');
+                        }
+                    }
+                };
+                img.src = url;
             }
         }
         function validateForm() {
@@ -518,36 +542,26 @@
             // Form submission
             $('#service-form').on('submit', function(e) {
                 e.preventDefault();
-                const nameInput = document.getElementById('name');
-                const errorDiv = document.getElementById('nameError');
-                let nameValue = nameInput.value.trim();
-                nameInput.value = nameValue;
-
-                if (!validateForm()) {
-                    alert('Vui lòng kiểm tra lại thông tin trước khi lưu!');
-                    return;
-                }
-
-                $.ajax({
-                    url: contextPath + '/manager/service',
-                    type: 'GET',
-                    data: { 
-                        service: 'check-duplicate-name', 
-                        name: nameValue,
-                        id: serviceId
-                    },
-                    dataType: 'json',
-                    success: function(response) {
-                        if (!response.valid) {
-                            setInvalid(nameInput, errorDiv, response.message);
+                let nameValue = $('#name').val();
+                nameValue = nameValue.replace(/\s+/g, ' ').trim();
+                $('#name').val(nameValue);
+                const nameValid = validateName(document.getElementById('name'));
+                const descValid = validateDescription(document.getElementById('description'));
+                const priceValid = validatePrice(document.getElementById('price'));
+                const durationValid = validateDuration(document.getElementById('duration_minutes'));
+                const bufferValid = validateBufferTime(document.getElementById('buffer_time_after_minutes'));
+                const serviceId = document.querySelector('input[name="id"]').value;
+                if (nameValid && descValid && priceValid && durationValid && bufferValid) {
+                    checkServiceNameDuplicate(nameValue, serviceId, function(isDuplicate, msg) {
+                        if (isDuplicate) {
+                            setInvalid(document.getElementById('name'), document.getElementById('nameError'), msg || 'Tên này đã tồn tại trong hệ thống');
+                            return;
                         } else {
+                            setValid(document.getElementById('name'), document.getElementById('nameError'), 'Tên hợp lệ');
                             e.target.submit();
                         }
-                    },
-                    error: function() {
-                        setInvalid(nameInput, errorDiv, 'Không thể kiểm tra tên. Vui lòng thử lại.');
-                    }
-                });
+                    });
+                }
             });
         });
     </script>

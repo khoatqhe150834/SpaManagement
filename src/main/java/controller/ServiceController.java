@@ -27,10 +27,10 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import com.google.gson.JsonObject;
+import java.net.URLEncoder;
 
 @WebServlet(name = "ServiceController", urlPatterns = { "/manager/service" })
-@MultipartConfig(fileSizeThreshold = 0, maxFileSize = 2097152, // 2MB
-        maxRequestSize = 2097152)
+@MultipartConfig(fileSizeThreshold = 0, maxFileSize = 2097152, maxRequestSize = 10485760) // 10MB
 public class ServiceController extends HttpServlet {
 
     private static final Logger LOGGER = Logger.getLogger(ServiceController.class.getName());
@@ -127,7 +127,8 @@ public class ServiceController extends HttpServlet {
                     Service s = serviceDAO.findById(id).orElse(null);
                     
                     if (s == null) {
-                        response.sendRedirect("service?service=list-all&toastType=error&toastMessage=Dịch+vụ+không+tồn+tại");
+                        String toastMessage = URLEncoder.encode("Dịch vụ không tồn tại", "UTF-8");
+                        response.sendRedirect("service?service=list-all&toastType=error&toastMessage=" + toastMessage);
                         return;
                     }
                     
@@ -162,12 +163,14 @@ public class ServiceController extends HttpServlet {
                     Service serviceToDelete = serviceDAO.findById(id).orElse(null);
                     
                     if (serviceToDelete == null) {
-                        response.sendRedirect("service?service=list-all&toastType=error&toastMessage=Dịch+vụ+không+tồn+tại");
+                        String toastMessage = URLEncoder.encode("Dịch vụ không tồn tại", "UTF-8");
+                        response.sendRedirect("service?service=list-all&toastType=error&toastMessage=" + toastMessage);
                         return;
                     }
                     
                     serviceDAO.deleteById(id);
-                    response.sendRedirect("service?service=list-all&toastType=success&toastMessage=Đã+xóa+dịch+vụ+thành+công");
+                    String toastMessage = URLEncoder.encode("Đã xóa dịch vụ thành công", "UTF-8");
+                    response.sendRedirect("service?service=list-all&toastType=success&toastMessage=" + toastMessage);
                 } catch (NumberFormatException e) {
                     LOGGER.warning("Invalid service ID format: " + request.getParameter("id"));
                     response.sendRedirect("service?service=list-all&toastType=error&toastMessage=ID+dịch+vụ+không+hợp+lệ");
@@ -180,7 +183,8 @@ public class ServiceController extends HttpServlet {
                     Service serviceToDeactivate = serviceDAO.findById(id).orElse(null);
                     
                     if (serviceToDeactivate == null) {
-                        response.sendRedirect("service?service=list-all&toastType=error&toastMessage=Dịch+vụ+không+tồn+tại");
+                        String toastMessage = URLEncoder.encode("Dịch vụ không tồn tại", "UTF-8");
+                        response.sendRedirect("service?service=list-all&toastType=error&toastMessage=" + toastMessage);
                         return;
                     }
                     
@@ -190,7 +194,7 @@ public class ServiceController extends HttpServlet {
                     String keyword = request.getParameter("keyword");
                     String status = request.getParameter("status");
                     String serviceTypeIdStr = request.getParameter("serviceTypeId");
-                    StringBuilder redirectUrl = new StringBuilder("service?service=list-all&toastType=success&toastMessage=Đã+vô+hiệu+hóa+dịch+vụ+thành+công");
+                    StringBuilder redirectUrl = new StringBuilder("service?service=list-all&toastType=success&toastMessage=").append(URLEncoder.encode("Đã vô hiệu hóa dịch vụ thành công", "UTF-8"));
                     if (pageParam != null)
                         redirectUrl.append("&page=").append(pageParam);
                     if (limitParam != null)
@@ -214,7 +218,8 @@ public class ServiceController extends HttpServlet {
                     Service serviceToActivate = serviceDAO.findById(id).orElse(null);
                     
                     if (serviceToActivate == null) {
-                        response.sendRedirect("service?service=list-all&toastType=error&toastMessage=Dịch+vụ+không+tồn+tại");
+                        String toastMessage = URLEncoder.encode("Dịch vụ không tồn tại", "UTF-8");
+                        response.sendRedirect("service?service=list-all&toastType=error&toastMessage=" + toastMessage);
                         return;
                     }
                     
@@ -224,7 +229,7 @@ public class ServiceController extends HttpServlet {
                     String keyword = request.getParameter("keyword");
                     String status = request.getParameter("status");
                     String serviceTypeIdStr = request.getParameter("serviceTypeId");
-                    StringBuilder redirectUrl = new StringBuilder("service?service=list-all&toastType=success&toastMessage=Đã+kích+hoạt+dịch+vụ+thành+công");
+                    StringBuilder redirectUrl = new StringBuilder("service?service=list-all&toastType=success&toastMessage=").append(URLEncoder.encode("Đã kích hoạt dịch vụ thành công", "UTF-8"));
                     if (pageParam != null)
                         redirectUrl.append("&page=").append(pageParam);
                     if (limitParam != null)
@@ -284,16 +289,18 @@ public class ServiceController extends HttpServlet {
                         request.getRequestDispatcher("/WEB-INF/view/admin_pages/Service/ViewDetailService.jsp")
                                 .forward(request, response);
                     } else {
+                        String toastMessage = URLEncoder.encode("Không tìm thấy dịch vụ", "UTF-8");
                         response.sendRedirect(
-                                "service?service=list-all&toastType=error&toastMessage=Không+tìm+thấy+dịch+vụ");
+                                "service?service=list-all&toastType=error&toastMessage=" + toastMessage);
                     }
                 } catch (NumberFormatException e) {
                     LOGGER.warning("Invalid service ID format: " + request.getParameter("id"));
                     response.sendRedirect("service?service=list-all&toastType=error&toastMessage=ID+dịch+vụ+không+hợp+lệ");
                 } catch (Exception e) {
                     LOGGER.log(Level.SEVERE, "Error viewing service detail", e);
+                    String toastMessage = URLEncoder.encode("Có lỗi xảy ra khi xem chi tiết dịch vụ", "UTF-8");
                     response.sendRedirect(
-                            "service?service=list-all&toastType=error&toastMessage=Có+lỗi+xảy+ra+khi+xem+chi+tiết+dịch+vụ");
+                            "service?service=list-all&toastType=error&toastMessage=" + toastMessage);
                 }
                 return;
             }
@@ -353,7 +360,9 @@ public class ServiceController extends HttpServlet {
                 // Process image uploads using modern approach
                 processServiceImages(request, serviceId);
                 
-                response.sendRedirect("service?service=list-all&toastType=success&toastMessage=Đã+tạo+dịch+vụ+thành+công");
+                String toastMessage = URLEncoder.encode("Đã tạo dịch vụ thành công", "UTF-8");
+                response.sendRedirect("service?service=list-all&toastType=success&toastMessage=" + toastMessage);
+                return;
 
             } else if (service.equals("update")) {
                 try {
@@ -361,7 +370,8 @@ public class ServiceController extends HttpServlet {
                     Service existingService = serviceDAO.findById(id).orElse(null);
                     
                     if (existingService == null) {
-                        response.sendRedirect("service?service=list-all&toastType=error&toastMessage=Dịch+vụ+không+tồn+tại");
+                        String toastMessage = URLEncoder.encode("Dịch vụ không tồn tại", "UTF-8");
+                        response.sendRedirect("service?service=list-all&toastType=error&toastMessage=" + toastMessage);
                         return;
                     }
                     
@@ -384,18 +394,32 @@ public class ServiceController extends HttpServlet {
                     // Process new image uploads
                     processServiceImages(request, id);
                     
-                    response.sendRedirect("service?service=list-all&toastType=success&toastMessage=Đã+cập+nhật+dịch+vụ+thành+công");
+                    String toastMessage = URLEncoder.encode("Đã cập nhật dịch vụ thành công", "UTF-8");
+                    response.sendRedirect("service?service=list-all&toastType=success&toastMessage=" + toastMessage);
+                    return;
                 } catch (NumberFormatException e) {
                     LOGGER.warning("Invalid service ID format: " + request.getParameter("id"));
-                    response.sendRedirect("service?service=list-all&toastType=error&toastMessage=ID+dịch+vụ+không+hợp+lệ");
+                    String toastMessage = URLEncoder.encode("ID dịch vụ không hợp lệ", "UTF-8");
+                    response.sendRedirect("service?service=list-all&toastType=error&toastMessage=" + toastMessage);
+                    return;
                 }
             }
+        } catch (IllegalStateException ex) {
+            // Lỗi vượt quá dung lượng file upload
+            String toastMessage = URLEncoder.encode("File upload vượt quá giới hạn", "UTF-8");
+            response.sendRedirect("service?service=list-all&toastType=error&toastMessage=" + toastMessage);
+            return;
         } catch (NumberFormatException e) {
-            LOGGER.warning("Invalid number format in form data");
-            response.sendRedirect("service?service=list-all&toastType=error&toastMessage=Dữ+liệu+không+hợp+lệ");
+            // Lỗi dữ liệu số không hợp lệ
+            String toastMessage = URLEncoder.encode("Dữ liệu không hợp lệ", "UTF-8");
+            response.sendRedirect("service?service=list-all&toastType=error&toastMessage=" + toastMessage);
+            return;
         } catch (Exception e) {
+            // Lỗi không xác định
             LOGGER.log(Level.SEVERE, "Error processing service form", e);
-            response.sendRedirect("service?service=list-all&toastType=error&toastMessage=Có+lỗi+xảy+ra+khi+xử+lý+dữ+liệu");
+            String toastMessage = URLEncoder.encode("Có lỗi xảy ra khi xử lý dữ liệu", "UTF-8");
+            response.sendRedirect("service?service=list-all&toastType=error&toastMessage=" + toastMessage);
+            return;
         }
     }
 
