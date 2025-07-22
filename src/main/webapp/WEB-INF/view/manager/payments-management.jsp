@@ -13,6 +13,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="context-path" content="${pageContext.request.contextPath}" />
     <title>Quản Lý Thanh Toán - Spa Hương Sen</title>
     
     <!-- Tailwind CSS -->
@@ -170,6 +171,43 @@
             border-radius: 9999px;
             font-size: 0.75rem;
             font-weight: 500;
+        }
+
+        /* Form validation styling */
+        .field-error {
+            animation: shake 0.3s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* Modal animation */
+        .modal-enter {
+            animation: modalFadeIn 0.3s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Loading spinner */
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -591,10 +629,10 @@
                     <!-- Customer Selection -->
                     <div>
                         <label for="customerId" class="block text-sm font-medium text-gray-700 mb-1">Khách hàng <span class="text-red-500">*</span></label>
-                        <select id="customerId" name="customerId" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" required>
+                        <select id="customerId" name="customerId" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors" required>
                             <option value="">Chọn khách hàng</option>
                             <c:forEach var="customer" items="${customers}">
-                                <option value="${customer.id}">${customer.fullName} - ${customer.phone}</option>
+                                <option value="${customer.id}">${customer.fullName} - ${customer.phoneNumber}</option>
                             </c:forEach>
                         </select>
                     </div>
@@ -602,13 +640,13 @@
                     <!-- Payment Date -->
                     <div>
                         <label for="paymentDate" class="block text-sm font-medium text-gray-700 mb-1">Ngày thanh toán <span class="text-red-500">*</span></label>
-                        <input type="datetime-local" id="paymentDate" name="paymentDate" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" required>
+                        <input type="datetime-local" id="paymentDate" name="paymentDate" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors" required>
                     </div>
-                    
+
                     <!-- Payment Method -->
                     <div>
                         <label for="paymentMethod" class="block text-sm font-medium text-gray-700 mb-1">Phương thức thanh toán <span class="text-red-500">*</span></label>
-                        <select id="paymentMethod" name="paymentMethod" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" required>
+                        <select id="paymentMethod" name="paymentMethod" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors" required>
                             <option value="">Chọn phương thức</option>
                             <option value="BANK_TRANSFER">Chuyển khoản</option>
                             <option value="CREDIT_CARD">Thẻ tín dụng</option>
@@ -618,11 +656,11 @@
                             <option value="CASH">Tiền mặt</option>
                         </select>
                     </div>
-                    
+
                     <!-- Payment Status -->
                     <div>
                         <label for="paymentStatus" class="block text-sm font-medium text-gray-700 mb-1">Trạng thái <span class="text-red-500">*</span></label>
-                        <select id="paymentStatus" name="paymentStatus" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" required>
+                        <select id="paymentStatus" name="paymentStatus" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors" required>
                             <option value="PAID">Đã thanh toán</option>
                             <option value="PENDING">Chờ xử lý</option>
                             <option value="FAILED">Thất bại</option>
@@ -634,17 +672,17 @@
                     <div class="md:col-span-2">
                         <label for="totalAmount" class="block text-sm font-medium text-gray-700 mb-1">Số tiền <span class="text-red-500">*</span></label>
                         <div class="relative">
-                            <input type="number" id="totalAmount" name="totalAmount" min="0" step="1000" class="w-full pl-3 pr-12 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" required>
+                            <input type="number" id="totalAmount" name="totalAmount" min="0" step="1000" class="w-full pl-3 pr-12 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors" required>
                             <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-500">
                                 VNĐ
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Notes -->
                     <div class="md:col-span-2">
                         <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Ghi chú</label>
-                        <textarea id="notes" name="notes" rows="3" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"></textarea>
+                        <textarea id="notes" name="notes" rows="3" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors" placeholder="Nhập ghi chú về thanh toán (tùy chọn)"></textarea>
                     </div>
                 </div>
                 
@@ -661,6 +699,9 @@
     </div>    <!-- Ch
 art.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- External JavaScript -->
+    <script src="${pageContext.request.contextPath}/js/payments-management.js"></script>
 
     <!-- JavaScript -->
     <script>
@@ -911,13 +952,13 @@ art.js -->
             
             if (addPaymentBtn) {
                 addPaymentBtn.addEventListener('click', function() {
-                    openAddPaymentModal();
+                    window.location.href = '${pageContext.request.contextPath}/manager/payment-add';
                 });
             }
-            
+
             if (emptyAddPaymentBtn) {
                 emptyAddPaymentBtn.addEventListener('click', function() {
-                    openAddPaymentModal();
+                    window.location.href = '${pageContext.request.contextPath}/manager/payment-add';
                 });
             }
             
@@ -1260,56 +1301,8 @@ art.js -->
         }
 
         function editPayment(paymentId) {
-            // Show loading state
-            const button = event.target.closest('button');
-            const originalContent = button.innerHTML;
-            button.innerHTML = '<i data-lucide="loader-2" class="h-3 w-3 animate-spin"></i>';
-            button.disabled = true;
-            
-            // Fetch payment details
-            fetch('${pageContext.request.contextPath}/manager/payments/get/' + paymentId, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => {
-                if (response.ok) {
-                    return response.json();
-                }
-                throw new Error('Network response was not ok');
-            })
-            .then(data => {
-                if (data.success) {
-                    // Format date for datetime-local input
-                    const paymentDate = new Date(data.payment.paymentDate);
-                    const formattedDate = paymentDate.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:MM
-                    
-                    // Open edit modal with payment data
-                    openEditPaymentModal(
-                        data.payment.paymentId,
-                        data.payment.customerId,
-                        formattedDate,
-                        data.payment.paymentMethod,
-                        data.payment.paymentStatus,
-                        data.payment.totalAmount,
-                        data.payment.notes
-                    );
-                } else {
-                    throw new Error(data.message || 'Không thể tải thông tin thanh toán');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showNotification('Có lỗi xảy ra: ' + error.message, 'error');
-            })
-            .finally(() => {
-                // Restore button state
-                button.innerHTML = originalContent;
-                button.disabled = false;
-                lucide.createIcons();
-            });
+            // Redirect to edit page
+            window.location.href = '${pageContext.request.contextPath}/manager/payment-edit?id=' + paymentId;
         }
 
         function updatePaymentStatus(paymentId, newStatus) {

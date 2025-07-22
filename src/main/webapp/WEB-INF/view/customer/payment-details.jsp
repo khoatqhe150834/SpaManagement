@@ -157,7 +157,6 @@
         .payment-items-table th:nth-child(4) { text-align: center; }  /* Thời gian */
         .payment-items-table th:nth-child(5) { text-align: right; }   /* Thành tiền */
         .payment-items-table th:nth-child(6) { text-align: center; }  /* Tình trạng sử dụng */
-        .payment-items-table th:nth-child(7) { text-align: center; }  /* Thao tác */
 
         .payment-items-table td:nth-child(1) { text-align: left; }    /* Dịch vụ */
         .payment-items-table td:nth-child(2) { text-align: center; }  /* Số lượng */
@@ -165,7 +164,6 @@
         .payment-items-table td:nth-child(4) { text-align: center; }  /* Thời gian */
         .payment-items-table td:nth-child(5) { text-align: right; }   /* Thành tiền */
         .payment-items-table td:nth-child(6) { text-align: center; }  /* Tình trạng sử dụng */
-        .payment-items-table td:nth-child(7) { text-align: center; }  /* Thao tác */
 
         /* Vertical alignment for all cells */
         .payment-items-table th,
@@ -204,9 +202,6 @@
 
         .payment-items-table th:nth-child(6),
         .payment-items-table td:nth-child(6) { width: 150px; }  /* Tình trạng sử dụng */
-
-        .payment-items-table th:nth-child(7),
-        .payment-items-table td:nth-child(7) { width: 100px; }  /* Thao tác */
 
         /* Progress bar container improvements */
         .usage-progress {
@@ -458,7 +453,6 @@
                                                 <th>Thời gian</th>
                                                 <th>Thành tiền</th>
                                                 <th>Tình trạng sử dụng</th>
-                                                <th>Thao tác</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -504,29 +498,6 @@
                                                                 <span class="text-gray-500 text-sm">Chưa có thông tin</span>
                                                             </c:otherwise>
                                                         </c:choose>
-                                                    </td>
-                                                    <td>
-                                                        <div class="flex justify-center">
-                                                            <c:choose>
-                                                                <c:when test="${item.usage != null && item.usage.remainingQuantity > 0}">
-                                                                    <a href="${pageContext.request.contextPath}/booking?serviceId=${item.serviceId}"
-                                                                       class="inline-flex items-center px-3 py-1 bg-primary hover:bg-primary-dark text-white rounded text-sm font-medium transition-colors">
-                                                                        <i data-lucide="calendar-plus" class="h-3 w-3 mr-1"></i>
-                                                                        Đặt lịch
-                                                                    </a>
-                                                                </c:when>
-                                                                <c:when test="${item.usage == null}">
-                                                                    <a href="${pageContext.request.contextPath}/booking?serviceId=${item.serviceId}"
-                                                                       class="inline-flex items-center px-3 py-1 bg-primary hover:bg-primary-dark text-white rounded text-sm font-medium transition-colors">
-                                                                        <i data-lucide="calendar-plus" class="h-3 w-3 mr-1"></i>
-                                                                        Đặt lịch
-                                                                    </a>
-                                                                </c:when>
-                                                                <c:otherwise>
-                                                                    <span class="text-gray-500 text-sm">Đã sử dụng hết</span>
-                                                                </c:otherwise>
-                                                            </c:choose>
-                                                        </div>
                                                     </td>
                                                 </tr>
                                             </c:forEach>
@@ -669,12 +640,6 @@
                                 }
                                 return data;
                             }
-                        },
-                        // Make action column non-sortable
-                        {
-                            targets: 6,
-                            orderable: false,
-                            searchable: false
                         }
                     ],
                     language: {
@@ -700,7 +665,7 @@
                             filename: 'Chi_tiet_thanh_toan_${payment.paymentId}_' + new Date().toISOString().slice(0,10),
                             title: 'Chi tiết thanh toán #${payment.paymentId}',
                             exportOptions: {
-                                columns: [0, 1, 2, 3, 4, 5] // Exclude action column
+                                columns: [0, 1, 2, 3, 4, 5] // Include all columns (no action column to exclude)
                             }
                         },
                         {
@@ -709,7 +674,7 @@
                             className: 'bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors inline-flex items-center',
                             title: 'Chi tiết thanh toán #${payment.paymentId}',
                             exportOptions: {
-                                columns: [0, 1, 2, 3, 4, 5] // Exclude action column
+                                columns: [0, 1, 2, 3, 4, 5] // Include all columns (no action column to exclude)
                             }
                         }
                     ],

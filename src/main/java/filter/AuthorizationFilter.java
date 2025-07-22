@@ -137,6 +137,14 @@ public class AuthorizationFilter implements Filter {
         PATTERN_ROLE_MAPPINGS.put("/api/customer/*", new HashSet<>(Arrays.asList(RoleConstants.CUSTOMER_ID)));
         PATTERN_ROLE_MAPPINGS.put("/api/manager/*", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
         PATTERN_ROLE_MAPPINGS.put("/api/admin/*", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID)));
+        PATTERN_ROLE_MAPPINGS.put("/api/payments/*", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
+        PATTERN_ROLE_MAPPINGS.put("/api/payments", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
+
+        // Validation API patterns - accessible to all authenticated users
+        Set<Integer> allAuthenticatedRoles = new HashSet<>(Arrays.asList(
+            RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID,
+            RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID, RoleConstants.MARKETING_ID, RoleConstants.INVENTORY_MANAGER_ID));
+        PATTERN_ROLE_MAPPINGS.put("/api/validate/*", allAuthenticatedRoles);
 
         // Therapist area patterns
         PATTERN_ROLE_MAPPINGS.put("/therapist/*", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID)));

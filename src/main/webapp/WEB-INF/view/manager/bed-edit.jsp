@@ -31,7 +31,7 @@
 </head>
 <body class="bg-spa-cream min-h-screen">
     <!-- Include Header -->
-    <jsp:include page="../common/header.jsp" />
+    
     
     <!-- Include Sidebar -->
     <jsp:include page="../common/sidebar.jsp" />
@@ -198,8 +198,7 @@
         </div>
     </div>
 
-    <!-- Include Footer -->
-    <jsp:include page="../common/footer.jsp" />
+  
 
     <!-- External JavaScript -->
     <script src="${pageContext.request.contextPath}/js/bed-edit.js"></script>

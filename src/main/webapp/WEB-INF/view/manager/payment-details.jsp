@@ -617,32 +617,7 @@
                 </div>
             </c:if>
 
-            <!-- Action Buttons -->
-            <div class="flex gap-3 justify-end">
-                <a href="${pageContext.request.contextPath}/manager/payments-management" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-                    <i data-lucide="arrow-left" class="h-4 w-4 mr-2"></i>
-                    Quay lại
-                </a>
 
-                <c:if test="${payment.paymentStatus == 'PENDING'}">
-                    <button onclick="editPayment(${payment.paymentId})" class="inline-flex items-center px-4 py-2 text-sm font-medium text-yellow-700 bg-yellow-100 border border-yellow-300 rounded-lg hover:bg-yellow-200 transition-colors duration-200">
-                        <i data-lucide="edit" class="h-4 w-4 mr-2"></i>
-                        Chỉnh sửa
-                    </button>
-                </c:if>
-
-                <c:if test="${payment.paymentStatus == 'PAID'}">
-                    <button onclick="refundPayment(${payment.paymentId})" class="inline-flex items-center px-4 py-2 text-sm font-medium text-red-700 bg-red-100 border border-red-300 rounded-lg hover:bg-red-200 transition-colors duration-200">
-                        <i data-lucide="rotate-ccw" class="h-4 w-4 mr-2"></i>
-                        Hoàn tiền
-                    </button>
-                </c:if>
-
-                <button onclick="printReceipt(${payment.paymentId})" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary border border-primary rounded-lg hover:bg-primary-dark transition-colors duration-200">
-                    <i data-lucide="printer" class="h-4 w-4 mr-2"></i>
-                    In hóa đơn
-                </button>
-            </div>
         </div>
     </main>
 
