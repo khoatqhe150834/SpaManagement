@@ -106,7 +106,7 @@
         <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
         <main class="w-full md:w-[calc(100%-256px)] md:ml-64 bg-spa-cream min-h-screen transition-all main">
             <jsp:include page="/WEB-INF/view/admin_pages/Common/AdminHeader.jsp" />
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="w-full mx-auto px-4 sm:px-6 lg:px-8 mt-8">
                 <!-- Page Header -->
                 <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
                     <h1 class="text-3xl font-serif text-spa-dark font-bold">Danh Sách Dịch Vụ</h1>
@@ -158,18 +158,18 @@
                     <!-- Table -->
                     <div class="p-6">
                         <div class="overflow-x-auto">
-                            <table id="serviceTable" class="table-fixed w-full text-sm text-left text-gray-500">
+                            <table id="serviceTable" class="w-full text-sm text-left text-gray-500">
                                 <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                                     <tr>
-                                        <th scope="col" class="px-6 py-3" style="width:5%">ID</th>
-                                        <th scope="col" class="px-6 py-3 text-center" style="width:10%">Hình Ảnh</th>
-                                        <th scope="col" class="px-6 py-3" style="width:18%">Tên Dịch Vụ</th>
-                                        <th scope="col" class="px-6 py-3" style="width:15%">Loại Dịch Vụ</th>
-                                        <th scope="col" class="px-6 py-3 text-center" style="width:8%">Thời Gian</th>
-                                        <th scope="col" class="px-6 py-3 text-center" style="width:8%">Đánh Giá</th>
-                                        <th scope="col" class="px-6 py-3" style="width:12%">Giá</th>
-                                        <th scope="col" class="px-6 py-3 text-center" style="width:10%">Trạng Thái</th>
-                                        <th scope="col" class="px-6 py-3 text-center" style="width:14%">Thao Tác</th>
+                                        <th scope="col" class="px-2 py-3" style="width:4%">ID</th>
+                                        <th scope="col" class="px-2 py-3 text-center" style="width:8%">Hình Ảnh</th>
+                                        <th scope="col" class="px-2 py-3" style="width:16%">Tên Dịch Vụ</th>
+                                        <th scope="col" class="px-2 py-3" style="width:12%">Loại Dịch Vụ</th>
+                                        <th scope="col" class="px-2 py-3 text-center" style="width:8%">Thời Gian</th>
+                                        <th scope="col" class="px-2 py-3 text-center" style="width:8%">Đánh Giá</th>
+                                        <th scope="col" class="px-2 py-3 text-center" style="width:12%">Giá</th>
+                                        <th scope="col" class="px-2 py-3 text-center" style="width:8%">Trạng Thái</th>
+                                        <th scope="col" class="px-2 py-3 text-center" style="width:12%">Thao Tác</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -184,8 +184,8 @@
                                         <c:otherwise>
                                             <c:forEach var="service" items="${services}">
                                                 <tr class="bg-white border-b hover:bg-gray-50">
-                                                    <td class="px-6 py-4 font-medium text-gray-900">${service.serviceId}</td>
-                                                    <td class="px-6 py-4 text-center">
+                                                    <td class="px-2 py-4 font-medium text-gray-900">${service.serviceId}</td>
+                                                    <td class="px-2 py-4 text-center">
                                                         <div class="flex justify-center items-center h-16">
                                                             <c:set var="imgUrl" value="${serviceThumbnails[service.serviceId]}" />
                                                             <c:choose>
@@ -198,30 +198,33 @@
                                                             </c:choose>
                                                         </div>
                                                     </td>
-                                                    <td class="px-6 py-4">
-                                                        <div class="truncate max-w-[160px] w-full" title="${service.name}">${service.name}</div>
+                                                    <td class="px-2 py-4">
+                                                        <div class="truncate w-full max-w-[220px]" title="${service.name}">${service.name}</div>
                                                     </td>
-                                                    <td class="px-6 py-4">
-                                                        <div class="truncate max-w-[160px] w-full" title="${service.serviceTypeId.name}">${service.serviceTypeId.name}</div>
+                                                    <td class="px-2 py-4">
+                                                        <div class="truncate w-full max-w-[160px]" title="${service.serviceTypeId.name}">${service.serviceTypeId.name}</div>
                                                     </td>
-                                                    <td class="px-6 py-4 text-center">${service.durationMinutes} phút</td>
-                                                    <td class="px-6 py-4 text-center">
+                                                    <td class="px-2 py-4 text-center">${service.durationMinutes} phút</td>
+                                                    <td class="px-2 py-4 text-center">
                                                         <span class="text-yellow-500 font-medium">(${service.averageRating})</span>
                                                     </td>
-                                                    <td class="px-6 py-4">
-                                                        <fmt:formatNumber value="${service.price}" type="number" maxFractionDigits="0" /> VND
+                                                    <td class="px-2 py-4 text-center align-middle">
+                                                        <span class="font-semibold text-[#15803d] text-lg">
+                                                            <fmt:formatNumber value="${service.price}" type="number" maxFractionDigits="0" />
+                                                        </span>
+                                                        <span class="text-xs text-gray-400 ml-1">VND</span>
                                                     </td>
-                                                    <td class="px-6 py-4 text-center">
+                                                    <td class="px-2 py-4 text-center align-middle">
                                                         <c:choose>
                                                             <c:when test="${service.isActive}">
-                                                                <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Active</span>
+                                                                <span class="inline-block rounded-full bg-green-100 text-green-700 px-4 py-1 font-semibold text-base">Active</span>
                                                             </c:when>
                                                             <c:otherwise>
-                                                                <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Inactive</span>
+                                                                <span class="inline-block rounded-full bg-red-100 text-red-700 px-4 py-1 font-semibold text-base">Inactive</span>
                                                             </c:otherwise>
                                                         </c:choose>
                                                     </td>
-                                                    <td class="px-6 py-4 text-center">
+                                                    <td class="px-2 py-4 text-center">
                                                         <div class="flex items-center justify-center gap-2">
                                                             <!-- Nút xem chi tiết -->
                                                             <a href="service?service=view-detail&id=${service.serviceId}&page=${currentPage}&limit=${limit}" class="p-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-full" title="Xem chi tiết dịch vụ">
