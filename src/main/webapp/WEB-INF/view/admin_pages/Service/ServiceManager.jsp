@@ -36,6 +36,59 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="<c:url value='/css/style.css'/>" />
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/admin/css/lib/dataTables.min.css">
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <style>
+/* Đồng bộ giao diện Select2 với input, select thường */
+.select2-container--default .select2-selection--single {
+  height: 40px !important;
+  border-radius: 0.5rem !important;
+  border: 1px solid #d1d5db !important; /* Tailwind border-gray-300 */
+  padding: 6px 12px !important;
+  font-size: 1rem;
+  background-color: #fff;
+  transition: border-color 0.2s;
+  min-width: 220px;
+  box-shadow: none;
+}
+.select2-container--default .select2-selection--single:focus,
+.select2-container--default .select2-selection--single.select2-selection--focus {
+  border-color: #D4AF37 !important; /* vàng chủ đạo */
+  outline: none;
+}
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+  line-height: 26px !important;
+  color: #374151; /* Tailwind text-gray-700 */
+}
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+  height: 38px !important;
+  right: 8px;
+}
+.select2-container--default .select2-selection--single:hover {
+  border-color: #D4AF37 !important;
+}
+.select2-container--default .select2-dropdown {
+  border-radius: 0.5rem !important;
+  border: 1px solid #d1d5db !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+  background-color: #FDE68A !important; /* vàng nhạt */
+  color: #333;
+}
+.select2-container--default .select2-results__option[aria-selected=true] {
+  background-color: #D4AF37 !important;
+  color: #fff;
+}
+.select2-container--default .select2-selection--single .select2-selection__placeholder {
+  color: #9ca3af !important; /* Tailwind text-gray-400 */
+}
+.select2-container {
+  width: auto !important;
+  min-width: 220px;
+  vertical-align: middle;
+}
+</style>
 </head>
 <body class="bg-spa-cream font-sans">
     <jsp:include page="/WEB-INF/view/common/header.jsp" />
@@ -73,7 +126,7 @@
                                 </c:forEach>
                             </select>
                             <input type="text" class="h-10 px-4 text-base placeholder-gray-600 border rounded-lg focus:shadow-outline" name="keyword" placeholder="Tìm kiếm" value="${keyword}">
-                            <select name="serviceTypeId" class="w-auto h-10 pl-3 pr-8 text-base placeholder-gray-600 border rounded-lg appearance-none focus:shadow-outline-blue focus:border-blue-300">
+                            <select name="serviceTypeId" class="service-type-select w-auto h-10 pl-3 pr-8 text-base placeholder-gray-600 border rounded-lg appearance-none focus:shadow-outline-blue focus:border-blue-300" style="min-width:220px;">
                                 <option value="">Tất cả loại dịch vụ</option>
                                 <c:forEach var="stype" items="${serviceTypes}">
                                     <option value="${stype.serviceTypeId}" <c:if test="${param.serviceTypeId == stype.serviceTypeId}">selected</c:if>>
@@ -109,71 +162,82 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <c:forEach var="service" items="${services}">
-                                        <tr class="bg-white border-b hover:bg-gray-50">
-                                            <td class="px-6 py-4 font-medium text-gray-900">${service.serviceId}</td>
-                                            <td class="px-6 py-4 text-center">
-                                                <div class="flex justify-center items-center h-16">
-                                                    <c:set var="imgUrl" value="${serviceThumbnails[service.serviceId]}" />
-                                                    <c:choose>
-                                                        <c:when test="${not empty imgUrl}">
-                                                            <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(imgUrl, '/services/')}" alt="Service Image" class="w-16 h-16 object-cover rounded shadow mx-auto hover:scale-105 transition-transform duration-200" style="cursor: zoom-in;" onclick="showImageModal(this.src)" />
-                                                        </c:when>
-                                                        <c:otherwise>
-                                                            <img src="${pageContext.request.contextPath}/assets/images/no-image.png" alt="No image" class="w-16 h-16 object-cover rounded-xl border bg-gray-50 shadow" />
-                                                        </c:otherwise>
-                                                    </c:choose>
-                                                </div>
-                                            </td>
-                                            <td class="px-6 py-4 max-w-xs truncate" title="${service.name}">${service.name}</td>
-                                            <td class="px-6 py-4 max-w-xs truncate" title="${service.serviceTypeId.name}">${service.serviceTypeId.name}</td>
-                                            <td class="px-6 py-4 text-center">${service.durationMinutes} phút</td>
-                                            <td class="px-6 py-4 text-center">
-                                                <span class="text-yellow-500 font-medium">(${service.averageRating})</span>
-                                            </td>
-                                            <td class="px-6 py-4">
-                                                <fmt:formatNumber value="${service.price}" type="number" maxFractionDigits="0" /> VND
-                                            </td>
-                                            <td class="px-6 py-4 text-center">
-                                                <c:choose>
-                                                    <c:when test="${service.isActive}">
-                                                        <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Active</span>
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Inactive</span>
-                                                    </c:otherwise>
-                                                </c:choose>
-                                            </td>
-                                            <td class="px-6 py-4 text-center">
-                                                <div class="flex items-center justify-center gap-2">
-                                                    <!-- Nút xem chi tiết -->
-                                                    <a href="service?service=view-detail&id=${service.serviceId}&page=${currentPage}&limit=${limit}" class="p-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-full" title="Xem chi tiết dịch vụ">
-                                                        <i data-lucide="eye" class="w-5 h-5"></i>
-                                                    </a>
-                                                    <!-- Nút chỉnh sửa dịch vụ -->
-                                                    <a href="service?service=pre-update&id=${service.serviceId}&page=${currentPage}&limit=${limit}" class="p-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-full" title="Chỉnh sửa dịch vụ">
-                                                        <i data-lucide="edit" class="w-5 h-5"></i>
-                                                    </a>
-                                                    <!-- Nút quản lý hình ảnh -->
-                                                    <a href="${pageContext.request.contextPath}/manager/service-images/single-upload?serviceId=${service.serviceId}" class="p-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 rounded-full" title="Quản lý hình ảnh">
-                                                        <i data-lucide="image" class="w-5 h-5"></i>
-                                                    </a>
-                                                    <c:choose>
-                                                        <c:when test="${service.isActive}">
-                                                            <a href="service?service=deactivate&id=${service.serviceId}&page=${currentPage}&limit=${limit}" class="p-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-full" title="Vô hiệu hóa dịch vụ" onclick="return confirmAction('Bạn có chắc chắn muốn vô hiệu hóa dịch vụ này?')">
-                                                                <i data-lucide="ban" class="w-5 h-5"></i>
+                                    <c:choose>
+                                        <c:when test="${empty services}">
+                                            <tr>
+                                                <td colspan="9" class="text-center py-8 text-gray-400 font-semibold text-lg">
+                                                    Không tìm thấy dịch vụ nào phù hợp với tiêu chí lọc.
+                                                </td>
+                                            </tr>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <c:forEach var="service" items="${services}">
+                                                <tr class="bg-white border-b hover:bg-gray-50">
+                                                    <td class="px-6 py-4 font-medium text-gray-900">${service.serviceId}</td>
+                                                    <td class="px-6 py-4 text-center">
+                                                        <div class="flex justify-center items-center h-16">
+                                                            <c:set var="imgUrl" value="${serviceThumbnails[service.serviceId]}" />
+                                                            <c:choose>
+                                                                <c:when test="${not empty imgUrl}">
+                                                                    <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(imgUrl, '/services/')}" alt="Service Image" class="w-16 h-16 object-cover rounded shadow mx-auto hover:scale-105 transition-transform duration-200" style="cursor: zoom-in;" onclick="showImageModal(this.src)" />
+                                                                </c:when>
+                                                                <c:otherwise>
+                                                                    <img src="${pageContext.request.contextPath}/assets/images/no-image.png" alt="No image" class="w-16 h-16 object-cover rounded-xl border bg-gray-50 shadow" />
+                                                                </c:otherwise>
+                                                            </c:choose>
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-6 py-4 max-w-xs truncate" title="${service.name}">${service.name}</td>
+                                                    <td class="px-6 py-4 max-w-xs truncate" title="${service.serviceTypeId.name}">${service.serviceTypeId.name}</td>
+                                                    <td class="px-6 py-4 text-center">${service.durationMinutes} phút</td>
+                                                    <td class="px-6 py-4 text-center">
+                                                        <span class="text-yellow-500 font-medium">(${service.averageRating})</span>
+                                                    </td>
+                                                    <td class="px-6 py-4">
+                                                        <fmt:formatNumber value="${service.price}" type="number" maxFractionDigits="0" /> VND
+                                                    </td>
+                                                    <td class="px-6 py-4 text-center">
+                                                        <c:choose>
+                                                            <c:when test="${service.isActive}">
+                                                                <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Active</span>
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Inactive</span>
+                                                            </c:otherwise>
+                                                        </c:choose>
+                                                    </td>
+                                                    <td class="px-6 py-4 text-center">
+                                                        <div class="flex items-center justify-center gap-2">
+                                                            <!-- Nút xem chi tiết -->
+                                                            <a href="service?service=view-detail&id=${service.serviceId}&page=${currentPage}&limit=${limit}" class="p-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-full" title="Xem chi tiết dịch vụ">
+                                                                <i data-lucide="eye" class="w-5 h-5"></i>
                                                             </a>
-                                                        </c:when>
-                                                        <c:otherwise>
-                                                            <a href="service?service=activate&id=${service.serviceId}&page=${currentPage}&limit=${limit}" class="p-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-full hover:text-green-800 transition-colors" title="Kích hoạt lại dịch vụ" onclick="return confirmAction('Bạn có chắc chắn muốn kích hoạt lại dịch vụ này?')">
-                                                                <i data-lucide="refresh-ccw" class="w-5 h-5"></i>
+                                                            <!-- Nút chỉnh sửa dịch vụ -->
+                                                            <a href="service?service=pre-update&id=${service.serviceId}&page=${currentPage}&limit=${limit}" class="p-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-full" title="Chỉnh sửa dịch vụ">
+                                                                <i data-lucide="edit" class="w-5 h-5"></i>
                                                             </a>
-                                                        </c:otherwise>
-                                                    </c:choose>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </c:forEach>
+                                                            <!-- Nút quản lý hình ảnh -->
+                                                            <a href="${pageContext.request.contextPath}/manager/service-images/single-upload?serviceId=${service.serviceId}" class="p-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 rounded-full" title="Quản lý hình ảnh">
+                                                                <i data-lucide="image" class="w-5 h-5"></i>
+                                                            </a>
+                                                            <c:choose>
+                                                                <c:when test="${service.isActive}">
+                                                                    <a href="service?service=deactivate&id=${service.serviceId}&page=${currentPage}&limit=${limit}" class="p-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-full" title="Vô hiệu hóa dịch vụ" onclick="return confirmAction('Bạn có chắc chắn muốn vô hiệu hóa dịch vụ này?')">
+                                                                        <i data-lucide="ban" class="w-5 h-5"></i>
+                                                                    </a>
+                                                                </c:when>
+                                                                <c:otherwise>
+                                                                    <a href="service?service=activate&id=${service.serviceId}&page=${currentPage}&limit=${limit}" class="p-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-full hover:text-green-800 transition-colors" title="Kích hoạt lại dịch vụ" onclick="return confirmAction('Bạn có chắc chắn muốn kích hoạt lại dịch vụ này?')">
+                                                                        <i data-lucide="refresh-ccw" class="w-5 h-5"></i>
+                                                                    </a>
+                                                                </c:otherwise>
+                                                            </c:choose>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </c:forEach>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </tbody>
                             </table>
                         </div>
@@ -253,6 +317,29 @@
         function confirmAction(message) {
             return confirm(message);
         }
+    </script>
+    <!-- jQuery (nếu chưa có) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('.service-type-select').select2({
+                placeholder: "Tất cả loại dịch vụ",
+                allowClear: true,
+                width: 'resolve',
+                dropdownAutoWidth: true,
+                language: {
+                    noResults: function() {
+                        return "Không tìm thấy loại dịch vụ nào";
+                    }
+                }
+            });
+            // Khi thay đổi bất kỳ filter nào, reset page về 1
+            $('.service-type-select, [name="status"], [name="keyword"], [name="limit"]').on('change input', function() {
+                $('[name="page"]').val(1);
+            });
+        });
     </script>
     <!-- Modal xem ảnh lớn -->
     <div id="imageModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 hidden">

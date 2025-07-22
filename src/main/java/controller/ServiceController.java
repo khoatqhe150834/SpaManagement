@@ -255,6 +255,17 @@ public class ServiceController extends HttpServlet {
                 int totalRecords = serviceDAO.countSearchResult(keyword, status, serviceTypeId);
                 int totalPages = (int) Math.ceil((double) totalRecords / limit);
 
+                Map<Integer, String> serviceThumbnails = new HashMap<>();
+                for (Service s : services) {
+                    List<ServiceImage> images = serviceImageDAO.findByServiceId(s.getServiceId());
+                    if (!images.isEmpty()) {
+                        serviceThumbnails.put(s.getServiceId(), images.get(0).getUrl());
+                    } else {
+                        serviceThumbnails.put(s.getServiceId(), "/assets/images/no-image.png");
+                    }
+                }
+                request.setAttribute("serviceThumbnails", serviceThumbnails);
+
                 request.setAttribute("services", services);
                 request.setAttribute("keyword", keyword);
                 request.setAttribute("status", status);
