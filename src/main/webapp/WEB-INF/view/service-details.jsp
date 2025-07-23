@@ -53,35 +53,11 @@ uri="http://java.sun.com/jsp/jstl/functions" %>
         -webkit-box-orient: vertical;
         overflow: hidden;
       }
-
-      /* Notification styles */
-      .notification {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 12px 24px;
-        border-radius: 8px;
-        color: white;
-        font-weight: 500;
-        transform: translateX(400px);
-        transition: transform 0.3s ease;
-        z-index: 1000;
-      }
-
-      .notification.show {
-        transform: translateX(0);
-      }
-
-      .notification.success {
-        background-color: #10b981;
-      }
-
-      .notification.error {
-        background-color: #ef4444;
-      }
-
-      .notification.info {
-        background-color: #3b82f6;
+      .line-clamp-3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
       }
 
       /* Zoom modal styles */
@@ -94,19 +70,107 @@ uri="http://java.sun.com/jsp/jstl/functions" %>
         max-height: 90vh;
       }
 
-      /* Smooth transitions for buttons */
-      button {
-        transition: all 0.2s ease;
-      }
-
       /* Related services scroll behavior */
       #related-services-grid {
         scroll-behavior: smooth;
       }
 
-      /* Enhanced hover effects */
-      .transform:hover {
-        transform: scale(1.02);
+      /* Service card hover effects and stability - MATCHING services.jsp */
+      .service-card {
+        transition: box-shadow 0.3s ease, transform 0.2s ease;
+        min-height: 450px; /* Increased for better stability */
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        background: white;
+        border-radius: 0.5rem;
+        overflow: hidden;
+      }
+      .service-card:hover {
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        transform: translateY(-2px);
+      }
+      
+      /* Image container stability - MATCHING services.jsp */
+      .service-card .relative.h-48 {
+        background-color: #f9fafb; /* Slightly lighter gray */
+        height: 192px !important; /* Force fixed height */
+        min-height: 192px !important; /* Ensure minimum height */
+        max-height: 192px; /* Prevent overflow */
+        overflow: hidden;
+        position: relative;
+        flex-shrink: 0; /* Prevent shrinking */
+      }
+      
+      /* Image stability - no transitions needed - MATCHING services.jsp */
+      .service-card img {
+        opacity: 1; /* Always visible */
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        position: relative;
+        z-index: 2;
+        transition: transform 0.3s ease; /* Only transition for hover effects */
+      }
+      .service-card img.loaded {
+        opacity: 1; /* Ensure always visible */
+      }
+      
+      /* Fallback and default image styles - MATCHING services.jsp */
+      .service-card .fallback-image {
+        opacity: 1 !important; /* Always show fallback images */
+      }
+      .service-card .default-image {
+        opacity: 1 !important; /* Always show default images */
+      }
+      
+      /* Loading indicator enhancement - MATCHING services.jsp */
+      .image-loading {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 15;
+        background-color: #f9fafb;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        opacity: 1;
+        transition: opacity 0.3s ease;
+      }
+      .image-loading.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+      
+      /* Gradient placeholder - MATCHING services.jsp */
+      .service-card .bg-gradient-to-br {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 5;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      .service-card .bg-gradient-to-br.show {
+        opacity: 1;
+      }
+      
+      /* Service content area stability - MATCHING services.jsp */
+      .service-card .p-6 {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      
+      /* Price formatting - MATCHING services.jsp */
+      .price-display {
+        font-family: 'Roboto', sans-serif;
+        font-weight: 700;
       }
     </style>
   </head>
@@ -289,7 +353,7 @@ uri="http://java.sun.com/jsp/jstl/functions" %>
                   <!-- Add to Cart Button (Available for all users) -->
                   <button
                     id="add-to-cart-btn"
-                    class="w-full bg-primary text-white py-4 px-6 rounded-full hover:bg-primary-dark transition-all duration-300 font-semibold text-lg flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-105"
+                    class="w-full bg-primary text-white py-4 px-6 rounded-full hover:bg-primary-dark transition-all duration-300 font-semibold text-lg flex items-center justify-center shadow-lg"
                     data-service-id="${service.serviceId}"
                   >
                     <i data-lucide="shopping-cart" class="h-5 w-5 mr-2"></i>
@@ -300,7 +364,7 @@ uri="http://java.sun.com/jsp/jstl/functions" %>
                   <c:if test="${isAuthenticated}">
                     <button
                       id="add-to-wishlist-btn"
-                      class="w-full bg-pink-500 text-white py-3 px-6 rounded-full hover:bg-pink-600 transition-all duration-300 font-semibold flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-105"
+                      class="w-full bg-pink-500 text-white py-3 px-6 rounded-full hover:bg-pink-600 transition-all duration-300 font-semibold flex items-center justify-center shadow-lg"
                       data-service-id="${service.serviceId}"
                     >
                       <i data-lucide="heart" class="h-5 w-5 mr-2"></i>
@@ -346,39 +410,57 @@ uri="http://java.sun.com/jsp/jstl/functions" %>
                 <h2 class="text-2xl font-serif text-spa-dark mb-6">
                   Dịch vụ liên quan
                 </h2>
-                <div id="related-services-container" class="relative">
+                <div id="related-services-container">
                   <div
                     id="related-services-grid"
-                    class="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide"
+                    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
                   >
                     <!-- Related services will be loaded here -->
-                    <div class="flex space-x-4 animate-pulse">
-                      <c:forEach begin="1" end="5">
-                        <div
-                          class="flex-shrink-0 w-64 bg-gray-200 rounded-lg h-80"
-                        ></div>
-                      </c:forEach>
+                    <!-- Skeleton Loading -->
+                    <div id="related-skeleton-loading" class="contents">
+                      <!-- Skeleton card 1 -->
+                      <div class="bg-white rounded-lg shadow-lg overflow-hidden animate-pulse">
+                        <div class="h-48 bg-gray-300"></div>
+                        <div class="p-6">
+                          <div class="h-4 bg-gray-300 rounded mb-3"></div>
+                          <div class="h-6 bg-gray-300 rounded mb-4"></div>
+                          <div class="h-4 bg-gray-300 rounded w-3/4 mb-4"></div>
+                          <div class="flex justify-between items-center">
+                            <div class="h-6 bg-gray-300 rounded w-20"></div>
+                            <div class="h-10 bg-gray-300 rounded w-24"></div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <!-- Skeleton card 2 -->
+                      <div class="bg-white rounded-lg shadow-lg overflow-hidden animate-pulse">
+                        <div class="h-48 bg-gray-300"></div>
+                        <div class="p-6">
+                          <div class="h-4 bg-gray-300 rounded mb-3"></div>
+                          <div class="h-6 bg-gray-300 rounded mb-4"></div>
+                          <div class="h-4 bg-gray-300 rounded w-3/4 mb-4"></div>
+                          <div class="flex justify-between items-center">
+                            <div class="h-6 bg-gray-300 rounded w-20"></div>
+                            <div class="h-10 bg-gray-300 rounded w-24"></div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <!-- Skeleton card 3 -->
+                      <div class="bg-white rounded-lg shadow-lg overflow-hidden animate-pulse">
+                        <div class="h-48 bg-gray-300"></div>
+                        <div class="p-6">
+                          <div class="h-4 bg-gray-300 rounded mb-3"></div>
+                          <div class="h-6 bg-gray-300 rounded mb-4"></div>
+                          <div class="h-4 bg-gray-300 rounded w-3/4 mb-4"></div>
+                          <div class="flex justify-between items-center">
+                            <div class="h-6 bg-gray-300 rounded w-20"></div>
+                            <div class="h-10 bg-gray-300 rounded w-24"></div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <!-- Navigation arrows for related services -->
-                  <button
-                    id="related-prev"
-                    class="absolute left-0 top-1/2 transform -translate-y-1/2 bg-white shadow-lg rounded-full p-2 hover:bg-gray-50 transition-all z-10 hidden"
-                  >
-                    <i
-                      data-lucide="chevron-left"
-                      class="h-5 w-5 text-gray-600"
-                    ></i>
-                  </button>
-                  <button
-                    id="related-next"
-                    class="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white shadow-lg rounded-full p-2 hover:bg-gray-50 transition-all z-10 hidden"
-                  >
-                    <i
-                      data-lucide="chevron-right"
-                      class="h-5 w-5 text-gray-600"
-                    ></i>
-                  </button>
                 </div>
               </div>
             </div>
@@ -413,8 +495,7 @@ uri="http://java.sun.com/jsp/jstl/functions" %>
       </section>
     </main>
 
-    <!-- Notification -->
-    <div id="notification" class="notification"></div>
+
 
     <!-- Image Zoom Modal -->
     <div
@@ -489,8 +570,18 @@ uri="http://java.sun.com/jsp/jstl/functions" %>
 
     <!-- JavaScript -->
     <script src="<c:url value='/js/app.js'/>"></script>
-    <script src="<c:url value='/js/cart.js'/>"></script>
-
+    <!-- Make sure cart.js is properly initialized -->
+    <script>
+      // Check if cart functions are already defined
+      if (typeof window.addToCart !== 'function') {
+        console.log('Cart functions not found, loading cart.js...');
+        // Only load cart.js if it's not already loaded
+        document.write('<script src="<c:url value="/js/cart.js"/>"><\/script>');
+      } else {
+        console.log('Cart functions already available, skipping cart.js load');
+      }
+    </script>
+    
     <script src="<c:url value='/js/service-tracker.js'/>"></script>
     <script src="<c:url value='/js/recently-viewed-services.js'/>"></script>
     <script src="<c:url value='/js/service-details.js'/>"></script>
@@ -502,7 +593,13 @@ uri="http://java.sun.com/jsp/jstl/functions" %>
         serviceData: {
           serviceId: <c:out value="${service.serviceId}"/>,
           name: "<c:out value='${service.name}' escapeXml='false'/>",
-          price: <c:out value="${service.price}"/>
+          price: <c:out value="${service.price}"/>,
+          durationMinutes: <c:out value="${service.durationMinutes != null ? service.durationMinutes : 60}"/>,
+          description: "<c:out value='${service.description != null && !empty service.description ? service.description : \"Dịch vụ chăm sóc sắc đẹp chuyên nghiệp\"}' escapeXml='false'/>",
+          averageRating: <c:out value="${service.averageRating != null ? service.averageRating : 4.5}"/>,
+          serviceTypeId: {
+            name: "<c:out value='${service.serviceTypeId != null && service.serviceTypeId.name != null ? service.serviceTypeId.name : \"Dịch vụ spa\"}' escapeXml='false'/>"
+          }
         },
         serviceImages: [
           <c:forEach var="image" items="${serviceImages}" varStatus="status">

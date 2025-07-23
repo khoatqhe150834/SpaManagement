@@ -124,21 +124,23 @@
         }
 
         /* Filter panel styling */
-        #filterPanel {
-            transition: all 0.3s ease-in-out;
-        }
-
-        #filterPanel.hidden {
+        .customer-payment-history-filter-panel {
+            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
             max-height: 0;
+            opacity: 0;
             overflow: hidden;
-            padding: 0;
         }
 
-        #toggleFilters i {
+        .customer-payment-history-filter-panel.show {
+            max-height: 500px;
+            opacity: 1;
+        }
+
+        #toggleCustomerPaymentHistoryFilters i {
             transition: transform 0.3s ease;
         }
 
-        #toggleFilters i.rotate-180 {
+        #toggleCustomerPaymentHistoryFilters i.rotate-180 {
             transform: rotate(180deg);
         }
 
@@ -208,7 +210,7 @@
 
                         <div class="flex flex-wrap items-center gap-3">
                             <!-- Filter Toggle Button -->
-                            <button id="toggleFilters" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary/20">
+                            <button id="toggleCustomerPaymentHistoryFilters" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary/20">
                                 <i data-lucide="filter" class="h-4 w-4 mr-2"></i>
                                 Bộ lọc
                             </button>
@@ -217,13 +219,20 @@
                 </div>
 
                 <!-- Filter Panel -->
-                <div id="filterPanel" class="hidden border-b border-gray-200 bg-gray-50">
+                <div id="customerPaymentHistoryFilterPanel" class="customer-payment-history-filter-panel px-6 py-0 border-b border-gray-200 bg-gray-50">
                     <div class="p-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <!-- Payment ID Filter -->
+                            <div>
+                                <label for="customerPaymentHistoryIdFilter" class="block text-sm font-medium text-gray-700 mb-2">Mã thanh toán</label>
+                                <input type="text" id="customerPaymentHistoryIdFilter" placeholder="Nhập mã thanh toán"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                            </div>
+
                             <!-- Payment Method Filter -->
                             <div>
-                                <label for="methodFilter" class="block text-sm font-medium text-gray-700 mb-2">Phương thức</label>
-                                <select id="methodFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                <label for="customerPaymentHistoryMethodFilter" class="block text-sm font-medium text-gray-700 mb-2">Phương thức</label>
+                                <select id="customerPaymentHistoryMethodFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
                                     <option value="">Tất cả phương thức</option>
                                     <option value="BANK_TRANSFER">Chuyển khoản</option>
                                     <option value="CREDIT_CARD">Thẻ tín dụng</option>
@@ -236,8 +245,8 @@
 
                             <!-- Status Filter -->
                             <div>
-                                <label for="statusFilter" class="block text-sm font-medium text-gray-700 mb-2">Trạng thái</label>
-                                <select id="statusFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                <label for="customerPaymentHistoryStatusFilter" class="block text-sm font-medium text-gray-700 mb-2">Trạng thái</label>
+                                <select id="customerPaymentHistoryStatusFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
                                     <option value="">Tất cả trạng thái</option>
                                     <option value="PAID">Đã thanh toán</option>
                                     <option value="PENDING">Chờ xử lý</option>
@@ -248,31 +257,43 @@
 
                             <!-- Amount Range -->
                             <div>
-                                <label for="minAmount" class="block text-sm font-medium text-gray-700 mb-2">Số tiền từ</label>
-                                <input type="number" id="minAmount" placeholder="0" min="0" step="1000"
+                                <label for="customerPaymentHistoryMinAmount" class="block text-sm font-medium text-gray-700 mb-2">Số tiền từ</label>
+                                <input type="number" id="customerPaymentHistoryMinAmount" placeholder="0" min="0" step="1000"
                                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
                             </div>
+                        </div>
 
+                        <!-- Second Row -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
                             <div>
-                                <label for="maxAmount" class="block text-sm font-medium text-gray-700 mb-2">Số tiền đến</label>
-                                <input type="number" id="maxAmount" placeholder="10,000,000" min="0" step="1000"
+                                <label for="customerPaymentHistoryMaxAmount" class="block text-sm font-medium text-gray-700 mb-2">Số tiền đến</label>
+                                <input type="number" id="customerPaymentHistoryMaxAmount" placeholder="10,000,000" min="0" step="1000"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                            </div>
+
+                            <!-- Date From -->
+                            <div>
+                                <label for="customerPaymentHistoryDateFrom" class="block text-sm font-medium text-gray-700 mb-2">Từ ngày</label>
+                                <input type="date" id="customerPaymentHistoryDateFrom"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                            </div>
+
+                            <!-- Date To -->
+                            <div>
+                                <label for="customerPaymentHistoryDateTo" class="block text-sm font-medium text-gray-700 mb-2">Đến ngày</label>
+                                <input type="date" id="customerPaymentHistoryDateTo"
                                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
                             </div>
                         </div>
 
-                        <!-- Date Range Picker -->
-                        <div class="mt-4">
-                            <label for="dateRangePicker" class="block text-sm font-medium text-gray-700 mb-2">Khoảng thời gian</label>
-                            <input type="text" id="dateRangePicker" class="px-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" placeholder="Chọn khoảng thời gian" readonly />
-                        </div>
                     </div>
 
                     <!-- Filter Actions -->
                     <div class="flex justify-end py-3 px-6 gap-3 border-t border-gray-200">
-                        <button id="resetFilters" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary/20">
+                        <button id="resetCustomerPaymentHistoryFilters" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary/20">
                             Đặt lại
                         </button>
-                        <button id="applyFilters" class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary/20">
+                        <button id="applyCustomerPaymentHistoryFilters" class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary/20">
                             Áp dụng
                         </button>
                     </div>
@@ -418,9 +439,14 @@
             });
             
             // Initialize filter functionality (handled by external JS)
-            if (typeof initializePaymentHistoryFilters === 'function') {
-                initializePaymentHistoryFilters();
-            }
+            // Wait a bit to ensure all elements are rendered
+            setTimeout(function() {
+                if (typeof initializeCustomerPaymentHistoryFilters === 'function') {
+                    initializeCustomerPaymentHistoryFilters();
+                } else {
+                    console.error('initializeCustomerPaymentHistoryFilters function not found');
+                }
+            }, 100);
 
             // Initialize DataTables
             if ($.fn.DataTable && document.getElementById('paymentsTable')) {

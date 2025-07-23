@@ -4,60 +4,111 @@
  */
 
 // Global variables
-let filterTimeout;
+let customerPaymentHistoryFilterTimeout;
+let customerPaymentHistoryInitialized = false;
 
-// Initialize when document is ready
-$(document).ready(function() {
-    initializePaymentHistoryFilters();
-});
+// Initialize when document is ready - removed to prevent double initialization
+// The function will be called from the JSP file after DOM is ready
 
 /**
- * Initialize all filter functionality
+ * Initialize all filter functionality for customer payment history
  */
-function initializePaymentHistoryFilters() {
+window.initializeCustomerPaymentHistoryFilters = function initializeCustomerPaymentHistoryFilters() {
+    // Prevent multiple initializations
+    if (customerPaymentHistoryInitialized) {
+        console.log('Customer payment history filters already initialized, skipping...');
+        return;
+    }
+    customerPaymentHistoryInitialized = true;
     // Toggle filter panel
-    $('#toggleFilters').on('click', function() {
-        const panel = $('#filterPanel');
-        const button = $(this);
-        
-        panel.toggleClass('hidden');
-        
-        if (panel.hasClass('hidden')) {
-            button.find('i').removeClass('rotate-180');
-        } else {
-            button.find('i').addClass('rotate-180');
-        }
-    });
-    
+    const filterPanel = document.getElementById('customerPaymentHistoryFilterPanel');
+    const toggleFiltersBtn = document.getElementById('toggleCustomerPaymentHistoryFilters');
+
+    if (filterPanel && toggleFiltersBtn) {
+        // Use jQuery for better compatibility and to avoid conflicts
+        $(toggleFiltersBtn).off('click.customerPaymentHistoryFilter').on('click.customerPaymentHistoryFilter', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            $(filterPanel).toggleClass('show');
+            
+            // Toggle the icon rotation
+            const icon = toggleFiltersBtn.querySelector('i[data-lucide="filter"]');
+            if (icon) {
+                $(icon).toggleClass('rotate-180');
+            }
+        });
+    } else {
+        console.warn('Filter panel or toggle button not found');
+    }
+
     // Apply filters
-    $('#applyFilters').on('click', function() {
-        applyPaymentFilters(true);
+    $('#applyCustomerPaymentHistoryFilters').on('click', function() {
+        applyCustomerPaymentHistoryFilters(true);
     });
-    
+
     // Reset filters
-    $('#resetFilters').on('click', function() {
-        resetPaymentFilters();
+    $('#resetCustomerPaymentHistoryFilters').on('click', function() {
+        resetCustomerPaymentHistoryFilters();
     });
-    
+
     // Real-time filtering on input change
-    $('#methodFilter, #statusFilter').on('change', function() {
-        applyPaymentFilters();
+    $('#customerPaymentHistoryMethodFilter, #customerPaymentHistoryStatusFilter').on('change', function() {
+        applyCustomerPaymentHistoryFilters();
     });
-    
-    $('#minAmount, #maxAmount').on('input', function() {
-        clearTimeout(filterTimeout);
-        filterTimeout = setTimeout(function() {
-            applyPaymentFilters();
+
+    $('#customerPaymentHistoryMinAmount, #customerPaymentHistoryMaxAmount').on('input', function() {
+        clearTimeout(customerPaymentHistoryFilterTimeout);
+        customerPaymentHistoryFilterTimeout = setTimeout(function() {
+            applyCustomerPaymentHistoryFilters();
         }, 500);
     });
-    
-    console.log('Payment history filters initialized');
+
+    // Payment ID filter with debounce
+    $('#customerPaymentHistoryIdFilter').on('input', function() {
+        clearTimeout(customerPaymentHistoryFilterTimeout);
+        customerPaymentHistoryFilterTimeout = setTimeout(function() {
+            applyCustomerPaymentHistoryFilters();
+        }, 500);
+    });
+
+    // Date filters
+    $('#customerPaymentHistoryDateFrom, #customerPaymentHistoryDateTo').on('change', function() {
+        applyCustomerPaymentHistoryFilters();
+    });
+
+    // Setup filters when DataTable is ready
+    setupCustomerPaymentHistoryFilters();
+
+
+};
+
+/**
+ * Setup filter functionality for DataTable integration
+ */
+function setupCustomerPaymentHistoryFilters() {
+    // Remove any existing event handlers to prevent duplicates
+    $(document).off('init.dt', '#paymentsTable');
+
+    // Wait for DataTable to be initialized
+    $(document).one('init.dt', '#paymentsTable', function() {
+        // Apply filters button - ensure single event binding
+        $('#applyCustomerPaymentHistoryFilters').off('click').on('click', function() {
+            applyCustomerPaymentHistoryFilters(true);
+        });
+
+        // Reset filters button - ensure single event binding
+        $('#resetCustomerPaymentHistoryFilters').off('click').on('click', function() {
+            resetCustomerPaymentHistoryFilters();
+        });
+
+        console.log('Customer payment history DataTable filters setup complete');
+    });
 }
 
 /**
- * Apply all active filters to the payment table
+ * Apply all active filters to the customer payment history table
  */
-function applyPaymentFilters(showNotification = false) {
+function applyCustomerPaymentHistoryFilters(showNotification = false) {
     if (!$.fn.DataTable.isDataTable('#paymentsTable')) {
         return;
     }
@@ -65,18 +116,20 @@ function applyPaymentFilters(showNotification = false) {
     const table = $('#paymentsTable').DataTable();
 
     // Get filter values
-    const methodFilter = $('#methodFilter').val();
-    const statusFilter = $('#statusFilter').val();
-    const minAmount = $('#minAmount').val();
-    const maxAmount = $('#maxAmount').val();
-    const dateRange = $('#dateRangePicker').val();
+    const paymentIdFilter = $('#customerPaymentHistoryIdFilter').val();
+    const methodFilter = $('#customerPaymentHistoryMethodFilter').val();
+    const statusFilter = $('#customerPaymentHistoryStatusFilter').val();
+    const minAmount = $('#customerPaymentHistoryMinAmount').val();
+    const maxAmount = $('#customerPaymentHistoryMaxAmount').val();
+    const dateFrom = $('#customerPaymentHistoryDateFrom').val();
+    const dateTo = $('#customerPaymentHistoryDateTo').val();
 
     // Clear all existing search functions and column searches
     $.fn.dataTable.ext.search = [];
     table.search('').columns().search('');
 
     // Add comprehensive custom search function if any filters are active
-    if (methodFilter || statusFilter || minAmount || maxAmount || dateRange) {
+    if (paymentIdFilter || methodFilter || statusFilter || minAmount || maxAmount || dateFrom || dateTo) {
         $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
             if (settings.nTable.id !== 'paymentsTable') {
                 return true;
@@ -84,10 +137,18 @@ function applyPaymentFilters(showNotification = false) {
 
             // Get the actual row element to access data attributes
             const row = settings.aoData[dataIndex].nTr;
-            
+
+            // Payment ID filter
+            if (paymentIdFilter) {
+                const paymentIdCell = $(row).find('td:eq(0)').text().trim().toLowerCase();
+                if (paymentIdCell.indexOf(paymentIdFilter.toLowerCase()) === -1) {
+                    return false;
+                }
+            }
+
             // Method filter
             if (methodFilter) {
-                let methodText = getMethodDisplayText(methodFilter);
+                let methodText = getCustomerPaymentHistoryMethodDisplayText(methodFilter);
                 const methodCell = $(row).find('td:eq(2)').text().trim();
                 if (methodCell !== methodText) {
                     return false;
@@ -96,7 +157,7 @@ function applyPaymentFilters(showNotification = false) {
 
             // Status filter
             if (statusFilter) {
-                let statusText = getStatusDisplayText(statusFilter);
+                let statusText = getCustomerPaymentHistoryStatusDisplayText(statusFilter);
                 const statusCell = $(row).find('td:eq(4)').text().trim();
                 if (statusCell !== statusText) {
                     return false;
@@ -116,18 +177,22 @@ function applyPaymentFilters(showNotification = false) {
             }
 
             // Date range filter
-            if (dateRange) {
-                const dates = dateRange.split(' - ');
-                if (dates.length === 2) {
-                    const startDate = new Date(dates[0]);
-                    const endDate = new Date(dates[1]);
+            if (dateFrom || dateTo) {
+                const dateCell = $(row).find('td:eq(1)');
+                const dateString = dateCell.attr('data-order');
+                const rowDate = dateString ? new Date(dateString) : new Date();
+
+                if (dateFrom) {
+                    const startDate = new Date(dateFrom);
+                    if (rowDate < startDate) {
+                        return false;
+                    }
+                }
+
+                if (dateTo) {
+                    const endDate = new Date(dateTo);
                     endDate.setHours(23, 59, 59, 999);
-
-                    const dateCell = $(row).find('td:eq(1)');
-                    const dateString = dateCell.attr('data-order');
-                    const rowDate = dateString ? new Date(dateString) : new Date();
-
-                    if (rowDate < startDate || rowDate > endDate) {
+                    if (rowDate > endDate) {
                         return false;
                     }
                 }
@@ -141,23 +206,25 @@ function applyPaymentFilters(showNotification = false) {
     table.draw();
 
     // Update filter button appearance
-    updatePaymentFilterStatus();
+    updateCustomerPaymentHistoryFilterStatus();
 
     if (showNotification) {
-        showPaymentNotification('Đã áp dụng bộ lọc', 'success');
+        showCustomerPaymentHistoryNotification('Đã áp dụng bộ lọc', 'success');
     }
 }
 
 /**
  * Reset all filters to default state
  */
-function resetPaymentFilters() {
+function resetCustomerPaymentHistoryFilters() {
     // Clear all filter inputs
-    $('#methodFilter').val('');
-    $('#statusFilter').val('');
-    $('#minAmount').val('');
-    $('#maxAmount').val('');
-    $('#dateRangePicker').val('');
+    $('#customerPaymentHistoryIdFilter').val('');
+    $('#customerPaymentHistoryMethodFilter').val('');
+    $('#customerPaymentHistoryStatusFilter').val('');
+    $('#customerPaymentHistoryMinAmount').val('');
+    $('#customerPaymentHistoryMaxAmount').val('');
+    $('#customerPaymentHistoryDateFrom').val('');
+    $('#customerPaymentHistoryDateTo').val('');
 
     // Clear all custom search functions
     $.fn.dataTable.ext.search = [];
@@ -169,24 +236,26 @@ function resetPaymentFilters() {
     }
 
     // Update filter button appearance
-    updatePaymentFilterStatus();
+    updateCustomerPaymentHistoryFilterStatus();
 
-    showPaymentNotification('Đã đặt lại bộ lọc', 'info');
+    showCustomerPaymentHistoryNotification('Đã đặt lại bộ lọc', 'info');
 }
 
 /**
  * Update filter button appearance based on active filters
  */
-function updatePaymentFilterStatus() {
-    const methodFilter = $('#methodFilter').val();
-    const statusFilter = $('#statusFilter').val();
-    const minAmount = $('#minAmount').val();
-    const maxAmount = $('#maxAmount').val();
-    const dateRange = $('#dateRangePicker').val();
+function updateCustomerPaymentHistoryFilterStatus() {
+    const paymentIdFilter = $('#customerPaymentHistoryIdFilter').val();
+    const methodFilter = $('#customerPaymentHistoryMethodFilter').val();
+    const statusFilter = $('#customerPaymentHistoryStatusFilter').val();
+    const minAmount = $('#customerPaymentHistoryMinAmount').val();
+    const maxAmount = $('#customerPaymentHistoryMaxAmount').val();
+    const dateFrom = $('#customerPaymentHistoryDateFrom').val();
+    const dateTo = $('#customerPaymentHistoryDateTo').val();
 
-    const hasActiveFilters = methodFilter || statusFilter || minAmount || maxAmount || dateRange;
+    const hasActiveFilters = paymentIdFilter || methodFilter || statusFilter || minAmount || maxAmount || dateFrom || dateTo;
 
-    const filterButton = $('#toggleFilters');
+    const filterButton = $('#toggleCustomerPaymentHistoryFilters');
     if (hasActiveFilters) {
         filterButton.addClass('bg-primary text-white').removeClass('bg-white text-gray-700');
         filterButton.find('i').addClass('text-white');
@@ -199,7 +268,7 @@ function updatePaymentFilterStatus() {
 /**
  * Convert payment method enum to display text
  */
-function getMethodDisplayText(methodEnum) {
+function getCustomerPaymentHistoryMethodDisplayText(methodEnum) {
     switch(methodEnum) {
         case 'BANK_TRANSFER': return 'Chuyển khoản';
         case 'CREDIT_CARD': return 'Thẻ tín dụng';
@@ -214,7 +283,7 @@ function getMethodDisplayText(methodEnum) {
 /**
  * Convert payment status enum to display text
  */
-function getStatusDisplayText(statusEnum) {
+function getCustomerPaymentHistoryStatusDisplayText(statusEnum) {
     switch(statusEnum) {
         case 'PAID': return 'Đã thanh toán';
         case 'PENDING': return 'Chờ xử lý';
@@ -227,7 +296,7 @@ function getStatusDisplayText(statusEnum) {
 /**
  * Show notification to user
  */
-function showPaymentNotification(message, type = 'info') {
+function showCustomerPaymentHistoryNotification(message, type = 'info') {
     // Create notification element
     const notification = document.createElement('div');
     notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm transition-all duration-300 transform translate-x-full`;

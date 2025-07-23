@@ -47,6 +47,9 @@
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
+    <!-- Manager Rooms Management Filter JS -->
+    <script src="${pageContext.request.contextPath}/js/manager-rooms-management.js?v=<%= System.currentTimeMillis() %>"></script>
+
     <style>
         /* Custom DataTables styling to match our theme */
         .dataTables_wrapper {
@@ -108,15 +111,43 @@
         table.dataTable tbody tr:hover {
             background-color: rgba(255, 248, 240, 0.5);
         }
-        
+
+        /* Filter panel styling */
+        .manager-rooms-filter-panel {
+            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
+
+        .manager-rooms-filter-panel.show {
+            max-height: 500px;
+            opacity: 1;
+        }
+
+        #toggleManagerRoomsFilters i {
+            transition: transform 0.3s ease;
+        }
+
+        #toggleManagerRoomsFilters i.rotate-180 {
+            transform: rotate(180deg);
+        }
+
         .status-active {
             background-color: #dcfce7;
             color: #166534;
         }
-        
+
         .status-inactive {
             background-color: #fef2f2;
             color: #dc2626;
+        }
+
+        /* Responsive adjustments for filters */
+        @media (max-width: 768px) {
+            .grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-4 {
+                grid-template-columns: repeat(1, minmax(0, 1fr));
+            }
         }
     </style>
 </head>
@@ -203,7 +234,79 @@
                 <!-- Rooms Table -->
                 <div class="bg-white rounded-lg shadow-sm">
                     <div class="p-6 border-b border-gray-200">
-                        <h2 class="text-xl font-semibold text-gray-900">Danh Sách Phòng</h2>
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                            <h2 class="text-xl font-semibold text-gray-900">Danh Sách Phòng</h2>
+
+                            <div class="flex flex-wrap items-center gap-3">
+                                <!-- Filter Toggle Button -->
+                                <button id="toggleManagerRoomsFilters" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary/20">
+                                    <i data-lucide="filter" class="h-4 w-4 mr-2"></i>
+                                    Bộ lọc
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filter Panel -->
+                    <div id="managerRoomsFilterPanel" class="manager-rooms-filter-panel px-6 py-0 border-b border-gray-200 bg-gray-50">
+                        <div class="p-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <!-- Room Name Filter -->
+                                <div>
+                                    <label for="managerRoomsNameFilter" class="block text-sm font-medium text-gray-700 mb-2">Tên phòng</label>
+                                    <input type="text" id="managerRoomsNameFilter" placeholder="Nhập tên phòng"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                </div>
+
+                                <!-- Status Filter -->
+                                <div>
+                                    <label for="managerRoomsStatusFilter" class="block text-sm font-medium text-gray-700 mb-2">Trạng thái</label>
+                                    <select id="managerRoomsStatusFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                        <option value="">Tất cả trạng thái</option>
+                                        <option value="active">Hoạt động</option>
+                                        <option value="inactive">Bảo trì</option>
+                                    </select>
+                                </div>
+
+                                <!-- Capacity Range -->
+                                <div>
+                                    <label for="managerRoomsMinCapacity" class="block text-sm font-medium text-gray-700 mb-2">Sức chứa từ</label>
+                                    <input type="number" id="managerRoomsMinCapacity" placeholder="0" min="0"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                </div>
+
+                                <div>
+                                    <label for="managerRoomsMaxCapacity" class="block text-sm font-medium text-gray-700 mb-2">Sức chứa đến</label>
+                                    <input type="number" id="managerRoomsMaxCapacity" placeholder="100" min="0"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                </div>
+                            </div>
+
+                            <!-- Date Range -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                <div>
+                                    <label for="managerRoomsDateFrom" class="block text-sm font-medium text-gray-700 mb-2">Từ ngày</label>
+                                    <input type="date" id="managerRoomsDateFrom"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                </div>
+
+                                <div>
+                                    <label for="managerRoomsDateTo" class="block text-sm font-medium text-gray-700 mb-2">Đến ngày</label>
+                                    <input type="date" id="managerRoomsDateTo"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Filter Actions -->
+                        <div class="flex justify-end py-3 px-6 gap-3 border-t border-gray-200">
+                            <button id="resetManagerRoomsFilters" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary/20">
+                                Đặt lại
+                            </button>
+                            <button id="applyManagerRoomsFilters" class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary/20">
+                                Áp dụng
+                            </button>
+                        </div>
                     </div>
                     
                     <div class="p-6">
@@ -232,7 +335,7 @@
                                                     <span class="px-2 py-1 text-xs font-medium rounded-full status-active">Hoạt động</span>
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <span class="px-2 py-1 text-xs font-medium rounded-full status-maintenance">Bảo trì</span>
+                                                    <span class="px-2 py-1 text-xs font-medium rounded-full status-inactive">Bảo trì</span>
                                                 </c:otherwise>
                                             </c:choose>
                                         </td>
@@ -285,6 +388,16 @@
 
     <script>
         $(document).ready(function() {
+            // Initialize filter functionality (handled by external JS)
+            // Wait a bit to ensure all elements are rendered
+            setTimeout(function() {
+                if (typeof initializeManagerRoomsFilters === 'function') {
+                    initializeManagerRoomsFilters();
+                } else {
+                    console.error('initializeManagerRoomsFilters function not found');
+                }
+            }, 100);
+
             // Initialize DataTables
             if ($.fn.DataTable && document.getElementById('roomsTable')) {
                 var table = $('#roomsTable').DataTable({
