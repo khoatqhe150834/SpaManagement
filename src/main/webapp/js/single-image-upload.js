@@ -213,11 +213,12 @@
         formData.append('serviceId', serviceId);
 
         files.forEach((file, idx) => {
-            formData.append('images', file);
+            formData.append('images', file); // Cloudinary endpoint expects 'images'
             progressContainer.appendChild(createProgressItem(file.name, idx));
         });
 
-        fetch(`${contextPath}/manager/service-images/upload-single`, { method:'POST', body: formData })
+        // Sử dụng endpoint mới của ServiceController
+        fetch(`${contextPath}/manager/service?action=uploadImage`, { method:'POST', body: formData })
             .then(r => {
                 if (!r.ok) {
                     return r.text().then(txt => {

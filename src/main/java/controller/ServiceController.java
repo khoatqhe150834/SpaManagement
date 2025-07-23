@@ -323,6 +323,23 @@ public class ServiceController extends HttpServlet {
                 handleCheckDuplicateName(request, response);
                 return; // DỪNG LUỒNG, KHÔNG FORWARD JSP NỮA
             }
+            case "singleImageUpload": {
+                try {
+                    int serviceId = Integer.parseInt(request.getParameter("serviceId"));
+                    Service serviceObj = serviceDAO.findById(serviceId).orElse(null);
+                    if (serviceObj == null) {
+                        response.sendRedirect("service?service=list-all&toastType=error&toastMessage=Không+tìm+thấy+Dịch+vụ");
+                        return;
+                    }
+                    List<ServiceImage> existingImages = serviceImageDAO.findByServiceId(serviceId);
+                    request.setAttribute("service", serviceObj);
+                    request.setAttribute("existingImages", existingImages);
+                    request.getRequestDispatcher("/WEB-INF/view/admin_pages/Service/SingleImageUpload.jsp").forward(request, response);
+                } catch (Exception e) {
+                    response.sendRedirect("service?service=list-all&toastType=error&toastMessage=ID+Dịch+vụ+không+hợp+lệ");
+                }
+                return;
+            }
         }
 
         request.getRequestDispatcher(SERVICE_MANAGER_URL).forward(request, response);
@@ -331,6 +348,11 @@ public class ServiceController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        String action = request.getParameter("action");
+        if ("uploadImage".equals(action)) {
+            handleAjaxImageUpload(request, response);
+            return;
+        }
 
         String service = request.getParameter("service");
         ServiceDAO serviceDAO = new ServiceDAO();
@@ -562,6 +584,79 @@ public class ServiceController extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
         String message = isDuplicate ? "Tên này đã tồn tại trong hệ thống." : "Tên hợp lệ.";
         response.getWriter().write("{\"valid\": " + !isDuplicate + ", \"message\": \"" + message + "\"}");
+    }
+
+    private void handleAjaxImageUpload(HttpServletRequest request, HttpServletResponse response)
+            throws IOException, ServletException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        String serviceIdParam = request.getParameter("serviceId");
+        int serviceId;
+        try {
+            serviceId = Integer.parseInt(serviceIdParam);
+        } catch (Exception e) {
+            response.getWriter().write("{\"success\":false,\"error\":\"ID dịch vụ không hợp lệ\"}");
+            return;
+        }
+
+        ServiceImageDAO serviceImageDAO = new ServiceImageDAO();
+        List<ServiceImage> existingImages = serviceImageDAO.findByServiceId(serviceId);
+        if (existingImages.size() >= 5) {
+            response.getWriter().write("{\"success\":false,\"error\":\"Mỗi dịch vụ chỉ được tối đa 5 ảnh!\"}");
+            return;
+        }
+
+        Part filePart = request.getPart("images");
+        if (filePart == null || filePart.getSize() == 0) {
+            response.getWriter().write("{\"success\":false,\"error\":\"Không có file ảnh\"}");
+            return;
+        }
+
+        try {
+            // Validate file
+            ImageUploadUtil.ValidationResult validation = ImageUploadUtil.validateFile(filePart);
+            if (!validation.isValid()) {
+                response.getWriter().write("{\"success\":false,\"error\":\"" + validation.getErrors() + "\"}");
+                return;
+            }
+            // Validate image dimensions
+            ImageUploadUtil.ValidationResult dimensionValidation = ImageUploadUtil.validateImageDimensions(filePart.getInputStream());
+            if (!dimensionValidation.isValid()) {
+                response.getWriter().write("{\"success\":false,\"error\":\"" + dimensionValidation.getErrors() + "\"}");
+                return;
+            }
+            // Đọc file thành byte[]
+            byte[] fileBytes;
+            try (InputStream inputStream = filePart.getInputStream();
+                 ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+                byte[] buffer = new byte[8192];
+                int bytesRead;
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    baos.write(buffer, 0, bytesRead);
+                }
+                fileBytes = baos.toByteArray();
+            }
+            // Upload lên Cloudinary
+            String publicId = "services/" + serviceId + "/" + UUID.randomUUID().toString();
+            Map<String, Object> uploadResult = CloudinaryConfig.uploadImage(fileBytes, publicId);
+            String fileUrl = (String) uploadResult.get("secure_url");
+            // Lưu DB
+            int sortOrder = getNextSortOrder(serviceId);
+            ServiceImage serviceImage = new ServiceImage();
+            serviceImage.setServiceId(serviceId);
+            serviceImage.setUrl(fileUrl);
+            serviceImage.setAltText("Service image for " + filePart.getSubmittedFileName());
+            serviceImage.setIsPrimary(sortOrder == 0);
+            serviceImage.setSortOrder(sortOrder);
+            serviceImage.setIsActive(true);
+            serviceImage.setCaption("Uploaded via ServiceController");
+            serviceImage.setFileSize(fileBytes.length);
+            serviceImageDAO.save(serviceImage);
+            response.getWriter().write("{\"success\":true,\"url\":\"" + fileUrl + "\"}");
+        } catch (Exception e) {
+            response.getWriter().write("{\"success\":false,\"error\":\"Upload thất bại: " + e.getMessage().replace("\"", "'") + "\"}");
+        }
     }
 
     @Override
