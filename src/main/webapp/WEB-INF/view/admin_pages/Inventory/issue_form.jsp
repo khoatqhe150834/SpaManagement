@@ -107,7 +107,7 @@
                   <option value="">Không liên quan đến lịch hẹn</option>
                   <c:forEach var="appointment" items="${bookingAppointments}">
                     <option value="${appointment.appointmentId}">
-                      ID: ${appointment.appointmentId} - ${appointment.startTime} (${appointment.status})
+                      ID: ${appointment.bookingId} - ${appointment.appointmentDate} (${appointment.bookingStatus})
                     </option>
                   </c:forEach>
                 </select>
