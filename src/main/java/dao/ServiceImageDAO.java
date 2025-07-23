@@ -182,11 +182,9 @@ public class ServiceImageDAO implements BaseDAO<ServiceImage, Integer> {
      */
     public List<ServiceImage> findByServiceId(Integer serviceId) {
         List<ServiceImage> images = new ArrayList<>();
-        String sql = "SELECT image_id, service_id, url, alt_text, is_primary, sort_order, caption, is_active, file_size, uploaded_at, updated_at FROM service_images WHERE service_id = ? AND is_active = 1 ORDER BY sort_order";
-
+        String sql = "SELECT image_id, service_id, url, alt_text, is_primary, sort_order, caption, is_active, file_size, uploaded_at, updated_at FROM service_images WHERE service_id = ? ORDER BY sort_order ASC, image_id ASC";
         try (Connection conn = DBContext.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
-
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, serviceId);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -194,7 +192,7 @@ public class ServiceImageDAO implements BaseDAO<ServiceImage, Integer> {
                 }
             }
         } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "Error finding ServiceImages by service ID: " + serviceId, ex);
+            LOGGER.log(Level.SEVERE, "Error finding images by service ID: " + serviceId, ex);
         }
         return images;
     }
@@ -310,6 +308,44 @@ public class ServiceImageDAO implements BaseDAO<ServiceImage, Integer> {
             conn.setAutoCommit(true);
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "Error updating sort order for images", ex);
+        }
+    }
+
+    /**
+     * Update sort order and primary flag for a single image
+     * 
+     * @param imageId   the image ID to update
+     * @param sortOrder the new sort order
+     * @param isPrimary the new primary flag
+     */
+    public void updateSortOrderAndPrimary(int imageId, int sortOrder, boolean isPrimary) {
+        String sql = "UPDATE service_images SET sort_order = ?, is_primary = ? WHERE image_id = ?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, sortOrder);
+            ps.setBoolean(2, isPrimary);
+            ps.setInt(3, imageId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Update sort order only for a single image
+     * 
+     * @param imageId   the image ID to update
+     * @param sortOrder the new sort order
+     */
+    public void updateSortOrderOnly(int imageId, int sortOrder) {
+        String sql = "UPDATE service_images SET sort_order = ? WHERE image_id = ?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, sortOrder);
+            ps.setInt(2, imageId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
@@ -481,4 +517,14 @@ public class ServiceImageDAO implements BaseDAO<ServiceImage, Integer> {
         return imageCounts;
     }
 
+    public void resetPrimaryByServiceId(int serviceId) {
+        String sql = "UPDATE service_images SET is_primary = 0 WHERE service_id = ?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, serviceId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }

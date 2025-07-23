@@ -120,7 +120,7 @@ uri="http://java.sun.com/jsp/jstl/functions" %>
       <section class="py-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <!-- Loading State -->
-          <div id="loading-state" class="text-center py-12">
+          <div id="loading-state" class="text-center py-12 ${service != null ? 'hidden' : ''}">
             <div
               class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"
             ></div>
@@ -149,7 +149,7 @@ uri="http://java.sun.com/jsp/jstl/functions" %>
           </div>
 
           <!-- Service Content -->
-          <div id="service-content" class="hidden">
+          <div id="service-content" class="${service != null ? '' : 'hidden'}">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
               <!-- Service Images -->
               <div class="space-y-4">
@@ -194,8 +194,8 @@ uri="http://java.sun.com/jsp/jstl/functions" %>
                       <!-- Fallback placeholder image -->
                       <img
                         id="main-service-image"
-                        src="https://placehold.co/800x600/FFB6C1/333333?text=${service.name}"
-                        alt="${service.name}"
+                        src="https://placehold.co/800x600/FFB6C1/333333?text=<c:out value='${fn:replace(service.name, " ", "+")}'/>"
+                        alt="<c:out value='${service.name}'/>"
                         class="w-full h-96 object-cover"
                       />
                     </c:otherwise>
@@ -233,7 +233,7 @@ uri="http://java.sun.com/jsp/jstl/functions" %>
                     <span
                       id="service-type"
                       class="text-xs text-primary font-medium bg-secondary px-3 py-1 rounded-full"
-                    ></span>
+                    >${service.serviceTypeId != null && service.serviceTypeId.name != null ? service.serviceTypeId.name : 'Dịch vụ spa'}</span>
                     <div class="flex items-center ml-4">
                       <div class="flex items-center">
                         <i
@@ -241,19 +241,20 @@ uri="http://java.sun.com/jsp/jstl/functions" %>
                           class="h-4 w-4 text-primary fill-current mr-1"
                         ></i>
                         <span id="service-rating" class="text-sm font-medium"
-                          >4.5</span
+                          ><fmt:formatNumber value="${service.averageRating != null ? service.averageRating : 4.5}" type="number" minFractionDigits="1" maxFractionDigits="1" /></span
                         >
                       </div>
                     </div>
                   </div>
                   <h1
                     id="service-name"
-                    class="text-3xl md:text-4xl font-serif text-spa-dark mb-4"
-                  ></h1>
+                    class="text-3xl md:text-4xl font-sans font-semibold text-spa-dark mb-4"
+                    style="font-family: 'Roboto', sans-serif;"
+                  >${service.name}</h1>
                   <p
                     id="service-description"
                     class="text-gray-600 text-lg leading-relaxed"
-                  ></p>
+                  >${service.description != null && !empty service.description ? service.description : 'Dịch vụ chăm sóc sắc đẹp chuyên nghiệp'}</p>
                 </div>
 
                 <!-- Service Details -->
@@ -268,7 +269,7 @@ uri="http://java.sun.com/jsp/jstl/functions" %>
                       <p
                         id="service-duration"
                         class="font-medium text-spa-dark"
-                      ></p>
+                      >${service.durationMinutes != null ? service.durationMinutes : 60} phút</p>
                     </div>
                   </div>
                   <div class="flex items-center">
@@ -278,7 +279,7 @@ uri="http://java.sun.com/jsp/jstl/functions" %>
                       <p
                         id="service-price"
                         class="font-bold text-2xl text-primary"
-                      ></p>
+                      ><fmt:formatNumber value="${service.price}" type="number" groupingUsed="true" /> ₫</p>
                     </div>
                   </div>
                 </div>
@@ -393,7 +394,16 @@ uri="http://java.sun.com/jsp/jstl/functions" %>
                     id="service-detailed-description"
                     class="text-gray-700 leading-relaxed"
                   >
-                    Thông tin chi tiết về dịch vụ sẽ được hiển thị tại đây...
+                    <c:choose>
+                      <c:when test="${service.description != null && !empty service.description}">
+                        ${service.description}
+                      </c:when>
+                      <c:otherwise>
+                        ${service.name} là một trong những dịch vụ chăm sóc sắc đẹp cao cấp tại Spa Hương Sen.
+                        Với đội ngũ chuyên viên giàu kinh nghiệm và sử dụng các sản phẩm chất lượng cao,
+                        chúng tôi cam kết mang đến cho bạn trải nghiệm thư giãn và làm đẹp tuyệt vời nhất.
+                      </c:otherwise>
+                    </c:choose>
                   </p>
                 </div>
               </div>
@@ -487,26 +497,30 @@ uri="http://java.sun.com/jsp/jstl/functions" %>
 
     <!-- Initialize Service Details Data -->
     <script>
-      // Set up data for the external JavaScript
+      // Set up basic data for the external JavaScript
       window.serviceDetailsData = {
         serviceData: {
           serviceId: <c:out value="${service.serviceId}"/>,
-          serviceTypeId: <c:out value="${service.serviceTypeId.serviceTypeId}"/>,
-          name: "<c:out value='${service.name}'/>",
+          name: "<c:out value='${service.name}' escapeXml='false'/>",
           price: <c:out value="${service.price}"/>
         },
         serviceImages: [
           <c:forEach var="image" items="${serviceImages}" varStatus="status">
-            {
-              url: "<c:out value='${image.url}'/>",
-              altText: "<c:out value='${image.altText != null ? image.altText : service.name}'/>",
-              isPrimary: ${image.isPrimary}
-            }<c:if test="${!status.last}">,</c:if>
+          {
+            url: "<c:out value='${image.url}' escapeXml='false'/>",
+            altText: "<c:out value='${image.altText != null ? image.altText : service.name}' escapeXml='false'/>",
+            isPrimary: <c:out value="${image.isPrimary}"/>,
+            sortOrder: <c:out value="${image.sortOrder}"/>,
+            caption: "<c:out value='${image.caption != null ? image.caption : ""}' escapeXml='false'/>",
+            isActive: <c:out value="${image.isActive}"/>
+          }<c:if test="${!status.last}">,</c:if>
           </c:forEach>
         ]
       };
 
       console.log('[SERVICE_DETAILS] Data initialized:', window.serviceDetailsData);
+      console.log('[SERVICE_DETAILS] Service images count:', window.serviceDetailsData.serviceImages.length);
+      console.log('[SERVICE_DETAILS] Service loaded successfully');
     </script>
 
     <jsp:include page="/WEB-INF/view/common/footer.jsp" />
