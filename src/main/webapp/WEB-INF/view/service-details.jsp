@@ -214,6 +214,16 @@ uri="http://java.sun.com/jsp/jstl/functions" %>
 
           <!-- Service Content -->
           <div id="service-content" class="${service != null ? '' : 'hidden'}">
+            <!-- Nút quay lại -->
+            <c:set var="backUrl" value="/services" />
+            <c:if test="${not empty param.page || not empty param.keyword || not empty param.serviceTypeId || not empty param.minPrice || not empty param.maxPrice || not empty param.sort}">
+              <c:set var="backUrl" value="/services?page=${param.page}${not empty param.keyword ? '&keyword='.concat(param.keyword) : ''}${not empty param.serviceTypeId ? '&serviceTypeId='.concat(param.serviceTypeId) : ''}${not empty param.minPrice ? '&minPrice='.concat(param.minPrice) : ''}${not empty param.maxPrice ? '&maxPrice='.concat(param.maxPrice) : ''}${not empty param.sort ? '&sort='.concat(param.sort) : ''}" />
+            </c:if>
+            <div class="mb-8">
+              <a href="<c:url value='${backUrl}'/>" class="inline-flex items-center gap-2 px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i> Quay lại
+              </a>
+            </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
               <!-- Service Images -->
               <div class="space-y-4">
