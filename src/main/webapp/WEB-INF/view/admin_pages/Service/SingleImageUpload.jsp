@@ -130,7 +130,7 @@
                 Tải lên ảnh cho dịch vụ: <span class="font-semibold text-primary">${service.name}</span>
             </div>
             <div class="mt-4">
-                <a href="${pageContext.request.contextPath}/manager/service" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                <a href="${pageContext.request.contextPath}/manager/service?service=list-all&page=${page}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}${not empty serviceTypeId ? '&serviceTypeId='.concat(serviceTypeId) : ''}" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
                     <i data-lucide="arrow-left" class="w-4 h-4"></i>
                     Quay về
                 </a>

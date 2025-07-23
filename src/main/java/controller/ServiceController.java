@@ -339,6 +339,12 @@ public class ServiceController extends HttpServlet {
                     List<ServiceImage> existingImages = serviceImageDAO.findByServiceId(serviceId);
                     request.setAttribute("service", serviceObj);
                     request.setAttribute("existingImages", existingImages);
+                    // Bổ sung truyền các tham số phân trang, tìm kiếm, lọc
+                    request.setAttribute("page", request.getParameter("page"));
+                    request.setAttribute("limit", request.getParameter("limit"));
+                    request.setAttribute("keyword", request.getParameter("keyword"));
+                    request.setAttribute("status", request.getParameter("status"));
+                    request.setAttribute("serviceTypeId", request.getParameter("serviceTypeId"));
                     request.getRequestDispatcher("/WEB-INF/view/admin_pages/Service/SingleImageUpload.jsp").forward(request, response);
                 } catch (Exception e) {
                     response.sendRedirect("service?service=list-all&toastType=error&toastMessage=ID+Dịch+vụ+không+hợp+lệ");
