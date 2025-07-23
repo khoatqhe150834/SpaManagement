@@ -40,52 +40,49 @@ public class PromotionDAO {
 
     private Promotion mapResultSet(ResultSet rs) throws SQLException {
         Promotion promotion = new Promotion();
-        // Đã sửa lại thành snake_case để khớp với database
         promotion.setPromotionId(rs.getInt("promotion_id"));
-        promotion.setTitle(rs.getString("title"));
-        promotion.setDescription(rs.getString("description"));
-        promotion.setPromotionCode(rs.getString("promotion_code"));
-        promotion.setDiscountType(rs.getString("discount_type"));
-        promotion.setDiscountValue(rs.getBigDecimal("discount_value"));
-
+        promotion.setTitle(rs.getString("title") != null ? rs.getString("title") : "");
+        promotion.setDescription(rs.getString("description") != null ? rs.getString("description") : "");
+        promotion.setPromotionCode(rs.getString("promotion_code") != null ? rs.getString("promotion_code") : "");
+        promotion.setDiscountType(rs.getString("discount_type") != null ? rs.getString("discount_type") : "");
+        promotion.setDiscountValue(rs.getBigDecimal("discount_value") != null ? rs.getBigDecimal("discount_value") : java.math.BigDecimal.ZERO);
         promotion.setAppliesToServiceId((Integer) rs.getObject("applies_to_service_id"));
-        promotion.setMinimumAppointmentValue(rs.getBigDecimal("minimum_appointment_value"));
-
+        promotion.setMinimumAppointmentValue(rs.getBigDecimal("minimum_appointment_value") != null ? rs.getBigDecimal("minimum_appointment_value") : java.math.BigDecimal.ZERO);
         if (rs.getTimestamp("start_date") != null) {
             promotion.setStartDate(rs.getTimestamp("start_date").toLocalDateTime());
+        } else {
+            promotion.setStartDate(null);
         }
         if (rs.getTimestamp("end_date") != null) {
             promotion.setEndDate(rs.getTimestamp("end_date").toLocalDateTime());
+        } else {
+            promotion.setEndDate(null);
         }
-
-        promotion.setStatus(rs.getString("status"));
-        promotion.setUsageLimitPerCustomer((Integer) rs.getObject("usage_limit_per_customer"));
-        promotion.setTotalUsageLimit((Integer) rs.getObject("total_usage_limit"));
-        promotion.setCurrentUsageCount(rs.getInt("current_usage_count"));
-        promotion.setApplicableScope(rs.getString("applicable_scope"));
-        
-        // Handle customer_condition column that might not exist in database
+        promotion.setStatus(rs.getString("status") != null ? rs.getString("status") : "INACTIVE");
+        promotion.setUsageLimitPerCustomer((Integer) rs.getObject("usage_limit_per_customer") != null ? rs.getInt("usage_limit_per_customer") : 0);
+        promotion.setTotalUsageLimit((Integer) rs.getObject("total_usage_limit") != null ? rs.getInt("total_usage_limit") : 0);
+        promotion.setCurrentUsageCount(rs.getObject("current_usage_count") != null ? rs.getInt("current_usage_count") : 0);
+        promotion.setApplicableScope(rs.getString("applicable_scope") != null ? rs.getString("applicable_scope") : "ENTIRE_APPOINTMENT");
         try {
-            promotion.setCustomerCondition(rs.getString("customer_condition"));
+            promotion.setCustomerCondition(rs.getString("customer_condition") != null ? rs.getString("customer_condition") : "ALL");
         } catch (SQLException e) {
-            // Column doesn't exist, set default value
             promotion.setCustomerCondition("ALL");
-            logger.warning("Column 'customer_condition' not found in database. Using default value 'ALL'. Please run add_customer_condition_column.sql to add this column.");
         }
-
         promotion.setApplicableServiceIdsJson(rs.getString("applicable_service_ids_json"));
         promotion.setImageUrl(rs.getString("image_url"));
         promotion.setTermsAndConditions(rs.getString("terms_and_conditions"));
         promotion.setCreatedByUserId((Integer) rs.getObject("created_by_user_id"));
         promotion.setIsAutoApply(rs.getBoolean("is_auto_apply"));
-
         if (rs.getTimestamp("created_at") != null) {
             promotion.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+        } else {
+            promotion.setCreatedAt(null);
         }
         if (rs.getTimestamp("updated_at") != null) {
             promotion.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
+        } else {
+            promotion.setUpdatedAt(null);
         }
-
         return promotion;
     }
 

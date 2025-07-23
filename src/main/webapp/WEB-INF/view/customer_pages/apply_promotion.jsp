@@ -58,6 +58,30 @@
 </head>
 <body>
     <jsp:include page="/WEB-INF/view/common/header.jsp" />
+    <script>
+    // Tự động điền mã khuyến mãi từ URL hoặc localStorage nếu có, chỉ khi input đang rỗng
+    window.addEventListener('DOMContentLoaded', function() {
+        var input = document.getElementById('promotionCode');
+        if (!input) return;
+        // Nếu input đã có value (do server render mã đã áp dụng), không làm gì cả
+        if (input.value && input.value.trim().length > 0) return;
+        // Ưu tiên lấy từ URL
+        var urlParams = new URLSearchParams(window.location.search);
+        var promoCode = urlParams.get('promotionCode');
+        if (promoCode) {
+            input.value = promoCode;
+            input.focus();
+            return;
+        }
+        // Nếu không có trên URL, thử lấy từ localStorage
+        var pending = localStorage.getItem('pendingPromotionCode');
+        if (pending) {
+            input.value = pending;
+            input.focus();
+            localStorage.removeItem('pendingPromotionCode');
+        }
+    });
+    </script>
 
     <div class="container mt-4">
         <!-- Breadcrumb -->
@@ -115,6 +139,20 @@
                                 Nhập mã khuyến mãi (không phân biệt hoa thường)
                             </div>
                         </div>
+
+                        <!-- Gợi ý mã khuyến mãi còn hiệu lực -->
+                        <c:if test="${not empty availablePromotions}">
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Chọn nhanh mã khuyến mãi khả dụng:</strong></label>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <c:forEach var="promo" items="${availablePromotions}">
+                                        <button type="button" class="btn btn-outline-success btn-sm" onclick="document.getElementById('promotionCode').value='${promo.promotionCode}';">
+                                            ${promo.promotionCode} - <c:out value="${promo.title}"/>
+                                        </button>
+                                    </c:forEach>
+                                </div>
+                            </div>
+                        </c:if>
 
                         <!-- Thông tin đơn hàng hiện tại -->
                         <c:if test="${not empty bookingInfo}">

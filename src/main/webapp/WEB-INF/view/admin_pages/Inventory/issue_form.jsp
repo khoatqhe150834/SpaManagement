@@ -106,7 +106,7 @@
                 <select name="bookingAppointmentId" class="block w-full pl-10 pr-8 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors appearance-none">
                   <option value="">Không liên quan đến lịch hẹn</option>
                   <c:forEach var="appointment" items="${bookingAppointments}">
-                    <option value="${appointment.appointmentId}">
+                    <option value="${appointment.bookingId}">
                       ID: ${appointment.bookingId} - ${appointment.appointmentDate} (${appointment.bookingStatus})
                     </option>
                   </c:forEach>

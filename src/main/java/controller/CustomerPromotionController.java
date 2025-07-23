@@ -3,6 +3,7 @@ package controller;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -13,6 +14,7 @@ import java.util.stream.Collectors;
 import com.google.gson.Gson;
 
 import dao.PromotionDAO;
+import dao.PromotionUsageDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -99,7 +101,7 @@ public class CustomerPromotionController extends HttpServlet {
                 handleApplyPromotion(request, response);
             } else if (requestURI.endsWith("/remove-promotion")) {
                 handleRemovePromotion(request, response);
-            } else if (requestURI.endsWith("/use-now")) {
+            } else if (requestURI.contains("/promotions/use-now")) {
                 handleUseNow(request, response);
             } else {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid request");
@@ -117,35 +119,27 @@ public class CustomerPromotionController extends HttpServlet {
     private void handleMyPromotions(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
-            // Lấy customer ID từ session
             HttpSession session = request.getSession();
             Customer customer = (Customer) session.getAttribute("customer");
-            
             if (customer == null) {
                 response.sendRedirect(request.getContextPath() + "/login");
                 return;
             }
-            
-            // Lấy customer ID
             Integer customerId = customer.getCustomerId();
-            
             if (customerId == null) {
                 response.sendRedirect(request.getContextPath() + "/login");
                 return;
             }
-            
-            // Lấy thông tin khuyến mãi của khách hàng
-            dao.PromotionUsageDAO promotionUsageDAO = new dao.PromotionUsageDAO();
-            java.util.Map<String, Object> promotionSummary = promotionUsageDAO.getCustomerPromotionSummary(customerId);
+            // Lấy danh sách khuyến mãi với số lượt còn lại
+            PromotionUsageDAO promotionUsageDAO = new PromotionUsageDAO();
             java.util.List<java.util.Map<String, Object>> customerPromotions = promotionUsageDAO.getCustomerPromotionsWithRemainingCount(customerId);
-            
-            request.setAttribute("promotionSummary", promotionSummary);
+            // Lấy lịch sử đã dùng
+            java.util.List<model.PromotionUsage> promotionUsageHistory = promotionUsageDAO.getCustomerUsageHistory(customerId, 1, 20);
             request.setAttribute("customerPromotions", customerPromotions);
+            request.setAttribute("promotionUsageHistory", promotionUsageHistory);
             request.setAttribute("customerId", customerId);
-            
             request.getRequestDispatcher("/WEB-INF/view/customer_pages/my_promotions.jsp")
                     .forward(request, response);
-                    
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error loading customer promotions", e);
             handleError(request, response, "Không thể tải thông tin khuyến mãi của bạn");
@@ -158,21 +152,56 @@ public class CustomerPromotionController extends HttpServlet {
     private void handleListAvailablePromotions(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
-            // Lấy tất cả promotion đang ACTIVE
-            List<Promotion> allPromotions = promotionDAO.findByStatus("ACTIVE", 1, 100, "start_date", "DESC");
-            
-            // Lọc những promotion còn hiệu lực
+            HttpSession session = request.getSession();
+            Customer customer = (Customer) session.getAttribute("customer");
+            Integer customerId = (customer != null) ? customer.getCustomerId() : null;
+            List<Promotion> availablePromotions = new ArrayList<>();
+            PromotionDAO promotionDAO = new PromotionDAO();
+            PromotionUsageDAO promotionUsageDAO = new PromotionUsageDAO();
             LocalDateTime now = LocalDateTime.now();
-            List<Promotion> availablePromotions = allPromotions.stream()
-                .filter(p -> p.getStartDate() != null && p.getEndDate() != null)
-                .filter(p -> p.getStartDate().isBefore(now) && p.getEndDate().isAfter(now))
-                .collect(Collectors.toList());
+
+            if (customerId == null) {
+                // Chưa đăng nhập: chỉ lấy các mã ACTIVE, còn hạn
+                List<Promotion> allPromotions = promotionDAO.findByStatus("ACTIVE", 1, 1000, "start_date", "DESC");
+                for (Promotion p : allPromotions) {
+                    if ((p.getStartDate() == null || !now.isBefore(p.getStartDate())) &&
+                        (p.getEndDate() == null || !now.isAfter(p.getEndDate()))) {
+                        availablePromotions.add(p);
+                    }
+                }
+            } else {
+                // Đã đăng nhập: chỉ lấy các mã còn lượt sử dụng, còn hạn
+                List<java.util.Map<String, Object>> customerPromotions = promotionUsageDAO.getCustomerPromotionsWithRemainingCount(customerId);
+                for (java.util.Map<String, Object> promo : customerPromotions) {
+                    // Kiểm tra còn lượt và còn hạn
+                    Integer remaining = (promo.get("remainingCount") != null) ? ((Number) promo.get("remainingCount")).intValue() : 0;
+                    String status = (String) promo.get("status");
+                    java.sql.Timestamp startDate = (java.sql.Timestamp) promo.get("startDate");
+                    java.sql.Timestamp endDate = (java.sql.Timestamp) promo.get("endDate");
+                    boolean inDate = (startDate == null || !now.isBefore(startDate.toLocalDateTime())) &&
+                                     (endDate == null || !now.isAfter(endDate.toLocalDateTime()));
+                    if ("ACTIVE".equals(status) && remaining > 0 && inDate) {
+                        // Map về Promotion object để truyền sang JSP
+                        Promotion p = new Promotion();
+                        p.setPromotionId((Integer) promo.get("promotionId"));
+                        p.setTitle((String) promo.get("title"));
+                        p.setPromotionCode((String) promo.get("promotionCode"));
+                        p.setDiscountType((String) promo.get("discountType"));
+                        p.setDiscountValue((java.math.BigDecimal) promo.get("discountValue"));
+                        p.setUsageLimitPerCustomer((promo.get("usageLimitPerCustomer") != null) ? ((Number) promo.get("usageLimitPerCustomer")).intValue() : 0);
+                        p.setStatus(status);
+                        p.setStartDate((startDate != null) ? startDate.toLocalDateTime() : null);
+                        p.setEndDate((endDate != null) ? endDate.toLocalDateTime() : null);
+                        availablePromotions.add(p);
+                    }
+                }
+            }
 
             request.setAttribute("availablePromotions", availablePromotions);
+            request.setAttribute("totalActivePromotions", availablePromotions.size());
 
-            // Thông báo nếu có
             if (availablePromotions.isEmpty()) {
-                request.setAttribute("message", "Hiện tại không có khuyến mãi nào đang áp dụng. Hãy quay lại sau nhé!");
+                request.setAttribute("message", "Hiện tại không có khuyến mãi nào phù hợp với bạn. Hãy quay lại sau nhé!");
             }
 
             request.getRequestDispatcher("/WEB-INF/view/customer_pages/available_promotions.jsp")
@@ -180,7 +209,7 @@ public class CustomerPromotionController extends HttpServlet {
 
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error loading available promotions", e);
-            handleError(request, response, "Không thể tải danh sách khuyến mãi");
+            handleError(request, response, "Không thể tải danh sách khuyến mãi: " + e.getMessage());
         }
     }
 
@@ -206,6 +235,38 @@ public class CustomerPromotionController extends HttpServlet {
                 // Tính toán số tiền giảm và số tiền cuối cùng
                 calculateDiscountAmount(request, (Promotion) appliedPromotion);
             }
+
+            // Lấy danh sách mã khuyến mãi còn hiệu lực, còn lượt cho khách hàng
+            Customer customer = (Customer) session.getAttribute("customer");
+            Integer customerId = (customer != null) ? customer.getCustomerId() : null;
+            List<Promotion> availablePromotions = new ArrayList<>();
+            if (customerId != null) {
+                PromotionUsageDAO promotionUsageDAO = new PromotionUsageDAO();
+                LocalDateTime now = LocalDateTime.now();
+                List<java.util.Map<String, Object>> customerPromotions = promotionUsageDAO.getCustomerPromotionsWithRemainingCount(customerId);
+                for (java.util.Map<String, Object> promo : customerPromotions) {
+                    Integer remaining = (promo.get("remainingCount") != null) ? ((Number) promo.get("remainingCount")).intValue() : 0;
+                    String status = (String) promo.get("status");
+                    java.sql.Timestamp startDate = (java.sql.Timestamp) promo.get("startDate");
+                    java.sql.Timestamp endDate = (java.sql.Timestamp) promo.get("endDate");
+                    boolean inDate = (startDate == null || !now.isBefore(startDate.toLocalDateTime())) &&
+                                     (endDate == null || !now.isAfter(endDate.toLocalDateTime()));
+                    if ("ACTIVE".equals(status) && remaining > 0 && inDate) {
+                        Promotion p = new Promotion();
+                        p.setPromotionId((Integer) promo.get("promotionId"));
+                        p.setTitle((String) promo.get("title"));
+                        p.setPromotionCode((String) promo.get("promotionCode"));
+                        p.setDiscountType((String) promo.get("discountType"));
+                        p.setDiscountValue((java.math.BigDecimal) promo.get("discountValue"));
+                        p.setUsageLimitPerCustomer((promo.get("usageLimitPerCustomer") != null) ? ((Number) promo.get("usageLimitPerCustomer")).intValue() : 0);
+                        p.setStatus(status);
+                        p.setStartDate((startDate != null) ? startDate.toLocalDateTime() : null);
+                        p.setEndDate((endDate != null) ? endDate.toLocalDateTime() : null);
+                        availablePromotions.add(p);
+                    }
+                }
+            }
+            request.setAttribute("availablePromotions", availablePromotions);
 
             request.getRequestDispatcher("/WEB-INF/view/customer_pages/apply_promotion.jsp")
                     .forward(request, response);

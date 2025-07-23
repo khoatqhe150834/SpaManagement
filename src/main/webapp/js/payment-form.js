@@ -37,8 +37,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Setup service items functionality
         setupServiceItems();
 
-        // Setup reference number generation
-        setupReferenceGeneration();
+        // Reference number is auto-generated on server side
+
+        // Payment date validation removed - using current time automatically
     }
 
     /**
@@ -67,36 +68,36 @@ document.addEventListener('DOMContentLoaded', function() {
     function setupAmountFormatting() {
         var subtotalField = document.getElementById('subtotalAmount');
         var taxField = document.getElementById('taxAmount');
+        var discountField = document.getElementById('discountAmount');
         var totalField = document.getElementById('totalAmount');
 
-        // Format amount fields as user types
-        [subtotalField, taxField].forEach(function(field) {
-            if (field) {
-                field.addEventListener('input', function(e) {
-                    var value = e.target.value.replace(/[^\d]/g, '');
-                    if (value) {
-                        // Format with thousand separators
-                        value = parseInt(value).toLocaleString('vi-VN');
-                        e.target.value = value;
-                    }
-                    // Recalculate total when subtotal or tax changes
-                    calculateTotal();
-                });
-            }
-        });
-
-        // Auto-calculate tax when subtotal changes
-        if (subtotalField) {
-            subtotalField.addEventListener('blur', function() {
-                if (!taxField.value.trim()) {
-                    autoCalculateTax();
+        // Setup discount field formatting and calculation
+        if (discountField) {
+            discountField.addEventListener('input', function() {
+                // Format the discount amount
+                var value = this.value.replace(/[^\d]/g, '');
+                if (value) {
+                    this.value = parseInt(value).toLocaleString('vi-VN');
                 }
+                // Recalculate total when discount changes
+                calculateTotal();
+            });
+
+            discountField.addEventListener('blur', function() {
+                // Ensure proper formatting on blur
+                var value = this.value.replace(/[^\d]/g, '');
+                if (value) {
+                    this.value = parseInt(value).toLocaleString('vi-VN');
+                } else {
+                    this.value = '';
+                }
+                calculateTotal();
             });
         }
 
         // Remove formatting before form submission
         form.addEventListener('submit', function() {
-            [subtotalField, taxField, totalField].forEach(function(field) {
+            [subtotalField, taxField, discountField, totalField].forEach(function(field) {
                 if (field && field.value) {
                     var rawValue = field.value.replace(/[^\d]/g, '');
                     field.value = rawValue;
@@ -105,37 +106,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    /**
-     * Auto-calculate 10% tax based on subtotal
-     */
-    function autoCalculateTax() {
-        var subtotalField = document.getElementById('subtotalAmount');
-        var taxField = document.getElementById('taxAmount');
 
-        if (subtotalField && taxField && subtotalField.value) {
-            var subtotal = parseInt(subtotalField.value.replace(/[^\d]/g, '')) || 0;
-            var tax = Math.round(subtotal * 0.1); // 10% tax
-            taxField.value = tax.toLocaleString('vi-VN');
-            calculateTotal();
-        }
-    }
-
-    /**
-     * Calculate total amount (subtotal + tax)
-     */
-    function calculateTotal() {
-        var subtotalField = document.getElementById('subtotalAmount');
-        var taxField = document.getElementById('taxAmount');
-        var totalField = document.getElementById('totalAmount');
-
-        if (subtotalField && taxField && totalField) {
-            var subtotal = parseInt(subtotalField.value.replace(/[^\d]/g, '')) || 0;
-            var tax = parseInt(taxField.value.replace(/[^\d]/g, '')) || 0;
-            var total = subtotal + tax;
-
-            totalField.value = total > 0 ? total.toLocaleString('vi-VN') : '';
-        }
-    }
 
     /**
      * Handles form submission
@@ -164,33 +135,72 @@ document.addEventListener('DOMContentLoaded', function() {
                 paymentData[key] = value;
             });
         } catch (error) {
+            console.log('FormData.forEach not supported, using fallback');
             // Fallback for older browsers
             var inputs = form.querySelectorAll('input, select, textarea');
             for (var i = 0; i < inputs.length; i++) {
                 var input = inputs[i];
-                if (input.name) {
+                if (input.name && input.name !== 'paymentDate') { // Skip paymentDate since we removed it
                     paymentData[input.name] = input.value;
+                    console.log('Added field:', input.name, '=', input.value);
                 }
             }
         }
+        
+        // Remove fields that are auto-generated on server side
+        delete paymentData.paymentDate;
+        delete paymentData.paymentStatus; // Auto-set to PAID
+        delete paymentData.referenceNumber; // Auto-generated
 
-        // Clean amount value (remove formatting)
+        // Clean amount values (remove formatting) and validate
         if (paymentData.totalAmount) {
             paymentData.totalAmount = paymentData.totalAmount.replace(/[^\d]/g, '');
+            console.log('Cleaned totalAmount:', paymentData.totalAmount);
         }
+        if (paymentData.subtotalAmount) {
+            paymentData.subtotalAmount = paymentData.subtotalAmount.replace(/[^\d]/g, '');
+            console.log('Cleaned subtotalAmount:', paymentData.subtotalAmount);
+        }
+        if (paymentData.taxAmount) {
+            paymentData.taxAmount = paymentData.taxAmount.replace(/[^\d]/g, '');
+            console.log('Cleaned taxAmount:', paymentData.taxAmount);
+        }
+        if (paymentData.discountAmount) {
+            paymentData.discountAmount = paymentData.discountAmount.replace(/[^\d]/g, '');
+            console.log('Cleaned discountAmount:', paymentData.discountAmount);
+        }
+        
+        // Validate amounts are valid numbers
+        if (!paymentData.totalAmount || isNaN(parseInt(paymentData.totalAmount))) {
+            showNotification('Tổng tiền không hợp lệ', 'error');
+            hideLoadingState();
+            return;
+        }
+        if (!paymentData.subtotalAmount || isNaN(parseInt(paymentData.subtotalAmount))) {
+            showNotification('Tiền dịch vụ không hợp lệ', 'error');
+            hideLoadingState();
+            return;
+        }
+
+        // Collect service items data
+        paymentData.paymentItems = collectServiceItemsData();
 
         console.log('Payment data:', paymentData);
 
         // Determine API endpoint
         var endpoint = isEditMode
-            ? contextPath + '/manager/payments/update'
-            : contextPath + '/manager/payments/add';
+            ? contextPath + '/api/payments/' + currentPaymentId
+            : contextPath + '/api/payments';
 
         console.log('Submitting to endpoint:', endpoint);
 
         // Submit form data
+        console.log('Sending request to:', endpoint);
+        console.log('Request method:', isEditMode ? 'PUT' : 'POST');
+        console.log('Request body:', JSON.stringify(paymentData, null, 2));
+        
         fetch(endpoint, {
-            method: 'POST',
+            method: isEditMode ? 'PUT' : 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
@@ -200,11 +210,13 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(function(response) {
             console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
 
             // Check if response is OK
             if (response.ok) {
                 // Try to parse as JSON
                 return response.text().then(function(text) {
+                    console.log('Success response text:', text);
                     try {
                         return JSON.parse(text);
                     } catch (e) {
@@ -217,8 +229,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // If not OK, try to get error details
             return response.text().then(function(text) {
+                console.error('Error response status:', response.status);
                 console.error('Error response text:', text);
-                throw new Error('Server error: ' + response.status);
+                
+                // Try to parse error response as JSON
+                try {
+                    const errorData = JSON.parse(text);
+                    throw new Error(errorData.message || 'Server error: ' + response.status);
+                } catch (parseError) {
+                    // If not JSON, use the raw text
+                    throw new Error('Server error: ' + response.status + ' - ' + text);
+                }
             });
         })
         .then(function(data) {
@@ -295,12 +316,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 break;
 
-            case 'paymentDate':
-                if (value && !isValidDate(value)) {
-                    errorMessage = 'Ngày thanh toán không hợp lệ';
-                    isValid = false;
-                }
-                break;
+            // Payment date validation removed - using current time automatically
 
             case 'totalAmount':
                 if (value && !isValidAmount(value)) {
@@ -325,6 +341,7 @@ document.addEventListener('DOMContentLoaded', function() {
      */
     function validateAmount() {
         var subtotalField = document.getElementById('subtotalAmount');
+        var discountField = document.getElementById('discountAmount');
         var totalField = document.getElementById('totalAmount');
         var isValid = true;
 
@@ -344,12 +361,29 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
+        // Validate discount
+        if (discountField && discountField.value) {
+            var discountValue = discountField.value.replace(/[^\d]/g, '');
+            var discount = parseInt(discountValue);
+            var subtotalValue = subtotalField ? parseInt(subtotalField.value.replace(/[^\d]/g, '')) || 0 : 0;
+
+            if (isNaN(discount) || discount < 0) {
+                showFieldError(discountField, 'Số tiền giảm giá không hợp lệ');
+                isValid = false;
+            } else if (discount > subtotalValue) {
+                showFieldError(discountField, 'Số tiền giảm giá không được lớn hơn tiền dịch vụ');
+                isValid = false;
+            } else {
+                clearFieldError(discountField);
+            }
+        }
+
         // Validate total
         if (totalField) {
             var totalValue = totalField.value.replace(/[^\d]/g, '');
             var total = parseInt(totalValue);
 
-            if (isNaN(total) || total <= 0) {
+            if (isNaN(total) || total < 0) {
                 showFieldError(totalField, 'Tổng tiền không hợp lệ');
                 isValid = false;
             } else {
@@ -360,37 +394,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return isValid;
     }
 
-    /**
-     * Validates service items selection
-     */
-    function validateServiceItems() {
-        var serviceItems = document.querySelectorAll('.service-item:not(.hidden)');
 
-        // At least one service item should be selected
-        if (serviceItems.length === 0) {
-            showNotification('Vui lòng chọn ít nhất một dịch vụ', 'error');
-            return false;
-        }
-
-        // Validate each service item
-        var isValid = true;
-        serviceItems.forEach(function(item, index) {
-            var serviceSelect = item.querySelector('.service-select');
-            var quantityInput = item.querySelector('.quantity-input');
-
-            if (!serviceSelect || !serviceSelect.value) {
-                showNotification('Vui lòng chọn dịch vụ cho mục ' + (index + 1), 'error');
-                isValid = false;
-            }
-
-            if (!quantityInput || !quantityInput.value || parseInt(quantityInput.value) <= 0) {
-                showNotification('Vui lòng nhập số lượng hợp lệ cho mục ' + (index + 1), 'error');
-                isValid = false;
-            }
-        });
-
-        return isValid;
-    }
 
     /**
      * Validation helper functions
@@ -410,39 +414,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return !isNaN(amount) && amount > 0;
     }
 
-    /**
-     * Shows error for a specific field
-     */
-    function showFieldError(field, message) {
-        var errorElement = document.getElementById(field.name + 'Error');
-        if (errorElement) {
-            errorElement.textContent = message;
-            errorElement.classList.remove('hidden');
-        }
 
-        // Add error styling to field
-        field.classList.add('border-red-500', 'field-error');
-        field.classList.remove('border-gray-300');
-
-        // Remove error animation after it completes
-        setTimeout(function() {
-            field.classList.remove('field-error');
-        }, 300);
-    }
-
-    /**
-     * Clears error for a specific field
-     */
-    function clearFieldError(field) {
-        var errorElement = document.getElementById(field.name + 'Error');
-        if (errorElement) {
-            errorElement.classList.add('hidden');
-        }
-
-        // Remove error styling
-        field.classList.remove('border-red-500');
-        field.classList.add('border-gray-300');
-    }
 
     /**
      * Shows loading state on submit button
@@ -471,57 +443,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    /**
-     * Shows notification message
-     */
-    function showNotification(message, type) {
-        // Default type to info if not provided
-        type = type || 'info';
 
-        // Create notification element
-        var notification = document.createElement('div');
-        notification.className = 'fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm transition-all duration-300 transform translate-x-full';
-
-        // Set colors based on type
-        var colors = {
-            success: 'bg-green-500 text-white',
-            error: 'bg-red-500 text-white',
-            warning: 'bg-yellow-500 text-white',
-            info: 'bg-blue-500 text-white'
-        };
-
-        notification.className += ' ' + (colors[type] || colors.info);
-
-        // Determine icon based on type
-        var iconName = 'info';
-        if (type === 'success') iconName = 'check-circle';
-        else if (type === 'error') iconName = 'x-circle';
-        else if (type === 'warning') iconName = 'alert-triangle';
-
-        notification.innerHTML =
-            '<div class="flex items-center gap-2">' +
-                '<i data-lucide="' + iconName + '" class="h-5 w-5"></i>' +
-                '<span>' + message + '</span>' +
-            '</div>';
-
-        document.body.appendChild(notification);
-        lucide.createIcons();
-
-        // Animate in
-        setTimeout(function() {
-            notification.classList.remove('translate-x-full');
-        }, 100);
-
-        // Auto remove after 5 seconds
-        setTimeout(function() {
-            notification.classList.add('translate-x-full');
-            setTimeout(function() {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 300);
-        }, 5000);
-    }
 });
 
 // Additional utility functions for external use
@@ -549,6 +471,9 @@ window.PaymentForm = {
         showNotification(message, type);
     }
 };
+
+// Make showNotification globally accessible
+window.showNotification = showNotification;
 
 /**
  * Setup customer search functionality
@@ -636,6 +561,9 @@ function addServiceItem() {
 
         serviceContainer.appendChild(newItem);
 
+        // Update minimum service validation
+        validateMinimumServicesGlobal();
+
         // Initialize Lucide icons for the new item
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
@@ -658,11 +586,14 @@ function setupServiceItemEvents(item) {
             var selectedOption = this.options[this.selectedIndex];
             if (selectedOption.value) {
                 var price = selectedOption.getAttribute('data-price') || '0';
-                unitPriceInput.value = parseInt(price).toLocaleString('vi-VN') + ' VNĐ';
+                // Parse the price as a decimal number (e.g., 750000.00)
+                var priceValue = parseFloat(price) || 0;
+                unitPriceInput.value = Math.round(priceValue).toLocaleString('vi-VN') + ' VNĐ';
             } else {
                 unitPriceInput.value = '';
             }
             updateServiceTotals();
+            validateMinimumServicesGlobal();
         });
     }
 
@@ -673,13 +604,23 @@ function setupServiceItemEvents(item) {
         });
     }
 
-    // Remove service item
+    // Remove service item with enhanced validation
     if (removeBtn) {
         removeBtn.addEventListener('click', function() {
+            var serviceItems = document.querySelectorAll('.service-item:not(.hidden)');
+            
+            // In edit mode, prevent removal if only 1 service exists
+            if (window.isEditMode && serviceItems.length <= 1) {
+                showNotification('Phải có ít nhất 1 dịch vụ trong thanh toán', 'warning');
+                return;
+            }
+            
+            // In add mode, allow removal but show empty state
             item.remove();
             updateServiceTotals();
+            validateMinimumServicesGlobal();
 
-            // Show empty state if no items left
+            // Show empty state if no items left (only in add mode)
             var serviceContainer = document.getElementById('serviceItemsContainer');
             if (serviceContainer && serviceContainer.children.length === 0) {
                 serviceContainer.innerHTML =
@@ -697,6 +638,31 @@ function setupServiceItemEvents(item) {
 }
 
 /**
+ * Global function to validate minimum services and update UI accordingly
+ */
+function validateMinimumServicesGlobal() {
+    if (!window.isEditMode) return; // Only apply in edit mode
+    
+    var serviceItems = document.querySelectorAll('.service-item:not(.hidden)');
+    var removeButtons = document.querySelectorAll('.remove-service-btn');
+    
+    // If only 1 service item exists, disable remove buttons
+    if (serviceItems.length <= 1) {
+        removeButtons.forEach(function(btn) {
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            btn.title = 'Phải có ít nhất 1 dịch vụ';
+        });
+    } else {
+        removeButtons.forEach(function(btn) {
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            btn.title = '';
+        });
+    }
+}
+
+/**
  * Update service totals and recalculate payment amounts
  */
 function updateServiceTotals() {
@@ -709,40 +675,261 @@ function updateServiceTotals() {
 
         if (serviceSelect && quantityInput && serviceSelect.value) {
             var selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
-            var price = parseInt(selectedOption.getAttribute('data-price') || '0');
+            var price = parseFloat(selectedOption.getAttribute('data-price') || '0');
             var quantity = parseInt(quantityInput.value) || 1;
-            total += price * quantity;
+            total += Math.round(price) * quantity;
         }
     });
 
     // Update subtotal field
     var subtotalField = document.getElementById('subtotalAmount');
-    if (subtotalField && total > 0) {
-        subtotalField.value = total.toLocaleString('vi-VN');
-
-        // Auto-calculate tax if not manually set
-        var taxField = document.getElementById('taxAmount');
-        if (taxField && !taxField.value.trim()) {
+    if (subtotalField) {
+        if (total > 0) {
+            subtotalField.value = total.toLocaleString('vi-VN');
+            // Always auto-calculate tax when services change
             autoCalculateTax();
         } else {
-            calculateTotal();
+            subtotalField.value = '';
+            // Clear tax and total when no services
+            var taxField = document.getElementById('taxAmount');
+            var totalField = document.getElementById('totalAmount');
+            if (taxField) taxField.value = '';
+            if (totalField) totalField.value = '';
         }
     }
 }
 
-/**
- * Setup reference number generation
- */
-function setupReferenceGeneration() {
-    var generateBtn = document.getElementById('generateRefBtn');
-    var referenceField = document.getElementById('referenceNumber');
+// Reference number generation removed - handled automatically on server side
 
-    if (generateBtn && referenceField) {
-        generateBtn.addEventListener('click', function() {
-            var timestamp = Date.now().toString().slice(-5);
-            var random = Math.floor(Math.random() * 9000) + 1000;
-            var reference = 'SPA' + timestamp + random;
-            referenceField.value = reference;
-        });
+/**
+ * Auto-calculate 10% VAT based on subtotal
+ * VAT = subtotal * 0.1 (10% of subtotal)
+ * Global function accessible from anywhere
+ */
+function autoCalculateTax() {
+    var subtotalField = document.getElementById('subtotalAmount');
+    var taxField = document.getElementById('taxAmount');
+
+    if (subtotalField && taxField && subtotalField.value) {
+        var subtotal = parseInt(subtotalField.value.replace(/[^\d]/g, '')) || 0;
+        // Calculate VAT: VAT = subtotal * 0.1 (10% of subtotal)
+        var tax = Math.round(subtotal * 0.1);
+        taxField.value = tax.toLocaleString('vi-VN');
+        calculateTotal();
     }
+}
+
+/**
+ * Calculate total amount
+ * Total = subtotal + tax - discount
+ * Global function accessible from anywhere
+ */
+function calculateTotal() {
+    var subtotalField = document.getElementById('subtotalAmount');
+    var taxField = document.getElementById('taxAmount');
+    var discountField = document.getElementById('discountAmount');
+    var totalField = document.getElementById('totalAmount');
+
+    if (subtotalField && totalField) {
+        var subtotal = parseInt(subtotalField.value.replace(/[^\d]/g, '')) || 0;
+        var tax = parseInt(taxField.value.replace(/[^\d]/g, '')) || 0;
+        var discount = discountField ? parseInt(discountField.value.replace(/[^\d]/g, '')) || 0 : 0;
+
+        // Total = subtotal + tax - discount
+        var total = subtotal + tax - discount;
+        
+        // Ensure total is not negative
+        total = Math.max(0, total);
+        
+        totalField.value = total > 0 ? total.toLocaleString('vi-VN') : '';
+    }
+}
+
+/**
+ * Collect service items data from the form
+ */
+function collectServiceItemsData() {
+    var serviceItems = document.querySelectorAll('.service-item:not(.hidden)');
+    var paymentItems = [];
+
+    serviceItems.forEach(function(item) {
+        var serviceSelect = item.querySelector('.service-select');
+        var quantityInput = item.querySelector('.quantity-input');
+
+        if (serviceSelect && quantityInput && serviceSelect.value) {
+            var selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
+            var serviceId = parseInt(serviceSelect.value);
+            var quantity = parseInt(quantityInput.value) || 1;
+            var unitPriceRaw = selectedOption.getAttribute('data-price') || '0';
+            var unitPrice = Math.round(parseFloat(unitPriceRaw)).toString();
+            var duration = selectedOption.getAttribute('data-duration') || '0';
+
+            paymentItems.push({
+                serviceId: serviceId,
+                quantity: quantity,
+                unitPrice: unitPrice,
+                totalPrice: (parseInt(unitPrice) * quantity).toString(),
+                serviceDuration: parseInt(duration)
+            });
+        }
+    });
+
+    return paymentItems;
+}
+
+// Payment date validation functions removed - using current time automatically
+
+/**
+ * Enhanced service validation with minimum service requirement
+ */
+function validateServiceItems() {
+    var serviceItems = document.querySelectorAll('.service-item:not(.hidden)');
+
+    // Filter out empty service items (items without service selected)
+    var validServiceItems = [];
+    for (var i = 0; i < serviceItems.length; i++) {
+        var serviceSelect = serviceItems[i].querySelector('.service-select');
+        if (serviceSelect && serviceSelect.value) {
+            validServiceItems.push(serviceItems[i]);
+        }
+    }
+
+    // At least one service item should be selected (minimum requirement)
+    if (validServiceItems.length === 0) {
+        showNotification('Vui lòng chọn ít nhất một dịch vụ', 'error');
+        return false;
+    }
+
+    // In edit mode, ensure minimum 1 service is maintained
+    if (window.isEditMode && validServiceItems.length < 1) {
+        showNotification('Phải có ít nhất 1 dịch vụ trong thanh toán', 'error');
+        return false;
+    }
+
+    // Validate each valid service item
+    var isValid = true;
+    for (var j = 0; j < validServiceItems.length; j++) {
+        var item = validServiceItems[j];
+        var serviceSelect = item.querySelector('.service-select');
+        var quantityInput = item.querySelector('.quantity-input');
+
+        // Validate quantity
+        var quantity = parseInt(quantityInput.value);
+        if (!quantityInput || !quantityInput.value || isNaN(quantity) || quantity <= 0) {
+            showNotification('Vui lòng nhập số lượng hợp lệ (lớn hơn 0) cho mục ' + (j + 1), 'error');
+            isValid = false;
+            break;
+        }
+
+        if (quantity > 10) {
+            showNotification('Số lượng không được vượt quá 10 cho mục ' + (j + 1), 'error');
+            isValid = false;
+            break;
+        }
+
+        // Validate service price
+        var selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
+        var price = selectedOption.getAttribute('data-price');
+        if (!price || parseFloat(price) <= 0) {
+            showNotification('Dịch vụ được chọn ở mục ' + (j + 1) + ' không có giá hợp lệ', 'error');
+            isValid = false;
+            break;
+        }
+    }
+
+    return isValid;
+}
+
+/**
+ * Show field error with enhanced styling
+ */
+function showFieldError(field, message) {
+    var errorElement = document.getElementById(field.name + 'Error') ||
+                      document.getElementById(field.id + 'Error');
+
+    if (errorElement) {
+        errorElement.textContent = message;
+        errorElement.classList.remove('hidden');
+    }
+
+    // Add error styling to field
+    field.classList.add('border-red-500', 'field-error');
+    field.classList.remove('border-gray-300');
+
+    // Remove error animation after it completes
+    setTimeout(function() {
+        field.classList.remove('field-error');
+    }, 300);
+}
+
+/**
+ * Clear field error with enhanced styling
+ */
+function clearFieldError(field) {
+    var errorElement = document.getElementById(field.name + 'Error') ||
+                      document.getElementById(field.id + 'Error');
+
+    if (errorElement) {
+        errorElement.classList.add('hidden');
+    }
+
+    // Remove error styling
+    field.classList.remove('border-red-500');
+    field.classList.add('border-gray-300');
+}
+
+/**
+ * Enhanced notification system
+ */
+function showNotification(message, type) {
+    // Default type to info if not provided
+    type = type || 'info';
+
+    // Create notification element
+    var notification = document.createElement('div');
+    notification.className = 'fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm transition-all duration-300 transform translate-x-full';
+
+    // Set colors based on type
+    var colors = {
+        success: 'bg-green-500 text-white',
+        error: 'bg-red-500 text-white',
+        warning: 'bg-yellow-500 text-white',
+        info: 'bg-blue-500 text-white'
+    };
+
+    notification.className += ' ' + (colors[type] || colors.info);
+
+    // Determine icon based on type
+    var iconName = 'info';
+    if (type === 'success') iconName = 'check-circle';
+    else if (type === 'error') iconName = 'x-circle';
+    else if (type === 'warning') iconName = 'alert-triangle';
+
+    notification.innerHTML =
+        '<div class="flex items-center gap-2">' +
+            '<i data-lucide="' + iconName + '" class="h-5 w-5"></i>' +
+            '<span>' + message + '</span>' +
+        '</div>';
+
+    document.body.appendChild(notification);
+
+    // Initialize Lucide icons if available
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+
+    // Animate in
+    setTimeout(function() {
+        notification.classList.remove('translate-x-full');
+    }, 100);
+
+    // Auto remove after 5 seconds
+    setTimeout(function() {
+        notification.classList.add('translate-x-full');
+        setTimeout(function() {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 5000);
 }

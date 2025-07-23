@@ -98,6 +98,43 @@
                                                         </c:otherwise>
                                                     </c:choose>
                                                 </h3>
+                                                <!-- Điều kiện áp dụng -->
+                                                <ul class="text-sm text-gray-700 mb-2 list-disc pl-5">
+                                                    <c:if test="${not empty promotion.startDate || not empty promotion.endDate}">
+                                                        <li>
+                                                            Hiệu lực:
+                                                            <c:if test="${not empty promotion.startDate}">
+                                                                từ ${promotion.startDate}
+                                                            </c:if>
+                                                            <c:if test="${not empty promotion.endDate}">
+                                                                đến ${promotion.endDate}
+                                                            </c:if>
+                                                        </li>
+                                                    </c:if>
+                                                    <c:if test="${promotion.minimumAppointmentValue != null && promotion.minimumAppointmentValue > 0}">
+                                                        <li>Đơn tối thiểu: <fmt:formatNumber value="${promotion.minimumAppointmentValue}" type="currency" currencySymbol="₫"/></li>
+                                                    </c:if>
+                                                    <c:if test="${promotion.usageLimitPerCustomer != null && promotion.usageLimitPerCustomer > 0}">
+                                                        <li>Mỗi khách dùng tối đa: ${promotion.usageLimitPerCustomer} lần</li>
+                                                    </c:if>
+                                                    <c:if test="${promotion.totalUsageLimit != null && promotion.totalUsageLimit > 0}">
+                                                        <li>Tổng số lượt sử dụng: ${promotion.totalUsageLimit}</li>
+                                                    </c:if>
+                                                    <c:if test="${not empty promotion.applicableScope && promotion.applicableScope != 'ALL_SERVICES'}">
+                                                        <li>Chỉ áp dụng cho dịch vụ/sản phẩm chỉ định</li>
+                                                    </c:if>
+                                                    <c:if test="${not empty promotion.customerCondition && promotion.customerCondition != 'ALL'}">
+                                                        <li>Chỉ dành cho: 
+                                                            <c:choose>
+                                                                <c:when test="${promotion.customerCondition == 'VIP'}">Khách VIP</c:when>
+                                                                <c:when test="${promotion.customerCondition == 'NEW'}">Khách mới</c:when>
+                                                                <c:when test="${promotion.customerCondition == 'GROUP'}">Đặt nhóm</c:when>
+                                                                <c:when test="${promotion.customerCondition == 'COUPLE'}">Cặp đôi</c:when>
+                                                                <c:otherwise>Đối tượng đặc biệt</c:otherwise>
+                                                            </c:choose>
+                                                        </li>
+                                                    </c:if>
+                                                </ul>
                                                 <div class="flex items-center gap-3 mb-3">
                                                     <span class="bg-primary text-white px-3 py-1 rounded-full text-sm font-mono">
                                                         <c:choose>
@@ -159,6 +196,14 @@
                                                     </c:choose>
                                                 </span>
                                                 </div>
+                                            </div>
+                                            <!-- Nút Dùng Ngay -->
+                                            <div class="flex flex-col items-center gap-2 mt-4 lg:mt-0">
+                                                <button class="inline-flex items-center gap-2 bg-primary text-white px-5 py-2 rounded-lg font-semibold hover:bg-primary-dark transition-colors"
+                                                        onclick="usePromotion('${promotion.promotionCode}')">
+                                                    <i data-lucide="zap"></i> Dùng ngay
+                                                </button>
+                                                <span class="text-xs text-gray-500">Tự động copy mã & chuyển đến dịch vụ</span>
                                             </div>
                                         </div>
                                     </div>
@@ -334,6 +379,14 @@
                     toast.parentNode.removeChild(toast);
                 }
             }, 3000);
+        }
+
+        function usePromotion(code) {
+            if (!code) return;
+            // Lưu mã vào localStorage
+            localStorage.setItem('pendingPromotionCode', code);
+            // Chuyển hướng sang trang dịch vụ
+            window.location.href = `${pageContext.request.contextPath}/services`;
         }
 
         // Initialize Lucide icons

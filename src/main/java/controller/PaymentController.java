@@ -218,12 +218,14 @@ public class PaymentController extends HttpServlet {
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "Database error in payment history", ex);
             request.setAttribute("errorMessage", "Lỗi hệ thống. Vui lòng thử lại sau.");
-            request.getRequestDispatcher("/WEB-INF/view/common/error.jsp")
+            request.setAttribute("exception", ex);
+            request.getRequestDispatcher("/WEB-INF/view/common/error/500.jsp")
                     .forward(request, response);
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, "Unexpected error in payment history", ex);
             request.setAttribute("errorMessage", "Đã xảy ra lỗi không mong muốn.");
-            request.getRequestDispatcher("/WEB-INF/view/common/error.jsp")
+            request.setAttribute("exception", ex);
+            request.getRequestDispatcher("/WEB-INF/view/common/error/500.jsp")
                     .forward(request, response);
         }
     }
@@ -277,12 +279,14 @@ public class PaymentController extends HttpServlet {
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "Database error in payment details", ex);
             request.setAttribute("errorMessage", "Lỗi hệ thống. Vui lòng thử lại sau.");
-            request.getRequestDispatcher("/WEB-INF/view/common/error.jsp")
+            request.setAttribute("exception", ex);
+            request.getRequestDispatcher("/WEB-INF/view/common/error/500.jsp")
                     .forward(request, response);
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, "Unexpected error in payment details", ex);
             request.setAttribute("errorMessage", "Đã xảy ra lỗi không mong muốn.");
-            request.getRequestDispatcher("/WEB-INF/view/common/error.jsp")
+            request.setAttribute("exception", ex);
+            request.getRequestDispatcher("/WEB-INF/view/common/error/500.jsp")
                     .forward(request, response);
         }
     }
@@ -420,11 +424,13 @@ public class PaymentController extends HttpServlet {
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "Database error in manager payment management", ex);
             request.setAttribute("errorMessage", "Đã xảy ra lỗi khi tải dữ liệu thanh toán: " + ex.getMessage());
-            request.getRequestDispatcher("/WEB-INF/view/error.jsp").forward(request, response);
+            request.setAttribute("exception", ex);
+            request.getRequestDispatcher("/WEB-INF/view/common/error/500.jsp").forward(request, response);
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, "Unexpected error in manager payment management", ex);
             request.setAttribute("errorMessage", "Đã xảy ra lỗi không mong muốn: " + ex.getMessage());
-            request.getRequestDispatcher("/WEB-INF/view/error.jsp").forward(request, response);
+            request.setAttribute("exception", ex);
+            request.getRequestDispatcher("/WEB-INF/view/common/error/500.jsp").forward(request, response);
         }
     }
 
@@ -479,7 +485,8 @@ public class PaymentController extends HttpServlet {
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "Database error loading payment details", ex);
             request.setAttribute("errorMessage", "Đã xảy ra lỗi khi tải chi tiết thanh toán: " + ex.getMessage());
-            request.getRequestDispatcher("/WEB-INF/view/error.jsp").forward(request, response);
+            request.setAttribute("exception", ex);
+            request.getRequestDispatcher("/WEB-INF/view/common/error/500.jsp").forward(request, response);
         }
     }
 
@@ -619,7 +626,8 @@ public class PaymentController extends HttpServlet {
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "Database error loading payment statistics", ex);
             request.setAttribute("errorMessage", "Lỗi hệ thống. Vui lòng thử lại sau.");
-            request.getRequestDispatcher("/WEB-INF/view/common/error.jsp")
+            request.setAttribute("exception", ex);
+            request.getRequestDispatcher("/WEB-INF/view/common/error/500.jsp")
                     .forward(request, response);
         }
     }
@@ -687,18 +695,47 @@ public class PaymentController extends HttpServlet {
 
                 Payment payment = paymentOpt.get();
 
+                // Load payment items for this payment
+                List<PaymentItem> paymentItems;
+                try {
+                    paymentItems = paymentItemDAO.findByPaymentId(paymentId);
+                    payment.setPaymentItems(paymentItems);
+                    LOGGER.info("Successfully loaded " + paymentItems.size() + " payment items for payment " + paymentId);
+                } catch (SQLException ex) {
+                    LOGGER.log(Level.SEVERE, "Error loading payment items for payment " + paymentId, ex);
+                    throw ex; // Re-throw to be caught by outer catch block
+                }
+
+                // Load all services for the dropdown
+                List<Service> services;
+                try {
+                    services = serviceDAO.findAll();
+                    LOGGER.info("Successfully loaded " + services.size() + " services");
+                } catch (Exception ex) {
+                    LOGGER.log(Level.SEVERE, "Error loading services", ex);
+                    throw new SQLException("Failed to load services", ex);
+                }
+
                 // Load customer details for display
-                Optional<Customer> customerOpt = customerDAO.findById(payment.getCustomerId());
                 String customerName = "Unknown Customer";
                 String customerPhone = "";
-
-                if (customerOpt.isPresent()) {
-                    Customer customer = customerOpt.get();
-                    customerName = customer.getFullName();
-                    customerPhone = customer.getPhoneNumber();
+                try {
+                    Optional<Customer> customerOpt = customerDAO.findById(payment.getCustomerId());
+                    if (customerOpt.isPresent()) {
+                        Customer customer = customerOpt.get();
+                        customerName = customer.getFullName();
+                        customerPhone = customer.getPhoneNumber();
+                        LOGGER.info("Successfully loaded customer: " + customerName);
+                    } else {
+                        LOGGER.warning("Customer not found for ID: " + payment.getCustomerId());
+                    }
+                } catch (Exception ex) {
+                    LOGGER.log(Level.SEVERE, "Error loading customer for ID " + payment.getCustomerId(), ex);
+                    throw new SQLException("Failed to load customer", ex);
                 }
 
                 request.setAttribute("payment", payment);
+                request.setAttribute("services", services);
                 request.setAttribute("customerName", customerName);
                 request.setAttribute("customerPhone", customerPhone);
 
@@ -714,7 +751,8 @@ public class PaymentController extends HttpServlet {
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "Database error loading payment edit page", ex);
             request.setAttribute("errorMessage", "Lỗi hệ thống. Vui lòng thử lại sau.");
-            request.getRequestDispatcher("/WEB-INF/view/common/error.jsp")
+            request.setAttribute("exception", ex);
+            request.getRequestDispatcher("/WEB-INF/view/common/error/500.jsp")
                     .forward(request, response);
         }
     }
