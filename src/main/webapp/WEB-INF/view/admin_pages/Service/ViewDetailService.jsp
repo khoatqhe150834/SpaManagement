@@ -129,14 +129,21 @@
                                     </c:choose>
                                     <div class="grid grid-cols-4 gap-2">
                                         <c:forEach var="img" items="${serviceImages}" varStatus="loop">
-                                            <c:choose>
-                                                <c:when test="${not empty img.url && fn:startsWith(img.url, 'http')}">
-                                                    <img src="${img.url}" alt="Thumbnail" class="w-full h-16 object-cover rounded shadow cursor-pointer hover:scale-105 transition-transform duration-200 border-2 border-transparent" onclick="changeImage(this.src, this)" />
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(img.url, '/services/')}" alt="Thumbnail" class="w-full h-16 object-cover rounded shadow cursor-pointer hover:scale-105 transition-transform duration-200 border-2 border-transparent" onclick="changeImage(this.src, this)" />
-                                                </c:otherwise>
-                                            </c:choose>
+                                            <div class="relative">
+                                                <c:choose>
+                                                    <c:when test="${not empty img.url && fn:startsWith(img.url, 'http')}">
+                                                        <img src="${img.url}" alt="Thumbnail" class="w-full h-16 object-cover rounded shadow cursor-pointer hover:scale-105 transition-transform duration-200 border-2 border-transparent" onclick="changeImage(this.src, this)" />
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(img.url, '/services/')}" alt="Thumbnail" class="w-full h-16 object-cover rounded shadow cursor-pointer hover:scale-105 transition-transform duration-200 border-2 border-transparent" onclick="changeImage(this.src, this)" />
+                                                    </c:otherwise>
+                                                </c:choose>
+                                                <c:if test="${img.isPrimary}">
+                                                    <div class="absolute top-1 left-1 bg-yellow-400 text-white text-xs font-bold px-2 py-1 rounded-full z-10 flex items-center gap-1" title="Ảnh chính">
+                                                        <i data-lucide="star" class="w-3 h-3"></i>
+                                                    </div>
+                                                </c:if>
+                                            </div>
                                         </c:forEach>
                                     </div>
                                 </c:when>
