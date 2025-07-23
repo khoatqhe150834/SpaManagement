@@ -632,13 +632,13 @@ public class InventoryManagerController extends HttpServlet {
     private void handleIssueCreateForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, SQLException {
         InventoryItemDAO itemDAO = new InventoryItemDAO();
         InventoryMasterDataDAO masterDAO = new InventoryMasterDataDAO();
-        BookingAppointmentDAO bookingAppointmentDAO = new BookingAppointmentDAO();
-        List<BookingAppointment> bookingAppointments = bookingAppointmentDAO.findAll();
+        BookingDAO bookingDAO = new BookingDAO();
+        List<Booking> booking = bookingDAO.findAll();
         List<InventoryItem> items = itemDAO.findItems(null, null, null, true, 1, 100);
         List<Supplier> suppliers = masterDAO.findSuppliers(null, true, 1, 100);
         request.setAttribute("items", items);
         request.setAttribute("suppliers", suppliers);
-        request.setAttribute("bookingAppointments", bookingAppointments);
+        request.setAttribute("bookingAppointments", booking);
         request.getRequestDispatcher("/WEB-INF/view/admin_pages/Inventory/issue_form.jsp").forward(request, response);
     }
 
