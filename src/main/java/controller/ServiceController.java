@@ -348,115 +348,122 @@ public class ServiceController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String action = request.getParameter("action");
-        if ("uploadImage".equals(action)) {
-            handleAjaxImageUpload(request, response);
-            return;
-        }
-
-        String service = request.getParameter("service");
-        ServiceDAO serviceDAO = new ServiceDAO();
-        ServiceTypeDAO typeDAO = new ServiceTypeDAO();
-
         try {
-            String serviceTypeIdStr = request.getParameter("service_type_id");
-            int serviceTypeId = Integer.parseInt(serviceTypeIdStr);
-            ServiceType serviceType = typeDAO.findById(serviceTypeId).orElse(null);
-            
-            if (serviceType == null) {
-                response.sendRedirect("service?service=list-all&toastType=error&toastMessage=Loại+dịch+vụ+không+tồn+tại");
+            String action = request.getParameter("action");
+            if ("uploadImage".equals(action)) {
+                handleAjaxImageUpload(request, response);
+                return;
+            }
+            if ("setPrimaryImage".equals(action)) {
+                handleSetPrimaryImage(request, response);
+                return;
+            }
+            if ("updateImageOrder".equals(action)) {
+                handleUpdateImageOrder(request, response);
                 return;
             }
 
-            String name = request.getParameter("name");
-            String description = request.getParameter("description");
-            BigDecimal price = new BigDecimal(request.getParameter("price"));
-            int duration = Integer.parseInt(request.getParameter("duration_minutes"));
-            int buffer = Integer.parseInt(request.getParameter("buffer_time_after_minutes"));
-            boolean isActive = request.getParameter("is_active") != null;
-            boolean bookable = request.getParameter("bookable_online") != null;
-            boolean requiresConsultation = request.getParameter("requires_consultation") != null;
+            String service = request.getParameter("service");
+            ServiceDAO serviceDAO = new ServiceDAO();
+            ServiceTypeDAO typeDAO = new ServiceTypeDAO();
 
-            Service s = new Service();
-            s.setServiceTypeId(serviceType);
-            s.setName(name);
-            s.setDescription(description);
-            s.setPrice(price);
-            s.setDurationMinutes(duration);
-            s.setBufferTimeAfterMinutes(buffer);
-            s.setIsActive(isActive);
-            s.setBookableOnline(bookable);
-            s.setRequiresConsultation(requiresConsultation);
-            s.setAverageRating(BigDecimal.ZERO);
-
-            if (service.equals("insert")) {
-                // Save service first to get the service ID
-                serviceDAO.save(s);
-                int serviceId = s.getServiceId();
-
-                // Process image uploads using modern approach
-                processServiceImages(request, serviceId);
+            try {
+                String serviceTypeIdStr = request.getParameter("service_type_id");
+                int serviceTypeId = Integer.parseInt(serviceTypeIdStr);
+                ServiceType serviceType = typeDAO.findById(serviceTypeId).orElse(null);
                 
-                String toastMessage = URLEncoder.encode("Đã tạo dịch vụ thành công", "UTF-8");
-                response.sendRedirect("service?service=list-all&toastType=success&toastMessage=" + toastMessage);
-                return;
+                if (serviceType == null) {
+                    response.sendRedirect("service?service=list-all&toastType=error&toastMessage=Loại+dịch+vụ+không+tồn+tại");
+                    return;
+                }
 
-            } else if (service.equals("update")) {
-                try {
-                    int id = Integer.parseInt(request.getParameter("id").trim());
-                    Service existingService = serviceDAO.findById(id).orElse(null);
+                String name = request.getParameter("name");
+                String description = request.getParameter("description");
+                BigDecimal price = new BigDecimal(request.getParameter("price"));
+                int duration = Integer.parseInt(request.getParameter("duration_minutes"));
+                int buffer = Integer.parseInt(request.getParameter("buffer_time_after_minutes"));
+                boolean isActive = request.getParameter("is_active") != null;
+                boolean bookable = request.getParameter("bookable_online") != null;
+                boolean requiresConsultation = request.getParameter("requires_consultation") != null;
+
+                Service s = new Service();
+                s.setServiceTypeId(serviceType);
+                s.setName(name);
+                s.setDescription(description);
+                s.setPrice(price);
+                s.setDurationMinutes(duration);
+                s.setBufferTimeAfterMinutes(buffer);
+                s.setIsActive(isActive);
+                s.setBookableOnline(bookable);
+                s.setRequiresConsultation(requiresConsultation);
+                s.setAverageRating(BigDecimal.ZERO);
+
+                if (service.equals("insert")) {
+                    // Save service first to get the service ID
+                    serviceDAO.save(s);
+                    int serviceId = s.getServiceId();
+
+                    // Process image uploads using modern approach
+                    processServiceImages(request, serviceId);
                     
-                    if (existingService == null) {
-                        String toastMessage = URLEncoder.encode("Dịch vụ không tồn tại", "UTF-8");
+                    String toastMessage = URLEncoder.encode("Đã tạo dịch vụ thành công", "UTF-8");
+                    response.sendRedirect("service?service=list-all&toastType=success&toastMessage=" + toastMessage);
+                    return;
+
+                } else if (service.equals("update")) {
+                    try {
+                        int id = Integer.parseInt(request.getParameter("id").trim());
+                        Service existingService = serviceDAO.findById(id).orElse(null);
+                        
+                        if (existingService == null) {
+                            String toastMessage = URLEncoder.encode("Dịch vụ không tồn tại", "UTF-8");
+                            response.sendRedirect("service?service=list-all&toastType=error&toastMessage=" + toastMessage);
+                            return;
+                        }
+                        
+                        s.setServiceId(id);
+                        serviceDAO.update(s);
+
+                        // Handle image deletion
+                        String[] deleteImageIds = request.getParameterValues("delete_image_ids");
+                        if (deleteImageIds != null) {
+                            ServiceImageDAO serviceImageDAO = new ServiceImageDAO();
+                            for (String imgIdStr : deleteImageIds) {
+                                try {
+                                    int imgId = Integer.parseInt(imgIdStr);
+                                    serviceImageDAO.deleteById(imgId);
+                                } catch (NumberFormatException ignored) {
+                                }
+                            }
+                        }
+
+                        // Process new image uploads
+                        processServiceImages(request, id);
+                        
+                        String toastMessage = URLEncoder.encode("Đã cập nhật dịch vụ thành công", "UTF-8");
+                        response.sendRedirect("service?service=list-all&toastType=success&toastMessage=" + toastMessage);
+                        return;
+                    } catch (NumberFormatException e) {
+                        LOGGER.warning("Invalid service ID format: " + request.getParameter("id"));
+                        String toastMessage = URLEncoder.encode("ID dịch vụ không hợp lệ", "UTF-8");
                         response.sendRedirect("service?service=list-all&toastType=error&toastMessage=" + toastMessage);
                         return;
                     }
-                    
-                    s.setServiceId(id);
-                    serviceDAO.update(s);
-
-                    // Handle image deletion
-                    String[] deleteImageIds = request.getParameterValues("delete_image_ids");
-                    if (deleteImageIds != null) {
-                        ServiceImageDAO serviceImageDAO = new ServiceImageDAO();
-                        for (String imgIdStr : deleteImageIds) {
-                            try {
-                                int imgId = Integer.parseInt(imgIdStr);
-                                serviceImageDAO.deleteById(imgId);
-                            } catch (NumberFormatException ignored) {
-                            }
-                        }
-                    }
-
-                    // Process new image uploads
-                    processServiceImages(request, id);
-                    
-                    String toastMessage = URLEncoder.encode("Đã cập nhật dịch vụ thành công", "UTF-8");
-                    response.sendRedirect("service?service=list-all&toastType=success&toastMessage=" + toastMessage);
-                    return;
-                } catch (NumberFormatException e) {
-                    LOGGER.warning("Invalid service ID format: " + request.getParameter("id"));
-                    String toastMessage = URLEncoder.encode("ID dịch vụ không hợp lệ", "UTF-8");
-                    response.sendRedirect("service?service=list-all&toastType=error&toastMessage=" + toastMessage);
-                    return;
                 }
+            } catch (IllegalStateException ex) {
+                // Lỗi vượt quá dung lượng file upload
+                String toastMessage = URLEncoder.encode("File upload vượt quá giới hạn", "UTF-8");
+                response.sendRedirect("service?service=list-all&toastType=error&toastMessage=" + toastMessage);
+                return;
             }
-        } catch (IllegalStateException ex) {
-            // Lỗi vượt quá dung lượng file upload
-            String toastMessage = URLEncoder.encode("File upload vượt quá giới hạn", "UTF-8");
-            response.sendRedirect("service?service=list-all&toastType=error&toastMessage=" + toastMessage);
-            return;
-        } catch (NumberFormatException e) {
             // Lỗi dữ liệu số không hợp lệ
             String toastMessage = URLEncoder.encode("Dữ liệu không hợp lệ", "UTF-8");
             response.sendRedirect("service?service=list-all&toastType=error&toastMessage=" + toastMessage);
             return;
         } catch (Exception e) {
-            // Lỗi không xác định
-            LOGGER.log(Level.SEVERE, "Error processing service form", e);
-            String toastMessage = URLEncoder.encode("Có lỗi xảy ra khi xử lý dữ liệu", "UTF-8");
-            response.sendRedirect("service?service=list-all&toastType=error&toastMessage=" + toastMessage);
-            return;
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write("{\"success\":false,\"message\":\"Lỗi hệ thống: " + e.getMessage().replace("\"", "'") + "\",\"errorCount\":1,\"successCount\":0,\"results\":[]}");
         }
     }
 
@@ -590,40 +597,39 @@ public class ServiceController extends HttpServlet {
             throws IOException, ServletException {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-
-        String serviceIdParam = request.getParameter("serviceId");
-        int serviceId;
         try {
-            serviceId = Integer.parseInt(serviceIdParam);
-        } catch (Exception e) {
-            response.getWriter().write("{\"success\":false,\"error\":\"ID dịch vụ không hợp lệ\"}");
-            return;
-        }
+            String serviceIdParam = request.getParameter("serviceId");
+            int serviceId;
+            try {
+                serviceId = Integer.parseInt(serviceIdParam);
+            } catch (Exception e) {
+                response.getWriter().write("{\"success\":false,\"message\":\"ID dịch vụ không hợp lệ\",\"errorCount\":1,\"successCount\":0,\"results\":[]}");
+                return;
+            }
 
-        ServiceImageDAO serviceImageDAO = new ServiceImageDAO();
-        List<ServiceImage> existingImages = serviceImageDAO.findByServiceId(serviceId);
-        if (existingImages.size() >= 5) {
-            response.getWriter().write("{\"success\":false,\"error\":\"Mỗi dịch vụ chỉ được tối đa 5 ảnh!\"}");
-            return;
-        }
+            ServiceImageDAO serviceImageDAO = new ServiceImageDAO();
+            List<ServiceImage> existingImages = serviceImageDAO.findByServiceId(serviceId);
+            if (existingImages.size() >= 5) {
+                response.getWriter().write("{\"success\":false,\"message\":\"Mỗi dịch vụ chỉ được tối đa 5 ảnh!\",\"errorCount\":1,\"successCount\":0,\"results\":[]}");
+                return;
+            }
 
-        Part filePart = request.getPart("images");
-        if (filePart == null || filePart.getSize() == 0) {
-            response.getWriter().write("{\"success\":false,\"error\":\"Không có file ảnh\"}");
-            return;
-        }
+            Part filePart = request.getPart("images");
+            if (filePart == null || filePart.getSize() == 0) {
+                response.getWriter().write("{\"success\":false,\"message\":\"Không có file ảnh\",\"errorCount\":1,\"successCount\":0,\"results\":[]}");
+                return;
+            }
 
-        try {
             // Validate file
             ImageUploadUtil.ValidationResult validation = ImageUploadUtil.validateFile(filePart);
             if (!validation.isValid()) {
-                response.getWriter().write("{\"success\":false,\"error\":\"" + validation.getErrors() + "\"}");
+                response.getWriter().write("{\"success\":false,\"message\":\"" + validation.getErrors() + "\",\"errorCount\":1,\"successCount\":0,\"results\":[]}");
                 return;
             }
             // Validate image dimensions
             ImageUploadUtil.ValidationResult dimensionValidation = ImageUploadUtil.validateImageDimensions(filePart.getInputStream());
             if (!dimensionValidation.isValid()) {
-                response.getWriter().write("{\"success\":false,\"error\":\"" + dimensionValidation.getErrors() + "\"}");
+                response.getWriter().write("{\"success\":false,\"message\":\"" + dimensionValidation.getErrors() + "\",\"errorCount\":1,\"successCount\":0,\"results\":[]}");
                 return;
             }
             // Đọc file thành byte[]
@@ -653,9 +659,69 @@ public class ServiceController extends HttpServlet {
             serviceImage.setCaption("Uploaded via ServiceController");
             serviceImage.setFileSize(fileBytes.length);
             serviceImageDAO.save(serviceImage);
-            response.getWriter().write("{\"success\":true,\"url\":\"" + fileUrl + "\"}");
+            // Build JSON response giống controller cũ
+            String json = "{" +
+                "\"success\":true," +
+                "\"message\":\"Upload thành công\"," +
+                "\"successCount\":1," +
+                "\"errorCount\":0," +
+                "\"totalFiles\":1," +
+                "\"results\":[{" +
+                    "\"success\":true," +
+                    "\"url\":\"" + fileUrl + "\"," +
+                    "\"fileName\":\"" + filePart.getSubmittedFileName() + "\"," +
+                    "\"fileSize\":" + fileBytes.length +
+                "}]" +
+            "}";
+            response.getWriter().write(json);
         } catch (Exception e) {
-            response.getWriter().write("{\"success\":false,\"error\":\"Upload thất bại: " + e.getMessage().replace("\"", "'") + "\"}");
+            response.getWriter().write("{\"success\":false,\"message\":\"Upload thất bại: " + e.getMessage().replace("\"", "'") + "\",\"errorCount\":1,\"successCount\":0,\"results\":[]}");
+        }
+    }
+
+    // Thêm hàm xử lý set primary image qua AJAX
+    private void handleSetPrimaryImage(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        try {
+            String imageIdParam = request.getParameter("imageId");
+            String serviceIdParam = request.getParameter("serviceId");
+            if (imageIdParam == null || serviceIdParam == null) {
+                response.getWriter().write("{\"success\":false,\"message\":\"Thiếu tham số\"}");
+                return;
+            }
+            int imageId = Integer.parseInt(imageIdParam);
+            int serviceId = Integer.parseInt(serviceIdParam);
+            ServiceImageDAO serviceImageDAO = new ServiceImageDAO();
+            serviceImageDAO.setPrimaryImage(imageId, serviceId);
+            response.getWriter().write("{\"success\":true,\"message\":\"Đã cập nhật ảnh chính thành công\"}");
+        } catch (Exception e) {
+            response.getWriter().write("{\"success\":false,\"message\":\"Không thể đặt ảnh chính: " + e.getMessage().replace("\"", "'") + "\"}");
+        }
+    }
+
+    // Thêm hàm xử lý update order ảnh qua AJAX
+    private void handleUpdateImageOrder(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        try {
+            String orderParam = request.getParameter("order");
+            String serviceIdParam = request.getParameter("serviceId");
+            if (orderParam == null || serviceIdParam == null) {
+                response.getWriter().write("{\"success\":false,\"message\":\"Thiếu tham số\"}");
+                return;
+            }
+            int serviceId = Integer.parseInt(serviceIdParam);
+            String[] idArr = orderParam.split(",");
+            List<Integer> imageIdList = new ArrayList<>();
+            for (String idStr : idArr) {
+                imageIdList.add(Integer.parseInt(idStr));
+            }
+            ServiceImageDAO serviceImageDAO = new ServiceImageDAO();
+            serviceImageDAO.updateSortOrder(imageIdList);
+            response.getWriter().write("{\"success\":true,\"message\":\"Cập nhật thứ tự thành công\"}");
+        } catch (Exception e) {
+            response.getWriter().write("{\"success\":false,\"message\":\"Lỗi hệ thống: " + e.getMessage() + "\"}");
         }
     }
 

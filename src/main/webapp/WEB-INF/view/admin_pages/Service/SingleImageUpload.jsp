@@ -138,47 +138,13 @@
         </div>
     </div>
 
-    <!-- Upload Section (stacked) -->
+    <!-- Thông báo trạng thái (nếu có) đặt ngay dưới tiêu đề -->
+    <c:if test="${not empty message}">
+        <div class="alert alert-success mb-4">${message}</div>
+    </c:if>
+
+    <!-- Existing Images Section (đưa lên trên) -->
     <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
-        <div class="flex items-center justify-between mb-6">
-            <h3 class="text-xl font-serif font-bold text-spa-dark flex items-center gap-2">
-                <i data-lucide="cloud-upload" class="w-6 h-6 text-primary"></i>
-                Upload Ảnh Mới
-            </h3>
-        </div>
-        <div class="image-upload-zone" id="uploadZone">
-            <i data-lucide="cloud-upload" class="text-primary w-16 h-16 mx-auto mb-4"></i>
-            <h4 class="text-lg font-semibold text-primary mb-2">Kéo & thả ảnh vào đây</h4>
-            <p class="text-gray-600 mb-6">hoặc click để chọn file</p>
-            <input type="file" id="imageInput" multiple accept="image/*" style="display: none;">
-            <button id="chooseFilesBtn" type="button" class="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors shadow-sm">
-                <i data-lucide="file-plus" class="w-5 h-5"></i>
-                Chọn file
-            </button>
-            <div class="mt-6 text-sm text-gray-500">
-                <p>Định dạng: JPG, PNG, WebP. Tối đa 2MB/file. Kích thước tối thiểu: 150x150 pixels.</p>
-                <p>Bạn có thể tải lên tối đa <b>5 ảnh</b> cho mỗi dịch vụ.</p>
-            </div>
-        </div>
-
-        <!-- Upload Progress -->
-        <div class="upload-progress" id="uploadProgress">
-            <h4 class="text-lg font-semibold mb-4 flex items-center gap-2">
-                <i data-lucide="loader-2" class="w-5 h-5 text-primary animate-spin"></i>
-                Tiến trình Upload
-            </h4>
-            <div id="progressContainer" class="space-y-3"></div>
-        </div>
-
-        <!-- Upload Results -->
-        <div id="uploadResults" class="mt-6" style="display: none;">
-            <div class="alert alert-success" id="successMessage" style="display: none;"></div>
-            <div class="alert alert-danger" id="errorMessage" style="display: none;"></div>
-        </div>
-    </div>
-
-    <!-- Existing Images Section (stacked dưới) -->
-    <div class="bg-white rounded-2xl shadow-lg p-8">
         <div class="flex items-center justify-between mb-6">
             <h3 class="text-xl font-serif font-bold text-spa-dark flex items-center gap-2">
                 <i data-lucide="gallery-horizontal" class="w-6 h-6 text-primary"></i>
@@ -269,6 +235,45 @@
                 </div>
             </div>
         </c:if>
+    </div>
+
+    <!-- Upload Section (đưa xuống dưới) -->
+    <div class="bg-white rounded-2xl shadow-lg p-8">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-serif font-bold text-spa-dark flex items-center gap-2">
+                <i data-lucide="cloud-upload" class="w-6 h-6 text-primary"></i>
+                Upload Ảnh Mới
+            </h3>
+        </div>
+        <div class="image-upload-zone" id="uploadZone">
+            <i data-lucide="cloud-upload" class="text-primary w-16 h-16 mx-auto mb-4"></i>
+            <h4 class="text-lg font-semibold text-primary mb-2">Kéo & thả ảnh vào đây</h4>
+            <p class="text-gray-600 mb-6">hoặc click để chọn file</p>
+            <input type="file" id="imageInput" multiple accept="image/*" style="display: none;">
+            <button id="chooseFilesBtn" type="button" class="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors shadow-sm">
+                <i data-lucide="file-plus" class="w-5 h-5"></i>
+                Chọn file
+            </button>
+            <div class="mt-6 text-sm text-gray-500">
+                <p>Định dạng: JPG, PNG, WebP. Tối đa 2MB/file. Kích thước tối thiểu: 150x150 pixels.</p>
+                <p>Bạn có thể tải lên tối đa <b>5 ảnh</b> cho mỗi dịch vụ.</p>
+            </div>
+        </div>
+
+        <!-- Upload Progress -->
+        <div class="upload-progress" id="uploadProgress">
+            <h4 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                <i data-lucide="loader-2" class="w-5 h-5 text-primary animate-spin"></i>
+                Tiến trình Upload
+            </h4>
+            <div id="progressContainer" class="space-y-3"></div>
+        </div>
+
+        <!-- Upload Results -->
+        <div id="uploadResults" class="mt-6" style="display: none;">
+            <div class="alert alert-success" id="successMessage" style="display: none;"></div>
+            <div class="alert alert-danger" id="errorMessage" style="display: none;"></div>
+        </div>
     </div>
 </div>
 </main>

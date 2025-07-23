@@ -77,7 +77,7 @@
             return;
         }
 
-        fetch(`${contextPath}/manager/service-images/set-primary`, {
+        fetch(`${contextPath}/manager/service?action=setPrimaryImage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: `imageId=${encodeURIComponent(imageId)}&serviceId=${encodeURIComponent(serviceId)}`
@@ -101,6 +101,7 @@
                     if (starBtn) starBtn.classList.add('hidden');
                 }
                 showMessage('Đã đổi ảnh chính thành công!', 'success');
+                setTimeout(() => window.location.reload(), 1000); // Reload sau 1s để cập nhật UI
             } else {
                 showMessage('Failed to set primary image: ' + (data.error || 'Unknown error'), 'error');
             }
@@ -217,8 +218,11 @@
             progressContainer.appendChild(createProgressItem(file.name, idx));
         });
 
-        // Sử dụng endpoint mới của ServiceController
-        fetch(`${contextPath}/manager/service?action=uploadImage`, { method:'POST', body: formData })
+        // Đổi endpoint upload ảnh sang controller mới
+        fetch(`${contextPath}/manager/service?action=uploadImage`, {
+            method: 'POST',
+            body: formData
+        })
             .then(r => {
                 if (!r.ok) {
                     return r.text().then(txt => {
@@ -236,10 +240,11 @@
         const imageIds = Array.from(items).map(i => i.dataset.imageId);
         if (!imageIds.length) return;
 
-        fetch(`${contextPath}/manager/service-images/update-order`, {
-            method:'POST',
-            headers:{ 'Content-Type':'application/x-www-form-urlencoded' },
-            body:`order=${imageIds.join(',')}`
+        // Đổi endpoint update order ảnh sang controller mới
+        fetch(`${contextPath}/manager/service?action=updateImageOrder`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `order=${imageIds.join(',')}&serviceId=${encodeURIComponent(serviceId)}`
         })
         .then(r=>r.json())
         .then(d=>{
