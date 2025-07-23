@@ -1,6 +1,7 @@
 <%@ page contentType="text/html" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <!DOCTYPE html>
 <html lang="vi" class="scroll-smooth">
 <head>
@@ -93,7 +94,14 @@
                                                 <div class="flex justify-center items-center h-16">
                                                     <c:choose>
                                                         <c:when test="${not empty stype.imageUrl}">
-                                                            <img src="${pageContext.request.contextPath}/image?type=service_type&name=${stype.imageUrl}" alt="Hình ảnh loại dịch vụ" class="w-16 h-16 object-cover rounded-xl border bg-gray-50 shadow" style="cursor:pointer" onclick="showImagePreview('${pageContext.request.contextPath}/image?type=service_type&name=${stype.imageUrl}')"/>
+                                                            <c:choose>
+                                                                <c:when test="${fn:startsWith(stype.imageUrl, 'http')}">
+                                                                    <img src="${stype.imageUrl}" alt="Hình ảnh loại dịch vụ" class="w-16 h-16 object-cover rounded-xl border bg-gray-50 shadow" style="cursor:pointer" onclick="showImagePreview('${stype.imageUrl}')"/>
+                                                                </c:when>
+                                                                <c:otherwise>
+                                                                    <img src="${pageContext.request.contextPath}/image?type=service_type&name=${stype.imageUrl}" alt="Hình ảnh loại dịch vụ" class="w-16 h-16 object-cover rounded-xl border bg-gray-50 shadow" style="cursor:pointer" onclick="showImagePreview('${pageContext.request.contextPath}/image?type=service_type&name=${stype.imageUrl}')"/>
+                                                                </c:otherwise>
+                                                            </c:choose>
                                                         </c:when>
                                                         <c:otherwise>
                                                             <img src="${pageContext.request.contextPath}/assets/images/no-image.png" alt="No image" class="w-16 h-16 object-cover rounded-xl border bg-gray-50 shadow"/>

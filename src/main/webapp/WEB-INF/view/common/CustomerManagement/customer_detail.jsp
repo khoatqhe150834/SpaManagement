@@ -130,6 +130,7 @@
                                         <i data-lucide="gift" class="w-4 h-4"></i>
                                         <span class="text-sm"><fmt:formatNumber value="${customer.loyaltyPoints}" type="number"/> điểm</span>
                                     </div>
+
                                 </div>
                             </div>
                         </div>

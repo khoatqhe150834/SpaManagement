@@ -36,7 +36,6 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         customer.setBirthday(rs.getDate("birthday"));
         customer.setAddress(rs.getString("address"));
         customer.setIsActive(rs.getBoolean("is_active"));
-        customer.setLoyaltyPoints(rs.getInt("loyalty_points"));
         // Handle nullable role_id field
         customer.setRoleId(rs.getObject("role_id") != null ? rs.getInt("role_id") : null);
         // Handle nullable timestamp fields
@@ -209,7 +208,7 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
             }
         }
 
-        String sql = "INSERT INTO customers (full_name, email, hash_password, phone_number, role_id, is_active, loyalty_points, is_verified, created_at, updated_at, notes, gender, birthday, address, avatar_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO customers (full_name, email, hash_password, phone_number, role_id, is_active, is_verified, created_at, updated_at, notes, gender, birthday, address, avatar_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DBContext.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, customer.getFullName());
@@ -225,15 +224,14 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
             ps.setString(4, customer.getPhoneNumber());
             ps.setObject(5, customer.getRoleId());
             ps.setBoolean(6, customer.getIsActive() != null ? customer.getIsActive() : true);
-            ps.setInt(7, customer.getLoyaltyPoints() != null ? customer.getLoyaltyPoints() : 0);
-            ps.setBoolean(8, customer.getIsVerified() != null ? customer.getIsVerified() : false);
+            ps.setBoolean(7, customer.getIsVerified() != null ? customer.getIsVerified() : false);
+            ps.setTimestamp(8, Timestamp.valueOf(java.time.LocalDateTime.now()));
             ps.setTimestamp(9, Timestamp.valueOf(java.time.LocalDateTime.now()));
-            ps.setTimestamp(10, Timestamp.valueOf(java.time.LocalDateTime.now()));
-            ps.setString(11, customer.getNotes());
-            ps.setString(12, customer.getGender());
-            ps.setDate(13, customer.getBirthday() != null ? new java.sql.Date(customer.getBirthday().getTime()) : null);
-            ps.setString(14, customer.getAddress());
-            ps.setString(15, customer.getAvatarUrl());
+            ps.setString(10, customer.getNotes());
+            ps.setString(11, customer.getGender());
+            ps.setDate(12, customer.getBirthday() != null ? new java.sql.Date(customer.getBirthday().getTime()) : null);
+            ps.setString(13, customer.getAddress());
+            ps.setString(14, customer.getAvatarUrl());
             
             int rows = ps.executeUpdate();
             if (rows > 0) {
@@ -353,7 +351,7 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
             throw new IllegalArgumentException("Tên khách hàng là bắt buộc");
         }
 
-        String sql = "UPDATE customers SET full_name=?, email=?, phone_number=?, gender=?, birthday=?, address=?, is_active=?, loyalty_points=?, role_id=?, is_verified=?, updated_at=?, avatar_url=?, notes=? WHERE customer_id=?";
+        String sql = "UPDATE customers SET full_name=?, email=?, phone_number=?, gender=?, birthday=?, address=?, is_active=?, role_id=?, is_verified=?, updated_at=?, avatar_url=?, notes=? WHERE customer_id=?";
         
         // DEBUG LOGGING
         Logger.getLogger(CustomerDAO.class.getName()).log(Level.INFO, "=== DAO UPDATE DEBUG ===");
@@ -372,13 +370,12 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
             ps.setDate(5, customer.getBirthday() != null ? new java.sql.Date(customer.getBirthday().getTime()) : null);
             ps.setString(6, customer.getAddress());
             ps.setBoolean(7, customer.getIsActive() != null ? customer.getIsActive() : true);
-            ps.setInt(8, customer.getLoyaltyPoints() != null ? customer.getLoyaltyPoints() : 0);
-            ps.setObject(9, customer.getRoleId());
-            ps.setBoolean(10, customer.getIsVerified() != null ? customer.getIsVerified() : false);
-            ps.setTimestamp(11, Timestamp.valueOf(java.time.LocalDateTime.now()));
-            ps.setString(12, customer.getAvatarUrl());
-            ps.setString(13, customer.getNotes());
-            ps.setInt(14, customer.getCustomerId());
+            ps.setObject(8, customer.getRoleId());
+            ps.setBoolean(9, customer.getIsVerified() != null ? customer.getIsVerified() : false);
+            ps.setTimestamp(10, Timestamp.valueOf(java.time.LocalDateTime.now()));
+            ps.setString(11, customer.getAvatarUrl());
+            ps.setString(12, customer.getNotes());
+            ps.setInt(13, customer.getCustomerId());
             
             int rowsAffected = ps.executeUpdate();
             if (rowsAffected > 0) {
@@ -597,9 +594,12 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
 
         // 2. Modify the customer's data
         String newAddress = "123 Đường Cập Nhật, Quận Hoàn Kiếm, Hà Nội";
+        int newLoyaltyPoints = customerToUpdate.getLoyaltyPoints() + 100;
         customerToUpdate.setAddress(newAddress);
+        customerToUpdate.setLoyaltyPoints(newLoyaltyPoints);
 
-        System.out.println("\n... Attempting to update address to '" + newAddress + " ...");
+        System.out.println("\n... Attempting to update address to '" + newAddress + "' and loyalty points to "
+                + newLoyaltyPoints + " ...");
 
         // 3. Call the update method to save changes
         customerDAO.update(customerToUpdate);
@@ -697,7 +697,7 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
             ps.setString(6, customer.getAddress());
             ps.setBoolean(7, customer.isActive());
             ps.setBoolean(8, customer.isVerified());
-            ps.setInt(9, customer.getLoyaltyPoints() != null ? customer.getLoyaltyPoints() : 0);
+            ps.setInt(9, customer.getLoyaltyPoints());
             ps.setTimestamp(10, new Timestamp(System.currentTimeMillis())); // Set updated_at to the current time
             ps.setInt(11, customer.getCustomerId());
 
@@ -1680,19 +1680,6 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error deleting customer: " + customerId, e);
             return false;
-        }
-    }
-
-    // Cập nhật tier cho khách hàng
-    public void updateTier(int customerId, String tier) {
-        String sql = "UPDATE customers SET tier = ? WHERE customer_id = ?";
-        try (Connection conn = db.DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, tier);
-            ps.setInt(2, customerId);
-            ps.executeUpdate();
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 

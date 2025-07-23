@@ -132,10 +132,12 @@
                     <div class="p-6 border-b border-gray-200">
                         <form method="GET" action="${pageContext.request.contextPath}/customer-management/list" class="flex flex-wrap items-center gap-3 mb-4">
                             <select name="pageSize" class="w-auto h-10 pl-3 pr-8 text-base border rounded-lg" onchange="this.form.submit()">
+                                <option value="5" ${pageSize == 5 ? 'selected' : ''}>5</option>
                                 <option value="10" ${pageSize == 10 ? 'selected' : ''}>10</option>
                                 <option value="20" ${pageSize == 20 ? 'selected' : ''}>20</option>
                                 <option value="50" ${pageSize == 50 ? 'selected' : ''}>50</option>
                                 <option value="100" ${pageSize == 100 ? 'selected' : ''}>100</option>
+                                <option value="99999" ${pageSize == 99999 ? 'selected' : ''}>All</option>
                             </select>
                             
                             <input type="text" name="searchValue" value="${searchValue}" placeholder="Tìm kiếm khách hàng..."
@@ -151,6 +153,19 @@
                                 <option value="">Tất cả xác thực</option>
                                 <option value="true" ${verification == 'true' ? 'selected' : ''}>Đã xác thực</option>
                                 <option value="false" ${verification == 'false' ? 'selected' : ''}>Chưa xác thực</option>
+                            </select>
+
+                            <!-- Dropdown trường sắp xếp -->
+                            <select name="sortBy" class="h-10 pl-3 pr-8 text-base border rounded-lg" onchange="this.form.submit()">
+                                <option value="customerId" ${sortBy == 'customerId' ? 'selected' : ''}>ID</option>
+                                <option value="fullName" ${sortBy == 'fullName' ? 'selected' : ''}>Tên</option>
+                                                                        <option value="createdAt" ${sortBy == 'createdAt' ? 'selected' : ''}>Ngày tạo</option>
+                                        <option value="loyaltyPoints" ${sortBy == 'loyaltyPoints' ? 'selected' : ''}>Điểm thưởng</option>
+                                    </select>
+                            <!-- Dropdown chiều sắp xếp -->
+                            <select name="sortOrder" class="h-10 pl-3 pr-8 text-base border rounded-lg" onchange="this.form.submit()">
+                                <option value="asc" ${sortOrder == 'asc' ? 'selected' : ''}>Tăng dần</option>
+                                <option value="desc" ${sortOrder == 'desc' ? 'selected' : ''}>Giảm dần</option>
                             </select>
                             
                             <button type="submit" class="h-10 px-6 bg-primary text-white rounded-lg hover:bg-primary-dark font-medium">
@@ -191,46 +206,16 @@
                                         <input type="checkbox" id="selectAll" class="rounded border-gray-300">
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        <div class="flex items-center gap-2">
-                                            <span>Thông tin khách hàng</span>
-                                            <div class="flex flex-col">
-                                                <button onclick="sortTable('fullName', 'asc')" class="sort-btn ${sortBy == 'fullName' && sortOrder == 'asc' ? 'text-primary' : 'text-gray-400'} hover:text-primary">
-                                                    <i data-lucide="chevron-up" class="w-3 h-3"></i>
-                                                </button>
-                                                <button onclick="sortTable('fullName', 'desc')" class="sort-btn ${sortBy == 'fullName' && sortOrder == 'desc' ? 'text-primary' : 'text-gray-400'} hover:text-primary">
-                                                    <i data-lucide="chevron-down" class="w-3 h-3"></i>
-                                                </button>
-                                            </div>
-                                        </div>
+                                        Thông tin khách hàng
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        <div class="flex items-center gap-2">
-                                            <span>Liên hệ</span>
-                                            <div class="flex flex-col">
-                                                <button onclick="sortTable('email', 'asc')" class="sort-btn ${sortBy == 'email' && sortOrder == 'asc' ? 'text-primary' : 'text-gray-400'} hover:text-primary">
-                                                    <i data-lucide="chevron-up" class="w-3 h-3"></i>
-                                                </button>
-                                                <button onclick="sortTable('email', 'desc')" class="sort-btn ${sortBy == 'email' && sortOrder == 'desc' ? 'text-primary' : 'text-gray-400'} hover:text-primary">
-                                                    <i data-lucide="chevron-down" class="w-3 h-3"></i>
-                                                </button>
-                                            </div>
-                                        </div>
+                                        Liên hệ
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Trạng thái
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        <div class="flex items-center gap-2">
-                                            <span>Điểm tích lũy</span>
-                                            <div class="flex flex-col">
-                                                <button onclick="sortTable('loyaltyPoints', 'asc')" class="sort-btn ${sortBy == 'loyaltyPoints' && sortOrder == 'asc' ? 'text-primary' : 'text-gray-400'} hover:text-primary">
-                                                    <i data-lucide="chevron-up" class="w-3 h-3"></i>
-                                                </button>
-                                                <button onclick="sortTable('loyaltyPoints', 'desc')" class="sort-btn ${sortBy == 'loyaltyPoints' && sortOrder == 'desc' ? 'text-primary' : 'text-gray-400'} hover:text-primary">
-                                                    <i data-lucide="chevron-down" class="w-3 h-3"></i>
-                                                </button>
-                                            </div>
-                                        </div>
+                                        Điểm tích lũy
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Hành động
@@ -324,139 +309,83 @@
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <div class="flex items-center gap-2">
+                                            <div class="flex items-center justify-center gap-2">
                                                 <!-- View Details -->
                                                 <a href="${pageContext.request.contextPath}/customer-management/view?id=${customer.customerId}" 
-                                                   class="text-blue-600 hover:text-blue-900 p-1 rounded" title="Xem chi tiết">
-                                                    <i data-lucide="eye" class="w-4 h-4"></i>
+                                                   class="p-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-full transition-colors" title="Xem chi tiết">
+                                                    <i data-lucide="eye" class="w-5 h-5"></i>
                                                 </a>
-                                                
                                                 <!-- Edit -->
                                                 <a href="${pageContext.request.contextPath}/customer-management/edit?id=${customer.customerId}" 
-                                                   class="text-green-600 hover:text-green-900 p-1 rounded" title="Chỉnh sửa">
-                                                    <i data-lucide="edit" class="w-4 h-4"></i>
+                                                   class="p-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-full transition-colors" title="Chỉnh sửa">
+                                                    <i data-lucide="edit" class="w-5 h-5"></i>
                                                 </a>
-                                                
-                                                <!-- Quick Actions Dropdown -->
-                                                <div class="relative" x-data="{ open: false }">
-                                                    <button @click="open = !open" class="text-gray-600 hover:text-gray-900 p-1 rounded" title="Thêm hành động">
-                                                        <i data-lucide="more-vertical" class="w-4 h-4"></i>
-                                                    </button>
-                                                    
-                                                    <div x-show="open" @click.away="open = false" 
-                                                         class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
-                                                        <div class="py-1">
-                                                            <c:if test="${isAdmin || isManager}">
-                                                                <c:choose>
-                                                                    <c:when test="${customer.isActive}">
-                                                                        <a href="${pageContext.request.contextPath}/customer-management/deactivate?id=${customer.customerId}" 
-                                                                           class="block px-4 py-2 text-sm text-red-700 hover:bg-red-50" 
-                                                                           onclick="return confirm('Bạn có chắc muốn khóa tài khoản này?')">
-                                                                            <i data-lucide="user-x" class="w-4 h-4 mr-2 inline"></i>
-                                                                            Khóa tài khoản
-                                                                        </a>
-                                                                    </c:when>
-                                                                    <c:otherwise>
-                                                                        <a href="${pageContext.request.contextPath}/customer-management/activate?id=${customer.customerId}" 
-                                                                           class="block px-4 py-2 text-sm text-green-700 hover:bg-green-50">
-                                                                            <i data-lucide="user-check" class="w-4 h-4 mr-2 inline"></i>
-                                                                            Kích hoạt tài khoản
-                                                                        </a>
-                                                                    </c:otherwise>
-                                                                </c:choose>
-                                                            </c:if>
-                                                            
-                                                            <c:if test="${not empty customer.email}">
-                                                                <c:choose>
-                                                                    <c:when test="${customer.isVerified}">
-                                                                        <a href="${pageContext.request.contextPath}/customer-management/unverify?id=${customer.customerId}" 
-                                                                           class="block px-4 py-2 text-sm text-orange-700 hover:bg-orange-50">
-                                                                            <i data-lucide="mail-x" class="w-4 h-4 mr-2 inline"></i>
-                                                                            Hủy xác thực email
-                                                                        </a>
-                                                                    </c:when>
-                                                                    <c:otherwise>
-                                                                        <a href="${pageContext.request.contextPath}/customer-management/verify?id=${customer.customerId}" 
-                                                                           class="block px-4 py-2 text-sm text-blue-700 hover:bg-blue-50">
-                                                                            <i data-lucide="mail-check" class="w-4 h-4 mr-2 inline"></i>
-                                                                            Xác thực email
-                                                                        </a>
-                                                                    </c:otherwise>
-                                                                </c:choose>
-                                                            </c:if>
-                                                            
-                                                            <a href="${pageContext.request.contextPath}/customer-management/quick-reset-password?id=${customer.customerId}" 
-                                                               class="block px-4 py-2 text-sm text-purple-700 hover:bg-purple-50" 
-                                                               onclick="return confirm('Bạn có chắc muốn đặt lại mật khẩu cho khách hàng này?')">
-                                                                <i data-lucide="key" class="w-4 h-4 mr-2 inline"></i>
-                                                                Đặt lại mật khẩu
+                                                <!-- Khóa/Mở khóa -->
+                                                <c:if test="${isAdmin || isManager}">
+                                                    <c:choose>
+                                                        <c:when test="${customer.isActive}">
+                                                            <a href="${pageContext.request.contextPath}/customer-management/deactivate?id=${customer.customerId}"
+                                                               onclick="return confirm('Bạn có chắc muốn khóa tài khoản này?')"
+                                                               class="p-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-full transition-colors" title="Khóa tài khoản">
+                                                                <i data-lucide="ban" class="w-5 h-5"></i>
                                                             </a>
-                                                            
-                                                            <c:if test="${isAdmin}">
-                                                                <hr class="my-1">
-                                                                <form action="${pageContext.request.contextPath}/customer-management/delete" method="post" class="inline">
-                                                                    <input type="hidden" name="id" value="${customer.customerId}">
-                                                                    <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-red-50" 
-                                                                            onclick="return confirm('Bạn có chắc muốn XÓA VĨNH VIỄN khách hàng này? Hành động này không thể hoàn tác!')">
-                                                                        <i data-lucide="trash-2" class="w-4 h-4 mr-2 inline"></i>
-                                                                        Xóa khách hàng
-                                                                    </button>
-                                                                </form>
-                                                            </c:if>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <a href="${pageContext.request.contextPath}/customer-management/activate?id=${customer.customerId}"
+                                                               onclick="return confirm('Bạn có chắc muốn mở khóa tài khoản này?')"
+                                                               class="p-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-full transition-colors" title="Mở khóa tài khoản">
+                                                                <i data-lucide="refresh-ccw" class="w-5 h-5"></i>
+                                                            </a>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </c:if>
+                                                <!-- Xác thực email -->
+                                                <c:if test="${not customer.isVerified}">
+                                                    <a href="${pageContext.request.contextPath}/customer-management/verify-email?id=${customer.customerId}"
+                                                       onclick="return confirm('Xác thực email cho khách hàng này?')"
+                                                       class="p-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 rounded-full transition-colors" title="Xác thực email">
+                                                        <i data-lucide="mail-check" class="w-5 h-5"></i>
+                                                    </a>
+                                                </c:if>
                                             </div>
                                         </td>
                                     </tr>
                                 </c:forEach>
                             </tbody>
+                            
+                                <div class="flex justify-end mb-2">
+                        <c:if test="${totalPages > 1}">
+                            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                                <c:if test="${currentPage > 1}">
+                                    <a href="?page=${currentPage - 1}&pageSize=${pageSize}&sortBy=${sortBy}&sortOrder=${sortOrder}&searchValue=${searchValue}&status=${status}&verification=${verification}"
+                                       class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                        <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                                    </a>
+                                </c:if>
+                                <c:forEach begin="1" end="${totalPages}" var="pageNum">
+                                    <c:choose>
+                                        <c:when test="${pageNum == currentPage}">
+                                            <span class="relative inline-flex items-center px-4 py-2 border border-primary bg-primary text-sm font-medium text-white">${pageNum}</span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <a href="?page=${pageNum}&pageSize=${pageSize}&sortBy=${sortBy}&sortOrder=${sortOrder}&searchValue=${searchValue}&status=${status}&verification=${verification}"
+                                               class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">${pageNum}</a>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </c:forEach>
+                                <c:if test="${currentPage < totalPages}">
+                                    <a href="?page=${currentPage + 1}&pageSize=${pageSize}&sortBy=${sortBy}&sortOrder=${sortOrder}&searchValue=${searchValue}&status=${status}&verification=${verification}"
+                                       class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                        <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                                    </a>
+                                </c:if>
+                            </nav>
+                        </c:if>
+                    </div>
                         </table>
                     </div>
 
-                    <!-- Pagination -->
-                    <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
-                        <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
-                            <div class="text-sm text-gray-700">
-                                Hiển thị <span class="font-medium">${startItem}</span> đến <span class="font-medium">${endItem}</span> 
-                                của <span class="font-medium">${totalCustomers}</span> khách hàng
-                            </div>
-                            
-                            <c:if test="${totalPages > 1}">
-                                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                                    <c:if test="${currentPage > 1}">
-                                        <a href="?page=${currentPage - 1}&pageSize=${pageSize}&searchValue=${searchValue}&status=${status}&verification=${verification}&sortBy=${sortBy}&sortOrder=${sortOrder}" 
-                                           class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                                            <i data-lucide="chevron-left" class="w-4 h-4"></i>
-                                        </a>
-                                    </c:if>
-                                    
-                                    <c:forEach begin="1" end="${totalPages}" var="page">
-                                        <c:choose>
-                                            <c:when test="${page == currentPage}">
-                                                <span class="relative inline-flex items-center px-4 py-2 border border-primary bg-primary text-sm font-medium text-white">
-                                                    ${page}
-                                                </span>
-                                            </c:when>
-                                            <c:otherwise>
-                                                <a href="?page=${page}&pageSize=${pageSize}&searchValue=${searchValue}&status=${status}&verification=${verification}&sortBy=${sortBy}&sortOrder=${sortOrder}" 
-                                                   class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
-                                                    ${page}
-                                                </a>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </c:forEach>
-                                    
-                                    <c:if test="${currentPage < totalPages}">
-                                        <a href="?page=${currentPage + 1}&pageSize=${pageSize}&searchValue=${searchValue}&status=${status}&verification=${verification}&sortBy=${sortBy}&sortOrder=${sortOrder}" 
-                                           class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                                            <i data-lucide="chevron-right" class="w-4 h-4"></i>
-                                        </a>
-                                    </c:if>
-                                </nav>
-                            </c:if>
-                        </div>
-                    </div>
+             
                 </div>
             </div>
         </main>

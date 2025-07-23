@@ -21,7 +21,9 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Customer;
+import model.CustomerTier;
 import model.RoleConstants;
+import service.RewardPointService;
 import service.email.AsyncEmailService;
 import util.AuthenticationContext;
 
@@ -207,6 +209,8 @@ public class CustomerManagementController extends HttpServlet {
             String status = request.getParameter("status");
             String verification = request.getParameter("verification");
             String searchValue = request.getParameter("searchValue");
+
+            // Lấy sortBy và sortOrder trực tiếp từ form
             String sortBy = Optional.ofNullable(request.getParameter("sortBy")).orElse("fullName");
             String sortOrder = Optional.ofNullable(request.getParameter("sortOrder")).orElse("asc");
 
@@ -306,6 +310,13 @@ public class CustomerManagementController extends HttpServlet {
                 
                 request.setAttribute("promotionSummary", promotionSummary);
                 request.setAttribute("customerPromotions", customerPromotions);
+
+                // Ví dụ trong một method xử lý trang chi tiết khách hàng:
+                RewardPointService rewardPointService = new RewardPointService();
+                int points = rewardPointService.getPoints(customerId);
+                CustomerTier tier = rewardPointService.getTier(customerId);
+                request.setAttribute("points", points);
+                request.setAttribute("tier", tier.getLabel());
 
                 // Pass role information to JSP for conditional display
                 request.setAttribute("isAdmin", AuthenticationContext.hasRole(request, RoleConstants.ADMIN_ID));
@@ -435,8 +446,20 @@ public class CustomerManagementController extends HttpServlet {
 
             Optional<Customer> customerOpt = customerDAO.findById(customerId);
             if (customerOpt.isPresent()) {
-                request.setAttribute("customer", customerOpt.get());
-                
+                Customer customer = customerOpt.get();
+                request.setAttribute("customer", customer);
+                // Truyền ngày tạo đúng kiểu cho JSP
+                if (customer.getCreatedAt() != null) {
+                    request.setAttribute("createdAtDate", java.sql.Timestamp.valueOf(customer.getCreatedAt()));
+                } else {
+                    request.setAttribute("createdAtDate", null);
+                }
+                // Truyền ngày cập nhật đúng kiểu cho JSP
+                if (customer.getUpdatedAt() != null) {
+                    request.setAttribute("updatedAtDate", java.sql.Timestamp.valueOf(customer.getUpdatedAt()));
+                } else {
+                    request.setAttribute("updatedAtDate", null);
+                }
                 // Pass role information to JSP for conditional display
                 request.setAttribute("isAdmin", AuthenticationContext.hasRole(request, RoleConstants.ADMIN_ID));
                 request.setAttribute("isManager", AuthenticationContext.hasRole(request, RoleConstants.MANAGER_ID));

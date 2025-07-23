@@ -2,6 +2,7 @@ package util;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.sql.Connection;
 
 public class DatabaseConfig {
 
@@ -79,5 +80,9 @@ public class DatabaseConfig {
       return "com.mysql.cj.jdbc.Driver";
     }
   }
+
+    public static Connection getConnection() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
 
 }

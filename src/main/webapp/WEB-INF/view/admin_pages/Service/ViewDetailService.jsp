@@ -157,7 +157,7 @@
                     </div>
                     <!-- Footer buttons -->
                     <div class="flex flex-col sm:flex-row justify-between items-center gap-3 mt-8">
-                        <a href="service?service=list-all&page=${page}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}${not empty serviceTypeId ? '&serviceTypeId='.concat(serviceTypeId) : ''}" class="inline-flex items-center gap-2 px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+                        <a href="service?service=list-all&page=${param.page}&limit=${param.limit}${not empty param.keyword ? '&keyword='.concat(param.keyword) : ''}${not empty param.status ? '&status='.concat(param.status) : ''}${not empty param.serviceTypeId ? '&serviceTypeId='.concat(param.serviceTypeId) : ''}" class="inline-flex items-center gap-2 px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
                             <i data-lucide="arrow-left" class="w-5 h-5"></i> Quay lại
                         </a>
                         <a href="service?service=pre-update&id=${service.serviceId}&page=${page}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}${not empty serviceTypeId ? '&serviceTypeId='.concat(serviceTypeId) : ''}" class="inline-flex items-center gap-2 px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition">

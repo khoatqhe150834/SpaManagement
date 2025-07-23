@@ -15,6 +15,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import model.Service;
+import util.ImageUploadUtil;
+import util.CloudinaryConfig;
 
 @WebServlet(name = "ServiceTypeController", urlPatterns = { "/manager/servicetype" })
 @MultipartConfig(fileSizeThreshold = 0, maxFileSize = 2097152, // 2MB
@@ -222,22 +224,60 @@ public class ServiceTypeController extends HttpServlet {
         String service = request.getParameter("service");
 
         if (service.equals("insert") || service.equals("update")) {
-            // Xử lý upload file
             Part filePart = request.getPart("image");
             String fileName = getSubmittedFileName(filePart);
 
-            String imageUrl = request.getParameter("image_url"); // Giá trị mặc định là ảnh cũ hoặc nhập tay
+            String imageUrl = request.getParameter("image_url"); // Default: old image or manual input
+            boolean isUpdate = service.equals("update");
+            Integer serviceTypeId = null;
+            if (isUpdate) {
+                serviceTypeId = Integer.parseInt(request.getParameter("id"));
+            }
+            // Validate and upload to Cloudinary if a new file is provided
             if (fileName != null && !fileName.isEmpty() && filePart.getSize() > 0) {
-                // Chuẩn hóa tên file: chỉ cho phép chữ, số, dấu chấm, gạch dưới, gạch ngang
-                fileName = fileName.replaceAll("[^a-zA-Z0-9._-]", "_");
-                String uniqueFileName = System.currentTimeMillis() + "_" + fileName;
-                String uploadPath = "D:/spa-uploads/service-types/";
-                File uploadDir = new File(uploadPath);
-                if (!uploadDir.exists()) {
-                    uploadDir.mkdirs();
+                // Validate file
+                util.ImageUploadUtil.ValidationResult validation = util.ImageUploadUtil.validateFile(filePart);
+                if (!validation.isValid()) {
+                    request.setAttribute("toastType", "error");
+                    request.setAttribute("toastMessage", validation.getErrorsAsString());
+                    request.getRequestDispatcher("/WEB-INF/view/admin_pages/Service_Type/AddServiceType.jsp").forward(request, response);
+                    return;
                 }
-                filePart.write(uploadPath + File.separator + uniqueFileName);
-                imageUrl = uniqueFileName; // Lưu vào DB chỉ tên file
+                // Validate image dimensions
+                util.ImageUploadUtil.ValidationResult dimensionValidation = util.ImageUploadUtil.validateImageDimensions(filePart.getInputStream());
+                if (!dimensionValidation.isValid()) {
+                    request.setAttribute("toastType", "error");
+                    request.setAttribute("toastMessage", dimensionValidation.getErrorsAsString());
+                    request.getRequestDispatcher("/WEB-INF/view/admin_pages/Service_Type/AddServiceType.jsp").forward(request, response);
+                    return;
+                }
+                // If update, delete old Cloudinary image if exists
+                if (isUpdate && imageUrl != null && imageUrl.contains("cloudinary.com")) {
+                    try {
+                        util.CloudinaryConfig.deleteImageByUrl(imageUrl);
+                    } catch (Exception e) {
+                        // Log and continue
+                    }
+                }
+                // Upload to Cloudinary
+                byte[] fileBytes;
+                try (java.io.InputStream inputStream = filePart.getInputStream();
+                     java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream()) {
+                    byte[] buffer = new byte[8192];
+                    int bytesRead;
+                    while ((bytesRead = inputStream.read(buffer)) != -1) {
+                        baos.write(buffer, 0, bytesRead);
+                    }
+                    fileBytes = baos.toByteArray();
+                }
+                String publicId;
+                if (isUpdate && serviceTypeId != null) {
+                    publicId = "service-types/" + serviceTypeId + "/" + java.util.UUID.randomUUID();
+                } else {
+                    publicId = "service-types/" + java.util.UUID.randomUUID();
+                }
+                java.util.Map<String, Object> uploadResult = util.CloudinaryConfig.uploadImage(fileBytes, publicId);
+                imageUrl = (String) uploadResult.get("secure_url"); // Save Cloudinary URL
             }
 
             String name = request.getParameter("name");
@@ -245,8 +285,8 @@ public class ServiceTypeController extends HttpServlet {
             boolean isActive = request.getParameter("is_active") != null;
 
             ServiceType st = new ServiceType();
-            if (service.equals("update")) {
-                st.setServiceTypeId(Integer.parseInt(request.getParameter("id")));
+            if (isUpdate) {
+                st.setServiceTypeId(serviceTypeId);
             }
             st.setName(name);
             st.setDescription(description);

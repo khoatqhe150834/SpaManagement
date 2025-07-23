@@ -76,7 +76,7 @@ import="java.util.Calendar" %> <%@ page import="java.text.SimpleDateFormat" %>
           </li>
           <li>
             <a
-              href="${pageContext.request.contextPath}/customer/loyalty"
+              href="${pageContext.request.contextPath}/customer/profile"
               class="text-gray-300 hover:text-white transition-colors"
               >Thành viên VIP</a
             >

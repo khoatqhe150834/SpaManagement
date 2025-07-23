@@ -363,8 +363,8 @@
                                             <span class="text-sm text-gray-600">Ngày tạo:</span>
                                             <span class="text-sm text-gray-900">
                                                 <c:choose>
-                                                    <c:when test="${not empty customer.createdAt}">
-                                                        <fmt:formatDate value="${customer.createdAt}" pattern="dd/MM/yyyy"/>
+                                                    <c:when test="${not empty createdAtDate}">
+                                                        <fmt:formatDate value="${createdAtDate}" pattern="dd/MM/yyyy"/>
                                                     </c:when>
                                                     <c:otherwise>Không xác định</c:otherwise>
                                                 </c:choose>
@@ -374,8 +374,8 @@
                                             <span class="text-sm text-gray-600">Lần cập nhật cuối:</span>
                                             <span class="text-sm text-gray-900">
                                                 <c:choose>
-                                                    <c:when test="${not empty customer.updatedAt}">
-                                                        <fmt:formatDate value="${customer.updatedAt}" pattern="dd/MM/yyyy"/>
+                                                    <c:when test="${not empty updatedAtDate}">
+                                                        <fmt:formatDate value="${updatedAtDate}" pattern="dd/MM/yyyy"/>
                                                     </c:when>
                                                     <c:otherwise>Không xác định</c:otherwise>
                                                 </c:choose>
