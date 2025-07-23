@@ -83,11 +83,12 @@
             right: 8px;
             display: flex;
             gap: 4px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            opacity: 1; /* Luôn hiển thị */
+            transition: none;
+            z-index: 10; /* Đảm bảo nổi trên ảnh */
         }
-        .image-preview-item:hover .image-preview-actions {
-            opacity: 1;
+        .image-preview-actions button {
+            z-index: 11;
         }
         .upload-progress {
             display: none;
@@ -117,7 +118,7 @@
 <div class="flex">
 <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
 <main class="flex-1 py-12 lg:py-20 ml-64">
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
     <!-- Header Section - theo phong cách ServiceManager.jsp -->
     <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
         <div class="flex flex-col gap-2">
@@ -129,7 +130,7 @@
                 Tải lên ảnh cho dịch vụ: <span class="font-semibold text-primary">${service.name}</span>
             </div>
             <div class="mt-4">
-                <a href="${pageContext.request.contextPath}/manager/service" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                <a href="${pageContext.request.contextPath}/manager/service?service=list-all&page=${page}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}${not empty serviceTypeId ? '&serviceTypeId='.concat(serviceTypeId) : ''}" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
                     <i data-lucide="arrow-left" class="w-4 h-4"></i>
                     Quay về
                 </a>
@@ -137,176 +138,157 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <!-- Upload Section -->
-        <div>
-            <div class="bg-white rounded-2xl shadow-lg p-8">
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-xl font-serif font-bold text-spa-dark flex items-center gap-2">
-                        <i data-lucide="cloud-upload" class="w-6 h-6 text-primary"></i>
-                        Upload Ảnh Mới
-                    </h3>
-                </div>
-                <div class="image-upload-zone" id="uploadZone">
-                    <i data-lucide="cloud-upload" class="text-primary w-16 h-16 mx-auto mb-4"></i>
-                    <h4 class="text-lg font-semibold text-primary mb-2">Kéo & thả ảnh vào đây</h4>
-                    <p class="text-gray-600 mb-6">hoặc click để chọn file</p>
-                    <input type="file" id="imageInput" multiple accept="image/*" style="display: none;">
-                    <button id="chooseFilesBtn" type="button" class="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors shadow-sm">
-                        <i data-lucide="file-plus" class="w-5 h-5"></i>
-                        Chọn file
-                    </button>
-                    <div class="mt-6 text-sm text-gray-500">
-                        <p>Định dạng: JPG, PNG, WebP</p>
-                        <p>Tối đa 2MB/file. Kích thước tối thiểu: 150x150 pixels</p>
-                    </div>
-                </div>
+    <!-- Thông báo trạng thái (nếu có) đặt ngay dưới tiêu đề -->
+    <c:if test="${not empty message}">
+        <div class="alert alert-success mb-4">${message}</div>
+    </c:if>
 
-                <!-- Upload Progress -->
-                <div class="upload-progress" id="uploadProgress">
-                    <h4 class="text-lg font-semibold mb-4 flex items-center gap-2">
-                        <i data-lucide="loader-2" class="w-5 h-5 text-primary animate-spin"></i>
-                        Tiến trình Upload
-                    </h4>
-                    <div id="progressContainer" class="space-y-3"></div>
-                </div>
-
-                <!-- Upload Results -->
-                <div id="uploadResults" class="mt-6" style="display: none;">
-                    <div class="alert alert-success" id="successMessage" style="display: none;"></div>
-                    <div class="alert alert-danger" id="errorMessage" style="display: none;"></div>
-                </div>
-            </div>
+    <!-- Existing Images Section (đưa lên trên) -->
+    <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-serif font-bold text-spa-dark flex items-center gap-2">
+                <i data-lucide="gallery-horizontal" class="w-6 h-6 text-primary"></i>
+                Ảnh Hiện Tại (${existingImages.size()})
+            </h3>
+            <button type="button" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors" onclick="refreshImages()">
+                <i data-lucide="refresh-ccw" class="w-4 h-4"></i>
+                Làm mới
+            </button>
         </div>
-
-        <!-- Existing Images Section -->
-        <div>
-            <div class="bg-white rounded-2xl shadow-lg p-8">
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-xl font-serif font-bold text-spa-dark flex items-center gap-2">
-                        <i data-lucide="gallery-horizontal" class="w-6 h-6 text-primary"></i>
-                        Ảnh Hiện Tại (${existingImages.size()})
-                    </h3>
-                    <button type="button" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors" onclick="refreshImages()">
-                        <i data-lucide="refresh-ccw" class="w-4 h-4"></i>
-                        Làm mới
-                    </button>
-                </div>
-                
-                <c:if test="${empty existingImages}">
-                    <div class="text-center py-16 text-gray-400">
-                        <i data-lucide="image-off" class="w-16 h-16 mx-auto mb-4 text-gray-300"></i>
-                        <h4 class="text-lg font-semibold mb-2">Chưa có ảnh nào</h4>
-                        <p class="mb-6">Dịch vụ này chưa có ảnh nào được tải lên</p>
+        <!-- Thông báo trạng thái động sẽ được JS set vào đây -->
+        <div id="imageActionMessage"></div>
+        <div class="text-sm text-gray-500 mb-4">
+            <ul class="list-disc pl-5">
+                <li><b>Ảnh chính</b> (có nhãn "Chính") sẽ là ảnh đại diện dịch vụ.</li>
+                <li>Có thể kéo thả để <b>sắp xếp thứ tự hiển thị</b> (sort order).</li>
+                <li>Tối đa <b>5 ảnh</b> cho mỗi dịch vụ.</li>
+            </ul>
+        </div>
+        <c:if test="${empty existingImages}">
+            <div class="text-center py-16 text-gray-400">
+                <i data-lucide="image-off" class="w-16 h-16 mx-auto mb-4 text-gray-300"></i>
+                <h4 class="text-lg font-semibold mb-2">Chưa có ảnh nào</h4>
+                <p class="mb-6">Dịch vụ này chưa có ảnh nào được tải lên</p>
+            </div>
+        </c:if>
+        <div class="image-preview-container" id="existingImagesContainer">
+            <c:forEach var="image" items="${existingImages}" varStatus="status">
+                <div class="image-preview-item" data-image-id="${image.imageId}">
+                    <c:if test="${image.isPrimary}">
+                        <div class="primary-badge absolute top-3 left-3 bg-yellow-400 text-white text-xs font-bold px-2 py-1 rounded-full z-10 flex items-center gap-1">
+                            <i data-lucide="star" class="w-3 h-3"></i>
+                            Chính
+                        </div>
+                    </c:if>
+                    <div class="image-preview-actions">
+                        <c:if test="${not image.isPrimary}">
+                            <button type="button" class="star-btn bg-green-500 hover:bg-green-600 text-white rounded-full p-2 shadow-lg transition-colors"
+                                    onclick="setPrimaryImage('${image.imageId}')"
+                                    title="Đặt làm ảnh chính">
+                                <i data-lucide="star" class="w-4 h-4"></i>
+                            </button>
+                        </c:if>
+                        <button type="button" class="bg-red-500 hover:bg-red-600 text-white rounded-full p-2 shadow-lg transition-colors"
+                                onclick="deleteImage('${image.imageId}')"
+                                title="Xóa ảnh">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
                     </div>
-                </c:if>
-                
-                <div class="image-preview-container" id="existingImagesContainer">
-                    <c:forEach var="image" items="${existingImages}" varStatus="status">
-                        <div class="image-preview-item" data-image-id="${image.imageId}">
-                            <c:if test="${status.index == 0 || image.isPrimary}">
-                                <div class="absolute top-3 left-3 bg-yellow-400 text-white text-xs font-bold px-2 py-1 rounded-full z-10 flex items-center gap-1">
-                                    <i data-lucide="star" class="w-3 h-3"></i>
-                                    Chính
-                                </div>
-                            </c:if>
-                            <div class="image-preview-actions">
-                                <c:if test="${!image.isPrimary}">
-                                    <button type="button" class="bg-green-500 hover:bg-green-600 text-white rounded-full p-2 shadow-lg transition-colors" 
-                                            onclick="setPrimaryImage(${image.imageId})" 
-                                            title="Đặt làm ảnh chính">
-                                        <i data-lucide="star" class="w-4 h-4"></i>
-                                    </button>
-                                </c:if>
-                                <button type="button" class="bg-red-500 hover:bg-red-600 text-white rounded-full p-2 shadow-lg transition-colors" 
-                                        onclick="deleteImage(${image.imageId})" 
-                                        title="Xóa ảnh">
-                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                </button>
-                            </div>
-                            <a href="javascript:void(0);" onclick="showImageModal('${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(image.url, '/services/')}')" 
-                               class="block relative overflow-hidden">
-                                <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(image.url, '/services/')}" 
-                                     alt="${image.altText}" 
-                                     onerror="this.src='${pageContext.request.contextPath}/assets/images/no-image.png'" 
+                    <div class="block relative overflow-hidden" style="cursor:default;">
+                        <c:choose>
+                            <c:when test="${not empty image.url && fn:startsWith(image.url, 'http')}">
+                                <img src="${image.url}"
+                                     alt="${image.altText}"
+                                     onerror="this.src='${pageContext.request.contextPath}/assets/images/no-image.png'"
                                      class="w-full h-48 object-cover cursor-pointer hover:scale-105 transition-transform duration-300" />
-                                <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
-                                    <i data-lucide="zoom-in" class="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"></i>
-                                </div>
-                            </a>
-                            <div class="image-preview-info">
-                                <div class="flex justify-between items-center text-xs text-gray-500">
-                                    <span>
-                                        <c:if test="${image.fileSize != null}">
-                                            <fmt:formatNumber value="${image.fileSize / 1024}" maxFractionDigits="1" />KB
-                                        </c:if>
-                                    </span>
-                                    <span class="flex items-center gap-1">
-                                        <i data-lucide="hash" class="w-3 h-3"></i>
-                                        ${image.sortOrder}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </c:forEach>
-                </div>
-                
-                <c:if test="${not empty existingImages}">
-                    <div class="mt-6 p-4 bg-blue-50 rounded-lg">
-                        <div class="flex items-center gap-2 text-blue-700 text-sm">
-                            <i data-lucide="info" class="w-4 h-4"></i>
-                            <span>Kéo ảnh để sắp xếp lại thứ tự hiển thị</span>
+                            </c:when>
+                            <c:otherwise>
+                                <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(image.url, '/services/') }"
+                                     alt="${image.altText}"
+                                     onerror="this.src='${pageContext.request.contextPath}/assets/images/no-image.png'"
+                                     class="w-full h-48 object-cover cursor-pointer hover:scale-105 transition-transform duration-300" />
+                            </c:otherwise>
+                        </c:choose>
+                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
+                            <i data-lucide="zoom-in" class="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"></i>
                         </div>
                     </div>
-                </c:if>
+                    <div class="image-preview-info">
+                        <div class="flex justify-between items-center text-xs text-gray-500">
+                            <span>
+                                <c:if test="${image.fileSize != null}">
+                                    <fmt:formatNumber value="${image.fileSize / 1024}" maxFractionDigits="1" />KB
+                                </c:if>
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <i data-lucide="hash" class="w-3 h-3"></i>
+                                ${image.sortOrder}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </c:forEach>
+        </div>
+        <c:if test="${not empty existingImages}">
+            <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                <div class="flex items-center gap-2 text-blue-700 text-sm">
+                    <i data-lucide="info" class="w-4 h-4"></i>
+                    <span>Kéo ảnh để sắp xếp lại thứ tự hiển thị.</span>
+                </div>
+            </div>
+        </c:if>
+    </div>
+
+    <!-- Upload Section (đưa xuống dưới) -->
+    <div class="bg-white rounded-2xl shadow-lg p-8">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-serif font-bold text-spa-dark flex items-center gap-2">
+                <i data-lucide="cloud-upload" class="w-6 h-6 text-primary"></i>
+                Upload Ảnh Mới
+            </h3>
+        </div>
+        <div class="image-upload-zone" id="uploadZone">
+            <i data-lucide="cloud-upload" class="text-primary w-16 h-16 mx-auto mb-4"></i>
+            <h4 class="text-lg font-semibold text-primary mb-2">Kéo & thả ảnh vào đây</h4>
+            <p class="text-gray-600 mb-6">hoặc click để chọn file</p>
+            <input type="file" id="imageInput" multiple accept="image/*" style="display: none;">
+            <button id="chooseFilesBtn" type="button" class="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors shadow-sm">
+                <i data-lucide="file-plus" class="w-5 h-5"></i>
+                Chọn file
+            </button>
+            <div class="mt-6 text-sm text-gray-500">
+                <p>Định dạng: JPG, PNG, WebP. Tối đa 2MB/file. Kích thước tối thiểu: 150x150 pixels.</p>
+                <p>Bạn có thể tải lên tối đa <b>5 ảnh</b> cho mỗi dịch vụ.</p>
             </div>
         </div>
+
+        <!-- Upload Progress -->
+        <div class="upload-progress" id="uploadProgress">
+            <h4 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                <i data-lucide="loader-2" class="w-5 h-5 text-primary animate-spin"></i>
+                Tiến trình Upload
+            </h4>
+            <div id="progressContainer" class="space-y-3"></div>
+        </div>
+
+        <!-- Upload Results (đã bỏ thông báo trạng thái, chỉ dùng ở trên) -->
     </div>
 </div>
 </main>
 </div>
 
 <!-- Modal xem ảnh lớn -->
-<div id="imageModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 hidden">
-    <div class="relative max-w-[90vw] max-h-[90vh]">
-        <button id="closeModal" class="absolute -top-12 right-0 text-white text-4xl hover:text-gray-300 transition-colors">
-            <i data-lucide="x" class="w-8 h-8"></i>
-        </button>
-        <img id="modalImg" src="" class="max-h-[90vh] max-w-[90vw] rounded-xl shadow-2xl border-4 border-white object-contain" />
-    </div>
-</div>
 
 <!-- Provide page-specific variables and load external JS -->
 <script>
     window.contextPath = '${pageContext.request.contextPath}';
-    window.serviceId = ${service.serviceId};
+    window.serviceId = '${service.serviceId}';
 </script>
 <script src="<c:url value='/js/single-image-upload.js'/>"></script>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     if (window.lucide) lucide.createIcons();
-    // Modal logic ...
-    window.showImageModal = function(src) {
-        document.getElementById('modalImg').src = src;
-        document.getElementById('imageModal').classList.remove('hidden');
-    };
-    document.getElementById('closeModal').onclick = function() {
-        document.getElementById('imageModal').classList.add('hidden');
-        document.getElementById('modalImg').src = '';
-    };
-    document.getElementById('imageModal').onclick = function(e) {
-        if (e.target === this) {
-            this.classList.add('hidden');
-            document.getElementById('modalImg').src = '';
-        }
-    };
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            document.getElementById('imageModal').classList.add('hidden');
-            document.getElementById('modalImg').src = '';
-        }
-    });
     // SortableJS logic
     var el = document.getElementById('existingImagesContainer');
     if (el) {
@@ -331,7 +313,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+    // Gọi lại lucide sau 500ms để chắc chắn icon luôn hiển thị
+    setTimeout(function() {
+        if (window.lucide) lucide.createIcons();
+    }, 500);
 });
+</script>
+<script>
 </script>
 
 </body>

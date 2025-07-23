@@ -946,6 +946,19 @@
                 alert('Chức năng đặt lịch đang được phát triển.');
             }
         }
+
+        // Initialize payment details filters when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Lucide icons
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+
+            // Initialize payment details filters
+            if (typeof initializePaymentDetailsFilters === 'function') {
+                initializePaymentDetailsFilters();
+            }
+        });
     </script>
 </body>
 </html>

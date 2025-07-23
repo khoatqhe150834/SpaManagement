@@ -1,5 +1,6 @@
 <%@page contentType="text/html" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <!DOCTYPE html>
 <html lang="vi" class="scroll-smooth">
 <head>
@@ -40,7 +41,7 @@
     <div class="flex">
         <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
         <main class="flex-1 py-12 lg:py-20 ml-64">
-            <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                 <!-- Breadcrumb -->
                 <div class="flex flex-wrap items-center gap-2 mb-8 text-gray-500 text-sm">
                     <a href="service?service=list-all&page=${page}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}${not empty serviceTypeId ? '&serviceTypeId='.concat(serviceTypeId) : ''}" class="flex items-center gap-1 hover:text-primary">
@@ -125,6 +126,7 @@
                                     <input id="upload-file-multiple" type="file" name="images" multiple hidden>
                                 </label>
                             </div>
+                            <div class="text-sm text-gray-500 mt-1">Bạn có thể tải lên tối đa <b>5 ảnh</b> cho mỗi dịch vụ.</div>
                             <div class="text-sm mt-1" id="imageError"></div>
                         </div>
                         <!-- Cài đặt -->
@@ -138,26 +140,6 @@
                                     </div>
                                     <label class="switch">
                                         <input type="checkbox" name="is_active" id="is_active" checked>
-                                        <span class="slider"></span>
-                                    </label>
-                                </div>
-                                <div class="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-2">
-                                    <div>
-                                        <div class="font-semibold">Cho phép đặt online</div>
-                                        <div class="text-xs text-gray-400">Cho phép khách hàng tự đặt lịch cho dịch vụ này qua website.</div>
-                                    </div>
-                                    <label class="switch">
-                                        <input type="checkbox" name="bookable_online" id="bookable_online" checked>
-                                        <span class="slider"></span>
-                                    </label>
-                                </div>
-                                <div class="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-2">
-                                    <div>
-                                        <div class="font-semibold">Yêu cầu tư vấn</div>
-                                        <div class="text-xs text-gray-400">Yêu cầu khách hàng phải được tư vấn trước khi đặt dịch vụ.</div>
-                                    </div>
-                                    <label class="switch">
-                                        <input type="checkbox" name="requires_consultation" id="requires_consultation">
                                         <span class="slider"></span>
                                     </label>
                                 </div>
@@ -324,6 +306,18 @@
             return true;
         }
 
+        // Định nghĩa hàm updateUploadButtonVisibility ở ngoài handleImageUpload
+        function updateUploadButtonVisibility() {
+            const container = document.querySelector('.uploaded-imgs-container');
+            const uploadBtn = document.querySelector('label[for="upload-file-multiple"]');
+            const previewCount = container.querySelectorAll('.img-preview').length;
+            if (previewCount >= 5) {
+                uploadBtn.style.display = 'none';
+            } else {
+                uploadBtn.style.display = '';
+            }
+        }
+
         // DataTransfer to accumulate files
         let dt = new DataTransfer();
 
@@ -333,14 +327,17 @@
             const errorDiv = document.getElementById('imageError');
             let hasValid = false;
             let errorMsg = '';
-
-            if (files.length === 0) {
-                setDefault(input, errorDiv);
+            // Đếm số ảnh preview hiện tại
+            const previewCount = container.querySelectorAll('.img-preview').length;
+            // Nếu đã đủ 5 ảnh thì ẩn nút upload và return
+            if (previewCount >= 5) {
+                updateUploadButtonVisibility();
                 return;
             }
-
             let filesProcessed = 0;
-            for (let i = 0; i < files.length; i++) {
+            // Chỉ thêm tối đa số ảnh còn thiếu
+            let canAdd = 5 - previewCount;
+            for (let i = 0; i < files.length && canAdd > 0; i++) {
                 const file = files[i];
                 // Check file size (max 2MB)
                 if (file.size > 2 * 1024 * 1024) {
@@ -365,28 +362,56 @@
                     } else {
                         hasValid = true;
                         dt.items.add(file); // accumulate file
+                        canAdd--;
                         const reader = new FileReader();
                         reader.onload = function(e) {
                             const previewDiv = document.createElement('div');
-                            previewDiv.className = 'relative h-28 w-28 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 overflow-hidden flex items-center justify-center mr-2 mb-2';
+                            previewDiv.className = 'img-preview relative h-28 w-28 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 overflow-hidden flex items-center justify-center mr-2 mb-2';
                             const imgElem = document.createElement('img');
                             imgElem.src = e.target.result;
                             imgElem.className = 'w-full h-full object-cover';
                             previewDiv.appendChild(imgElem);
+                            // Nút xóa nổi bật
+                            const removeBtn = document.createElement('button');
+                            removeBtn.type = 'button';
+                            removeBtn.className = 'absolute top-1 right-1 bg-white border border-red-500 rounded-full p-1 shadow flex items-center justify-center hover:bg-red-500 hover:text-white transition';
+                            removeBtn.style.width = '24px';
+                            removeBtn.style.height = '24px';
+                            removeBtn.title = 'Xóa ảnh này';
+                            removeBtn.innerHTML = '<i data-lucide="x" class="w-4 h-4"></i>';
+                            removeBtn.onclick = function() {
+                                // Xóa file khỏi dt
+                                const newDt = new DataTransfer();
+                                let removed = false;
+                                for (let j = 0; j < dt.items.length; j++) {
+                                    if (!removed && dt.items[j].getAsFile().name === file.name && dt.items[j].getAsFile().size === file.size) {
+                                        removed = true;
+                                        continue;
+                                    }
+                                    newDt.items.add(dt.items[j].getAsFile());
+                                }
+                                dt = newDt;
+                                input.files = dt.files;
+                                previewDiv.remove();
+                                updateUploadButtonVisibility();
+                            };
+                            previewDiv.appendChild(removeBtn);
                             container.appendChild(previewDiv);
+                            if (window.lucide) lucide.createIcons();
+                            updateUploadButtonVisibility();
                         };
                         reader.readAsDataURL(file);
                         URL.revokeObjectURL(url);
                     }
                     filesProcessed++;
                     if (filesProcessed === files.length) {
-                        // Set the input's files to the accumulated DataTransfer
                         input.files = dt.files;
                         if (hasValid) {
                             setValid(input, errorDiv, 'Ảnh đã được chọn');
                         } else {
                             setInvalid(input, errorDiv, errorMsg || 'Không có ảnh hợp lệ');
                         }
+                        updateUploadButtonVisibility();
                     }
                 };
                 img.onerror = function() {
@@ -400,10 +425,13 @@
                         } else {
                             setInvalid(input, errorDiv, errorMsg || 'Không có ảnh hợp lệ');
                         }
+                        updateUploadButtonVisibility();
                     }
                 };
                 img.src = url;
             }
+            // Đảm bảo luôn cập nhật trạng thái nút upload sau khi xử lý xong
+            updateUploadButtonVisibility();
         }
 
         // AJAX check duplicate service name
@@ -614,6 +642,23 @@
 }
 .switch input:checked + .slider:before {
   transform: translateX(20px);
+        }
+        .uploaded-imgs-container button {
+            z-index: 10;
+            border: 2px solid #ef4444;
+            background: #fff;
+            color: #ef4444;
+            transition: background 0.2s, color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            font-size: 16px;
+        }
+        .uploaded-imgs-container button:hover {
+            background: #ef4444;
+            color: #fff;
         }
     </style>
 </body>

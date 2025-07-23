@@ -41,7 +41,7 @@
     <div class="flex">
         <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
         <main class="flex-1 py-12 lg:py-20 ml-64">
-            <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                 <!-- Breadcrumb -->
                 <div class="flex flex-wrap items-center gap-2 mb-8 text-gray-500 text-sm">
                     <a href="service?service=list-all&page=${page}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}${not empty serviceTypeId ? '&serviceTypeId='.concat(serviceTypeId) : ''}" class="flex items-center gap-1 hover:text-primary">
@@ -119,17 +119,30 @@
                             <h2 class="text-lg font-semibold text-primary mb-4 flex items-center gap-2"><i data-lucide="image" class="w-5 h-5"></i> Hình ảnh dịch vụ</h2>
                             <div class="flex flex-wrap items-center gap-3 mb-2">
                                 <c:forEach var="img" items="${serviceImages}">
-                                    <c:if test="${not empty img.url}">
-                                        <div class="relative h-28 w-28 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 overflow-hidden flex items-center justify-center mr-2 mb-2 existing-img-container" data-img-id="${img.imageId}">
-                                            <a href="javascript:void(0);" title="Xem ảnh lớn" onclick="showImageModal('${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(img.url, '/services/')}')">
-                                                <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(img.url, '/services/')}" class="w-full h-full object-cover hover:scale-105 transition-transform duration-200" style="cursor: zoom-in;" />
-                                            </a>
-                                            <input type="checkbox" name="delete_image_ids" value="${img.imageId}" id="delete_img_${img.imageId}" class="delete-checkbox hidden" />
-                                            <button type="button" class="absolute top-1 right-1 bg-white rounded-full p-1 shadow remove-existing-img-btn" title="Xóa ảnh này">
-                                                <i data-lucide="x" class="w-4 h-4 text-red-600"></i>
-                                            </button>
-                                        </div>
-                                    </c:if>
+                                    <c:choose>
+                                        <c:when test="${not empty img.url && fn:startsWith(img.url, 'http')}">
+                                            <div class="relative h-28 w-28 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 overflow-hidden flex items-center justify-center mr-2 mb-2 existing-img-container" data-img-id="${img.imageId}">
+                                                <a href="javascript:void(0);" title="Xem ảnh lớn" onclick="showImageModal('${img.url}')">
+                                                    <img src="${img.url}" class="w-full h-full object-cover hover:scale-105 transition-transform duration-200" style="cursor: zoom-in;" />
+                                                </a>
+                                                <input type="checkbox" name="delete_image_ids" value="${img.imageId}" id="delete_img_${img.imageId}" class="delete-checkbox hidden" />
+                                                <button type="button" class="absolute top-1 right-1 bg-white border border-red-500 rounded-full p-1 shadow flex items-center justify-center hover:bg-red-500 hover:text-white transition" style="width:24px;height:24px;" title="Xóa ảnh này">
+                                                    <i data-lucide="x" class="w-4 h-4 text-red-600"></i>
+                                                </button>
+                                            </div>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <div class="relative h-28 w-28 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 overflow-hidden flex items-center justify-center mr-2 mb-2 existing-img-container" data-img-id="${img.imageId}">
+                                                <a href="javascript:void(0);" title="Xem ảnh lớn" onclick="showImageModal('${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(img.url, '/services/')}')">
+                                                    <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(img.url, '/services/')}" class="w-full h-full object-cover hover:scale-105 transition-transform duration-200" style="cursor: zoom-in;" />
+                                                </a>
+                                                <input type="checkbox" name="delete_image_ids" value="${img.imageId}" id="delete_img_${img.imageId}" class="delete-checkbox hidden" />
+                                                <button type="button" class="absolute top-1 right-1 bg-white border border-red-500 rounded-full p-1 shadow flex items-center justify-center hover:bg-red-500 hover:text-white transition" style="width:24px;height:24px;" title="Xóa ảnh này">
+                                                    <i data-lucide="x" class="w-4 h-4 text-red-600"></i>
+                                                </button>
+                                            </div>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </c:forEach>
                                 <div class="flex gap-3 flex-wrap uploaded-imgs-container"></div>
                                 <label class="flex flex-col items-center justify-center gap-1 h-28 w-28 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 cursor-pointer" for="upload-file-multiple">
@@ -138,6 +151,7 @@
                                     <input id="upload-file-multiple" type="file" name="images" multiple hidden>
                                 </label>
                             </div>
+                            <div class="text-sm text-gray-500 mt-1">Bạn có thể tải lên tối đa <b>5 ảnh</b> cho mỗi dịch vụ.</div>
                             <div class="text-sm mt-1" id="imageError"></div>
                         </div>
                         <!-- Modal xem ảnh lớn -->
@@ -156,26 +170,6 @@
                                     </div>
                                     <label class="switch">
                                         <input type="checkbox" name="is_active" id="is_active" ${service.isActive ? "checked" : "" }>
-                                        <span class="slider"></span>
-                                    </label>
-                                </div>
-                                <div class="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-2">
-                                    <div>
-                                        <div class="font-semibold">Cho phép đặt online</div>
-                                        <div class="text-xs text-gray-400">Cho phép khách hàng tự đặt lịch cho dịch vụ này qua website.</div>
-                                    </div>
-                                    <label class="switch">
-                                        <input type="checkbox" name="bookable_online" id="bookable_online" ${service.bookableOnline ? "checked" : "" }>
-                                        <span class="slider"></span>
-                                    </label>
-                                </div>
-                                <div class="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-2">
-                                    <div>
-                                        <div class="font-semibold">Yêu cầu tư vấn</div>
-                                        <div class="text-xs text-gray-400">Yêu cầu khách hàng phải được tư vấn trước khi đặt dịch vụ.</div>
-                                    </div>
-                                    <label class="switch">
-                                        <input type="checkbox" name="requires_consultation" id="requires_consultation" ${service.requiresConsultation ? "checked" : "" }>
                                         <span class="slider"></span>
                                     </label>
                                 </div>
@@ -345,14 +339,17 @@
             const errorDiv = document.getElementById('imageError');
             let hasValid = false;
             let errorMsg = '';
-
-            if (files.length === 0) {
-                setDefault(input, errorDiv);
+            // Đếm số ảnh preview hiện tại và ảnh cũ chưa bị ẩn
+            const previewCount = container.querySelectorAll('.img-preview').length;
+            const existingCount = document.querySelectorAll('.existing-img-container:not([style*="display: none"])').length;
+            // Chỉ thêm tối đa số ảnh còn thiếu
+            let canAdd = 5 - (previewCount + existingCount);
+            if (canAdd <= 0) {
+                updateUploadButtonVisibility();
                 return;
             }
-
             let filesProcessed = 0;
-            for (let i = 0; i < files.length; i++) {
+            for (let i = 0; i < files.length && canAdd > 0; i++) {
                 const file = files[i];
                 // Check file size (max 2MB)
                 if (file.size > 2 * 1024 * 1024) {
@@ -377,28 +374,56 @@
                     } else {
                         hasValid = true;
                         dt.items.add(file); // accumulate file
+                        canAdd--;
                         const reader = new FileReader();
                         reader.onload = function(e) {
                             const previewDiv = document.createElement('div');
-                            previewDiv.className = 'relative h-28 w-28 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 overflow-hidden flex items-center justify-center mr-2 mb-2';
+                            previewDiv.className = 'img-preview relative h-28 w-28 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 overflow-hidden flex items-center justify-center mr-2 mb-2';
                             const imgElem = document.createElement('img');
                             imgElem.src = e.target.result;
                             imgElem.className = 'w-full h-full object-cover';
                             previewDiv.appendChild(imgElem);
+                            // Nút xóa nổi bật
+                            const removeBtn = document.createElement('button');
+                            removeBtn.type = 'button';
+                            removeBtn.className = 'absolute top-1 right-1 bg-white border border-red-500 rounded-full p-1 shadow flex items-center justify-center hover:bg-red-500 hover:text-white transition';
+                            removeBtn.style.width = '24px';
+                            removeBtn.style.height = '24px';
+                            removeBtn.title = 'Xóa ảnh này';
+                            removeBtn.innerHTML = '<i data-lucide="x" class="w-4 h-4"></i>';
+                            removeBtn.onclick = function() {
+                                // Xóa file khỏi dt
+                                const newDt = new DataTransfer();
+                                let removed = false;
+                                for (let j = 0; j < dt.items.length; j++) {
+                                    if (!removed && dt.items[j].getAsFile().name === file.name && dt.items[j].getAsFile().size === file.size) {
+                                        removed = true;
+                                        continue;
+                                    }
+                                    newDt.items.add(dt.items[j].getAsFile());
+                                }
+                                dt = newDt;
+                                input.files = dt.files;
+                                previewDiv.remove();
+                                updateUploadButtonVisibility();
+                            };
+                            previewDiv.appendChild(removeBtn);
                             container.appendChild(previewDiv);
+                            if (window.lucide) lucide.createIcons();
+                            updateUploadButtonVisibility();
                         };
                         reader.readAsDataURL(file);
                         URL.revokeObjectURL(url);
                     }
                     filesProcessed++;
                     if (filesProcessed === files.length) {
-                        // Set the input's files to the accumulated DataTransfer
                         input.files = dt.files;
                         if (hasValid) {
                             setValid(input, errorDiv, 'Ảnh đã được chọn');
                         } else {
                             setInvalid(input, errorDiv, errorMsg || 'Không có ảnh hợp lệ');
                         }
+                        updateUploadButtonVisibility();
                     }
                 };
                 img.onerror = function() {
@@ -412,11 +437,36 @@
                         } else {
                             setInvalid(input, errorDiv, errorMsg || 'Không có ảnh hợp lệ');
                         }
+                        updateUploadButtonVisibility();
                     }
                 };
                 img.src = url;
             }
+            // Đảm bảo luôn cập nhật trạng thái nút upload sau khi xử lý xong
+            updateUploadButtonVisibility();
         }
+
+        // Định nghĩa hàm updateUploadButtonVisibility ở ngoài handleImageUpload
+        function updateUploadButtonVisibility() {
+            const container = document.querySelector('.uploaded-imgs-container');
+            const uploadBtn = document.querySelector('label[for="upload-file-multiple"]');
+            // Đếm số ảnh preview mới và ảnh cũ chưa bị ẩn
+            const previewCount = container.querySelectorAll('.img-preview').length;
+            const existingCount = document.querySelectorAll('.existing-img-container:not([style*="display: none"])').length;
+            const total = previewCount + existingCount;
+            if (total >= 5) {
+                uploadBtn.style.display = 'none';
+                // Ẩn thông báo lỗi nếu có
+                const errorDiv = document.getElementById('imageError');
+                if (errorDiv) errorDiv.textContent = '';
+            } else {
+                uploadBtn.style.display = '';
+                // Ẩn thông báo lỗi nếu có
+                const errorDiv = document.getElementById('imageError');
+                if (errorDiv) errorDiv.textContent = '';
+            }
+        }
+
         function validateForm() {
             const nameValid = validateName(document.getElementById('name'));
             const descValid = validateDescription(document.getElementById('description'));
@@ -574,6 +624,19 @@
                     });
                 }
             });
+            updateUploadButtonVisibility(); // Ẩn nút upload nếu đã đủ 5 ảnh ngay khi vào trang
+        });
+        // Thêm lại sự kiện cho nút xóa ảnh cũ (ảnh đã lưu trong DB)
+        document.querySelectorAll('.existing-img-container button').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const container = btn.closest('.existing-img-container');
+                if (container) {
+                    container.style.display = 'none';
+                    const checkbox = container.querySelector('.delete-checkbox');
+                    if (checkbox) checkbox.checked = true;
+                    updateUploadButtonVisibility();
+                }
+            });
         });
     </script>
     <style>
@@ -636,6 +699,29 @@
 }
 .switch input:checked + .slider:before {
   transform: translateX(20px);
+        }
+        .uploaded-imgs-container button {
+            z-index: 10;
+            border: 2px solid #ef4444;
+            background: #fff;
+            color: #ef4444;
+            transition: background 0.2s, color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            font-size: 16px;
+        }
+        .uploaded-imgs-container button:hover {
+            background: #ef4444;
+            color: #fff;
+        }
+        .uploaded-imgs-container button i {
+            color: #dc2626 !important;
+        }
+        .uploaded-imgs-container button:hover i {
+            color: #fff !important;
         }
     </style>
 </body>

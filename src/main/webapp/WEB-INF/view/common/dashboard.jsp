@@ -365,7 +365,20 @@
                                 <div class="flex items-center justify-between">
                                     <div>
                                     <h1 class="text-2xl md:text-3xl font-bold mb-2">Chào mừng trở lại, ${sessionScope.customer.fullName}!</h1>
-                                        <p class="opacity-90">Hôm nay là ngày tuyệt vời để chăm sóc bản thân. Bạn có 2 lịch hẹn sắp tới.</p>
+                                        <p class="opacity-90">Hôm nay là ngày tuyệt vời để chăm sóc bản thân.
+                                            <c:choose>
+                                                <c:when test="${not empty upcomingBookings}">
+                                                    <c:set var="bookingCount" value="0" />
+                                                    <c:forEach var="booking" items="${upcomingBookings}">
+                                                        <c:set var="bookingCount" value="${bookingCount + 1}" />
+                                                    </c:forEach>
+                                                    Bạn có ${bookingCount} lịch hẹn sắp tới.
+                                                </c:when>
+                                                <c:otherwise>
+                                                    Bạn chưa có lịch hẹn nào sắp tới.
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </p>
                                     </div>
                                     <i data-lucide="heart" class="h-12 w-12 opacity-80 hidden md:block"></i>
                                 </div>
@@ -377,28 +390,39 @@
                                     <div class="bg-blue-100 p-3 rounded-full"><i data-lucide="calendar" class="h-6 w-6 text-blue-600"></i></div>
                                     <div>
                                         <p class="text-sm text-gray-500">Lịch hẹn tháng này</p>
-                                        <p class="text-2xl font-semibold text-spa-dark">4</p>
+                                        <p class="text-2xl font-semibold text-spa-dark">${thisMonthBookings != null ? thisMonthBookings : 0}</p>
                                     </div>
                                 </div>
                                 <div class="bg-white p-5 rounded-xl shadow-md flex items-center space-x-4 transition-transform hover:scale-105">
                                     <div class="bg-primary/20 p-3 rounded-full"><i data-lucide="gift" class="h-6 w-6 text-primary"></i></div>
                                     <div>
                                         <p class="text-sm text-gray-500">Điểm tích lũy</p>
-                                        <p class="text-2xl font-semibold text-spa-dark">2,450</p>
+                                        <p class="text-2xl font-semibold text-spa-dark">
+                                            <fmt:formatNumber value="${sessionScope.customer.loyaltyPoints != null ? sessionScope.customer.loyaltyPoints : 0}" pattern="#,###"/>
+                                        </p>
                                     </div>
                                 </div>
                                 <div class="bg-white p-5 rounded-xl shadow-md flex items-center space-x-4 transition-transform hover:scale-105">
                                     <div class="bg-green-100 p-3 rounded-full"><i data-lucide="trending-up" class="h-6 w-6 text-green-600"></i></div>
                                     <div>
-                                        <p class="text-sm text-gray-500">Tiết kiệm được</p>
-                                        <p class="text-2xl font-semibold text-spa-dark">850K VNĐ</p>
+                                        <p class="text-sm text-gray-500">Tổng chi tiêu</p>
+                                        <p class="text-2xl font-semibold text-spa-dark">
+                                            <c:choose>
+                                                <c:when test="${paymentStats != null && paymentStats.totalSpent != null}">
+                                                    <fmt:formatNumber value="${paymentStats.totalSpent}" pattern="#,###"/> VNĐ
+                                                </c:when>
+                                                <c:otherwise>
+                                                    0 VNĐ
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </p>
                                     </div>
                                 </div>
                                  <div class="bg-white p-5 rounded-xl shadow-md flex items-center space-x-4 transition-transform hover:scale-105">
                                     <div class="bg-amber-100 p-3 rounded-full"><i data-lucide="award" class="h-6 w-6 text-amber-600"></i></div>
                                     <div>
                                         <p class="text-sm text-gray-500">Hạng thành viên</p>
-                                        <p class="text-2xl font-semibold text-spa-dark">Gold</p>
+                                        <p class="text-2xl font-semibold text-spa-dark">${membershipTier != null ? membershipTier : 'Bronze'}</p>
                                     </div>
                                 </div>
                             </div>
@@ -411,34 +435,74 @@
                                     <a href="${pageContext.request.contextPath}/customer/view" class="text-primary hover:text-primary-dark font-medium text-sm">Xem tất cả</a>
                                     </div>
                                     <div class="space-y-4">
-                                        <div class="p-4 border border-gray-200 rounded-lg hover:border-primary transition-colors">
-                                            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-                                                <div class="flex items-center space-x-3">
-                                                    <i data-lucide="calendar" class="h-5 w-5 text-primary"></i>
-                                                    <span class="font-medium text-gray-800">22/12/2024 - 14:00</span>
-                                                    <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full font-medium">Đã xác nhận</span>
+                                        <c:choose>
+                                            <c:when test="${not empty upcomingBookings}">
+                                                <c:forEach var="booking" items="${upcomingBookings}" varStatus="status">
+                                                    <c:if test="${status.index < 3}"> <!-- Limit to 3 upcoming bookings -->
+                                                        <div class="p-4 border border-gray-200 rounded-lg hover:border-primary transition-colors">
+                                                            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                                                                <div class="flex items-center space-x-3">
+                                                                    <i data-lucide="calendar" class="h-5 w-5 text-primary"></i>
+                                                                    <span class="font-medium text-gray-800">
+                                                                        <fmt:formatDate value="${booking.appointmentDate}" pattern="dd/MM/yyyy"/> -
+                                                                        <fmt:formatDate value="${booking.appointmentTime}" pattern="HH:mm"/>
+                                                                    </span>
+                                                                    <span class="px-2 py-1
+                                                                        <c:choose>
+                                                                            <c:when test="${booking.bookingStatus == 'SCHEDULED'}">bg-green-100 text-green-800</c:when>
+                                                                            <c:when test="${booking.bookingStatus == 'CONFIRMED'}">bg-blue-100 text-blue-800</c:when>
+                                                                            <c:when test="${booking.bookingStatus == 'COMPLETED'}">bg-gray-100 text-gray-800</c:when>
+                                                                            <c:otherwise>bg-yellow-100 text-yellow-800</c:otherwise>
+                                                                        </c:choose>
+                                                                        text-xs rounded-full font-medium">
+                                                                        <c:choose>
+                                                                            <c:when test="${booking.bookingStatus == 'SCHEDULED'}">Đã lên lịch</c:when>
+                                                                            <c:when test="${booking.bookingStatus == 'CONFIRMED'}">Đã xác nhận</c:when>
+                                                                            <c:when test="${booking.bookingStatus == 'COMPLETED'}">Hoàn thành</c:when>
+                                                                            <c:otherwise>${booking.bookingStatus}</c:otherwise>
+                                                                        </c:choose>
+                                                                    </span>
+                                                                </div>
+                                                                <span class="font-bold text-primary">
+                                                                    <c:choose>
+                                                                        <c:when test="${booking.totalPrice != null}">
+                                                                            <fmt:formatNumber value="${booking.totalPrice}" pattern="#,###"/> VNĐ
+                                                                        </c:when>
+                                                                        <c:otherwise>
+                                                                            Chưa có giá
+                                                                        </c:otherwise>
+                                                                    </c:choose>
+                                                                </span>
+                                                            </div>
+                                                            <div class="space-y-1 ml-8">
+                                                                <p class="font-medium text-gray-900">
+                                                                    ${booking.serviceName != null ? booking.serviceName : 'Dịch vụ không xác định'}
+                                                                </p>
+                                                                <p class="text-sm text-gray-600">
+                                                                    <c:choose>
+                                                                        <c:when test="${booking.therapistName != null}">
+                                                                            Nhân viên: ${booking.therapistName}
+                                                                        </c:when>
+                                                                        <c:otherwise>
+                                                                            Nhân viên: Chưa phân công
+                                                                        </c:otherwise>
+                                                                    </c:choose>
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </c:if>
+                                                </c:forEach>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <div class="text-center py-8">
+                                                    <i data-lucide="calendar-x" class="h-12 w-12 text-gray-400 mx-auto mb-4"></i>
+                                                    <p class="text-gray-500">Bạn chưa có lịch hẹn nào sắp tới</p>
+                                                    <a href="${pageContext.request.contextPath}/services" class="inline-block mt-4 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors">
+                                                        Đặt lịch ngay
+                                                    </a>
                                                 </div>
-                                                <span class="font-bold text-primary">499,000 VNĐ</span>
-                                            </div>
-                                            <div class="space-y-1 ml-8">
-                                                <p class="font-medium text-gray-900">Massage thư giãn toàn thân</p>
-                                                <p class="text-sm text-gray-600">Nhân viên: Chị Nguyễn Thị Hương</p>
-                                            </div>
-                                        </div>
-                                        <div class="p-4 border border-gray-200 rounded-lg hover:border-primary transition-colors">
-                                            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-                                                <div class="flex items-center space-x-3">
-                                                    <i data-lucide="calendar" class="h-5 w-5 text-primary"></i>
-                                                    <span class="font-medium text-gray-800">28/12/2024 - 10:30</span>
-                                                    <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full font-medium">Đã xác nhận</span>
-                                                </div>
-                                                <span class="font-bold text-primary">599,000 VNĐ</span>
-                                            </div>
-                                            <div class="space-y-1 ml-8">
-                                                <p class="font-medium text-gray-900">Chăm sóc da mặt cao cấp</p>
-                                                <p class="text-sm text-gray-600">Nhân viên: Chị Trần Thị Lan</p>
-                                            </div>
-                                        </div>
+                                            </c:otherwise>
+                                        </c:choose>
                                     </div>
                                 </div>
 
@@ -446,27 +510,56 @@
                                 <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
                                     <h3 class="text-lg font-semibold text-spa-dark mb-6">Hoạt động gần đây</h3>
                                     <div class="space-y-5">
-                                        <div class="flex items-start space-x-4">
-                                            <div class="flex-shrink-0 pt-1"><i data-lucide="check-circle" class="h-5 w-5 text-green-500"></i></div>
-                                            <div class="flex-1 min-w-0">
-                                                <p class="text-sm font-medium text-gray-900">Hoàn thành dịch vụ Tắm trắng</p>
-                                                <p class="text-xs text-gray-500 mt-1">2 ngày trước</p>
+                                        <!-- Display booking statistics as recent activity -->
+                                        <c:if test="${bookingStats != null && bookingStats.completed_count > 0}">
+                                            <div class="flex items-start space-x-4">
+                                                <div class="flex-shrink-0 pt-1"><i data-lucide="check-circle" class="h-5 w-5 text-green-500"></i></div>
+                                                <div class="flex-1 min-w-0">
+                                                    <p class="text-sm font-medium text-gray-900">
+                                                        Đã hoàn thành ${bookingStats.completed_count} dịch vụ
+                                                    </p>
+                                                    <p class="text-xs text-gray-500 mt-1">Tổng cộng</p>
+                                                </div>
                                             </div>
-                                        </div>
+                                        </c:if>
+
+                                        <!-- Display loyalty points -->
                                         <div class="flex items-start space-x-4">
                                             <div class="flex-shrink-0 pt-1"><i data-lucide="gift" class="h-5 w-5 text-primary"></i></div>
                                             <div class="flex-1 min-w-0">
-                                                <p class="text-sm font-medium text-gray-900">Nhận 150 điểm tích lũy</p>
-                                                <p class="text-xs text-gray-500 mt-1">1 tuần trước</p>
+                                                <p class="text-sm font-medium text-gray-900">
+                                                    Điểm tích lũy hiện tại:
+                                                    <fmt:formatNumber value="${sessionScope.customer.loyaltyPoints != null ? sessionScope.customer.loyaltyPoints : 0}" pattern="#,###"/>
+                                                </p>
+                                                <p class="text-xs text-gray-500 mt-1">Hạng ${membershipTier != null ? membershipTier : 'Bronze'}</p>
                                             </div>
                                         </div>
-                                        <div class="flex items-start space-x-4">
-                                            <div class="flex-shrink-0 pt-1"><i data-lucide="star" class="h-5 w-5 text-blue-500"></i></div>
-                                            <div class="flex-1 min-w-0">
-                                                <p class="text-sm font-medium text-gray-900">Ưu đãi đặc biệt cho thành viên Gold</p>
-                                                <p class="text-xs text-gray-500 mt-1">3 ngày trước</p>
+
+                                        <!-- Display payment statistics -->
+                                        <c:if test="${paymentStats != null && paymentStats.totalPayments > 0}">
+                                            <div class="flex items-start space-x-4">
+                                                <div class="flex-shrink-0 pt-1"><i data-lucide="credit-card" class="h-5 w-5 text-blue-500"></i></div>
+                                                <div class="flex-1 min-w-0">
+                                                    <p class="text-sm font-medium text-gray-900">
+                                                        Đã thực hiện ${paymentStats.totalPayments} giao dịch
+                                                    </p>
+                                                    <p class="text-xs text-gray-500 mt-1">
+                                                        <c:if test="${paymentStats.lastPaymentDate != null}">
+                                                            Gần nhất: <fmt:formatDate value="${paymentStats.lastPaymentDate}" pattern="dd/MM/yyyy"/>
+                                                        </c:if>
+                                                    </p>
+                                                </div>
                                             </div>
-                                        </div>
+                                        </c:if>
+
+                                        <!-- If no activity, show welcome message -->
+                                        <c:if test="${(bookingStats == null || bookingStats.total_bookings == 0) && (paymentStats == null || paymentStats.totalPayments == 0)}">
+                                            <div class="text-center py-4">
+                                                <i data-lucide="activity" class="h-8 w-8 text-gray-400 mx-auto mb-2"></i>
+                                                <p class="text-sm text-gray-500">Chưa có hoạt động nào</p>
+                                                <p class="text-xs text-gray-400 mt-1">Hãy đặt lịch dịch vụ đầu tiên của bạn!</p>
+                                            </div>
+                                        </c:if>
                                     </div>
                                 </div>
                             </div>

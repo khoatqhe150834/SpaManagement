@@ -1,12 +1,21 @@
 package controller;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import dao.BookingDAO;
+import dao.CustomerDAO;
+import dao.PaymentDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import model.Booking;
 import model.Customer;
 import model.User;
 
@@ -46,6 +55,11 @@ public class DashboardController extends HttpServlet {
         try {
             // For main dashboard routes, use the common dashboard JSP
             if (pathInfo == null || pathInfo.equals("/") || pathInfo.equals("/dashboard")) {
+                // Load dynamic data for customer dashboard
+                if ("CUSTOMER".equals(userType) && customer != null) {
+                    loadCustomerDashboardData(request, customer);
+                }
+
                 // Forward to common dashboard that uses conditional rendering based on userType
                 request.getRequestDispatcher("/WEB-INF/view/common/dashboard.jsp").forward(request, response);
                 return;
@@ -399,8 +413,70 @@ public class DashboardController extends HttpServlet {
     }
 
     /**
-     * Check if user is authorized to access specific dashboard
+     * Load dynamic customer dashboard data from database
      */
+    private void loadCustomerDashboardData(HttpServletRequest request, Customer customer) {
+        try {
+            // Initialize DAOs
+            BookingDAO bookingDAO = new BookingDAO();
+            PaymentDAO paymentDAO = new PaymentDAO();
+            CustomerDAO customerDAO = new CustomerDAO();
+
+            Integer customerId = customer.getCustomerId();
+
+            // Get customer booking statistics
+            Map<String, Integer> bookingStats = bookingDAO.getBookingStatsByCustomerId(customerId);
+            request.setAttribute("bookingStats", bookingStats);
+
+            // Get upcoming bookings (limit to next 5)
+            List<Booking> upcomingBookings = bookingDAO.findByCustomerId(customerId);
+            // Filter for upcoming bookings only
+            LocalDate today = LocalDate.now();
+            List<Booking> filteredUpcomingBookings = upcomingBookings.stream()
+                .filter(booking -> booking.getAppointmentDate() != null &&
+                        booking.getAppointmentDate().toLocalDate().isAfter(today.minusDays(1)))
+                .limit(5)
+                .collect(java.util.stream.Collectors.toList());
+            request.setAttribute("upcomingBookings", filteredUpcomingBookings);
+
+            // Get customer payment statistics
+            Map<String, Object> paymentStats = paymentDAO.getCustomerPaymentStatistics(customerId);
+            request.setAttribute("paymentStats", paymentStats);
+
+            // Get customer related data summary
+            Map<String, Integer> relatedDataSummary = customerDAO.getRelatedDataSummary(customerId);
+            request.setAttribute("relatedDataSummary", relatedDataSummary);
+
+            // Calculate membership tier based on loyalty points
+            String membershipTier = calculateMembershipTier(customer.getLoyaltyPoints());
+            request.setAttribute("membershipTier", membershipTier);
+
+            // Calculate this month's bookings count
+            int thisMonthBookings = (int) upcomingBookings.stream()
+                .filter(booking -> booking.getAppointmentDate() != null &&
+                        booking.getAppointmentDate().toLocalDate().getMonth() == today.getMonth() &&
+                        booking.getAppointmentDate().toLocalDate().getYear() == today.getYear())
+                .count();
+            request.setAttribute("thisMonthBookings", thisMonthBookings);
+
+        } catch (Exception e) {
+            // Log error but don't break the page
+            Logger.getLogger(DashboardController.class.getName()).log(Level.SEVERE,
+                "Error loading customer dashboard data for customer: " + customer.getCustomerId(), e);
+        }
+    }
+
+    /**
+     * Calculate membership tier based on loyalty points
+     */
+    private String calculateMembershipTier(Integer loyaltyPoints) {
+        if (loyaltyPoints == null) return "Bronze";
+
+        if (loyaltyPoints >= 5000) return "Platinum";
+        else if (loyaltyPoints >= 2000) return "Gold";
+        else if (loyaltyPoints >= 500) return "Silver";
+        else return "Bronze";
+    }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)

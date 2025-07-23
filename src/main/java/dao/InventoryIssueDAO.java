@@ -19,7 +19,7 @@ public class InventoryIssueDAO {
             params.add("%" + search.trim() + "%");
         }
 
-        sql.append("ORDER BY issue_date DESC LIMIT ? OFFSET ?");
+        sql.append("ORDER BY issue_date ASC LIMIT ? OFFSET ?");
         params.add(pageSize);
         params.add((page - 1) * pageSize);
 

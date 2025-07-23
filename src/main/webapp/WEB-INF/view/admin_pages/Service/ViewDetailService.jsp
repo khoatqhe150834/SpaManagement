@@ -119,10 +119,31 @@
                         <div>
                             <c:choose>
                                 <c:when test="${not empty serviceImages}">
-                                    <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(serviceImages[0].url, '/services/')}" alt="Service Image" class="w-full h-72 object-cover rounded-xl shadow mb-4 hover:scale-105 transition-transform duration-200" id="mainImage" style="cursor: zoom-in;" />
+                                    <c:choose>
+                                        <c:when test="${not empty serviceImages[0].url && fn:startsWith(serviceImages[0].url, 'http')}">
+                                            <img src="${serviceImages[0].url}" alt="Service Image" class="w-full h-72 object-cover rounded-xl shadow mb-4 hover:scale-105 transition-transform duration-200" id="mainImage" style="cursor: zoom-in;" />
+                                        </c:when>
+                                        <c:otherwise>
+                                            <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(serviceImages[0].url, '/services/')}" alt="Service Image" class="w-full h-72 object-cover rounded-xl shadow mb-4 hover:scale-105 transition-transform duration-200" id="mainImage" style="cursor: zoom-in;" />
+                                        </c:otherwise>
+                                    </c:choose>
                                     <div class="grid grid-cols-4 gap-2">
                                         <c:forEach var="img" items="${serviceImages}" varStatus="loop">
-                                            <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(img.url, '/services/')}" alt="Thumbnail" class="w-full h-16 object-cover rounded shadow cursor-pointer hover:scale-105 transition-transform duration-200 border-2 border-transparent" onclick="changeImage(this.src, this)" />
+                                            <div class="relative">
+                                                <c:choose>
+                                                    <c:when test="${not empty img.url && fn:startsWith(img.url, 'http')}">
+                                                        <img src="${img.url}" alt="Thumbnail" class="w-full h-16 object-cover rounded shadow cursor-pointer hover:scale-105 transition-transform duration-200 border-2 border-transparent" onclick="changeImage(this.src, this)" />
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(img.url, '/services/')}" alt="Thumbnail" class="w-full h-16 object-cover rounded shadow cursor-pointer hover:scale-105 transition-transform duration-200 border-2 border-transparent" onclick="changeImage(this.src, this)" />
+                                                    </c:otherwise>
+                                                </c:choose>
+                                                <c:if test="${img.isPrimary}">
+                                                    <div class="absolute top-1 left-1 bg-yellow-400 text-white text-xs font-bold px-2 py-1 rounded-full z-10 flex items-center gap-1" title="Ảnh chính">
+                                                        <i data-lucide="star" class="w-3 h-3"></i>
+                                                    </div>
+                                                </c:if>
+                                            </div>
                                         </c:forEach>
                                     </div>
                                 </c:when>
@@ -136,7 +157,7 @@
                     </div>
                     <!-- Footer buttons -->
                     <div class="flex flex-col sm:flex-row justify-between items-center gap-3 mt-8">
-                        <a href="service?service=list-all&page=${page}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}${not empty serviceTypeId ? '&serviceTypeId='.concat(serviceTypeId) : ''}" class="inline-flex items-center gap-2 px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+                        <a href="service?service=list-all&page=${param.page}&limit=${param.limit}${not empty param.keyword ? '&keyword='.concat(param.keyword) : ''}${not empty param.status ? '&status='.concat(param.status) : ''}${not empty param.serviceTypeId ? '&serviceTypeId='.concat(param.serviceTypeId) : ''}" class="inline-flex items-center gap-2 px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
                             <i data-lucide="arrow-left" class="w-5 h-5"></i> Quay lại
                         </a>
                         <a href="service?service=pre-update&id=${service.serviceId}&page=${page}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}${not empty serviceTypeId ? '&serviceTypeId='.concat(serviceTypeId) : ''}" class="inline-flex items-center gap-2 px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition">

@@ -35,7 +35,7 @@ public class InventoryReceiptDAO {
             params.add(createdBy);
         }
 
-        sql.append("ORDER BY receipt_date DESC LIMIT ? OFFSET ?");
+        sql.append("ORDER BY receipt_date ASC LIMIT ? OFFSET ?");
         params.add(pageSize);
         params.add((page - 1) * pageSize);
 

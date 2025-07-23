@@ -63,8 +63,7 @@ window.initializeCustomerPaymentDetailsFilters = function initializeCustomerPaym
         }, 500);
     });
 
-    // Setup filters when DataTable is ready
-    setupCustomerPaymentDetailsFilters();
+    // Note: Filter button event handlers are set up above, no need for additional setup
 
     // Populate service filter dropdown if table exists
     if (document.getElementById('paymentItemsTable')) {
@@ -76,30 +75,7 @@ window.initializeCustomerPaymentDetailsFilters = function initializeCustomerPaym
 
 };
 
-/**
- * Setup filter functionality for DataTable integration
- */
-function setupCustomerPaymentDetailsFilters() {
-    // Remove any existing event handlers to prevent duplicates
-    $(document).off('init.dt', '#paymentItemsTable');
 
-    // Wait for DataTable to be initialized
-    $(document).one('init.dt', '#paymentItemsTable', function() {
-        const table = $('#paymentItemsTable').DataTable();
-
-        // Apply filters button - ensure single event binding
-        $('#applyCustomerPaymentDetailsFilters').off('click').on('click', function() {
-            applyCustomerPaymentDetailsFilters(true);
-        });
-
-        // Reset filters button - ensure single event binding
-        $('#resetCustomerPaymentDetailsFilters').off('click').on('click', function() {
-            resetCustomerPaymentDetailsFilters();
-        });
-
-        console.log('Customer payment details DataTable filters setup complete');
-    });
-}
 
 /**
  * Apply all active filters to the payment items table
@@ -178,11 +154,28 @@ function applyCustomerPaymentDetailsFilters(showNotification = false) {
             // Usage status filter
             if (usageStatusFilter) {
                 const usageCell = $(row).find('td:eq(5)').text().trim().toLowerCase();
-                if (usageStatusFilter === 'used' && usageCell.indexOf('chưa sử dụng') !== -1) {
-                    return false;
+
+                if (usageStatusFilter === 'used') {
+                    // Show items that have been used (contain "đã sử dụng" and have booked quantity > 0)
+                    if (usageCell.indexOf('đã sử dụng') === -1) {
+                        return false;
+                    }
+                    // Additional check: ensure it's not "0/X đã sử dụng"
+                    const usageMatch = usageCell.match(/(\d+)\/\d+\s+đã sử dụng/);
+                    if (usageMatch && parseInt(usageMatch[1]) === 0) {
+                        return false;
+                    }
                 }
-                if (usageStatusFilter === 'unused' && usageCell.indexOf('chưa sử dụng') === -1) {
-                    return false;
+
+                if (usageStatusFilter === 'unused') {
+                    // Show items that are unused (either "chưa có thông tin" or "0/X đã sử dụng")
+                    const hasNoInfo = usageCell.indexOf('chưa có thông tin') !== -1;
+                    const usageMatch = usageCell.match(/(\d+)\/\d+\s+đã sử dụng/);
+                    const isZeroUsed = usageMatch && parseInt(usageMatch[1]) === 0;
+
+                    if (!hasNoInfo && !isZeroUsed) {
+                        return false;
+                    }
                 }
             }
 

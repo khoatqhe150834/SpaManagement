@@ -131,6 +131,7 @@ public class AuthorizationFilter implements Filter {
 
         // Manager area patterns
         PATTERN_ROLE_MAPPINGS.put("/manager/*", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
+        PATTERN_ROLE_MAPPINGS.put("/manager/payments/*", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
 
         // Admin area patterns
         PATTERN_ROLE_MAPPINGS.put("/admin/*", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID)));
@@ -398,6 +399,8 @@ public class AuthorizationFilter implements Filter {
         boolean isApiEndpoint = requestURI.contains("/api/") ||
                                requestURI.contains("action=") ||
                                requestURI.endsWith("/scheduling") ||
+                               requestURI.contains("/manager/payments/") ||
+                               requestURI.contains("/payment/") ||
                                (request.getParameter("action") != null);
 
         System.out.println("[AuthorizationFilter] AJAX detection - URI: " + requestURI +

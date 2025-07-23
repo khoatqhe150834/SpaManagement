@@ -278,43 +278,32 @@
             <span class="text-primary/70 font-bold text-xs uppercase tracking-wider mt-6 block">TÀI KHOẢN</span>
             <div class="mt-2">
                 <div class="mb-1 group">
-                    <a href="${pageContext.request.contextPath}/account/profile" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
-                        <i data-lucide="user-circle" class="mr-3 h-4 w-4"></i>                
+                    <a href="${pageContext.request.contextPath}/profile" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
+                        <i data-lucide="user-circle" class="mr-3 h-4 w-4"></i>
                         <span class="text-sm">Thông tin cá nhân</span>
                     </a>
                 </div>
                 <div class="mb-1 group">
-                    <a href="${pageContext.request.contextPath}/password/change" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
-                        <i data-lucide="key" class="mr-3 h-4 w-4"></i>                
+                    <a href="${pageContext.request.contextPath}/profile/edit" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
+                        <i data-lucide="edit-3" class="mr-3 h-4 w-4"></i>
+                        <span class="text-sm">Chỉnh sửa hồ sơ</span>
+                    </a>
+                </div>
+                <div class="mb-1 group">
+                    <a href="${pageContext.request.contextPath}/change-password" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
+                        <i data-lucide="key" class="mr-3 h-4 w-4"></i>
                         <span class="text-sm">Đổi mật khẩu</span>
                     </a>
                 </div>
                 <div class="mb-1 group">
-                    <a href="${pageContext.request.contextPath}/account/security" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
-                        <i data-lucide="shield-check" class="mr-3 h-4 w-4"></i>                
-                        <span class="text-sm">Bảo mật</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Common Personal Section for Logged-in Users -->
-            <span class="text-primary/70 font-bold text-xs uppercase tracking-wider mt-6 block">CÁ NHÂN</span>
-            <div class="mt-2">
-                <div class="mb-1 group">
-                    <a href="${pageContext.request.contextPath}/user-management/view?id=self" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
-                        <i data-lucide="user" class="mr-3 h-4 w-4"></i>                
-                        <span class="text-sm">Hồ sơ cá nhân</span>
-                    </a>
-                </div>
-                <div class="mb-1 group">
-                    <a href="${pageContext.request.contextPath}/profile" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
-                        <i data-lucide="settings" class="mr-3 h-4 w-4"></i>                
-                        <span class="text-sm">Cài đặt</span>
+                    <a href="${pageContext.request.contextPath}/account/settings" class="flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
+                        <i data-lucide="settings" class="mr-3 h-4 w-4"></i>
+                        <span class="text-sm">Cài đặt tài khoản</span>
                     </a>
                 </div>
                 <div class="mb-1 group">
                     <button onclick="confirmLogout()" class="w-full flex font-medium items-center py-2 px-4 text-spa-dark hover:bg-red-500 hover:text-white rounded-lg transition-all duration-200">
-                        <i data-lucide="log-out" class="mr-3 h-4 w-4"></i>                
+                        <i data-lucide="log-out" class="mr-3 h-4 w-4"></i>
                         <span class="text-sm">Đăng xuất</span>
                     </button>
                 </div>
