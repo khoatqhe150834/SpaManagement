@@ -37,6 +37,9 @@
     
     <!-- Quill Editor -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <!-- Highlight.js for Quill syntax module -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     
     <link rel="stylesheet" href="<c:url value='/css/style.css'/>" />
@@ -385,9 +388,9 @@
                     summaryError.textContent = 'Summary must be at least 10 characters.';
                     summaryError.classList.remove('hidden');
                     hasError = true;
-                } else if (summary.value.trim().length > 255) {
+                } else if (summary.value.trim().length > 500) {
                     summary.classList.add('border-red-500', 'focus:border-red-500', 'focus:ring-red-500');
-                    summaryError.textContent = 'Summary must be at most 255 characters.';
+                    summaryError.textContent = 'Summary must be at most 500 characters.';
                     summaryError.classList.remove('hidden');
                     hasError = true;
                 } else {
