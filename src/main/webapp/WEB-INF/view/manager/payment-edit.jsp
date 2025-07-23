@@ -56,10 +56,11 @@
 </head>
 <body class="bg-spa-cream min-h-screen">
     <!-- Include Sidebar -->
-    <jsp:include page="../common/sidebar.jsp" />
+    <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
     
     <!-- Main Content -->
-    <div class="ml-64 pt-16 p-6">
+    <main class="w-full md:w-[calc(100%-256px)] md:ml-64 bg-spa-cream min-h-screen transition-all main">
+        <div class="p-6">
         <!-- Breadcrumb -->
         <nav class="flex mb-6" aria-label="Breadcrumb">
             <ol class="inline-flex items-center space-x-1 md:space-x-3">
@@ -104,15 +105,23 @@
                     <input type="hidden" id="paymentId" name="paymentId" value="${payment.paymentId}">
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Customer Selection (Read-only for edit) -->
+                        <!-- Customer Selection (Read-only) -->
                         <div>
                             <label for="customerId" class="block text-sm font-medium text-gray-700 mb-2">
                                 Khách hàng <span class="text-red-500">*</span>
                             </label>
-                            <select id="customerId" name="customerId" required disabled
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100 text-gray-600 cursor-not-allowed">
-                                <option value="${payment.customerId}" selected>${customerName} - ${customerPhone}</option>
-                            </select>
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10">
+                                    <img class="h-10 w-10 rounded-full object-cover"
+                                         src="https://ui-avatars.com/api/?name=${payment.customer.fullName}&background=D4AF37&color=fff"
+                                         alt="${payment.customer.fullName}">
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm font-medium text-gray-900">${payment.customer.fullName}</p>
+                                    <p class="text-xs text-gray-500">${payment.customer.phoneNumber}</p>
+                                </div>
+                            </div>
+                            <input type="hidden" id="customerId" name="customerId" value="${payment.customerId}">
                             <p class="text-xs text-gray-500 mt-1">Không thể thay đổi khách hàng khi chỉnh sửa</p>
                         </div>
                         
@@ -127,26 +136,22 @@
                             <div id="paymentDateError" class="text-red-500 text-sm mt-1 hidden"></div>
                         </div>
                         
-                        <!-- Payment Method (Read-only for edit) -->
+                        <!-- Payment Method -->
                         <div>
                             <label for="paymentMethod" class="block text-sm font-medium text-gray-700 mb-2">
                                 Phương thức thanh toán <span class="text-red-500">*</span>
                             </label>
-                            <select id="paymentMethod" name="paymentMethod" required disabled
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100 text-gray-600 cursor-not-allowed">
-                                <option value="${payment.paymentMethod}" selected>
-                                    <c:choose>
-                                        <c:when test="${payment.paymentMethod == 'BANK_TRANSFER'}">Chuyển khoản</c:when>
-                                        <c:when test="${payment.paymentMethod == 'CREDIT_CARD'}">Thẻ tín dụng</c:when>
-                                        <c:when test="${payment.paymentMethod == 'VNPAY'}">VNPay</c:when>
-                                        <c:when test="${payment.paymentMethod == 'MOMO'}">MoMo</c:when>
-                                        <c:when test="${payment.paymentMethod == 'ZALOPAY'}">ZaloPay</c:when>
-                                        <c:when test="${payment.paymentMethod == 'CASH'}">Tiền mặt</c:when>
-                                        <c:otherwise>${payment.paymentMethod}</c:otherwise>
-                                    </c:choose>
-                                </option>
+                            <select id="paymentMethod" name="paymentMethod" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors">
+                                <option value="">Chọn phương thức</option>
+                                <option value="BANK_TRANSFER" ${payment.paymentMethod == 'BANK_TRANSFER' ? 'selected' : ''}>Chuyển khoản</option>
+                                <option value="CREDIT_CARD" ${payment.paymentMethod == 'CREDIT_CARD' ? 'selected' : ''}>Thẻ tín dụng</option>
+                                <option value="VNPAY" ${payment.paymentMethod == 'VNPAY' ? 'selected' : ''}>VNPay</option>
+                                <option value="MOMO" ${payment.paymentMethod == 'MOMO' ? 'selected' : ''}>MoMo</option>
+                                <option value="ZALOPAY" ${payment.paymentMethod == 'ZALOPAY' ? 'selected' : ''}>ZaloPay</option>
+                                <option value="CASH" ${payment.paymentMethod == 'CASH' ? 'selected' : ''}>Tiền mặt</option>
                             </select>
-                            <p class="text-xs text-gray-500 mt-1">Không thể thay đổi phương thức thanh toán</p>
+                            <div id="paymentMethodError" class="text-red-500 text-sm mt-1 hidden"></div>
                         </div>
                         
                         <!-- Payment Status -->
@@ -164,20 +169,22 @@
                             <div id="paymentStatusError" class="text-red-500 text-sm mt-1 hidden"></div>
                         </div>
                         
-                        <!-- Total Amount (Read-only for edit) -->
+                        <!-- Total Amount -->
                         <div class="md:col-span-2">
                             <label for="totalAmount" class="block text-sm font-medium text-gray-700 mb-2">
                                 Số tiền <span class="text-red-500">*</span>
                             </label>
                             <div class="relative">
-                                <input type="number" id="totalAmount" name="totalAmount" min="0" step="1000" required readonly
-                                       value="${payment.totalAmount}"
-                                       class="w-full pl-3 pr-12 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100 text-gray-600 cursor-not-allowed">
+                                <input type="text" id="totalAmount" name="totalAmount" required
+                                       value="<fmt:formatNumber value='${payment.totalAmount}' pattern='#,##0'/>"
+                                       class="w-full pl-3 pr-12 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                                       inputmode="numeric">
                                 <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-500">
                                     VNĐ
                                 </div>
                             </div>
-                            <p class="text-xs text-gray-500 mt-1">Không thể thay đổi số tiền thanh toán</p>
+                            <div id="totalAmountError" class="text-red-500 text-sm mt-1 hidden"></div>
+                            <p class="text-xs text-gray-500 mt-1">Có thể chỉnh sửa số tiền thanh toán</p>
                         </div>
                         
                         <!-- Notes -->
@@ -213,7 +220,8 @@
                 </form>
             </div>
         </div>
-    </div>
+        </div>
+    </main>
 
     <!-- External JavaScript -->
     <script src="${pageContext.request.contextPath}/js/payment-form.js"></script>
