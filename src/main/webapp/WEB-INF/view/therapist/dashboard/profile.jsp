@@ -17,7 +17,7 @@
     <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp" />
 </head>
 <body>
-    <jsp:include page="/WEB-INF/view/therapist/shared/sidebar.jsp" />
+    <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
     <jsp:include page="/WEB-INF/view/common/admin/header.jsp" />
 
     <div class="dashboard-main-body">

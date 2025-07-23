@@ -32,7 +32,12 @@ import model.User;
     "/manager/room/edit/*",
     "/manager/room/update",
     "/manager/room/delete/*",
-    "/manager/room/toggle-status/*"
+    "/manager/room/toggle-status/*",
+    "/manager/bed/add/*",
+    "/manager/bed/edit/*",
+    "/manager/bed/update",
+    "/manager/bed/delete/*",
+    "/manager/bed/toggle-status/*"
 })
 public class RoomController extends HttpServlet {
     
@@ -100,6 +105,34 @@ public class RoomController extends HttpServlet {
                     handleToggleRoomStatus(request, response, roomIdStr);
                 } else {
                     response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Room ID is required");
+                }
+            } else if (pathInfo.startsWith("/manager/bed/add")) {
+                if (additionalPath != null && additionalPath.length() > 1) {
+                    String roomIdStr = additionalPath.substring(1);
+                    handleAddBedForm(request, response, roomIdStr);
+                } else {
+                    response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Room ID is required");
+                }
+            } else if (pathInfo.startsWith("/manager/bed/edit")) {
+                if (additionalPath != null && additionalPath.length() > 1) {
+                    String bedIdStr = additionalPath.substring(1);
+                    handleEditBedForm(request, response, bedIdStr);
+                } else {
+                    response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Bed ID is required");
+                }
+            } else if (pathInfo.startsWith("/manager/bed/delete")) {
+                if (additionalPath != null && additionalPath.length() > 1) {
+                    String bedIdStr = additionalPath.substring(1);
+                    handleDeleteBed(request, response, bedIdStr);
+                } else {
+                    response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Bed ID is required");
+                }
+            } else if (pathInfo.startsWith("/manager/bed/toggle-status")) {
+                if (additionalPath != null && additionalPath.length() > 1) {
+                    String bedIdStr = additionalPath.substring(1);
+                    handleToggleBedStatus(request, response, bedIdStr);
+                } else {
+                    response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Bed ID is required");
                 }
             } else {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -427,6 +460,10 @@ public class RoomController extends HttpServlet {
                 handleAddRoom(request, response);
             } else if (pathInfo.equals("/manager/room/update")) {
                 handleUpdateRoom(request, response);
+            } else if (pathInfo.equals("/manager/bed/add")) {
+                handleAddBed(request, response);
+            } else if (pathInfo.equals("/manager/bed/update")) {
+                handleUpdateBed(request, response);
             } else {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND);
             }
@@ -622,6 +659,303 @@ public class RoomController extends HttpServlet {
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Database error in update room", e);
             request.getSession().setAttribute("errorMessage", "Lỗi khi cập nhật thông tin phòng. Vui lòng thử lại.");
+            response.sendRedirect(request.getContextPath() + "/manager/rooms-management");
+        }
+    }
+
+    // ==================== BED MANAGEMENT METHODS ====================
+
+    /**
+     * Handles bed addition form display
+     */
+    private void handleAddBedForm(HttpServletRequest request, HttpServletResponse response, String roomIdStr)
+            throws ServletException, IOException {
+
+        try {
+            int roomId = Integer.parseInt(roomIdStr);
+
+            // Get room information
+            Optional<Room> roomOpt = roomDAO.findById(roomId);
+            if (!roomOpt.isPresent()) {
+                request.getSession().setAttribute("errorMessage", "Không tìm thấy phòng.");
+                response.sendRedirect(request.getContextPath() + "/manager/rooms-management");
+                return;
+            }
+
+            Room room = roomOpt.get();
+            request.setAttribute("room", room);
+
+            // Forward to add bed form
+            request.getRequestDispatcher("/WEB-INF/view/manager/bed-add.jsp")
+                   .forward(request, response);
+
+        } catch (NumberFormatException e) {
+            LOGGER.log(Level.WARNING, "Invalid room ID format: " + roomIdStr, e);
+            request.getSession().setAttribute("errorMessage", "ID phòng không hợp lệ.");
+            response.sendRedirect(request.getContextPath() + "/manager/rooms-management");
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Database error in add bed form", e);
+            request.getSession().setAttribute("errorMessage", "Lỗi khi tải thông tin phòng.");
+            response.sendRedirect(request.getContextPath() + "/manager/rooms-management");
+        }
+    }
+
+    /**
+     * Handles bed edit form display
+     */
+    private void handleEditBedForm(HttpServletRequest request, HttpServletResponse response, String bedIdStr)
+            throws ServletException, IOException {
+
+        try {
+            int bedId = Integer.parseInt(bedIdStr);
+
+            // Get bed information
+            Optional<Bed> bedOpt = bedDAO.findById(bedId);
+            if (!bedOpt.isPresent()) {
+                request.getSession().setAttribute("errorMessage", "Không tìm thấy giường.");
+                response.sendRedirect(request.getContextPath() + "/manager/rooms-management");
+                return;
+            }
+
+            Bed bed = bedOpt.get();
+            request.setAttribute("bed", bed);
+
+            // Get room information
+            Optional<Room> roomOpt = roomDAO.findById(bed.getRoomId());
+            if (roomOpt.isPresent()) {
+                request.setAttribute("room", roomOpt.get());
+            }
+
+            // Forward to edit bed form
+            request.getRequestDispatcher("/WEB-INF/view/manager/bed-edit.jsp")
+                   .forward(request, response);
+
+        } catch (NumberFormatException e) {
+            LOGGER.log(Level.WARNING, "Invalid bed ID format: " + bedIdStr, e);
+            request.getSession().setAttribute("errorMessage", "ID giường không hợp lệ.");
+            response.sendRedirect(request.getContextPath() + "/manager/rooms-management");
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Database error in edit bed form", e);
+            request.getSession().setAttribute("errorMessage", "Lỗi khi tải thông tin giường.");
+            response.sendRedirect(request.getContextPath() + "/manager/rooms-management");
+        }
+    }
+
+    /**
+     * Handles bed update from form submission
+     */
+    private void handleUpdateBed(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        try {
+            // Get form parameters
+            String bedIdStr = request.getParameter("bedId");
+            String roomIdStr = request.getParameter("roomId");
+            String name = request.getParameter("name");
+            String description = request.getParameter("description");
+
+            // Validate input
+            if (bedIdStr == null || bedIdStr.trim().isEmpty()) {
+                request.getSession().setAttribute("errorMessage", "ID giường không hợp lệ.");
+                response.sendRedirect(request.getContextPath() + "/manager/rooms-management");
+                return;
+            }
+
+            if (name == null || name.trim().isEmpty()) {
+                request.getSession().setAttribute("errorMessage", "Tên giường không được để trống.");
+                response.sendRedirect(request.getContextPath() + "/manager/bed/edit/" + bedIdStr);
+                return;
+            }
+
+            if (name.trim().length() < 2) {
+                request.getSession().setAttribute("errorMessage", "Tên giường phải có ít nhất 2 ký tự.");
+                response.sendRedirect(request.getContextPath() + "/manager/bed/edit/" + bedIdStr);
+                return;
+            }
+
+            if (name.trim().length() > 50) {
+                request.getSession().setAttribute("errorMessage", "Tên giường không được vượt quá 50 ký tự.");
+                response.sendRedirect(request.getContextPath() + "/manager/bed/edit/" + bedIdStr);
+                return;
+            }
+
+            int bedId = Integer.parseInt(bedIdStr);
+            int roomId = Integer.parseInt(roomIdStr);
+
+            // Get existing bed
+            Optional<Bed> bedOpt = bedDAO.findById(bedId);
+            if (!bedOpt.isPresent()) {
+                request.getSession().setAttribute("errorMessage", "Không tìm thấy giường.");
+                response.sendRedirect(request.getContextPath() + "/manager/rooms-management");
+                return;
+            }
+
+            Bed bed = bedOpt.get();
+            bed.setName(name.trim());
+            bed.setDescription(description != null ? description.trim() : "");
+
+            // Update bed
+            bedDAO.update(bed);
+
+            LOGGER.info("Bed updated successfully with ID: " + bedId);
+            request.getSession().setAttribute("successMessage", "Cập nhật thông tin giường thành công!");
+            response.sendRedirect(request.getContextPath() + "/manager/room-details/" + roomId);
+
+        } catch (NumberFormatException e) {
+            LOGGER.log(Level.WARNING, "Invalid ID format in update bed", e);
+            request.getSession().setAttribute("errorMessage", "ID không hợp lệ.");
+            response.sendRedirect(request.getContextPath() + "/manager/rooms-management");
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Database error in update bed", e);
+            request.getSession().setAttribute("errorMessage", "Lỗi khi cập nhật thông tin giường. Vui lòng thử lại.");
+            response.sendRedirect(request.getContextPath() + "/manager/rooms-management");
+        }
+    }
+
+    /**
+     * Handles bed creation from form submission
+     */
+    private void handleAddBed(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        try {
+            // Get form parameters
+            String roomIdStr = request.getParameter("roomId");
+            String name = request.getParameter("name");
+            String description = request.getParameter("description");
+
+            // Validate input
+            if (roomIdStr == null || roomIdStr.trim().isEmpty()) {
+                request.getSession().setAttribute("errorMessage", "ID phòng không hợp lệ.");
+                response.sendRedirect(request.getContextPath() + "/manager/rooms-management");
+                return;
+            }
+
+            if (name == null || name.trim().isEmpty()) {
+                request.getSession().setAttribute("errorMessage", "Tên giường không được để trống.");
+                response.sendRedirect(request.getContextPath() + "/manager/bed/add/" + roomIdStr);
+                return;
+            }
+
+            if (name.trim().length() < 2) {
+                request.getSession().setAttribute("errorMessage", "Tên giường phải có ít nhất 2 ký tự.");
+                response.sendRedirect(request.getContextPath() + "/manager/bed/add/" + roomIdStr);
+                return;
+            }
+
+            if (name.trim().length() > 50) {
+                request.getSession().setAttribute("errorMessage", "Tên giường không được vượt quá 50 ký tự.");
+                response.sendRedirect(request.getContextPath() + "/manager/bed/add/" + roomIdStr);
+                return;
+            }
+
+            int roomId = Integer.parseInt(roomIdStr);
+
+            // Verify room exists
+            Optional<Room> roomOpt = roomDAO.findById(roomId);
+            if (!roomOpt.isPresent()) {
+                request.getSession().setAttribute("errorMessage", "Không tìm thấy phòng.");
+                response.sendRedirect(request.getContextPath() + "/manager/rooms-management");
+                return;
+            }
+
+            // Create new bed
+            Bed bed = new Bed(roomId, name.trim(), description != null ? description.trim() : "");
+
+            // Save bed
+            bedDAO.save(bed);
+
+            LOGGER.info("Bed created successfully for room ID: " + roomId);
+            request.getSession().setAttribute("successMessage", "Thêm giường mới thành công!");
+            response.sendRedirect(request.getContextPath() + "/manager/room-details/" + roomId);
+
+        } catch (NumberFormatException e) {
+            LOGGER.log(Level.WARNING, "Invalid room ID format in add bed", e);
+            request.getSession().setAttribute("errorMessage", "ID phòng không hợp lệ.");
+            response.sendRedirect(request.getContextPath() + "/manager/rooms-management");
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Database error in add bed", e);
+            request.getSession().setAttribute("errorMessage", "Lỗi khi thêm giường mới. Vui lòng thử lại.");
+            response.sendRedirect(request.getContextPath() + "/manager/rooms-management");
+        }
+    }
+
+    /**
+     * Handles bed deletion
+     */
+    private void handleDeleteBed(HttpServletRequest request, HttpServletResponse response, String bedIdStr)
+            throws ServletException, IOException {
+
+        try {
+            int bedId = Integer.parseInt(bedIdStr);
+
+            // Get bed information to get room ID for redirect
+            Optional<Bed> bedOpt = bedDAO.findById(bedId);
+            if (!bedOpt.isPresent()) {
+                request.getSession().setAttribute("errorMessage", "Không tìm thấy giường.");
+                response.sendRedirect(request.getContextPath() + "/manager/rooms-management");
+                return;
+            }
+
+            Bed bed = bedOpt.get();
+            int roomId = bed.getRoomId();
+
+            // Delete bed
+            bedDAO.deleteById(bedId);
+
+            LOGGER.info("Bed deleted successfully with ID: " + bedId);
+            request.getSession().setAttribute("successMessage", "Xóa giường thành công!");
+            response.sendRedirect(request.getContextPath() + "/manager/room-details/" + roomId);
+
+        } catch (NumberFormatException e) {
+            LOGGER.log(Level.WARNING, "Invalid bed ID format: " + bedIdStr, e);
+            request.getSession().setAttribute("errorMessage", "ID giường không hợp lệ.");
+            response.sendRedirect(request.getContextPath() + "/manager/rooms-management");
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Database error in delete bed", e);
+            request.getSession().setAttribute("errorMessage", "Lỗi khi xóa giường. Vui lòng thử lại.");
+            response.sendRedirect(request.getContextPath() + "/manager/rooms-management");
+        }
+    }
+
+    /**
+     * Handles bed status toggle (active/inactive)
+     */
+    private void handleToggleBedStatus(HttpServletRequest request, HttpServletResponse response, String bedIdStr)
+            throws ServletException, IOException {
+
+        try {
+            int bedId = Integer.parseInt(bedIdStr);
+
+            // Get bed information
+            Optional<Bed> bedOpt = bedDAO.findById(bedId);
+            if (!bedOpt.isPresent()) {
+                request.getSession().setAttribute("errorMessage", "Không tìm thấy giường.");
+                response.sendRedirect(request.getContextPath() + "/manager/rooms-management");
+                return;
+            }
+
+            Bed bed = bedOpt.get();
+            int roomId = bed.getRoomId();
+
+            // Toggle status
+            bed.setIsActive(!bed.getIsActive());
+
+            // Update bed
+            bedDAO.update(bed);
+
+            String statusText = bed.getIsActive() ? "kích hoạt" : "vô hiệu hóa";
+            LOGGER.info("Bed status toggled successfully for ID: " + bedId + " to " + bed.getIsActive());
+            request.getSession().setAttribute("successMessage", "Đã " + statusText + " giường thành công!");
+            response.sendRedirect(request.getContextPath() + "/manager/room-details/" + roomId);
+
+        } catch (NumberFormatException e) {
+            LOGGER.log(Level.WARNING, "Invalid bed ID format: " + bedIdStr, e);
+            request.getSession().setAttribute("errorMessage", "ID giường không hợp lệ.");
+            response.sendRedirect(request.getContextPath() + "/manager/rooms-management");
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Database error in toggle bed status", e);
+            request.getSession().setAttribute("errorMessage", "Lỗi khi thay đổi trạng thái giường. Vui lòng thử lại.");
             response.sendRedirect(request.getContextPath() + "/manager/rooms-management");
         }
     }

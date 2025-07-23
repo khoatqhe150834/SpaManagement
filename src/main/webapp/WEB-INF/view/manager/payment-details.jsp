@@ -72,6 +72,9 @@
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
+    <!-- Manager Payment Details Filter JS -->
+    <script src="${pageContext.request.contextPath}/js/manager-payment-details.js?v=<%= System.currentTimeMillis() %>"></script>
+
     <style>
         /* Custom DataTables styling to match our theme */
         .dataTables_wrapper {
@@ -291,6 +294,34 @@
             margin-bottom: 0.75rem;
             border-left: 4px solid #D4AF37;
         }
+
+        /* Filter panel styling */
+        .manager-payment-details-filter-panel {
+            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
+
+        .manager-payment-details-filter-panel.show {
+            max-height: 500px;
+            opacity: 1;
+        }
+
+        #togglePaymentDetailsFilters i {
+            transition: transform 0.3s ease;
+        }
+
+        #togglePaymentDetailsFilters i.rotate-180 {
+            transform: rotate(180deg);
+        }
+
+        /* Responsive adjustments for filters */
+        @media (max-width: 768px) {
+            .grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-4 {
+                grid-template-columns: repeat(1, minmax(0, 1fr));
+            }
+        }
     </style>
 </head>
 <body class="bg-spa-cream font-sans text-spa-dark">
@@ -498,10 +529,71 @@
             <!-- Payment Items -->
             <div class="bg-white rounded-xl shadow-md border border-primary/10 overflow-hidden mb-6">
                 <div class="p-6 border-b border-gray-200">
-                    <h2 class="text-xl font-semibold text-spa-dark flex items-center gap-2">
-                        <i data-lucide="shopping-bag" class="h-6 w-6 text-primary"></i>
-                        Dịch Vụ Đã Mua (${fn:length(paymentItems)} dịch vụ)
-                    </h2>
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <h2 class="text-xl font-semibold text-spa-dark flex items-center gap-2">
+                            <i data-lucide="shopping-bag" class="h-6 w-6 text-primary"></i>
+                            Dịch Vụ Đã Mua (${fn:length(paymentItems)} dịch vụ)
+                        </h2>
+
+                        <div class="flex flex-wrap items-center gap-3">
+                            <!-- Filter Toggle Button -->
+                            <button id="togglePaymentDetailsFilters" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary/20">
+                                <i data-lucide="filter" class="h-4 w-4 mr-2"></i>
+                                Bộ lọc
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filter Panel -->
+                <div id="paymentDetailsFilterPanel" class="manager-payment-details-filter-panel px-6 py-0 border-b border-gray-200 bg-gray-50">
+                    <div class="p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <!-- Service Name Filter -->
+                            <div>
+                                <label for="paymentDetailsServiceFilter" class="block text-sm font-medium text-gray-700 mb-2">Tên dịch vụ</label>
+                                <select id="paymentDetailsServiceFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                    <option value="">Tất cả dịch vụ</option>
+                                </select>
+                            </div>
+
+                            <!-- Quantity Filter -->
+                            <div>
+                                <label for="paymentDetailsQuantityFilter" class="block text-sm font-medium text-gray-700 mb-2">Số lượng</label>
+                                <input type="number" id="paymentDetailsQuantityFilter" placeholder="Nhập số lượng" min="1"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                            </div>
+
+                            <!-- Amount Range -->
+                            <div>
+                                <label for="paymentDetailsMinAmount" class="block text-sm font-medium text-gray-700 mb-2">Giá từ</label>
+                                <input type="number" id="paymentDetailsMinAmount" placeholder="0" min="0" step="1000"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                            </div>
+
+                            <div>
+                                <label for="paymentDetailsMaxAmount" class="block text-sm font-medium text-gray-700 mb-2">Giá đến</label>
+                                <input type="number" id="paymentDetailsMaxAmount" placeholder="10,000,000" min="0" step="1000"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                            </div>
+                        </div>
+
+                        <!-- Duration Filter -->
+                        <div class="mt-4">
+                            <label for="paymentDetailsDurationFilter" class="block text-sm font-medium text-gray-700 mb-2">Thời gian (phút)</label>
+                            <input type="number" id="paymentDetailsDurationFilter" class="px-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" placeholder="Nhập thời gian" min="1" />
+                        </div>
+                    </div>
+
+                    <!-- Filter Actions -->
+                    <div class="flex justify-end py-3 px-6 gap-3 border-t border-gray-200">
+                        <button id="resetPaymentDetailsFilters" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary/20">
+                            Đặt lại
+                        </button>
+                        <button id="applyPaymentDetailsFilters" class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary/20">
+                            Áp dụng
+                        </button>
+                    </div>
                 </div>
                 <div class="p-6">
                     <c:choose>
@@ -617,32 +709,7 @@
                 </div>
             </c:if>
 
-            <!-- Action Buttons -->
-            <div class="flex gap-3 justify-end">
-                <a href="${pageContext.request.contextPath}/manager/payments-management" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-                    <i data-lucide="arrow-left" class="h-4 w-4 mr-2"></i>
-                    Quay lại
-                </a>
 
-                <c:if test="${payment.paymentStatus == 'PENDING'}">
-                    <button onclick="editPayment(${payment.paymentId})" class="inline-flex items-center px-4 py-2 text-sm font-medium text-yellow-700 bg-yellow-100 border border-yellow-300 rounded-lg hover:bg-yellow-200 transition-colors duration-200">
-                        <i data-lucide="edit" class="h-4 w-4 mr-2"></i>
-                        Chỉnh sửa
-                    </button>
-                </c:if>
-
-                <c:if test="${payment.paymentStatus == 'PAID'}">
-                    <button onclick="refundPayment(${payment.paymentId})" class="inline-flex items-center px-4 py-2 text-sm font-medium text-red-700 bg-red-100 border border-red-300 rounded-lg hover:bg-red-200 transition-colors duration-200">
-                        <i data-lucide="rotate-ccw" class="h-4 w-4 mr-2"></i>
-                        Hoàn tiền
-                    </button>
-                </c:if>
-
-                <button onclick="printReceipt(${payment.paymentId})" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary border border-primary rounded-lg hover:bg-primary-dark transition-colors duration-200">
-                    <i data-lucide="printer" class="h-4 w-4 mr-2"></i>
-                    In hóa đơn
-                </button>
-            </div>
         </div>
     </main>
 

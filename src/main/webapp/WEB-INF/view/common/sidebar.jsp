@@ -104,18 +104,56 @@
         scroll-behavior: smooth;
     }
 
+    /* Logo styling for consistency */
+    .sidebar-logo {
+        font-family: 'Roboto', sans-serif;
+        font-weight: 700;
+        font-size: 1.5rem;
+        line-height: 1.2;
+        color: #333333;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        transition: all 0.2s ease;
+    }
+
+    .sidebar-logo:hover {
+        color: #333333;
+        text-decoration: none;
+    }
+
+    .sidebar-logo-highlight {
+        background-color: #D4AF37;
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.375rem;
+        margin-left: 0.25rem;
+        font-weight: 700;
+    }
+
     /* Mobile responsive adjustments */
     @media (max-width: 768px) {
         .sidebar-nav-container::-webkit-scrollbar {
             width: 4px;
+        }
+
+        .sidebar-logo {
+            font-size: 1.25rem;
+        }
+    }
+
+    /* Ensure logo is always visible and properly styled */
+    @media (max-width: 640px) {
+        .sidebar-logo {
+            font-size: 1.125rem;
         }
     }
 </style>
 
 <!-- Enhanced Role-Based Sidebar with MenuService Integration -->
 <div class="fixed left-0 top-0 w-64 h-full bg-spa-cream p-4 z-50 sidebar-menu transition-transform border-r border-primary/20 flex flex-col">
-    <a href="${pageContext.request.contextPath}/dashboard" class="flex items-center pb-4 border-b border-primary/30 flex-shrink-0">
-        <h2 class="font-bold text-2xl text-spa-dark">Spa <span class="bg-primary text-white px-2 rounded-md">Hương Sen</span></h2>
+    <a href="${pageContext.request.contextPath}/" class="sidebar-logo pb-4 border-b border-primary/30 flex-shrink-0">
+        <span>Spa</span><span class="sidebar-logo-highlight">Hương Sen</span>
     </a>
     
     <div class="mt-4 flex-1 overflow-hidden">

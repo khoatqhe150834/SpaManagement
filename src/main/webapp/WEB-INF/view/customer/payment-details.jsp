@@ -56,6 +56,9 @@
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
+    <!-- Customer Payment Details Filter JS -->
+    <script src="${pageContext.request.contextPath}/js/customer-payment-details.js?v=<%= System.currentTimeMillis() %>"></script>
+
     <style>
         /* Custom DataTables styling to match our theme */
         .dataTables_wrapper {
@@ -157,7 +160,6 @@
         .payment-items-table th:nth-child(4) { text-align: center; }  /* Thời gian */
         .payment-items-table th:nth-child(5) { text-align: right; }   /* Thành tiền */
         .payment-items-table th:nth-child(6) { text-align: center; }  /* Tình trạng sử dụng */
-        .payment-items-table th:nth-child(7) { text-align: center; }  /* Thao tác */
 
         .payment-items-table td:nth-child(1) { text-align: left; }    /* Dịch vụ */
         .payment-items-table td:nth-child(2) { text-align: center; }  /* Số lượng */
@@ -165,7 +167,6 @@
         .payment-items-table td:nth-child(4) { text-align: center; }  /* Thời gian */
         .payment-items-table td:nth-child(5) { text-align: right; }   /* Thành tiền */
         .payment-items-table td:nth-child(6) { text-align: center; }  /* Tình trạng sử dụng */
-        .payment-items-table td:nth-child(7) { text-align: center; }  /* Thao tác */
 
         /* Vertical alignment for all cells */
         .payment-items-table th,
@@ -205,13 +206,38 @@
         .payment-items-table th:nth-child(6),
         .payment-items-table td:nth-child(6) { width: 150px; }  /* Tình trạng sử dụng */
 
-        .payment-items-table th:nth-child(7),
-        .payment-items-table td:nth-child(7) { width: 100px; }  /* Thao tác */
-
         /* Progress bar container improvements */
         .usage-progress {
             width: 120px;
             margin: 0 auto;
+        }
+
+        /* Filter panel styling */
+        .customer-payment-details-filter-panel {
+            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
+
+        .customer-payment-details-filter-panel.show {
+            max-height: 500px;
+            opacity: 1;
+        }
+
+        #toggleCustomerPaymentDetailsFilters i {
+            transition: transform 0.3s ease;
+        }
+
+        #toggleCustomerPaymentDetailsFilters i.rotate-180 {
+            transform: rotate(180deg);
+        }
+
+        /* Responsive adjustments for filters */
+        @media (max-width: 768px) {
+            .grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-4 {
+                grid-template-columns: repeat(1, minmax(0, 1fr));
+            }
         }
     </style>
 </head>
@@ -443,10 +469,83 @@
                         <c:when test="${paymentItems != null && not empty paymentItems}">
                             <div class="bg-white rounded-xl shadow-md border border-primary/10 overflow-hidden mb-6">
                                 <div class="p-6 border-b border-gray-200">
-                                    <h2 class="text-xl font-semibold text-spa-dark flex items-center gap-2">
-                                        <i data-lucide="shopping-bag" class="h-6 w-6 text-primary"></i>
-                                        Dịch Vụ Đã Mua (${fn:length(paymentItems)} dịch vụ)
-                                    </h2>
+                                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                        <h2 class="text-xl font-semibold text-spa-dark flex items-center gap-2">
+                                            <i data-lucide="shopping-bag" class="h-6 w-6 text-primary"></i>
+                                            Dịch Vụ Đã Mua (${fn:length(paymentItems)} dịch vụ)
+                                        </h2>
+
+                                        <div class="flex flex-wrap items-center gap-3">
+                                            <!-- Filter Toggle Button -->
+                                            <button id="toggleCustomerPaymentDetailsFilters" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary/20">
+                                                <i data-lucide="filter" class="h-4 w-4 mr-2"></i>
+                                                Bộ lọc
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Filter Panel -->
+                                <div id="customerPaymentDetailsFilterPanel" class="customer-payment-details-filter-panel px-6 py-0 border-b border-gray-200 bg-gray-50">
+                                    <div class="p-6">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                            <!-- Service Name Filter -->
+                                            <div>
+                                                <label for="customerPaymentDetailsServiceFilter" class="block text-sm font-medium text-gray-700 mb-2">Tên dịch vụ</label>
+                                                <select id="customerPaymentDetailsServiceFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                                    <option value="">Tất cả dịch vụ</option>
+                                                </select>
+                                            </div>
+
+                                            <!-- Quantity Filter -->
+                                            <div>
+                                                <label for="customerPaymentDetailsQuantityFilter" class="block text-sm font-medium text-gray-700 mb-2">Số lượng</label>
+                                                <input type="number" id="customerPaymentDetailsQuantityFilter" placeholder="Nhập số lượng" min="1"
+                                                       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                            </div>
+
+                                            <!-- Amount Range -->
+                                            <div>
+                                                <label for="customerPaymentDetailsMinAmount" class="block text-sm font-medium text-gray-700 mb-2">Giá từ</label>
+                                                <input type="number" id="customerPaymentDetailsMinAmount" placeholder="0" min="0" step="1000"
+                                                       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                            </div>
+
+                                            <div>
+                                                <label for="customerPaymentDetailsMaxAmount" class="block text-sm font-medium text-gray-700 mb-2">Giá đến</label>
+                                                <input type="number" id="customerPaymentDetailsMaxAmount" placeholder="10,000,000" min="0" step="1000"
+                                                       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                            </div>
+                                        </div>
+
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                            <!-- Duration Filter -->
+                                            <div>
+                                                <label for="customerPaymentDetailsDurationFilter" class="block text-sm font-medium text-gray-700 mb-2">Thời gian (phút)</label>
+                                                <input type="number" id="customerPaymentDetailsDurationFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" placeholder="Nhập thời gian" min="1" />
+                                            </div>
+
+                                            <!-- Usage Status Filter -->
+                                            <div>
+                                                <label for="customerPaymentDetailsUsageFilter" class="block text-sm font-medium text-gray-700 mb-2">Tình trạng sử dụng</label>
+                                                <select id="customerPaymentDetailsUsageFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                                    <option value="">Tất cả</option>
+                                                    <option value="used">Đã sử dụng</option>
+                                                    <option value="unused">Chưa sử dụng</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Filter Actions -->
+                                    <div class="flex justify-end py-3 px-6 gap-3 border-t border-gray-200">
+                                        <button id="resetCustomerPaymentDetailsFilters" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary/20">
+                                            Đặt lại
+                                        </button>
+                                        <button id="applyCustomerPaymentDetailsFilters" class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary/20">
+                                            Áp dụng
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="p-6">
                                     <table id="paymentItemsTable" class="w-full display responsive nowrap payment-items-table" style="width:100%">
@@ -458,7 +557,6 @@
                                                 <th>Thời gian</th>
                                                 <th>Thành tiền</th>
                                                 <th>Tình trạng sử dụng</th>
-                                                <th>Thao tác</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -504,29 +602,6 @@
                                                                 <span class="text-gray-500 text-sm">Chưa có thông tin</span>
                                                             </c:otherwise>
                                                         </c:choose>
-                                                    </td>
-                                                    <td>
-                                                        <div class="flex justify-center">
-                                                            <c:choose>
-                                                                <c:when test="${item.usage != null && item.usage.remainingQuantity > 0}">
-                                                                    <a href="${pageContext.request.contextPath}/booking?serviceId=${item.serviceId}"
-                                                                       class="inline-flex items-center px-3 py-1 bg-primary hover:bg-primary-dark text-white rounded text-sm font-medium transition-colors">
-                                                                        <i data-lucide="calendar-plus" class="h-3 w-3 mr-1"></i>
-                                                                        Đặt lịch
-                                                                    </a>
-                                                                </c:when>
-                                                                <c:when test="${item.usage == null}">
-                                                                    <a href="${pageContext.request.contextPath}/booking?serviceId=${item.serviceId}"
-                                                                       class="inline-flex items-center px-3 py-1 bg-primary hover:bg-primary-dark text-white rounded text-sm font-medium transition-colors">
-                                                                        <i data-lucide="calendar-plus" class="h-3 w-3 mr-1"></i>
-                                                                        Đặt lịch
-                                                                    </a>
-                                                                </c:when>
-                                                                <c:otherwise>
-                                                                    <span class="text-gray-500 text-sm">Đã sử dụng hết</span>
-                                                                </c:otherwise>
-                                                            </c:choose>
-                                                        </div>
                                                     </td>
                                                 </tr>
                                             </c:forEach>
@@ -623,6 +698,16 @@
             // Initialize progress bars
             initializeProgressBars();
 
+            // Initialize filter functionality (handled by external JS)
+            // Wait a bit to ensure all elements are rendered
+            setTimeout(function() {
+                if (typeof initializeCustomerPaymentDetailsFilters === 'function') {
+                    initializeCustomerPaymentDetailsFilters();
+                } else {
+                    console.error('initializeCustomerPaymentDetailsFilters function not found');
+                }
+            }, 100);
+
             // Initialize DataTables
             if ($.fn.DataTable && document.getElementById('paymentItemsTable')) {
                 $('#paymentItemsTable').DataTable({
@@ -669,12 +754,6 @@
                                 }
                                 return data;
                             }
-                        },
-                        // Make action column non-sortable
-                        {
-                            targets: 6,
-                            orderable: false,
-                            searchable: false
                         }
                     ],
                     language: {
@@ -700,7 +779,7 @@
                             filename: 'Chi_tiet_thanh_toan_${payment.paymentId}_' + new Date().toISOString().slice(0,10),
                             title: 'Chi tiết thanh toán #${payment.paymentId}',
                             exportOptions: {
-                                columns: [0, 1, 2, 3, 4, 5] // Exclude action column
+                                columns: [0, 1, 2, 3, 4, 5] // Include all columns (no action column to exclude)
                             }
                         },
                         {
@@ -709,7 +788,7 @@
                             className: 'bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors inline-flex items-center',
                             title: 'Chi tiết thanh toán #${payment.paymentId}',
                             exportOptions: {
-                                columns: [0, 1, 2, 3, 4, 5] // Exclude action column
+                                columns: [0, 1, 2, 3, 4, 5] // Include all columns (no action column to exclude)
                             }
                         }
                     ],

@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -29,8 +30,7 @@
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <body class="bg-spa-cream min-h-screen">
-    <!-- Include Header -->
-    <jsp:include page="../common/header.jsp" />
+  
     
     <!-- Include Sidebar -->
     <jsp:include page="../common/sidebar.jsp" />
@@ -67,20 +67,8 @@
             <p class="text-gray-600">Cập nhật thông tin phòng: <span class="font-semibold text-primary">${room.name}</span></p>
         </div>
 
-        <!-- Success/Error Messages -->
-        <c:if test="${not empty sessionScope.successMessage}">
-            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6" role="alert">
-                <span class="block sm:inline">${sessionScope.successMessage}</span>
-            </div>
-            <c:remove var="successMessage" scope="session" />
-        </c:if>
-
-        <c:if test="${not empty sessionScope.errorMessage}">
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6" role="alert">
-                <span class="block sm:inline">${sessionScope.errorMessage}</span>
-            </div>
-            <c:remove var="errorMessage" scope="session" />
-        </c:if>
+        <!-- Error Messages -->
+      
 
         <!-- Edit Room Form -->
         <div class="bg-white rounded-xl shadow-md border border-primary/10 overflow-hidden">
@@ -199,8 +187,7 @@
         </div>
     </div>
 
-    <!-- Include Footer -->
-    <jsp:include page="../common/footer.jsp" />
+    
 
     <script>
         // Initialize Lucide icons

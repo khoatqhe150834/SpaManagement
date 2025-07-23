@@ -8,6 +8,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import dao.BedDAO;
+import dao.CustomerDAO;
+import dao.PaymentDAO;
 import dao.RoomDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -15,6 +17,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Bed;
+import model.Payment;
 import model.Room;
 
 /**
@@ -25,21 +28,34 @@ import model.Room;
     "/api/validate/room/name",
     "/api/validate/room/name/*",
     "/api/validate/bed/name",
-    "/api/validate/bed/name/*"
+    "/api/validate/bed/name/*",
+    "/api/validate/payment/customer",
+    "/api/validate/payment/amount",
+    "/api/validate/payment/reference"
 })
 public class ValidationController extends HttpServlet {
     
     private static final Logger LOGGER = Logger.getLogger(ValidationController.class.getName());
     private final RoomDAO roomDAO;
     private final BedDAO bedDAO;
-    
+    private final CustomerDAO customerDAO;
+    private final PaymentDAO paymentDAO;
+
     public ValidationController() {
         this.roomDAO = new RoomDAO();
         this.bedDAO = new BedDAO();
+        this.customerDAO = new CustomerDAO();
+        this.paymentDAO = new PaymentDAO();
     }
     
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        doPost(request, response);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         
         // Set response content type to JSON
@@ -79,6 +95,12 @@ public class ValidationController extends HttpServlet {
                         sendErrorResponse(response, "ID giường không hợp lệ", 400);
                     }
                 }
+            } else if (servletPath.equals("/api/validate/payment/customer")) {
+                handlePaymentCustomerValidation(request, response);
+            } else if (servletPath.equals("/api/validate/payment/amount")) {
+                handlePaymentAmountValidation(request, response);
+            } else if (servletPath.equals("/api/validate/payment/reference")) {
+                handlePaymentReferenceValidation(request, response);
             } else {
                 sendErrorResponse(response, "Endpoint không tồn tại", 404);
             }
@@ -273,15 +295,119 @@ public class ValidationController extends HttpServlet {
     }
     
     /**
+     * Handle payment customer validation
+     */
+    private void handlePaymentCustomerValidation(HttpServletRequest request, HttpServletResponse response)
+            throws IOException, SQLException {
+
+        String customerIdStr = request.getParameter("customerId");
+
+        if (customerIdStr == null || customerIdStr.trim().isEmpty()) {
+            sendValidationResponse(response, false, "Vui lòng chọn khách hàng");
+            return;
+        }
+
+        try {
+            int customerId = Integer.parseInt(customerIdStr);
+            var customerOpt = customerDAO.findById(customerId);
+
+            if (!customerOpt.isPresent()) {
+                sendValidationResponse(response, false, "Khách hàng không tồn tại");
+                return;
+            }
+
+            sendValidationResponse(response, true, "Khách hàng hợp lệ");
+
+        } catch (NumberFormatException e) {
+            sendValidationResponse(response, false, "ID khách hàng không hợp lệ");
+        }
+    }
+
+    /**
+     * Handle payment amount validation
+     */
+    private void handlePaymentAmountValidation(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+
+        String amountStr = request.getParameter("amount");
+
+        if (amountStr == null || amountStr.trim().isEmpty()) {
+            sendValidationResponse(response, false, "Vui lòng nhập số tiền");
+            return;
+        }
+
+        try {
+            // Remove formatting and parse
+            String cleanAmount = amountStr.replaceAll("[^\\d]", "");
+            double amount = Double.parseDouble(cleanAmount);
+
+            if (amount <= 0) {
+                sendValidationResponse(response, false, "Số tiền phải lớn hơn 0");
+                return;
+            }
+
+            if (amount > 100000000) {
+                sendValidationResponse(response, false, "Số tiền không được vượt quá 100,000,000 VNĐ");
+                return;
+            }
+
+            sendValidationResponse(response, true, "Số tiền hợp lệ");
+
+        } catch (NumberFormatException e) {
+            sendValidationResponse(response, false, "Số tiền không hợp lệ");
+        }
+    }
+
+    /**
+     * Handle payment reference validation
+     */
+    private void handlePaymentReferenceValidation(HttpServletRequest request, HttpServletResponse response)
+            throws IOException, SQLException {
+
+        String reference = request.getParameter("reference");
+
+        if (reference == null || reference.trim().isEmpty()) {
+            sendValidationResponse(response, true, "Mã tham chiếu không bắt buộc");
+            return;
+        }
+
+        reference = reference.trim();
+
+        // Check length constraints
+        if (reference.length() > 100) {
+            sendValidationResponse(response, false, "Mã tham chiếu không được vượt quá 100 ký tự");
+            return;
+        }
+
+        // Check for duplicate reference numbers
+        try {
+            List<Payment> existingPayments = paymentDAO.findAll();
+            for (Payment payment : existingPayments) {
+                if (payment.getReferenceNumber() != null &&
+                    payment.getReferenceNumber().trim().equalsIgnoreCase(reference)) {
+                    sendValidationResponse(response, false, "Mã tham chiếu đã tồn tại");
+                    return;
+                }
+            }
+
+            sendValidationResponse(response, true, "Mã tham chiếu hợp lệ");
+
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Database error during reference validation", e);
+            sendValidationResponse(response, false, "Lỗi hệ thống khi kiểm tra mã tham chiếu");
+        }
+    }
+
+    /**
      * Send error response as JSON
      */
-    private void sendErrorResponse(HttpServletResponse response, String message, int statusCode) 
+    private void sendErrorResponse(HttpServletResponse response, String message, int statusCode)
             throws IOException {
-        
+
         response.setStatus(statusCode);
         PrintWriter out = response.getWriter();
         String jsonResponse = String.format(
-            "{\"error\": true, \"message\": \"%s\"}", 
+            "{\"error\": true, \"message\": \"%s\"}",
             message.replace("\"", "\\\"")
         );
         out.print(jsonResponse);

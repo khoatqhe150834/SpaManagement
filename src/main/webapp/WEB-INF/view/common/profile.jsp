@@ -14,13 +14,41 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <title>BeautyZone : Hồ Sơ Cá Nhân</title>
         
-        <!-- Include admin framework stylesheets -->
-        <jsp:include page="/WEB-INF/view/common/admin/stylesheet.jsp"></jsp:include>
+        <!-- Tailwind CSS -->
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            primary: "#D4AF37",
+                            "primary-dark": "#B8941F",
+                            secondary: "#FADADD",
+                            "spa-cream": "#FFF8F0",
+                            "spa-dark": "#333333",
+                            "spa-gray": "#F3F4F6",
+                        },
+                        fontFamily: {
+                            sans: ["Roboto", "sans-serif"],
+                        },
+                    },
+                },
+            };
+        </script>
+
+        <!-- Google Fonts -->
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+        <!-- Lucide Icons -->
+        <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+        <!-- Custom CSS -->
+        <link rel="stylesheet" href="<c:url value='/css/style.css'/>" />
     </head>
 
     <body>
         <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
-        <jsp:include page="/WEB-INF/view/common/admin/header.jsp" />
+        <jsp:include page="/WEB-INF/view/common/header.jsp" />
             
         <div class="dashboard-main-body ml-64">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
@@ -252,6 +280,11 @@
             </div>
         </div>
         
-        <jsp:include page="/WEB-INF/view/common/admin/js.jsp"></jsp:include>
+        <!-- Initialize Lucide icons -->
+        <script>
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        </script>
     </body>
 </html>
