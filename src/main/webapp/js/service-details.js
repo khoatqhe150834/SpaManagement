@@ -36,6 +36,35 @@ class ServiceDetailsManager {
         if (window.serviceDetailsData) {
             this.serviceData = window.serviceDetailsData.serviceData;
             this.serviceImages = window.serviceDetailsData.serviceImages;
+            
+            // Make sure we have complete service data
+            if (this.serviceData) {
+                // Add missing fields if needed
+                if (!this.serviceData.durationMinutes) {
+                    // Try to get duration from the page
+                    const durationElement = document.getElementById('service-duration');
+                    if (durationElement) {
+                        const durationText = durationElement.textContent;
+                        const durationMatch = durationText.match(/(\d+)/);
+                        if (durationMatch) {
+                            this.serviceData.durationMinutes = parseInt(durationMatch[1]);
+                        } else {
+                            this.serviceData.durationMinutes = 60; // Default
+                        }
+                    } else {
+                        this.serviceData.durationMinutes = 60; // Default
+                    }
+                }
+                
+                // Make sure we have a description
+                if (!this.serviceData.description) {
+                    const descElement = document.getElementById('service-description');
+                    if (descElement) {
+                        this.serviceData.description = descElement.textContent.trim();
+                    }
+                }
+            }
+            
             console.log('[SERVICE_DETAILS] Using JSP data:', this.serviceData, this.serviceImages);
             console.log('[SERVICE_DETAILS] Service images count:', this.serviceImages ? this.serviceImages.length : 0);
 
@@ -61,6 +90,7 @@ class ServiceDetailsManager {
     setupEnhancedMode() {
         this.showServiceContent();
         this.initializeImageCarousel();
+        // Load related services
         this.loadRelatedServices();
         this.setupImageErrorHandling();
 
@@ -280,6 +310,9 @@ class ServiceDetailsManager {
         
         document.getElementById('service-detailed-description').textContent = detailedDescription;
 
+        // Load related services
+        this.loadRelatedServices();
+
         // Initialize Lucide icons
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
@@ -358,8 +391,10 @@ class ServiceDetailsManager {
         // Zoom modal controls
         this.setupZoomModalListeners();
 
-        // Related services navigation
-        this.setupRelatedServicesNavigation();
+        // Related services navigation - removed since using server-side rendering
+
+        // Related services add to cart buttons
+        this.setupRelatedServicesCart();
 
         console.log('[ServiceDetails] Event listeners setup complete');
     }
@@ -469,20 +504,144 @@ class ServiceDetailsManager {
         });
     }
 
-    setupRelatedServicesNavigation() {
-        const relatedPrev = document.getElementById('related-prev');
-        const relatedNext = document.getElementById('related-next');
-        const relatedGrid = document.getElementById('related-services-grid');
+    // setupRelatedServicesNavigation removed - using server-side rendered related services
 
-        if (relatedPrev && relatedNext && relatedGrid) {
-            relatedPrev.addEventListener('click', () => {
-                relatedGrid.scrollBy({ left: -300, behavior: 'smooth' });
-            });
+    setupRelatedServicesCart() {
+        // Handle add to cart buttons for related services
+        const relatedCartButtons = document.querySelectorAll('.add-to-cart-related');
 
-            relatedNext.addEventListener('click', () => {
-                relatedGrid.scrollBy({ left: 300, behavior: 'smooth' });
+        relatedCartButtons.forEach(button => {
+            button.addEventListener('click', async (e) => {
+                e.preventDefault();
+
+                const serviceId = button.getAttribute('data-service-id');
+                const serviceName = button.getAttribute('data-service-name');
+                const servicePrice = button.getAttribute('data-service-price');
+
+                if (serviceId && serviceName && servicePrice) {
+                    await this.addRelatedServiceToCart(serviceId, serviceName, servicePrice, button);
+                }
             });
+        });
+    }
+
+    async addRelatedServiceToCart(serviceId, serviceName, servicePrice, button) {
+        try {
+            // Try to find the service image from the button's parent card
+            let serviceImage = `https://placehold.co/300x200/FFB6C1/333333?text=${encodeURIComponent(serviceName)}`;
+            
+            try {
+                // Find the parent card element
+                const card = button.closest('.bg-white');
+                if (card) {
+                    // Find the image element within the card
+                    const imgElement = card.querySelector('img');
+                    if (imgElement && imgElement.src && !imgElement.src.includes('placehold.co')) {
+                        serviceImage = imgElement.src;
+                        console.log('[ServiceDetails] Found image in card:', serviceImage);
+                    }
+                }
+            } catch (imgError) {
+                console.warn('[ServiceDetails] Error finding image in card:', imgError);
+            }
+            
+            // Prepare service data
+            const serviceData = {
+                serviceId: parseInt(serviceId),
+                serviceName: serviceName,
+                serviceImage: serviceImage,
+                servicePrice: parseFloat(servicePrice),
+                serviceDuration: 60 // Default duration
+            };
+            
+            console.log('[ServiceDetails] Adding related service to cart:', serviceData);
+            
+            // Use the global addToCart function if available
+            if (typeof window.addToCart === 'function') {
+                window.addToCart(serviceData);
+                
+                // Update cart icon immediately
+                if (typeof window.updateCartIcon === 'function') {
+                    await window.updateCartIcon();
+                }
+                
+                // Show success feedback
+                this.showRelatedServiceAddedFeedback(button, serviceName);
+                
+                console.log('[ServiceDetails] Related service added to cart:', serviceName);
+            } else {
+                // Fallback to direct localStorage manipulation
+                // Get existing cart from localStorage
+                let cart = JSON.parse(localStorage.getItem('session_cart') || '[]');
+    
+                // Check if service already exists in cart
+                const existingItemIndex = cart.findIndex(item => item.serviceId === parseInt(serviceId));
+    
+                if (existingItemIndex !== -1) {
+                    // Increase quantity if already exists
+                    cart[existingItemIndex].quantity += 1;
+                } else {
+                    // Add new item to cart
+                    cart.push({
+                        serviceId: parseInt(serviceId),
+                        serviceName: serviceName,
+                        serviceImage: serviceImage,
+                        servicePrice: parseFloat(servicePrice),
+                        serviceDuration: 60,
+                        quantity: 1,
+                        addedAt: new Date().toISOString()
+                    });
+                }
+    
+                // Save updated cart
+                localStorage.setItem('session_cart', JSON.stringify(cart));
+    
+                // Update cart count in header using global function
+                if (typeof window.updateCartIcon === 'function') {
+                    await window.updateCartIcon();
+                }
+    
+                // Show success feedback
+                this.showRelatedServiceAddedFeedback(button, serviceName);
+    
+                console.log('[ServiceDetails] Related service added to cart (fallback):', serviceName);
+            }
+        } catch (error) {
+            console.error('[ServiceDetails] Error adding related service to cart:', error);
+            this.showNotification('Có lỗi xảy ra khi thêm dịch vụ vào giỏ hàng', 'error');
         }
+    }
+
+    showRelatedServiceAddedFeedback(button, serviceName) {
+        // Store original button content - hardcoded to ensure it's always correct
+        const originalContent = '<i data-lucide="shopping-cart" class="h-4 w-4 mr-1"></i>Thêm vào giỏ';
+
+        // Show success state
+        button.innerHTML = '<i data-lucide="check" class="h-4 w-4 mr-2 inline"></i>Đã thêm';
+        button.classList.add('bg-green-500', 'text-white');
+        button.classList.remove('bg-primary', 'hover:bg-primary-dark');
+        button.disabled = true;
+
+        // Initialize Lucide icons for the success icon
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+
+        // Show notification
+        this.showNotification(`Đã thêm "${serviceName}" vào giỏ hàng`, 'success');
+
+        // Reset button after 2 seconds
+        setTimeout(() => {
+            button.innerHTML = originalContent;
+            button.classList.remove('bg-green-500', 'text-white');
+            button.classList.add('bg-primary', 'hover:bg-primary-dark');
+            button.disabled = false;
+
+            // Re-initialize Lucide icons
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }, 2000);
     }
 
     showServiceContent() {
@@ -694,55 +853,7 @@ class ServiceDetailsManager {
         }
     }
 
-    // Related Services Functions
-    loadRelatedServices() {
-        if (!this.serviceData) return;
-
-        const container = document.getElementById('related-services-grid');
-        if (!container) return;
-
-        fetch(`/spa/api/services/related/${this.serviceData.serviceId}?limit=5`)
-            .then(response => response.json())
-            .then(services => {
-                if (services && services.length > 0) {
-                    container.innerHTML = services.map(service => `
-                        <div class="flex-shrink-0 w-64 bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-                            <div class="relative h-48">
-                                <img src="${service.imageUrl || 'https://placehold.co/256x192/FFB6C1/333333?text=' + encodeURIComponent(service.name)}"
-                                     alt="${service.name}"
-                                     class="w-full h-full object-cover"
-                                     onerror="this.src='https://placehold.co/256x192/FFB6C1/333333?text=' + encodeURIComponent('${service.name}')">
-                                <div class="absolute top-2 right-2 bg-primary text-white px-2 py-1 rounded-full text-xs font-semibold">
-                                    ${this.formatCurrency(service.price)}
-                                </div>
-                            </div>
-                            <div class="p-4">
-                                <h3 class="font-semibold text-spa-dark mb-2 line-clamp-2">${service.name}</h3>
-                                <p class="text-gray-600 text-sm mb-3 line-clamp-2">${service.description || 'Dịch vụ chăm sóc sắc đẹp chuyên nghiệp'}</p>
-                                <a href="/spa/service-details?id=${service.serviceId}"
-                                   class="block w-full bg-primary text-white text-center py-2 rounded-full hover:bg-primary-dark transition-all duration-300 font-semibold">
-                                    Xem chi tiết
-                                </a>
-                            </div>
-                        </div>
-                    `).join('');
-
-                    // Show navigation arrows if needed
-                    const prevBtn = document.getElementById('related-prev');
-                    const nextBtn = document.getElementById('related-next');
-                    if (services.length > 3) {
-                        if (prevBtn) prevBtn.classList.remove('hidden');
-                        if (nextBtn) nextBtn.classList.remove('hidden');
-                    }
-                } else {
-                    container.innerHTML = '<div class="text-center text-gray-500 py-8">Không có dịch vụ liên quan</div>';
-                }
-            })
-            .catch(error => {
-                console.error('Error loading related services:', error);
-                container.innerHTML = '<div class="text-center text-gray-500 py-8">Không thể tải dịch vụ liên quan</div>';
-            });
-    }
+    // Related Services Functions - Removed API call since services are loaded server-side
 
     // Currency formatting helper
     formatCurrency(amount) {
@@ -848,22 +959,30 @@ class ServiceDetailsManager {
         }
 
         // For legacy mode, use the service object
-        if (this.service && this.service.imageUrl && this.service.imageUrl.trim() !== '' && this.service.imageUrl !== '/services/default.jpg') {
+        const service = this.service || this.serviceData;
+        if (service && service.imageUrl && service.imageUrl.trim() !== '' && service.imageUrl !== '/services/default.jpg') {
             // Ensure the URL has proper context path
-            let imageUrl = this.service.imageUrl;
+            let imageUrl = service.imageUrl;
 
             // Only add context path if the URL starts with / and doesn't already include context path
             if (imageUrl.startsWith('/') && !imageUrl.startsWith(this.contextPath)) {
                 imageUrl = `${this.contextPath}${imageUrl}`;
             }
 
-            console.log('🖼️ Using database image for service:', this.service.serviceId, '→', imageUrl);
+            console.log('🖼️ Using database image for service:', service.serviceId, '→', imageUrl);
             return imageUrl;
+        }
+        
+        // Try to get the image from the main service image element
+        const mainImageElement = document.getElementById('main-service-image');
+        if (mainImageElement && mainImageElement.src && !mainImageElement.src.includes('placehold.co')) {
+            console.log('🖼️ Using main image element src:', mainImageElement.src);
+            return mainImageElement.src;
         }
 
         // Fallback to placehold.co placeholder with service name
-        const serviceName = (this.serviceData && this.serviceData.name) || (this.service && this.service.name) || 'Service';
-        const placeholderUrl = `https://placehold.co/800x600/FFB6C1/333333?text=${encodeURIComponent(serviceName)}`;
+        const serviceName = (this.serviceData && this.serviceData.name) || (service && service.name) || 'Service';
+        const placeholderUrl = `https://placehold.co/300x200/FFB6C1/333333?text=${encodeURIComponent(serviceName)}`;
         console.log('🖼️ Using placeholder image for service:', placeholderUrl);
         return placeholderUrl;
     }
@@ -888,21 +1007,7 @@ class ServiceDetailsManager {
         }
     }
 
-    setupRelatedServicesNavigation() {
-        const relatedPrev = document.getElementById('related-prev');
-        const relatedNext = document.getElementById('related-next');
-        const relatedGrid = document.getElementById('related-services-grid');
-
-        if (relatedPrev && relatedNext && relatedGrid) {
-            relatedPrev.addEventListener('click', () => {
-                relatedGrid.scrollBy({ left: -300, behavior: 'smooth' });
-            });
-
-            relatedNext.addEventListener('click', () => {
-                relatedGrid.scrollBy({ left: 300, behavior: 'smooth' });
-            });
-        }
-    }
+    // Duplicate setupRelatedServicesNavigation removed
 
     // Cart and wishlist functionality
     addToCart(serviceId) {
@@ -927,21 +1032,39 @@ class ServiceDetailsManager {
             return;
         }
 
+        // Save the original button content
+        const originalText = '<i data-lucide="shopping-cart" class="h-5 w-5 mr-2"></i>Thêm vào giỏ hàng';
+        
         // Set debounce flag and button state
         this.isAddingToCart = true;
-        const originalText = button.innerHTML;
 
         // Show loading state
         button.innerHTML = '<i data-lucide="loader-2" class="h-5 w-5 mr-2 animate-spin"></i>Đang thêm...';
         button.disabled = true;
+        
+        // Initialize Lucide icons for the loading spinner
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+
+        // Get service data from the page
+        const service = this.service || this.serviceData;
+        
+        if (!service) {
+            console.error('[CART] No service data available');
+            button.innerHTML = originalText;
+            button.disabled = false;
+            this.isAddingToCart = false;
+            this.showNotification('Không thể thêm vào giỏ hàng: Thiếu thông tin dịch vụ', 'error');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            return;
+        }
 
         // Prepare service data with proper image URL
         const serviceData = {
             serviceId: parseInt(serviceId),
-            serviceName: this.serviceData ? this.serviceData.name : 'Service',
+            serviceName: service.name || 'Dịch vụ',
             serviceImage: this.getServiceImageUrl(),
-            servicePrice: this.serviceData ? this.serviceData.price : 0,
-            serviceDuration: 60 // Default duration
+            servicePrice: service.price || 0,
+            serviceDuration: service.durationMinutes || 60
         };
 
         console.log('[CART] Service data prepared:', serviceData);
@@ -950,11 +1073,19 @@ class ServiceDetailsManager {
         if (typeof window.addToCart === 'function') {
             try {
                 window.addToCart(serviceData);
+                
+                // Update cart icon immediately
+                if (typeof window.updateCartIcon === 'function') {
+                    window.updateCartIcon();
+                }
 
                 // Show success state
                 button.innerHTML = '<i data-lucide="check" class="h-5 w-5 mr-2"></i>Đã thêm vào giỏ';
                 button.classList.remove('bg-primary', 'hover:bg-primary-dark');
                 button.classList.add('bg-green-500', 'hover:bg-green-600');
+                
+                // Initialize Lucide icons for the success icon
+                if (typeof lucide !== 'undefined') lucide.createIcons();
 
                 // Reset button after 2 seconds
                 setTimeout(() => {
@@ -1062,53 +1193,168 @@ class ServiceDetailsManager {
     }
 
     // Related services functionality
-    loadRelatedServices() {
-        if (!this.serviceData) return;
+    async loadRelatedServices() {
+        try {
+            const serviceId = this.serviceData ? this.serviceData.serviceId : this.service.serviceId;
+            const response = await fetch(`${this.contextPath}/api/services?limit=6&exclude=${serviceId}`);
+            
+            if (!response.ok) {
+                throw new Error('Failed to load related services');
+            }
 
+            const data = await response.json();
+            const relatedServices = data.services || data;
+            
+            this.displayRelatedServices(relatedServices.slice(0, 6)); // Show max 6 related services
+        } catch (error) {
+            console.error('Error loading related services:', error);
+            this.hideRelatedServicesLoading();
+        }
+    }
+
+    displayRelatedServices(services) {
         const container = document.getElementById('related-services-grid');
+        const skeletonLoading = document.getElementById('related-skeleton-loading');
+        
         if (!container) return;
 
-        fetch(`/spa/api/services/related/${this.serviceData.serviceId}?limit=5`)
-            .then(response => response.json())
-            .then(services => {
-                if (services && services.length > 0) {
-                    container.innerHTML = services.map(service => `
-                        <div class="flex-shrink-0 w-64 bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-                            <div class="relative h-48">
-                                <img src="${service.imageUrl || 'https://placehold.co/256x192/FFB6C1/333333?text=' + encodeURIComponent(service.name)}"
-                                     alt="${service.name}"
-                                     class="w-full h-full object-cover"
-                                     onerror="this.src='https://placehold.co/256x192/FFB6C1/333333?text=' + encodeURIComponent('${service.name}')">
-                                <div class="absolute top-2 right-2 bg-primary text-white px-2 py-1 rounded-full text-xs font-semibold">
-                                    ${this.formatCurrency(service.price)}
-                                </div>
-                            </div>
-                            <div class="p-4">
-                                <h3 class="font-semibold text-spa-dark mb-2 line-clamp-2">${service.name}</h3>
-                                <p class="text-gray-600 text-sm mb-3 line-clamp-2">${service.description || 'Dịch vụ chăm sóc sắc đẹp chuyên nghiệp'}</p>
-                                <a href="/spa/service-details?id=${service.serviceId}"
-                                   class="block w-full bg-primary text-white text-center py-2 rounded-full hover:bg-primary-dark transition-all duration-300 font-semibold">
-                                    Xem chi tiết
-                                </a>
-                            </div>
-                        </div>
-                    `).join('');
+        // Hide skeleton loading
+        if (skeletonLoading) {
+            skeletonLoading.remove();
+        }
 
-                    // Show navigation arrows if needed
-                    const prevBtn = document.getElementById('related-prev');
-                    const nextBtn = document.getElementById('related-next');
-                    if (services.length > 3) {
-                        if (prevBtn) prevBtn.classList.remove('hidden');
-                        if (nextBtn) nextBtn.classList.remove('hidden');
-                    }
-                } else {
-                    container.innerHTML = '<div class="text-center text-gray-500 py-8">Không có dịch vụ liên quan</div>';
-                }
-            })
-            .catch(error => {
-                console.error('Error loading related services:', error);
-                container.innerHTML = '<div class="text-center text-gray-500 py-8">Không thể tải dịch vụ liên quan</div>';
-            });
+        // Clear existing content
+        container.innerHTML = '';
+
+        if (!services || services.length === 0) {
+            container.innerHTML = `
+                <div class="col-span-full text-center py-8">
+                    <i data-lucide="search" class="h-12 w-12 text-gray-400 mx-auto mb-4"></i>
+                    <p class="text-gray-500">Không có dịch vụ liên quan</p>
+                </div>
+            `;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            return;
+        }
+
+        // Generate service cards with EXACT styling from services.jsp
+        services.forEach((service, index) => {
+            const serviceCard = this.createServiceCard(service, index);
+            container.appendChild(serviceCard);
+        });
+
+        // Initialize Lucide icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+
+        // Setup cart buttons for related services
+        this.setupRelatedServicesCart();
+    }
+
+    createServiceCard(service, loadOrder) {
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1';
+        card.setAttribute('data-load-order', loadOrder);
+
+        // Get service image URL with fallback
+        const imageUrl = this.getServiceImageForCard(service);
+        
+        // Format price
+        const formattedPrice = new Intl.NumberFormat('vi-VN').format(service.price) + ' ₫';
+        
+        // Get rating
+        const rating = service.averageRating || 4.5;
+
+        card.innerHTML = `
+            <div class="relative">
+                <img 
+                    src="${imageUrl}" 
+                    alt="${service.name}" 
+                    class="w-full h-48 object-cover"
+                    loading="lazy"
+                    onerror="this.src='https://placehold.co/300x200/FFB6C1/333333?text=${encodeURIComponent(service.name)}';"
+                />
+                <div class="absolute top-3 right-3 bg-white/90 px-2 py-1 rounded-full">
+                    <div class="flex items-center">
+                        <i data-lucide="star" class="h-3 w-3 text-primary fill-current mr-1"></i>
+                        <span class="text-xs font-medium">${rating.toFixed(1)}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="p-5">
+                <div class="mb-2">
+                    <span class="text-xs text-primary font-medium bg-secondary px-2 py-1 rounded-full">
+                        ${service.serviceTypeId && service.serviceTypeId.name ? service.serviceTypeId.name : 'Dịch vụ spa'}
+                    </span>
+                </div>
+                <h3 class="text-lg font-semibold text-spa-dark mb-2 line-clamp-2">${service.name}</h3>
+                <p class="text-gray-600 text-sm mb-4 h-12 overflow-hidden line-clamp-2">
+                    ${service.description || 'Dịch vụ chăm sóc sắc đẹp chuyên nghiệp tại Spa Hương Sen'}
+                </p>
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center text-gray-500">
+                        <i data-lucide="clock" class="h-4 w-4 mr-1"></i>
+                        <span class="text-sm">${service.durationMinutes || 60} phút</span>
+                    </div>
+                    <div class="text-xl font-bold text-primary">${formattedPrice}</div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <button 
+                        class="view-details-btn w-full bg-secondary text-spa-dark py-2.5 px-3 rounded-full hover:bg-primary hover:text-white transition-all duration-300 font-medium text-sm flex items-center justify-center"
+                        onclick="window.location.href='${this.contextPath}/service-details?id=${service.serviceId}'"
+                    >
+                        Xem chi tiết
+                    </button>
+                    <button 
+                        class="add-to-cart-related w-full bg-primary text-white py-2.5 px-3 rounded-full hover:bg-primary-dark transition-all duration-300 font-medium text-sm flex items-center justify-center"
+                        data-service-id="${service.serviceId}"
+                        data-service-name="${service.name}"
+                        data-service-price="${service.price}"
+                    >
+                        <i data-lucide="shopping-cart" class="h-4 w-4 mr-1"></i>
+                        Thêm vào giỏ
+                    </button>
+                </div>
+            </div>
+        `;
+
+        return card;
+    }
+
+    getServiceImageForCard(service) {
+        // Get context path for proper URL construction
+        const contextPath = this.contextPath || '';
+        
+        // Check if service has images property (from API)
+        if (service.images && service.images.length > 0) {
+            const primaryImage = service.images.find(img => img.isPrimary) || service.images[0];
+            if (primaryImage && primaryImage.url && primaryImage.url.trim() !== '') {
+                console.log('🖼️ Using primary image from service.images:', primaryImage.url);
+                return primaryImage.url;
+            }
+        }
+        
+        // Use the service's imageUrl from database if available
+        if (service.imageUrl && service.imageUrl.trim() !== '' && service.imageUrl !== '/services/default.jpg') {
+            // Ensure the URL has proper context path
+            const imageUrl = service.imageUrl.startsWith('/') ? `${contextPath}${service.imageUrl}` : service.imageUrl;
+            console.log('🖼️ Using database image for service:', service.serviceId, '→', imageUrl);
+            return imageUrl;
+        }
+        
+        // Fallback to placehold.co placeholder with service name
+        const serviceName = encodeURIComponent(service.name || 'Service');
+        const placeholderUrl = `https://placehold.co/300x200/FFB6C1/333333?text=${serviceName}`;
+        console.log('🖼️ Using placeholder image for service:', service.serviceId, '→', placeholderUrl);
+        return placeholderUrl;
+    }
+
+    hideRelatedServicesLoading() {
+        const skeletonLoading = document.getElementById('related-skeleton-loading');
+        if (skeletonLoading) {
+            skeletonLoading.remove();
+        }
     }
 
     setupImageErrorHandling() {

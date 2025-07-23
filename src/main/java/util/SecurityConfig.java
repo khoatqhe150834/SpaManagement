@@ -31,7 +31,9 @@ public class SecurityConfig {
 
   // URL patterns that don't require authentication
   public static final Set<String> PUBLIC_PATTERNS = new HashSet<>(Arrays.asList(
-      "/assets/", "/uploads/", "/services/", "/css/", "/js/", "/images/", "/favicon", "/api/", "/debug/", "/test/*"));
+      "/assets/", "/uploads/", "/services/", "/css/", "/js/", "/images/", "/favicon", "/debug/", "/test/*",
+      "/api/booking-session", "/api/services", "/api/services/*", "/api/most-purchased", "/api/service-types",
+      "/api/homepage", "/api/chat", "/api/chatbot"));
 
   /**
    * Check if the given path is a public resource

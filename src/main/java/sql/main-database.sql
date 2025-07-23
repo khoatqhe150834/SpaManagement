@@ -269,6 +269,158 @@ INSERT INTO `categories` VALUES (1,NULL,'Massage','massage','Các dịch vụ ma
 UNLOCK TABLES;
 
 --
+-- Table structure for table `chatbot_analytics`
+--
+
+DROP TABLE IF EXISTS `chatbot_analytics`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `chatbot_analytics` (
+  `analytics_id` int NOT NULL AUTO_INCREMENT,
+  `date_recorded` date NOT NULL COMMENT 'Date for analytics data',
+  `total_conversations` int DEFAULT '0' COMMENT 'Total conversations on this date',
+  `unique_sessions` int DEFAULT '0' COMMENT 'Unique sessions on this date',
+  `avg_confidence_score` decimal(3,2) DEFAULT '0.00' COMMENT 'Average AI confidence score',
+  `avg_response_time_ms` int DEFAULT '0' COMMENT 'Average response time in milliseconds',
+  `total_feedback_count` int DEFAULT '0' COMMENT 'Total feedback received',
+  `avg_rating` decimal(2,1) DEFAULT '0.0' COMMENT 'Average user rating',
+  `common_queries` json DEFAULT NULL COMMENT 'Most common queries and their frequency',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`analytics_id`),
+  UNIQUE KEY `unique_date` (`date_recorded`),
+  KEY `idx_date_recorded` (`date_recorded`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `chatbot_analytics`
+--
+
+LOCK TABLES `chatbot_analytics` WRITE;
+/*!40000 ALTER TABLE `chatbot_analytics` DISABLE KEYS */;
+/*!40000 ALTER TABLE `chatbot_analytics` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `chatbot_conversations`
+--
+
+DROP TABLE IF EXISTS `chatbot_conversations`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `chatbot_conversations` (
+  `conversation_id` int NOT NULL AUTO_INCREMENT,
+  `session_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `user_message` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `bot_response` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `confidence_score` decimal(3,2) DEFAULT '0.80' COMMENT 'AI response confidence (0.00-1.00)',
+  `response_time_ms` int DEFAULT '0' COMMENT 'Response generation time in milliseconds',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `metadata` json DEFAULT NULL COMMENT 'Additional conversation metadata',
+  PRIMARY KEY (`conversation_id`),
+  KEY `idx_session_id` (`session_id`),
+  KEY `idx_created_at` (`created_at`),
+  KEY `idx_confidence_score` (`confidence_score`),
+  CONSTRAINT `chatbot_conversations_ibfk_1` FOREIGN KEY (`session_id`) REFERENCES `chatbot_sessions` (`session_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `chatbot_conversations`
+--
+
+LOCK TABLES `chatbot_conversations` WRITE;
+/*!40000 ALTER TABLE `chatbot_conversations` DISABLE KEYS */;
+/*!40000 ALTER TABLE `chatbot_conversations` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Temporary view structure for view `chatbot_dashboard_view`
+--
+
+DROP TABLE IF EXISTS `chatbot_dashboard_view`;
+/*!50001 DROP VIEW IF EXISTS `chatbot_dashboard_view`*/;
+SET @saved_cs_client     = @@character_set_client;
+/*!50503 SET character_set_client = utf8mb4 */;
+/*!50001 CREATE VIEW `chatbot_dashboard_view` AS SELECT 
+ 1 AS `conversation_date`,
+ 1 AS `unique_sessions`,
+ 1 AS `total_conversations`,
+ 1 AS `avg_confidence`,
+ 1 AS `avg_response_time`,
+ 1 AS `feedback_count`,
+ 1 AS `avg_rating`,
+ 1 AS `helpful_responses`,
+ 1 AS `unhelpful_responses`*/;
+SET character_set_client = @saved_cs_client;
+
+--
+-- Table structure for table `chatbot_feedback`
+--
+
+DROP TABLE IF EXISTS `chatbot_feedback`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `chatbot_feedback` (
+  `feedback_id` int NOT NULL AUTO_INCREMENT,
+  `conversation_id` int NOT NULL,
+  `session_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `rating` tinyint unsigned DEFAULT NULL COMMENT 'User rating 1-5 stars',
+  `feedback_text` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT 'Optional feedback text',
+  `is_helpful` tinyint(1) DEFAULT NULL COMMENT '1=helpful, 0=not helpful, NULL=no feedback',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`feedback_id`),
+  KEY `session_id` (`session_id`),
+  KEY `idx_conversation_id` (`conversation_id`),
+  KEY `idx_rating` (`rating`),
+  KEY `idx_created_at` (`created_at`),
+  CONSTRAINT `chatbot_feedback_ibfk_1` FOREIGN KEY (`conversation_id`) REFERENCES `chatbot_conversations` (`conversation_id`) ON DELETE CASCADE,
+  CONSTRAINT `chatbot_feedback_ibfk_2` FOREIGN KEY (`session_id`) REFERENCES `chatbot_sessions` (`session_id`) ON DELETE CASCADE,
+  CONSTRAINT `chatbot_feedback_chk_1` CHECK ((`rating` between 1 and 5))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `chatbot_feedback`
+--
+
+LOCK TABLES `chatbot_feedback` WRITE;
+/*!40000 ALTER TABLE `chatbot_feedback` DISABLE KEYS */;
+/*!40000 ALTER TABLE `chatbot_feedback` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `chatbot_sessions`
+--
+
+DROP TABLE IF EXISTS `chatbot_sessions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `chatbot_sessions` (
+  `session_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `user_id` int DEFAULT NULL COMMENT 'References users.user_id for authenticated users',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_activity` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `session_data` json DEFAULT NULL COMMENT 'Additional session context data',
+  `is_active` tinyint(1) DEFAULT '1' COMMENT 'Session active status',
+  PRIMARY KEY (`session_id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_last_activity` (`last_activity`),
+  KEY `idx_is_active` (`is_active`),
+  CONSTRAINT `chatbot_sessions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `chatbot_sessions`
+--
+
+LOCK TABLES `chatbot_sessions` WRITE;
+/*!40000 ALTER TABLE `chatbot_sessions` DISABLE KEYS */;
+/*!40000 ALTER TABLE `chatbot_sessions` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `checkins`
 --
 
@@ -297,47 +449,6 @@ CREATE TABLE `checkins` (
 LOCK TABLES `checkins` WRITE;
 /*!40000 ALTER TABLE `checkins` DISABLE KEYS */;
 /*!40000 ALTER TABLE `checkins` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `customer_appointment_notifications`
---
-
-DROP TABLE IF EXISTS `customer_appointment_notifications`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `customer_appointment_notifications` (
-  `notification_id` int NOT NULL AUTO_INCREMENT,
-  `customer_id` int NOT NULL,
-  `booking_id` int NOT NULL,
-  `notification_type` enum('APPOINTMENT_CONFIRMED','APPOINTMENT_REMINDER','APPOINTMENT_CANCELLED','APPOINTMENT_RESCHEDULED') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `message` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `is_read` tinyint(1) NOT NULL DEFAULT '0',
-  `delivery_method` enum('WEB','EMAIL','SMS') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'WEB',
-  `delivery_status` enum('PENDING','SENT','FAILED') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PENDING',
-  `scheduled_send_time` timestamp NULL DEFAULT NULL COMMENT 'For reminder notifications',
-  `sent_at` timestamp NULL DEFAULT NULL,
-  `read_at` timestamp NULL DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`notification_id`),
-  KEY `idx_customer_id` (`customer_id`),
-  KEY `idx_booking_id` (`booking_id`),
-  KEY `idx_notification_type` (`notification_type`),
-  KEY `idx_delivery_status` (`delivery_status`),
-  KEY `idx_scheduled_send_time` (`scheduled_send_time`),
-  CONSTRAINT `customer_appointment_notifications_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `customer_appointment_notifications_ibfk_2` FOREIGN KEY (`booking_id`) REFERENCES `bookings` (`booking_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Notifications sent to customers about their appointments';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `customer_appointment_notifications`
---
-
-LOCK TABLES `customer_appointment_notifications` WRITE;
-/*!40000 ALTER TABLE `customer_appointment_notifications` DISABLE KEYS */;
-/*!40000 ALTER TABLE `customer_appointment_notifications` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -425,41 +536,6 @@ INSERT INTO `customers` VALUES (1,'Nguyễn Thị Mai','mai.nguyen@email.com','0
 UNLOCK TABLES;
 
 --
--- Table structure for table `database_change_log`
---
-
-DROP TABLE IF EXISTS `database_change_log`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `database_change_log` (
-  `change_id` int NOT NULL AUTO_INCREMENT,
-  `table_name` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `operation` enum('INSERT','UPDATE','DELETE') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `record_id` int NOT NULL,
-  `old_data` json DEFAULT NULL,
-  `new_data` json DEFAULT NULL,
-  `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `processed` tinyint(1) DEFAULT '0',
-  `processed_at` timestamp NULL DEFAULT NULL,
-  `error_message` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-  PRIMARY KEY (`change_id`),
-  KEY `idx_table_operation` (`table_name`,`operation`),
-  KEY `idx_processed` (`processed`),
-  KEY `idx_timestamp` (`timestamp`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `database_change_log`
---
-
-LOCK TABLES `database_change_log` WRITE;
-/*!40000 ALTER TABLE `database_change_log` DISABLE KEYS */;
-INSERT INTO `database_change_log` VALUES (1,'services','INSERT',137,NULL,'{\"name\": \"Trigger Test Service 07:57:45\", \"price\": 50.0, \"image_url\": null, \"is_active\": 1, \"created_at\": \"2025-07-18 07:57:45.000000\", \"service_id\": 137, \"updated_at\": \"2025-07-18 07:57:45.000000\", \"description\": \"Test service to verify database triggers work\", \"average_rating\": 0.0, \"bookable_online\": 1, \"service_type_id\": 1, \"duration_minutes\": 30, \"requires_consultation\": 0, \"buffer_time_after_minutes\": 0}','2025-07-18 00:57:45',1,'2025-07-18 00:57:52',NULL),(2,'services','UPDATE',137,'{\"name\": \"Trigger Test Service 07:57:45\", \"price\": 50.0, \"image_url\": null, \"is_active\": 1, \"created_at\": \"2025-07-18 07:57:45.000000\", \"service_id\": 137, \"updated_at\": \"2025-07-18 07:57:45.000000\", \"description\": \"Test service to verify database triggers work\", \"average_rating\": 0.0, \"bookable_online\": 1, \"service_type_id\": 1, \"duration_minutes\": 30, \"requires_consultation\": 0, \"buffer_time_after_minutes\": 0}','{\"name\": \"Trigger Test Service 07:57:45\", \"price\": 75.0, \"image_url\": null, \"is_active\": 1, \"created_at\": \"2025-07-18 07:57:45.000000\", \"service_id\": 137, \"updated_at\": \"2025-07-18 07:57:46.000000\", \"description\": \"Updated test service description\", \"average_rating\": 0.0, \"bookable_online\": 1, \"service_type_id\": 1, \"duration_minutes\": 30, \"requires_consultation\": 0, \"buffer_time_after_minutes\": 0}','2025-07-18 00:57:46',1,'2025-07-18 00:57:53',NULL),(3,'services','DELETE',137,'{\"name\": \"Trigger Test Service 07:57:45\", \"price\": 75.0, \"image_url\": null, \"is_active\": 1, \"created_at\": \"2025-07-18 07:57:45.000000\", \"service_id\": 137, \"updated_at\": \"2025-07-18 07:57:46.000000\", \"description\": \"Updated test service description\", \"average_rating\": 0.0, \"bookable_online\": 1, \"service_type_id\": 1, \"duration_minutes\": 30, \"requires_consultation\": 0, \"buffer_time_after_minutes\": 0}',NULL,'2025-07-18 00:57:47',1,'2025-07-18 00:57:53',NULL),(4,'services','INSERT',138,NULL,'{\"name\": \"Luxury Diamond Facial Treatment\", \"price\": 299.99, \"image_url\": null, \"is_active\": 1, \"created_at\": \"2025-07-18 08:00:25.000000\", \"service_id\": 138, \"updated_at\": \"2025-07-18 08:00:25.000000\", \"description\": \"Indulge in our premium diamond facial treatment featuring:\\n            - Deep cleansing with diamond microdermabrasion\\n            - Hydrating collagen mask with 24k gold essence\\n            - Anti-aging serum with vitamin C and hyaluronic acid\\n            - Relaxing facial massage with hot stones\\n            - Perfect for special occasions and skin rejuvenation\", \"average_rating\": 0.0, \"bookable_online\": 1, \"service_type_id\": 1, \"duration_minutes\": 90, \"requires_consultation\": 0, \"buffer_time_after_minutes\": 15}','2025-07-18 01:00:25',1,'2025-07-18 01:00:32',NULL),(5,'services','UPDATE',138,'{\"name\": \"Luxury Diamond Facial Treatment\", \"price\": 299.99, \"image_url\": null, \"is_active\": 1, \"created_at\": \"2025-07-18 08:00:25.000000\", \"service_id\": 138, \"updated_at\": \"2025-07-18 08:00:25.000000\", \"description\": \"Indulge in our premium diamond facial treatment featuring:\\n            - Deep cleansing with diamond microdermabrasion\\n            - Hydrating collagen mask with 24k gold essence\\n            - Anti-aging serum with vitamin C and hyaluronic acid\\n            - Relaxing facial massage with hot stones\\n            - Perfect for special occasions and skin rejuvenation\", \"average_rating\": 0.0, \"bookable_online\": 1, \"service_type_id\": 1, \"duration_minutes\": 90, \"requires_consultation\": 0, \"buffer_time_after_minutes\": 15}','{\"name\": \"Luxury Diamond Facial Treatment\", \"price\": 249.99, \"image_url\": null, \"is_active\": 1, \"created_at\": \"2025-07-18 08:00:25.000000\", \"service_id\": 138, \"updated_at\": \"2025-07-18 08:00:55.000000\", \"description\": \"Indulge in our premium diamond facial treatment featuring:\\n            - Deep cleansing with diamond microdermabrasion\\n            - Hydrating collagen mask with 24k gold essence\\n            - Anti-aging serum with vitamin C and hyaluronic acid\\n            - Relaxing facial massage with hot stones\\n            - Perfect for special occasions and skin rejuvenation\\n\\n? SPECIAL PROMOTION: Save $50 this month!\", \"average_rating\": 0.0, \"bookable_online\": 1, \"service_type_id\": 1, \"duration_minutes\": 90, \"requires_consultation\": 0, \"buffer_time_after_minutes\": 15}','2025-07-18 01:00:55',1,'2025-07-18 01:01:03',NULL),(6,'services','DELETE',138,'{\"name\": \"Luxury Diamond Facial Treatment\", \"price\": 249.99, \"image_url\": null, \"is_active\": 1, \"created_at\": \"2025-07-18 08:00:25.000000\", \"service_id\": 138, \"updated_at\": \"2025-07-18 08:00:55.000000\", \"description\": \"Indulge in our premium diamond facial treatment featuring:\\n            - Deep cleansing with diamond microdermabrasion\\n            - Hydrating collagen mask with 24k gold essence\\n            - Anti-aging serum with vitamin C and hyaluronic acid\\n            - Relaxing facial massage with hot stones\\n            - Perfect for special occasions and skin rejuvenation\\n\\n? SPECIAL PROMOTION: Save $50 this month!\", \"average_rating\": 0.0, \"bookable_online\": 1, \"service_type_id\": 1, \"duration_minutes\": 90, \"requires_consultation\": 0, \"buffer_time_after_minutes\": 15}',NULL,'2025-07-18 01:01:58',1,'2025-07-18 01:02:03',NULL),(7,'services','INSERT',139,NULL,'{\"name\": \"Liệu Pháp Collagen Vàng 24K Test 081013\", \"price\": 1299000.0, \"image_url\": null, \"is_active\": 1, \"created_at\": \"2025-07-18 08:10:13.000000\", \"service_id\": 139, \"updated_at\": \"2025-07-18 08:10:13.000000\", \"description\": \"Liệu pháp chăm sóc da mặt cao cấp với collagen vàng 24K được tạo lúc 2025-07-18 08:10:13:\\n            \\n            ✨ Đặc điểm nổi bật:\\n            - Sử dụng collagen vàng 24K nguyên chất từ Thụy Sĩ\\n            - Công nghệ nano giúp thẩm thấu sâu vào da\\n            - Kích thích tái tạo tế bào da tự nhiên\\n            - Giảm nếp nhăn và tăng độ đàn hồi\\n            - Làm sáng và đều màu da\\n            \\n            ? Phù hợp cho:\\n            - Da lão hóa, xuất hiện nếp nhăn\\n            - Da thiếu sức sống, xỉn màu\\n            - Da cần phục hồi sau stress\\n            \\n            ⏰ Quy trình điều trị:\\n            1. Làm sạch da chuyên sâu (15 phút)\\n            2. Tẩy tế bào chết nhẹ nhàng (10 phút)\\n            3. Đắp mặt nạ collagen vàng 24K (30 phút)\\n            4. Massage kích thích tuần hoàn (15 phút)\\n            5. Dưỡng ẩm và chống nắng (10 phút)\\n            \\n            ? Cam kết: Da sáng mịn ngay sau liệu trình đầu tiên!\", \"average_rating\": 0.0, \"bookable_online\": 1, \"service_type_id\": 2, \"duration_minutes\": 90, \"requires_consultation\": 0, \"buffer_time_after_minutes\": 20}','2025-07-18 01:10:13',1,'2025-07-18 01:10:36',NULL),(8,'promotions','UPDATE',2,'{\"title\": \"Tri Ân Khách Hàng - Tặng Voucher 100K\", \"status\": \"SCHEDULED\", \"end_date\": \"2025-07-31 23:59:59.000000\", \"image_url\": \"https://placehold.co/400x200/E6E6FA/333333?text=VoucherPromo\", \"created_at\": \"2025-06-01 16:40:23.000000\", \"start_date\": \"2025-07-01 00:00:00.000000\", \"updated_at\": \"2025-06-01 16:40:23.000000\", \"description\": \"Tặng voucher 100.000 VNĐ cho hóa đơn từ 1.000.000 VNĐ.\", \"promotion_id\": 2, \"discount_type\": \"FIXED_AMOUNT\", \"is_auto_apply\": 0, \"discount_value\": 100000.0, \"promotion_code\": \"THANKS100K\", \"applicable_scope\": \"ENTIRE_APPOINTMENT\", \"total_usage_limit\": 200, \"created_by_user_id\": 2, \"current_usage_count\": 0, \"terms_and_conditions\": \"Mỗi khách hàng được sử dụng 1 lần.\", \"applies_to_service_id\": null, \"usage_limit_per_customer\": 1, \"minimum_appointment_value\": 1000000.0, \"applicable_service_ids_json\": null}','{\"title\": \"Tri Ân Khách Hàng - Tặng Voucher 100K\", \"status\": \"ACTIVE\", \"end_date\": \"2025-07-31 23:59:59.000000\", \"image_url\": \"https://placehold.co/400x200/E6E6FA/333333?text=VoucherPromo\", \"created_at\": \"2025-06-01 16:40:23.000000\", \"start_date\": \"2025-07-01 00:00:00.000000\", \"updated_at\": \"2025-07-20 00:39:35.000000\", \"description\": \"Tặng voucher 100.000 VNĐ cho hóa đơn từ 1.000.000 VNĐ.\", \"promotion_id\": 2, \"discount_type\": \"FIXED_AMOUNT\", \"is_auto_apply\": 0, \"discount_value\": 100000.0, \"promotion_code\": \"THANKS100K\", \"applicable_scope\": \"ENTIRE_APPOINTMENT\", \"total_usage_limit\": 200, \"created_by_user_id\": 2, \"current_usage_count\": 0, \"terms_and_conditions\": \"Mỗi khách hàng được sử dụng 1 lần.\", \"applies_to_service_id\": null, \"usage_limit_per_customer\": 1, \"minimum_appointment_value\": 1000000.0, \"applicable_service_ids_json\": null}','2025-07-20 00:39:35',0,NULL,NULL),(9,'promotions','UPDATE',3,'{\"title\": \"Đi Cùng Bạn Bè - Miễn Phí 1 Dịch Vụ Gội Đầu\", \"status\": \"ACTIVE\", \"end_date\": \"2025-07-15 23:59:59.000000\", \"image_url\": \"https://placehold.co/400x200/B0C4DE/333333?text=FriendsPromo\", \"created_at\": \"2025-06-01 16:40:23.000000\", \"start_date\": \"2025-06-15 00:00:00.000000\", \"updated_at\": \"2025-06-01 16:40:23.000000\", \"description\": \"Khi đặt 2 dịch vụ bất kỳ, tặng 1 dịch vụ gội đầu thảo dược.\", \"promotion_id\": 3, \"discount_type\": \"FREE_SERVICE\", \"is_auto_apply\": 0, \"discount_value\": 6.0, \"promotion_code\": \"FRIENDSFREE\", \"applicable_scope\": \"ENTIRE_APPOINTMENT\", \"total_usage_limit\": 50, \"created_by_user_id\": 1, \"current_usage_count\": 5, \"terms_and_conditions\": \"Dịch vụ tặng kèm là Gội Đầu Thảo Dược (ID: 6).\", \"applies_to_service_id\": null, \"usage_limit_per_customer\": 1, \"minimum_appointment_value\": 800000.0, \"applicable_service_ids_json\": null}','{\"title\": \"Đi Cùng Bạn Bè - Miễn Phí 1 Dịch Vụ Gội Đầu\", \"status\": \"INACTIVE\", \"end_date\": \"2025-07-15 23:59:59.000000\", \"image_url\": \"https://placehold.co/400x200/B0C4DE/333333?text=FriendsPromo\", \"created_at\": \"2025-06-01 16:40:23.000000\", \"start_date\": \"2025-06-15 00:00:00.000000\", \"updated_at\": \"2025-07-20 00:39:35.000000\", \"description\": \"Khi đặt 2 dịch vụ bất kỳ, tặng 1 dịch vụ gội đầu thảo dược.\", \"promotion_id\": 3, \"discount_type\": \"FREE_SERVICE\", \"is_auto_apply\": 0, \"discount_value\": 6.0, \"promotion_code\": \"FRIENDSFREE\", \"applicable_scope\": \"ENTIRE_APPOINTMENT\", \"total_usage_limit\": 50, \"created_by_user_id\": 1, \"current_usage_count\": 5, \"terms_and_conditions\": \"Dịch vụ tặng kèm là Gội Đầu Thảo Dược (ID: 6).\", \"applies_to_service_id\": null, \"usage_limit_per_customer\": 1, \"minimum_appointment_value\": 800000.0, \"applicable_service_ids_json\": null}','2025-07-20 00:39:35',0,NULL,NULL);
-/*!40000 ALTER TABLE `database_change_log` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `email_verification_tokens`
 --
 
@@ -488,54 +564,6 @@ LOCK TABLES `email_verification_tokens` WRITE;
 /*!40000 ALTER TABLE `email_verification_tokens` DISABLE KEYS */;
 INSERT INTO `email_verification_tokens` VALUES (81,'c216559d-da40-447e-b38a-a5e88f1c3b0e','quangkhoa51132@5dulieu.com','2025-06-07 13:13:15','2025-06-08 13:13:15',0),(99,'0a27e432-4208-483b-8ebf-d0214ed8cbea','quangkhoa5112@gmail.com','2025-06-10 01:36:32','2025-06-11 01:36:32',1),(118,'7b75cfe9-c519-475b-a133-d5adb8764a72','khoatqhe150834@fpt.edu.vn','2025-06-16 01:24:40','2025-06-17 01:24:41',1),(129,'63df4db1-b921-47f3-93bf-c088ff4e76af','khoatqhe150834@gmail.com','2025-06-22 12:35:41','2025-06-23 12:35:42',1),(131,'a7e5c4f4-0933-4c00-9d7c-75748172217e','abc@gmail.com','2025-06-25 11:38:30','2025-06-26 11:38:31',0),(134,'945e4624-40d4-48e2-a8ba-a4bc5ab8dc1b','dohoangduong2708@gmail.com','2025-06-25 11:41:16','2025-06-26 11:41:16',0),(135,'9103a486-0b60-47bc-901f-7925909d0293','khoatqhe150834@gmail.com','2025-07-03 11:11:21','2025-07-04 04:11:21',1),(136,'3cead5ea-d921-4ae2-80e4-ff1b3823c99b','khoatqhe150834@gmail.com','2025-07-15 12:58:16','2025-07-16 05:58:17',1);
 /*!40000 ALTER TABLE `email_verification_tokens` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `general_notifications`
---
-
-DROP TABLE IF EXISTS `general_notifications`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `general_notifications` (
-  `notification_id` int NOT NULL AUTO_INCREMENT,
-  `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Tiêu đề thông báo',
-  `message` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Nội dung thông báo',
-  `notification_type` enum('SYSTEM_ANNOUNCEMENT','PROMOTION','MAINTENANCE','POLICY_UPDATE','BOOKING_REMINDER','PAYMENT_NOTIFICATION','SERVICE_UPDATE','EMERGENCY','MARKETING_CAMPAIGN','INVENTORY_ALERT') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'SYSTEM_ANNOUNCEMENT' COMMENT 'Loại thông báo',
-  `priority` enum('LOW','MEDIUM','HIGH','URGENT') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'MEDIUM' COMMENT 'Mức độ ưu tiên',
-  `target_type` enum('ALL_USERS','ROLE_BASED','INDIVIDUAL','CUSTOMER_SEGMENT') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'ALL_USERS' COMMENT 'Đối tượng nhận thông báo',
-  `target_role_ids` json DEFAULT NULL COMMENT 'Danh sách role_id nhận thông báo (cho ROLE_BASED)',
-  `target_user_ids` json DEFAULT NULL COMMENT 'Danh sách user_id cụ thể (cho INDIVIDUAL)',
-  `target_customer_ids` json DEFAULT NULL COMMENT 'Danh sách customer_id cụ thể',
-  `image_url` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'URL hình ảnh đính kèm',
-  `attachment_url` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'URL file đính kèm',
-  `action_url` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'URL hành động khi click thông báo',
-  `action_text` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Text nút hành động',
-  `is_active` tinyint(1) NOT NULL DEFAULT '1' COMMENT 'Thông báo có hoạt động không',
-  `start_date` datetime DEFAULT NULL COMMENT 'Thời gian bắt đầu hiển thị',
-  `end_date` datetime DEFAULT NULL COMMENT 'Thời gian kết thúc hiển thị',
-  `created_by_user_id` int NOT NULL COMMENT 'User tạo thông báo',
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`notification_id`),
-  KEY `idx_notification_type` (`notification_type`),
-  KEY `idx_priority` (`priority`),
-  KEY `idx_target_type` (`target_type`),
-  KEY `idx_active_dates` (`is_active`,`start_date`,`end_date`),
-  KEY `idx_created_by` (`created_by_user_id`),
-  KEY `idx_notifications_active_priority` (`is_active`,`priority`,`created_at`),
-  CONSTRAINT `general_notifications_ibfk_1` FOREIGN KEY (`created_by_user_id`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Bảng thông báo chung cho tất cả user roles';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `general_notifications`
---
-
-LOCK TABLES `general_notifications` WRITE;
-/*!40000 ALTER TABLE `general_notifications` DISABLE KEYS */;
-INSERT INTO `general_notifications` VALUES (1,'Chào Mừng Hệ Thống Thông Báo Mới','Chúng tôi vui mừng giới thiệu hệ thống thông báo mới giúp bạn cập nhật thông tin kịp thời. Hãy kiểm tra thông báo thường xuyên để không bỏ lỡ thông tin quan trọng!','SYSTEM_ANNOUNCEMENT','MEDIUM','ALL_USERS',NULL,NULL,NULL,NULL,NULL,NULL,NULL,1,'2025-07-20 15:27:42','2025-08-19 15:27:42',1,'2025-07-20 08:27:42','2025-07-20 08:27:42'),(2,'Khuyến Mãi Tháng 8 - Giảm 30% Massage','Chương trình khuyến mãi đặc biệt tháng 8! Giảm 30% cho tất cả dịch vụ massage. Áp dụng từ 01/08 đến 31/08. Đặt lịch ngay để nhận ưu đãi!','PROMOTION','HIGH','ROLE_BASED','[5]',NULL,NULL,NULL,NULL,NULL,NULL,1,'2025-07-20 15:27:42','2025-08-04 15:27:42',1,'2025-07-20 08:27:42','2025-07-20 08:27:42'),(3,'Bảo Trì Hệ Thống Cuối Tuần','Hệ thống sẽ được bảo trì vào Chủ nhật từ 2:00 - 6:00 sáng. Một số chức năng có thể bị gián đoạn. Xin lỗi vì sự bất tiện.','MAINTENANCE','HIGH','ROLE_BASED','[1, 2, 3, 4]',NULL,NULL,NULL,NULL,NULL,NULL,1,'2025-07-20 15:27:42','2025-07-27 15:27:42',1,'2025-07-20 08:27:42','2025-07-20 08:27:42'),(4,'Cập Nhật Chính Sách Mới','Chính sách hủy lịch hẹn đã được cập nhật. Khách hàng có thể hủy miễn phí trước 24 giờ. Vui lòng thông báo cho khách hàng.','POLICY_UPDATE','MEDIUM','ROLE_BASED','[2, 3, 4]',NULL,NULL,NULL,NULL,NULL,NULL,1,'2025-07-20 15:27:42','2025-09-18 15:27:42',1,'2025-07-20 08:27:42','2025-07-20 08:27:42');
-/*!40000 ALTER TABLE `general_notifications` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -773,9 +801,9 @@ DROP TABLE IF EXISTS `loyalty_point_history`;
 CREATE TABLE `loyalty_point_history` (
   `id` int NOT NULL AUTO_INCREMENT,
   `customer_id` int NOT NULL,
-  `change_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `change_type` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `amount` int NOT NULL,
-  `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `description` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `customer_id` (`customer_id`),
@@ -803,7 +831,7 @@ CREATE TABLE `loyalty_points` (
   `id` int NOT NULL AUTO_INCREMENT,
   `customer_id` int NOT NULL,
   `points` int NOT NULL DEFAULT '0',
-  `rank` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'BRONZE',
+  `rank` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT 'BRONZE',
   `last_login_date` date DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -819,165 +847,6 @@ CREATE TABLE `loyalty_points` (
 LOCK TABLES `loyalty_points` WRITE;
 /*!40000 ALTER TABLE `loyalty_points` DISABLE KEYS */;
 /*!40000 ALTER TABLE `loyalty_points` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `notification_preferences`
---
-
-DROP TABLE IF EXISTS `notification_preferences`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `notification_preferences` (
-  `preference_id` int NOT NULL AUTO_INCREMENT,
-  `user_id` int DEFAULT NULL COMMENT 'User preferences (staff)',
-  `customer_id` int DEFAULT NULL COMMENT 'Customer preferences',
-  `notification_type` enum('SYSTEM_ANNOUNCEMENT','PROMOTION','MAINTENANCE','POLICY_UPDATE','BOOKING_REMINDER','PAYMENT_NOTIFICATION','SERVICE_UPDATE','EMERGENCY','MARKETING_CAMPAIGN','INVENTORY_ALERT') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `web_enabled` tinyint(1) NOT NULL DEFAULT '1' COMMENT 'Nhận thông báo trên web',
-  `email_enabled` tinyint(1) NOT NULL DEFAULT '1' COMMENT 'Nhận thông báo qua email',
-  `sms_enabled` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Nhận thông báo qua SMS',
-  `push_enabled` tinyint(1) NOT NULL DEFAULT '1' COMMENT 'Nhận push notification',
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`preference_id`),
-  UNIQUE KEY `unique_user_notification_type` (`user_id`,`notification_type`),
-  UNIQUE KEY `unique_customer_notification_type` (`customer_id`,`notification_type`),
-  KEY `idx_user_id` (`user_id`),
-  KEY `idx_customer_id` (`customer_id`),
-  CONSTRAINT `notification_preferences_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
-  CONSTRAINT `notification_preferences_ibfk_2` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`),
-  CONSTRAINT `chk_preference_type` CHECK ((((`user_id` is not null) and (`customer_id` is null)) or ((`user_id` is null) and (`customer_id` is not null))))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Cài đặt thông báo của từng user/customer';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `notification_preferences`
---
-
-LOCK TABLES `notification_preferences` WRITE;
-/*!40000 ALTER TABLE `notification_preferences` DISABLE KEYS */;
-/*!40000 ALTER TABLE `notification_preferences` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `notification_recipients`
---
-
-DROP TABLE IF EXISTS `notification_recipients`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `notification_recipients` (
-  `recipient_id` int NOT NULL AUTO_INCREMENT,
-  `notification_id` int NOT NULL,
-  `user_id` int DEFAULT NULL COMMENT 'User nhận thông báo (staff)',
-  `customer_id` int DEFAULT NULL COMMENT 'Customer nhận thông báo',
-  `is_read` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Đã đọc chưa',
-  `read_at` timestamp NULL DEFAULT NULL COMMENT 'Thời gian đọc',
-  `is_dismissed` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Đã dismiss chưa',
-  `dismissed_at` timestamp NULL DEFAULT NULL COMMENT 'Thời gian dismiss',
-  `delivery_status` enum('PENDING','DELIVERED','FAILED','EXPIRED') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PENDING' COMMENT 'Trạng thái gửi',
-  `delivery_method` enum('WEB','EMAIL','SMS','PUSH') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'WEB' COMMENT 'Phương thức gửi',
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`recipient_id`),
-  UNIQUE KEY `unique_notification_recipient` (`notification_id`,`user_id`,`customer_id`),
-  KEY `idx_notification_id` (`notification_id`),
-  KEY `idx_user_id` (`user_id`),
-  KEY `idx_customer_id` (`customer_id`),
-  KEY `idx_read_status` (`is_read`,`read_at`),
-  KEY `idx_delivery_status` (`delivery_status`),
-  KEY `idx_recipients_unread` (`user_id`,`customer_id`,`is_read`,`created_at`),
-  KEY `idx_recipients_delivery` (`delivery_status`,`delivery_method`,`created_at`),
-  CONSTRAINT `notification_recipients_ibfk_1` FOREIGN KEY (`notification_id`) REFERENCES `general_notifications` (`notification_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `notification_recipients_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
-  CONSTRAINT `notification_recipients_ibfk_3` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`),
-  CONSTRAINT `chk_recipient_type` CHECK ((((`user_id` is not null) and (`customer_id` is null)) or ((`user_id` is null) and (`customer_id` is not null))))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Bảng theo dõi người nhận thông báo và trạng thái đọc';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `notification_recipients`
---
-
-LOCK TABLES `notification_recipients` WRITE;
-/*!40000 ALTER TABLE `notification_recipients` DISABLE KEYS */;
-/*!40000 ALTER TABLE `notification_recipients` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `notification_statistics`
---
-
-DROP TABLE IF EXISTS `notification_statistics`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `notification_statistics` (
-  `stat_id` int NOT NULL AUTO_INCREMENT,
-  `notification_id` int NOT NULL,
-  `total_recipients` int NOT NULL DEFAULT '0' COMMENT 'Tổng số người nhận',
-  `delivered_count` int NOT NULL DEFAULT '0' COMMENT 'Số lượng đã gửi thành công',
-  `read_count` int NOT NULL DEFAULT '0' COMMENT 'Số lượng đã đọc',
-  `dismissed_count` int NOT NULL DEFAULT '0' COMMENT 'Số lượng đã dismiss',
-  `failed_count` int NOT NULL DEFAULT '0' COMMENT 'Số lượng gửi thất bại',
-  `click_count` int NOT NULL DEFAULT '0' COMMENT 'Số lượng click action',
-  `delivery_rate` decimal(5,2) DEFAULT '0.00' COMMENT 'Tỷ lệ gửi thành công (%)',
-  `read_rate` decimal(5,2) DEFAULT '0.00' COMMENT 'Tỷ lệ đọc (%)',
-  `engagement_rate` decimal(5,2) DEFAULT '0.00' COMMENT 'Tỷ lệ tương tác (%)',
-  `last_updated` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`stat_id`),
-  UNIQUE KEY `notification_id` (`notification_id`),
-  CONSTRAINT `notification_statistics_ibfk_1` FOREIGN KEY (`notification_id`) REFERENCES `general_notifications` (`notification_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Thống kê hiệu quả thông báo';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `notification_statistics`
---
-
-LOCK TABLES `notification_statistics` WRITE;
-/*!40000 ALTER TABLE `notification_statistics` DISABLE KEYS */;
-/*!40000 ALTER TABLE `notification_statistics` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `notification_templates`
---
-
-DROP TABLE IF EXISTS `notification_templates`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `notification_templates` (
-  `template_id` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Tên template',
-  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT 'Mô tả template',
-  `notification_type` enum('SYSTEM_ANNOUNCEMENT','PROMOTION','MAINTENANCE','POLICY_UPDATE','BOOKING_REMINDER','PAYMENT_NOTIFICATION','SERVICE_UPDATE','EMERGENCY','MARKETING_CAMPAIGN','INVENTORY_ALERT') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Loại thông báo',
-  `title_template` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Template tiêu đề với placeholders',
-  `message_template` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Template nội dung với placeholders',
-  `default_priority` enum('LOW','MEDIUM','HIGH','URGENT') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'MEDIUM',
-  `default_target_type` enum('ALL_USERS','ROLE_BASED','INDIVIDUAL','CUSTOMER_SEGMENT') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'ALL_USERS',
-  `default_role_ids` json DEFAULT NULL COMMENT 'Role mặc định cho template',
-  `placeholders` json DEFAULT NULL COMMENT 'Danh sách placeholders và mô tả',
-  `is_active` tinyint(1) NOT NULL DEFAULT '1',
-  `created_by_user_id` int NOT NULL,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`template_id`),
-  UNIQUE KEY `name` (`name`),
-  KEY `idx_notification_type` (`notification_type`),
-  KEY `idx_active` (`is_active`),
-  KEY `idx_created_by` (`created_by_user_id`),
-  CONSTRAINT `notification_templates_ibfk_1` FOREIGN KEY (`created_by_user_id`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Templates cho thông báo có thể tái sử dụng';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `notification_templates`
---
-
-LOCK TABLES `notification_templates` WRITE;
-/*!40000 ALTER TABLE `notification_templates` DISABLE KEYS */;
-INSERT INTO `notification_templates` VALUES (1,'system_maintenance','Thông báo bảo trì hệ thống','MAINTENANCE','Thông Báo Bảo Trì Hệ Thống - {maintenance_date}','Hệ thống sẽ được bảo trì vào {maintenance_date} từ {start_time} đến {end_time}. Trong thời gian này, một số chức năng có thể bị gián đoạn. Xin lỗi vì sự bất tiện này.','HIGH','ALL_USERS',NULL,'{\"end_time\": \"Giờ kết thúc\", \"start_time\": \"Giờ bắt đầu\", \"maintenance_date\": \"Ngày bảo trì\"}',1,1,'2025-07-20 08:27:42','2025-07-20 08:27:42'),(2,'new_promotion','Thông báo khuyến mãi mới','PROMOTION','Khuyến Mãi Mới: {promotion_title}','Chúng tôi vui mừng thông báo chương trình khuyến mãi mới: {promotion_title}. Giảm giá {discount_percent}% cho {service_names}. Thời gian áp dụng: {start_date} - {end_date}. Đặt lịch ngay!','MEDIUM','ROLE_BASED','[5]','{\"end_date\": \"Ngày kết thúc\", \"start_date\": \"Ngày bắt đầu\", \"service_names\": \"Tên dịch vụ\", \"promotion_title\": \"Tên chương trình\", \"discount_percent\": \"Phần trăm giảm giá\"}',1,1,'2025-07-20 08:27:42','2025-07-20 08:27:42'),(3,'booking_reminder','Nhắc nhở lịch hẹn','BOOKING_REMINDER','Nhắc Nhở: Lịch Hẹn Của Bạn Vào {appointment_date}','Xin chào {customer_name}, bạn có lịch hẹn {service_name} vào {appointment_date} lúc {appointment_time} với {therapist_name}. Vui lòng đến đúng giờ. Cảm ơn!','MEDIUM','INDIVIDUAL',NULL,'{\"service_name\": \"Tên dịch vụ\", \"customer_name\": \"Tên khách hàng\", \"therapist_name\": \"Tên kỹ thuật viên\", \"appointment_date\": \"Ngày hẹn\", \"appointment_time\": \"Giờ hẹn\"}',1,1,'2025-07-20 08:27:42','2025-07-20 08:27:42'),(4,'payment_success','Thông báo thanh toán thành công','PAYMENT_NOTIFICATION','Thanh Toán Thành Công - Đơn Hàng #{order_id}','Cảm ơn {customer_name} đã thanh toán thành công đơn hàng #{order_id} với số tiền {amount}. Chúng tôi sẽ liên hệ để sắp xếp lịch hẹn sớm nhất.','MEDIUM','INDIVIDUAL',NULL,'{\"amount\": \"Số tiền\", \"order_id\": \"Mã đơn hàng\", \"customer_name\": \"Tên khách hàng\"}',1,1,'2025-07-20 08:27:42','2025-07-20 08:27:42'),(5,'inventory_low_stock','Cảnh báo hết hàng','INVENTORY_ALERT','Cảnh Báo: Sản Phẩm {product_name} Sắp Hết','Sản phẩm {product_name} chỉ còn {quantity} {unit} trong kho. Vui lòng nhập thêm hàng để đảm bảo hoạt động kinh doanh.','HIGH','ROLE_BASED','[1, 2, 7]','{\"unit\": \"Đơn vị\", \"quantity\": \"Số lượng còn lại\", \"product_name\": \"Tên sản phẩm\"}',1,1,'2025-07-20 08:27:42','2025-07-20 08:27:42'),(6,'emergency_alert','Thông báo khẩn cấp','EMERGENCY','KHẨN CẤP: {alert_title}','{alert_message}. Vui lòng thực hiện ngay các biện pháp cần thiết. Liên hệ quản lý nếu cần hỗ trợ.','URGENT','ALL_USERS',NULL,'{\"alert_title\": \"Tiêu đề cảnh báo\", \"alert_message\": \"Nội dung cảnh báo\"}',1,1,'2025-07-20 08:27:42','2025-07-20 08:27:42');
-/*!40000 ALTER TABLE `notification_templates` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -1153,58 +1022,6 @@ INSERT INTO `payment_items` VALUES (4,2,3,1,400000.00,400000.00,60,'2025-07-16 0
 UNLOCK TABLES;
 
 --
--- Table structure for table `payment_scheduling_notifications`
---
-
-DROP TABLE IF EXISTS `payment_scheduling_notifications`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `payment_scheduling_notifications` (
-  `notification_id` int NOT NULL AUTO_INCREMENT,
-  `payment_id` int NOT NULL COMMENT 'Links to payments table',
-  `customer_id` int NOT NULL COMMENT 'Customer who made the payment',
-  `recipient_user_id` int NOT NULL COMMENT 'Manager/Admin who receives notification',
-  `notification_type` enum('PAYMENT_COMPLETED','SCHEDULING_REQUIRED','BOOKING_REMINDER','PAYMENT_UPDATED') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PAYMENT_COMPLETED',
-  `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `message` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `priority` enum('LOW','MEDIUM','HIGH','URGENT') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'HIGH',
-  `is_read` tinyint(1) NOT NULL DEFAULT '0',
-  `is_acknowledged` tinyint(1) NOT NULL DEFAULT '0',
-  `related_data` json DEFAULT NULL COMMENT 'Payment details, services, amounts, etc.',
-  `websocket_sent` tinyint(1) NOT NULL DEFAULT '0',
-  `email_sent` tinyint(1) NOT NULL DEFAULT '0',
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `read_at` timestamp NULL DEFAULT NULL,
-  `acknowledged_at` timestamp NULL DEFAULT NULL,
-  `acknowledged_by` int DEFAULT NULL COMMENT 'User who acknowledged the notification',
-  PRIMARY KEY (`notification_id`),
-  KEY `idx_payment_id` (`payment_id`),
-  KEY `idx_customer_id` (`customer_id`),
-  KEY `idx_recipient_user_id` (`recipient_user_id`),
-  KEY `idx_notification_type` (`notification_type`),
-  KEY `idx_priority` (`priority`),
-  KEY `idx_read_status` (`is_read`,`read_at`),
-  KEY `idx_acknowledged_status` (`is_acknowledged`,`acknowledged_at`),
-  KEY `idx_created_at` (`created_at`),
-  KEY `payment_scheduling_notifications_ibfk_4` (`acknowledged_by`),
-  CONSTRAINT `payment_scheduling_notifications_ibfk_1` FOREIGN KEY (`payment_id`) REFERENCES `payments` (`payment_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `payment_scheduling_notifications_ibfk_2` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `payment_scheduling_notifications_ibfk_3` FOREIGN KEY (`recipient_user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `payment_scheduling_notifications_ibfk_4` FOREIGN KEY (`acknowledged_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Specialized notifications for payment-to-scheduling workflow';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `payment_scheduling_notifications`
---
-
-LOCK TABLES `payment_scheduling_notifications` WRITE;
-/*!40000 ALTER TABLE `payment_scheduling_notifications` DISABLE KEYS */;
-/*!40000 ALTER TABLE `payment_scheduling_notifications` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `payments`
 --
 
@@ -1307,7 +1124,7 @@ CREATE TABLE `promotions` (
   `is_auto_apply` tinyint(1) DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `customer_condition` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'ALL' COMMENT 'Điều kiện khách hàng: ALL, INDIVIDUAL, COUPLE, GROUP',
+  `customer_condition` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT 'ALL' COMMENT 'Điều kiện khách hàng: ALL, INDIVIDUAL, COUPLE, GROUP',
   PRIMARY KEY (`promotion_id`),
   UNIQUE KEY `promotion_code` (`promotion_code`),
   KEY `created_by_user_id` (`created_by_user_id`),
@@ -1323,7 +1140,7 @@ CREATE TABLE `promotions` (
 
 LOCK TABLES `promotions` WRITE;
 /*!40000 ALTER TABLE `promotions` DISABLE KEYS */;
-INSERT INTO `promotions` VALUES (1,'Chào Hè Rực Rỡ - Giảm 20%','Giảm giá 20% cho tất cả dịch vụ massage.','SUMMER20','PERCENTAGE',20.00,NULL,500000.00,'2025-05-31 17:00:00','2025-09-01 16:59:59','ACTIVE',1,100,10,'SPECIFIC_SERVICES','[1, 2]','/uploads/promotions/1753019216785_promotion.jpg','Áp dụng cho các dịch vụ massage. Không áp dụng cùng KM khác.',1,0,'2025-06-01 09:40:23','2025-07-20 13:46:56','ALL'),(2,'Tri Ân Khách Hàng - Tặng Voucher 100K','Tặng voucher 100.000 VNĐ cho hóa đơn từ 1.000.000 VNĐ.','THANKS100K','FIXED_AMOUNT',100000.00,NULL,1000000.00,'2025-07-01 00:00:00','2025-07-31 23:59:59','ACTIVE',1,200,0,'ENTIRE_APPOINTMENT',NULL,'https://placehold.co/400x200/E6E6FA/333333?text=VoucherPromo','Mỗi khách hàng được sử dụng 1 lần.',2,0,'2025-06-01 09:40:23','2025-07-17 22:03:38','ALL'),(3,'Đi Cùng Bạn Bè - Miễn Phí 1 Dịch Vụ Gội Đầu','Khi đặt 2 dịch vụ bất kỳ, tặng 1 dịch vụ gội đầu thảo dược.','FRIENDSFREE','FREE_SERVICE',6.00,NULL,800000.00,'2025-06-15 00:00:00','2025-07-15 23:59:59','INACTIVE',1,50,5,'ENTIRE_APPOINTMENT',NULL,'https://placehold.co/400x200/B0C4DE/333333?text=FriendsPromo','Dịch vụ tặng kèm là Gội Đầu Thảo Dược (ID: 6).',1,0,'2025-06-01 09:40:23','2025-07-17 22:03:38','ALL'),(4,'Giảm 50K cho hóa đơn trên 300K','Giảm trực tiếp 50,000đ cho tất cả các dịch vụ khi tổng hóa đơn của bạn từ 300,000đ trở lên.','BIGSALE5OK','FIXED_AMOUNT',50000.00,NULL,0.00,'2025-07-22 17:00:00','2025-08-09 16:59:59','ACTIVE',NULL,NULL,0,'ENTIRE_APPOINTMENT',NULL,'/uploads/promotions/1753022591204_promotion.png',NULL,NULL,0,'2025-07-20 14:43:11','2025-07-22 19:18:34','ALL'),(5,'Đi 4 tính tiền 3','Rủ hội bạn thân đi làm đẹp! Khi đặt lịch cho nhóm 4 người, bạn sẽ được miễn phí 1 suất có giá trị thấp nhất.','BUY4FREE1','PERCENTAGE',25.00,NULL,0.00,'2025-07-26 17:00:00','2025-08-20 16:59:59','SCHEDULED',NULL,NULL,0,'ENTIRE_APPOINTMENT',NULL,'/uploads/promotions/1753022968018_promotion.png',NULL,NULL,0,'2025-07-20 14:49:28','2025-07-20 14:49:28','GROUP'),(6,'Tự động giảm 30K cho khách hàng thân thiết','Tri ân khách hàng đã gắn bó, tự động giảm 30,000đ cho lần đặt lịch tiếp theo.','AUTO30K','FIXED_AMOUNT',30000.00,NULL,0.00,'2025-07-19 17:00:00','2025-07-31 16:59:59','ACTIVE',NULL,NULL,0,'ENTIRE_APPOINTMENT',NULL,'/uploads/promotions/1753023097242_promotion.png',NULL,NULL,0,'2025-07-20 14:51:37','2025-07-20 14:51:37','INDIVIDUAL'),(7,'Giảm 20% cho lần massage đầu tiên','Ưu đãi chào mừng khách hàng mới! Giảm ngay 20% cho bất kỳ liệu trình massage nào khi bạn đặt lịch lần đầu tiên tại spa.','BIGSALE50','PERCENTAGE',20.00,NULL,0.00,'2025-07-30 17:00:00','2025-08-07 16:59:59','SCHEDULED',NULL,NULL,0,'ENTIRE_APPOINTMENT',NULL,'/uploads/promotions/1753023305186_promotion.png',NULL,NULL,0,'2025-07-20 14:55:05','2025-07-20 14:55:05','ALL'),(8,'Giảm 50K cho hóa đơn trên 500K','Thư giãn nhiều hơn, trả tiền ít hơn. Giảm ngay 50,000đ khi tổng giá trị hóa đơn của bạn từ 500,000đ trở lên.','RELAX50','FIXED_AMOUNT',50000.00,NULL,0.00,'2025-07-07 17:00:00','2025-08-09 16:59:59','ACTIVE',NULL,NULL,0,'ENTIRE_APPOINTMENT',NULL,NULL,NULL,NULL,0,'2025-07-20 14:57:45','2025-07-20 14:57:45','ALL'),(9,'Giảm 15% Massage đá nóng','Trải nghiệm liệu pháp massage đá nóng giúp thư giãn sâu và giảm căng cơ với ưu đãi đặc biệt giảm 15%','HOTSTONE15','PERCENTAGE',15.00,NULL,0.00,'2025-07-14 17:00:00','2025-08-05 16:59:59','ACTIVE',NULL,NULL,0,'ENTIRE_APPOINTMENT',NULL,'/uploads/promotions/1753023677731_promotion.png',NULL,NULL,0,'2025-07-20 15:01:17','2025-07-20 15:01:17','ALL'),(10,'Tự động giảm 30K tri ân','Cảm ơn bạn đã luôn tin tưởng! Spa tự động giảm 30,000đ cho lần đặt lịch tiếp theo như một lời tri ân.','HOTSTONE16','FIXED_AMOUNT',30000.00,NULL,0.00,'2025-07-22 17:00:00','2025-08-08 16:59:59','ACTIVE',NULL,NULL,0,'ENTIRE_APPOINTMENT',NULL,'/uploads/promotions/1753023814297_promotion.png',NULL,NULL,0,'2025-07-20 15:03:34','2025-07-22 19:18:34','ALL');
+INSERT INTO `promotions` VALUES (1,'Chào Hè Rực Rỡ - Giảm 20%','Giảm giá 20% cho tất cả dịch vụ massage.','SUMMER20','PERCENTAGE',20.00,NULL,500000.00,'2025-05-31 17:00:00','2025-09-01 16:59:59','ACTIVE',1,100,10,'SPECIFIC_SERVICES','[1, 2]','/uploads/promotions/1753019216785_promotion.jpg','Áp dụng cho các dịch vụ massage. Không áp dụng cùng KM khác.',1,0,'2025-06-01 09:40:23','2025-07-20 13:46:56','ALL'),(2,'Tri Ân Khách Hàng - Tặng Voucher 100K','Tặng voucher 100.000 VNĐ cho hóa đơn từ 1.000.000 VNĐ.','THANKS100K','FIXED_AMOUNT',100000.00,NULL,1000000.00,'2025-07-01 00:00:00','2025-07-31 23:59:59','ACTIVE',1,200,0,'ENTIRE_APPOINTMENT',NULL,'https://placehold.co/400x200/E6E6FA/333333?text=VoucherPromo','Mỗi khách hàng được sử dụng 1 lần.',2,0,'2025-06-01 09:40:23','2025-07-17 22:03:38','ALL'),(3,'Đi Cùng Bạn Bè - Miễn Phí 1 Dịch Vụ Gội Đầu','Khi đặt 2 dịch vụ bất kỳ, tặng 1 dịch vụ gội đầu thảo dược.','FRIENDSFREE','FREE_SERVICE',6.00,NULL,800000.00,'2025-06-15 00:00:00','2025-07-15 23:59:59','INACTIVE',1,50,5,'ENTIRE_APPOINTMENT',NULL,'https://placehold.co/400x200/B0C4DE/333333?text=FriendsPromo','Dịch vụ tặng kèm là Gội Đầu Thảo Dược (ID: 6).',1,0,'2025-06-01 09:40:23','2025-07-17 22:03:38','ALL'),(4,'Giảm 50K cho hóa đơn trên 300K','Giảm trực tiếp 50,000đ cho tất cả các dịch vụ khi tổng hóa đơn của bạn từ 300,000đ trở lên.','BIGSALE5OK','FIXED_AMOUNT',50000.00,NULL,0.00,'2025-07-22 17:00:00','2025-08-09 16:59:59','SCHEDULED',NULL,NULL,0,'ENTIRE_APPOINTMENT',NULL,'/uploads/promotions/1753022591204_promotion.png',NULL,NULL,0,'2025-07-20 14:43:11','2025-07-20 14:43:11','ALL'),(5,'Đi 4 tính tiền 3','Rủ hội bạn thân đi làm đẹp! Khi đặt lịch cho nhóm 4 người, bạn sẽ được miễn phí 1 suất có giá trị thấp nhất.','BUY4FREE1','PERCENTAGE',25.00,NULL,0.00,'2025-07-26 17:00:00','2025-08-20 16:59:59','SCHEDULED',NULL,NULL,0,'ENTIRE_APPOINTMENT',NULL,'/uploads/promotions/1753022968018_promotion.png',NULL,NULL,0,'2025-07-20 14:49:28','2025-07-20 14:49:28','GROUP'),(6,'Tự động giảm 30K cho khách hàng thân thiết','Tri ân khách hàng đã gắn bó, tự động giảm 30,000đ cho lần đặt lịch tiếp theo.','AUTO30K','FIXED_AMOUNT',30000.00,NULL,0.00,'2025-07-19 17:00:00','2025-07-31 16:59:59','ACTIVE',NULL,NULL,0,'ENTIRE_APPOINTMENT',NULL,'/uploads/promotions/1753023097242_promotion.png',NULL,NULL,0,'2025-07-20 14:51:37','2025-07-20 14:51:37','INDIVIDUAL'),(7,'Giảm 20% cho lần massage đầu tiên','Ưu đãi chào mừng khách hàng mới! Giảm ngay 20% cho bất kỳ liệu trình massage nào khi bạn đặt lịch lần đầu tiên tại spa.','BIGSALE50','PERCENTAGE',20.00,NULL,0.00,'2025-07-30 17:00:00','2025-08-07 16:59:59','SCHEDULED',NULL,NULL,0,'ENTIRE_APPOINTMENT',NULL,'/uploads/promotions/1753023305186_promotion.png',NULL,NULL,0,'2025-07-20 14:55:05','2025-07-20 14:55:05','ALL'),(8,'Giảm 50K cho hóa đơn trên 500K','Thư giãn nhiều hơn, trả tiền ít hơn. Giảm ngay 50,000đ khi tổng giá trị hóa đơn của bạn từ 500,000đ trở lên.','RELAX50','FIXED_AMOUNT',50000.00,NULL,0.00,'2025-07-07 17:00:00','2025-08-09 16:59:59','ACTIVE',NULL,NULL,0,'ENTIRE_APPOINTMENT',NULL,NULL,NULL,NULL,0,'2025-07-20 14:57:45','2025-07-20 14:57:45','ALL'),(9,'Giảm 15% Massage đá nóng','Trải nghiệm liệu pháp massage đá nóng giúp thư giãn sâu và giảm căng cơ với ưu đãi đặc biệt giảm 15%','HOTSTONE15','PERCENTAGE',15.00,NULL,0.00,'2025-07-14 17:00:00','2025-08-05 16:59:59','ACTIVE',NULL,NULL,0,'ENTIRE_APPOINTMENT',NULL,'/uploads/promotions/1753023677731_promotion.png',NULL,NULL,0,'2025-07-20 15:01:17','2025-07-20 15:01:17','ALL'),(10,'Tự động giảm 30K tri ân','Cảm ơn bạn đã luôn tin tưởng! Spa tự động giảm 30,000đ cho lần đặt lịch tiếp theo như một lời tri ân.','HOTSTONE16','FIXED_AMOUNT',30000.00,NULL,0.00,'2025-07-22 17:00:00','2025-08-08 16:59:59','SCHEDULED',NULL,NULL,0,'ENTIRE_APPOINTMENT',NULL,'/uploads/promotions/1753023814297_promotion.png',NULL,NULL,0,'2025-07-20 15:03:34','2025-07-20 15:03:34','ALL');
 /*!40000 ALTER TABLE `promotions` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1416,82 +1233,6 @@ INSERT INTO `rooms` VALUES (1,'Room A','Standard room for individual treatments'
 UNLOCK TABLES;
 
 --
--- Table structure for table `scheduling_sessions`
---
-
-DROP TABLE IF EXISTS `scheduling_sessions`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `scheduling_sessions` (
-  `session_id` int NOT NULL AUTO_INCREMENT,
-  `payment_id` int NOT NULL COMMENT 'Payment being scheduled',
-  `manager_user_id` int NOT NULL COMMENT 'Manager handling the scheduling',
-  `session_status` enum('ACTIVE','COMPLETED','ABANDONED','EXPIRED') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'ACTIVE',
-  `total_services` int NOT NULL DEFAULT '0' COMMENT 'Total services to schedule',
-  `scheduled_services` int NOT NULL DEFAULT '0' COMMENT 'Services already scheduled',
-  `remaining_services` int GENERATED ALWAYS AS ((`total_services` - `scheduled_services`)) STORED,
-  `session_data` json DEFAULT NULL COMMENT 'Temporary scheduling data',
-  `started_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `completed_at` timestamp NULL DEFAULT NULL,
-  `expires_at` timestamp NULL DEFAULT NULL COMMENT 'Session expiration time',
-  `last_activity` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`session_id`),
-  UNIQUE KEY `unique_active_payment_session` (`payment_id`,`manager_user_id`),
-  KEY `idx_payment_id` (`payment_id`),
-  KEY `idx_manager_user_id` (`manager_user_id`),
-  KEY `idx_session_status` (`session_status`),
-  KEY `idx_expires_at` (`expires_at`),
-  CONSTRAINT `scheduling_sessions_ibfk_1` FOREIGN KEY (`payment_id`) REFERENCES `payments` (`payment_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `scheduling_sessions_ibfk_2` FOREIGN KEY (`manager_user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Track scheduling sessions to prevent conflicts';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `scheduling_sessions`
---
-
-LOCK TABLES `scheduling_sessions` WRITE;
-/*!40000 ALTER TABLE `scheduling_sessions` DISABLE KEYS */;
-/*!40000 ALTER TABLE `scheduling_sessions` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `service_images`
---
-
-DROP TABLE IF EXISTS `service_images`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `service_images` (
-  `image_id` int NOT NULL AUTO_INCREMENT,
-  `service_id` int NOT NULL,
-  `url` varchar(2048) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT 'Relative path or URL to the image file (e.g., /images/services/service_1_1.jpg)',
-  `alt_text` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'Alternative text for accessibility and SEO',
-  `is_primary` tinyint(1) NOT NULL DEFAULT '0' COMMENT '1 if this is the primary image for the service, 0 otherwise',
-  `sort_order` int DEFAULT '0' COMMENT 'Order for displaying images (0 = highest priority)',
-  `caption` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'Short description or title of the image',
-  `is_active` tinyint(1) NOT NULL DEFAULT '1' COMMENT '1 if image is visible, 0 if hidden',
-  `file_size` int DEFAULT NULL COMMENT 'File size of the image in bytes',
-  `uploaded_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Time the image was uploaded',
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Last update time for the image record',
-  PRIMARY KEY (`image_id`),
-  KEY `idx_service_id` (`service_id`),
-  KEY `idx_is_active` (`is_active`),
-  CONSTRAINT `service_images_ibfk_1` FOREIGN KEY (`service_id`) REFERENCES `services` (`service_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=115 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Stores multiple images for each service with metadata';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `service_images`
---
-
-LOCK TABLES `service_images` WRITE;
-/*!40000 ALTER TABLE `service_images` DISABLE KEYS */;
-INSERT INTO `service_images` VALUES (87,1,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752471576/services/1/9f14d87e-91ca-473b-b76f-7420383810aa.jpg','Service image for massage.jpg',1,1,'Uploaded via TestController',1,NULL,'2025-07-14 05:39:37','2025-07-14 05:39:37'),(88,1,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752471578/services/1/bc71c550-2dab-4b25-af30-cc8f3967dba9.jpg','Service image for sakura-massage-spa.jpg',0,2,'Uploaded via TestController',1,NULL,'2025-07-14 05:39:39','2025-07-14 05:39:39'),(89,2,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752471688/services/2/c861d4ba-158d-42a3-919c-92f9cb7a2a31.jpg','Service image for Adult-woman-having-hot-stone-m-1024x768.jpg',1,1,'Uploaded via TestController',1,NULL,'2025-07-14 05:41:28','2025-07-14 05:41:28'),(90,2,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752471690/services/2/ea59b084-d37b-4053-9ba3-3e2e4aef1382.jpg','Service image for hot-stone-massage.jpg',0,2,'Uploaded via TestController',1,NULL,'2025-07-14 05:41:30','2025-07-14 05:41:30'),(91,3,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752471805/services/3/f48e022f-5332-44f2-a4a4-b76804f0c9d0.jpg','Service image for 20201107_cach-cham-soc-da-mat-hang-ngay-1.jpg',1,1,'Uploaded via TestController',1,NULL,'2025-07-14 05:43:25','2025-07-14 05:43:25'),(92,3,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752471806/services/3/c1b57e77-2e27-4790-a6d8-f42c22a6e8ec.webp','Service image for nganh-cham-soc-da-mo-ra-nhieu-co-hoi-nghe-nghiep-9fea782b-c3da-4e97-a9b8-7dc3da79eb26.webp',0,2,'Uploaded via TestController',1,NULL,'2025-07-14 05:43:27','2025-07-14 05:43:27'),(93,4,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752471974/services/4/b27dbde2-258c-4859-b137-a9d5bb8958aa.jpg','Service image for 20240424140334.jpg',1,1,'Uploaded via TestController',1,NULL,'2025-07-14 05:46:14','2025-07-14 05:46:14'),(94,4,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752471976/services/4/2d0d900e-5b42-4727-8642-5406c7e6d894.png','Service image for tri-mun-dung-nguyen-spa1.png',0,2,'Uploaded via TestController',1,NULL,'2025-07-14 05:46:17','2025-07-14 05:46:17'),(95,5,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472121/services/5/b7aa6723-d9a0-4f6c-91c2-8da732aa10a6.jpg','Service image for tay-da-chet-1.jpg',1,1,'Uploaded via TestController',1,NULL,'2025-07-14 05:48:42','2025-07-14 05:48:42'),(96,5,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472124/services/5/b9bb999d-6aa6-4df6-9174-3a9db2274433.png','Service image for tay-te-bao-chet-da-mat-06.png',0,2,'Uploaded via TestController',1,NULL,'2025-07-14 05:48:44','2025-07-14 05:48:44'),(97,6,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472169/services/6/cb0739e0-2760-49e2-8d0c-fc2ffa772625.webp','Service image for Mot_so_dieu_can_biet_khi_goi_dau_bang_thao_duoc_thien_nhien_1_6e9385774c.webp',1,1,'Uploaded via TestController',1,NULL,'2025-07-14 05:49:29','2025-07-14 05:49:29'),(98,6,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472170/services/6/217bda47-5405-4701-9a67-1ba276a2d3fd.jpg','Service image for tai-sao-nen-goi-dau-duong-sinh-thao-duoc-1.jpg',0,2,'Uploaded via TestController',1,NULL,'2025-07-14 05:49:31','2025-07-14 05:49:31'),(99,7,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472253/services/7/bae4c82c-49ba-4487-a0b6-307f1bf49a21.webp','Service image for dia-chi-massage-tphcm-3.webp',1,1,'Uploaded via TestController',1,NULL,'2025-07-14 05:50:54','2025-07-14 05:50:54'),(100,7,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472256/services/7/43f92a2b-5783-4c4d-a899-b36b75dc7568.jpg','Service image for -Massage-bam-huyet-ap-la-thuoc-ong-Y-tri-lieu-Cot-song-That-lung.jpeg',0,2,'Uploaded via TestController',1,NULL,'2025-07-14 05:50:57','2025-07-14 05:50:57'),(101,7,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472336/services/7/bf035931-2a3b-4ede-90e6-4ac651d81438.avif','Service image for 67aae87b-b7d8-4bd6-975b-06103831f6e2_eee40472.avif',1,1,'Uploaded via TestController',1,NULL,'2025-07-14 05:52:16','2025-07-14 05:52:16'),(102,7,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472337/services/7/0cc2707f-7236-491e-afef-84ba4fa06859.webp','Service image for big-ticket-image-6098b643490c8295174682-cropped600-400.jpg.webp',0,2,'Uploaded via TestController',1,NULL,'2025-07-14 05:52:18','2025-07-14 05:52:18'),(103,8,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472362/services/8/cdfa8097-bd32-45f7-bf4e-470a07885aad.avif','Service image for 67aae87b-b7d8-4bd6-975b-06103831f6e2_eee40472.avif',1,1,'Uploaded via TestController',1,NULL,'2025-07-14 05:52:42','2025-07-14 05:52:42'),(104,8,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472363/services/8/38fa657a-220d-4164-9d99-73e66418ec1c.webp','Service image for big-ticket-image-6098b643490c8295174682-cropped600-400.jpg.webp',0,2,'Uploaded via TestController',1,NULL,'2025-07-14 05:52:43','2025-07-14 05:52:43'),(105,9,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472450/services/9/8daabb6c-f3de-465c-baa4-57791a486b94.jpg','Service image for massage-foot-2386.jpg',1,1,'Uploaded via TestController',1,NULL,'2025-07-14 05:54:10','2025-07-14 05:54:10'),(106,9,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472452/services/9/b5c47954-1918-45be-ab3c-71f52cb26787.jpg','Service image for top-10-dia-chi-massage-chan-gan-day-tot-nhat-tai-tphcm-20230530111507-276043.jpg',0,2,'Uploaded via TestController',1,NULL,'2025-07-14 05:54:12','2025-07-14 05:54:12'),(107,10,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472569/services/10/d79b21e5-8d0e-404d-8dcf-b2ec70076636.jpg','Service image for massage (1).jpg',1,1,'Uploaded via TestController',1,NULL,'2025-07-14 05:56:09','2025-07-14 05:56:09'),(108,10,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472570/services/10/13662bb5-789e-4819-9acd-624bfbc2ec07.webp','Service image for n2.webp',0,2,'Uploaded via TestController',1,NULL,'2025-07-14 05:56:11','2025-07-14 05:56:11'),(109,27,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472669/services/27/f990545d-adad-4caa-ae6d-f90768bf3d2d.jpg','Service image for 21.jpg',1,1,'Uploaded via TestController',1,NULL,'2025-07-14 05:57:49','2025-07-14 05:57:49'),(110,27,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472671/services/27/40fcf601-110d-42bd-8909-b64523dc91a4.webp','Service image for young-lady-showing-her-red-manicure-pedicure-nails-young-lady-showing-her-red-manicure-pedicure-nails-rose-142082356.webp',0,2,'Uploaded via TestController',1,NULL,'2025-07-14 05:57:51','2025-07-14 05:57:51'),(111,71,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472778/services/71/4237de8e-37a1-4677-a478-1719b8306928.jpg','Service image for B3-BE888_sensor_M_20180723160955.jpg',1,1,'Uploaded via TestController',1,NULL,'2025-07-14 05:59:39','2025-07-14 05:59:39'),(112,71,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472780/services/71/b101ddd8-d2a2-4728-87dd-9401d2defca4.png','Service image for float-therapy.png',0,2,'Uploaded via TestController',1,NULL,'2025-07-14 05:59:41','2025-07-14 05:59:41'),(113,72,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472859/services/72/0bda7958-8789-42e3-8f8e-058d7aba8ee7.jpg','Service image for bon-tam-rai-hoa-hong-2_441ccdc2297a4b5c8905257b3236ce87_grande.jpg',1,1,'Uploaded via TestController',1,NULL,'2025-07-14 06:01:00','2025-07-14 06:01:00'),(114,72,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472861/services/72/a3e3d846-6784-401f-8001-c6065456f0ca.jpg','Service image for o-dau-ban-bon-cau-viglacera-thiet-bi-ve-sinh-cao-cap-gia-tot-1.jpg',0,2,'Uploaded via TestController',1,NULL,'2025-07-14 06:01:02','2025-07-14 06:01:02');
-/*!40000 ALTER TABLE `service_images` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `service_material`
 --
 
@@ -1525,38 +1266,35 @@ UNLOCK TABLES;
 -- Table structure for table `service_reviews`
 --
 
-DROP TABLE IF EXISTS `service_reviews`;
+DROP TABLE IF EXISTS `service_images`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `service_reviews` (
-  `review_id` int NOT NULL AUTO_INCREMENT,
-  `service_id` int NOT NULL COMMENT 'ID dịch vụ được đánh giá (để tiện truy vấn)',
-  `customer_id` int NOT NULL COMMENT 'ID khách hàng đánh giá (để tiện truy vấn)',
-  `booking_id` int NOT NULL COMMENT 'ID của lịch hẹn đã hoàn thành mà review này dành cho.',
-  `rating` tinyint unsigned NOT NULL COMMENT 'Điểm đánh giá (1-5)',
-  `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `comment` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `is_visible` tinyint(1) NOT NULL DEFAULT '1' COMMENT '1: Hiện, 0: Ẩn review khỏi public',
-  `manager_reply` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT 'Phản hồi của manager cho review này',
-  PRIMARY KEY (`review_id`),
-  KEY `service_id` (`service_id`),
-  KEY `customer_id` (`customer_id`),
-  KEY `service_reviews_ibfk_3` (`booking_id`),
-  CONSTRAINT `service_reviews_ibfk_1` FOREIGN KEY (`service_id`) REFERENCES `services` (`service_id`) ON DELETE CASCADE,
-  CONSTRAINT `service_reviews_ibfk_2` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`) ON DELETE CASCADE,
-  CONSTRAINT `service_reviews_ibfk_3` FOREIGN KEY (`booking_id`) REFERENCES `bookings` (`booking_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `service_images` (
+  `image_id` int NOT NULL AUTO_INCREMENT,
+  `service_id` int NOT NULL,
+  `url` varchar(2048) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT 'Relative path or URL to the image file (e.g., /images/services/service_1_1.jpg)',
+  `alt_text` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'Alternative text for accessibility and SEO',
+  `sort_order` int DEFAULT '0' COMMENT 'Order for displaying images (0 = highest priority)',
+  `caption` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'Short description or title of the image',
+  `is_active` tinyint(1) NOT NULL DEFAULT '1' COMMENT '1 if image is visible, 0 if hidden',
+  `file_size` int DEFAULT NULL COMMENT 'File size of the image in bytes',
+  `uploaded_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Time the image was uploaded',
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Last update time for the image record',
+  PRIMARY KEY (`image_id`),
+  KEY `idx_service_id` (`service_id`),
+  KEY `idx_is_active` (`is_active`),
+  CONSTRAINT `service_images_ibfk_1` FOREIGN KEY (`service_id`) REFERENCES `services` (`service_id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=115 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Stores multiple images for each service with metadata';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `service_reviews`
+-- Dumping data for table `service_images`
 --
 
-LOCK TABLES `service_reviews` WRITE;
-/*!40000 ALTER TABLE `service_reviews` DISABLE KEYS */;
-/*!40000 ALTER TABLE `service_reviews` ENABLE KEYS */;
+LOCK TABLES `service_images` WRITE;
+/*!40000 ALTER TABLE `service_images` DISABLE KEYS */;
+INSERT INTO `service_images` VALUES (87,1,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752471576/services/1/9f14d87e-91ca-473b-b76f-7420383810aa.jpg','Service image for massage.jpg',1,'Uploaded via TestController',1,NULL,'2025-07-14 05:39:37','2025-07-14 05:39:37'),(88,1,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752471578/services/1/bc71c550-2dab-4b25-af30-cc8f3967dba9.jpg','Service image for sakura-massage-spa.jpg',2,'Uploaded via TestController',1,NULL,'2025-07-14 05:39:39','2025-07-14 05:39:39'),(89,2,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752471688/services/2/c861d4ba-158d-42a3-919c-92f9cb7a2a31.jpg','Service image for Adult-woman-having-hot-stone-m-1024x768.jpg',1,'Uploaded via TestController',1,NULL,'2025-07-14 05:41:28','2025-07-14 05:41:28'),(90,2,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752471690/services/2/ea59b084-d37b-4053-9ba3-3e2e4aef1382.jpg','Service image for hot-stone-massage.jpg',2,'Uploaded via TestController',1,NULL,'2025-07-14 05:41:30','2025-07-14 05:41:30'),(91,3,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752471805/services/3/f48e022f-5332-44f2-a4a4-b76804f0c9d0.jpg','Service image for 20201107_cach-cham-soc-da-mat-hang-ngay-1.jpg',1,'Uploaded via TestController',1,NULL,'2025-07-14 05:43:25','2025-07-14 05:43:25'),(92,3,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752471806/services/3/c1b57e77-2e27-4790-a6d8-f42c22a6e8ec.webp','Service image for nganh-cham-soc-da-mo-ra-nhieu-co-hoi-nghe-nghiep-9fea782b-c3da-4e97-a9b8-7dc3da79eb26.webp',2,'Uploaded via TestController',1,NULL,'2025-07-14 05:43:27','2025-07-14 05:43:27'),(93,4,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752471974/services/4/b27dbde2-258c-4859-b137-a9d5bb8958aa.jpg','Service image for 20240424140334.jpg',1,'Uploaded via TestController',1,NULL,'2025-07-14 05:46:14','2025-07-14 05:46:14'),(94,4,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752471976/services/4/2d0d900e-5b42-4727-8642-5406c7e6d894.png','Service image for tri-mun-dung-nguyen-spa1.png',2,'Uploaded via TestController',1,NULL,'2025-07-14 05:46:17','2025-07-14 05:46:17'),(95,5,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472121/services/5/b7aa6723-d9a0-4f6c-91c2-8da732aa10a6.jpg','Service image for tay-da-chet-1.jpg',1,'Uploaded via TestController',1,NULL,'2025-07-14 05:48:42','2025-07-14 05:48:42'),(96,5,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472124/services/5/b9bb999d-6aa6-4df6-9174-3a9db2274433.png','Service image for tay-te-bao-chet-da-mat-06.png',2,'Uploaded via TestController',1,NULL,'2025-07-14 05:48:44','2025-07-14 05:48:44'),(97,6,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472169/services/6/cb0739e0-2760-49e2-8d0c-fc2ffa772625.webp','Service image for Mot_so_dieu_can_biet_khi_goi_dau_bang_thao_duoc_thien_nhien_1_6e9385774c.webp',1,'Uploaded via TestController',1,NULL,'2025-07-14 05:49:29','2025-07-14 05:49:29'),(98,6,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472170/services/6/217bda47-5405-4701-9a67-1ba276a2d3fd.jpg','Service image for tai-sao-nen-goi-dau-duong-sinh-thao-duoc-1.jpg',2,'Uploaded via TestController',1,NULL,'2025-07-14 05:49:31','2025-07-14 05:49:31'),(99,7,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472253/services/7/bae4c82c-49ba-4487-a0b6-307f1bf49a21.webp','Service image for dia-chi-massage-tphcm-3.webp',1,'Uploaded via TestController',1,NULL,'2025-07-14 05:50:54','2025-07-14 05:50:54'),(100,7,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472256/services/7/43f92a2b-5783-4c4d-a899-b36b75dc7568.jpg','Service image for -Massage-bam-huyet-ap-la-thuoc-ong-Y-tri-lieu-Cot-song-That-lung.jpeg',2,'Uploaded via TestController',1,NULL,'2025-07-14 05:50:57','2025-07-14 05:50:57'),(101,7,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472336/services/7/bf035931-2a3b-4ede-90e6-4ac651d81438.avif','Service image for 67aae87b-b7d8-4bd6-975b-06103831f6e2_eee40472.avif',1,'Uploaded via TestController',1,NULL,'2025-07-14 05:52:16','2025-07-14 05:52:16'),(102,7,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472337/services/7/0cc2707f-7236-491e-afef-84ba4fa06859.webp','Service image for big-ticket-image-6098b643490c8295174682-cropped600-400.jpg.webp',2,'Uploaded via TestController',1,NULL,'2025-07-14 05:52:18','2025-07-14 05:52:18'),(103,8,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472362/services/8/cdfa8097-bd32-45f7-bf4e-470a07885aad.avif','Service image for 67aae87b-b7d8-4bd6-975b-06103831f6e2_eee40472.avif',1,'Uploaded via TestController',1,NULL,'2025-07-14 05:52:42','2025-07-14 05:52:42'),(104,8,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472363/services/8/38fa657a-220d-4164-9d99-73e66418ec1c.webp','Service image for big-ticket-image-6098b643490c8295174682-cropped600-400.jpg.webp',2,'Uploaded via TestController',1,NULL,'2025-07-14 05:52:43','2025-07-14 05:52:43'),(105,9,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472450/services/9/8daabb6c-f3de-465c-baa4-57791a486b94.jpg','Service image for massage-foot-2386.jpg',1,'Uploaded via TestController',1,NULL,'2025-07-14 05:54:10','2025-07-14 05:54:10'),(106,9,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472452/services/9/b5c47954-1918-45be-ab3c-71f52cb26787.jpg','Service image for top-10-dia-chi-massage-chan-gan-day-tot-nhat-tai-tphcm-20230530111507-276043.jpg',2,'Uploaded via TestController',1,NULL,'2025-07-14 05:54:12','2025-07-14 05:54:12'),(107,10,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472569/services/10/d79b21e5-8d0e-404d-8dcf-b2ec70076636.jpg','Service image for massage (1).jpg',1,'Uploaded via TestController',1,NULL,'2025-07-14 05:56:09','2025-07-14 05:56:09'),(108,10,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472570/services/10/13662bb5-789e-4819-9acd-624bfbc2ec07.webp','Service image for n2.webp',2,'Uploaded via TestController',1,NULL,'2025-07-14 05:56:11','2025-07-14 05:56:11'),(109,27,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472669/services/27/f990545d-adad-4caa-ae6d-f90768bf3d2d.jpg','Service image for 21.jpg',1,'Uploaded via TestController',1,NULL,'2025-07-14 05:57:49','2025-07-14 05:57:49'),(110,27,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472671/services/27/40fcf601-110d-42bd-8909-b64523dc91a4.webp','Service image for young-lady-showing-her-red-manicure-pedicure-nails-young-lady-showing-her-red-manicure-pedicure-nails-rose-142082356.webp',2,'Uploaded via TestController',1,NULL,'2025-07-14 05:57:51','2025-07-14 05:57:51'),(111,71,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472778/services/71/4237de8e-37a1-4677-a478-1719b8306928.jpg','Service image for B3-BE888_sensor_M_20180723160955.jpg',1,'Uploaded via TestController',1,NULL,'2025-07-14 05:59:39','2025-07-14 05:59:39'),(112,71,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472780/services/71/b101ddd8-d2a2-4728-87dd-9401d2defca4.png','Service image for float-therapy.png',2,'Uploaded via TestController',1,NULL,'2025-07-14 05:59:41','2025-07-14 05:59:41'),(113,72,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472859/services/72/0bda7958-8789-42e3-8f8e-058d7aba8ee7.jpg','Service image for bon-tam-rai-hoa-hong-2_441ccdc2297a4b5c8905257b3236ce87_grande.jpg',1,'Uploaded via TestController',1,NULL,'2025-07-14 06:01:00','2025-07-14 06:01:00'),(114,72,'https://res.cloudinary.com/dj5wpyfvh/image/upload/v1752472861/services/72/a3e3d846-6784-401f-8001-c6065456f0ca.jpg','Service image for o-dau-ban-bon-cau-viglacera-thiet-bi-ve-sinh-cao-cap-gia-tot-1.jpg',2,'Uploaded via TestController',1,NULL,'2025-07-14 06:01:02','2025-07-14 06:01:02');
+/*!40000 ALTER TABLE `service_images` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -1842,6 +1580,28 @@ LOCK TABLES `users` WRITE;
 INSERT INTO `users` VALUES (1,1,'Nguyễn Văn An','quangkhoa5112@5dulieu.com','$2a$10$Q8m8OY5RIEWeo1alSpOx1up8kZLEz.QDkfiKfyBlbO3GN0ySqwEm.','0912345678','MALE','1980-01-15',NULL,NULL,1,'2025-06-01 09:40:23','2025-06-01 09:40:23','2025-07-11 05:26:24'),(2,2,'Trần Thị Bình','manager123@spademo.com','$2b$10$abcdefghijklmnopqrstuv','0987654321','FEMALE','1985-05-20','',NULL,1,'2025-06-01 09:40:23','2025-06-01 09:40:23','2025-07-21 10:43:16'),(3,3,'Lê Minh Cường','therapist1@spademo.com','$2b$10$abcdefghijklmnopqrstuv','0905112233','MALE','1990-09-10','thanh xuyen 4 , pho yen , thai nguyen123',NULL,1,'2025-06-01 09:40:23','2025-06-01 09:40:23','2025-07-21 15:34:17'),(4,3,'Phạm Thị Dung','therapist2@spademo.com','$2a$10$OVBrE/4NZQt9PLxUsoEdG.ixzbd9nKCqnO6pQP4pVETHkqut3AI4i','0905445566','FEMALE','1992-12-01',NULL,NULL,1,'2025-06-01 09:40:23','2025-06-01 09:40:23','2025-07-21 15:42:51'),(5,4,'Hoàng Văn Em','receptionist@spademo.com','$2b$10$abcdefghijklmnopqrstuv','0918778899','MALE','1995-03-25',NULL,NULL,1,'2025-06-01 09:40:23','2025-06-01 09:40:23','2025-07-11 05:26:24'),(6,1,'Nguyễn Văn Admin','admin@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234567','MALE','1985-01-15',NULL,NULL,1,NULL,'2025-06-04 03:47:10','2025-07-11 05:26:24'),(7,2,'Trần Thị Manager','manager@beautyzone.com','$2a$10$KaCLv3laOrTtr9GSvhPKguu7rkviaNGW4Ks7ZIMK3Y/VhvNzTmqle','0901234568','FEMALE','1988-03-20','',NULL,1,NULL,'2025-06-04 03:57:48','2025-07-18 02:40:04'),(8,3,'Lê Văn Therapist','therapist@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234569','MALE','1990-07-10',NULL,NULL,1,NULL,'2025-06-04 03:57:48','2025-07-11 05:26:24'),(9,4,'Phạm Thị Receptionist','receptionist@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234570','FEMALE','1992-11-25',NULL,NULL,1,NULL,'2025-06-04 03:57:48','2025-07-11 05:26:24'),(10,1,'Hoàng Minh Quản Trị','admin2@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234571','MALE','1987-05-12',NULL,NULL,1,NULL,'2025-06-04 03:57:48','2025-07-11 05:26:24'),(11,3,'Nguyễn Thị Spa Master','therapist2@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234572','FEMALE','1989-09-18',NULL,NULL,1,NULL,'2025-06-04 03:57:48','2025-07-11 05:26:24'),(12,3,'Mai Anh Tuấn','therapist3@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234573','MALE','1991-04-12',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24'),(13,3,'Trần Ngọc Bích','therapist4@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234574','FEMALE','1993-08-22',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24'),(14,3,'Vũ Minh Đức','therapist5@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234575','MALE','1989-11-05','thanh xuyen 4 ,Thai Nguyen,Pho yen123',NULL,1,NULL,'2025-06-18 01:49:35','2025-07-21 15:33:53'),(15,3,'Hoàng Thị Thu','therapist6@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234576','FEMALE','1995-02-18',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24'),(16,3,'Đặng Văn Long','therapist7@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234577','MALE','1988-06-30',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24'),(17,3,'Ngô Mỹ Linh','therapist8@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234578','FEMALE','1992-07-21',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24'),(18,3,'Bùi Quang Huy','therapist9@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234579','MALE','1996-01-09',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24'),(19,3,'Đỗ Phương Thảo','therapist10@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234580','FEMALE','1994-03-14',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24'),(20,3,'Lương Thế Vinh','therapist11@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234581','MALE','1998-10-25',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24'),(21,6,'Phan Thị Diễm','marketing@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234582','FEMALE','1990-12-03',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24'),(22,7,'Nguyễn Thị Kho','inventory@beautyzone.com','$2a$10$testhashinventory','0909999999','FEMALE','1990-01-01','123 Đường Kho, Quận 1',NULL,1,NULL,'2025-07-16 06:45:56','2025-07-16 06:45:56'),(23,2,'Nguyen Dat','dat123@spamanagement.com','$2a$10$klZfCbtobkQ3up8FoE2qgeuZ2sITi7dDG/IhJOuO5nLKr50BqjJme','0908098943','MALE',NULL,'thanh xuyen 4 , pho yen , thai nguyen123',NULL,0,NULL,'2025-07-21 10:40:16','2025-07-21 10:40:16'),(24,3,'NguyenDat','therapist-nguyendat245@spamanagement.com','$2a$10$D.m3C.JDeQ29Xrr8MfJGbOg7vX3vz4BZ9iSduaryI6T7ZSe2L0vs6','0908098912','MALE','2004-01-04','thanh xuyen 4 , pho yen , thai nguyen123',NULL,0,NULL,'2025-07-21 18:28:08','2025-07-21 18:28:08');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Dumping routines for database 'spamanagement'
+--
+
+--
+-- Final view structure for view `chatbot_dashboard_view`
+--
+
+/*!50001 DROP VIEW IF EXISTS `chatbot_dashboard_view`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8mb4 */;
+/*!50001 SET character_set_results     = utf8mb4 */;
+/*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
+/*!50001 VIEW `chatbot_dashboard_view` AS select cast(`c`.`created_at` as date) AS `conversation_date`,count(distinct `c`.`session_id`) AS `unique_sessions`,count(`c`.`conversation_id`) AS `total_conversations`,avg(`c`.`confidence_score`) AS `avg_confidence`,avg(`c`.`response_time_ms`) AS `avg_response_time`,count(`f`.`feedback_id`) AS `feedback_count`,avg(`f`.`rating`) AS `avg_rating`,sum((case when (`f`.`is_helpful` = true) then 1 else 0 end)) AS `helpful_responses`,sum((case when (`f`.`is_helpful` = false) then 1 else 0 end)) AS `unhelpful_responses` from (`chatbot_conversations` `c` left join `chatbot_feedback` `f` on((`c`.`conversation_id` = `f`.`conversation_id`))) where (`c`.`created_at` >= (curdate() - interval 30 day)) group by cast(`c`.`created_at` as date) order by `conversation_date` desc */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -1852,4 +1612,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-07-23  9:25:41
+-- Dump completed on 2025-07-22 21:40:44

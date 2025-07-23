@@ -47,6 +47,9 @@
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
+    <!-- Manager Room Details Filter JS -->
+    <script src="${pageContext.request.contextPath}/js/manager-room-details.js?v=<%= System.currentTimeMillis() %>"></script>
+
     <style>
         /* Custom DataTables styling to match our theme */
         .dataTables_wrapper {
@@ -108,15 +111,43 @@
         table.dataTable tbody tr:hover {
             background-color: rgba(255, 248, 240, 0.5);
         }
-        
+
+        /* Filter panel styling */
+        .manager-room-details-filter-panel {
+            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
+
+        .manager-room-details-filter-panel.show {
+            max-height: 500px;
+            opacity: 1;
+        }
+
+        #toggleManagerRoomDetailsFilters i {
+            transition: transform 0.3s ease;
+        }
+
+        #toggleManagerRoomDetailsFilters i.rotate-180 {
+            transform: rotate(180deg);
+        }
+
         .status-active {
             background-color: #dcfce7;
             color: #166534;
         }
-        
+
         .status-inactive {
             background-color: #fef2f2;
             color: #dc2626;
+        }
+
+        /* Responsive adjustments for filters */
+        @media (max-width: 768px) {
+            .grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-4 {
+                grid-template-columns: repeat(1, minmax(0, 1fr));
+            }
         }
     </style>
 </head>
@@ -235,13 +266,79 @@
                 <!-- Beds Table -->
                 <div class="bg-white rounded-lg shadow-sm">
                     <div class="p-6 border-b border-gray-200">
-                        <div class="flex items-center justify-between">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                             <h2 class="text-xl font-semibold text-gray-900">Danh Sách Giường</h2>
-                            <a href="${pageContext.request.contextPath}/manager/bed/add/${room.roomId}"
-                               class="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center">
-                                <i data-lucide="plus" class="h-4 w-4 mr-2"></i>
-                                Thêm Giường
-                            </a>
+
+                            <div class="flex flex-wrap items-center gap-3">
+                                <!-- Filter Toggle Button -->
+                                <button id="toggleManagerRoomDetailsFilters" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary/20">
+                                    <i data-lucide="filter" class="h-4 w-4 mr-2"></i>
+                                    Bộ lọc
+                                </button>
+
+                                <a href="${pageContext.request.contextPath}/manager/bed/add/${room.roomId}"
+                                   class="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center">
+                                    <i data-lucide="plus" class="h-4 w-4 mr-2"></i>
+                                    Thêm Giường
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filter Panel -->
+                    <div id="managerRoomDetailsFilterPanel" class="manager-room-details-filter-panel px-6 py-0 border-b border-gray-200 bg-gray-50">
+                        <div class="p-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <!-- Bed ID Filter -->
+                                <div>
+                                    <label for="managerRoomDetailsBedIdFilter" class="block text-sm font-medium text-gray-700 mb-2">ID Giường</label>
+                                    <input type="text" id="managerRoomDetailsBedIdFilter" placeholder="Nhập ID giường"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                </div>
+
+                                <!-- Bed Name Filter -->
+                                <div>
+                                    <label for="managerRoomDetailsBedNameFilter" class="block text-sm font-medium text-gray-700 mb-2">Tên giường</label>
+                                    <input type="text" id="managerRoomDetailsBedNameFilter" placeholder="Nhập tên giường"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                </div>
+
+                                <!-- Status Filter -->
+                                <div>
+                                    <label for="managerRoomDetailsStatusFilter" class="block text-sm font-medium text-gray-700 mb-2">Trạng thái</label>
+                                    <select id="managerRoomDetailsStatusFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                        <option value="">Tất cả trạng thái</option>
+                                        <option value="active">Hoạt động</option>
+                                        <option value="inactive">Bảo trì</option>
+                                    </select>
+                                </div>
+
+                                <!-- Date From -->
+                                <div>
+                                    <label for="managerRoomDetailsDateFrom" class="block text-sm font-medium text-gray-700 mb-2">Từ ngày</label>
+                                    <input type="date" id="managerRoomDetailsDateFrom"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                </div>
+                            </div>
+
+                            <!-- Date To -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                <div>
+                                    <label for="managerRoomDetailsDateTo" class="block text-sm font-medium text-gray-700 mb-2">Đến ngày</label>
+                                    <input type="date" id="managerRoomDetailsDateTo"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Filter Actions -->
+                        <div class="flex justify-end py-3 px-6 gap-3 border-t border-gray-200">
+                            <button id="resetManagerRoomDetailsFilters" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary/20">
+                                Đặt lại
+                            </button>
+                            <button id="applyManagerRoomDetailsFilters" class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary/20">
+                                Áp dụng
+                            </button>
                         </div>
                     </div>
                     
@@ -323,6 +420,16 @@
 
     <script>
         $(document).ready(function() {
+            // Initialize filter functionality (handled by external JS)
+            // Wait a bit to ensure all elements are rendered
+            setTimeout(function() {
+                if (typeof initializeManagerRoomDetailsFilters === 'function') {
+                    initializeManagerRoomDetailsFilters();
+                } else {
+                    console.error('initializeManagerRoomDetailsFilters function not found');
+                }
+            }, 100);
+
             // Initialize DataTables for beds
             if ($.fn.DataTable && document.getElementById('bedsTable')) {
                 var table = $('#bedsTable').DataTable({

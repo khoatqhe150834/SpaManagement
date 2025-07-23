@@ -1,5 +1,9 @@
 package controller;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
+
 import dao.ServiceDAO;
 import dao.ServiceImageDAO;
 import jakarta.servlet.ServletException;
@@ -9,10 +13,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Service;
 import model.ServiceImage;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
 
 @WebServlet(name = "ServiceDetailsController", urlPatterns = {"/service-details"})
 public class ServiceDetailsController extends HttpServlet {
@@ -41,10 +41,20 @@ public class ServiceDetailsController extends HttpServlet {
                 // Get service images
                 ServiceImageDAO serviceImageDAO = new ServiceImageDAO();
                 List<ServiceImage> serviceImages = serviceImageDAO.findByServiceId(serviceId);
-                
+
+                // Get related services (same service type, excluding current service)
+                List<Service> relatedServices = serviceDAO.findByServiceTypeId(service.getServiceTypeId().getServiceTypeId());
+                relatedServices.removeIf(s -> s.getServiceId() == serviceId); // Remove current service
+
+                // Limit to 4 related services for display
+                if (relatedServices.size() > 4) {
+                    relatedServices = relatedServices.subList(0, 4);
+                }
+
                 // Set attributes for JSP
                 request.setAttribute("service", service);
                 request.setAttribute("serviceImages", serviceImages);
+                request.setAttribute("relatedServices", relatedServices);
                 
                 // Forward to service details page
                 request.getRequestDispatcher("/WEB-INF/view/service-details.jsp").forward(request, response);

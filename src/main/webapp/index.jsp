@@ -161,17 +161,17 @@
         <c:if test="${showBookingFeatures}">
           <div class="flex flex-col sm:flex-row gap-4 justify-center">
             <a
-              href="<c:url value='/booking'/>"
+              href="<c:url value='/services'/>"
               class="px-8 py-4 bg-primary text-white rounded-full hover:bg-primary-dark transition-all duration-300 font-semibold text-lg transform hover:scale-105"
             >
-              Đặt lịch ngay
+              Xem dịch vụ
             </a>
-            <a
+            <!-- <a
               href="<c:url value='/services'/>"
               class="px-8 py-4 border-2 border-white text-white rounded-full hover:bg-white hover:text-spa-dark transition-all duration-300 font-semibold text-lg transform hover:scale-105"
             >
               Xem dịch vụ
-            </a>
+            </a> -->
           </div>
         </c:if>
 

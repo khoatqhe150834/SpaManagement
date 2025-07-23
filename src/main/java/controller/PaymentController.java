@@ -13,6 +13,7 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import dao.CustomerDAO;
 import dao.PaymentDAO;
 import dao.PaymentItemDAO;
 import dao.PaymentItemUsageDAO;
@@ -41,7 +42,9 @@ import service.PaymentHistoryService;
     "/customer/payment-details",
     "/manager/payments-management",
     "/manager/payment-details",
-    "/manager/payment-statistics"
+    "/manager/payment-statistics",
+    "/manager/payment-add",
+    "/manager/payment-edit"
 })
 public class PaymentController extends HttpServlet {
     
@@ -50,12 +53,14 @@ public class PaymentController extends HttpServlet {
     private final PaymentItemDAO paymentItemDAO;
     private final PaymentItemUsageDAO paymentItemUsageDAO;
     private final PaymentHistoryService paymentHistoryService;
-    
+    private final CustomerDAO customerDAO;
+
     public PaymentController() {
         this.paymentDAO = new PaymentDAO();
         this.paymentItemDAO = new PaymentItemDAO();
         this.paymentItemUsageDAO = new PaymentItemUsageDAO();
         this.paymentHistoryService = new PaymentHistoryService();
+        this.customerDAO = new CustomerDAO();
     }
 
     /**
@@ -83,6 +88,12 @@ public class PaymentController extends HttpServlet {
                 break;
             case "/manager/payment-statistics":
                 handlePaymentStatistics(request, response);
+                break;
+            case "/manager/payment-add":
+                handlePaymentAdd(request, response);
+                break;
+            case "/manager/payment-edit":
+                handlePaymentEdit(request, response);
                 break;
             default:
                 response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -603,6 +614,97 @@ public class PaymentController extends HttpServlet {
 
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "Database error loading payment statistics", ex);
+            request.setAttribute("errorMessage", "Lỗi hệ thống. Vui lòng thử lại sau.");
+            request.getRequestDispatcher("/WEB-INF/view/common/error.jsp")
+                    .forward(request, response);
+        }
+    }
+
+    /**
+     * Handles payment add page display
+     */
+    private void handlePaymentAdd(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        // Check if user is manager or admin
+        HttpSession session = request.getSession();
+        User user = (User) session.getAttribute("user");
+
+        if (user == null || (user.getRoleId() != 1 && user.getRoleId() != 2)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied");
+            return;
+        }
+
+        // Load customers for dropdown
+        List<Customer> customers = customerDAO.findAll();
+        request.setAttribute("customers", customers);
+
+        // Forward to payment add JSP
+        request.getRequestDispatcher("/WEB-INF/view/manager/payment-add.jsp")
+                .forward(request, response);
+    }
+
+    /**
+     * Handles payment edit page display
+     */
+    private void handlePaymentEdit(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        try {
+            // Check if user is manager or admin
+            HttpSession session = request.getSession();
+            User user = (User) session.getAttribute("user");
+
+            if (user == null || (user.getRoleId() != 1 && user.getRoleId() != 2)) {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied");
+                return;
+            }
+
+            // Get payment ID from request
+            String paymentIdStr = request.getParameter("id");
+            if (paymentIdStr == null || paymentIdStr.trim().isEmpty()) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Payment ID is required");
+                return;
+            }
+
+            try {
+                int paymentId = Integer.parseInt(paymentIdStr);
+
+                // Load payment details
+                Optional<Payment> paymentOpt = paymentDAO.findById(paymentId);
+                if (!paymentOpt.isPresent()) {
+                    response.sendError(HttpServletResponse.SC_NOT_FOUND, "Payment not found");
+                    return;
+                }
+
+                Payment payment = paymentOpt.get();
+
+                // Load customer details for display
+                Optional<Customer> customerOpt = customerDAO.findById(payment.getCustomerId());
+                String customerName = "Unknown Customer";
+                String customerPhone = "";
+
+                if (customerOpt.isPresent()) {
+                    Customer customer = customerOpt.get();
+                    customerName = customer.getFullName();
+                    customerPhone = customer.getPhoneNumber();
+                }
+
+                request.setAttribute("payment", payment);
+                request.setAttribute("customerName", customerName);
+                request.setAttribute("customerPhone", customerPhone);
+
+                // Forward to payment edit JSP
+                request.getRequestDispatcher("/WEB-INF/view/manager/payment-edit.jsp")
+                        .forward(request, response);
+
+            } catch (NumberFormatException e) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid payment ID");
+                return;
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Database error loading payment edit page", ex);
             request.setAttribute("errorMessage", "Lỗi hệ thống. Vui lòng thử lại sau.");
             request.getRequestDispatcher("/WEB-INF/view/common/error.jsp")
                     .forward(request, response);
