@@ -88,11 +88,16 @@ public class ServiceController extends HttpServlet {
 
                 Map<Integer, String> serviceThumbnails = new HashMap<>();
                 for (Service s : services) {
-                    List<ServiceImage> images = serviceImageDAO.findByServiceId(s.getServiceId());
-                    if (!images.isEmpty()) {
-                        serviceThumbnails.put(s.getServiceId(), images.get(0).getUrl());
+                    Optional<ServiceImage> primaryOpt = serviceImageDAO.findPrimaryByServiceId(s.getServiceId());
+                    if (primaryOpt.isPresent()) {
+                        serviceThumbnails.put(s.getServiceId(), primaryOpt.get().getUrl());
                     } else {
-                        serviceThumbnails.put(s.getServiceId(), "/assets/images/no-image.png");
+                        List<ServiceImage> images = serviceImageDAO.findByServiceId(s.getServiceId());
+                        if (!images.isEmpty()) {
+                            serviceThumbnails.put(s.getServiceId(), images.get(0).getUrl());
+                        } else {
+                            serviceThumbnails.put(s.getServiceId(), "/assets/images/no-image.png");
+                        }
                     }
                 }
                 request.setAttribute("serviceThumbnails", serviceThumbnails);

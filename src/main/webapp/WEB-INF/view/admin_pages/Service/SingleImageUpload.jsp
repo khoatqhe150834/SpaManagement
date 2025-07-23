@@ -155,6 +155,8 @@
                 Làm mới
             </button>
         </div>
+        <!-- Thông báo trạng thái động sẽ được JS set vào đây -->
+        <div id="imageActionMessage"></div>
         <div class="text-sm text-gray-500 mb-4">
             <ul class="list-disc pl-5">
                 <li><b>Ảnh chính</b> (có nhãn "Chính") sẽ là ảnh đại diện dịch vụ.</li>
@@ -231,7 +233,7 @@
             <div class="mt-6 p-4 bg-blue-50 rounded-lg">
                 <div class="flex items-center gap-2 text-blue-700 text-sm">
                     <i data-lucide="info" class="w-4 h-4"></i>
-                    <span>Kéo ảnh để sắp xếp lại thứ tự hiển thị. Ảnh đầu tiên là ảnh chính.</span>
+                    <span>Kéo ảnh để sắp xếp lại thứ tự hiển thị.</span>
                 </div>
             </div>
         </c:if>
@@ -269,11 +271,7 @@
             <div id="progressContainer" class="space-y-3"></div>
         </div>
 
-        <!-- Upload Results -->
-        <div id="uploadResults" class="mt-6" style="display: none;">
-            <div class="alert alert-success" id="successMessage" style="display: none;"></div>
-            <div class="alert alert-danger" id="errorMessage" style="display: none;"></div>
-        </div>
+        <!-- Upload Results (đã bỏ thông báo trạng thái, chỉ dùng ở trên) -->
     </div>
 </div>
 </main>

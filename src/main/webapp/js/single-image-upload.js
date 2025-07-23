@@ -85,23 +85,13 @@
         .then(r => r.json())
         .then(data => {
             if (data.success) {
-                // Cập nhật UI ngay lập tức
-                document.querySelectorAll('.image-preview-item').forEach(function(item) {
-                    const badge = item.querySelector('.primary-badge');
-                    const starBtn = item.querySelector('.star-btn');
-                    if (badge) badge.classList.add('hidden');
-                    if (starBtn) starBtn.classList.remove('hidden');
-                });
-                // Ẩn nút star và hiện badge cho ảnh vừa chọn
-                const container = document.querySelector(`.image-preview-item[data-image-id="${imageId}"]`);
-                if (container) {
-                    const badge = container.querySelector('.primary-badge');
-                    const starBtn = container.querySelector('.star-btn');
-                    if (badge) badge.classList.remove('hidden');
-                    if (starBtn) starBtn.classList.add('hidden');
+                // Hiển thị thông báo vào block dưới tiêu đề Ảnh Hiện Tại
+                const msgDiv = document.getElementById('imageActionMessage');
+                if (msgDiv) {
+                    msgDiv.innerHTML = '<div class="alert alert-success mb-4">Đã đổi ảnh chính thành công!</div>';
+                    setTimeout(() => { msgDiv.innerHTML = ''; }, 3000);
                 }
-                showMessage('Đã đổi ảnh chính thành công!', 'success');
-                setTimeout(() => window.location.reload(), 1000); // Reload sau 1s để cập nhật UI
+                setTimeout(() => window.location.reload(), 500);
             } else {
                 showMessage('Failed to set primary image: ' + (data.error || 'Unknown error'), 'error');
             }
@@ -248,8 +238,15 @@
         })
         .then(r=>r.json())
         .then(d=>{
-            if(d.success){ showMessage('Image order updated successfully!', 'success'); }
-            else          { showMessage('Failed to update order: '+(d.error||'Unknown'), 'error'); }
+            if(d.success){
+                const msgDiv = document.getElementById('imageActionMessage');
+                if (msgDiv) {
+                    msgDiv.innerHTML = '<div class="alert alert-success mb-4">Cập nhật thứ tự ảnh thành công!</div>';
+                    setTimeout(() => { msgDiv.innerHTML = ''; }, 3000);
+                }
+            } else {
+                showMessage('Failed to update order: '+(d.error||'Unknown'), 'error');
+            }
         })
         .catch(err=>{ console.error(err); showMessage('Error updating order: '+err.message,'error'); });
     }
