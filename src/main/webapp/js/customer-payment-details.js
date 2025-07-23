@@ -154,11 +154,28 @@ function applyCustomerPaymentDetailsFilters(showNotification = false) {
             // Usage status filter
             if (usageStatusFilter) {
                 const usageCell = $(row).find('td:eq(5)').text().trim().toLowerCase();
-                if (usageStatusFilter === 'used' && usageCell.indexOf('chưa sử dụng') !== -1) {
-                    return false;
+
+                if (usageStatusFilter === 'used') {
+                    // Show items that have been used (contain "đã sử dụng" and have booked quantity > 0)
+                    if (usageCell.indexOf('đã sử dụng') === -1) {
+                        return false;
+                    }
+                    // Additional check: ensure it's not "0/X đã sử dụng"
+                    const usageMatch = usageCell.match(/(\d+)\/\d+\s+đã sử dụng/);
+                    if (usageMatch && parseInt(usageMatch[1]) === 0) {
+                        return false;
+                    }
                 }
-                if (usageStatusFilter === 'unused' && usageCell.indexOf('chưa sử dụng') === -1) {
-                    return false;
+
+                if (usageStatusFilter === 'unused') {
+                    // Show items that are unused (either "chưa có thông tin" or "0/X đã sử dụng")
+                    const hasNoInfo = usageCell.indexOf('chưa có thông tin') !== -1;
+                    const usageMatch = usageCell.match(/(\d+)\/\d+\s+đã sử dụng/);
+                    const isZeroUsed = usageMatch && parseInt(usageMatch[1]) === 0;
+
+                    if (!hasNoInfo && !isZeroUsed) {
+                        return false;
+                    }
                 }
             }
 
