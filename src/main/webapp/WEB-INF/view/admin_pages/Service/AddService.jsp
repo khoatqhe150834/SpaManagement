@@ -142,26 +142,6 @@
                                         <span class="slider"></span>
                                     </label>
                                 </div>
-                                <div class="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-2">
-                                    <div>
-                                        <div class="font-semibold">Cho phép đặt online</div>
-                                        <div class="text-xs text-gray-400">Cho phép khách hàng tự đặt lịch cho dịch vụ này qua website.</div>
-                                    </div>
-                                    <label class="switch">
-                                        <input type="checkbox" name="bookable_online" id="bookable_online" checked>
-                                        <span class="slider"></span>
-                                    </label>
-                                </div>
-                                <div class="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-2">
-                                    <div>
-                                        <div class="font-semibold">Yêu cầu tư vấn</div>
-                                        <div class="text-xs text-gray-400">Yêu cầu khách hàng phải được tư vấn trước khi đặt dịch vụ.</div>
-                                    </div>
-                                    <label class="switch">
-                                        <input type="checkbox" name="requires_consultation" id="requires_consultation">
-                                        <span class="slider"></span>
-                                    </label>
-                                </div>
                             </div>
                         </div>
                         <!-- Nút bấm -->
@@ -335,11 +315,6 @@
             let hasValid = false;
             let errorMsg = '';
 
-            if (files.length === 0) {
-                setDefault(input, errorDiv);
-                return;
-            }
-
             let filesProcessed = 0;
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
@@ -374,6 +349,27 @@
                             imgElem.src = e.target.result;
                             imgElem.className = 'w-full h-full object-cover';
                             previewDiv.appendChild(imgElem);
+                            // Nút xóa nổi bật
+                            const removeBtn = document.createElement('button');
+                            removeBtn.type = 'button';
+                            removeBtn.className = 'absolute top-1 right-1 bg-white border border-red-500 rounded-full p-1 shadow flex items-center justify-center hover:bg-red-500 hover:text-white transition';
+                            removeBtn.style.width = '24px';
+                            removeBtn.style.height = '24px';
+                            removeBtn.title = 'Xóa ảnh này';
+                            removeBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>';
+                            removeBtn.onclick = function() {
+                                // Xóa file khỏi dt
+                                const newDt = new DataTransfer();
+                                for (let j = 0; j < dt.items.length; j++) {
+                                    if (dt.items[j].getAsFile().name !== file.name) {
+                                        newDt.items.add(dt.items[j].getAsFile());
+                                    }
+                                }
+                                dt = newDt;
+                                input.files = dt.files;
+                                previewDiv.remove();
+                            };
+                            previewDiv.appendChild(removeBtn);
                             container.appendChild(previewDiv);
                         };
                         reader.readAsDataURL(file);
@@ -381,7 +377,6 @@
                     }
                     filesProcessed++;
                     if (filesProcessed === files.length) {
-                        // Set the input's files to the accumulated DataTransfer
                         input.files = dt.files;
                         if (hasValid) {
                             setValid(input, errorDiv, 'Ảnh đã được chọn');
@@ -615,6 +610,23 @@
 }
 .switch input:checked + .slider:before {
   transform: translateX(20px);
+        }
+        .uploaded-imgs-container button {
+            z-index: 10;
+            border: 2px solid #ef4444;
+            background: #fff;
+            color: #ef4444;
+            transition: background 0.2s, color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            font-size: 16px;
+        }
+        .uploaded-imgs-container button:hover {
+            background: #ef4444;
+            color: #fff;
         }
     </style>
 </body>
