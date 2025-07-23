@@ -53,12 +53,21 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize DataTables
     initializeDataTable();
-    
+
     // Setup modal functionality
     setupModalHandlers();
-    
+
     // Initialize Charts if data is available
     initializeCharts();
+
+    // Debug: Check if customers are loaded
+    const customerFilter = document.getElementById('customerFilter');
+    if (customerFilter) {
+        console.log('Customer filter options count:', customerFilter.options.length);
+        if (customerFilter.options.length <= 1) {
+            console.warn('No customers loaded in filter dropdown');
+        }
+    }
 });
 
 // Initialize DataTables
@@ -241,7 +250,14 @@ function applyFilters(table, showNotification = false) {
 
     // Apply customer filter - search in customer name column (index 1)
     if (customerFilter) {
-        table.column(1).search(customerFilter);
+        // Get the customer name from the selected option
+        const customerSelect = document.getElementById('customerFilter');
+        const selectedOption = customerSelect.options[customerSelect.selectedIndex];
+        const customerName = selectedOption ? selectedOption.text : '';
+
+        if (customerName && customerName !== 'Tất cả khách hàng') {
+            table.column(1).search(customerName);
+        }
     }
 
     // Apply payment method filter - search in method column (index 3)

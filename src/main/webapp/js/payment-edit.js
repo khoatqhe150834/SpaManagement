@@ -11,11 +11,18 @@ var isEditMode = true;
 document.addEventListener('DOMContentLoaded', function() {
     // Get context path
     contextPath = document.querySelector('meta[name="context-path"]')?.getAttribute('content') || '';
-    
-    // Get current payment ID from URL or form
-    var pathParts = window.location.pathname.split('/');
-    currentPaymentId = pathParts[pathParts.length - 1];
-    
+
+    // Get current payment ID from global variable or form
+    currentPaymentId = window.currentPaymentId || document.getElementById('paymentId')?.value;
+
+    if (!currentPaymentId) {
+        // Fallback: extract from URL
+        var pathParts = window.location.pathname.split('/');
+        currentPaymentId = pathParts[pathParts.length - 1];
+    }
+
+    console.log('Current payment ID:', currentPaymentId);
+
     // Initialize form
     initializePaymentEditForm();
     
@@ -57,7 +64,26 @@ function setupExistingServiceItems() {
     var serviceItems = document.querySelectorAll('.service-item');
     serviceItems.forEach(function(item) {
         setupServiceItemEvents(item);
+        // Initialize the unit price display for existing items
+        initializeExistingItemPrice(item);
     });
+}
+
+/**
+ * Initialize unit price display for existing service items
+ */
+function initializeExistingItemPrice(item) {
+    var serviceSelect = item.querySelector('.service-select');
+    var unitPriceInput = item.querySelector('.unit-price');
+
+    if (serviceSelect && serviceSelect.value && unitPriceInput) {
+        var selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
+        if (selectedOption) {
+            var price = selectedOption.getAttribute('data-price') || '0';
+            var priceValue = parseFloat(price) || 0;
+            unitPriceInput.value = Math.round(priceValue).toLocaleString('vi-VN') + ' VNĐ';
+        }
+    }
 }
 
 /**
@@ -153,7 +179,9 @@ function setupServiceItemEvents(item) {
             var selectedOption = this.options[this.selectedIndex];
             if (selectedOption.value) {
                 var price = selectedOption.getAttribute('data-price') || '0';
-                unitPriceInput.value = parseInt(price).toLocaleString('vi-VN') + ' VNĐ';
+                // Parse the price as a decimal number (e.g., 750000.00)
+                var priceValue = parseFloat(price) || 0;
+                unitPriceInput.value = Math.round(priceValue).toLocaleString('vi-VN') + ' VNĐ';
             } else {
                 unitPriceInput.value = '';
             }
@@ -188,39 +216,47 @@ function setupServiceItemEvents(item) {
 function updateServiceTotals() {
     var serviceItems = document.querySelectorAll('.service-item:not(.hidden)');
     var subtotal = 0;
-    
+
     serviceItems.forEach(function(item) {
         var serviceSelect = item.querySelector('.service-select');
         var quantityInput = item.querySelector('.quantity-input');
-        
+        var totalPriceInput = item.querySelector('.total-price');
+
         if (serviceSelect && serviceSelect.value && quantityInput && quantityInput.value) {
             var selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
-            var price = parseInt(selectedOption.getAttribute('data-price') || '0');
+            var price = parseFloat(selectedOption.getAttribute('data-price') || '0');
             var quantity = parseInt(quantityInput.value) || 1;
-            
-            subtotal += price * quantity;
+            var itemTotal = Math.round(price) * quantity;
+
+            // Update individual item total
+            if (totalPriceInput) {
+                totalPriceInput.value = itemTotal.toLocaleString('vi-VN') + ' VNĐ';
+            }
+
+            subtotal += itemTotal;
         }
     });
-    
-    // Update subtotal field
+
+    // Update subtotal display (span element, not input)
     var subtotalField = document.getElementById('subtotalAmount');
     if (subtotalField) {
-        subtotalField.value = subtotal.toLocaleString('vi-VN');
+        subtotalField.textContent = subtotal.toLocaleString('vi-VN') + ' VNĐ';
     }
-    
-    // Auto-calculate VAT and total
-    if (typeof autoCalculateTax === 'function') {
-        autoCalculateTax();
-    } else {
-        // Fallback VAT calculation
-        var taxField = document.getElementById('taxAmount');
-        var totalField = document.getElementById('totalAmount');
-        
-        if (taxField && totalField) {
-            var tax = Math.round(subtotal / 1.1 * 0.1); // VAT included in price
-            taxField.value = tax.toLocaleString('vi-VN');
-            totalField.value = subtotal.toLocaleString('vi-VN');
-        }
+
+    // Calculate VAT (10% of subtotal)
+    var tax = Math.round(subtotal * 0.1);
+    var total = subtotal + tax;
+
+    // Update tax display (span element, not input)
+    var taxField = document.getElementById('taxAmount');
+    if (taxField) {
+        taxField.textContent = tax.toLocaleString('vi-VN') + ' VNĐ';
+    }
+
+    // Update total display (span element, not input)
+    var totalField = document.getElementById('totalAmount');
+    if (totalField) {
+        totalField.textContent = total.toLocaleString('vi-VN') + ' VNĐ';
     }
 }
 
@@ -273,39 +309,64 @@ function setupAmountCalculations() {
  */
 function handleFormSubmit(e) {
     e.preventDefault();
-    
+
+    // Get submit button and disable it
+    var submitBtn = document.getElementById('submitBtn');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 inline mr-2 animate-spin"></i>Đang cập nhật...';
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    }
+
     // Validate form
     if (!validateForm()) {
+        // Re-enable button if validation fails
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i data-lucide="save" class="w-4 h-4 inline mr-2"></i>Cập nhật thanh toán';
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }
         return;
     }
     
     // Collect form data
     var formData = new FormData(e.target);
     var paymentData = {};
-    
+
     // Convert FormData to object
     for (var pair of formData.entries()) {
         paymentData[pair[0]] = pair[1];
     }
-    
-    // Clean amount values
-    if (paymentData.totalAmount) {
-        paymentData.totalAmount = paymentData.totalAmount.replace(/[^\d]/g, '');
+
+    // Get amount values from display elements (spans)
+    var subtotalElement = document.getElementById('subtotalAmount');
+    var taxElement = document.getElementById('taxAmount');
+    var totalElement = document.getElementById('totalAmount');
+
+    if (subtotalElement) {
+        paymentData.subtotalAmount = subtotalElement.textContent.replace(/[^\d]/g, '');
     }
-    if (paymentData.subtotalAmount) {
-        paymentData.subtotalAmount = paymentData.subtotalAmount.replace(/[^\d]/g, '');
+    if (taxElement) {
+        paymentData.taxAmount = taxElement.textContent.replace(/[^\d]/g, '');
     }
-    if (paymentData.taxAmount) {
-        paymentData.taxAmount = paymentData.taxAmount.replace(/[^\d]/g, '');
+    if (totalElement) {
+        paymentData.totalAmount = totalElement.textContent.replace(/[^\d]/g, '');
     }
     
     // Collect service items data
     paymentData.paymentItems = collectServiceItemsData();
-    
+
     console.log('Payment data:', paymentData);
-    
+    console.log('Payment items:', paymentData.paymentItems);
+    console.log('Current payment ID:', currentPaymentId);
+
     // Submit to API
     var endpoint = contextPath + '/api/payments/' + currentPaymentId;
+    console.log('API endpoint:', endpoint);
     
     fetch(endpoint, {
         method: 'PUT',
@@ -324,16 +385,27 @@ function handleFormSubmit(e) {
         }
     })
     .then(function(data) {
+        console.log('Payment updated successfully:', data);
         showNotification('Cập nhật thanh toán thành công!', 'success');
         
         // Redirect after success
         setTimeout(function() {
-            window.location.href = contextPath + '/manager/payments';
+            window.location.href = contextPath + '/manager/payment-details?id=' + currentPaymentId;
         }, 2000);
     })
     .catch(function(error) {
         console.error('Error:', error);
         showNotification('Có lỗi xảy ra khi cập nhật thanh toán', 'error');
+
+        // Re-enable submit button
+        var submitBtn = document.getElementById('submitBtn');
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i data-lucide="save" class="w-4 h-4 inline mr-2"></i>Cập nhật thanh toán';
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }
     });
 }
 
@@ -353,7 +425,8 @@ function collectServiceItemsData() {
             var selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
             var serviceId = parseInt(serviceSelect.value);
             var quantity = parseInt(quantityInput.value) || 1;
-            var unitPrice = selectedOption.getAttribute('data-price') || '0';
+            var unitPriceRaw = selectedOption.getAttribute('data-price') || '0';
+            var unitPrice = Math.round(parseFloat(unitPriceRaw)).toString();
             var duration = selectedOption.getAttribute('data-duration') || '0';
 
             var paymentItem = {
@@ -547,20 +620,23 @@ window.autoCalculateTax = function() {
     var subtotalField = document.getElementById('subtotalAmount');
     var taxField = document.getElementById('taxAmount');
 
-    if (subtotalField && taxField && subtotalField.value) {
-        var subtotal = parseInt(subtotalField.value.replace(/[^\d]/g, '')) || 0;
-        var tax = Math.round(subtotal / 1.1 * 0.1); // VAT included in price
-        taxField.value = tax.toLocaleString('vi-VN');
+    if (subtotalField && taxField && subtotalField.textContent) {
+        var subtotal = parseInt(subtotalField.textContent.replace(/[^\d]/g, '')) || 0;
+        var tax = Math.round(subtotal * 0.1); // 10% VAT
+        taxField.textContent = tax.toLocaleString('vi-VN') + ' VNĐ';
         calculateTotal();
     }
 };
 
 window.calculateTotal = function() {
     var subtotalField = document.getElementById('subtotalAmount');
+    var taxField = document.getElementById('taxAmount');
     var totalField = document.getElementById('totalAmount');
 
-    if (subtotalField && totalField) {
-        var subtotal = parseInt(subtotalField.value.replace(/[^\d]/g, '')) || 0;
-        totalField.value = subtotal > 0 ? subtotal.toLocaleString('vi-VN') : '';
+    if (subtotalField && taxField && totalField) {
+        var subtotal = parseInt(subtotalField.textContent.replace(/[^\d]/g, '')) || 0;
+        var tax = parseInt(taxField.textContent.replace(/[^\d]/g, '')) || 0;
+        var total = subtotal + tax;
+        totalField.textContent = total > 0 ? total.toLocaleString('vi-VN') + ' VNĐ' : '';
     }
 };

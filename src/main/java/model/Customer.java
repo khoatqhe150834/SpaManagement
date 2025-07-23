@@ -43,6 +43,14 @@ public class Customer {
         this.customerId = customerId;
     }
 
+    /**
+     * Convenience method for JSP compatibility
+     * @return the customer ID
+     */
+    public Integer getId() {
+        return customerId;
+    }
+
     public String getFullName() {
         return fullName;
     }

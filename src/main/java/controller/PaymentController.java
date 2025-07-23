@@ -406,6 +406,10 @@ public class PaymentController extends HttpServlet {
             request.setAttribute("refundedPaymentsCount", overallStats.get("refundedPayments"));
             request.setAttribute("paymentGrowthRate", "12.5"); // Placeholder - would need historical data to calculate
 
+            // Load customers for filter dropdown
+            List<Customer> customers = customerDAO.findAllCustomers(); // Load all customers for filter
+            request.setAttribute("customers", customers);
+
             // Set filter values for form persistence
             request.setAttribute("statusFilter", statusFilter);
             request.setAttribute("paymentMethodFilter", paymentMethodFilter);

@@ -275,6 +275,28 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         return findAll(1, 10); // Default to first page with 10 items
     }
 
+    /**
+     * Find all customers without pagination (for dropdowns and filters)
+     */
+    public List<Customer> findAllCustomers() {
+        List<Customer> list = new ArrayList<>();
+        String sql = "SELECT * FROM customers ORDER BY full_name ASC";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                list.add(buildCustomerFromResultSet(rs));
+            }
+            Logger.getLogger(CustomerDAO.class.getName()).log(Level.INFO,
+                    "Retrieved " + list.size() + " customers (all)");
+        } catch (SQLException e) {
+            Logger.getLogger(CustomerDAO.class.getName()).log(Level.SEVERE, "Error finding all customers", e);
+            throw new RuntimeException("Error finding all customers: " + e.getMessage(), e);
+        }
+        return list;
+    }
+
     public List<Customer> findAll(int page, int pageSize) {
         List<Customer> list = new ArrayList<>();
         String sql = "SELECT * FROM customers LIMIT ? OFFSET ?";
