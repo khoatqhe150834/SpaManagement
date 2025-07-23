@@ -404,7 +404,32 @@ uri="http://java.sun.com/jsp/jstl/functions" %>
               </div>
             </div>
 
-            <!-- Related Services Section -->
+            <!-- Thông tin chi tiết -->
+            <div class="mt-16">
+              <div class="bg-white rounded-lg shadow-lg p-8">
+                <h2 class="text-2xl font-serif text-spa-dark mb-6">
+                  Thông tin chi tiết
+                </h2>
+                <div class="prose prose-lg max-w-none">
+                  <p
+                    id="service-detailed-description"
+                    class="text-gray-700 leading-relaxed"
+                  >
+                    <c:choose>
+                      <c:when test="${service.description != null && !empty service.description}">
+                        ${service.description}
+                      </c:when>
+                      <c:otherwise>
+                        ${service.name} là một trong những dịch vụ chăm sóc sắc đẹp cao cấp tại Spa Hương Sen.
+                        Với đội ngũ chuyên viên giàu kinh nghiệm và sử dụng các sản phẩm chất lượng cao,
+                        chúng tôi cam kết mang đến cho bạn trải nghiệm thư giãn và làm đẹp tuyệt vời nhất.
+                      </c:otherwise>
+                    </c:choose>
+                  </p>
+                </div>
+              </div>
+            </div>
+            <!-- Dịch vụ liên quan -->
             <div class="mt-16">
               <div class="bg-white rounded-lg shadow-lg p-8">
                 <h2 class="text-2xl font-serif text-spa-dark mb-6">
@@ -431,7 +456,6 @@ uri="http://java.sun.com/jsp/jstl/functions" %>
                           </div>
                         </div>
                       </div>
-                      
                       <!-- Skeleton card 2 -->
                       <div class="bg-white rounded-lg shadow-lg overflow-hidden animate-pulse">
                         <div class="h-48 bg-gray-300"></div>
@@ -445,7 +469,6 @@ uri="http://java.sun.com/jsp/jstl/functions" %>
                           </div>
                         </div>
                       </div>
-                      
                       <!-- Skeleton card 3 -->
                       <div class="bg-white rounded-lg shadow-lg overflow-hidden animate-pulse">
                         <div class="h-48 bg-gray-300"></div>
@@ -461,32 +484,6 @@ uri="http://java.sun.com/jsp/jstl/functions" %>
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Additional Information -->
-            <div class="mt-16">
-              <div class="bg-white rounded-lg shadow-lg p-8">
-                <h2 class="text-2xl font-serif text-spa-dark mb-6">
-                  Thông tin chi tiết
-                </h2>
-                <div class="prose prose-lg max-w-none">
-                  <p
-                    id="service-detailed-description"
-                    class="text-gray-700 leading-relaxed"
-                  >
-                    <c:choose>
-                      <c:when test="${service.description != null && !empty service.description}">
-                        ${service.description}
-                      </c:when>
-                      <c:otherwise>
-                        ${service.name} là một trong những dịch vụ chăm sóc sắc đẹp cao cấp tại Spa Hương Sen.
-                        Với đội ngũ chuyên viên giàu kinh nghiệm và sử dụng các sản phẩm chất lượng cao,
-                        chúng tôi cam kết mang đến cho bạn trải nghiệm thư giãn và làm đẹp tuyệt vời nhất.
-                      </c:otherwise>
-                    </c:choose>
-                  </p>
                 </div>
               </div>
             </div>
