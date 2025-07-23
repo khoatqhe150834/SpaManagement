@@ -367,6 +367,10 @@ public class ServiceController extends HttpServlet {
                 handleUpdateImageOrder(request, response);
                 return;
             }
+            if ("deleteImage".equals(action)) {
+                handleDeleteImage(request, response);
+                return;
+            }
 
             String service = request.getParameter("service");
             ServiceDAO serviceDAO = new ServiceDAO();
@@ -727,6 +731,39 @@ public class ServiceController extends HttpServlet {
             response.getWriter().write("{\"success\":true,\"message\":\"Cập nhật thứ tự thành công\"}");
         } catch (Exception e) {
             response.getWriter().write("{\"success\":false,\"message\":\"Lỗi hệ thống: " + e.getMessage() + "\"}");
+        }
+    }
+
+    // Thêm hàm xử lý xóa ảnh dịch vụ qua AJAX
+    private void handleDeleteImage(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        try {
+            String imageIdParam = request.getParameter("imageId");
+            String serviceIdParam = request.getParameter("serviceId");
+            if (imageIdParam == null || serviceIdParam == null) {
+                response.getWriter().write("{\"success\":false,\"message\":\"Thiếu tham số\"}");
+                return;
+            }
+            int imageId = Integer.parseInt(imageIdParam);
+            ServiceImageDAO serviceImageDAO = new ServiceImageDAO();
+            Optional<ServiceImage> imageOpt = serviceImageDAO.findById(imageId);
+            if (imageOpt.isPresent()) {
+                ServiceImage image = imageOpt.get();
+                // Nếu là ảnh Cloudinary thì xóa trên Cloudinary
+                if (image.getUrl() != null && image.getUrl().contains("cloudinary.com")) {
+                    try {
+                        CloudinaryConfig.deleteImageByUrl(image.getUrl());
+                    } catch (Exception e) {
+                        // Không dừng xóa DB nếu xóa Cloudinary fail
+                        LOGGER.warning("Không thể xóa ảnh trên Cloudinary: " + e.getMessage());
+                    }
+                }
+                serviceImageDAO.deleteById(imageId);
+            }
+            response.getWriter().write("{\"success\":true,\"message\":\"Đã xóa ảnh thành công\"}");
+        } catch (Exception e) {
+            response.getWriter().write("{\"success\":false,\"message\":\"Không thể xóa ảnh: " + e.getMessage().replace("\"", "'") + "\"}");
         }
     }
 

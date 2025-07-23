@@ -106,7 +106,7 @@
         if (!imageId) return;
         if (!confirm('Are you sure you want to delete this image?')) return;
 
-        fetch(`${contextPath}/manager/service-images/delete`, {
+        fetch(`${contextPath}/manager/service?action=deleteImage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: `imageId=${encodeURIComponent(imageId)}&serviceId=${encodeURIComponent(serviceId)}`
@@ -188,41 +188,76 @@
     function handleFileUpload(files) {
         if (!files.length) return;
 
-        // Client-side size validation before hitting network
-        const tooLarge = files.find(f => f.size > MAX_SIZE);
-        if (tooLarge) {
-            showMessage(`"${tooLarge.name}" is ${(tooLarge.size/1024/1024).toFixed(2)} MB — max allowed is 2 MB`, 'error');
+        // Lấy số ảnh hiện tại
+        const currentImages = document.querySelectorAll('.image-preview-item').length;
+        if (currentImages + files.length > 5) {
+            showMessage('Tổng số ảnh không được vượt quá 5 ảnh cho mỗi dịch vụ!', 'error');
             return;
         }
 
-        const progressContainer = document.getElementById('progressContainer');
-        const uploadProgress    = document.getElementById('uploadProgress');
-        uploadProgress.style.display = 'block';
-        progressContainer.innerHTML  = '';
+        // Kiểm tra định dạng file
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        for (const file of files) {
+            if (!allowedTypes.includes(file.type)) {
+                showMessage(`File "${file.name}" không đúng định dạng JPG, PNG, WebP!`, 'error');
+                return;
+            }
+        }
 
-        const formData = new FormData();
-        formData.append('serviceId', serviceId);
-
-        files.forEach((file, idx) => {
-            formData.append('images', file); // Cloudinary endpoint expects 'images'
-            progressContainer.appendChild(createProgressItem(file.name, idx));
-        });
-
-        // Đổi endpoint upload ảnh sang controller mới
-        fetch(`${contextPath}/manager/service?action=uploadImage`, {
-            method: 'POST',
-            body: formData
-        })
-            .then(r => {
-                if (!r.ok) {
-                    return r.text().then(txt => {
-                        throw new Error(`${r.status} ${r.statusText}`);
-                    });
+        // Kiểm tra kích thước ảnh (>=150x150px)
+        let checked = 0;
+        for (const file of files) {
+            const img = new Image();
+            img.onload = function() {
+                if (img.width < 150 || img.height < 150) {
+                    showMessage(`Ảnh "${file.name}" phải có kích thước tối thiểu 150x150px!`, 'error');
+                    checked = -1;
+                    return;
                 }
-                return r.json();
+                checked++;
+                if (checked === files.length) {
+                    doUpload(files);
+                }
+            };
+            img.onerror = function() {
+                showMessage(`Không thể đọc ảnh "${file.name}"!`, 'error');
+                checked = -1;
+                return;
+            };
+            img.src = URL.createObjectURL(file);
+        }
+        function doUpload(files) {
+            // Client-side size validation before hitting network
+            const tooLarge = files.find(f => f.size > MAX_SIZE);
+            if (tooLarge) {
+                showMessage(`"${tooLarge.name}" is ${(tooLarge.size/1024/1024).toFixed(2)} MB — max allowed is 2 MB`, 'error');
+                return;
+            }
+            const progressContainer = document.getElementById('progressContainer');
+            const uploadProgress    = document.getElementById('uploadProgress');
+            uploadProgress.style.display = 'block';
+            progressContainer.innerHTML  = '';
+            const formData = new FormData();
+            formData.append('serviceId', serviceId);
+            files.forEach((file, idx) => {
+                formData.append('images', file);
+                progressContainer.appendChild(createProgressItem(file.name, idx));
+            });
+            fetch(`${contextPath}/manager/service?action=uploadImage`, {
+                method: 'POST',
+                body: formData
             })
-            .then(handleUploadResponse)
-            .catch(err => { console.error(err); showMessage('Upload failed: ' + err.message, 'error'); });
+                .then(r => {
+                    if (!r.ok) {
+                        return r.text().then(txt => {
+                            throw new Error(`${r.status} ${r.statusText}`);
+                        });
+                    }
+                    return r.json();
+                })
+                .then(handleUploadResponse)
+                .catch(err => { console.error(err); showMessage('Upload failed: ' + err.message, 'error'); });
+        }
     }
 
     function updateImageOrder() {
