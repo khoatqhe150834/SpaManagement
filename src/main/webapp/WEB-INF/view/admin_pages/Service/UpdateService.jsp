@@ -623,15 +623,17 @@
                     });
                 }
             });
+            updateUploadButtonVisibility(); // Ẩn nút upload nếu đã đủ 5 ảnh ngay khi vào trang
         });
-        // Thêm nút xóa ảnh cũ (ảnh đã lưu trong DB)
-        document.querySelectorAll('.remove-existing-img-btn').forEach(function(btn) {
+        // Thêm lại sự kiện cho nút xóa ảnh cũ (ảnh đã lưu trong DB)
+        document.querySelectorAll('.existing-img-container button').forEach(function(btn) {
             btn.addEventListener('click', function() {
                 const container = btn.closest('.existing-img-container');
                 if (container) {
                     container.style.display = 'none';
                     const checkbox = container.querySelector('.delete-checkbox');
                     if (checkbox) checkbox.checked = true;
+                    updateUploadButtonVisibility();
                 }
             });
         });
