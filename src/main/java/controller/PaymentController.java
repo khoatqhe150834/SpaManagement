@@ -17,6 +17,7 @@ import dao.CustomerDAO;
 import dao.PaymentDAO;
 import dao.PaymentItemDAO;
 import dao.PaymentItemUsageDAO;
+import dao.ServiceDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -27,6 +28,7 @@ import model.Customer;
 import model.Payment;
 import model.PaymentItem;
 import model.PaymentItemUsage;
+import model.Service;
 import model.User;
 import service.PaymentHistoryService;
 
@@ -54,6 +56,7 @@ public class PaymentController extends HttpServlet {
     private final PaymentItemUsageDAO paymentItemUsageDAO;
     private final PaymentHistoryService paymentHistoryService;
     private final CustomerDAO customerDAO;
+    private final ServiceDAO serviceDAO;
 
     public PaymentController() {
         this.paymentDAO = new PaymentDAO();
@@ -61,6 +64,7 @@ public class PaymentController extends HttpServlet {
         this.paymentItemUsageDAO = new PaymentItemUsageDAO();
         this.paymentHistoryService = new PaymentHistoryService();
         this.customerDAO = new CustomerDAO();
+        this.serviceDAO = new ServiceDAO();
     }
 
     /**
@@ -638,6 +642,10 @@ public class PaymentController extends HttpServlet {
         // Load customers for dropdown
         List<Customer> customers = customerDAO.findAll();
         request.setAttribute("customers", customers);
+
+        // Load services for dropdown
+        List<Service> services = serviceDAO.findAll();
+        request.setAttribute("services", services);
 
         // Forward to payment add JSP
         request.getRequestDispatcher("/WEB-INF/view/manager/payment-add.jsp")

@@ -794,54 +794,12 @@
                     ],
                     dom: '<"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4"<"flex items-center"l><"flex items-center"Bf>>rtip',
 
-                    // Custom state saving callback to preserve pagination during sorting
-                    stateSaveCallback: function(settings, data) {
-                        // Store the current page info before any operations
-                        data.paymentItemsCurrentPage = this.api().page.info().page;
-                        data.paymentItemsPageLength = this.api().page.len();
 
-                        // Store in sessionStorage for this specific table
-                        sessionStorage.setItem('paymentItemsTableState', JSON.stringify(data));
-                    },
 
-                    stateLoadCallback: function(settings) {
-                        // Load state from sessionStorage
-                        var state = sessionStorage.getItem('paymentItemsTableState');
-                        return state ? JSON.parse(state) : null;
-                    },
 
-                    // Handle pre-sort to preserve current page context
-                    preDrawCallback: function(settings) {
-                        // Store current page before any redraw
-                        var api = this.api();
-                        var currentPage = api.page.info().page;
-                        var pageLength = api.page.len();
-
-                        // Store in data attribute for later use
-                        $(this).data('currentPage', currentPage);
-                        $(this).data('pageLength', pageLength);
-                    },
 
                     // Handle post-draw to restore appropriate page
                     drawCallback: function(settings) {
-                        var api = this.api();
-                        var storedPage = $(this).data('currentPage');
-                        var currentInfo = api.page.info();
-
-                        // If we have a stored page and it's different from current
-                        if (storedPage !== undefined && storedPage !== currentInfo.page) {
-                            // Check if the stored page is still valid
-                            var maxPage = Math.ceil(currentInfo.recordsDisplay / currentInfo.length) - 1;
-
-                            if (storedPage <= maxPage && storedPage >= 0) {
-                                // Restore the previous page if it's still valid
-                                api.page(storedPage).draw(false);
-                            } else if (storedPage > maxPage) {
-                                // If stored page is beyond available pages, go to last page
-                                api.page(maxPage).draw(false);
-                            }
-                        }
-
                         // Reinitialize progress bars after draw
                         setTimeout(initializeProgressBars, 50);
 
@@ -875,84 +833,6 @@
                         console.log('DataTables initialized successfully');
                     }
                 });
-
-                // Get the DataTable instance
-                var table = $('#paymentItemsTable').DataTable();
-                
-                // Store the current page and page length when the page loads
-                var currentPage = table.page.info().page;
-                var currentPageLength = table.page.len();
-                
-                // Create a variable to store the page before sorting
-                var pageBeforeSorting = currentPage;
-                
-                // Handle pre-draw to capture the current page before any operation
-                table.on('preDraw', function() {
-                    // Only store the page if we're not already in a sorting operation
-                    if (!$(table.table().node()).data('sortingInProgress')) {
-                        pageBeforeSorting = table.page.info().page;
-                        currentPageLength = table.page.len();
-                    }
-                    return true; // Allow the draw to proceed
-                });
-                
-                // Handle column header clicks (sorting)
-                $('#paymentItemsTable thead').on('click', 'th', function() {
-                    // Set a flag to indicate sorting is happening
-                    $(table.table().node()).data('sortingInProgress', true);
-                });
-                
-                // Handle order event (when sorting actually happens)
-                table.on('order.dt', function() {
-                    // Flag that sorting is in progress
-                    $(table.table().node()).data('sortingInProgress', true);
-                });
-                
-                // Handle post-draw to restore the page after sorting
-                table.on('draw.dt', function() {
-                    // Check if this draw was triggered by a sort operation
-                    if ($(table.table().node()).data('sortingInProgress')) {
-                        // Get the current table info after sorting
-                        var info = table.page.info();
-                        
-                        // Calculate the maximum valid page number
-                        var maxPage = Math.max(0, Math.ceil(info.recordsDisplay / info.length) - 1);
-                        
-                        // Determine which page to go to
-                        var targetPage = Math.min(pageBeforeSorting, maxPage);
-                        
-                        // Only change page if we're not already on the target page
-                        if (info.page !== targetPage) {
-                            // Go to the target page without redrawing
-                            table.page(targetPage).draw(false);
-                        }
-                        
-                        // Reset the sorting flag
-                        $(table.table().node()).data('sortingInProgress', false);
-                    }
-                });
-                
-                // Handle search to reset pagination appropriately
-                table.on('search.dt', function() {
-                    // For search, it makes sense to go to page 1
-                    // but we don't want to interfere with sorting
-                    if (!$(table.table().node()).data('sortingInProgress')) {
-                        table.page(0).draw(false);
-                    }
-                });
-                
-                // Handle page length change
-                table.on('length.dt', function(e, settings, len) {
-                    // When page length changes, try to maintain the first visible row
-                    var info = table.page.info();
-                    var firstVisibleRow = info.start;
-                    
-                    // Calculate which page would contain this row with the new page length
-                    var targetPage = Math.floor(firstVisibleRow / len);
-                    
-                    // Set the new page
-                    table.page(targetPage).draw(false);
-                });
             }
         });
 
@@ -960,41 +840,7 @@
         window.addEventListener('beforeunload', function() {
             // Clear payment items table state when leaving the page
             sessionStorage.removeItem('paymentItemsTableState');
-            sessionStorage.removeItem('paymentItemsCurrentPage');
-            sessionStorage.removeItem('paymentItemsPageLength');
         });
-
-        // Helper function to manage pagination state
-        function managePaginationState(table, operation) {
-            var api = table;
-            var currentInfo = api.page.info();
-            var storedPage = parseInt(sessionStorage.getItem('paymentItemsCurrentPage')) || 0;
-
-            switch(operation) {
-                case 'store':
-                    sessionStorage.setItem('paymentItemsCurrentPage', currentInfo.page);
-                    break;
-
-                case 'restore':
-                    var maxPage = Math.ceil(currentInfo.recordsDisplay / currentInfo.length) - 1;
-                    var targetPage = 0;
-
-                    if (storedPage <= maxPage && storedPage >= 0) {
-                        targetPage = storedPage;
-                    } else if (storedPage > maxPage && maxPage >= 0) {
-                        targetPage = maxPage;
-                    }
-
-                    if (currentInfo.page !== targetPage) {
-                        api.page(targetPage).draw(false);
-                    }
-                    break;
-
-                case 'clear':
-                    sessionStorage.removeItem('paymentItemsCurrentPage');
-                    break;
-            }
-        }
 
         // Progress bar initialization
         function initializeProgressBars() {

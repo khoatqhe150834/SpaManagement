@@ -143,6 +143,10 @@ class ManagerSchedulingSystem {
                 
                 // Update button appearance
                 const icon = toggleButton.querySelector('i');
+                if (icon) {
+                    icon.classList.toggle('rotate-180');
+                }
+                
                 if (filterPanel.classList.contains('show')) {
                     toggleButton.classList.add('bg-primary', 'text-white');
                     toggleButton.classList.remove('bg-white', 'text-gray-700');
@@ -186,10 +190,10 @@ class ManagerSchedulingSystem {
 
         // Apply column-specific filters
         if (filters.customer) {
-            this.dataTable.column(0).search(filters.customer, false, false);
+            this.dataTable.column(0).search(filters.customer, true, false);
         }
         if (filters.service) {
-            this.dataTable.column(1).search(filters.service, false, false);
+            this.dataTable.column(1).search(filters.service, true, false);
         }
         if (filters.priority) {
             // Map priority values to display text
@@ -198,7 +202,7 @@ class ManagerSchedulingSystem {
                 'MEDIUM': 'Trung bình',
                 'LOW': 'Thấp'
             };
-            this.dataTable.column(4).search(priorityMap[filters.priority] || filters.priority, false, false);
+            this.dataTable.column(4).search(priorityMap[filters.priority] || filters.priority, true, false);
         }
         if (filters.status) {
             // Map status values to display text
@@ -208,7 +212,7 @@ class ManagerSchedulingSystem {
                 'COMPLETED': 'Hoàn thành',
                 'CANCELLED': 'Đã hủy'
             };
-            this.dataTable.column(5).search(statusMap[filters.status] || filters.status, false, false);
+            this.dataTable.column(5).search(statusMap[filters.status] || filters.status, true, false);
         }
 
         // Apply custom filters
@@ -217,7 +221,32 @@ class ManagerSchedulingSystem {
         // Redraw table
         this.dataTable.draw();
 
+        // Update filter button appearance
+        this.updateFilterButtonAppearance(filters);
+
         this.showAlert('Đã áp dụng bộ lọc', 'success');
+    }
+    
+    /**
+     * Update filter button appearance based on active filters
+     */
+    updateFilterButtonAppearance(filters) {
+        const hasActiveFilters = Object.values(filters).some(value => value !== '');
+        
+        const filterButton = document.getElementById('toggleSchedulingFilters');
+        if (filterButton) {
+            if (hasActiveFilters) {
+                filterButton.classList.add('bg-primary', 'text-white');
+                filterButton.classList.remove('bg-white', 'text-gray-700');
+                const icon = filterButton.querySelector('i');
+                if (icon) icon.classList.add('text-white');
+            } else {
+                filterButton.classList.remove('bg-primary', 'text-white');
+                filterButton.classList.add('bg-white', 'text-gray-700');
+                const icon = filterButton.querySelector('i');
+                if (icon) icon.classList.remove('text-white');
+            }
+        }
     }
 
     applyCustomFilters(filters) {
@@ -358,6 +387,20 @@ class ManagerSchedulingSystem {
             
             this.dataTable.search('').columns().search('').draw();
         }
+        
+        // Update filter button appearance
+        const emptyFilters = {
+            customer: '',
+            service: '',
+            priority: '',
+            status: '',
+            minQuantity: '',
+            maxQuantity: '',
+            paymentDate: '',
+            urgency: '',
+            dateRange: ''
+        };
+        this.updateFilterButtonAppearance(emptyFilters);
 
         this.showAlert('Đã đặt lại bộ lọc', 'info');
     }
