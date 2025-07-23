@@ -166,6 +166,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+
+    <!-- Date Range Picker -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
     <style>
         /* Custom DataTables styling to match our theme */
         .dataTables_wrapper {
@@ -226,6 +231,69 @@
             outline: none;
             border-color: #D4AF37;
             box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+        }
+
+        /* Filter panel styling */
+        .filter-panel {
+            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
+        
+        .filter-panel.show {
+            max-height: 500px;
+            opacity: 1;
+        }
+
+        /* Date range picker custom styling */
+        .daterangepicker {
+            font-family: 'Roboto', sans-serif;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .daterangepicker .ranges li.active {
+            background-color: #D4AF37;
+        }
+        
+        .daterangepicker td.active, .daterangepicker td.active:hover {
+            background-color: #D4AF37;
+        }
+        
+        .daterangepicker .btn-primary {
+            background-color: #D4AF37;
+            border-color: #D4AF37;
+        }
+
+        /* Status badge styling */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        /* Priority badge styling */
+        .priority-high {
+            background-color: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+        }
+
+        .priority-medium {
+            background-color: #fffbeb;
+            color: #d97706;
+            border: 1px solid #fed7aa;
+        }
+
+        .priority-low {
+            background-color: #f0fdf4;
+            color: #16a34a;
+            border: 1px solid #bbf7d0;
         }
     </style>
 </head>
@@ -339,12 +407,128 @@
                 </div>
             <!-- Schedulable Items Table -->
             <div class="bg-white rounded-xl shadow-md border border-primary/10 overflow-hidden">
-                <div class="p-6 border-b border-gray-200">
-                    <h2 class="text-xl font-semibold text-spa-dark flex items-center gap-2">
-                        <i data-lucide="calendar-plus" class="h-6 w-6 text-primary"></i>
-                        Quản lý lịch hẹn dịch vụ
-                    </h2>
-                    <p class="text-gray-600 mt-2">Đặt lịch cho các dịch vụ đã thanh toán</p>
+                <div class="p-6 border-b border-gray-200 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-semibold text-spa-dark flex items-center gap-2">
+                            <i data-lucide="calendar-plus" class="h-6 w-6 text-primary"></i>
+                            Quản lý lịch hẹn dịch vụ
+                        </h2>
+                        <p class="text-gray-600 mt-2">Đặt lịch cho các dịch vụ đã thanh toán</p>
+                    </div>
+                    
+                    <div class="flex flex-wrap items-center gap-3">
+                        <!-- Filter Toggle Button -->
+                        <button id="toggleSchedulingFilters" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary/20">
+                            <i data-lucide="filter" class="h-4 w-4 mr-2"></i>
+                            Bộ lọc
+                        </button>
+                        
+                        <!-- Date Range Picker -->
+                        <div class="relative">
+                            <input type="text" id="schedulingDateRangePicker" class="px-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" placeholder="Chọn khoảng thời gian" readonly />
+                        </div>
+                        
+                        <!-- Refresh Button -->
+                        <button id="refreshSchedulingData" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary/20">
+                            <i data-lucide="refresh-cw" class="h-4 w-4 mr-2"></i>
+                            Làm mới
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filter Panel -->
+                <div id="schedulingFilterPanel" class="filter-panel px-6 py-0 border-b border-gray-200 bg-spa-gray/30">
+                    <div class="py-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        <!-- Customer Filter -->
+                        <div>
+                            <label for="schedulingCustomerFilter" class="block text-sm font-medium text-gray-700 mb-1">Khách hàng</label>
+                            <select id="schedulingCustomerFilter" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                <option value="">Tất cả khách hàng</option>
+                                <c:forEach var="customer" items="${customers}">
+                                    <option value="${customer.fullName}">${customer.fullName}</option>
+                                </c:forEach>
+                            </select>
+                        </div>
+                        
+                        <!-- Service Filter -->
+                        <div>
+                            <label for="schedulingServiceFilter" class="block text-sm font-medium text-gray-700 mb-1">Dịch vụ</label>
+                            <select id="schedulingServiceFilter" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                <option value="">Tất cả dịch vụ</option>
+                                <c:forEach var="service" items="${services}">
+                                    <option value="${service.serviceName}">${service.serviceName}</option>
+                                </c:forEach>
+                            </select>
+                        </div>
+                        
+                        <!-- Priority Filter -->
+                        <div>
+                            <label for="schedulingPriorityFilter" class="block text-sm font-medium text-gray-700 mb-1">Ưu tiên</label>
+                            <select id="schedulingPriorityFilter" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                <option value="">Tất cả mức độ</option>
+                                <option value="HIGH">Cao</option>
+                                <option value="MEDIUM">Trung bình</option>
+                                <option value="LOW">Thấp</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Status Filter -->
+                        <div>
+                            <label for="schedulingStatusFilter" class="block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
+                            <select id="schedulingStatusFilter" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                <option value="">Tất cả trạng thái</option>
+                                <option value="PENDING">Chờ đặt lịch</option>
+                                <option value="SCHEDULED">Đã đặt lịch</option>
+                                <option value="COMPLETED">Hoàn thành</option>
+                                <option value="CANCELLED">Đã hủy</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Remaining Quantity Filter -->
+                        <div>
+                            <label for="schedulingQuantityFilter" class="block text-sm font-medium text-gray-700 mb-1">Số lượng còn lại</label>
+                            <div class="flex items-center gap-2">
+                                <input type="number" id="minQuantity" placeholder="Từ" min="0" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                <span>-</span>
+                                <input type="number" id="maxQuantity" placeholder="Đến" min="0" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                            </div>
+                        </div>
+                        
+                        <!-- Payment Date Filter -->
+                        <div>
+                            <label for="schedulingPaymentDateFilter" class="block text-sm font-medium text-gray-700 mb-1">Ngày thanh toán</label>
+                            <select id="schedulingPaymentDateFilter" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                <option value="">Tất cả thời gian</option>
+                                <option value="today">Hôm nay</option>
+                                <option value="yesterday">Hôm qua</option>
+                                <option value="this_week">Tuần này</option>
+                                <option value="last_week">Tuần trước</option>
+                                <option value="this_month">Tháng này</option>
+                                <option value="last_month">Tháng trước</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Urgency Filter -->
+                        <div>
+                            <label for="schedulingUrgencyFilter" class="block text-sm font-medium text-gray-700 mb-1">Độ khẩn cấp</label>
+                            <select id="schedulingUrgencyFilter" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                <option value="">Tất cả</option>
+                                <option value="urgent">Khẩn cấp (>7 ngày)</option>
+                                <option value="normal">Bình thường (3-7 ngày)</option>
+                                <option value="low">Không khẩn cấp (<3 ngày)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Filter Actions -->
+                    <div class="flex justify-end py-3 gap-3 border-t border-gray-200">
+                        <button id="resetSchedulingFilters" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary/20">
+                            Đặt lại
+                        </button>
+                        <button id="applySchedulingFilters" class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary/20">
+                            Áp dụng
+                        </button>
+                    </div>
                 </div>
 
                 <div class="p-6">
@@ -496,8 +680,378 @@
                 }
             });
 
+            // Initialize filter functionality
+            initializeSchedulingFilters();
+
             // DataTables will be initialized by manager-scheduling.js
         });
+
+        // Initialize scheduling filters
+        function initializeSchedulingFilters() {
+            // Toggle filter panel
+            const toggleButton = document.getElementById('toggleSchedulingFilters');
+            const filterPanel = document.getElementById('schedulingFilterPanel');
+            
+            if (toggleButton && filterPanel) {
+                toggleButton.addEventListener('click', function() {
+                    filterPanel.classList.toggle('show');
+                    
+                    // Update button appearance
+                    const icon = toggleButton.querySelector('i');
+                    if (filterPanel.classList.contains('show')) {
+                        toggleButton.classList.add('bg-primary', 'text-white');
+                        toggleButton.classList.remove('bg-white', 'text-gray-700');
+                        if (icon) icon.classList.add('text-white');
+                    } else {
+                        toggleButton.classList.remove('bg-primary', 'text-white');
+                        toggleButton.classList.add('bg-white', 'text-gray-700');
+                        if (icon) icon.classList.remove('text-white');
+                    }
+                });
+            }
+
+            // Initialize date range picker
+            const dateRangePicker = document.getElementById('schedulingDateRangePicker');
+            if (dateRangePicker && typeof $ !== 'undefined' && $.fn.daterangepicker) {
+                $(dateRangePicker).daterangepicker({
+                    autoUpdateInput: false,
+                    locale: {
+                        cancelLabel: 'Xóa',
+                        applyLabel: 'Áp dụng',
+                        format: 'DD/MM/YYYY',
+                        separator: ' - ',
+                        customRangeLabel: 'Tùy chọn',
+                        daysOfWeek: ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'],
+                        monthNames: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
+                                   'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
+                        firstDay: 1
+                    },
+                    ranges: {
+                        'Hôm nay': [moment(), moment()],
+                        'Hôm qua': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                        '7 ngày qua': [moment().subtract(6, 'days'), moment()],
+                        '30 ngày qua': [moment().subtract(29, 'days'), moment()],
+                        'Tháng này': [moment().startOf('month'), moment().endOf('month')],
+                        'Tháng trước': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                    }
+                });
+
+                $(dateRangePicker).on('apply.daterangepicker', function(ev, picker) {
+                    $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
+                });
+
+                $(dateRangePicker).on('cancel.daterangepicker', function(ev, picker) {
+                    $(this).val('');
+                });
+            }
+
+            // Apply filters button
+            const applyButton = document.getElementById('applySchedulingFilters');
+            if (applyButton) {
+                applyButton.addEventListener('click', function() {
+                    applySchedulingFilters();
+                });
+            }
+
+            // Reset filters button
+            const resetButton = document.getElementById('resetSchedulingFilters');
+            if (resetButton) {
+                resetButton.addEventListener('click', function() {
+                    resetSchedulingFilters();
+                });
+            }
+
+            // Refresh data button
+            const refreshButton = document.getElementById('refreshSchedulingData');
+            if (refreshButton) {
+                refreshButton.addEventListener('click', function() {
+                    refreshSchedulingData();
+                });
+            }
+        }
+
+        // Apply scheduling filters
+        function applySchedulingFilters() {
+            const filters = {
+                customer: document.getElementById('schedulingCustomerFilter')?.value || '',
+                service: document.getElementById('schedulingServiceFilter')?.value || '',
+                priority: document.getElementById('schedulingPriorityFilter')?.value || '',
+                status: document.getElementById('schedulingStatusFilter')?.value || '',
+                minQuantity: document.getElementById('minQuantity')?.value || '',
+                maxQuantity: document.getElementById('maxQuantity')?.value || '',
+                paymentDate: document.getElementById('schedulingPaymentDateFilter')?.value || '',
+                urgency: document.getElementById('schedulingUrgencyFilter')?.value || '',
+                dateRange: document.getElementById('schedulingDateRangePicker')?.value || ''
+            };
+
+            console.log('Applying scheduling filters:', filters);
+
+            // Use the manager scheduling system's filter method if available
+            if (window.managerSchedulingSystem && typeof window.managerSchedulingSystem.applyAdvancedFilters === 'function') {
+                window.managerSchedulingSystem.applyAdvancedFilters();
+            } else {
+                // Apply filters to DataTable if available
+                applyDataTableFilters(filters);
+            }
+
+            // Show notification
+            showNotification('Đã áp dụng bộ lọc', 'success');
+        }
+
+        // Reset scheduling filters
+        function resetSchedulingFilters() {
+            // Use the manager scheduling system's reset method if available
+            if (window.managerSchedulingSystem && typeof window.managerSchedulingSystem.resetAdvancedFilters === 'function') {
+                window.managerSchedulingSystem.resetAdvancedFilters();
+                return;
+            }
+
+            // Fallback: Reset all filter inputs manually
+            const filterInputs = [
+                'schedulingCustomerFilter',
+                'schedulingServiceFilter', 
+                'schedulingPriorityFilter',
+                'schedulingStatusFilter',
+                'minQuantity',
+                'maxQuantity',
+                'schedulingPaymentDateFilter',
+                'schedulingUrgencyFilter',
+                'schedulingDateRangePicker'
+            ];
+
+            filterInputs.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.value = '';
+                }
+            });
+
+            // Clear DataTable filters if available
+            try {
+                const table = $('#schedulingTable').DataTable();
+                if (table) {
+                    // Remove custom filters
+                    $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(fn => 
+                        !fn.name || (!fn.name.includes('scheduling'))
+                    );
+                    
+                    table.search('').columns().search('').draw();
+                }
+            } catch (error) {
+                console.error('Error resetting DataTable filters:', error);
+            }
+
+            showNotification('Đã đặt lại bộ lọc', 'info');
+        }
+
+        // Refresh scheduling data
+        function refreshSchedulingData() {
+            console.log('Refreshing scheduling data...');
+            
+            // Use the manager scheduling system's refresh method if available
+            if (window.managerSchedulingSystem && typeof window.managerSchedulingSystem.refreshSchedulableItems === 'function') {
+                window.managerSchedulingSystem.refreshSchedulableItems();
+                return;
+            }
+
+            // Fallback: Manual refresh
+            const refreshButton = document.getElementById('refreshSchedulingData');
+            const originalText = refreshButton.innerHTML;
+            refreshButton.innerHTML = '<i data-lucide="loader-2" class="h-4 w-4 mr-2 animate-spin"></i>Đang tải...';
+            refreshButton.disabled = true;
+
+            try {
+                // Try to reload DataTable if available
+                const table = $('#schedulingTable').DataTable();
+                if (table && typeof table.ajax !== 'undefined' && typeof table.ajax.reload === 'function') {
+                    table.ajax.reload(function() {
+                        // Restore button state
+                        refreshButton.innerHTML = originalText;
+                        refreshButton.disabled = false;
+                        lucide.createIcons();
+                        showNotification('Đã làm mới dữ liệu', 'success');
+                    });
+                } else {
+                    // If DataTable doesn't have ajax functionality, reload the page
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                }
+            } catch (error) {
+                console.error('Error refreshing data:', error);
+                // Fallback: reload page
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            }
+        }
+
+        // Apply filters to DataTable
+        function applyDataTableFilters(filters) {
+            // Use the manager scheduling system's filter method if available
+            if (window.managerSchedulingSystem && typeof window.managerSchedulingSystem.applyAdvancedFilters === 'function') {
+                window.managerSchedulingSystem.applyAdvancedFilters();
+                return;
+            }
+
+            // Fallback to direct DataTable manipulation
+            const table = $('#schedulingTable').DataTable();
+            if (!table) {
+                console.error('DataTable not initialized');
+                return;
+            }
+
+            try {
+                // Clear existing custom search functions
+                $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(function(fn) {
+                    return fn.name !== 'schedulingQuantityFilter' && 
+                           fn.name !== 'schedulingDateFilter' && 
+                           fn.name !== 'schedulingUrgencyFilter';
+                });
+
+                // Reset all column-specific searches
+                table.columns().search('');
+                
+                // Apply individual column filters
+                if (filters.customer) {
+                    table.column(0).search(filters.customer, false, false);
+                }
+                if (filters.service) {
+                    table.column(1).search(filters.service, false, false);
+                }
+                if (filters.priority) {
+                    // Map priority values to display text
+                    const priorityMap = {
+                        'HIGH': 'Cao',
+                        'MEDIUM': 'Trung bình',
+                        'LOW': 'Thấp'
+                    };
+                    table.column(4).search(priorityMap[filters.priority] || filters.priority, false, false);
+                }
+                if (filters.status) {
+                    // Map status values to display text
+                    const statusMap = {
+                        'PENDING': 'Chờ đặt lịch',
+                        'SCHEDULED': 'Đã đặt lịch',
+                        'COMPLETED': 'Hoàn thành',
+                        'CANCELLED': 'Đã hủy'
+                    };
+                    table.column(5).search(statusMap[filters.status] || filters.status, false, false);
+                }
+
+                // Apply custom filtering for quantity range
+                if (filters.minQuantity || filters.maxQuantity) {
+                    const quantityFilter = function(settings, data, dataIndex) {
+                        if (settings.nTable.id !== 'schedulingTable') return true;
+                        
+                        // Extract quantity from column 2 (format: "remaining/total")
+                        const quantityText = data[2];
+                        const quantityMatch = quantityText.match(/(\d+)\/\d+/);
+                        const quantity = quantityMatch ? parseInt(quantityMatch[1]) : 0;
+                        
+                        const min = parseInt(filters.minQuantity) || 0;
+                        const max = parseInt(filters.maxQuantity) || 999999;
+                        
+                        return quantity >= min && quantity <= max;
+                    };
+                    quantityFilter.name = 'schedulingQuantityFilter';
+                    $.fn.dataTable.ext.search.push(quantityFilter);
+                }
+
+                // Apply payment date filter
+                if (filters.paymentDate) {
+                    const dateFilter = function(settings, data, dataIndex) {
+                        if (settings.nTable.id !== 'schedulingTable') return true;
+                        
+                        const paymentDateStr = data[3]; // Column 3 is payment date
+                        const paymentDate = new Date(paymentDateStr);
+                        const today = new Date();
+                        
+                        switch (filters.paymentDate) {
+                            case 'today':
+                                return paymentDate.toDateString() === today.toDateString();
+                            case 'yesterday':
+                                const yesterday = new Date(today);
+                                yesterday.setDate(yesterday.getDate() - 1);
+                                return paymentDate.toDateString() === yesterday.toDateString();
+                            case 'this_week':
+                                const weekStart = new Date(today);
+                                weekStart.setDate(today.getDate() - today.getDay());
+                                return paymentDate >= weekStart;
+                            case 'last_week':
+                                const lastWeekStart = new Date(today);
+                                lastWeekStart.setDate(today.getDate() - today.getDay() - 7);
+                                const lastWeekEnd = new Date(lastWeekStart);
+                                lastWeekEnd.setDate(lastWeekStart.getDate() + 6);
+                                return paymentDate >= lastWeekStart && paymentDate <= lastWeekEnd;
+                            case 'this_month':
+                                return paymentDate.getMonth() === today.getMonth() && 
+                                       paymentDate.getFullYear() === today.getFullYear();
+                            case 'last_month':
+                                const lastMonth = new Date(today);
+                                lastMonth.setMonth(today.getMonth() - 1);
+                                return paymentDate.getMonth() === lastMonth.getMonth() && 
+                                       paymentDate.getFullYear() === lastMonth.getFullYear();
+                            default:
+                                return true;
+                        }
+                    };
+                    dateFilter.name = 'schedulingDateFilter';
+                    $.fn.dataTable.ext.search.push(dateFilter);
+                }
+
+                // Apply urgency filter
+                if (filters.urgency) {
+                    const urgencyFilter = function(settings, data, dataIndex) {
+                        if (settings.nTable.id !== 'schedulingTable') return true;
+                        
+                        const paymentDateStr = data[3];
+                        const paymentDate = new Date(paymentDateStr);
+                        const today = new Date();
+                        const daysDiff = Math.ceil((today - paymentDate) / (1000 * 60 * 60 * 24));
+                        
+                        switch (filters.urgency) {
+                            case 'urgent':
+                                return daysDiff > 7;
+                            case 'normal':
+                                return daysDiff >= 3 && daysDiff <= 7;
+                            case 'low':
+                                return daysDiff < 3;
+                            default:
+                                return true;
+                        }
+                    };
+                    urgencyFilter.name = 'schedulingUrgencyFilter';
+                    $.fn.dataTable.ext.search.push(urgencyFilter);
+                }
+
+                // Apply date range filter if specified
+                if (filters.dateRange) {
+                    const dateRangeParts = filters.dateRange.split(' - ');
+                    if (dateRangeParts.length === 2) {
+                        const startDate = moment(dateRangeParts[0], 'DD/MM/YYYY');
+                        const endDate = moment(dateRangeParts[1], 'DD/MM/YYYY');
+                        
+                        const dateRangeFilter = function(settings, data, dataIndex) {
+                            if (settings.nTable.id !== 'schedulingTable') return true;
+                            
+                            const paymentDateStr = data[3];
+                            const paymentDate = moment(paymentDateStr, 'DD/MM/YYYY');
+                            
+                            return paymentDate.isBetween(startDate, endDate, 'day', '[]');
+                        };
+                        dateRangeFilter.name = 'schedulingDateRangeFilter';
+                        $.fn.dataTable.ext.search.push(dateRangeFilter);
+                    }
+                }
+
+                // Redraw table
+                table.draw();
+            } catch (error) {
+                console.error('Error applying DataTable filters:', error);
+                showNotification('Lỗi áp dụng bộ lọc', 'error');
+            }
+        }
 
         // Modal functions
         function openSchedulingModal(paymentItemId) {

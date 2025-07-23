@@ -150,8 +150,7 @@
         </div>
     </div>
 
-    <!-- Include Footer -->
-    <jsp:include page="../common/footer.jsp" />
+    
 
     <!-- External JavaScript -->
     <script src="${pageContext.request.contextPath}/js/bed-add.js"></script>

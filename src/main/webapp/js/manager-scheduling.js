@@ -34,7 +34,7 @@ class ManagerSchedulingSystem {
     }
     
     setupEventListeners() {
-        // Search and filter inputs
+        // Search and filter inputs (legacy)
         const customerSearch = document.getElementById('customerSearch');
         if (customerSearch) {
             customerSearch.addEventListener('input', () => {
@@ -55,6 +55,9 @@ class ManagerSchedulingSystem {
                 this.filterTable();
             });
         }
+
+        // New filter system integration
+        this.setupNewFilterListeners();
         
         // Scheduling form inputs
         const appointmentDate = document.getElementById('appointmentDate');
@@ -83,6 +86,286 @@ class ManagerSchedulingSystem {
         setInterval(() => {
             this.refreshSchedulableItems();
         }, 5 * 60 * 1000);
+    }
+
+    setupNewFilterListeners() {
+        // Integration with new filter panel
+        const applyFiltersBtn = document.getElementById('applySchedulingFilters');
+        if (applyFiltersBtn) {
+            applyFiltersBtn.addEventListener('click', () => {
+                this.applyAdvancedFilters();
+            });
+        }
+
+        const resetFiltersBtn = document.getElementById('resetSchedulingFilters');
+        if (resetFiltersBtn) {
+            resetFiltersBtn.addEventListener('click', () => {
+                this.resetAdvancedFilters();
+            });
+        }
+
+        const refreshBtn = document.getElementById('refreshSchedulingData');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => {
+                this.refreshSchedulableItems();
+            });
+        }
+
+        // Add event listeners for individual filter inputs
+        const filterInputs = [
+            'schedulingCustomerFilter',
+            'schedulingServiceFilter',
+            'schedulingPriorityFilter',
+            'schedulingStatusFilter',
+            'minQuantity',
+            'maxQuantity',
+            'schedulingPaymentDateFilter',
+            'schedulingUrgencyFilter'
+        ];
+
+        filterInputs.forEach(inputId => {
+            const input = document.getElementById(inputId);
+            if (input) {
+                input.addEventListener('change', () => {
+                    // Auto-apply filters when individual inputs change
+                    this.applyAdvancedFilters();
+                });
+            }
+        });
+
+        // Setup toggle filter panel
+        const toggleButton = document.getElementById('toggleSchedulingFilters');
+        const filterPanel = document.getElementById('schedulingFilterPanel');
+        
+        if (toggleButton && filterPanel) {
+            toggleButton.addEventListener('click', () => {
+                filterPanel.classList.toggle('show');
+                
+                // Update button appearance
+                const icon = toggleButton.querySelector('i');
+                if (filterPanel.classList.contains('show')) {
+                    toggleButton.classList.add('bg-primary', 'text-white');
+                    toggleButton.classList.remove('bg-white', 'text-gray-700');
+                    if (icon) icon.classList.add('text-white');
+                } else {
+                    toggleButton.classList.remove('bg-primary', 'text-white');
+                    toggleButton.classList.add('bg-white', 'text-gray-700');
+                    if (icon) icon.classList.remove('text-white');
+                }
+            });
+        }
+    }
+
+    applyAdvancedFilters() {
+        if (!this.dataTable) {
+            console.warn('[MANAGER-SCHEDULING] DataTable not initialized, cannot apply filters');
+            return;
+        }
+
+        const filters = {
+            customer: document.getElementById('schedulingCustomerFilter')?.value || '',
+            service: document.getElementById('schedulingServiceFilter')?.value || '',
+            priority: document.getElementById('schedulingPriorityFilter')?.value || '',
+            status: document.getElementById('schedulingStatusFilter')?.value || '',
+            minQuantity: document.getElementById('minQuantity')?.value || '',
+            maxQuantity: document.getElementById('maxQuantity')?.value || '',
+            paymentDate: document.getElementById('schedulingPaymentDateFilter')?.value || '',
+            urgency: document.getElementById('schedulingUrgencyFilter')?.value || '',
+            dateRange: document.getElementById('schedulingDateRangePicker')?.value || ''
+        };
+
+        console.log('[MANAGER-SCHEDULING] Applying advanced filters:', filters);
+
+        // Clear existing custom search functions
+        $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(fn => 
+            !fn.name || (!fn.name.includes('scheduling'))
+        );
+
+        // Reset all column-specific searches
+        this.dataTable.columns().search('');
+
+        // Apply column-specific filters
+        if (filters.customer) {
+            this.dataTable.column(0).search(filters.customer, false, false);
+        }
+        if (filters.service) {
+            this.dataTable.column(1).search(filters.service, false, false);
+        }
+        if (filters.priority) {
+            // Map priority values to display text
+            const priorityMap = {
+                'HIGH': 'Cao',
+                'MEDIUM': 'Trung bình',
+                'LOW': 'Thấp'
+            };
+            this.dataTable.column(4).search(priorityMap[filters.priority] || filters.priority, false, false);
+        }
+        if (filters.status) {
+            // Map status values to display text
+            const statusMap = {
+                'PENDING': 'Chờ đặt lịch',
+                'SCHEDULED': 'Đã đặt lịch',
+                'COMPLETED': 'Hoàn thành',
+                'CANCELLED': 'Đã hủy'
+            };
+            this.dataTable.column(5).search(statusMap[filters.status] || filters.status, false, false);
+        }
+
+        // Apply custom filters
+        this.applyCustomFilters(filters);
+
+        // Redraw table
+        this.dataTable.draw();
+
+        this.showAlert('Đã áp dụng bộ lọc', 'success');
+    }
+
+    applyCustomFilters(filters) {
+        // Add quantity range filter
+        if (filters.minQuantity || filters.maxQuantity) {
+            const quantityFilter = function(settings, data, dataIndex) {
+                if (settings.nTable.id !== 'schedulingTable') return true;
+                
+                // Extract quantity from column 2 (format: "remaining/total")
+                const quantityText = data[2];
+                const quantityMatch = quantityText.match(/(\d+)\/\d+/);
+                const quantity = quantityMatch ? parseInt(quantityMatch[1]) : 0;
+                
+                const min = parseInt(filters.minQuantity) || 0;
+                const max = parseInt(filters.maxQuantity) || 999999;
+                
+                return quantity >= min && quantity <= max;
+            };
+            quantityFilter.name = 'schedulingQuantityFilter';
+            $.fn.dataTable.ext.search.push(quantityFilter);
+        }
+
+        // Add payment date filter
+        if (filters.paymentDate) {
+            const dateFilter = function(settings, data, dataIndex) {
+                if (settings.nTable.id !== 'schedulingTable') return true;
+                
+                const paymentDateStr = data[3]; // Column 3 is payment date
+                const paymentDate = new Date(paymentDateStr);
+                const today = new Date();
+                
+                switch (filters.paymentDate) {
+                    case 'today':
+                        return paymentDate.toDateString() === today.toDateString();
+                    case 'yesterday':
+                        const yesterday = new Date(today);
+                        yesterday.setDate(yesterday.getDate() - 1);
+                        return paymentDate.toDateString() === yesterday.toDateString();
+                    case 'this_week':
+                        const weekStart = new Date(today);
+                        weekStart.setDate(today.getDate() - today.getDay());
+                        return paymentDate >= weekStart;
+                    case 'last_week':
+                        const lastWeekStart = new Date(today);
+                        lastWeekStart.setDate(today.getDate() - today.getDay() - 7);
+                        const lastWeekEnd = new Date(lastWeekStart);
+                        lastWeekEnd.setDate(lastWeekStart.getDate() + 6);
+                        return paymentDate >= lastWeekStart && paymentDate <= lastWeekEnd;
+                    case 'this_month':
+                        return paymentDate.getMonth() === today.getMonth() && 
+                               paymentDate.getFullYear() === today.getFullYear();
+                    case 'last_month':
+                        const lastMonth = new Date(today);
+                        lastMonth.setMonth(today.getMonth() - 1);
+                        return paymentDate.getMonth() === lastMonth.getMonth() && 
+                               paymentDate.getFullYear() === lastMonth.getFullYear();
+                    default:
+                        return true;
+                }
+            };
+            dateFilter.name = 'schedulingDateFilter';
+            $.fn.dataTable.ext.search.push(dateFilter);
+        }
+
+        // Add urgency filter
+        if (filters.urgency) {
+            const urgencyFilter = function(settings, data, dataIndex) {
+                if (settings.nTable.id !== 'schedulingTable') return true;
+                
+                const paymentDateStr = data[3];
+                const paymentDate = new Date(paymentDateStr);
+                const today = new Date();
+                const daysDiff = Math.ceil((today - paymentDate) / (1000 * 60 * 60 * 24));
+                
+                switch (filters.urgency) {
+                    case 'urgent':
+                        return daysDiff > 7;
+                    case 'normal':
+                        return daysDiff >= 3 && daysDiff <= 7;
+                    case 'low':
+                        return daysDiff < 3;
+                    default:
+                        return true;
+                }
+            };
+            urgencyFilter.name = 'schedulingUrgencyFilter';
+            $.fn.dataTable.ext.search.push(urgencyFilter);
+        }
+
+        // Add date range filter if specified
+        if (filters.dateRange) {
+            const dateRangeParts = filters.dateRange.split(' - ');
+            if (dateRangeParts.length === 2) {
+                const startDate = moment(dateRangeParts[0], 'DD/MM/YYYY');
+                const endDate = moment(dateRangeParts[1], 'DD/MM/YYYY');
+                
+                const dateRangeFilter = function(settings, data, dataIndex) {
+                    if (settings.nTable.id !== 'schedulingTable') return true;
+                    
+                    const paymentDateStr = data[3];
+                    const paymentDate = moment(paymentDateStr, 'DD/MM/YYYY');
+                    
+                    return paymentDate.isBetween(startDate, endDate, 'day', '[]');
+                };
+                dateRangeFilter.name = 'schedulingDateRangeFilter';
+                $.fn.dataTable.ext.search.push(dateRangeFilter);
+            }
+        }
+    }
+
+    resetAdvancedFilters() {
+        // Reset all filter inputs
+        const filterInputs = [
+            'schedulingCustomerFilter',
+            'schedulingServiceFilter', 
+            'schedulingPriorityFilter',
+            'schedulingStatusFilter',
+            'minQuantity',
+            'maxQuantity',
+            'schedulingPaymentDateFilter',
+            'schedulingUrgencyFilter',
+            'schedulingDateRangePicker'
+        ];
+
+        filterInputs.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.value = '';
+            }
+        });
+
+        // Clear DataTable filters
+        if (this.dataTable) {
+            // Remove custom filters
+            $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(fn => 
+                !fn.name || (!fn.name.includes('scheduling'))
+            );
+            
+            this.dataTable.search('').columns().search('').draw();
+        }
+
+        this.showAlert('Đã đặt lại bộ lọc', 'info');
+    }
+
+    // Method to refresh schedulable items (can be called from JSP)
+    refreshSchedulableItems() {
+        console.log('[MANAGER-SCHEDULING] Refreshing schedulable items...');
+        this.loadSchedulableItems();
     }
     
     async loadInitialData() {
@@ -155,6 +438,7 @@ class ManagerSchedulingSystem {
             if (data.success) {
                 this.currentSchedulableItems = data.data || [];
                 this.populateSchedulableItemsTable();
+                this.populateSchedulingFilters(); // Populate filter dropdowns
                 this.updateStatistics();
                 console.log('[MANAGER-SCHEDULING] Loaded', this.currentSchedulableItems.length, 'schedulable items');
             } else {
@@ -386,6 +670,9 @@ class ManagerSchedulingSystem {
             }
         });
 
+        // Make DataTable globally accessible for filter functions
+        window.schedulingTable = this.dataTable;
+
         console.log('[MANAGER-SCHEDULING] DataTable initialized successfully');
 
         } catch (error) {
@@ -494,6 +781,40 @@ class ManagerSchedulingSystem {
                 serviceFilter.appendChild(option);
             }
         });
+
+        // Also populate the new scheduling filter dropdowns
+        this.populateSchedulingFilters();
+    }
+
+    populateSchedulingFilters() {
+        // Populate customer filter
+        const customerFilter = document.getElementById('schedulingCustomerFilter');
+        if (customerFilter) {
+            const customers = [...new Set(this.currentSchedulableItems.map(item => item.customerName))];
+            
+            // Keep the "All customers" option and add unique customers
+            let customerOptions = '<option value="">Tất cả khách hàng</option>';
+            customers.forEach(customerName => {
+                if (customerName) {
+                    customerOptions += `<option value="${customerName}">${customerName}</option>`;
+                }
+            });
+            customerFilter.innerHTML = customerOptions;
+        }
+
+        // Populate service filter
+        const schedulingServiceFilter = document.getElementById('schedulingServiceFilter');
+        if (schedulingServiceFilter) {
+            const services = [...new Set(this.currentSchedulableItems.map(item => item.serviceName))];
+            
+            let serviceOptions = '<option value="">Tất cả dịch vụ</option>';
+            services.forEach(serviceName => {
+                if (serviceName) {
+                    serviceOptions += `<option value="${serviceName}">${serviceName}</option>`;
+                }
+            });
+            schedulingServiceFilter.innerHTML = serviceOptions;
+        }
     }
     
     populateTherapistSelect() {
