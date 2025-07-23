@@ -85,8 +85,22 @@
         .then(r => r.json())
         .then(data => {
             if (data.success) {
-                showMessage('Primary image updated successfully!', 'success');
-                setTimeout(refreshImages, 1500);
+                // Cập nhật UI ngay lập tức
+                document.querySelectorAll('.image-preview-item').forEach(function(item) {
+                    const badge = item.querySelector('.primary-badge');
+                    const starBtn = item.querySelector('.star-btn');
+                    if (badge) badge.classList.add('hidden');
+                    if (starBtn) starBtn.classList.remove('hidden');
+                });
+                // Ẩn nút star và hiện badge cho ảnh vừa chọn
+                const container = document.querySelector(`.image-preview-item[data-image-id="${imageId}"]`);
+                if (container) {
+                    const badge = container.querySelector('.primary-badge');
+                    const starBtn = container.querySelector('.star-btn');
+                    if (badge) badge.classList.remove('hidden');
+                    if (starBtn) starBtn.classList.add('hidden');
+                }
+                showMessage('Đã đổi ảnh chính thành công!', 'success');
             } else {
                 showMessage('Failed to set primary image: ' + (data.error || 'Unknown error'), 'error');
             }
