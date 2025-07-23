@@ -36,11 +36,11 @@
     <link rel="stylesheet" href="<c:url value='/css/style.css'/>" />
 </head>
 <body class="bg-spa-cream font-sans">
-    <jsp:include page="/WEB-INF/view/common/header.jsp" />
+    <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
+    <jsp:include page="/WEB-INF/view/admin_pages/Common/Header.jsp" />
     <div class="flex">
-        <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
-        <main class="flex-1 py-12 lg:py-20 ml-64">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <main class="w-full md:w-[calc(100%-256px)] md:ml-64 bg-spa-cream min-h-screen transition-all main">
+            <div class="w-full mx-auto px-4 sm:px-6 lg:px-8 mt-8">
                 <!-- Page Header -->
                 <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
                     <h1 class="text-3xl font-serif text-spa-dark font-bold">Danh Sách Loại Dịch Vụ</h1>
@@ -77,12 +77,12 @@
                             <table class="w-full text-sm text-left text-gray-500">
                                 <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                                     <tr>
-                                        <th scope="col" class="px-6 py-3">ID</th>
-                                        <th scope="col" class="px-6 py-3 text-center">Hình Ảnh</th>
-                                        <th scope="col" class="px-6 py-3">Tên Loại Dịch Vụ</th>
-                                        <th scope="col" class="px-6 py-3">Mô Tả</th>
-                                        <th scope="col" class="px-6 py-3 text-center">Trạng Thái</th>
-                                        <th scope="col" class="px-6 py-3 text-center">Thao Tác</th>
+                                        <th scope="col" class="px-2 py-3">ID</th>
+                                        <th scope="col" class="px-2 py-3 text-center">Hình Ảnh</th>
+                                        <th scope="col" class="px-2 py-3">Tên Loại Dịch Vụ</th>
+                                        <th scope="col" class="px-2 py-3">Mô Tả</th>
+                                        <th scope="col" class="px-2 py-3 text-center">Trạng Thái</th>
+                                        <th scope="col" class="px-2 py-3 text-center">Thao Tác</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -103,13 +103,13 @@
                                             </td>
                                             <td class="px-6 py-4">${stype.name}</td>
                                             <td class="px-6 py-4 max-w-xs truncate" title="${stype.description}">${stype.description}</td>
-                                            <td class="px-6 py-4 text-center">
+                                            <td class="px-2 py-4 text-center align-middle">
                                                 <c:choose>
                                                     <c:when test="${stype.active}">
-                                                        <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Active</span>
+                                                        <span class="inline-block rounded-full bg-green-100 text-green-700 px-4 py-1 font-semibold text-base">Active</span>
                                                     </c:when>
                                                     <c:otherwise>
-                                                        <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Inactive</span>
+                                                        <span class="inline-block rounded-full bg-red-100 text-red-700 px-4 py-1 font-semibold text-base">Inactive</span>
                                                     </c:otherwise>
                                                 </c:choose>
                                             </td>

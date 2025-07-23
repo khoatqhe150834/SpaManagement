@@ -6,6 +6,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thêm mới dịch vụ</title>
+    <!-- jQuery CDN -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -34,7 +36,7 @@
     <link rel="stylesheet" href="<c:url value='/css/style.css'/>" />
 </head>
 <body class="bg-spa-cream font-sans min-h-screen">
-    <jsp:include page="/WEB-INF/view/common/header.jsp" />
+    <jsp:include page="/WEB-INF/view/admin_pages/Common/Header.jsp" />
     <div class="flex">
         <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
         <main class="flex-1 py-12 lg:py-20 ml-64">
@@ -134,10 +136,9 @@
                                         <div class="font-semibold">Active</div>
                                         <div class="text-xs text-gray-400">Dịch vụ sẽ hiển thị và có thể được đặt lịch.</div>
                                     </div>
-                                    <label class="inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" name="is_active" id="is_active" class="sr-only peer" checked>
-                                        <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-primary transition-all"></div>
-                                        <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-all peer-checked:translate-x-5"></div>
+                                    <label class="switch">
+                                        <input type="checkbox" name="is_active" id="is_active" checked>
+                                        <span class="slider"></span>
                                     </label>
                                 </div>
                                 <div class="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-2">
@@ -145,10 +146,9 @@
                                         <div class="font-semibold">Cho phép đặt online</div>
                                         <div class="text-xs text-gray-400">Cho phép khách hàng tự đặt lịch cho dịch vụ này qua website.</div>
                                     </div>
-                                    <label class="inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" name="bookable_online" id="bookable_online" class="sr-only peer" checked>
-                                        <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-primary transition-all"></div>
-                                        <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-all peer-checked:translate-x-5"></div>
+                                    <label class="switch">
+                                        <input type="checkbox" name="bookable_online" id="bookable_online" checked>
+                                        <span class="slider"></span>
                                     </label>
                                 </div>
                                 <div class="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-2">
@@ -156,10 +156,9 @@
                                         <div class="font-semibold">Yêu cầu tư vấn</div>
                                         <div class="text-xs text-gray-400">Yêu cầu khách hàng phải được tư vấn trước khi đặt dịch vụ.</div>
                                     </div>
-                                    <label class="inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" name="requires_consultation" id="requires_consultation" class="sr-only peer">
-                                        <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-primary transition-all"></div>
-                                        <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-all peer-checked:translate-x-5"></div>
+                                    <label class="switch">
+                                        <input type="checkbox" name="requires_consultation" id="requires_consultation">
+                                        <span class="slider"></span>
                                     </label>
                                 </div>
                             </div>
@@ -182,78 +181,53 @@
     <script>
         var contextPath = "${pageContext.request.contextPath}";
         if (window.lucide) lucide.createIcons();
-    </script>
-    <!-- Giữ lại toàn bộ script validation, upload ảnh, ... ở cuối file như cũ -->
-    <jsp:include page="/WEB-INF/view/common/admin/js.jsp" />
-    <script>
-        // Utility functions for validation
-        function setValid(input, errorDiv, message) {
-            input.classList.remove('is-invalid');
-            input.classList.add('is-valid');
-            errorDiv.textContent = message;
-            errorDiv.style.color = '#22c55e';
+
+        // Helper functions
+        function setValid(input, errorDiv, msg) {
+            if (!input || !errorDiv) return;
+            input.classList.remove('border-red-500', 'focus:ring-red-500', 'border-gray-300', 'focus:ring-primary');
+            input.classList.add('border-green-500', 'focus:ring-green-500');
+            errorDiv.textContent = msg;
+            errorDiv.style.color = 'green';
         }
 
-        function setInvalid(input, errorDiv, message) {
-            input.classList.remove('is-valid');
-            input.classList.add('is-invalid');
-            errorDiv.textContent = message;
-            errorDiv.style.color = '#f44336';
+        function setInvalid(input, errorDiv, msg) {
+            if (!input || !errorDiv) return;
+            input.classList.remove('border-green-500', 'focus:ring-green-500', 'border-gray-300', 'focus:ring-primary');
+            input.classList.add('border-red-500', 'focus:ring-red-500');
+            errorDiv.textContent = msg;
+            errorDiv.style.color = 'red';
         }
 
         function setDefault(input, errorDiv) {
-            input.classList.remove('is-valid', 'is-invalid');
+            if (!input || !errorDiv) return;
+            input.classList.remove('border-red-500', 'focus:ring-red-500', 'border-green-500', 'focus:ring-green-500');
+            input.classList.add('border-gray-300', 'focus:ring-primary');
             errorDiv.textContent = '';
         }
 
-        // Character count functions
         function updateCharCount(input, counterId, maxLength) {
-            try {
-                const counter = document.getElementById(counterId);
-                if (!counter) {
-                    console.error('Counter element not found:', counterId);
-                    return;
-                }
-                if (!input) {
-                    console.error('Input element not found');
-                    return;
-                }
-                
-                const value = input.value || "";
-                const currentLength = value.length;
-                
-                console.log('Debug values:', {
-                    counterId: counterId,
-                    value: value,
-                    currentLength: currentLength,
-                    maxLength: maxLength,
-                    currentLengthType: typeof currentLength,
-                    maxLengthType: typeof maxLength
-                });
-                
-                const displayText = currentLength + '/' + maxLength;
-                
-                console.log('Final display text:', displayText);
-                
-                counter.textContent = displayText;
-                
-                if (currentLength > maxLength * 0.8) {
-                    counter.style.color = '#f59e0b';
-                } else if (currentLength > maxLength) {
-                    counter.style.color = '#f44336';
-                } else {
-                    counter.style.color = '#6b7280';
-                }
-            } catch (error) {
-                console.error('Error in updateCharCount:', error);
+            const counter = document.getElementById(counterId);
+            const currentLength = input.value.length;
+            counter.textContent = currentLength + '/' + maxLength;
+            
+            if (currentLength > maxLength * 0.8) {
+                counter.style.color = '#f59e0b';
+            } else if (currentLength > maxLength) {
+                counter.style.color = '#f44336';
+            } else {
+                counter.style.color = '#6b7280';
             }
         }
 
-        // Validation functions
         function validateName(input) {
+            if (!input) return false;
+            
             const vietnameseNamePattern = /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂẾưăạảấầẩẫậắằẳẵặẹẻẽềềểếỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s]+$/;
             const value = input.value.trim();
             const errorDiv = document.getElementById('nameError');
+            
+            if (!errorDiv) return false;
             
             if (value === '') {
                 setInvalid(input, errorDiv, 'Tên dịch vụ không được để trống');
@@ -271,14 +245,19 @@
                 setInvalid(input, errorDiv, 'Tên dịch vụ chỉ được chứa chữ cái và khoảng trắng');
                 return false;
             }
-            setValid(input, errorDiv, 'Tên hợp lệ');
             return true;
         }
 
+        // Validate Description
         function validateDescription(input) {
+            if (!input) return false;
             const errorDiv = document.getElementById('descriptionError');
+            if (!errorDiv) return false;
             const value = input.value.trim();
-            
+            if (value.length < 20) {
+                setInvalid(input, errorDiv, 'Mô tả phải có ít nhất 20 ký tự');
+                return false;
+            }
             if (value.length > 500) {
                 setInvalid(input, errorDiv, 'Mô tả không được vượt quá 500 ký tự');
                 return false;
@@ -287,10 +266,12 @@
             return true;
         }
 
+        // Validate Price
         function validatePrice(input) {
+            if (!input) return false;
             const errorDiv = document.getElementById('priceError');
+            if (!errorDiv) return false;
             const value = parseFloat(input.value);
-            
             if (isNaN(value) || value <= 0) {
                 setInvalid(input, errorDiv, 'Giá phải là số dương');
                 return false;
@@ -303,10 +284,12 @@
             return true;
         }
 
+        // Validate Duration
         function validateDuration(input) {
+            if (!input) return false;
             const errorDiv = document.getElementById('durationError');
+            if (!errorDiv) return false;
             const value = parseInt(input.value);
-            
             if (isNaN(value) || value <= 0) {
                 setInvalid(input, errorDiv, 'Thời lượng phải là số dương');
                 return false;
@@ -323,10 +306,12 @@
             return true;
         }
 
+        // Validate Buffer Time
         function validateBufferTime(input) {
+            if (!input) return false;
             const errorDiv = document.getElementById('bufferError');
+            if (!errorDiv) return false;
             const value = parseInt(input.value);
-            
             if (isNaN(value) || value < 0) {
                 setInvalid(input, errorDiv, 'Thời gian chờ phải là số không âm');
                 return false;
@@ -339,83 +324,85 @@
             return true;
         }
 
-        // Image upload and validation
+        // DataTransfer to accumulate files
+        let dt = new DataTransfer();
+
         function handleImageUpload(input) {
             const files = input.files;
             const container = document.querySelector('.uploaded-imgs-container');
             const errorDiv = document.getElementById('imageError');
-            
+            let hasValid = false;
+            let errorMsg = '';
+
             if (files.length === 0) {
                 setDefault(input, errorDiv);
                 return;
             }
 
-            // Validate each file
+            let filesProcessed = 0;
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
-                
-                // Check file size (max 5MB)
-                if (file.size > 5 * 1024 * 1024) {
-                    setInvalid(input, errorDiv, `File ${file.name} vượt quá 5MB`);
-                    return;
+                // Check file size (max 2MB)
+                if (file.size > 2 * 1024 * 1024) {
+                    errorMsg += `File ${file.name} vượt quá 2MB. `;
+                    filesProcessed++;
+                    continue;
                 }
-                
                 // Check file type
                 const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
                 if (!validTypes.includes(file.type)) {
-                    setInvalid(input, errorDiv, `File ${file.name} không phải là ảnh hợp lệ`);
-                    return;
+                    errorMsg += `File ${file.name} không phải là ảnh hợp lệ. `;
+                    filesProcessed++;
+                    continue;
                 }
-            }
-
-            setValid(input, errorDiv, `${files.length} ảnh đã được chọn`);
-            
-            // Clear existing previews
-            container.innerHTML = '';
-            
-            // Create previews for each file
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                const reader = new FileReader();
-                
-                reader.onload = function(e) {
-                    const previewDiv = document.createElement('div');
-                    previewDiv.className = 'relative h-28 w-28 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 overflow-hidden flex items-center justify-center mr-2 mb-2';
-                    
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    img.className = 'w-full h-full object-cover';
-                    
-                    const removeBtn = document.createElement('button');
-                    removeBtn.type = 'button';
-                    removeBtn.className = 'absolute top-1 right-1 bg-white rounded-full p-1 shadow hover:bg-red-50';
-                    removeBtn.innerHTML = '<i data-lucide="x" class="w-4 h-4 text-red-600"></i>';
-                    removeBtn.onclick = function() {
-                        previewDiv.remove();
-                        // Remove file from input
-                        const dt = new DataTransfer();
-                        const input = document.getElementById('upload-file-multiple');
-                        const { files } = input;
-                        
-                        for (let i = 0; i < files.length; i++) {
-                            if (i !== Array.from(container.children).indexOf(previewDiv)) {
-                                dt.items.add(files[i]);
-                            }
-                        }
+                // Check image dimensions
+                const url = URL.createObjectURL(file);
+                const img = new Image();
+                img.onload = function() {
+                    if (img.width < 200 || img.height < 200) {
+                        errorMsg += `File ${file.name} nhỏ hơn 200x200px. `;
+                        URL.revokeObjectURL(url);
+                    } else {
+                        hasValid = true;
+                        dt.items.add(file); // accumulate file
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            const previewDiv = document.createElement('div');
+                            previewDiv.className = 'relative h-28 w-28 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 overflow-hidden flex items-center justify-center mr-2 mb-2';
+                            const imgElem = document.createElement('img');
+                            imgElem.src = e.target.result;
+                            imgElem.className = 'w-full h-full object-cover';
+                            previewDiv.appendChild(imgElem);
+                            container.appendChild(previewDiv);
+                        };
+                        reader.readAsDataURL(file);
+                        URL.revokeObjectURL(url);
+                    }
+                    filesProcessed++;
+                    if (filesProcessed === files.length) {
+                        // Set the input's files to the accumulated DataTransfer
                         input.files = dt.files;
-                    };
-                    
-                    previewDiv.appendChild(img);
-                    previewDiv.appendChild(removeBtn);
-                    container.appendChild(previewDiv);
-                    
-                    // Reinitialize Lucide icons
-                    if (window.lucide) {
-                        lucide.createIcons();
+                        if (hasValid) {
+                            setValid(input, errorDiv, 'Ảnh đã được chọn');
+                        } else {
+                            setInvalid(input, errorDiv, errorMsg || 'Không có ảnh hợp lệ');
+                        }
                     }
                 };
-                
-                reader.readAsDataURL(file);
+                img.onerror = function() {
+                    errorMsg += `File ${file.name} không phải là ảnh hợp lệ. `;
+                    URL.revokeObjectURL(url);
+                    filesProcessed++;
+                    if (filesProcessed === files.length) {
+                        input.files = dt.files;
+                        if (hasValid) {
+                            setValid(input, errorDiv, 'Ảnh đã được chọn');
+                        } else {
+                            setInvalid(input, errorDiv, errorMsg || 'Không có ảnh hợp lệ');
+                        }
+                    }
+                };
+                img.src = url;
             }
         }
 
@@ -424,12 +411,15 @@
             $.ajax({
                 url: contextPath + '/manager/service',
                 type: 'GET',
-                data: { service: 'check-duplicate-name', name: name },
+                data: { 
+                    service: 'check-duplicate-name', 
+                    name: name 
+                },
                 dataType: 'json',
-                success: function (response) {
+                success: function(response) {
                     callback(!response.valid, response.message);
                 },
-                error: function () {
+                error: function() {
                     callback(false, 'Không thể kiểm tra tên. Vui lòng thử lại.');
                 }
             });
@@ -446,90 +436,110 @@
             return nameValid && descValid && priceValid && durationValid && bufferValid;
         }
 
-        // Event listeners
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM Content Loaded');
-            
+        // Real-time validation event bindings
+        $(document).ready(function() {
             const nameInput = document.getElementById('name');
             const descInput = document.getElementById('description');
-            const priceInput = document.getElementById('price');
-            const durationInput = document.getElementById('duration_minutes');
-            const bufferInput = document.getElementById('buffer_time_after_minutes');
-            const imageInput = document.getElementById('upload-file-multiple');
 
-            console.log('Elements found:', {
-                nameInput: !!nameInput,
-                descInput: !!descInput,
-                nameCounter: !!document.getElementById('nameCharCount'),
-                descCounter: !!document.getElementById('descCharCount')
-            });
-
-            // Initialize character counts on page load
+            // Initialize character counts
             updateCharCount(nameInput, 'nameCharCount', 200);
             updateCharCount(descInput, 'descCharCount', 500);
 
-            // Name validation
-            nameInput.addEventListener('input', function() {
+            // Real-time name validation
+            $('#name').on('input', function() {
+                const input = this;
+                const errorDiv = document.getElementById('nameError');
                 updateCharCount(this, 'nameCharCount', 200);
                 if (validateName(this)) {
                     checkServiceNameDuplicate(this.value.trim(), function(isDuplicate, msg) {
                         if (isDuplicate) {
-                            setInvalid(nameInput, document.getElementById('nameError'), msg || 'Tên này đã tồn tại trong hệ thống');
+                            setInvalid(input, errorDiv, msg || 'Tên này đã tồn tại trong hệ thống');
                         } else {
-                            setValid(nameInput, document.getElementById('nameError'), 'Tên hợp lệ');
-                        }
-                    });
-                }
-            });
-            
-            nameInput.addEventListener('blur', function() {
-                this.value = this.value.replace(/\s+/g, ' ').trim();
-                updateCharCount(this, 'nameCharCount', 200);
-                if (validateName(this)) {
-                    checkServiceNameDuplicate(this.value.trim(), function(isDuplicate, msg) {
-                        if (isDuplicate) {
-                            setInvalid(nameInput, document.getElementById('nameError'), msg || 'Tên này đã tồn tại trong hệ thống');
-                        } else {
-                            setValid(nameInput, document.getElementById('nameError'), 'Tên hợp lệ');
+                            setValid(input, errorDiv, 'Tên hợp lệ');
                         }
                     });
                 }
             });
 
-            // Description validation
-            descInput.addEventListener('input', function() {
+            $('#name').on('blur', function() {
+                const input = this;
+                const errorDiv = document.getElementById('nameError');
+                this.value = this.value.replace(/\s+/g, ' ').trim();
+                updateCharCount(this, 'nameCharCount', 200);
+                if (validateName(this)) {
+                    checkServiceNameDuplicate(this.value.trim(), function(isDuplicate, msg) {
+                        if (isDuplicate) {
+                            setInvalid(input, errorDiv, msg || 'Tên này đã tồn tại trong hệ thống');
+                        } else {
+                            setValid(input, errorDiv, 'Tên hợp lệ');
+                        }
+                    });
+                }
+            });
+
+            // Description
+            $('#description').on('input', function() {
                 updateCharCount(this, 'descCharCount', 500);
                 validateDescription(this);
             });
-            
-            descInput.addEventListener('blur', function() {
+
+            $('#description').on('blur', function() {
                 this.value = this.value.replace(/\s+/g, ' ').trim();
                 updateCharCount(this, 'descCharCount', 500);
                 validateDescription(this);
             });
 
-            // Price validation
-            priceInput.addEventListener('input', validatePrice.bind(null, priceInput));
-            priceInput.addEventListener('blur', validatePrice.bind(null, priceInput));
-
-            // Duration validation
-            durationInput.addEventListener('input', validateDuration.bind(null, durationInput));
-            durationInput.addEventListener('blur', validateDuration.bind(null, durationInput));
-
-            // Buffer time validation
-            bufferInput.addEventListener('input', validateBufferTime.bind(null, bufferInput));
-            bufferInput.addEventListener('blur', validateBufferTime.bind(null, bufferInput));
-
-            // Image upload
-            imageInput.addEventListener('change', function() {
-                handleImageUpload(this);
+            // Price
+            $('#price').on('input', function() {
+                validatePrice(this);
             });
+            $('#price').on('blur', function() {
+                validatePrice(this);
+            });
+
+            // Duration
+            $('#duration_minutes').on('input', function() {
+                validateDuration(this);
+            });
+            $('#duration_minutes').on('blur', function() {
+                validateDuration(this);
+            });
+
+            // Buffer Time
+            $('#buffer_time_after_minutes').on('input', function() {
+                validateBufferTime(this);
+            });
+            $('#buffer_time_after_minutes').on('blur', function() {
+                validateBufferTime(this);
+            });
+
+            if ($('#upload-file-multiple')) {
+                $('#upload-file-multiple').on('change', function () {
+                    handleImageUpload(this);
+                });
+            }
 
             // Form submission
-            document.getElementById('service-form').addEventListener('submit', function(e) {
-                if (!validateForm()) {
-                    e.preventDefault();
-                    alert('Vui lòng kiểm tra lại thông tin trước khi lưu!');
+            $('#service-form').on('submit', function(e) {
+                e.preventDefault();
+                let nameValue = $('#name').val();
+                nameValue = nameValue.replace(/\s+/g, ' ').trim();
+                $('#name').val(nameValue);
+                const nameValid = validateName(document.getElementById('name'));
+                const descValid = validateDescription(document.getElementById('description'));
+                const priceValid = validatePrice(document.getElementById('price'));
+                const durationValid = validateDuration(document.getElementById('duration_minutes'));
+                const bufferValid = validateBufferTime(document.getElementById('buffer_time_after_minutes'));
+                if (nameValid && descValid && priceValid && durationValid && bufferValid) {
+                    checkServiceNameDuplicate(nameValue, function(isDuplicate, msg) {
+                        if (isDuplicate) {
+                            setInvalid(document.getElementById('name'), document.getElementById('nameError'), msg || 'Tên này đã tồn tại trong hệ thống');
+                            return;
+                        } else {
+                            setValid(document.getElementById('name'), document.getElementById('nameError'), 'Tên hợp lệ');
+                            e.target.submit();
+                        }
+                    });
                 }
             });
         });
@@ -550,6 +560,60 @@
         }
         .is-valid ~ .invalid-feedback {
             color: #22c55e;
+        }
+        #nameError, #descriptionError, #priceError, #durationError, #bufferError {
+            min-height: 20px;
+            margin-top: 4px;
+            font-size: 0.875rem;
+        }
+        #nameError:empty, #descriptionError:empty, #priceError:empty, #durationError:empty, #bufferError:empty {
+            display: none;
+        }
+        .border-red-500 {
+            border-color: #ef4444 !important;
+        }
+        .border-green-500 {
+            border-color: #22c55e !important;
+        }
+        .switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 28px;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 34px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+.switch input:checked + .slider {
+  background-color: #D4AF37;
+}
+.switch input:focus + .slider {
+  box-shadow: 0 0 1px #D4AF37;
+}
+.switch input:checked + .slider:before {
+  transform: translateX(20px);
         }
     </style>
 </body>

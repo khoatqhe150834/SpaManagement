@@ -15,7 +15,7 @@ public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
     @Override
     public List<ServiceType> findAll() {
         List<ServiceType> serviceTypes = new ArrayList<>();
-        String sql = "SELECT * FROM Service_Types";
+        String sql = "SELECT * FROM service_types";
 
         try (Connection connection = DBContext.getConnection();
                 PreparedStatement stm = connection.prepareStatement(sql);
@@ -319,7 +319,7 @@ public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
     }
 
     public boolean existsByName(String name) {
-        String sql = "SELECT 1 FROM Service_Types WHERE LOWER(name) = LOWER(?)";
+        String sql = "SELECT 1 FROM service_types WHERE LOWER(name) = LOWER(?)";
         try (Connection connection = DBContext.getConnection();
                 PreparedStatement stm = connection.prepareStatement(sql)) {
             stm.setString(1, name.trim());
@@ -333,7 +333,7 @@ public class ServiceTypeDAO implements BaseDAO<ServiceType, Integer> {
     }
 
     public boolean existsByNameExceptId(String name, int excludeId) {
-        String sql = "SELECT 1 FROM Service_Types WHERE LOWER(name) = LOWER(?) AND service_type_id <> ?";
+        String sql = "SELECT 1 FROM service_types WHERE LOWER(name) = LOWER(?) AND service_type_id <> ?";
         try (Connection connection = DBContext.getConnection();
                 PreparedStatement stm = connection.prepareStatement(sql)) {
             stm.setString(1, name.trim());
