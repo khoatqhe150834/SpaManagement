@@ -126,6 +126,7 @@
                                     <input id="upload-file-multiple" type="file" name="images" multiple hidden>
                                 </label>
                             </div>
+                            <div class="text-sm text-gray-500 mt-1">Bạn có thể tải lên tối đa <b>5 ảnh</b> cho mỗi dịch vụ.</div>
                             <div class="text-sm mt-1" id="imageError"></div>
                         </div>
                         <!-- Cài đặt -->

@@ -227,7 +227,7 @@
                                                         <i data-lucide="edit" class="w-5 h-5"></i>
                                                     </a>
                                                     <!-- Nút quản lý hình ảnh -->
-                                                    <a href="${pageContext.request.contextPath}/manager/service-images/single-upload?serviceId=${service.serviceId}" class="p-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 rounded-full" title="Quản lý hình ảnh">
+                                                    <a href="${pageContext.request.contextPath}/manager/service?service=singleImageUpload&serviceId=${service.serviceId}" class="p-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 rounded-full" title="Quản lý hình ảnh">
                                                         <i data-lucide="image" class="w-5 h-5"></i>
                                                     </a>
                                                     <c:choose>

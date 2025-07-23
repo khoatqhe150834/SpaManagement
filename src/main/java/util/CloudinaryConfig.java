@@ -67,6 +67,25 @@ public class CloudinaryConfig {
     }
     
     /**
+     * Delete an image from Cloudinary by its URL
+     */
+    public static void deleteImageByUrl(String url) throws IOException {
+        if (cloudinary == null) {
+            throw new IllegalStateException("Cloudinary not initialized. Call init() first.");
+        }
+        if (url == null || !url.contains("cloudinary.com")) return;
+        // Parse publicId from URL
+        // Example: https://res.cloudinary.com/demo/image/upload/v1234567890/services/123/abcxyz.png
+        // publicId = services/123/abcxyz (không có đuôi .png)
+        String[] parts = url.split("/upload/");
+        if (parts.length < 2) return;
+        String afterUpload = parts[1];
+        int dotIdx = afterUpload.lastIndexOf('.');
+        String publicId = (dotIdx > 0) ? afterUpload.substring(0, dotIdx) : afterUpload;
+        cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+    }
+    
+    /**
      * Get the Cloudinary instance
      * 
      * @return Cloudinary instance
