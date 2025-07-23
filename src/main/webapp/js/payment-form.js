@@ -68,17 +68,36 @@ document.addEventListener('DOMContentLoaded', function() {
     function setupAmountFormatting() {
         var subtotalField = document.getElementById('subtotalAmount');
         var taxField = document.getElementById('taxAmount');
+        var discountField = document.getElementById('discountAmount');
         var totalField = document.getElementById('totalAmount');
 
-        // Amount fields are now readonly and calculated automatically
-        // No input event listeners needed since they're not editable
+        // Setup discount field formatting and calculation
+        if (discountField) {
+            discountField.addEventListener('input', function() {
+                // Format the discount amount
+                var value = this.value.replace(/[^\d]/g, '');
+                if (value) {
+                    this.value = parseInt(value).toLocaleString('vi-VN');
+                }
+                // Recalculate total when discount changes
+                calculateTotal();
+            });
 
-        // Subtotal is now readonly and calculated from services
-        // No blur event listener needed
+            discountField.addEventListener('blur', function() {
+                // Ensure proper formatting on blur
+                var value = this.value.replace(/[^\d]/g, '');
+                if (value) {
+                    this.value = parseInt(value).toLocaleString('vi-VN');
+                } else {
+                    this.value = '';
+                }
+                calculateTotal();
+            });
+        }
 
-        // Remove formatting before form submission (readonly fields are already properly formatted)
+        // Remove formatting before form submission
         form.addEventListener('submit', function() {
-            [subtotalField, taxField, totalField].forEach(function(field) {
+            [subtotalField, taxField, discountField, totalField].forEach(function(field) {
                 if (field && field.value) {
                     var rawValue = field.value.replace(/[^\d]/g, '');
                     field.value = rawValue;
@@ -145,6 +164,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (paymentData.taxAmount) {
             paymentData.taxAmount = paymentData.taxAmount.replace(/[^\d]/g, '');
             console.log('Cleaned taxAmount:', paymentData.taxAmount);
+        }
+        if (paymentData.discountAmount) {
+            paymentData.discountAmount = paymentData.discountAmount.replace(/[^\d]/g, '');
+            console.log('Cleaned discountAmount:', paymentData.discountAmount);
         }
         
         // Validate amounts are valid numbers
@@ -318,6 +341,7 @@ document.addEventListener('DOMContentLoaded', function() {
      */
     function validateAmount() {
         var subtotalField = document.getElementById('subtotalAmount');
+        var discountField = document.getElementById('discountAmount');
         var totalField = document.getElementById('totalAmount');
         var isValid = true;
 
@@ -337,12 +361,29 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
+        // Validate discount
+        if (discountField && discountField.value) {
+            var discountValue = discountField.value.replace(/[^\d]/g, '');
+            var discount = parseInt(discountValue);
+            var subtotalValue = subtotalField ? parseInt(subtotalField.value.replace(/[^\d]/g, '')) || 0 : 0;
+
+            if (isNaN(discount) || discount < 0) {
+                showFieldError(discountField, 'Số tiền giảm giá không hợp lệ');
+                isValid = false;
+            } else if (discount > subtotalValue) {
+                showFieldError(discountField, 'Số tiền giảm giá không được lớn hơn tiền dịch vụ');
+                isValid = false;
+            } else {
+                clearFieldError(discountField);
+            }
+        }
+
         // Validate total
         if (totalField) {
             var totalValue = totalField.value.replace(/[^\d]/g, '');
             var total = parseInt(totalValue);
 
-            if (isNaN(total) || total <= 0) {
+            if (isNaN(total) || total < 0) {
                 showFieldError(totalField, 'Tổng tiền không hợp lệ');
                 isValid = false;
             } else {
@@ -431,6 +472,9 @@ window.PaymentForm = {
     }
 };
 
+// Make showNotification globally accessible
+window.showNotification = showNotification;
+
 /**
  * Setup customer search functionality
  */
@@ -517,6 +561,9 @@ function addServiceItem() {
 
         serviceContainer.appendChild(newItem);
 
+        // Update minimum service validation
+        validateMinimumServicesGlobal();
+
         // Initialize Lucide icons for the new item
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
@@ -539,11 +586,14 @@ function setupServiceItemEvents(item) {
             var selectedOption = this.options[this.selectedIndex];
             if (selectedOption.value) {
                 var price = selectedOption.getAttribute('data-price') || '0';
-                unitPriceInput.value = parseInt(price).toLocaleString('vi-VN') + ' VNĐ';
+                // Parse the price as a decimal number (e.g., 750000.00)
+                var priceValue = parseFloat(price) || 0;
+                unitPriceInput.value = Math.round(priceValue).toLocaleString('vi-VN') + ' VNĐ';
             } else {
                 unitPriceInput.value = '';
             }
             updateServiceTotals();
+            validateMinimumServicesGlobal();
         });
     }
 
@@ -554,13 +604,23 @@ function setupServiceItemEvents(item) {
         });
     }
 
-    // Remove service item
+    // Remove service item with enhanced validation
     if (removeBtn) {
         removeBtn.addEventListener('click', function() {
+            var serviceItems = document.querySelectorAll('.service-item:not(.hidden)');
+            
+            // In edit mode, prevent removal if only 1 service exists
+            if (window.isEditMode && serviceItems.length <= 1) {
+                showNotification('Phải có ít nhất 1 dịch vụ trong thanh toán', 'warning');
+                return;
+            }
+            
+            // In add mode, allow removal but show empty state
             item.remove();
             updateServiceTotals();
+            validateMinimumServicesGlobal();
 
-            // Show empty state if no items left
+            // Show empty state if no items left (only in add mode)
             var serviceContainer = document.getElementById('serviceItemsContainer');
             if (serviceContainer && serviceContainer.children.length === 0) {
                 serviceContainer.innerHTML =
@@ -578,6 +638,31 @@ function setupServiceItemEvents(item) {
 }
 
 /**
+ * Global function to validate minimum services and update UI accordingly
+ */
+function validateMinimumServicesGlobal() {
+    if (!window.isEditMode) return; // Only apply in edit mode
+    
+    var serviceItems = document.querySelectorAll('.service-item:not(.hidden)');
+    var removeButtons = document.querySelectorAll('.remove-service-btn');
+    
+    // If only 1 service item exists, disable remove buttons
+    if (serviceItems.length <= 1) {
+        removeButtons.forEach(function(btn) {
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            btn.title = 'Phải có ít nhất 1 dịch vụ';
+        });
+    } else {
+        removeButtons.forEach(function(btn) {
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            btn.title = '';
+        });
+    }
+}
+
+/**
  * Update service totals and recalculate payment amounts
  */
 function updateServiceTotals() {
@@ -590,9 +675,9 @@ function updateServiceTotals() {
 
         if (serviceSelect && quantityInput && serviceSelect.value) {
             var selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
-            var price = parseInt(selectedOption.getAttribute('data-price') || '0');
+            var price = parseFloat(selectedOption.getAttribute('data-price') || '0');
             var quantity = parseInt(quantityInput.value) || 1;
-            total += price * quantity;
+            total += Math.round(price) * quantity;
         }
     });
 
@@ -636,20 +721,26 @@ function autoCalculateTax() {
 
 /**
  * Calculate total amount
- * Total = subtotal + tax (10% VAT)
+ * Total = subtotal + tax - discount
  * Global function accessible from anywhere
  */
 function calculateTotal() {
     var subtotalField = document.getElementById('subtotalAmount');
     var taxField = document.getElementById('taxAmount');
+    var discountField = document.getElementById('discountAmount');
     var totalField = document.getElementById('totalAmount');
 
     if (subtotalField && totalField) {
         var subtotal = parseInt(subtotalField.value.replace(/[^\d]/g, '')) || 0;
         var tax = parseInt(taxField.value.replace(/[^\d]/g, '')) || 0;
+        var discount = discountField ? parseInt(discountField.value.replace(/[^\d]/g, '')) || 0 : 0;
 
-        // Total = subtotal + tax
-        var total = subtotal + tax;
+        // Total = subtotal + tax - discount
+        var total = subtotal + tax - discount;
+        
+        // Ensure total is not negative
+        total = Math.max(0, total);
+        
         totalField.value = total > 0 ? total.toLocaleString('vi-VN') : '';
     }
 }
@@ -669,7 +760,8 @@ function collectServiceItemsData() {
             var selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
             var serviceId = parseInt(serviceSelect.value);
             var quantity = parseInt(quantityInput.value) || 1;
-            var unitPrice = selectedOption.getAttribute('data-price') || '0';
+            var unitPriceRaw = selectedOption.getAttribute('data-price') || '0';
+            var unitPrice = Math.round(parseFloat(unitPriceRaw)).toString();
             var duration = selectedOption.getAttribute('data-duration') || '0';
 
             paymentItems.push({
@@ -688,7 +780,7 @@ function collectServiceItemsData() {
 // Payment date validation functions removed - using current time automatically
 
 /**
- * Enhanced service validation
+ * Enhanced service validation with minimum service requirement
  */
 function validateServiceItems() {
     var serviceItems = document.querySelectorAll('.service-item:not(.hidden)');
@@ -702,9 +794,15 @@ function validateServiceItems() {
         }
     }
 
-    // At least one service item should be selected
+    // At least one service item should be selected (minimum requirement)
     if (validServiceItems.length === 0) {
         showNotification('Vui lòng chọn ít nhất một dịch vụ', 'error');
+        return false;
+    }
+
+    // In edit mode, ensure minimum 1 service is maintained
+    if (window.isEditMode && validServiceItems.length < 1) {
+        showNotification('Phải có ít nhất 1 dịch vụ trong thanh toán', 'error');
         return false;
     }
 
@@ -732,7 +830,7 @@ function validateServiceItems() {
         // Validate service price
         var selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
         var price = selectedOption.getAttribute('data-price');
-        if (!price || parseInt(price) <= 0) {
+        if (!price || parseFloat(price) <= 0) {
             showNotification('Dịch vụ được chọn ở mục ' + (j + 1) + ' không có giá hợp lệ', 'error');
             isValid = false;
             break;

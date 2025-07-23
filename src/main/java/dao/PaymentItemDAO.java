@@ -1,5 +1,6 @@
 package dao;
 
+import db.DBContext;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -10,8 +11,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import db.DBContext;
 import model.PaymentItem;
 import model.Service;
 
@@ -437,5 +436,9 @@ public class PaymentItemDAO implements BaseDAO<PaymentItem, Integer> {
         }
 
         return paymentItem;
+    }
+
+    public void deleteByPaymentId(int paymentId) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 }

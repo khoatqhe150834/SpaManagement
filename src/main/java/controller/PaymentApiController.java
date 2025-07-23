@@ -369,43 +369,96 @@ public class PaymentApiController extends HttpServlet {
     
     private void handleUpdatePayment(HttpServletRequest request, HttpServletResponse response, int paymentId)
             throws IOException, SQLException {
-        
+
         // Only managers can update payments
         if (!isManagerOrAdmin(request)) {
             sendErrorResponse(response, "Access denied", 403);
             return;
         }
-        
+
         // Get existing payment
         Optional<Payment> existingOpt = paymentDAO.findById(paymentId);
         if (!existingOpt.isPresent()) {
             sendErrorResponse(response, "Payment not found", 404);
             return;
         }
-        
+
         // Parse request body
         PaymentRequest paymentRequest = parseRequestBody(request, PaymentRequest.class);
         if (paymentRequest == null) {
             sendErrorResponse(response, "Invalid request body", 400);
             return;
         }
-        
+
         Payment payment = existingOpt.get();
-        
-        // Update fields
+
+        // Update payment fields
         if (paymentRequest.paymentStatus != null) {
             payment.setPaymentStatus(PaymentStatus.valueOf(paymentRequest.paymentStatus));
+        }
+        if (paymentRequest.paymentMethod != null) {
+            payment.setPaymentMethod(PaymentMethod.valueOf(paymentRequest.paymentMethod));
         }
         if (paymentRequest.notes != null) {
             payment.setNotes(paymentRequest.notes);
         }
-        if (paymentRequest.paymentDate != null) {
-            payment.setPaymentDate(Timestamp.valueOf(paymentRequest.paymentDate));
+        if (paymentRequest.paymentDate != null && !paymentRequest.paymentDate.trim().isEmpty()) {
+            try {
+                payment.setPaymentDate(Timestamp.valueOf(paymentRequest.paymentDate));
+            } catch (IllegalArgumentException e) {
+                // Keep existing date if invalid format
+                LOGGER.warning("Invalid date format: " + paymentRequest.paymentDate);
+            }
         }
-        
+
+        // Update amounts if provided
+        BigDecimal totalAmount = paymentRequest.getTotalAmountAsBigDecimal();
+        BigDecimal subtotalAmount = paymentRequest.getSubtotalAmountAsBigDecimal();
+        BigDecimal taxAmount = paymentRequest.getTaxAmountAsBigDecimal();
+
+        if (totalAmount.compareTo(BigDecimal.ZERO) > 0) {
+            payment.setTotalAmount(totalAmount);
+        }
+        if (subtotalAmount.compareTo(BigDecimal.ZERO) > 0) {
+            payment.setSubtotalAmount(subtotalAmount);
+        }
+        payment.setTaxAmount(taxAmount); // Tax can be zero
+
         // Update payment
         paymentDAO.update(payment);
-        
+
+        // Handle payment items if provided
+        if (paymentRequest.paymentItems != null) {
+            // Delete existing payment items
+            paymentItemDAO.deleteByPaymentId(paymentId);
+
+            // Create new payment items
+            List<PaymentItem> paymentItems = new ArrayList<>();
+            for (PaymentItemRequest itemRequest : paymentRequest.paymentItems) {
+                // Validate service exists
+                Optional<Service> serviceOpt = serviceDAO.findById(itemRequest.serviceId);
+                if (!serviceOpt.isPresent()) {
+                    LOGGER.warning("Service not found during update: " + itemRequest.serviceId);
+                    continue;
+                }
+
+                PaymentItem paymentItem = new PaymentItem();
+                paymentItem.setPaymentId(paymentId);
+                paymentItem.setServiceId(itemRequest.serviceId);
+                paymentItem.setQuantity(itemRequest.quantity != null ? itemRequest.quantity : 1);
+                paymentItem.setUnitPrice(itemRequest.getUnitPriceAsBigDecimal());
+                paymentItem.setTotalPrice(itemRequest.getTotalPriceAsBigDecimal());
+                paymentItem.setServiceDuration(itemRequest.serviceDuration != null ? itemRequest.serviceDuration : 0);
+
+                paymentItems.add(paymentItem);
+            }
+
+            // Save new payment items
+            if (!paymentItems.isEmpty()) {
+                paymentItemDAO.saveAll(paymentItems);
+            }
+        }
+
         sendSuccessResponse(response, payment);
     }
     

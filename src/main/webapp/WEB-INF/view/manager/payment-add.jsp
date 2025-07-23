@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="context-path" content="${pageContext.request.contextPath}" />
-    <title>Thanh Toán Tiền Mặt - Spa Hương Sen</title>
+    <title>Thanh Toán  - Spa Hương Sen</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -29,9 +29,6 @@
     
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-
-    <!-- Font Awesome for money icon -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
         /* Form validation styling */
@@ -81,7 +78,7 @@
                 <li aria-current="page">
                     <div class="flex items-center">
                         <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
-                        <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">Thanh Toán Tiền Mặt</span>
+                        <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">Thanh Toán </span>
                     </div>
                 </li>
             </ol>
@@ -89,8 +86,8 @@
 
         <!-- Page Header -->
         <div class="mb-8">
-            <h1 class="text-3xl font-bold text-spa-dark mb-2">Thanh Toán Tiền Mặt</h1>
-            <p class="text-gray-600">Tạo giao dịch thanh toán bằng tiền mặt cho khách hàng</p>
+            <h1 class="text-3xl font-bold text-spa-dark mb-2">Thanh Toán </h1>
+            <p class="text-gray-600">Tạo giao dịch thanh toán cho khách hàng</p>
         </div>
 
         <!-- Add Payment Form -->
@@ -98,7 +95,7 @@
             <div class="p-6 border-b border-gray-200">
                 <h2 class="text-xl font-semibold text-spa-dark flex items-center gap-2">
                     <i data-lucide="dollar-sign" class="h-6 w-6 text-green-600"></i>
-                    Thông Tin Thanh Toán Tiền Mặt
+                    Thông Tin Thanh Toán 
                 </h2>
             </div>
             
@@ -137,23 +134,23 @@
                             <div id="customerIdError" class="text-red-500 text-sm mt-1 hidden"></div>
                         </div>
                         
-                        <!-- Payment Method -->
-                        <div>
-                            <label for="paymentMethod" class="block text-sm font-medium text-gray-700 mb-2">
-                                Phương thức thanh toán <span class="text-red-500">*</span>
-                            </label>
-                            <select id="paymentMethod" name="paymentMethod" required
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors">
-                                <option value="">Chọn phương thức thanh toán</option>
-                                <option value="CASH">💵 Tiền mặt</option>
-                                <option value="BANK_TRANSFER">🏦 Chuyển khoản ngân hàng</option>
-                                <option value="CREDIT_CARD">💳 Thẻ tín dụng</option>
-                                <option value="VNPAY">📱 VNPay</option>
-                                <option value="MOMO">📱 MoMo</option>
-                                <option value="ZALOPAY">📱 ZaloPay</option>
-                            </select>
-                            <div id="paymentMethodError" class="text-red-500 text-sm mt-1 hidden"></div>
-                        </div>
+                       <!-- Payment Method -->
+<div>
+    <label for="paymentMethod" class="block text-sm font-medium text-gray-700 mb-2">
+        Phương thức thanh toán <span class="text-red-500">*</span>
+    </label>
+    <select id="paymentMethod" name="paymentMethod" required
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors">
+        <option value="">Chọn phương thức thanh toán</option>
+        <option value="CASH"><lucide-icon name="dollar-sign"></lucide-icon> Tiền mặt</option>
+        <option value="BANK_TRANSFER"><lucide-icon name="bank"></lucide-icon> Chuyển khoản ngân hàng</option>
+        <option value="CREDIT_CARD"><lucide-icon name="credit-card"></lucide-icon> Thẻ tín dụng</option>
+        <option value="VNPAY"><lucide-icon name="smartphone"></lucide-icon> VNPay</option>
+        <option value="MOMO"><lucide-icon name="smartphone"></lucide-icon> MoMo</option>
+        <option value="ZALOPAY"><lucide-icon name="smartphone"></lucide-icon> ZaloPay</option>
+    </select>
+    <div id="paymentMethodError" class="text-red-500 text-sm mt-1 hidden"></div>
+</div>
                         
                         <!-- Payment Status and Reference Number are auto-generated -->
                         
@@ -299,7 +296,7 @@
                         <button type="submit" id="submitBtn"
                                 class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors">
                             <i data-lucide="dollar-sign" class="w-4 h-4 inline mr-2"></i>
-                            Thanh Toán Tiền Mặt
+                            Thanh Toán 
                         </button>
                     </div>
                 </form>
