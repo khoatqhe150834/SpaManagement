@@ -226,10 +226,20 @@
                             </div>
                             <a href="javascript:void(0);" onclick="showImageModal('${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(image.url, '/services/')}')" 
                                class="block relative overflow-hidden">
-                                <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(image.url, '/services/')}" 
-                                     alt="${image.altText}" 
-                                     onerror="this.src='${pageContext.request.contextPath}/assets/images/no-image.png'" 
-                                     class="w-full h-48 object-cover cursor-pointer hover:scale-105 transition-transform duration-300" />
+                                <c:choose>
+                                    <c:when test="${not empty image.url && fn:startsWith(image.url, 'http')}">
+                                        <img src="${image.url}" 
+                                             alt="${image.altText}" 
+                                             onerror="this.src='${pageContext.request.contextPath}/assets/images/no-image.png'" 
+                                             class="w-full h-48 object-cover cursor-pointer hover:scale-105 transition-transform duration-300" />
+                                    </c:when>
+                                    <c:otherwise>
+                                        <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(image.url, '/services/')}" 
+                                             alt="${image.altText}" 
+                                             onerror="this.src='${pageContext.request.contextPath}/assets/images/no-image.png'" 
+                                             class="w-full h-48 object-cover cursor-pointer hover:scale-105 transition-transform duration-300" />
+                                    </c:otherwise>
+                                </c:choose>
                                 <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
                                     <i data-lucide="zoom-in" class="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"></i>
                                 </div>

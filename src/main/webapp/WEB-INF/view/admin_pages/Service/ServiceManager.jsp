@@ -181,11 +181,11 @@
                                                 <div class="flex justify-center items-center h-16">
                                                     <c:set var="imgUrl" value="${serviceThumbnails[service.serviceId]}" />
                                                     <c:choose>
-                                                        <c:when test="${not empty imgUrl}">
-                                                            <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(imgUrl, '/services/')}" alt="Service Image" class="w-16 h-16 object-cover rounded shadow mx-auto hover:scale-105 transition-transform duration-200" style="cursor: zoom-in;" onclick="showImageModal(this.src)" />
+                                                        <c:when test="${not empty imgUrl && fn:startsWith(imgUrl, 'http')}">
+                                                            <img src="${imgUrl}" alt="Service Image" class="w-16 h-16 object-cover rounded shadow mx-auto hover:scale-105 transition-transform duration-200" style="cursor: zoom-in;" onclick="showImageModal(this.src)" />
                                                         </c:when>
                                                         <c:otherwise>
-                                                            <img src="${pageContext.request.contextPath}/assets/images/no-image.png" alt="No image" class="w-16 h-16 object-cover rounded-xl border bg-gray-50 shadow" />
+                                                            <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(imgUrl, '/services/')}" alt="Service Image" class="w-16 h-16 object-cover rounded shadow mx-auto hover:scale-105 transition-transform duration-200" style="cursor: zoom-in;" onclick="showImageModal(this.src)" />
                                                         </c:otherwise>
                                                     </c:choose>
                                                 </div>

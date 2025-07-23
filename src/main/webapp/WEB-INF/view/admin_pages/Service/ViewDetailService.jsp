@@ -119,10 +119,24 @@
                         <div>
                             <c:choose>
                                 <c:when test="${not empty serviceImages}">
-                                    <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(serviceImages[0].url, '/services/')}" alt="Service Image" class="w-full h-72 object-cover rounded-xl shadow mb-4 hover:scale-105 transition-transform duration-200" id="mainImage" style="cursor: zoom-in;" />
+                                    <c:choose>
+                                        <c:when test="${not empty serviceImages[0].url && fn:startsWith(serviceImages[0].url, 'http')}">
+                                            <img src="${serviceImages[0].url}" alt="Service Image" class="w-full h-72 object-cover rounded-xl shadow mb-4 hover:scale-105 transition-transform duration-200" id="mainImage" style="cursor: zoom-in;" />
+                                        </c:when>
+                                        <c:otherwise>
+                                            <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(serviceImages[0].url, '/services/')}" alt="Service Image" class="w-full h-72 object-cover rounded-xl shadow mb-4 hover:scale-105 transition-transform duration-200" id="mainImage" style="cursor: zoom-in;" />
+                                        </c:otherwise>
+                                    </c:choose>
                                     <div class="grid grid-cols-4 gap-2">
                                         <c:forEach var="img" items="${serviceImages}" varStatus="loop">
-                                            <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(img.url, '/services/')}" alt="Thumbnail" class="w-full h-16 object-cover rounded shadow cursor-pointer hover:scale-105 transition-transform duration-200 border-2 border-transparent" onclick="changeImage(this.src, this)" />
+                                            <c:choose>
+                                                <c:when test="${not empty img.url && fn:startsWith(img.url, 'http')}">
+                                                    <img src="${img.url}" alt="Thumbnail" class="w-full h-16 object-cover rounded shadow cursor-pointer hover:scale-105 transition-transform duration-200 border-2 border-transparent" onclick="changeImage(this.src, this)" />
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(img.url, '/services/')}" alt="Thumbnail" class="w-full h-16 object-cover rounded shadow cursor-pointer hover:scale-105 transition-transform duration-200 border-2 border-transparent" onclick="changeImage(this.src, this)" />
+                                                </c:otherwise>
+                                            </c:choose>
                                         </c:forEach>
                                     </div>
                                 </c:when>

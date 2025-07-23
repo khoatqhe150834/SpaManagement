@@ -14,6 +14,7 @@ import model.ServiceType;
 import model.ServiceImage;
 import dao.ServiceImageDAO;
 import util.ImageUploadUtil;
+import util.CloudinaryConfig;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,6 +29,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import com.google.gson.JsonObject;
 import java.net.URLEncoder;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.util.UUID;
 
 @WebServlet(name = "ServiceController", urlPatterns = { "/manager/service" })
 @MultipartConfig(fileSizeThreshold = 0, maxFileSize = 2097152, maxRequestSize = 10485760) // 10MB
@@ -438,14 +442,9 @@ public class ServiceController extends HttpServlet {
      * Process image uploads using the modern ImageUploadUtil approach
      */
     private void processServiceImages(HttpServletRequest request, int serviceId) throws IOException, ServletException {
-        // Save to D: drive spa-uploads directory
-        String webappPath = "D:/spa-uploads";
-        ImageUploadUtil.ensureDirectoriesExist(webappPath);
-
         ServiceImageDAO serviceImageDAO = new ServiceImageDAO();
         int sortOrder = getNextSortOrder(serviceId);
 
-        // Process each uploaded image
         Collection<Part> fileParts = request.getParts();
         for (Part filePart : fileParts) {
             if (!"images".equals(filePart.getName()) || filePart.getSize() == 0) {
@@ -453,14 +452,14 @@ public class ServiceController extends HttpServlet {
             }
 
             try {
-                // Validate file
+                // Validate file (giữ lại nếu muốn)
                 ImageUploadUtil.ValidationResult validation = ImageUploadUtil.validateFile(filePart);
                 if (!validation.isValid()) {
                     LOGGER.warning("Image validation failed: " + validation.getErrors());
                     continue;
                 }
 
-                // Validate image dimensions
+                // Validate image dimensions (giữ lại nếu muốn)
                 ImageUploadUtil.ValidationResult dimensionValidation = ImageUploadUtil
                         .validateImageDimensions(filePart.getInputStream());
                 if (!dimensionValidation.isValid()) {
@@ -468,32 +467,36 @@ public class ServiceController extends HttpServlet {
                     continue;
                 }
 
-                // Create ServiceImage entity first to get ID
-                ServiceImage serviceImage = new ServiceImage();
-                serviceImage.setServiceId(serviceId);
-                serviceImage.setUrl(""); // Temporary, will be updated after processing
-                serviceImage.setAltText("Ảnh dịch vụ");
-                serviceImage.setIsPrimary(sortOrder == 0); // First image is primary
-                serviceImage.setSortOrder(sortOrder);
-                serviceImage.setIsActive(true);
-
-                // Save to get the image ID
-                ServiceImage savedImage = serviceImageDAO.save(serviceImage);
-                if (savedImage == null || savedImage.getImageId() == null) {
-                    LOGGER.warning("Failed to save image record");
-                    continue;
+                // Đọc file thành byte[]
+                byte[] fileBytes;
+                try (InputStream inputStream = filePart.getInputStream();
+                     ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+                    byte[] buffer = new byte[8192];
+                    int bytesRead;
+                    while ((bytesRead = inputStream.read(buffer)) != -1) {
+                        baos.write(buffer, 0, bytesRead);
+                    }
+                    fileBytes = baos.toByteArray();
                 }
 
-                // Process and save image files using ImageUploadUtil
-                ImageUploadUtil.ProcessedImageResult processedResult = ImageUploadUtil.processAndSaveFullSizeImageOnly(
-                        filePart, webappPath, serviceId, savedImage.getImageId());
+                // Upload lên Cloudinary
+                String publicId = "services/" + serviceId + "/" + UUID.randomUUID().toString();
+                Map<String, Object> uploadResult = CloudinaryConfig.uploadImage(fileBytes, publicId);
+                String fileUrl = (String) uploadResult.get("secure_url");
 
-                // Update the ServiceImage with the actual URL and metadata
-                savedImage.setUrl(processedResult.getFullSizeUrl());
-                savedImage.setFileSize(processedResult.getFileSize());
-                serviceImageDAO.update(savedImage);
+                // Lưu DB
+                ServiceImage serviceImage = new ServiceImage();
+                serviceImage.setServiceId(serviceId);
+                serviceImage.setUrl(fileUrl);
+                serviceImage.setAltText("Service image for " + filePart.getSubmittedFileName());
+                serviceImage.setIsPrimary(sortOrder == 0);
+                serviceImage.setSortOrder(sortOrder);
+                serviceImage.setIsActive(true);
+                serviceImage.setCaption("Uploaded via ServiceController");
 
-                LOGGER.info("Successfully saved image: " + processedResult.getFullSizeUrl());
+                serviceImageDAO.save(serviceImage);
+
+                LOGGER.info("Successfully saved image: " + fileUrl);
                 sortOrder++;
 
             } catch (Exception e) {

@@ -119,17 +119,30 @@
                             <h2 class="text-lg font-semibold text-primary mb-4 flex items-center gap-2"><i data-lucide="image" class="w-5 h-5"></i> Hình ảnh dịch vụ</h2>
                             <div class="flex flex-wrap items-center gap-3 mb-2">
                                 <c:forEach var="img" items="${serviceImages}">
-                                    <c:if test="${not empty img.url}">
-                                        <div class="relative h-28 w-28 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 overflow-hidden flex items-center justify-center mr-2 mb-2 existing-img-container" data-img-id="${img.imageId}">
-                                            <a href="javascript:void(0);" title="Xem ảnh lớn" onclick="showImageModal('${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(img.url, '/services/')}')">
-                                                <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(img.url, '/services/')}" class="w-full h-full object-cover hover:scale-105 transition-transform duration-200" style="cursor: zoom-in;" />
-                                            </a>
-                                            <input type="checkbox" name="delete_image_ids" value="${img.imageId}" id="delete_img_${img.imageId}" class="delete-checkbox hidden" />
-                                            <button type="button" class="absolute top-1 right-1 bg-white rounded-full p-1 shadow remove-existing-img-btn" title="Xóa ảnh này">
-                                                <i data-lucide="x" class="w-4 h-4 text-red-600"></i>
-                                            </button>
-                                        </div>
-                                    </c:if>
+                                    <c:choose>
+                                        <c:when test="${not empty img.url && fn:startsWith(img.url, 'http')}">
+                                            <div class="relative h-28 w-28 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 overflow-hidden flex items-center justify-center mr-2 mb-2 existing-img-container" data-img-id="${img.imageId}">
+                                                <a href="javascript:void(0);" title="Xem ảnh lớn" onclick="showImageModal('${img.url}')">
+                                                    <img src="${img.url}" class="w-full h-full object-cover hover:scale-105 transition-transform duration-200" style="cursor: zoom-in;" />
+                                                </a>
+                                                <input type="checkbox" name="delete_image_ids" value="${img.imageId}" id="delete_img_${img.imageId}" class="delete-checkbox hidden" />
+                                                <button type="button" class="absolute top-1 right-1 bg-white rounded-full p-1 shadow remove-existing-img-btn" title="Xóa ảnh này">
+                                                    <i data-lucide="x" class="w-4 h-4 text-red-600"></i>
+                                                </button>
+                                            </div>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <div class="relative h-28 w-28 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 overflow-hidden flex items-center justify-center mr-2 mb-2 existing-img-container" data-img-id="${img.imageId}">
+                                                <a href="javascript:void(0);" title="Xem ảnh lớn" onclick="showImageModal('${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(img.url, '/services/')}')">
+                                                    <img src="${pageContext.request.contextPath}/image?type=service&name=${fn:substringAfter(img.url, '/services/')}" class="w-full h-full object-cover hover:scale-105 transition-transform duration-200" style="cursor: zoom-in;" />
+                                                </a>
+                                                <input type="checkbox" name="delete_image_ids" value="${img.imageId}" id="delete_img_${img.imageId}" class="delete-checkbox hidden" />
+                                                <button type="button" class="absolute top-1 right-1 bg-white rounded-full p-1 shadow remove-existing-img-btn" title="Xóa ảnh này">
+                                                    <i data-lucide="x" class="w-4 h-4 text-red-600"></i>
+                                                </button>
+                                            </div>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </c:forEach>
                                 <div class="flex gap-3 flex-wrap uploaded-imgs-container"></div>
                                 <label class="flex flex-col items-center justify-center gap-1 h-28 w-28 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 cursor-pointer" for="upload-file-multiple">
