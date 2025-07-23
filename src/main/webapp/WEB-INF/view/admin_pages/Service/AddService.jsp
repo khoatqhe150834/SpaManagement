@@ -42,15 +42,8 @@
         <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
         <main class="flex-1 py-12 lg:py-20 ml-64">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                <!-- Breadcrumb -->
-                <div class="flex flex-wrap items-center gap-2 mb-8 text-gray-500 text-sm">
-                    <a href="service?service=list-all&page=${page}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}${not empty serviceTypeId ? '&serviceTypeId='.concat(serviceTypeId) : ''}" class="flex items-center gap-1 hover:text-primary">
-                        <i data-lucide="home" class="w-4 h-4"></i>
-                        Danh sách dịch vụ
-                    </a>
-                    <span>-</span>
-                    <span class="text-primary font-semibold">Thêm mới dịch vụ</span>
-                </div>
+                <!-- Heading -->
+                <h1 class="text-4xl font-serif font-bold text-spa-dark mb-8">Thêm mới dịch vụ</h1>
                 <!-- Card Form -->
                 <div class="bg-white rounded-2xl shadow-lg p-8">
                     <form action="service" method="post" enctype="multipart/form-data" id="service-form">
