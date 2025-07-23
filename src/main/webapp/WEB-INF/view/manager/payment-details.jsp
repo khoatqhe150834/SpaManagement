@@ -649,7 +649,15 @@
                                                         <div class="flex flex-col gap-1">
                                                             <div class="flex items-center gap-2">
                                                                 <div class="w-full bg-gray-200 rounded-full h-2">
-                                                                    <div class="bg-primary h-2 rounded-full" style="width: ${(item.usage.bookedQuantity / item.usage.totalQuantity) * 100}%"></div>
+                                                                    <c:choose>
+                                                                        <c:when test="${item.usage.totalQuantity > 0}">
+                                                                            <c:set var="usagePercentage" value="${(item.usage.bookedQuantity * 100) / item.usage.totalQuantity}" />
+                                                                        </c:when>
+                                                                        <c:otherwise>
+                                                                            <c:set var="usagePercentage" value="0" />
+                                                                        </c:otherwise>
+                                                                    </c:choose>
+                                                                    <div class="bg-primary h-2 rounded-full" style="width: ${usagePercentage}%"></div>
                                                                 </div>
                                                                 <span class="text-xs text-gray-600 whitespace-nowrap">
                                                                     ${item.usage.bookedQuantity}/${item.usage.totalQuantity}
@@ -674,7 +682,7 @@
                                             </td>
                                             <td class="text-center">
                                                 <div class="flex justify-center gap-1">
-                                                    <button onclick="viewServiceDetails(${item.service.serviceId})"
+                                                    <button onclick="viewServiceDetails('${item.service.serviceId}')"
                                                             class="inline-flex items-center px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded text-xs font-medium transition-colors"
                                                             title="Xem chi tiết dịch vụ">
                                                         <i data-lucide="eye" class="h-3 w-3"></i>

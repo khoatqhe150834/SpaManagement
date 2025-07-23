@@ -21,6 +21,8 @@ import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -68,13 +70,24 @@ public class PaymentApiController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         String pathInfo = request.getPathInfo();
-        
+        LOGGER.info("=== GET REQUEST RECEIVED ===");
+        LOGGER.info("Request URI: " + request.getRequestURI());
+        LOGGER.info("Path Info: " + pathInfo);
+
         try {
             if (pathInfo == null || pathInfo.equals("/")) {
                 // Get all payments (with pagination)
                 handleGetAllPayments(request, response);
+            } else if (pathInfo.equals("/test")) {
+                // Test endpoint
+                LOGGER.info("Test endpoint called successfully");
+                response.setContentType("application/json");
+                response.setCharacterEncoding("UTF-8");
+                PrintWriter out = response.getWriter();
+                out.print("{\"status\":\"success\",\"message\":\"PaymentApiController is working\",\"timestamp\":\"" + System.currentTimeMillis() + "\"}");
+                out.flush();
             } else {
                 // Get specific payment by ID
                 String paymentIdStr = pathInfo.substring(1); // Remove leading slash
@@ -110,31 +123,44 @@ public class PaymentApiController extends HttpServlet {
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         String pathInfo = request.getPathInfo();
-        
+        LOGGER.info("=== PUT REQUEST RECEIVED ===");
+        LOGGER.info("Request URI: " + request.getRequestURI());
+        LOGGER.info("Path Info: " + pathInfo);
+        LOGGER.info("Content Type: " + request.getContentType());
+        LOGGER.info("Method: " + request.getMethod());
+
         try {
             if (pathInfo != null && pathInfo.contains("/status")) {
                 // Update payment status
+                LOGGER.info("Routing to payment status update");
                 String[] parts = pathInfo.split("/");
                 if (parts.length >= 2) {
                     try {
                         int paymentId = Integer.parseInt(parts[1]);
+                        LOGGER.info("Calling handleUpdatePaymentStatus with ID: " + paymentId);
                         handleUpdatePaymentStatus(request, response, paymentId);
                     } catch (NumberFormatException e) {
+                        LOGGER.warning("Invalid payment ID format: " + parts[1]);
                         sendErrorResponse(response, "Invalid payment ID", 400);
                     }
                 }
             } else if (pathInfo != null && !pathInfo.equals("/")) {
                 // Update entire payment
+                LOGGER.info("Routing to full payment update");
                 String paymentIdStr = pathInfo.substring(1);
+                LOGGER.info("Extracted payment ID string: " + paymentIdStr);
                 try {
                     int paymentId = Integer.parseInt(paymentIdStr);
+                    LOGGER.info("Calling handleUpdatePayment with ID: " + paymentId);
                     handleUpdatePayment(request, response, paymentId);
                 } catch (NumberFormatException e) {
+                    LOGGER.warning("Invalid payment ID format: " + paymentIdStr);
                     sendErrorResponse(response, "Invalid payment ID", 400);
                 }
             } else {
+                LOGGER.warning("Invalid request - pathInfo: " + pathInfo);
                 sendErrorResponse(response, "Invalid request", 400);
             }
         } catch (Exception e) {
@@ -370,8 +396,15 @@ public class PaymentApiController extends HttpServlet {
     private void handleUpdatePayment(HttpServletRequest request, HttpServletResponse response, int paymentId)
             throws IOException, SQLException {
 
+        LOGGER.info("=== UPDATE PAYMENT REQUEST ===");
+        LOGGER.info("Payment ID: " + paymentId);
+        LOGGER.info("Request method: " + request.getMethod());
+        LOGGER.info("Request URI: " + request.getRequestURI());
+        LOGGER.info("Content type: " + request.getContentType());
+
         // Only managers can update payments
         if (!isManagerOrAdmin(request)) {
+            LOGGER.warning("Access denied - user is not manager or admin");
             sendErrorResponse(response, "Access denied", 403);
             return;
         }
@@ -379,87 +412,144 @@ public class PaymentApiController extends HttpServlet {
         // Get existing payment
         Optional<Payment> existingOpt = paymentDAO.findById(paymentId);
         if (!existingOpt.isPresent()) {
+            LOGGER.warning("Payment not found with ID: " + paymentId);
             sendErrorResponse(response, "Payment not found", 404);
             return;
         }
 
         // Parse request body
-        PaymentRequest paymentRequest = parseRequestBody(request, PaymentRequest.class);
-        if (paymentRequest == null) {
-            sendErrorResponse(response, "Invalid request body", 400);
+        PaymentRequest paymentRequest;
+        try {
+            paymentRequest = parseRequestBody(request, PaymentRequest.class);
+            if (paymentRequest == null) {
+                LOGGER.severe("Failed to parse request body - returned null");
+                sendErrorResponse(response, "Invalid request body", 400);
+                return;
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Exception while parsing request body", e);
+            sendErrorResponse(response, "Error parsing request body: " + e.getMessage(), 400);
             return;
         }
 
+        LOGGER.info("Parsed payment request successfully");
+
         Payment payment = existingOpt.get();
 
-        // Update payment fields
-        if (paymentRequest.paymentStatus != null) {
-            payment.setPaymentStatus(PaymentStatus.valueOf(paymentRequest.paymentStatus));
-        }
-        if (paymentRequest.paymentMethod != null) {
-            payment.setPaymentMethod(PaymentMethod.valueOf(paymentRequest.paymentMethod));
-        }
-        if (paymentRequest.notes != null) {
-            payment.setNotes(paymentRequest.notes);
-        }
-        if (paymentRequest.paymentDate != null && !paymentRequest.paymentDate.trim().isEmpty()) {
-            try {
-                payment.setPaymentDate(Timestamp.valueOf(paymentRequest.paymentDate));
-            } catch (IllegalArgumentException e) {
-                // Keep existing date if invalid format
-                LOGGER.warning("Invalid date format: " + paymentRequest.paymentDate);
+        try {
+            // Update payment fields
+            if (paymentRequest.paymentStatus != null) {
+                try {
+                    LOGGER.info("Setting payment status: " + paymentRequest.paymentStatus);
+                    payment.setPaymentStatus(PaymentStatus.valueOf(paymentRequest.paymentStatus));
+                } catch (IllegalArgumentException e) {
+                    LOGGER.log(Level.SEVERE, "Invalid payment status: " + paymentRequest.paymentStatus, e);
+                    sendErrorResponse(response, "Invalid payment status: " + paymentRequest.paymentStatus, 400);
+                    return;
+                }
             }
-        }
+            if (paymentRequest.paymentMethod != null) {
+                try {
+                    LOGGER.info("Setting payment method: " + paymentRequest.paymentMethod);
+                    payment.setPaymentMethod(PaymentMethod.valueOf(paymentRequest.paymentMethod));
+                } catch (IllegalArgumentException e) {
+                    LOGGER.log(Level.SEVERE, "Invalid payment method: " + paymentRequest.paymentMethod, e);
+                    sendErrorResponse(response, "Invalid payment method: " + paymentRequest.paymentMethod, 400);
+                    return;
+                }
+            }
+            if (paymentRequest.notes != null) {
+                payment.setNotes(paymentRequest.notes);
+            }
+            if (paymentRequest.paymentDate != null && !paymentRequest.paymentDate.trim().isEmpty()) {
+                try {
+                    LOGGER.info("Parsing payment date: " + paymentRequest.paymentDate);
+                    Timestamp parsedDate = parsePaymentDate(paymentRequest.paymentDate);
+                    payment.setPaymentDate(parsedDate);
+                    LOGGER.info("Successfully parsed payment date: " + parsedDate);
+                } catch (Exception e) {
+                    LOGGER.log(Level.SEVERE, "Failed to parse payment date: " + paymentRequest.paymentDate, e);
+                    sendErrorResponse(response, "Invalid date format: " + paymentRequest.paymentDate + ". Expected format: YYYY-MM-DD", 400);
+                    return;
+                }
+            }
 
-        // Update amounts if provided
-        BigDecimal totalAmount = paymentRequest.getTotalAmountAsBigDecimal();
-        BigDecimal subtotalAmount = paymentRequest.getSubtotalAmountAsBigDecimal();
-        BigDecimal taxAmount = paymentRequest.getTaxAmountAsBigDecimal();
+            // Update amounts if provided
+            BigDecimal totalAmount = paymentRequest.getTotalAmountAsBigDecimal();
+            BigDecimal subtotalAmount = paymentRequest.getSubtotalAmountAsBigDecimal();
+            BigDecimal taxAmount = paymentRequest.getTaxAmountAsBigDecimal();
 
-        if (totalAmount.compareTo(BigDecimal.ZERO) > 0) {
-            payment.setTotalAmount(totalAmount);
-        }
-        if (subtotalAmount.compareTo(BigDecimal.ZERO) > 0) {
-            payment.setSubtotalAmount(subtotalAmount);
-        }
-        payment.setTaxAmount(taxAmount); // Tax can be zero
+            if (totalAmount.compareTo(BigDecimal.ZERO) > 0) {
+                payment.setTotalAmount(totalAmount);
+            }
+            if (subtotalAmount.compareTo(BigDecimal.ZERO) > 0) {
+                payment.setSubtotalAmount(subtotalAmount);
+            }
+            payment.setTaxAmount(taxAmount); // Tax can be zero
 
-        // Update payment
-        paymentDAO.update(payment);
+            // Update payment
+            LOGGER.info("Updating payment in database...");
+            paymentDAO.update(payment);
+            LOGGER.info("Payment updated successfully");
 
-        // Handle payment items if provided
-        if (paymentRequest.paymentItems != null) {
-            // Delete existing payment items
-            paymentItemDAO.deleteByPaymentId(paymentId);
+            // Handle payment items if provided
+            if (paymentRequest.paymentItems != null) {
+                LOGGER.info("Updating payment items, count: " + paymentRequest.paymentItems.size());
 
-            // Create new payment items
-            List<PaymentItem> paymentItems = new ArrayList<>();
-            for (PaymentItemRequest itemRequest : paymentRequest.paymentItems) {
-                // Validate service exists
-                Optional<Service> serviceOpt = serviceDAO.findById(itemRequest.serviceId);
-                if (!serviceOpt.isPresent()) {
-                    LOGGER.warning("Service not found during update: " + itemRequest.serviceId);
-                    continue;
+                // Delete existing payment items
+                try {
+                    paymentItemDAO.deleteByPaymentId(paymentId);
+                    LOGGER.info("Deleted existing payment items");
+                } catch (SQLException e) {
+                    LOGGER.log(Level.SEVERE, "Failed to delete existing payment items", e);
+                    sendErrorResponse(response, "Failed to delete existing payment items: " + e.getMessage(), 500);
+                    return;
                 }
 
-                PaymentItem paymentItem = new PaymentItem();
-                paymentItem.setPaymentId(paymentId);
-                paymentItem.setServiceId(itemRequest.serviceId);
-                paymentItem.setQuantity(itemRequest.quantity != null ? itemRequest.quantity : 1);
-                paymentItem.setUnitPrice(itemRequest.getUnitPriceAsBigDecimal());
-                paymentItem.setTotalPrice(itemRequest.getTotalPriceAsBigDecimal());
-                paymentItem.setServiceDuration(itemRequest.serviceDuration != null ? itemRequest.serviceDuration : 0);
+                // Create new payment items
+                List<PaymentItem> paymentItems = new ArrayList<>();
+                for (PaymentItemRequest itemRequest : paymentRequest.paymentItems) {
+                    // Validate service exists
+                    Optional<Service> serviceOpt = serviceDAO.findById(itemRequest.serviceId);
+                    if (!serviceOpt.isPresent()) {
+                        LOGGER.warning("Service not found during update: " + itemRequest.serviceId);
+                        continue;
+                    }
 
-                paymentItems.add(paymentItem);
+                    Service service = serviceOpt.get();
+                    LOGGER.info("Processing service: " + service.getName() + " (ID: " + service.getServiceId() + ")");
+
+                    PaymentItem paymentItem = new PaymentItem();
+                    paymentItem.setPaymentId(paymentId);
+                    paymentItem.setServiceId(itemRequest.serviceId);
+                    paymentItem.setQuantity(itemRequest.quantity != null ? itemRequest.quantity : 1);
+                    paymentItem.setUnitPrice(itemRequest.getUnitPriceAsBigDecimal());
+                    paymentItem.setTotalPrice(itemRequest.getTotalPriceAsBigDecimal());
+
+                    // Set service duration from the service object, not from request
+                    int serviceDuration = service.getDurationMinutes() > 0 ? service.getDurationMinutes() : 60; // Default to 60 minutes if invalid
+                    paymentItem.setServiceDuration(serviceDuration);
+                    LOGGER.info("Set service duration to: " + serviceDuration + " minutes for service: " + service.getName());
+
+                    paymentItems.add(paymentItem);
+                }
+
+                // Save new payment items
+                if (!paymentItems.isEmpty()) {
+                    paymentItemDAO.saveAll(paymentItems);
+                    LOGGER.info("Saved " + paymentItems.size() + " new payment items");
+                }
+            } else {
+                LOGGER.info("No payment items to update");
             }
 
-            // Save new payment items
-            if (!paymentItems.isEmpty()) {
-                paymentItemDAO.saveAll(paymentItems);
-            }
+            LOGGER.info("Payment update completed successfully");
+            sendSuccessResponse(response, payment);
+
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Unexpected error during payment update", e);
+            sendErrorResponse(response, "Internal server error: " + e.getMessage(), 500);
         }
-
-        sendSuccessResponse(response, payment);
     }
     
     private void handleUpdatePaymentStatus(HttpServletRequest request, HttpServletResponse response, int paymentId)
@@ -495,7 +585,55 @@ public class PaymentApiController extends HttpServlet {
     }
     
     // Helper methods and classes will be added in the next part...
-    
+
+    /**
+     * Parse payment date from various formats
+     */
+    private Timestamp parsePaymentDate(String dateString) throws Exception {
+        if (dateString == null || dateString.trim().isEmpty()) {
+            throw new IllegalArgumentException("Date string is null or empty");
+        }
+
+        dateString = dateString.trim();
+
+        try {
+            // Try parsing as full timestamp first (YYYY-MM-DD HH:MM:SS)
+            if (dateString.matches("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}")) {
+                return Timestamp.valueOf(dateString);
+            }
+
+            // Try parsing as date only (YYYY-MM-DD) - add default time
+            if (dateString.matches("\\d{4}-\\d{2}-\\d{2}")) {
+                return Timestamp.valueOf(dateString + " 00:00:00");
+            }
+
+            // Try parsing with SimpleDateFormat for other formats
+            SimpleDateFormat[] formats = {
+                new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss"),
+                new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS"),
+                new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'"),
+                new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"),
+                new SimpleDateFormat("yyyy-MM-dd"),
+                new SimpleDateFormat("dd/MM/yyyy"),
+                new SimpleDateFormat("MM/dd/yyyy")
+            };
+
+            for (SimpleDateFormat format : formats) {
+                try {
+                    java.util.Date parsedDate = format.parse(dateString);
+                    return new Timestamp(parsedDate.getTime());
+                } catch (ParseException e) {
+                    // Continue to next format
+                }
+            }
+
+            throw new IllegalArgumentException("Unable to parse date: " + dateString);
+
+        } catch (Exception e) {
+            throw new Exception("Failed to parse payment date: " + dateString, e);
+        }
+    }
+
     private boolean canAccessPayment(HttpServletRequest request, Payment payment) {
         HttpSession session = request.getSession(false);
         if (session == null) return false;

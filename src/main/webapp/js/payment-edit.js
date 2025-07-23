@@ -11,6 +11,7 @@ var isEditMode = true;
 document.addEventListener('DOMContentLoaded', function() {
     // Get context path
     contextPath = document.querySelector('meta[name="context-path"]')?.getAttribute('content') || '';
+    console.log('Context path:', contextPath);
 
     // Get current payment ID from global variable or form
     currentPaymentId = window.currentPaymentId || document.getElementById('paymentId')?.value;
@@ -22,6 +23,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     console.log('Current payment ID:', currentPaymentId);
+    console.log('Window.currentPaymentId:', window.currentPaymentId);
+    console.log('Form payment ID:', document.getElementById('paymentId')?.value);
 
     // Initialize form
     initializePaymentEditForm();
@@ -45,14 +48,33 @@ document.addEventListener('DOMContentLoaded', function() {
  * Initialize payment edit form
  */
 function initializePaymentEditForm() {
+    console.log('Initializing payment edit form...');
     var form = document.getElementById('editPaymentForm');
+    console.log('Form element found:', form);
+
     if (form) {
+        console.log('Adding submit event listener to form');
         form.addEventListener('submit', handleFormSubmit);
+
+        // Also check if submit button exists
+        var submitBtn = document.getElementById('submitBtn');
+        console.log('Submit button found:', submitBtn);
+
+        // Add direct click listener to submit button for debugging
+        if (submitBtn) {
+            submitBtn.addEventListener('click', function(e) {
+                console.log('Submit button clicked directly');
+                console.log('Button disabled:', submitBtn.disabled);
+                console.log('Form element:', form);
+            });
+        }
+    } else {
+        console.error('Form element not found!');
     }
-    
+
     // Setup existing service items
     setupExistingServiceItems();
-    
+
     // Calculate initial totals
     updateServiceTotals();
 }
@@ -310,6 +332,9 @@ function setupAmountCalculations() {
 function handleFormSubmit(e) {
     e.preventDefault();
 
+    console.log('Form submit triggered');
+    console.log('Event:', e);
+
     // Get submit button and disable it
     var submitBtn = document.getElementById('submitBtn');
     if (submitBtn) {
@@ -321,7 +346,12 @@ function handleFormSubmit(e) {
     }
 
     // Validate form
-    if (!validateForm()) {
+    console.log('Starting form validation...');
+    var isValid = validateForm();
+    console.log('Form validation result:', isValid);
+
+    if (!isValid) {
+        console.log('Form validation failed, re-enabling button');
         // Re-enable button if validation fails
         if (submitBtn) {
             submitBtn.disabled = false;
@@ -332,6 +362,8 @@ function handleFormSubmit(e) {
         }
         return;
     }
+
+    console.log('Form validation passed, proceeding with submission...');
     
     // Collect form data
     var formData = new FormData(e.target);
@@ -367,7 +399,9 @@ function handleFormSubmit(e) {
     // Submit to API
     var endpoint = contextPath + '/api/payments/' + currentPaymentId;
     console.log('API endpoint:', endpoint);
-    
+    console.log('Making fetch request to:', endpoint);
+    console.log('Request payload:', JSON.stringify(paymentData, null, 2));
+
     fetch(endpoint, {
         method: 'PUT',
         headers: {
@@ -378,24 +412,32 @@ function handleFormSubmit(e) {
         body: JSON.stringify(paymentData)
     })
     .then(function(response) {
+        console.log('Received response:', response);
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
+
         if (response.ok) {
             return response.json();
         } else {
-            throw new Error('Network response was not ok');
+            return response.text().then(function(text) {
+                console.error('Error response body:', text);
+                throw new Error('HTTP ' + response.status + ': ' + response.statusText + ' - ' + text);
+            });
         }
     })
     .then(function(data) {
         console.log('Payment updated successfully:', data);
         showNotification('Cập nhật thanh toán thành công!', 'success');
-        
+
         // Redirect after success
         setTimeout(function() {
             window.location.href = contextPath + '/manager/payment-details?id=' + currentPaymentId;
         }, 2000);
     })
     .catch(function(error) {
-        console.error('Error:', error);
-        showNotification('Có lỗi xảy ra khi cập nhật thanh toán', 'error');
+        console.error('Fetch error:', error);
+        console.error('Error stack:', error.stack);
+        showNotification('Có lỗi xảy ra khi cập nhật thanh toán: ' + error.message, 'error');
 
         // Re-enable submit button
         var submitBtn = document.getElementById('submitBtn');
@@ -453,22 +495,63 @@ function collectServiceItemsData() {
  * Validate the entire form
  */
 function validateForm() {
+    console.log('validateForm() called');
     var isValid = true;
-    
+
+    // Clean up empty service items first
+    cleanupEmptyServiceItems();
+
     // Validate service items
-    if (!validateServiceItems()) {
+    console.log('Validating service items...');
+    var serviceItemsValid = validateServiceItems();
+    console.log('Service items validation result:', serviceItemsValid);
+    if (!serviceItemsValid) {
         isValid = false;
     }
-    
-    // Validate required fields
+
+    // Validate required fields (excluding those in empty service items)
     var requiredFields = document.querySelectorAll('[required]');
+    console.log('Found required fields:', requiredFields.length);
+
     requiredFields.forEach(function(field) {
-        if (!validateField(field)) {
+        // Check if this field is inside a service item
+        var serviceItem = field.closest('.service-item');
+        if (serviceItem) {
+            // If it's in a service item, check if the service item has a selected service
+            var serviceSelect = serviceItem.querySelector('.service-select');
+            if (!serviceSelect || !serviceSelect.value) {
+                // Skip validation for fields in empty service items
+                console.log('Skipping validation for field in empty service item:', field.name || field.id);
+                return;
+            }
+        }
+
+        var fieldValid = validateField(field);
+        console.log('Field', field.name || field.id, 'validation result:', fieldValid);
+        if (!fieldValid) {
             isValid = false;
         }
     });
-    
+
+    console.log('Overall form validation result:', isValid);
     return isValid;
+}
+
+/**
+ * Clean up empty service items by hiding them
+ */
+function cleanupEmptyServiceItems() {
+    var serviceItems = document.querySelectorAll('.service-item');
+    serviceItems.forEach(function(item) {
+        var serviceSelect = item.querySelector('.service-select');
+        if (!serviceSelect || !serviceSelect.value) {
+            // Hide empty service items to exclude them from validation
+            if (!item.classList.contains('hidden')) {
+                console.log('Hiding empty service item');
+                item.classList.add('hidden');
+            }
+        }
+    });
 }
 
 /**

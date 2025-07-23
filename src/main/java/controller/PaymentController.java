@@ -739,6 +739,7 @@ public class PaymentController extends HttpServlet {
                 }
 
                 request.setAttribute("payment", payment);
+                request.setAttribute("paymentId", paymentId); // Explicit payment ID for JavaScript
                 request.setAttribute("services", services);
                 request.setAttribute("customerName", customerName);
                 request.setAttribute("customerPhone", customerPhone);

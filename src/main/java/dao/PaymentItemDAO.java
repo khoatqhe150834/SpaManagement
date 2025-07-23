@@ -438,7 +438,24 @@ public class PaymentItemDAO implements BaseDAO<PaymentItem, Integer> {
         return paymentItem;
     }
 
-    public void deleteByPaymentId(int paymentId) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    /**
+     * Delete all payment items for a specific payment ID
+     */
+    public void deleteByPaymentId(int paymentId) throws SQLException {
+        String sql = "DELETE FROM payment_items WHERE payment_id = ?";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, paymentId);
+
+            int affectedRows = stmt.executeUpdate();
+            LOGGER.log(Level.INFO, "Deleted {0} payment items for payment ID: {1}",
+                      new Object[]{affectedRows, paymentId});
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error deleting payment items for payment ID: " + paymentId, ex);
+            throw ex;
+        }
     }
 }
