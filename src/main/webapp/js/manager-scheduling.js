@@ -265,7 +265,6 @@ class ManagerSchedulingSystem {
                 
                 return quantity >= min && quantity <= max;
             };
-            quantityFilter.name = 'schedulingQuantityFilter';
             $.fn.dataTable.ext.search.push(quantityFilter);
         }
 
@@ -307,7 +306,6 @@ class ManagerSchedulingSystem {
                         return true;
                 }
             };
-            dateFilter.name = 'schedulingDateFilter';
             $.fn.dataTable.ext.search.push(dateFilter);
         }
 
@@ -332,7 +330,6 @@ class ManagerSchedulingSystem {
                         return true;
                 }
             };
-            urgencyFilter.name = 'schedulingUrgencyFilter';
             $.fn.dataTable.ext.search.push(urgencyFilter);
         }
 
@@ -351,7 +348,6 @@ class ManagerSchedulingSystem {
                     
                     return paymentDate.isBetween(startDate, endDate, 'day', '[]');
                 };
-                dateRangeFilter.name = 'schedulingDateRangeFilter';
                 $.fn.dataTable.ext.search.push(dateRangeFilter);
             }
         }
@@ -380,11 +376,9 @@ class ManagerSchedulingSystem {
 
         // Clear DataTable filters
         if (this.dataTable) {
-            // Remove custom filters
-            $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(fn => 
-                !fn.name || (!fn.name.includes('scheduling'))
-            );
-            
+            // Clear all custom search functions (since all are scheduling-related in this context)
+            $.fn.dataTable.ext.search = [];
+
             this.dataTable.search('').columns().search('').draw();
         }
         
@@ -401,6 +395,9 @@ class ManagerSchedulingSystem {
             dateRange: ''
         };
         this.updateFilterButtonAppearance(emptyFilters);
+
+        // Reload the original data to show the same state as when page loads
+        this.loadSchedulableItems();
 
         this.showAlert('Đã đặt lại bộ lọc', 'info');
     }

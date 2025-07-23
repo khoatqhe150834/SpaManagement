@@ -688,27 +688,8 @@
 
         // Initialize scheduling filters
         function initializeSchedulingFilters() {
-            // Toggle filter panel
-            const toggleButton = document.getElementById('toggleSchedulingFilters');
-            const filterPanel = document.getElementById('schedulingFilterPanel');
-            
-            if (toggleButton && filterPanel) {
-                toggleButton.addEventListener('click', function() {
-                    filterPanel.classList.toggle('show');
-                    
-                    // Update button appearance
-                    const icon = toggleButton.querySelector('i');
-                    if (filterPanel.classList.contains('show')) {
-                        toggleButton.classList.add('bg-primary', 'text-white');
-                        toggleButton.classList.remove('bg-white', 'text-gray-700');
-                        if (icon) icon.classList.add('text-white');
-                    } else {
-                        toggleButton.classList.remove('bg-primary', 'text-white');
-                        toggleButton.classList.add('bg-white', 'text-gray-700');
-                        if (icon) icon.classList.remove('text-white');
-                    }
-                });
-            }
+            // Filter toggle functionality is handled by manager-scheduling.js
+            // to avoid duplicate event listeners
 
             // Initialize date range picker
             const dateRangePicker = document.getElementById('schedulingDateRangePicker');
@@ -745,21 +726,8 @@
                 });
             }
 
-            // Apply filters button
-            const applyButton = document.getElementById('applySchedulingFilters');
-            if (applyButton) {
-                applyButton.addEventListener('click', function() {
-                    applySchedulingFilters();
-                });
-            }
-
-            // Reset filters button
-            const resetButton = document.getElementById('resetSchedulingFilters');
-            if (resetButton) {
-                resetButton.addEventListener('click', function() {
-                    resetSchedulingFilters();
-                });
-            }
+            // Apply and reset filter button functionality is handled by manager-scheduling.js
+            // to avoid duplicate event listeners
 
             // Refresh data button
             const refreshButton = document.getElementById('refreshSchedulingData');
