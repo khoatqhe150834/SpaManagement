@@ -1,29 +1,37 @@
 package controller;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.math.BigDecimal;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-
+import com.google.gson.JsonSerializer;
+import com.google.gson.JsonDeserializer;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import dao.CustomerDAO;
 import dao.PaymentDAO;
+import dao.PaymentItemDAO;
+import dao.ServiceDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.math.BigDecimal;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import model.Customer;
 import model.Payment;
 import model.Payment.PaymentMethod;
 import model.Payment.PaymentStatus;
+import model.PaymentItem;
+import model.Service;
 import model.User;
 
 /**
@@ -38,14 +46,22 @@ public class PaymentApiController extends HttpServlet {
     
     private static final Logger LOGGER = Logger.getLogger(PaymentApiController.class.getName());
     private final PaymentDAO paymentDAO;
+    private final PaymentItemDAO paymentItemDAO;
     private final CustomerDAO customerDAO;
+    private final ServiceDAO serviceDAO;
     private final Gson gson;
-    
+
     public PaymentApiController() {
         this.paymentDAO = new PaymentDAO();
+        this.paymentItemDAO = new PaymentItemDAO();
         this.customerDAO = new CustomerDAO();
+        this.serviceDAO = new ServiceDAO();
         this.gson = new GsonBuilder()
             .setDateFormat("yyyy-MM-dd HH:mm:ss")
+            .registerTypeAdapter(LocalDateTime.class, (JsonSerializer<LocalDateTime>) (src, typeOfSrc, context) -> 
+                context.serialize(src.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))))
+            .registerTypeAdapter(LocalDateTime.class, (JsonDeserializer<LocalDateTime>) (json, typeOfT, context) -> 
+                LocalDateTime.parse(json.getAsString(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
             .create();
     }
     
@@ -82,9 +98,12 @@ public class PaymentApiController extends HttpServlet {
         try {
             // Create new payment
             handleCreatePayment(request, response);
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Database error in PaymentApiController POST", e);
+            sendErrorResponse(response, "Database error: " + e.getMessage(), 500);
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Error in PaymentApiController POST", e);
-            sendErrorResponse(response, "Internal server error", 500);
+            LOGGER.log(Level.SEVERE, "Unexpected error in PaymentApiController POST", e);
+            sendErrorResponse(response, "Internal server error: " + e.getMessage(), 500);
         }
     }
     
@@ -173,72 +192,178 @@ public class PaymentApiController extends HttpServlet {
     private void handleCreatePayment(HttpServletRequest request, HttpServletResponse response)
             throws IOException, SQLException {
         
+        LOGGER.info("=== CREATE PAYMENT REQUEST ===");
+        LOGGER.info("Request method: " + request.getMethod());
+        LOGGER.info("Request URI: " + request.getRequestURI());
+        LOGGER.info("Content type: " + request.getContentType());
+        
         // Only managers can create payments
         if (!isManagerOrAdmin(request)) {
+            LOGGER.warning("Access denied - user is not manager or admin");
             sendErrorResponse(response, "Access denied", 403);
             return;
         }
         
         // Parse request body
-        PaymentRequest paymentRequest = parseRequestBody(request, PaymentRequest.class);
-        if (paymentRequest == null) {
-            sendErrorResponse(response, "Invalid request body", 400);
+        PaymentRequest paymentRequest;
+        try {
+            paymentRequest = parseRequestBody(request, PaymentRequest.class);
+            if (paymentRequest == null) {
+                LOGGER.severe("Failed to parse request body - returned null");
+                sendErrorResponse(response, "Invalid request body - could not parse JSON", 400);
+                return;
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Exception while parsing request body", e);
+            sendErrorResponse(response, "Error parsing request body: " + e.getMessage(), 400);
             return;
         }
         
+        LOGGER.info("Parsed payment request: customerId=" + paymentRequest.customerId + 
+                   ", totalAmount=" + paymentRequest.totalAmount + 
+                   ", paymentMethod=" + paymentRequest.paymentMethod + 
+                   ", paymentStatus=" + paymentRequest.paymentStatus);
+        
         // Validate required fields
-        if (paymentRequest.customerId == null || paymentRequest.totalAmount == null ||
-            paymentRequest.paymentMethod == null || paymentRequest.paymentStatus == null) {
-            sendErrorResponse(response, "Missing required fields", 400);
+        if (paymentRequest.customerId == null) {
+            sendErrorResponse(response, "Missing required field: customerId", 400);
             return;
         }
+        if (paymentRequest.totalAmount == null || paymentRequest.totalAmount.trim().isEmpty()) {
+            sendErrorResponse(response, "Missing required field: totalAmount", 400);
+            return;
+        }
+        if (paymentRequest.paymentMethod == null || paymentRequest.paymentMethod.trim().isEmpty()) {
+            sendErrorResponse(response, "Missing required field: paymentMethod", 400);
+            return;
+        }
+        // Payment status is automatically set to PAID for new payments
+        // No validation needed
 
         // Get and validate amount
-        BigDecimal amount = paymentRequest.getTotalAmountAsBigDecimal();
-        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-            sendErrorResponse(response, "Amount must be greater than 0", 400);
-            return;
-        }
+        BigDecimal amount;
+        try {
+            amount = paymentRequest.getTotalAmountAsBigDecimal();
+            if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+                sendErrorResponse(response, "Amount must be greater than 0", 400);
+                return;
+            }
 
-        if (amount.compareTo(new BigDecimal("100000000")) > 0) {
-            sendErrorResponse(response, "Amount cannot exceed 100,000,000 VNĐ", 400);
+            if (amount.compareTo(new BigDecimal("100000000")) > 0) {
+                sendErrorResponse(response, "Amount cannot exceed 100,000,000 VNĐ", 400);
+                return;
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Invalid amount format: " + paymentRequest.totalAmount, e);
+            sendErrorResponse(response, "Invalid amount format", 400);
             return;
         }
         
         // Verify customer exists
-        Optional<Customer> customerOpt = customerDAO.findById(paymentRequest.customerId);
+        Optional<Customer> customerOpt;
+        customerOpt = customerDAO.findById(paymentRequest.customerId);
         if (!customerOpt.isPresent()) {
-            sendErrorResponse(response, "Customer not found", 400);
+            sendErrorResponse(response, "Customer not found with ID: " + paymentRequest.customerId, 400);
             return;
         }
         
+        // Get subtotal and tax amounts
+        BigDecimal subtotalAmount = paymentRequest.getSubtotalAmountAsBigDecimal();
+        BigDecimal taxAmount = paymentRequest.getTaxAmountAsBigDecimal();
+
+        // If subtotal is not provided, use total amount
+        if (subtotalAmount.compareTo(BigDecimal.ZERO) == 0) {
+            subtotalAmount = amount;
+        }
+
         // Create payment
         Payment payment = new Payment();
         payment.setCustomerId(paymentRequest.customerId);
         payment.setTotalAmount(amount);
-        payment.setSubtotalAmount(amount); // Assuming no tax for manual entries
-        payment.setTaxAmount(BigDecimal.ZERO);
-        payment.setPaymentMethod(PaymentMethod.valueOf(paymentRequest.paymentMethod));
-        payment.setPaymentStatus(PaymentStatus.valueOf(paymentRequest.paymentStatus));
+        payment.setSubtotalAmount(subtotalAmount);
+        payment.setTaxAmount(taxAmount);
+        
+        // Validate and set payment method
+        try {
+            payment.setPaymentMethod(PaymentMethod.valueOf(paymentRequest.paymentMethod.toUpperCase()));
+        } catch (IllegalArgumentException e) {
+            sendErrorResponse(response, "Invalid payment method: " + paymentRequest.paymentMethod, 400);
+            return;
+        }
+        
+        // Always set payment status to PAID for new payments
+        payment.setPaymentStatus(PaymentStatus.PAID);
+        
         payment.setNotes(paymentRequest.notes);
-        
-        // Set payment date
-        if (paymentRequest.paymentDate != null) {
-            payment.setPaymentDate(Timestamp.valueOf(paymentRequest.paymentDate));
-        } else {
-            payment.setPaymentDate(new Timestamp(System.currentTimeMillis()));
-        }
-        
-        // Generate reference number if not provided
-        if (paymentRequest.referenceNumber != null && !paymentRequest.referenceNumber.trim().isEmpty()) {
-            payment.setReferenceNumber(paymentRequest.referenceNumber.trim());
-        } else {
-            payment.setReferenceNumber(Payment.generateReferenceNumber());
-        }
-        
+
+        // Always set payment date to current time
+        payment.setPaymentDate(new Timestamp(System.currentTimeMillis()));
+
+        // Set transaction date to current time
+        payment.setTransactionDate(new Timestamp(System.currentTimeMillis()));
+
+        // Always generate a new reference number automatically
+        String timestamp = String.valueOf(System.currentTimeMillis()).substring(8);
+        String random = String.valueOf((int)(Math.random() * 9000) + 1000);
+        payment.setReferenceNumber("SPA" + timestamp + random);
+
         // Save payment
-        Payment savedPayment = paymentDAO.save(payment);
-        
+        Payment savedPayment;
+        try {
+            LOGGER.info("Attempting to save payment...");
+            savedPayment = paymentDAO.save(payment);
+            LOGGER.info("Payment saved successfully with ID: " + savedPayment.getPaymentId());
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "SQL error while saving payment: " + e.getSQLState() + " - " + e.getErrorCode(), e);
+            sendErrorResponse(response, "Database error: " + e.getMessage(), 500);
+            return;
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Unexpected error while saving payment", e);
+            sendErrorResponse(response, "Error saving payment: " + e.getMessage(), 500);
+            return;
+        }
+
+        // Create payment items if provided
+        if (paymentRequest.paymentItems != null && !paymentRequest.paymentItems.isEmpty()) {
+            List<PaymentItem> paymentItems = new ArrayList<>();
+
+            for (PaymentItemRequest itemRequest : paymentRequest.paymentItems) {
+                try {
+                    // Validate service exists
+                    Optional<Service> serviceOpt = serviceDAO.findById(itemRequest.serviceId);
+                    if (!serviceOpt.isPresent()) {
+                        LOGGER.warning("Service not found: " + itemRequest.serviceId);
+                        continue;
+                    }
+
+                    PaymentItem paymentItem = new PaymentItem();
+                    paymentItem.setPaymentId(savedPayment.getPaymentId());
+                    paymentItem.setServiceId(itemRequest.serviceId);
+                    paymentItem.setQuantity(itemRequest.quantity != null ? itemRequest.quantity : 1);
+                    paymentItem.setUnitPrice(itemRequest.getUnitPriceAsBigDecimal());
+                    paymentItem.setTotalPrice(itemRequest.getTotalPriceAsBigDecimal());
+                    paymentItem.setServiceDuration(itemRequest.serviceDuration != null ? itemRequest.serviceDuration : 0);
+
+                    paymentItems.add(paymentItem);
+                } catch (Exception e) {
+                    LOGGER.log(Level.WARNING, "Error processing payment item: " + itemRequest.serviceId, e);
+                    continue;
+                }
+            }
+
+            // Save payment items
+            if (!paymentItems.isEmpty()) {
+                try {
+                    paymentItemDAO.saveAll(paymentItems);
+                    LOGGER.info("Saved " + paymentItems.size() + " payment items");
+                } catch (SQLException e) {
+                    LOGGER.log(Level.SEVERE, "Database error while saving payment items", e);
+                    // Don't fail the entire payment creation, just log the error
+                    LOGGER.warning("Payment created but payment items failed to save");
+                }
+            }
+        }
+
         sendSuccessResponse(response, savedPayment);
     }
     
@@ -369,9 +494,19 @@ public class PaymentApiController extends HttpServlet {
             while ((line = request.getReader().readLine()) != null) {
                 sb.append(line);
             }
-            return gson.fromJson(sb.toString(), clazz);
+            String requestBody = sb.toString();
+            LOGGER.info("Request body: " + requestBody);
+            
+            if (requestBody.trim().isEmpty()) {
+                LOGGER.warning("Request body is empty");
+                return null;
+            }
+            
+            T result = gson.fromJson(requestBody, clazz);
+            LOGGER.info("Successfully parsed request body to " + clazz.getSimpleName());
+            return result;
         } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Failed to parse request body", e);
+            LOGGER.log(Level.SEVERE, "Failed to parse request body to " + clazz.getSimpleName(), e);
             return null;
         }
     }
@@ -403,11 +538,14 @@ public class PaymentApiController extends HttpServlet {
     private static class PaymentRequest {
         Integer customerId;
         String totalAmount; // Accept as string to handle formatting
+        String subtotalAmount;
+        String taxAmount;
         String paymentMethod;
         String paymentStatus;
         String paymentDate;
         String notes;
         String referenceNumber;
+        List<PaymentItemRequest> paymentItems;
 
         // Helper method to get BigDecimal amount
         public BigDecimal getTotalAmountAsBigDecimal() {
@@ -417,6 +555,62 @@ public class PaymentApiController extends HttpServlet {
             try {
                 // Remove any formatting and convert to BigDecimal
                 String cleanAmount = totalAmount.replaceAll("[^\\d]", "");
+                return new BigDecimal(cleanAmount);
+            } catch (NumberFormatException e) {
+                return BigDecimal.ZERO;
+            }
+        }
+
+        public BigDecimal getSubtotalAmountAsBigDecimal() {
+            if (subtotalAmount == null || subtotalAmount.trim().isEmpty()) {
+                return BigDecimal.ZERO;
+            }
+            try {
+                String cleanAmount = subtotalAmount.replaceAll("[^\\d]", "");
+                return new BigDecimal(cleanAmount);
+            } catch (NumberFormatException e) {
+                return BigDecimal.ZERO;
+            }
+        }
+
+        public BigDecimal getTaxAmountAsBigDecimal() {
+            if (taxAmount == null || taxAmount.trim().isEmpty()) {
+                return BigDecimal.ZERO;
+            }
+            try {
+                String cleanAmount = taxAmount.replaceAll("[^\\d]", "");
+                return new BigDecimal(cleanAmount);
+            } catch (NumberFormatException e) {
+                return BigDecimal.ZERO;
+            }
+        }
+    }
+
+    private static class PaymentItemRequest {
+        Integer serviceId;
+        Integer quantity;
+        String unitPrice;
+        String totalPrice;
+        Integer serviceDuration;
+
+        public BigDecimal getUnitPriceAsBigDecimal() {
+            if (unitPrice == null || unitPrice.trim().isEmpty()) {
+                return BigDecimal.ZERO;
+            }
+            try {
+                String cleanAmount = unitPrice.replaceAll("[^\\d]", "");
+                return new BigDecimal(cleanAmount);
+            } catch (NumberFormatException e) {
+                return BigDecimal.ZERO;
+            }
+        }
+
+        public BigDecimal getTotalPriceAsBigDecimal() {
+            if (totalPrice == null || totalPrice.trim().isEmpty()) {
+                return BigDecimal.ZERO;
+            }
+            try {
+                String cleanAmount = totalPrice.replaceAll("[^\\d]", "");
                 return new BigDecimal(cleanAmount);
             } catch (NumberFormatException e) {
                 return BigDecimal.ZERO;

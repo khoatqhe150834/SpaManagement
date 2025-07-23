@@ -539,52 +539,6 @@
                                                         <i data-lucide="edit" class="h-3 w-3 mr-1"></i>
                                                         Sửa
                                                     </button>
-                                                    
-                                                    <!-- Status Update Dropdown -->
-                                                    <div class="dropdown relative">
-                                                        <button class="dropdown-toggle inline-flex items-center px-2 py-1 text-xs font-medium text-gray-600 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors duration-200"
-                                                                title="Cập nhật trạng thái">
-                                                            <i data-lucide="chevron-down" class="h-3 w-3 mr-1"></i>
-                                                            Trạng thái
-                                                        </button>
-                                                        <ul class="dropdown-menu absolute right-0 mt-1 hidden py-1 w-40 rounded-md bg-white shadow-lg z-10 border border-gray-200">
-                                                            <li>
-                                                                <button onclick="updatePaymentStatus(${payment.paymentId}, 'PAID')" 
-                                                                        class="w-full text-left px-4 py-2 text-xs text-green-600 hover:bg-green-50 flex items-center">
-                                                                    <i data-lucide="check-circle" class="h-3 w-3 mr-2"></i>
-                                                                    Đã thanh toán
-                                                                </button>
-                                                            </li>
-                                                            <li>
-                                                                <button onclick="updatePaymentStatus(${payment.paymentId}, 'PENDING')" 
-                                                                        class="w-full text-left px-4 py-2 text-xs text-yellow-600 hover:bg-yellow-50 flex items-center">
-                                                                    <i data-lucide="clock" class="h-3 w-3 mr-2"></i>
-                                                                    Chờ xử lý
-                                                                </button>
-                                                            </li>
-                                                            <li>
-                                                                <button onclick="updatePaymentStatus(${payment.paymentId}, 'FAILED')" 
-                                                                        class="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 flex items-center">
-                                                                    <i data-lucide="x-circle" class="h-3 w-3 mr-2"></i>
-                                                                    Thất bại
-                                                                </button>
-                                                            </li>
-                                                            <li>
-                                                                <button onclick="updatePaymentStatus(${payment.paymentId}, 'REFUNDED')" 
-                                                                        class="w-full text-left px-4 py-2 text-xs text-blue-600 hover:bg-blue-50 flex items-center">
-                                                                    <i data-lucide="rotate-ccw" class="h-3 w-3 mr-2"></i>
-                                                                    Đã hoàn tiền
-                                                                </button>
-                                                            </li>
-                                                        </ul>
-                                                    </div>
-                                                    
-                                                    <!-- Print Receipt Button -->
-                                                    <button onclick="printReceipt(${payment.paymentId})" 
-                                                            class="inline-flex items-center px-2 py-1 text-xs font-medium text-purple-600 bg-purple-50 rounded-md hover:bg-purple-100 transition-colors duration-200"
-                                                            title="In hóa đơn">
-                                                        <i data-lucide="printer" class="h-3 w-3 mr-1"></i>
-                                                    </button>
                                                 </div>
                                             </td>
                                         </tr>

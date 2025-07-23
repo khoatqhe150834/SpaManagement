@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="context-path" content="${pageContext.request.contextPath}" />
-    <title>Thêm Thanh Toán Mới - Spa Hương Sen</title>
+    <title>Thanh Toán Tiền Mặt - Spa Hương Sen</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -29,6 +29,9 @@
     
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+    <!-- Font Awesome for money icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
         /* Form validation styling */
@@ -78,7 +81,7 @@
                 <li aria-current="page">
                     <div class="flex items-center">
                         <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
-                        <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">Thêm Thanh Toán Mới</span>
+                        <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">Thanh Toán Tiền Mặt</span>
                     </div>
                 </li>
             </ol>
@@ -86,16 +89,16 @@
 
         <!-- Page Header -->
         <div class="mb-8">
-            <h1 class="text-3xl font-bold text-spa-dark mb-2">Thêm Thanh Toán Mới</h1>
-            <p class="text-gray-600">Tạo giao dịch thanh toán mới cho khách hàng</p>
+            <h1 class="text-3xl font-bold text-spa-dark mb-2">Thanh Toán Tiền Mặt</h1>
+            <p class="text-gray-600">Tạo giao dịch thanh toán bằng tiền mặt cho khách hàng</p>
         </div>
 
         <!-- Add Payment Form -->
         <div class="bg-white rounded-xl shadow-md border border-primary/10 overflow-hidden">
             <div class="p-6 border-b border-gray-200">
                 <h2 class="text-xl font-semibold text-spa-dark flex items-center gap-2">
-                    <i data-lucide="plus-circle" class="h-6 w-6 text-primary"></i>
-                    Thông Tin Thanh Toán
+                    <i data-lucide="dollar-sign" class="h-6 w-6 text-green-600"></i>
+                    Thông Tin Thanh Toán Tiền Mặt
                 </h2>
             </div>
             
@@ -134,16 +137,6 @@
                             <div id="customerIdError" class="text-red-500 text-sm mt-1 hidden"></div>
                         </div>
                         
-                        <!-- Payment Date -->
-                        <div>
-                            <label for="paymentDate" class="block text-sm font-medium text-gray-700 mb-2">
-                                Ngày thanh toán <span class="text-red-500">*</span>
-                            </label>
-                            <input type="datetime-local" id="paymentDate" name="paymentDate" required
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors">
-                            <div id="paymentDateError" class="text-red-500 text-sm mt-1 hidden"></div>
-                        </div>
-                        
                         <!-- Payment Method -->
                         <div>
                             <label for="paymentMethod" class="block text-sm font-medium text-gray-700 mb-2">
@@ -151,67 +144,18 @@
                             </label>
                             <select id="paymentMethod" name="paymentMethod" required
                                     class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors">
-                                <option value="">Chọn phương thức</option>
-                                <option value="BANK_TRANSFER">Chuyển khoản</option>
-                                <option value="CREDIT_CARD">Thẻ tín dụng</option>
-                                <option value="VNPAY">VNPay</option>
-                                <option value="MOMO">MoMo</option>
-                                <option value="ZALOPAY">ZaloPay</option>
-                                <option value="CASH">Tiền mặt</option>
+                                <option value="">Chọn phương thức thanh toán</option>
+                                <option value="CASH">💵 Tiền mặt</option>
+                                <option value="BANK_TRANSFER">🏦 Chuyển khoản ngân hàng</option>
+                                <option value="CREDIT_CARD">💳 Thẻ tín dụng</option>
+                                <option value="VNPAY">📱 VNPay</option>
+                                <option value="MOMO">📱 MoMo</option>
+                                <option value="ZALOPAY">📱 ZaloPay</option>
                             </select>
                             <div id="paymentMethodError" class="text-red-500 text-sm mt-1 hidden"></div>
                         </div>
                         
-                        <!-- Payment Status -->
-                        <div>
-                            <label for="paymentStatus" class="block text-sm font-medium text-gray-700 mb-2">
-                                Trạng thái <span class="text-red-500">*</span>
-                            </label>
-                            <select id="paymentStatus" name="paymentStatus" required
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors">
-                                <option value="PAID">Đã thanh toán</option>
-                                <option value="PENDING">Chờ xử lý</option>
-                                <option value="FAILED">Thất bại</option>
-                                <option value="REFUNDED">Đã hoàn tiền</option>
-                            </select>
-                            <div id="paymentStatusError" class="text-red-500 text-sm mt-1 hidden"></div>
-                        </div>
-
-                        <!-- Transaction Reference -->
-                        <div>
-                            <label for="referenceNumber" class="block text-sm font-medium text-gray-700 mb-2">
-                                Mã giao dịch
-                            </label>
-                            <div class="flex">
-                                <input type="text" id="referenceNumber" name="referenceNumber"
-                                       class="flex-1 px-3 py-2 border border-gray-300 rounded-l-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
-                                       placeholder="Nhập mã giao dịch hoặc để trống để tự động tạo">
-                                <button type="button" id="generateRefBtn"
-                                        class="px-4 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-primary transition-colors">
-                                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-                                </button>
-                            </div>
-                            <div id="referenceNumberError" class="text-red-500 text-sm mt-1 hidden"></div>
-                            <p class="text-xs text-gray-500 mt-1">Mã giao dịch sẽ được tự động tạo nếu để trống</p>
-                        </div>
-
-                        <!-- Transaction Reference -->
-                        <div>
-                            <label for="referenceNumber" class="block text-sm font-medium text-gray-700 mb-2">
-                                Mã giao dịch
-                            </label>
-                            <div class="flex">
-                                <input type="text" id="referenceNumber" name="referenceNumber"
-                                       class="flex-1 px-3 py-2 border border-gray-300 rounded-l-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
-                                       placeholder="Nhập mã giao dịch hoặc để trống để tự động tạo">
-                                <button type="button" id="generateRefBtn"
-                                        class="px-4 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-primary transition-colors">
-                                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-                                </button>
-                            </div>
-                            <div id="referenceNumberError" class="text-red-500 text-sm mt-1 hidden"></div>
-                            <p class="text-xs text-gray-500 mt-1">Mã giao dịch sẽ được tự động tạo nếu để trống</p>
-                        </div>
+                        <!-- Payment Status and Reference Number are auto-generated -->
                         
                         <!-- Amount Section -->
                         <div class="md:col-span-2">
@@ -223,33 +167,32 @@
                                         Tiền dịch vụ <span class="text-red-500">*</span>
                                     </label>
                                     <div class="relative">
-                                        <input type="text" id="subtotalAmount" name="subtotalAmount" required
-                                               class="w-full pl-3 pr-12 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
-                                               placeholder="Nhập tiền dịch vụ..."
-                                               inputmode="numeric">
+                                        <input type="text" id="subtotalAmount" name="subtotalAmount" required readonly
+                                               class="w-full pl-3 pr-12 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                                               placeholder="Tự động tính từ dịch vụ">
                                         <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-500">
                                             VNĐ
                                         </div>
                                     </div>
                                     <div id="subtotalAmountError" class="text-red-500 text-sm mt-1 hidden"></div>
+                                    <p class="text-xs text-gray-500 mt-1">Tự động tính từ các dịch vụ đã chọn</p>
                                 </div>
 
                                 <!-- Tax Amount -->
                                 <div>
                                     <label for="taxAmount" class="block text-sm font-medium text-gray-700 mb-2">
-                                        Thuế VAT
+                                        Thuế VAT (10%)
                                     </label>
                                     <div class="relative">
-                                        <input type="text" id="taxAmount" name="taxAmount"
-                                               class="w-full pl-3 pr-12 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
-                                               placeholder="0"
-                                               inputmode="numeric">
+                                        <input type="text" id="taxAmount" name="taxAmount" readonly
+                                               class="w-full pl-3 pr-12 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                                               placeholder="Tự động tính 10%">
                                         <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-500">
                                             VNĐ
                                         </div>
                                     </div>
                                     <div id="taxAmountError" class="text-red-500 text-sm mt-1 hidden"></div>
-                                    <p class="text-xs text-gray-500 mt-1">Tự động tính 10% nếu để trống</p>
+                                    <p class="text-xs text-gray-500 mt-1">Tự động tính 10% VAT từ tiền dịch vụ</p>
                                 </div>
 
                                 <!-- Total Amount -->
@@ -266,7 +209,7 @@
                                         </div>
                                     </div>
                                     <div id="totalAmountError" class="text-red-500 text-sm mt-1 hidden"></div>
-                                    <p class="text-xs text-gray-500 mt-1">Tự động tính = Tiền dịch vụ + Thuế</p>
+                                    <p class="text-xs text-gray-500 mt-1">Tổng tiền khách hàng cần thanh toán</p>
                                 </div>
                             </div>
                         </div>
@@ -306,7 +249,7 @@
                                                     <c:forEach var="service" items="${services}">
                                                         <option value="${service.serviceId}"
                                                                 data-price="${service.price}"
-                                                                data-duration="${service.duration}">
+                                                                data-duration="${service.durationMinutes}">
                                                             ${service.name} - <fmt:formatNumber value="${service.price}" pattern="#,###"/> VNĐ
                                                         </option>
                                                     </c:forEach>
@@ -354,9 +297,9 @@
                             Hủy
                         </a>
                         <button type="submit" id="submitBtn"
-                                class="px-6 py-2 bg-primary text-white rounded-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors">
-                            <i data-lucide="save" class="w-4 h-4 inline mr-2"></i>
-                            Thêm Thanh Toán
+                                class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors">
+                            <i data-lucide="dollar-sign" class="w-4 h-4 inline mr-2"></i>
+                            Thanh Toán Tiền Mặt
                         </button>
                     </div>
                 </form>
