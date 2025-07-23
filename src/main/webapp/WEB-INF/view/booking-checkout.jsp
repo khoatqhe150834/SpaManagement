@@ -502,7 +502,25 @@
     </c:choose>
 
     <script>
-    </script>
+window.addEventListener('DOMContentLoaded', function() {
+    var input = document.getElementById('promotionCode');
+    if (!input) return;
+    if (input.value && input.value.trim().length > 0) return;
+    var urlParams = new URLSearchParams(window.location.search);
+    var promoCode = urlParams.get('promotionCode');
+    if (promoCode) {
+        input.value = promoCode;
+        input.focus();
+        return;
+    }
+    var pending = localStorage.getItem('pendingPromotionCode');
+    if (pending) {
+        input.value = pending;
+        input.focus();
+        localStorage.removeItem('pendingPromotionCode');
+    }
+});
+</script>
 
     <!-- Core JavaScript -->
     <script src="<c:url value='/js/app.js'/>"></script>

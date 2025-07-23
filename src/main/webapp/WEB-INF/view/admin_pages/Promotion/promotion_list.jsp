@@ -101,6 +101,23 @@
                                     <option value="SCHEDULED" ${status == 'SCHEDULED' ? 'selected' : ''}>Lên lịch</option>
                                 </select>
                             </div>
+                            <div class="min-w-32">
+                                <label for="sortBy" class="block text-sm font-medium text-gray-700 mb-2">Sắp xếp theo</label>
+                                <select name="sortBy" id="sortBy" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" onchange="this.form.submit()">
+                                    <option value="id" ${sortBy == 'id' ? 'selected' : ''}>ID</option>
+                                    <option value="title" ${sortBy == 'title' ? 'selected' : ''}>Tên khuyến mãi</option>
+                                    <option value="code" ${sortBy == 'code' ? 'selected' : ''}>Mã</option>
+                                    <option value="discount_value" ${sortBy == 'discount_value' ? 'selected' : ''}>Giảm giá</option>
+                                    <option value="status" ${sortBy == 'status' ? 'selected' : ''}>Trạng thái</option>
+                                </select>
+                            </div>
+                            <div class="min-w-24">
+                                <label for="sortOrder" class="block text-sm font-medium text-gray-700 mb-2">Chiều</label>
+                                <select name="sortOrder" id="sortOrder" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" onchange="this.form.submit()">
+                                    <option value="asc" ${sortOrder == 'asc' ? 'selected' : ''}>Tăng dần</option>
+                                    <option value="desc" ${sortOrder == 'desc' ? 'selected' : ''}>Giảm dần</option>
+                                </select>
+                            </div>
                             <div class="min-w-24">
                                 <label for="pageSize" class="block text-sm font-medium text-gray-700 mb-2">Hiển thị</label>
                                 <select name="pageSize" id="pageSize" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
@@ -226,49 +243,40 @@
                                             </tr>
                                         </c:forEach>
                                     </tbody>
+                                    
+                                    <div class="flex justify-end mb-2">
+                                <c:if test="${totalPages > 1}">
+                                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                                        <c:if test="${currentPage > 1}">
+                                            <c:url var="pageUrl" value="/promotion/list"><c:param name="page" value="${currentPage - 1}"/><c:param name="searchValue" value="${searchValue}"/><c:param name="status" value="${status}"/><c:param name="pageSize" value="${pageSize}"/><c:param name="sortBy" value="${sortBy}"/><c:param name="sortOrder" value="${sortOrder}"/></c:url>
+                                            <a href="${pageUrl}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                                <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                                            </a>
+                                        </c:if>
+                                        <c:forEach begin="1" end="${totalPages}" var="pageNum">
+                                            <c:choose>
+                                                <c:when test="${pageNum == currentPage}">
+                                                    <span class="relative inline-flex items-center px-4 py-2 border border-primary bg-primary text-sm font-medium text-white">${pageNum}</span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <c:url var="pageUrl" value="/promotion/list"><c:param name="page" value="${pageNum}"/><c:param name="searchValue" value="${searchValue}"/><c:param name="status" value="${status}"/><c:param name="pageSize" value="${pageSize}"/><c:param name="sortBy" value="${sortBy}"/><c:param name="sortOrder" value="${sortOrder}"/></c:url>
+                                                    <a href="${pageUrl}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">${pageNum}</a>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </c:forEach>
+                                        <c:if test="${currentPage < totalPages}">
+                                            <c:url var="pageUrl" value="/promotion/list"><c:param name="page" value="${currentPage + 1}"/><c:param name="searchValue" value="${searchValue}"/><c:param name="status" value="${status}"/><c:param name="pageSize" value="${pageSize}"/><c:param name="sortBy" value="${sortBy}"/><c:param name="sortOrder" value="${sortOrder}"/></c:url>
+                                            <a href="${pageUrl}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                                <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                                            </a>
+                                        </c:if>
+                                    </nav>
+                                </c:if>
+                            </div>
                                 </table>
                             </div>
 
-                            <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
-                                <div class="flex items-center justify-between">
-                                    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                                        <div>
-                                            <p class="text-sm text-gray-700">
-                                                Hiển thị <span class="font-medium">${(currentPage - 1) * pageSize + 1}</span> 
-                                                đến <span class="font-medium">${currentPage * pageSize > totalPromotions ? totalPromotions : currentPage * pageSize}</span>
-                                                trên <span class="font-medium">${totalPromotions}</span> kết quả
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                                                <c:if test="${currentPage > 1}">
-                                                    <c:url var="pageUrl" value="/promotion/list"><c:param name="page" value="${currentPage - 1}"/><c:param name="searchValue" value="${searchValue}"/><c:param name="status" value="${status}"/><c:param name="pageSize" value="${pageSize}"/></c:url>
-                                                    <a href="${pageUrl}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                                                        <i data-lucide="chevron-left" class="w-5 h-5"></i>
-                                                    </a>
-                                                </c:if>
-                                                <c:forEach begin="1" end="${totalPages}" var="pageNum">
-                                                    <c:choose>
-                                                        <c:when test="${pageNum == currentPage}">
-                                                            <span class="relative inline-flex items-center px-4 py-2 border border-primary bg-primary text-sm font-medium text-white">${pageNum}</span>
-                                                        </c:when>
-                                                        <c:otherwise>
-                                                             <c:url var="pageUrl" value="/promotion/list"><c:param name="page" value="${pageNum}"/><c:param name="searchValue" value="${searchValue}"/><c:param name="status" value="${status}"/><c:param name="pageSize" value="${pageSize}"/></c:url>
-                                                            <a href="${pageUrl}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">${pageNum}</a>
-                                                        </c:otherwise>
-                                                    </c:choose>
-                                                </c:forEach>
-                                                <c:if test="${currentPage < totalPages}">
-                                                    <c:url var="pageUrl" value="/promotion/list"><c:param name="page" value="${currentPage + 1}"/><c:param name="searchValue" value="${searchValue}"/><c:param name="status" value="${status}"/><c:param name="pageSize" value="${pageSize}"/></c:url>
-                                                    <a href="${pageUrl}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                                                        <i data-lucide="chevron-right" class="w-5 h-5"></i>
-                                                    </a>
-                                                </c:if>
-                                            </nav>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                         
                         </c:when>
                         <c:otherwise>
                             <div class="p-8 text-center">

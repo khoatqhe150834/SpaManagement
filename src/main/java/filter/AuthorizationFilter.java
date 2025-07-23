@@ -105,6 +105,8 @@ public class AuthorizationFilter implements Filter {
         // User Management (Admin, Manager, and staff can view their own info)
         URL_ROLE_MAPPINGS.put("/user-management", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID, RoleConstants.RECEPTIONIST_ID, RoleConstants.MARKETING_ID, RoleConstants.INVENTORY_MANAGER_ID)));
 
+
+
         // Legacy customer paths (deprecated - for backward compatibility)
         URL_ROLE_MAPPINGS.put("/admin/customer-account", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID)));
         URL_ROLE_MAPPINGS.put("/manager/customer", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));

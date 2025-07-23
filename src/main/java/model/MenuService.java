@@ -196,6 +196,12 @@ public class MenuService {
     menuItems.add(new MenuItem("Quản lý thanh toán", contextPath + "/admin/payments", "credit-card", "financial"));
     menuItems.add(new MenuItem("Báo cáo tài chính", contextPath + "/admin/financial-reports", "file-text", "financial"));
 
+    // Loyalty Points Management
+    menuItems.add(new MenuItem("ĐIỂM THƯỞNG", true));
+    menuItems.add(new MenuItem("Chính sách điểm thưởng", contextPath + "/loyalty-policy", "star", "loyalty"));
+    menuItems.add(new MenuItem("Quản lý điểm thưởng", contextPath + "/loyalty-points", "gift", "loyalty"));
+    menuItems.add(new MenuItem("Báo cáo điểm thưởng", contextPath + "/loyalty-report", "chart-bar", "loyalty"));
+
     return menuItems;
   }
 

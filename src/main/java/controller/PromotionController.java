@@ -295,6 +295,36 @@ public class PromotionController extends HttpServlet {
                         logger.log(Level.WARNING, "Failed to send promotion notifications", e);
                         // Không block việc tạo promotion nếu gửi thông báo thất bại
                     }
+                    // --- BẮT ĐẦU: Thêm promotion vào kho khuyến mãi của khách hàng ---
+                    try {
+                        dao.CustomerDAO customerDAO = new dao.CustomerDAO();
+                        dao.PromotionUsageDAO promotionUsageDAO = new dao.PromotionUsageDAO();
+                        int totalCustomers = customerDAO.getTotalCustomers();
+                        int pageSize = 100; // batch size
+                        for (int page = 1; page <= (int)Math.ceil((double)totalCustomers/pageSize); page++) {
+                            java.util.List<model.Customer> customers = customerDAO.findAll(page, pageSize);
+                            for (model.Customer customer : customers) {
+                                // Chỉ thêm nếu chưa có usage cho promotion này
+                                if (!promotionUsageDAO.hasCustomerUsedPromotion(promotion.getPromotionId(), customer.getCustomerId())) {
+                                    model.PromotionUsage usage = new model.PromotionUsage();
+                                    usage.setPromotionId(promotion.getPromotionId());
+                                    usage.setCustomerId(customer.getCustomerId());
+                                    usage.setDiscountAmount(java.math.BigDecimal.ZERO);
+                                    usage.setOriginalAmount(java.math.BigDecimal.ZERO);
+                                    usage.setFinalAmount(java.math.BigDecimal.ZERO);
+                                    usage.setUsedAt(null); // Chưa dùng
+                                    usage.setPaymentId(null);
+                                    usage.setBookingId(null);
+                                    promotionUsageDAO.save(usage);
+                                }
+                            }
+                        }
+                        logger.info("Added new promotion to all customers' promotion store");
+                    } catch (Exception e) {
+                        logger.log(Level.WARNING, "Failed to add new promotion to all customers' store", e);
+                        // Không block việc tạo promotion nếu thêm vào kho thất bại
+                    }
+                    // --- KẾT THÚC ---
                 }
             }
 
@@ -439,13 +469,8 @@ public class PromotionController extends HttpServlet {
         promotion.setStatus(status);
         
         // Validate customer condition
-        if (customerCondition == null || customerCondition.trim().isEmpty()) {
-            errors.put("customerCondition", "Vui lòng chọn điều kiện khách hàng");
-        } else if (!customerCondition.matches("^(ALL|INDIVIDUAL|COUPLE|GROUP)$")) {
-            errors.put("customerCondition", "Điều kiện khách hàng không hợp lệ");
-        } else {
-            promotion.setCustomerCondition(customerCondition);
-        }
+        // Luôn set customerCondition = 'ALL' để mọi khách hàng đều áp dụng được
+        promotion.setCustomerCondition("ALL");
         
         // Các giá trị mặc định cho các trường mới
         if (!isEdit) {

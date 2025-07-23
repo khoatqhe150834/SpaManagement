@@ -29,6 +29,7 @@ import model.Customer;
 import model.RememberMeToken;
 import model.RoleConstants;
 import model.User;
+import service.RewardPointService;
 
 /**
  *
@@ -335,6 +336,17 @@ public class LoginController extends HttpServlet {
             session.setAttribute("customer", customer);
             roleId = customer.getRoleId();
             userType = RoleConstants.getUserTypeFromRole(roleId);
+
+            // --- Thêm logic cộng điểm đăng nhập mỗi ngày ---
+            try {
+                RewardPointService rewardPointService = new RewardPointService();
+                int customerId = customer.getCustomerId();
+                rewardPointService.addDailyLoginPointsIfNotYet(customerId, 10); // 10 điểm mỗi ngày
+            } catch (Exception e) {
+                // Log lỗi nhưng không ảnh hưởng đăng nhập
+                e.printStackTrace();
+            }
+            // --- End cộng điểm ---
         }
 
         session.setAttribute("userType", userType);
