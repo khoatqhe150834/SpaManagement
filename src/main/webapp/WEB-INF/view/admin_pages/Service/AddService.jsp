@@ -41,7 +41,7 @@
     <div class="flex">
         <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
         <main class="flex-1 py-12 lg:py-20 ml-64">
-            <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                 <!-- Breadcrumb -->
                 <div class="flex flex-wrap items-center gap-2 mb-8 text-gray-500 text-sm">
                     <a href="service?service=list-all&page=${page}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}${not empty serviceTypeId ? '&serviceTypeId='.concat(serviceTypeId) : ''}" class="flex items-center gap-1 hover:text-primary">
@@ -305,6 +305,18 @@
             return true;
         }
 
+        // Định nghĩa hàm updateUploadButtonVisibility ở ngoài handleImageUpload
+        function updateUploadButtonVisibility() {
+            const container = document.querySelector('.uploaded-imgs-container');
+            const uploadBtn = document.querySelector('label[for="upload-file-multiple"]');
+            const previewCount = container.querySelectorAll('.img-preview').length;
+            if (previewCount >= 5) {
+                uploadBtn.style.display = 'none';
+            } else {
+                uploadBtn.style.display = '';
+            }
+        }
+
         // DataTransfer to accumulate files
         let dt = new DataTransfer();
 
@@ -314,9 +326,17 @@
             const errorDiv = document.getElementById('imageError');
             let hasValid = false;
             let errorMsg = '';
-
+            // Đếm số ảnh preview hiện tại
+            const previewCount = container.querySelectorAll('.img-preview').length;
+            // Nếu đã đủ 5 ảnh thì ẩn nút upload và return
+            if (previewCount >= 5) {
+                updateUploadButtonVisibility();
+                return;
+            }
             let filesProcessed = 0;
-            for (let i = 0; i < files.length; i++) {
+            // Chỉ thêm tối đa số ảnh còn thiếu
+            let canAdd = 5 - previewCount;
+            for (let i = 0; i < files.length && canAdd > 0; i++) {
                 const file = files[i];
                 // Check file size (max 2MB)
                 if (file.size > 2 * 1024 * 1024) {
@@ -341,10 +361,11 @@
                     } else {
                         hasValid = true;
                         dt.items.add(file); // accumulate file
+                        canAdd--;
                         const reader = new FileReader();
                         reader.onload = function(e) {
                             const previewDiv = document.createElement('div');
-                            previewDiv.className = 'relative h-28 w-28 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 overflow-hidden flex items-center justify-center mr-2 mb-2';
+                            previewDiv.className = 'img-preview relative h-28 w-28 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 overflow-hidden flex items-center justify-center mr-2 mb-2';
                             const imgElem = document.createElement('img');
                             imgElem.src = e.target.result;
                             imgElem.className = 'w-full h-full object-cover';
@@ -356,21 +377,27 @@
                             removeBtn.style.width = '24px';
                             removeBtn.style.height = '24px';
                             removeBtn.title = 'Xóa ảnh này';
-                            removeBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>';
+                            removeBtn.innerHTML = '<i data-lucide="x" class="w-4 h-4"></i>';
                             removeBtn.onclick = function() {
                                 // Xóa file khỏi dt
                                 const newDt = new DataTransfer();
+                                let removed = false;
                                 for (let j = 0; j < dt.items.length; j++) {
-                                    if (dt.items[j].getAsFile().name !== file.name) {
-                                        newDt.items.add(dt.items[j].getAsFile());
+                                    if (!removed && dt.items[j].getAsFile().name === file.name && dt.items[j].getAsFile().size === file.size) {
+                                        removed = true;
+                                        continue;
                                     }
+                                    newDt.items.add(dt.items[j].getAsFile());
                                 }
                                 dt = newDt;
                                 input.files = dt.files;
                                 previewDiv.remove();
+                                updateUploadButtonVisibility();
                             };
                             previewDiv.appendChild(removeBtn);
                             container.appendChild(previewDiv);
+                            if (window.lucide) lucide.createIcons();
+                            updateUploadButtonVisibility();
                         };
                         reader.readAsDataURL(file);
                         URL.revokeObjectURL(url);
@@ -383,6 +410,7 @@
                         } else {
                             setInvalid(input, errorDiv, errorMsg || 'Không có ảnh hợp lệ');
                         }
+                        updateUploadButtonVisibility();
                     }
                 };
                 img.onerror = function() {
@@ -396,10 +424,13 @@
                         } else {
                             setInvalid(input, errorDiv, errorMsg || 'Không có ảnh hợp lệ');
                         }
+                        updateUploadButtonVisibility();
                     }
                 };
                 img.src = url;
             }
+            // Đảm bảo luôn cập nhật trạng thái nút upload sau khi xử lý xong
+            updateUploadButtonVisibility();
         }
 
         // AJAX check duplicate service name

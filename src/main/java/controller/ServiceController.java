@@ -493,6 +493,7 @@ public class ServiceController extends HttpServlet {
                 serviceImage.setSortOrder(sortOrder);
                 serviceImage.setIsActive(true);
                 serviceImage.setCaption("Uploaded via ServiceController");
+                serviceImage.setFileSize(fileBytes.length); // <--- Thêm dòng này
 
                 serviceImageDAO.save(serviceImage);
 

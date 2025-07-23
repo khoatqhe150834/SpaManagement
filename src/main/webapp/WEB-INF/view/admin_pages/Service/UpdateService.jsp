@@ -41,7 +41,7 @@
     <div class="flex">
         <jsp:include page="/WEB-INF/view/common/sidebar.jsp" />
         <main class="flex-1 py-12 lg:py-20 ml-64">
-            <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                 <!-- Breadcrumb -->
                 <div class="flex flex-wrap items-center gap-2 mb-8 text-gray-500 text-sm">
                     <a href="service?service=list-all&page=${page}&limit=${limit}${not empty keyword ? '&keyword='.concat(keyword) : ''}${not empty status ? '&status='.concat(status) : ''}${not empty serviceTypeId ? '&serviceTypeId='.concat(serviceTypeId) : ''}" class="flex items-center gap-1 hover:text-primary">
@@ -338,13 +338,17 @@
             const errorDiv = document.getElementById('imageError');
             let hasValid = false;
             let errorMsg = '';
-            container.innerHTML = '';
-            if (files.length === 0) {
-                setDefault(input, errorDiv);
+            // Đếm số ảnh preview hiện tại và ảnh cũ chưa bị ẩn
+            const previewCount = container.querySelectorAll('.img-preview').length;
+            const existingCount = document.querySelectorAll('.existing-img-container:not([style*="display: none"])').length;
+            // Chỉ thêm tối đa số ảnh còn thiếu
+            let canAdd = 5 - (previewCount + existingCount);
+            if (canAdd <= 0) {
+                updateUploadButtonVisibility();
                 return;
             }
             let filesProcessed = 0;
-            for (let i = 0; i < files.length; i++) {
+            for (let i = 0; i < files.length && canAdd > 0; i++) {
                 const file = files[i];
                 // Check file size (max 2MB)
                 if (file.size > 2 * 1024 * 1024) {
@@ -369,31 +373,43 @@
                     } else {
                         hasValid = true;
                         dt.items.add(file); // accumulate file
+                        canAdd--;
                         const reader = new FileReader();
                         reader.onload = function(e) {
                             const previewDiv = document.createElement('div');
-                            previewDiv.className = 'relative h-28 w-28 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 overflow-hidden flex items-center justify-center mr-2 mb-2';
+                            previewDiv.className = 'img-preview relative h-28 w-28 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 overflow-hidden flex items-center justify-center mr-2 mb-2';
                             const imgElem = document.createElement('img');
                             imgElem.src = e.target.result;
                             imgElem.className = 'w-full h-full object-cover';
                             previewDiv.appendChild(imgElem);
-                            // Thêm nút xóa
+                            // Nút xóa nổi bật
                             const removeBtn = document.createElement('button');
                             removeBtn.type = 'button';
                             removeBtn.className = 'absolute top-1 right-1 bg-white border border-red-500 rounded-full p-1 shadow flex items-center justify-center hover:bg-red-500 hover:text-white transition';
                             removeBtn.style.width = '24px';
                             removeBtn.style.height = '24px';
                             removeBtn.title = 'Xóa ảnh này';
-                            removeBtn.innerHTML = '<i data-lucide="x" class="w-4 h-4 text-red-600"></i>';
+                            removeBtn.innerHTML = '<i data-lucide="x" class="w-4 h-4"></i>';
                             removeBtn.onclick = function() {
-                                dt.items.remove(i);
-                                previewDiv.remove();
-                                // Cập nhật lại input files
+                                // Xóa file khỏi dt
+                                const newDt = new DataTransfer();
+                                let removed = false;
+                                for (let j = 0; j < dt.items.length; j++) {
+                                    if (!removed && dt.items[j].getAsFile().name === file.name && dt.items[j].getAsFile().size === file.size) {
+                                        removed = true;
+                                        continue;
+                                    }
+                                    newDt.items.add(dt.items[j].getAsFile());
+                                }
+                                dt = newDt;
                                 input.files = dt.files;
+                                previewDiv.remove();
+                                updateUploadButtonVisibility();
                             };
                             previewDiv.appendChild(removeBtn);
                             container.appendChild(previewDiv);
                             if (window.lucide) lucide.createIcons();
+                            updateUploadButtonVisibility();
                         };
                         reader.readAsDataURL(file);
                         URL.revokeObjectURL(url);
@@ -406,6 +422,7 @@
                         } else {
                             setInvalid(input, errorDiv, errorMsg || 'Không có ảnh hợp lệ');
                         }
+                        updateUploadButtonVisibility();
                     }
                 };
                 img.onerror = function() {
@@ -419,11 +436,36 @@
                         } else {
                             setInvalid(input, errorDiv, errorMsg || 'Không có ảnh hợp lệ');
                         }
+                        updateUploadButtonVisibility();
                     }
                 };
                 img.src = url;
             }
+            // Đảm bảo luôn cập nhật trạng thái nút upload sau khi xử lý xong
+            updateUploadButtonVisibility();
         }
+
+        // Định nghĩa hàm updateUploadButtonVisibility ở ngoài handleImageUpload
+        function updateUploadButtonVisibility() {
+            const container = document.querySelector('.uploaded-imgs-container');
+            const uploadBtn = document.querySelector('label[for="upload-file-multiple"]');
+            // Đếm số ảnh preview mới và ảnh cũ chưa bị ẩn
+            const previewCount = container.querySelectorAll('.img-preview').length;
+            const existingCount = document.querySelectorAll('.existing-img-container:not([style*="display: none"])').length;
+            const total = previewCount + existingCount;
+            if (total >= 5) {
+                uploadBtn.style.display = 'none';
+                // Ẩn thông báo lỗi nếu có
+                const errorDiv = document.getElementById('imageError');
+                if (errorDiv) errorDiv.textContent = '';
+            } else {
+                uploadBtn.style.display = '';
+                // Ẩn thông báo lỗi nếu có
+                const errorDiv = document.getElementById('imageError');
+                if (errorDiv) errorDiv.textContent = '';
+            }
+        }
+
         function validateForm() {
             const nameValid = validateName(document.getElementById('name'));
             const descValid = validateDescription(document.getElementById('description'));
