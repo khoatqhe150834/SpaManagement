@@ -786,7 +786,7 @@
 
         // Redirect to CSP booking system
         function openSchedulingModal(paymentItemId) {
-            window.location.href = '${pageContext.request.contextPath}/manager/csp-booking?paymentItemId=' + paymentItemId;
+            window.location.href = '${pageContext.request.contextPath}/manager/schedule-booking?paymentItemId=' + paymentItemId;
         }
 
 

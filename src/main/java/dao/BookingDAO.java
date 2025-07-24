@@ -1,5 +1,7 @@
 package dao;
 
+import booking.*;
+import db.DBContext;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -9,6 +11,7 @@ import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Types;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,8 +19,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import db.DBContext;
 import model.Booking;
 import model.Customer;
 import model.Service;
@@ -790,5 +791,199 @@ public class BookingDAO implements BaseDAO<Booking, Integer> {
         }
 
         return bookings;
+    }
+
+
+
+
+    public PaymentItemDetails getPaymentItemForBooking(int paymentItemId) throws SQLException {
+        String query = """
+            SELECT pi.payment_item_id, pi.payment_id, pi.service_id, s.name as service_name,
+                   pi.quantity, pi.unit_price, pi.total_price, pi.service_duration,
+                   COALESCE(s.buffer_time_after_minutes, 15) as buffer_time,
+                   COALESCE(piu.booked_quantity, 0) as booked_quantity
+            FROM payment_items pi
+            JOIN services s ON pi.service_id = s.service_id
+            LEFT JOIN payment_item_usage piu ON pi.payment_item_id = piu.payment_item_id
+            WHERE pi.payment_item_id = ? AND s.is_active = 1
+            """;
+        
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+            
+            pstmt.setInt(1, paymentItemId);
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return new PaymentItemDetails(
+                        rs.getInt("payment_item_id"),
+                        rs.getInt("payment_id"),
+                        rs.getInt("service_id"),
+                        rs.getString("service_name"),
+                        rs.getInt("quantity"),
+                        rs.getInt("booked_quantity"),
+                        rs.getDouble("unit_price"),
+                        rs.getDouble("total_price"),
+                        rs.getInt("service_duration"),
+                        rs.getInt("buffer_time")
+                    );
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error loading payment item details: " + paymentItemId, e);
+            throw e;
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Get customer ID from payment item
+     */
+    public int getCustomerIdFromPaymentItem(int paymentItemId) throws SQLException {
+        String query = """
+            SELECT p.customer_id 
+            FROM payment_items pi 
+            JOIN payments p ON pi.payment_id = p.payment_id 
+            WHERE pi.payment_item_id = ?
+            """;
+        
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+            
+            pstmt.setInt(1, paymentItemId);
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("customer_id");
+                }
+            }
+        }
+        
+        throw new SQLException("Customer not found for payment item: " + paymentItemId);
+    }
+    
+    /**
+     * Create a booking
+     */
+    public int createBooking(int customerId, int paymentItemId, int serviceId, int therapistId,
+                           int roomId, Integer bedId, LocalDate appointmentDate, 
+                           LocalTime appointmentTime, int durationMinutes) throws SQLException {
+        
+        String query = """
+            INSERT INTO bookings (customer_id, payment_item_id, service_id, therapist_user_id,
+                                room_id, bed_id, appointment_date, appointment_time, 
+                                duration_minutes, booking_status, booking_notes, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'SCHEDULED', 'Booked via online system', NOW(), NOW())
+            """;
+        
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+            
+            pstmt.setInt(1, customerId);
+            pstmt.setInt(2, paymentItemId);
+            pstmt.setInt(3, serviceId);
+            pstmt.setInt(4, therapistId);
+            pstmt.setInt(5, roomId);
+            if (bedId != null) {
+                pstmt.setInt(6, bedId);
+            } else {
+                pstmt.setNull(6, Types.INTEGER);
+            }
+            pstmt.setDate(7, Date.valueOf(appointmentDate));
+            pstmt.setTime(8, Time.valueOf(appointmentTime));
+            pstmt.setInt(9, durationMinutes);
+            
+            pstmt.executeUpdate();
+            
+            try (ResultSet rs = pstmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    int bookingId = rs.getInt(1);
+                    
+                    // Update payment item usage
+                    updatePaymentItemUsage(paymentItemId);
+                    
+                    LOGGER.info("Created booking ID: " + bookingId + " for payment item: " + paymentItemId);
+                    return bookingId;
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error creating booking", e);
+            throw e;
+        }
+        
+        throw new SQLException("Failed to create booking");
+    }
+    
+    /**
+     * Update payment item usage after booking
+     */
+    private void updatePaymentItemUsage(int paymentItemId) throws SQLException {
+        String query = """
+            INSERT INTO payment_item_usage (payment_item_id, total_quantity, booked_quantity)
+            SELECT pi.payment_item_id, pi.quantity, 1
+            FROM payment_items pi
+            WHERE pi.payment_item_id = ?
+            ON DUPLICATE KEY UPDATE booked_quantity = booked_quantity + 1
+            """;
+        
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+            
+            pstmt.setInt(1, paymentItemId);
+            pstmt.executeUpdate();
+            
+            LOGGER.info("Updated usage for payment item: " + paymentItemId);
+        }
+    }
+    
+    /**
+     * Get available payment items for a customer
+     */
+    public List<PaymentItemDetails> getAvailablePaymentItems(int customerId) throws SQLException {
+        String query = """
+            SELECT pi.payment_item_id, pi.payment_id, pi.service_id, s.name as service_name,
+                   pi.quantity, pi.unit_price, pi.total_price, pi.service_duration,
+                   COALESCE(s.buffer_time_after_minutes, 15) as buffer_time,
+                   COALESCE(piu.booked_quantity, 0) as booked_quantity
+            FROM payment_items pi
+            JOIN payments p ON pi.payment_id = p.payment_id
+            JOIN services s ON pi.service_id = s.service_id
+            LEFT JOIN payment_item_usage piu ON pi.payment_item_id = piu.payment_item_id
+            WHERE p.customer_id = ? AND p.payment_status = 'PAID' AND s.is_active = 1
+            AND (piu.booked_quantity IS NULL OR piu.booked_quantity < pi.quantity)
+            ORDER BY pi.created_at DESC, s.name
+            """;
+        
+        List<PaymentItemDetails> items = new ArrayList<>();
+        
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+            
+            pstmt.setInt(1, customerId);
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    PaymentItemDetails item = new PaymentItemDetails(
+                        rs.getInt("payment_item_id"),
+                        rs.getInt("payment_id"),
+                        rs.getInt("service_id"),
+                        rs.getString("service_name"),
+                        rs.getInt("quantity"),
+                        rs.getInt("booked_quantity"),
+                        rs.getDouble("unit_price"),
+                        rs.getDouble("total_price"),
+                        rs.getInt("service_duration"),
+                        rs.getInt("buffer_time")
+                    );
+                    items.add(item);
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error loading available payment items for customer: " + customerId, e);
+            throw e;
+        }
+        
+        return items;
     }
 }
