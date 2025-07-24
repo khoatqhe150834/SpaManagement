@@ -127,9 +127,7 @@
                                                     <a href="${pageContext.request.contextPath}/manager/service-review?action=edit&rid=${review.reviewId}" class="inline-flex items-center justify-center p-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-full" title="Sửa phản hồi">
                                                         <i data-lucide="edit" class="w-5 h-5"></i>
                                                     </a>
-                                                    <a href="${pageContext.request.contextPath}/manager/service-review?action=delete&id=${review.reviewId}" class="inline-flex items-center justify-center p-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-full" title="Xóa đánh giá" onclick="return confirm('Bạn có chắc chắn muốn xóa đánh giá này?')">
-                                                        <i data-lucide="trash-2" class="w-5 h-5"></i>
-                                                    </a>
+                                                    <!-- Đã bỏ nút xóa review -->
                                                 </td>
                                             </tr>
                                         </c:forEach>
