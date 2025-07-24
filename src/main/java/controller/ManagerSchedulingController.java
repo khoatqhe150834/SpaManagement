@@ -41,11 +41,7 @@ import model.PaymentItemUsage;
 import model.SchedulablePaymentItem;
 import model.Service;
 import model.User;
-import model.csp.BookingAssignment;
-import model.csp.BookingCSPRequest;
-import service.BookingCSPSolver;
 import service.NotificationService;
-import service.RealTimeAvailabilityService;
 
 /**
  * Controller for Manager Scheduling Interface
@@ -70,7 +66,6 @@ public class ManagerSchedulingController extends HttpServlet {
     private final UserDAO userDAO;
     private final BookingDAO bookingDAO;
     private final NotificationService notificationService;
-    private final RealTimeAvailabilityService availabilityService;
     
     public ManagerSchedulingController() {
         this.paymentDAO = new PaymentDAO();
@@ -81,7 +76,6 @@ public class ManagerSchedulingController extends HttpServlet {
         this.userDAO = new UserDAO();
         this.bookingDAO = new BookingDAO();
         this.notificationService = new NotificationService();
-        this.availabilityService = new RealTimeAvailabilityService();
     }
     
     @Override
@@ -141,12 +135,9 @@ public class ManagerSchedulingController extends HttpServlet {
                 case "get_rooms":
                     handleGetRooms(request, response, user);
                     break;
-                case "find_available_slots":
-                    handleFindAvailableSlots(request, response, user);
-                    break;
-                case "get_realtime_availability":
-                    handleGetRealtimeAvailability(request, response, user);
-                    break;
+                
+               
+              
                 
                 case "get_item_details":
                     handleGetItemDetails(request, response, user);
@@ -873,63 +864,7 @@ public class ManagerSchedulingController extends HttpServlet {
     /**
      * Handle real-time availability request for calendar display
      */
-    private void handleGetRealtimeAvailability(HttpServletRequest request, HttpServletResponse response, User user)
-            throws IOException, ServletException {
-
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-
-        try {
-            // Get parameters
-            String dateStr = request.getParameter("date");
-            String serviceIdStr = request.getParameter("serviceId");
-            String customerIdStr = request.getParameter("customerId");
-
-            if (dateStr == null || serviceIdStr == null || customerIdStr == null) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write("{\"success\":false,\"message\":\"Missing required parameters\"}");
-                return;
-            }
-
-            LocalDate date = LocalDate.parse(dateStr);
-            int serviceId = Integer.parseInt(serviceIdStr);
-            int customerId = Integer.parseInt(customerIdStr);
-
-            // Get real-time availability
-            List<RealTimeAvailabilityService.AvailabilitySlot> availabilitySlots =
-                availabilityService.getAvailabilityForDate(date, serviceId, customerId);
-
-            // Convert to JSON response
-            StringBuilder jsonBuilder = new StringBuilder();
-            jsonBuilder.append("{\"success\":true,\"message\":\"Availability retrieved successfully\",\"data\":[");
-
-            for (int i = 0; i < availabilitySlots.size(); i++) {
-                RealTimeAvailabilityService.AvailabilitySlot slot = availabilitySlots.get(i);
-
-                if (i > 0) jsonBuilder.append(",");
-
-                jsonBuilder.append("{")
-                    .append("\"startTime\":\"").append(slot.getStartTime().toString()).append("\",")
-                    .append("\"endTime\":\"").append(slot.getEndTime().toString()).append("\",")
-                    .append("\"available\":").append(slot.isAvailable()).append(",")
-                    .append("\"resourceCount\":").append(slot.getAvailableResources().size())
-                    .append("}");
-            }
-
-            jsonBuilder.append("],\"timestamp\":").append(System.currentTimeMillis()).append("}");
-
-            response.getWriter().write(jsonBuilder.toString());
-
-        } catch (Exception e) {
-            LOGGER.severe("Error getting real-time availability: " + e.getMessage());
-            e.printStackTrace();
-
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write("{\"success\":false,\"message\":\"Error retrieving availability: " +
-                e.getMessage().replace("\"", "\\\"") + "\"}");
-        }
-    }
-
+  
     /**
      * Handle time slot generation test request
      */
@@ -939,82 +874,7 @@ public class ManagerSchedulingController extends HttpServlet {
     /**
      * Handle CSP solver request for finding available slots
      */
-    private void handleFindAvailableSlots(HttpServletRequest request, HttpServletResponse response, User user)
-            throws IOException {
-
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-
-        try {
-            // Parse request parameters
-            String customerIdStr = request.getParameter("customerId");
-            String serviceIdStr = request.getParameter("serviceId");
-            String preferredTherapistIdStr = request.getParameter("preferredTherapistId");
-            String preferredDateStr = request.getParameter("preferredDate");
-            String maxResultsStr = request.getParameter("maxResults");
-
-            // Validate required parameters
-            if (customerIdStr == null || serviceIdStr == null) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write("{\"success\": false, \"message\": \"Missing required parameters\"}");
-                return;
-            }
-
-            // Create CSP request
-            BookingCSPRequest cspRequest = new BookingCSPRequest();
-            cspRequest.setCustomerId(Integer.parseInt(customerIdStr));
-            cspRequest.setServiceId(Integer.parseInt(serviceIdStr));
-
-            // Set optional parameters
-            if (preferredTherapistIdStr != null && !preferredTherapistIdStr.isEmpty()) {
-                cspRequest.setPreferredTherapistId(Integer.parseInt(preferredTherapistIdStr));
-            }
-
-            if (preferredDateStr != null && !preferredDateStr.isEmpty()) {
-                cspRequest.setPreferredDate(LocalDate.parse(preferredDateStr));
-            }
-
-            if (maxResultsStr != null && !maxResultsStr.isEmpty()) {
-                cspRequest.setMaxResults(Integer.parseInt(maxResultsStr));
-            }
-
-            // Run CSP solver
-            BookingCSPSolver solver = new BookingCSPSolver();
-            List<BookingAssignment> availableSlots = solver.findAvailableSlots(cspRequest);
-
-            // Convert to response format
-            List<Map<String, Object>> responseSlots = new ArrayList<>();
-            for (BookingAssignment assignment : availableSlots) {
-                Map<String, Object> slot = new HashMap<>();
-                slot.put("startTime", assignment.getTimeSlot().getStartTime().toString());
-                slot.put("endTime", assignment.getTimeSlot().getEndTime().toString());
-                slot.put("therapistId", assignment.getTherapistId());
-                slot.put("roomId", assignment.getRoomId());
-                slot.put("bedId", assignment.getBedId());
-                slot.put("confidenceLevel", assignment.getConfidenceLevel().name());
-                slot.put("confidenceDescription", assignment.getConfidenceLevel().getDescription());
-                slot.put("durationMinutes", assignment.getTimeSlot().getDurationMinutes());
-                responseSlots.add(slot);
-            }
-
-            // Create response
-            ApiResponse<List<Map<String, Object>>> apiResponse = new ApiResponse<>();
-            apiResponse.setSuccess(true);
-            apiResponse.setData(responseSlots);
-            apiResponse.setMessage(String.format("Found %d available slots", availableSlots.size()));
-
-            response.getWriter().write(gson.toJson(apiResponse));
-
-        } catch (NumberFormatException e) {
-            LOGGER.log(Level.WARNING, "Invalid number format in CSP request", e);
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter().write("{\"success\": false, \"message\": \"Invalid parameter format\"}");
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Error in CSP solver", e);
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write("{\"success\": false, \"message\": \"Internal server error\"}");
-        }
-    }
+  
 
     /**
      * Handle get item details request for CSP modal

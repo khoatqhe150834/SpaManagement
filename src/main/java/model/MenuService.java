@@ -250,7 +250,7 @@ public class MenuService {
     MenuItem serviceMgmt = new MenuItem("Quản lý dịch vụ", contextPath + "/manager/service", "sparkles", "services");
     serviceMgmt.addSubItem(new MenuItem("Menu dịch vụ", contextPath + "/manager/service", "list"));
     serviceMgmt.addSubItem(new MenuItem("Loại dịch vụ", contextPath + "/manager/servicetype", "grid"));
-    serviceMgmt.addSubItem(new MenuItem("Quy trình điều trị", contextPath + "/manager/service/protocols", "file-text"));
+    serviceMgmt.addSubItem(new MenuItem("Đánh giá dịch vụ", contextPath + "/manager/service-review", "star"));
     serviceMgmt
         .addSubItem(new MenuItem("Kiểm soát chất lượng", contextPath + "/manager/service/quality", "shield-check"));
     serviceMgmt.addSubItem(new MenuItem("Quản lý sản phẩm", contextPath + "/manager/service/products", "package"));

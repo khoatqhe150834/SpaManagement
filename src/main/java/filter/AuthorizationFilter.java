@@ -152,6 +152,12 @@ public class AuthorizationFilter implements Filter {
             RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID,
             RoleConstants.RECEPTIONIST_ID, RoleConstants.CUSTOMER_ID, RoleConstants.MARKETING_ID, RoleConstants.INVENTORY_MANAGER_ID));
         PATTERN_ROLE_MAPPINGS.put("/api/validate/*", allAuthenticatedRoles);
+        
+        // CSP Booking API patterns - accessible to all authenticated users for testing
+        PATTERN_ROLE_MAPPINGS.put("/api/csp-booking/*", allAuthenticatedRoles);
+        
+        // Therapist Schedule API patterns - accessible to all authenticated users
+        PATTERN_ROLE_MAPPINGS.put("/api/therapist-schedule", allAuthenticatedRoles);
 
         // Therapist area patterns
         PATTERN_ROLE_MAPPINGS.put("/therapist/*", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID)));

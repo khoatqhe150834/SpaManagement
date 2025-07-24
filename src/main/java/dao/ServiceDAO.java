@@ -1,5 +1,6 @@
 package dao;
 
+import db.DBContext;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -13,8 +14,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import db.DBContext;
 import model.Service;
 import model.ServiceType;
 
@@ -132,6 +131,8 @@ public class ServiceDAO implements BaseDAO<Service, Integer> {
 
         return services;
     }
+
+    
 
     @Override
     public boolean existsById(Integer id) {

@@ -47,7 +47,8 @@ import service.CartPaymentService.CartItem;
     "/customer/book-service",
     "/customer/booking-history",
     "/booking-checkout",
-    "/checkout/process"
+    "/checkout/process",
+    "/manager/csp-booking"
 })
 public class BookingController extends HttpServlet {
 
@@ -94,6 +95,9 @@ public class BookingController extends HttpServlet {
                 // GET not supported for checkout process
                 response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
                 response.getWriter().write("{\"success\": false, \"message\": \"Method not allowed\"}");
+                break;
+            case "/manager/csp-booking":
+                handleManagerCSPBooking(request, response);
                 break;
             case "/booking":
             default:
@@ -790,6 +794,45 @@ public class BookingController extends HttpServlet {
             LOGGER.log(Level.SEVERE, "Unexpected error during checkout processing", ex);
             sendErrorResponse(out, "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.", 500);
         }
+    }
+
+    /**
+     * Handle manager CSP booking page
+     */
+    private void handleManagerCSPBooking(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        HttpSession session = request.getSession();
+        User user = (User) session.getAttribute("user");
+
+        // Check authorization - only MANAGER and ADMIN
+        if (user == null || !isAuthorizedManagerRole(user.getRoleId())) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied");
+            return;
+        }
+
+        // Get paymentItemId parameter
+        String paymentItemIdStr = request.getParameter("paymentItemId");
+        if (paymentItemIdStr != null) {
+            request.setAttribute("paymentItemId", paymentItemIdStr);
+        }
+
+        // Set additional attributes for the CSP booking page
+        request.setAttribute("pageTitle", "CSP Booking System - Manager");
+        request.setAttribute("currentUser", user);
+        request.setAttribute("isManagerBooking", true);
+
+        // Forward to CSP booking system page
+        request.getRequestDispatcher("/test/csp-booking-system.jsp")
+                .forward(request, response);
+    }
+
+    /**
+     * Check if user role is authorized for manager operations
+     */
+    private boolean isAuthorizedManagerRole(int roleId) {
+        // ADMIN = 1, MANAGER = 2
+        return roleId == 1 || roleId == 2;
     }
 
     /**
