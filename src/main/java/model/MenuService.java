@@ -271,6 +271,7 @@ public class MenuService {
     // Operations Section
     menuItems.add(new MenuItem("VẬN HÀNH", true));
     menuItems.add(new MenuItem("Quản lý lịch hẹn", contextPath + "/manager/scheduling", "calendar-plus", "operations"));
+    menuItems.add(new MenuItem("Quản lý đặt lịch", contextPath + "/manager/show-bookings", "calendar-check", "operations"));
     menuItems.add(new MenuItem("Báo cáo phòng ban", contextPath + "/manager/reports", "bar-chart", "operations"));
     menuItems.add(new MenuItem("Khách hàng", contextPath + "/manager/customers", "users", "operations"));
     
@@ -324,10 +325,9 @@ public class MenuService {
     menuItems.add(new MenuItem("Thông tin cá nhân", contextPath + "/user-management/view?id=self", "user", "staff"));
 
     // Schedule & Appointments
-    menuItems.add(new MenuItem("Lịch hôm nay", contextPath + "/therapist/schedule", "clock", "staff")
-        .withNotification("8", "yellow"));
-    menuItems.add(new MenuItem("Lịch làm việc", contextPath + "/therapist/calendar", "calendar", "staff"));
-    menuItems.add(new MenuItem("Quản lý lịch hẹn", contextPath + "/appointment", "calendar-check", "staff"));
+    
+    menuItems.add(new MenuItem("Lịch làm việc", contextPath + "/therapist/show-bookings", "calendar", "staff"));
+    
 
     // Client Management Section
     menuItems.add(new MenuItem("KHÁCH HÀNG", true));
@@ -346,6 +346,7 @@ public class MenuService {
     menuItems.add(new MenuItem("Thống kê cá nhân", contextPath + "/therapist/stats", "bar-chart", "performance"));
     menuItems.add(new MenuItem("Đánh giá từ khách", contextPath + "/therapist/reviews", "star", "performance"));
     menuItems.add(new MenuItem("Hoa hồng", contextPath + "/therapist/commission", "dollar-sign", "performance"));
+    menuItems.add(new MenuItem("Đăng xuất", contextPath + "/logout", "log-out", "account"));
 
     return menuItems;
   }
@@ -497,7 +498,7 @@ public class MenuService {
     menuItems.add(new MenuItem("Lịch hẹn của tôi", contextPath + "/customer/view", "calendar", "appointments")
         .withNotification("3", "yellow"));
     menuItems.add(new MenuItem("Đặt dịch vụ", contextPath + "/booking", "calendar-plus", "appointments"));
-    menuItems.add(new MenuItem("Dịch vụ đã đặt", contextPath + "/customer/bookings", "calendar-check", "appointments"));
+    menuItems.add(new MenuItem("Dịch vụ đã đặt", contextPath + "/customer/show-bookings", "calendar-check", "appointments"));
     menuItems.add(new MenuItem("Lịch sử đặt lịch", contextPath + "/customer/booking-history", "clock", "appointments"));
     menuItems.add(new MenuItem("Lịch sử điều trị", contextPath + "/customer/history", "history", "appointments"));
 

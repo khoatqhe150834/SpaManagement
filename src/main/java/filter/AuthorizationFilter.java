@@ -78,6 +78,7 @@ public class AuthorizationFilter implements Filter {
 
         // Therapist areas
         URL_ROLE_MAPPINGS.put("/therapist", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID)));
+        URL_ROLE_MAPPINGS.put("/therapist/show-bookings", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID)));
         URL_ROLE_MAPPINGS.put("/schedule", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID, RoleConstants.RECEPTIONIST_ID)));
         URL_ROLE_MAPPINGS.put("/treatments", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID)));
         URL_ROLE_MAPPINGS.put("/appointment", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID, RoleConstants.RECEPTIONIST_ID)));

@@ -1,5 +1,7 @@
 package dao;
 
+import booking.*;
+import db.DBContext;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -17,9 +19,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import booking.PaymentItemDetails;
-import db.DBContext;
 import model.Booking;
 import model.Customer;
 import model.Service;
@@ -1073,4 +1072,304 @@ public class BookingDAO implements BaseDAO<Booking, Integer> {
         
         return items;
     }
+
+
+
+    // BookingDAO.java - Add these methods to your existing BookingDAO class
+
+/**
+ * Get bookings for customer dashboard view
+ */
+
+public List<BookingCustomerView> findBookingsForCustomer(Integer customerId) throws SQLException {
+    String sql = "SELECT b.booking_id, b.appointment_date, b.appointment_time, b.duration_minutes, " +
+                "b.booking_status, b.booking_notes, b.created_at, " +
+                "s.name as service_name, s.price as service_price, " +
+                "u.full_name as therapist_name, " +
+                "r.name as room_name, " +
+                "p.payment_status, p.total_amount, p.reference_number " +
+                "FROM bookings b " +
+                "JOIN services s ON b.service_id = s.service_id " +
+                "JOIN users u ON b.therapist_user_id = u.user_id " +
+                "JOIN rooms r ON b.room_id = r.room_id " +
+                "JOIN payment_items pi ON b.payment_item_id = pi.payment_item_id " +
+                "JOIN payments p ON pi.payment_id = p.payment_id " +
+                "WHERE b.customer_id = ? " +
+                "ORDER BY b.appointment_date DESC, b.appointment_time DESC";
+    
+    List<BookingCustomerView> bookings = new ArrayList<>();
+    
+    try (Connection conn = DBContext.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+        
+        stmt.setInt(1, customerId);
+        
+        try (ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                BookingCustomerView booking = mapResultSetToCustomerView(rs);
+                bookings.add(booking);
+            }
+        }
+        
+    } catch (SQLException ex) {
+        LOGGER.log(Level.SEVERE, "Error finding bookings for customer: " + customerId, ex);
+        throw ex;
+    }
+    
+    return bookings;
+}
+
+/**
+ * Get bookings for therapist dashboard view
+ */
+
+public List<BookingTherapistView> findBookingsForTherapist(Integer therapistId, LocalDate date) throws SQLException {
+    String sql = "SELECT b.booking_id, b.appointment_date, b.appointment_time, b.duration_minutes, " +
+                "b.booking_status, b.booking_notes, " +
+                "s.name as service_name, s.duration_minutes as service_duration, " +
+                "c.full_name as customer_name, c.phone_number as customer_phone, " +
+                "c.email as customer_email, " +
+                "r.name as room_name, " +
+                "bed.name as bed_name " +
+                "FROM bookings b " +
+                "JOIN services s ON b.service_id = s.service_id " +
+                "JOIN customers c ON b.customer_id = c.customer_id " +
+                "JOIN rooms r ON b.room_id = r.room_id " +
+                "LEFT JOIN beds bed ON b.bed_id = bed.bed_id " +
+                "WHERE b.therapist_user_id = ? ";
+    
+    if (date != null) {
+        sql += "AND DATE(b.appointment_date) = ? ";
+    }
+    
+    sql += "ORDER BY b.appointment_date ASC, b.appointment_time ASC";
+    
+    List<BookingTherapistView> bookings = new ArrayList<>();
+    
+    try (Connection conn = DBContext.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+        
+        stmt.setInt(1, therapistId);
+        if (date != null) {
+            stmt.setDate(2, Date.valueOf(date));
+        }
+        
+        try (ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                BookingTherapistView booking = mapResultSetToTherapistView(rs);
+                bookings.add(booking);
+            }
+        }
+        
+    } catch (SQLException ex) {
+        LOGGER.log(Level.SEVERE, "Error finding bookings for therapist: " + therapistId, ex);
+        throw ex;
+    }
+    
+    return bookings;
+}
+
+/**
+ * Get bookings for manager dashboard view with filters
+ */
+
+public List<BookingManagerView> findBookingsForManager(BookingManagerFilter filter) throws SQLException {
+    StringBuilder sql = new StringBuilder();
+    sql.append("SELECT b.booking_id, b.appointment_date, b.appointment_time, b.duration_minutes, ")
+       .append("b.booking_status, b.booking_notes, b.created_at, ")
+       .append("s.name as service_name, s.price as service_price, ")
+       .append("c.full_name as customer_name, c.phone_number as customer_phone, ")
+       .append("c.email as customer_email, ")
+       .append("u.full_name as therapist_name, ")
+       .append("r.name as room_name, ")
+       .append("p.total_amount, p.payment_status, p.reference_number ")
+       .append("FROM bookings b ")
+       .append("JOIN services s ON b.service_id = s.service_id ")
+       .append("JOIN customers c ON b.customer_id = c.customer_id ")
+       .append("JOIN users u ON b.therapist_user_id = u.user_id ")
+       .append("JOIN rooms r ON b.room_id = r.room_id ")
+       .append("JOIN payment_items pi ON b.payment_item_id = pi.payment_item_id ")
+       .append("JOIN payments p ON pi.payment_id = p.payment_id ")
+       .append("WHERE 1=1 ");
+    
+    List<Object> parameters = new ArrayList<>();
+    
+    // Add filters
+    if (filter.getStartDate() != null) {
+        sql.append("AND b.appointment_date >= ? ");
+        parameters.add(Date.valueOf(filter.getStartDate()));
+    }
+    
+    if (filter.getEndDate() != null) {
+        sql.append("AND b.appointment_date <= ? ");
+        parameters.add(Date.valueOf(filter.getEndDate()));
+    }
+    
+    if (filter.getTherapistId() != null) {
+        sql.append("AND b.therapist_user_id = ? ");
+        parameters.add(filter.getTherapistId());
+    }
+    
+    if (filter.getBookingStatus() != null && !filter.getBookingStatus().isEmpty()) {
+        sql.append("AND b.booking_status = ? ");
+        parameters.add(filter.getBookingStatus());
+    }
+    
+    if (filter.getServiceTypeId() != null) {
+        sql.append("AND s.service_type_id = ? ");
+        parameters.add(filter.getServiceTypeId());
+    }
+    
+    sql.append("ORDER BY b.appointment_date DESC, b.appointment_time DESC ");
+    
+    // Add pagination
+    if (filter.getLimit() != null && filter.getOffset() != null) {
+        sql.append("LIMIT ? OFFSET ? ");
+        parameters.add(filter.getLimit());
+        parameters.add(filter.getOffset());
+    }
+    
+    List<BookingManagerView> bookings = new ArrayList<>();
+    
+    try (Connection conn = DBContext.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+        
+        // Set parameters
+        for (int i = 0; i < parameters.size(); i++) {
+            stmt.setObject(i + 1, parameters.get(i));
+        }
+        
+        try (ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                BookingManagerView booking = mapResultSetToManagerView(rs);
+                bookings.add(booking);
+            }
+        }
+        
+    } catch (SQLException ex) {
+        LOGGER.log(Level.SEVERE, "Error finding bookings for manager with filter", ex);
+        throw ex;
+    }
+    
+    return bookings;
+}
+
+/**
+ * Get total count for manager bookings (for pagination)
+ */
+
+public int countBookingsForManager(BookingManagerFilter filter) throws SQLException {
+    StringBuilder sql = new StringBuilder();
+    sql.append("SELECT COUNT(*) FROM bookings b ")
+       .append("JOIN services s ON b.service_id = s.service_id ")
+       .append("WHERE 1=1 ");
+    
+    List<Object> parameters = new ArrayList<>();
+    
+    // Add same filters as above (without ORDER BY and LIMIT)
+    if (filter.getStartDate() != null) {
+        sql.append("AND b.appointment_date >= ? ");
+        parameters.add(Date.valueOf(filter.getStartDate()));
+    }
+    
+    if (filter.getEndDate() != null) {
+        sql.append("AND b.appointment_date <= ? ");
+        parameters.add(Date.valueOf(filter.getEndDate()));
+    }
+    
+    if (filter.getTherapistId() != null) {
+        sql.append("AND b.therapist_user_id = ? ");
+        parameters.add(filter.getTherapistId());
+    }
+    
+    if (filter.getBookingStatus() != null && !filter.getBookingStatus().isEmpty()) {
+        sql.append("AND b.booking_status = ? ");
+        parameters.add(filter.getBookingStatus());
+    }
+    
+    if (filter.getServiceTypeId() != null) {
+        sql.append("AND s.service_type_id = ? ");
+        parameters.add(filter.getServiceTypeId());
+    }
+    
+    try (Connection conn = DBContext.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+        
+        // Set parameters
+        for (int i = 0; i < parameters.size(); i++) {
+            stmt.setObject(i + 1, parameters.get(i));
+        }
+        
+        try (ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        }
+        
+    } catch (SQLException ex) {
+        LOGGER.log(Level.SEVERE, "Error counting bookings for manager", ex);
+        throw ex;
+    }
+    
+    return 0;
+}
+
+// Helper methods to map ResultSet to view objects
+private BookingCustomerView mapResultSetToCustomerView(ResultSet rs) throws SQLException {
+    BookingCustomerView booking = new BookingCustomerView();
+    booking.setBookingId(rs.getInt("booking_id"));
+    booking.setAppointmentDate(rs.getDate("appointment_date").toLocalDate());
+    booking.setAppointmentTime(rs.getTime("appointment_time").toLocalTime());
+    booking.setDurationMinutes(rs.getInt("duration_minutes"));
+    booking.setBookingStatus(rs.getString("booking_status"));
+    booking.setBookingNotes(rs.getString("booking_notes"));
+    booking.setServiceName(rs.getString("service_name"));
+    booking.setServicePrice(rs.getBigDecimal("service_price"));
+    booking.setTherapistName(rs.getString("therapist_name"));
+    booking.setRoomName(rs.getString("room_name"));
+    booking.setPaymentStatus(rs.getString("payment_status"));
+    booking.setTotalAmount(rs.getBigDecimal("total_amount"));
+    booking.setReferenceNumber(rs.getString("reference_number"));
+    booking.setCreatedAt(rs.getTimestamp("created_at"));
+    return booking;
+}
+
+private BookingTherapistView mapResultSetToTherapistView(ResultSet rs) throws SQLException {
+    BookingTherapistView booking = new BookingTherapistView();
+    booking.setBookingId(rs.getInt("booking_id"));
+    booking.setAppointmentDate(rs.getDate("appointment_date").toLocalDate());
+    booking.setAppointmentTime(rs.getTime("appointment_time").toLocalTime());
+    booking.setDurationMinutes(rs.getInt("duration_minutes"));
+    booking.setBookingStatus(rs.getString("booking_status"));
+    booking.setBookingNotes(rs.getString("booking_notes"));
+    booking.setServiceName(rs.getString("service_name"));
+    booking.setCustomerName(rs.getString("customer_name"));
+    booking.setCustomerPhone(rs.getString("customer_phone"));
+    booking.setCustomerEmail(rs.getString("customer_email"));
+    booking.setRoomName(rs.getString("room_name"));
+    booking.setBedName(rs.getString("bed_name"));
+    return booking;
+}
+
+private BookingManagerView mapResultSetToManagerView(ResultSet rs) throws SQLException {
+    BookingManagerView booking = new BookingManagerView();
+    booking.setBookingId(rs.getInt("booking_id"));
+    booking.setAppointmentDate(rs.getDate("appointment_date").toLocalDate());
+    booking.setAppointmentTime(rs.getTime("appointment_time").toLocalTime());
+    booking.setDurationMinutes(rs.getInt("duration_minutes"));
+    booking.setBookingStatus(rs.getString("booking_status"));
+    booking.setBookingNotes(rs.getString("booking_notes"));
+    booking.setServiceName(rs.getString("service_name"));
+    booking.setServicePrice(rs.getBigDecimal("service_price"));
+    booking.setCustomerName(rs.getString("customer_name"));
+    booking.setCustomerPhone(rs.getString("customer_phone"));
+    booking.setCustomerEmail(rs.getString("customer_email"));
+    booking.setTherapistName(rs.getString("therapist_name"));
+    booking.setRoomName(rs.getString("room_name"));
+    booking.setTotalAmount(rs.getBigDecimal("total_amount"));
+    booking.setPaymentStatus(rs.getString("payment_status"));
+    booking.setReferenceNumber(rs.getString("reference_number"));
+    booking.setCreatedAt(rs.getTimestamp("created_at"));
+    return booking;
+}
 }

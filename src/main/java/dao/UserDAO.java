@@ -1189,4 +1189,34 @@ public class UserDAO implements BaseDAO<User, Integer> {
         return 0;
     }
 
+
+    public List<User> findByRole(String roleName) throws SQLException {
+    String sql = "SELECT u.*, r.name as role_name, r.display_name as role_display_name " +
+                "FROM users u " +
+                "JOIN roles r ON u.role_id = r.role_id " +
+                "WHERE r.name = ? AND u.is_active = 1 " +
+                "ORDER BY u.full_name";
+    
+    List<User> users = new ArrayList<>();
+    
+    try (Connection conn = DBContext.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+        
+        stmt.setString(1, roleName);
+        
+        try (ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                User user = buildUserFromResultSet(rs);
+                users.add(user);
+            }
+        }
+        
+    } catch (SQLException ex) {
+        
+        throw ex;
+    }
+    
+    return users;
+}
+
 }
