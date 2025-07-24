@@ -4,6 +4,7 @@ package booking;
 import java.time.LocalDateTime;
 
 public class BookingConstraint {
+    private int customerId;
     private int therapistId;
     private int roomId;
     private Integer bedId;
@@ -15,10 +16,11 @@ public class BookingConstraint {
     private int bufferTimeMinutes;
     
     // Constructor with all parameters including buffer
-    public BookingConstraint(int therapistId, int roomId, Integer bedId, 
-                           LocalDateTime startTime, LocalDateTime endTime, 
+    public BookingConstraint(int customerId, int therapistId, int roomId, Integer bedId,
+                           LocalDateTime startTime, LocalDateTime endTime,
                            LocalDateTime bufferEndTime, String bookingStatus,
                            int serviceDurationMinutes, int bufferTimeMinutes) {
+        this.customerId = customerId;
         this.therapistId = therapistId;
         this.roomId = roomId;
         this.bedId = bedId;
@@ -31,13 +33,15 @@ public class BookingConstraint {
     }
     
     // Constructor for backward compatibility (assumes 15-minute buffer)
-    public BookingConstraint(int therapistId, int roomId, Integer bedId, 
+    public BookingConstraint(int customerId, int therapistId, int roomId, Integer bedId,
                            LocalDateTime startTime, LocalDateTime endTime, String bookingStatus) {
-        this(therapistId, roomId, bedId, startTime, endTime, 
+        this(customerId, therapistId, roomId, bedId, startTime, endTime,
              endTime.plusMinutes(15), bookingStatus, 0, 15);
     }
     
     // Getters and setters
+    public int getCustomerId() { return customerId; }
+    public void setCustomerId(int customerId) { this.customerId = customerId; }
     public int getTherapistId() { return therapistId; }
     public void setTherapistId(int therapistId) { this.therapistId = therapistId; }
     public int getRoomId() { return roomId; }
@@ -99,6 +103,20 @@ public class BookingConstraint {
     public boolean overlapsBufferTime(LocalDateTime slotStart, LocalDateTime slotEnd) {
         return (slotStart.isBefore(this.bufferEndTime) && slotEnd.isAfter(this.endTime));
     }
+
+    /**
+     * Check if this booking has a customer conflict with a given time slot
+     * Returns true if same customer and overlapping time, false otherwise
+     */
+    public boolean hasCustomerConflict(LocalDateTime slotStart, LocalDateTime slotEnd, int customerId) {
+        // Check if same customer
+        if (this.customerId != customerId) {
+            return false;
+        }
+
+        // Check time overlap (service time only, no buffer for customer conflicts)
+        return (slotStart.isBefore(this.endTime) && slotEnd.isAfter(this.startTime));
+    }
     
     /**
      * Get total blocked time (service + buffer)
@@ -110,14 +128,15 @@ public class BookingConstraint {
     @Override
     public String toString() {
         return "BookingConstraint{" +
-               "therapistId=" + therapistId + 
-               ", roomId=" + roomId + 
-               ", bedId=" + bedId + 
-               ", startTime=" + startTime + 
+               "customerId=" + customerId +
+               ", therapistId=" + therapistId +
+               ", roomId=" + roomId +
+               ", bedId=" + bedId +
+               ", startTime=" + startTime +
                ", endTime=" + endTime +
-               ", bufferEndTime=" + bufferEndTime + 
+               ", bufferEndTime=" + bufferEndTime +
                ", serviceDuration=" + serviceDurationMinutes +
-               ", bufferTime=" + bufferTimeMinutes + 
+               ", bufferTime=" + bufferTimeMinutes +
                ", status='" + bookingStatus + '\'' +
                '}';
     }
@@ -126,9 +145,10 @@ public class BookingConstraint {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        
+
         BookingConstraint that = (BookingConstraint) o;
-        
+
+        if (customerId != that.customerId) return false;
         if (therapistId != that.therapistId) return false;
         if (roomId != that.roomId) return false;
         if (!startTime.equals(that.startTime)) return false;
@@ -137,7 +157,8 @@ public class BookingConstraint {
     
     @Override
     public int hashCode() {
-        int result = therapistId;
+        int result = customerId;
+        result = 31 * result + therapistId;
         result = 31 * result + roomId;
         result = 31 * result + (bedId != null ? bedId.hashCode() : 0);
         result = 31 * result + startTime.hashCode();

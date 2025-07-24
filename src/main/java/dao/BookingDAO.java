@@ -1,7 +1,5 @@
 package dao;
 
-import booking.*;
-import db.DBContext;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -19,6 +17,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import booking.PaymentItemDetails;
+import db.DBContext;
 import model.Booking;
 import model.Customer;
 import model.Service;
@@ -357,6 +358,40 @@ public class BookingDAO implements BaseDAO<Booking, Integer> {
 
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "Error finding bookings by date: " + date, ex);
+            throw ex;
+        }
+
+        return bookings;
+    }
+
+    /**
+     * Find bookings by customer ID and date
+     */
+    public List<Booking> findByCustomerAndDate(Integer customerId, LocalDate date) throws SQLException {
+        List<Booking> bookings = new ArrayList<>();
+        String sql = "SELECT b.*, c.full_name as customer_name, c.email as customer_email, " +
+                    "s.name as service_name, u.full_name as therapist_name " +
+                    "FROM bookings b " +
+                    "LEFT JOIN customers c ON b.customer_id = c.customer_id " +
+                    "LEFT JOIN services s ON b.service_id = s.service_id " +
+                    "LEFT JOIN users u ON b.therapist_user_id = u.user_id " +
+                    "WHERE b.customer_id = ? AND b.appointment_date = ? " +
+                    "ORDER BY b.appointment_time ASC";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, customerId);
+            stmt.setDate(2, java.sql.Date.valueOf(date));
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    bookings.add(mapResultSetToBooking(rs));
+                }
+            }
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error finding bookings by customer and date: " + customerId + ", " + date, ex);
             throw ex;
         }
 
@@ -864,15 +899,67 @@ public class BookingDAO implements BaseDAO<Booking, Integer> {
     }
     
     /**
+     * Check if a customer has conflicting bookings at the specified time
+     */
+    public boolean hasCustomerTimeConflict(int customerId, LocalDate appointmentDate,
+                                         LocalTime appointmentTime, int durationMinutes) throws SQLException {
+        String query = """
+            SELECT booking_id, appointment_time, duration_minutes
+            FROM bookings
+            WHERE customer_id = ?
+            AND appointment_date = ?
+            AND booking_status IN ('SCHEDULED', 'CONFIRMED', 'IN_PROGRESS')
+            """;
+
+        LocalTime newEndTime = appointmentTime.plusMinutes(durationMinutes);
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+            pstmt.setInt(1, customerId);
+            pstmt.setDate(2, Date.valueOf(appointmentDate));
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    LocalTime existingStartTime = rs.getTime("appointment_time").toLocalTime();
+                    int existingDuration = rs.getInt("duration_minutes");
+                    LocalTime existingEndTime = existingStartTime.plusMinutes(existingDuration);
+
+                    // Check for time overlap: new appointment overlaps with existing appointment
+                    boolean overlaps = (appointmentTime.isBefore(existingEndTime) && newEndTime.isAfter(existingStartTime));
+
+                    if (overlaps) {
+                        LOGGER.info("Customer " + customerId + " has conflicting booking at " +
+                                   appointmentDate + " " + existingStartTime + "-" + existingEndTime +
+                                   " (conflicts with requested " + appointmentTime + "-" + newEndTime + ")");
+                        return true;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error checking customer time conflict", e);
+            throw e;
+        }
+
+        return false;
+    }
+
+    /**
      * Create a booking
      */
     public int createBooking(int customerId, int paymentItemId, int serviceId, int therapistId,
-                           int roomId, Integer bedId, LocalDate appointmentDate, 
+                           int roomId, Integer bedId, LocalDate appointmentDate,
                            LocalTime appointmentTime, int durationMinutes) throws SQLException {
-        
+
+        // Check for customer time conflicts before creating the booking
+        if (hasCustomerTimeConflict(customerId, appointmentDate, appointmentTime, durationMinutes)) {
+            throw new SQLException("Customer already has a booking at the same time. " +
+                                 "A customer cannot book multiple services simultaneously.");
+        }
+
         String query = """
             INSERT INTO bookings (customer_id, payment_item_id, service_id, therapist_user_id,
-                                room_id, bed_id, appointment_date, appointment_time, 
+                                room_id, bed_id, appointment_date, appointment_time,
                                 duration_minutes, booking_status, booking_notes, created_at, updated_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'SCHEDULED', 'Booked via online system', NOW(), NOW())
             """;

@@ -6,6 +6,12 @@ let selectedTime = null;
 let selectedResource = null;
 let availableSlots = [];
 
+// Make variables globally accessible
+window.selectedPaymentItem = selectedPaymentItem;
+window.currentStep = currentStep;
+
+console.log('booking-page.js loaded successfully');
+
 // Initialize date picker
 let datePicker = flatpickr("#appointmentDate", {
     minDate: "today",
@@ -19,31 +25,82 @@ let datePicker = flatpickr("#appointmentDate", {
 
 // Initialize page with pre-selected service data
 function initializePreSelectedService(paymentItemData) {
+    console.log('initializePreSelectedService called with:', paymentItemData);
     if (paymentItemData) {
+        // Set both local and global variables
         selectedPaymentItem = paymentItemData;
+        window.selectedPaymentItem = paymentItemData;
+        
+        console.log('selectedPaymentItem set to:', selectedPaymentItem);
+        console.log('window.selectedPaymentItem set to:', window.selectedPaymentItem);
 
-        // Update service info panel
-        document.getElementById('infoServiceName').textContent = selectedPaymentItem.serviceName;
-        document.getElementById('infoDuration').textContent = selectedPaymentItem.duration;
-        document.getElementById('infoBuffer').textContent = selectedPaymentItem.buffer;
-        document.getElementById('infoPrice').textContent = selectedPaymentItem.price;
-        document.getElementById('infoRemaining').textContent = selectedPaymentItem.remaining;
-        document.getElementById('infoTotalTime').textContent = selectedPaymentItem.duration + selectedPaymentItem.buffer;
+        // Mark step as completed and move to step 2
+        updateStepIndicator(1, 'completed');
+        currentStep = 2;
+        window.currentStep = currentStep;
+        updateStepIndicator(2, 'active');
+        
+        console.log('Pre-selected service initialized successfully');
+        
+        // Verify the variables are set
+        console.log('Verification - selectedPaymentItem:', selectedPaymentItem);
+        console.log('Verification - window.selectedPaymentItem:', window.selectedPaymentItem);
+    }
+}
 
-        // Show service info and mark step as completed
-        document.getElementById('serviceInfo').style.display = 'block';
+// Make function globally accessible
+window.initializePreSelectedService = initializePreSelectedService;
+
+function selectServiceCard(paymentItemId) {
+    console.log('selectServiceCard called with paymentItemId:', paymentItemId);
+
+    // Remove previous selection
+    document.querySelectorAll('.service-card').forEach(card => {
+        card.classList.remove('border-primary', 'bg-primary/5');
+        card.classList.add('border-gray-200');
+    });
+
+    // Find and select the clicked card
+    const selectedCard = document.querySelector(`[data-payment-item-id="${paymentItemId}"]`);
+    console.log('Found card:', selectedCard);
+
+    if (selectedCard) {
+        console.log('Found card with dataset:', selectedCard.dataset);
+
+        selectedCard.classList.remove('border-gray-200');
+        selectedCard.classList.add('border-primary', 'bg-primary/5');
+
+        // Extract data from the card
+        selectedPaymentItem = {
+            id: parseInt(selectedCard.dataset.paymentItemId),
+            serviceName: selectedCard.dataset.serviceName,
+            quantity: parseInt(selectedCard.dataset.quantity),
+            booked: parseInt(selectedCard.dataset.booked),
+            remaining: parseInt(selectedCard.dataset.remaining),
+            duration: parseInt(selectedCard.dataset.duration),
+            buffer: parseInt(selectedCard.dataset.buffer),
+            price: selectedCard.dataset.price
+        };
+
+        window.selectedPaymentItem = selectedPaymentItem; // Also set on window
+        console.log('Selected service card:', selectedPaymentItem);
+
+        // Mark step as completed
         updateStepIndicator(1, 'completed');
 
-        // Move to step 2 (date selection) since service is already selected
+        // Enable next step
         currentStep = 2;
-        updateStepIndicator(2, 'active');
+        window.currentStep = currentStep; // Also set on window
+        nextStep(2);
+    } else {
+        console.error('Card not found for paymentItemId:', paymentItemId);
     }
 }
 
 function selectPaymentItem() {
     const select = document.getElementById('paymentItemSelect');
     const option = select.options[select.selectedIndex];
-    
+
     if (option.value) {
         selectedPaymentItem = {
             id: parseInt(option.value),
@@ -55,19 +112,11 @@ function selectPaymentItem() {
             buffer: parseInt(option.dataset.buffer),
             price: option.dataset.price
         };
-        
-        // Update service info panel
-        document.getElementById('infoServiceName').textContent = selectedPaymentItem.serviceName;
-        document.getElementById('infoDuration').textContent = selectedPaymentItem.duration;
-        document.getElementById('infoBuffer').textContent = selectedPaymentItem.buffer;
-        document.getElementById('infoPrice').textContent = selectedPaymentItem.price;
-        document.getElementById('infoRemaining').textContent = selectedPaymentItem.remaining;
-        document.getElementById('infoTotalTime').textContent = selectedPaymentItem.duration + selectedPaymentItem.buffer;
-        
-        document.getElementById('serviceInfo').style.display = 'block';
+
+        // Mark step as completed
         updateStepIndicator(1, 'completed');
     } else {
-        document.getElementById('serviceInfo').style.display = 'none';
+        // Reset step to active
         updateStepIndicator(1, 'active');
     }
 }
@@ -101,10 +150,29 @@ function updateStepIndicator(step, status) {
 }
 
 async function loadAvailableSlots() {
-    if (!selectedPaymentItem || !selectedDate) {
-        alert('Please select a service and date first.');
+    console.log('loadAvailableSlots called');
+    console.log('selectedPaymentItem:', selectedPaymentItem);
+    console.log('window.selectedPaymentItem:', window.selectedPaymentItem);
+    console.log('selectedDate:', selectedDate);
+
+    // Check both local and global variables
+    const paymentItem = selectedPaymentItem || window.selectedPaymentItem;
+    
+    if (!paymentItem) {
+        console.error('No service selected - both selectedPaymentItem and window.selectedPaymentItem are null');
+        alert('Please select a service first.');
         return;
     }
+
+    if (!selectedDate) {
+        console.error('No date selected');
+        alert('Please select a date first.');
+        return;
+    }
+
+    // Use the found payment item
+    const currentPaymentItem = paymentItem;
+    console.log('Using payment item:', currentPaymentItem);
 
     document.getElementById('loadingSlots').style.display = 'block';
     document.getElementById('availableSlots').innerHTML = '';
@@ -112,7 +180,7 @@ async function loadAvailableSlots() {
     try {
         // Use absolute URL to ensure correct routing
         const contextPath = window.location.pathname.includes('/spa') ? '/spa' : '';
-        const url = `${contextPath}/manager/booking-api?action=getAvailableSlots&paymentItemId=${selectedPaymentItem.id}&date=${selectedDate}`;
+        const url = `${contextPath}/manager/booking-api?action=getAvailableSlots&paymentItemId=${currentPaymentItem.id}&date=${selectedDate}`;
         console.log('Fetching available slots from:', url);
         console.log('Current location:', window.location.href);
 
@@ -421,7 +489,7 @@ async function confirmBooking() {
 
 function bookAnother() {
     // Reset form but keep the same payment item if it has remaining quantity
-    if (selectedPaymentItem.remaining > 1) {
+    if (selectedPaymentItem && selectedPaymentItem.remaining > 1) {
         // Reset steps but keep service selected
         currentStep = 2;
         selectedDate = null;
@@ -432,9 +500,8 @@ function bookAnother() {
         datePicker.clear();
         document.getElementById('continueToTime').disabled = true;
 
-        // Update remaining quantity display
+        // Update remaining quantity
         selectedPaymentItem.remaining -= 1;
-        document.getElementById('infoRemaining').textContent = selectedPaymentItem.remaining;
 
         // Go to date selection
         document.getElementById('successMessage').style.display = 'none';
@@ -446,3 +513,147 @@ function bookAnother() {
         location.reload();
     }
 }
+
+// Additional utility functions
+function changeService() {
+    // Reset service selection
+    selectedPaymentItem = null;
+    window.selectedPaymentItem = null; // Also reset on window
+
+    // Remove visual selection from service cards
+    document.querySelectorAll('.service-card').forEach(card => {
+        card.classList.remove('border-primary', 'bg-primary/5');
+        card.classList.add('border-gray-200');
+    });
+
+    // Go back to step 1
+    currentStep = 1;
+    window.currentStep = currentStep; // Also set on window
+    nextStep(1);
+    updateStepIndicator(1, 'active');
+    updateStepIndicator(2, 'inactive');
+    updateStepIndicator(3, 'inactive');
+    updateStepIndicator(4, 'inactive');
+    updateStepIndicator(5, 'inactive');
+}
+
+function bookNextSession() {
+    // Get current service info
+    const serviceName = document.getElementById('remainingServiceName').textContent;
+    const remainingCount = parseInt(document.getElementById('remainingCount').textContent);
+
+    if (remainingCount > 0) {
+        // Redirect to book next session of the same service
+        const urlParams = new URLSearchParams(window.location.search);
+        const paymentItemId = urlParams.get('paymentItemId');
+
+        if (paymentItemId) {
+            window.location.href = `${window.location.pathname}?paymentItemId=${paymentItemId}`;
+        } else {
+            // Reset the form for next booking
+            resetBookingForm();
+
+            // Go back to step 2 (date selection) since service is already selected
+            currentStep = 2;
+            nextStep(2);
+            updateStepIndicator(2, 'active');
+        }
+    }
+}
+
+function viewAllBookings() {
+    // Redirect to customer bookings page
+    const contextPath = window.location.pathname.split('/')[1];
+    window.location.href = `/${contextPath}/customer/bookings`;
+}
+
+function backToServices() {
+    // Redirect back to customer dashboard or services page
+    window.location.href = window.location.pathname;
+}
+
+function resetBookingForm() {
+    // Reset global variables
+    selectedDate = null;
+    selectedTime = null;
+    selectedResource = null;
+
+    // Reset UI elements (check if they exist first)
+    if (datePicker) {
+        datePicker.clear();
+    }
+    
+    const continueToTime = document.getElementById('continueToTime');
+    const continueToResources = document.getElementById('continueToResources');
+    const continueToConfirm = document.getElementById('continueToConfirm');
+    
+    if (continueToTime) continueToTime.disabled = true;
+    if (continueToResources) continueToResources.disabled = true;
+    if (continueToConfirm) continueToConfirm.disabled = true;
+
+    // Clear slots and resources
+    const availableSlots = document.getElementById('availableSlots');
+    const availableResources = document.getElementById('availableResources');
+    const bookingSummary = document.getElementById('bookingSummary');
+    
+    if (availableSlots) availableSlots.innerHTML = '';
+    if (availableResources) availableResources.innerHTML = '';
+    if (bookingSummary) bookingSummary.innerHTML = '';
+
+    // Reset step indicators
+    updateStepIndicator(2, 'inactive');
+    updateStepIndicator(3, 'inactive');
+    updateStepIndicator(4, 'inactive');
+    updateStepIndicator(5, 'inactive');
+}
+
+// Make functions globally accessible
+window.selectServiceCard = selectServiceCard;
+window.changeService = changeService;
+window.loadAvailableSlots = loadAvailableSlots;
+window.bookNextSession = bookNextSession;
+window.viewAllBookings = viewAllBookings;
+window.backToServices = backToServices;
+window.resetBookingForm = resetBookingForm;
+window.previousStep = previousStep;
+window.nextStep = nextStep;
+window.nextStepToConfirmation = nextStepToConfirmation;
+window.confirmBooking = confirmBooking;
+window.initializePreSelectedService = initializePreSelectedService;
+
+console.log('All functions made globally accessible');
+
+// Debug function to check current state
+window.checkBookingState = function() {
+    console.log('=== Booking State Debug ===');
+    console.log('selectedPaymentItem:', selectedPaymentItem);
+    console.log('window.selectedPaymentItem:', window.selectedPaymentItem);
+    console.log('selectedDate:', selectedDate);
+    console.log('selectedTime:', selectedTime);
+    console.log('selectedResource:', selectedResource);
+    console.log('currentStep:', currentStep);
+    console.log('========================');
+};
+
+// Manual initialization trigger for debugging
+window.manualInitialize = function() {
+    console.log('Manual initialization triggered');
+    const preSelectedData = document.getElementById('preSelectedServiceData');
+    if (preSelectedData) {
+        const paymentItemData = {
+            id: parseInt(preSelectedData.dataset.id),
+            serviceName: preSelectedData.dataset.serviceName,
+            quantity: parseInt(preSelectedData.dataset.quantity),
+            booked: parseInt(preSelectedData.dataset.booked),
+            remaining: parseInt(preSelectedData.dataset.remaining),
+            duration: parseInt(preSelectedData.dataset.duration),
+            buffer: parseInt(preSelectedData.dataset.buffer),
+            price: preSelectedData.dataset.price
+        };
+        
+        console.log('Manual init with data:', paymentItemData);
+        initializePreSelectedService(paymentItemData);
+    } else {
+        console.log('No preSelectedServiceData found');
+    }
+};
