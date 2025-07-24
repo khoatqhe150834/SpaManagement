@@ -13,7 +13,9 @@ import java.util.logging.Logger;
 import org.mindrot.jbcrypt.BCrypt;
 
 import dao.AccountDAO;
+import dao.BookingDAO;
 import dao.CustomerDAO;
+import dao.PaymentDAO;
 import dao.PromotionUsageDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -286,22 +288,27 @@ public class CustomerManagementController extends HttpServlet {
             if (customerOpt.isPresent()) {
                 Customer customer = customerOpt.get();
                 request.setAttribute("customer", customer);
-                // Pass java.util.Date for createdAt/updatedAt for JSP compatibility
+                // Truyền ngày tạo đúng kiểu cho JSP
                 if (customer.getCreatedAt() != null) {
                     request.setAttribute("createdAtDate", java.sql.Timestamp.valueOf(customer.getCreatedAt()));
                 } else {
                     request.setAttribute("createdAtDate", null);
                 }
+                // Truyền ngày cập nhật đúng kiểu cho JSP
                 if (customer.getUpdatedAt() != null) {
                     request.setAttribute("updatedAtDate", java.sql.Timestamp.valueOf(customer.getUpdatedAt()));
                 } else {
                     request.setAttribute("updatedAtDate", null);
                 }
-
-                // Get additional statistics (would need additional DAO methods)
-                request.setAttribute("totalBookings", 0); // placeholder
-                request.setAttribute("totalSpent", 0.0); // placeholder
-                request.setAttribute("lastVisit", null); // placeholder
+                // Lấy thống kê booking
+                BookingDAO bookingDAO = new BookingDAO();
+                Map<String, Integer> bookingStats = bookingDAO.getBookingStatsByCustomerId(customerId);
+                request.setAttribute("totalBookings", bookingStats.getOrDefault("total_bookings", 0));
+                // Lấy thống kê chi tiêu
+                PaymentDAO paymentDAO = new PaymentDAO();
+                Map<String, Object> paymentStats = paymentDAO.getCustomerPaymentStatistics(customerId);
+                request.setAttribute("totalSpent", paymentStats.getOrDefault("totalSpent", 0));
+                request.setAttribute("lastVisit", paymentStats.get("lastPaymentDate"));
 
                 // Get promotion usage information
                 PromotionUsageDAO promotionUsageDAO = new PromotionUsageDAO();
@@ -945,35 +952,52 @@ public class CustomerManagementController extends HttpServlet {
                                      Map<String, String> errors) {
         // Validate name
         if (name == null || name.trim().isEmpty()) {
-            errors.put("fullName", "Họ tên là bắt buộc.");
-        } else if (name.trim().length() < 2 || name.trim().length() > 100) {
-            errors.put("fullName", "Họ tên phải có độ dài từ 2 đến 100 ký tự.");
-        } else if (!name.trim().matches("^[\\p{L}\\s]+$")) {
-            errors.put("fullName", "Họ tên chỉ được chứa chữ cái và khoảng trắng, không chứa số hoặc ký tự đặc biệt.");
+            errors.put("fullNameRequired", "Họ tên là bắt buộc.");
+        }
+        if (name != null && !name.trim().isEmpty()) {
+            if (name.trim().length() < 2 || name.trim().length() > 100) {
+                errors.put("fullNameLength", "Họ tên phải có độ dài từ 2 đến 100 ký tự.");
+            }
+            if (!name.trim().matches("^[\\p{L}\\s]+$")) {
+                errors.put("fullNameFormat", "Họ tên chỉ được chứa chữ cái và khoảng trắng, không chứa số hoặc ký tự đặc biệt.");
+            }
         }
 
         // Validate email if provided
         if (email != null && !email.trim().isEmpty()) {
             if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
-                errors.put("email", "Email không hợp lệ.");
-            } else if (accountDAO.isEmailTakenInSystem(email.trim())) {
-                errors.put("email", "Email đã tồn tại trong hệ thống.");
+                errors.put("emailFormat", "Email không hợp lệ.");
+            }
+            if (email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$") && accountDAO.isEmailTakenInSystem(email.trim())) {
+                errors.put("emailDuplicate", "Email đã tồn tại trong hệ thống.");
             }
         }
 
         // Validate password if provided
         if (password != null && !password.trim().isEmpty()) {
             if (password.length() < 7) {
-                errors.put("password", "Mật khẩu phải có ít nhất 7 ký tự.");
+                errors.put("passwordLength", "Mật khẩu phải có ít nhất 7 ký tự.");
             }
         }
 
         // Validate phone if provided
         if (phone != null && !phone.trim().isEmpty()) {
-            if (!phone.matches("^0[0-9]{9}$")) {
-                errors.put("phoneNumber", "Số điện thoại phải bắt đầu bằng 0, gồm đúng 10 chữ số và không chứa ký tự đặc biệt.");
-            } else if (accountDAO.isPhoneTakenInSystem(phone.trim())) {
-                errors.put("phoneNumber", "Số điện thoại đã tồn tại trong hệ thống.");
+            String phoneTrim = phone.trim();
+            boolean hasSpecialChar = !phoneTrim.matches("^[0-9]+$");
+            boolean hasLengthError = phoneTrim.length() != 10;
+            boolean notStartWith0 = !phoneTrim.startsWith("0");
+            boolean isDuplicate = accountDAO.isPhoneTakenInSystem(phoneTrim);
+            if (hasSpecialChar) {
+                errors.put("phoneNumberFormat", "Số điện thoại không được chứa ký tự đặc biệt, chỉ gồm số.");
+            }
+            if (hasLengthError) {
+                errors.put("phoneNumberLength", "Số điện thoại phải gồm đúng 10 chữ số.");
+            }
+            if (notStartWith0) {
+                errors.put("phoneNumberStart", "Số điện thoại phải bắt đầu bằng số 0.");
+            }
+            if (!hasSpecialChar && !hasLengthError && !notStartWith0 && isDuplicate) {
+                errors.put("phoneNumberDuplicate", "Số điện thoại đã tồn tại trong hệ thống.");
             }
         }
 
@@ -984,12 +1008,13 @@ public class CustomerManagementController extends HttpServlet {
                 java.time.LocalDate birthDate = birthday.toLocalDate();
                 java.time.LocalDate today = java.time.LocalDate.now();
                 if (birthDate.isAfter(today)) {
-                    errors.put("birthday", "Ngày sinh không được vượt quá ngày hiện tại.");
-                } else if (java.time.Period.between(birthDate, today).getYears() < 14) {
-                    errors.put("birthday", "Khách hàng phải đủ 14 tuổi trở lên mới đăng ký tài khoản.");
+                    errors.put("birthdayFuture", "Ngày sinh không được vượt quá ngày hiện tại.");
+                }
+                if (java.time.Period.between(birthDate, today).getYears() < 14) {
+                    errors.put("birthdayAge", "Khách hàng phải đủ 14 tuổi trở lên mới đăng ký tài khoản.");
                 }
             } catch (IllegalArgumentException e) {
-                errors.put("birthday", "Ngày sinh không hợp lệ.");
+                errors.put("birthdayFormat", "Ngày sinh không hợp lệ.");
             }
         }
     }
@@ -1000,46 +1025,54 @@ public class CustomerManagementController extends HttpServlet {
     private void validateCustomerInputForUpdate(int customerId, String name, String email, String phone, String gender, String address, String birthdayStr, Map<String, String> errors) {
         // Validate name
         if (name == null || name.trim().isEmpty()) {
-            errors.put("fullName", "Họ tên là bắt buộc.");
-        } else if (name.trim().length() < 2 || name.trim().length() > 100) {
-            errors.put("fullName", "Họ tên phải có độ dài từ 2 đến 100 ký tự.");
-        } else if (!name.trim().matches("^[\\p{L}\\s]+$")) {
-            errors.put("fullName", "Họ tên chỉ được chứa chữ cái và khoảng trắng, không chứa số hoặc ký tự đặc biệt.");
+            errors.put("fullNameRequired", "Họ tên là bắt buộc.");
         }
-
+        if (name != null && !name.trim().isEmpty()) {
+            if (name.trim().length() < 2 || name.trim().length() > 100) {
+                errors.put("fullNameLength", "Họ tên phải có độ dài từ 2 đến 100 ký tự.");
+            }
+            if (!name.trim().matches("^[\\p{L}\\s]+$")) {
+                errors.put("fullNameFormat", "Họ tên chỉ được chứa chữ cái và khoảng trắng, không chứa số hoặc ký tự đặc biệt.");
+            }
+        }
         // Validate email if provided
         if (email != null && !email.trim().isEmpty()) {
             if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
-                errors.put("email", "Email không hợp lệ.");
-            } else {
+                errors.put("emailFormat", "Email không hợp lệ.");
+            }
+            if (email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
                 Optional<Customer> existingCustomer = customerDAO.findCustomerByEmail(email.trim());
                 if (existingCustomer.isPresent() && !existingCustomer.get().getCustomerId().equals(customerId)) {
-                    errors.put("email", "Email đã tồn tại trong hệ thống.");
+                    errors.put("emailDuplicate", "Email đã tồn tại trong hệ thống.");
                 }
             }
         }
-
         // Validate phone if provided
         if (phone != null && !phone.trim().isEmpty()) {
-            if (!phone.matches("^0[0-9]{9}$")) {
-                errors.put("phoneNumber", "Số điện thoại phải bắt đầu bằng 0, gồm đúng 10 chữ số và không chứa ký tự đặc biệt.");
-            } else {
-                try {
-                    List<Customer> allCustomers = customerDAO.getPaginatedCustomers(1, Integer.MAX_VALUE, phone.trim(), null, null, "id", "asc");
-                    boolean phoneExistsForOtherCustomer = allCustomers.stream()
-                            .anyMatch(c -> c.getPhoneNumber() != null && 
-                                          c.getPhoneNumber().equals(phone.trim()) && 
-                                          !c.getCustomerId().equals(customerId));
-                    if (phoneExistsForOtherCustomer) {
-                        errors.put("phoneNumber", "Số điện thoại đã tồn tại trong hệ thống.");
-                    }
-                } catch (Exception e) {
-                    // Log error but don't block update
-                    logger.log(Level.WARNING, "Error checking phone uniqueness for update", e);
-                }
+            String phoneTrim = phone.trim();
+            boolean hasSpecialChar = !phoneTrim.matches("^[0-9]+$");
+            boolean hasLengthError = phoneTrim.length() != 10;
+            boolean notStartWith0 = !phoneTrim.startsWith("0");
+            boolean isDuplicate = false;
+            try {
+                List<Customer> allCustomers = customerDAO.getPaginatedCustomers(1, Integer.MAX_VALUE, phoneTrim, null, null, "id", "asc");
+                isDuplicate = allCustomers.stream().anyMatch(c -> c.getPhoneNumber() != null && c.getPhoneNumber().equals(phoneTrim) && !c.getCustomerId().equals(customerId));
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Error checking phone uniqueness for update", e);
+            }
+            if (hasSpecialChar) {
+                errors.put("phoneNumberFormat", "Số điện thoại không được chứa ký tự đặc biệt, chỉ gồm số.");
+            }
+            if (hasLengthError) {
+                errors.put("phoneNumberLength", "Số điện thoại phải gồm đúng 10 chữ số.");
+            }
+            if (notStartWith0) {
+                errors.put("phoneNumberStart", "Số điện thoại phải bắt đầu bằng số 0.");
+            }
+            if (!hasSpecialChar && !hasLengthError && !notStartWith0 && isDuplicate) {
+                errors.put("phoneNumberDuplicate", "Số điện thoại đã tồn tại trong hệ thống.");
             }
         }
-
         // Validate birthday if provided
         if (birthdayStr != null && !birthdayStr.trim().isEmpty()) {
             try {
@@ -1047,12 +1080,13 @@ public class CustomerManagementController extends HttpServlet {
                 java.time.LocalDate birthDate = birthday.toLocalDate();
                 java.time.LocalDate today = java.time.LocalDate.now();
                 if (birthDate.isAfter(today)) {
-                    errors.put("birthday", "Ngày sinh không được vượt quá ngày hiện tại.");
-                } else if (java.time.Period.between(birthDate, today).getYears() < 14) {
-                    errors.put("birthday", "Khách hàng phải đủ 14 tuổi trở lên mới đăng ký tài khoản.");
+                    errors.put("birthdayFuture", "Ngày sinh không được vượt quá ngày hiện tại.");
+                }
+                if (java.time.Period.between(birthDate, today).getYears() < 14) {
+                    errors.put("birthdayAge", "Khách hàng phải đủ 14 tuổi trở lên mới đăng ký tài khoản.");
                 }
             } catch (IllegalArgumentException e) {
-                errors.put("birthday", "Ngày sinh không hợp lệ.");
+                errors.put("birthdayFormat", "Ngày sinh không hợp lệ.");
             }
         }
     }

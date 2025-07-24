@@ -246,7 +246,7 @@ public class PromotionController extends HttpServlet {
         }
         
         // Gán dữ liệu từ request vào object và validate
-        Map<String, String> errors = mapAndValidateRequestToPromotion(request, promotion, isEdit);
+        Map<String, List<String>> errors = mapAndValidateRequestToPromotion(request, promotion, isEdit);
 
         // Xử lý upload ảnh
         try {
@@ -260,7 +260,7 @@ public class PromotionController extends HttpServlet {
             }
         } catch (IOException e) {
             logger.log(Level.WARNING, "Image upload error: " + e.getMessage(), e);
-            errors.put("imageUrl", e.getMessage());
+            errors.put("imageUrl", new ArrayList<>(List.of(e.getMessage())));
         }
 
         if (!errors.isEmpty()) {
@@ -335,7 +335,7 @@ public class PromotionController extends HttpServlet {
                 return;
             } else {
                 logger.severe("Failed to " + (isEdit ? "update" : "save") + " promotion to database");
-                errors.put("general", "Không thể lưu khuyến mãi vào cơ sở dữ liệu. Vui lòng thử lại.");
+                errors.put("general", new ArrayList<>(List.of("Không thể lưu khuyến mãi vào cơ sở dữ liệu. Vui lòng thử lại.")));
                 request.setAttribute("errors", errors);
                 request.setAttribute("promotion", promotion);
                 request.setAttribute("isEdit", isEdit);
@@ -345,7 +345,7 @@ public class PromotionController extends HttpServlet {
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error saving promotion", e);
-            errors.put("general", "Lỗi hệ thống: " + e.getMessage());
+            errors.put("general", new ArrayList<>(List.of("Lỗi hệ thống: " + e.getMessage())));
             request.setAttribute("errors", errors);
             request.setAttribute("promotion", promotion);
             request.setAttribute("isEdit", isEdit);
@@ -355,8 +355,8 @@ public class PromotionController extends HttpServlet {
         }
     }
 
-    private Map<String, String> mapAndValidateRequestToPromotion(HttpServletRequest request, Promotion promotion, boolean isEdit) {
-        Map<String, String> errors = new HashMap<>();
+    private Map<String, List<String>> mapAndValidateRequestToPromotion(HttpServletRequest request, Promotion promotion, boolean isEdit) {
+        Map<String, List<String>> errors = new HashMap<>();
         
         // Lấy dữ liệu từ request
         String title = getStringParameter(request, "title");
@@ -371,100 +371,111 @@ public class PromotionController extends HttpServlet {
 
         // Validate và gán dữ liệu vào object
         // Title
+        List<String> titleErrors = new ArrayList<>();
         if (title == null || title.trim().length() < 3) {
-            errors.put("title", "Tên khuyến mãi phải có ít nhất 3 ký tự");
-        } else if (title.trim().length() > 255) {
-            errors.put("title", "Tên khuyến mãi không được vượt quá 255 ký tự");
-        } else {
-            // Kiểm tra trùng tên (không phân biệt chữ hoa/thường)
+            titleErrors.add("Tên khuyến mãi phải có ít nhất 3 ký tự");
+        }
+        if (title != null && title.trim().length() > 255) {
+            titleErrors.add("Tên khuyến mãi không được vượt quá 255 ký tự");
+        }
+        if (title != null && title.trim().length() >= 3 && title.trim().length() <= 255) {
             Optional<Promotion> existingByTitle = promotionDAO.findByTitleIgnoreCase(title.trim());
             if (existingByTitle.isPresent() && (!isEdit || existingByTitle.get().getPromotionId() != promotion.getPromotionId())) {
-                errors.put("title", "Tên khuyến mãi đã tồn tại (không phân biệt chữ hoa/thường)");
+                titleErrors.add("Tên khuyến mãi đã tồn tại (không phân biệt chữ hoa/thường)");
             } else {
                 promotion.setTitle(title.trim());
             }
         }
-        
+        if (!titleErrors.isEmpty()) errors.put("title", titleErrors);
         // Promotion Code
+        List<String> codeErrors = new ArrayList<>();
         if (promotionCode == null || promotionCode.trim().isEmpty()) {
-            errors.put("promotionCode", "Mã khuyến mãi không được để trống");
+            codeErrors.add("Mã khuyến mãi không được để trống");
         } else {
             String code = promotionCode.trim();
             
             // Kiểm tra ký tự tiếng Việt
             if (code.matches(".*[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ].*")) {
-                errors.put("promotionCode", "Mã khuyến mãi không được chứa ký tự tiếng Việt");
+                codeErrors.add("Mã khuyến mãi không được chứa ký tự tiếng Việt");
             } else if (!code.matches("^[A-Z0-9]{3,10}$")) {
-                errors.put("promotionCode", "Mã khuyến mãi phải từ 3-10 ký tự, chỉ chứa chữ hoa và số.");
+                codeErrors.add("Mã khuyến mãi phải từ 3-10 ký tự, chỉ chứa chữ hoa và số.");
             } else {
                 // Kiểm tra trùng lặp (không phân biệt chữ hoa/thường), bỏ qua chính nó khi đang edit
                 Optional<Promotion> existing = promotionDAO.findByCodeIgnoreCase(code);
                 if (existing.isPresent() && (!isEdit || existing.get().getPromotionId() != promotion.getPromotionId())) {
-                    errors.put("promotionCode", "Mã khuyến mãi đã tồn tại (không phân biệt chữ hoa/thường)");
+                    codeErrors.add("Mã khuyến mãi đã tồn tại (không phân biệt chữ hoa/thường)");
                 } else {
                     promotion.setPromotionCode(code.toUpperCase());
                 }
             }
         }
-
-        // Discount Type and Value
+        if (!codeErrors.isEmpty()) errors.put("promotionCode", codeErrors);
+        // Discount Type
+        List<String> typeErrors = new ArrayList<>();
         if (discountType == null || discountType.trim().isEmpty()) {
-            errors.put("discountType", "Vui lòng chọn loại giảm giá");
+            typeErrors.add("Vui lòng chọn loại giảm giá");
         } else {
             promotion.setDiscountType(discountType);
         }
-
+        if (!typeErrors.isEmpty()) errors.put("discountType", typeErrors);
+        // Discount Value
+        List<String> valueErrors = new ArrayList<>();
         if (discountValueStr == null || discountValueStr.trim().isEmpty()) {
-            errors.put("discountValue", "Vui lòng nhập giá trị giảm giá");
+            valueErrors.add("Vui lòng nhập giá trị giảm giá");
         } else {
             try {
                 BigDecimal discountValue = new BigDecimal(discountValueStr);
                 if (discountValue.compareTo(BigDecimal.ZERO) <= 0) {
-                    errors.put("discountValue", "Giá trị giảm giá phải lớn hơn 0");
+                    valueErrors.add("Giá trị giảm giá phải lớn hơn 0");
                 } else if ("PERCENTAGE".equalsIgnoreCase(discountType) && discountValue.compareTo(new BigDecimal("100")) > 0) {
-                    errors.put("discountValue", "Giảm giá theo % không được vượt quá 100");
+                    valueErrors.add("Giảm giá theo % không được vượt quá 100");
                 } else {
                     promotion.setDiscountValue(discountValue);
                 }
             } catch (NumberFormatException e) {
-                errors.put("discountValue", "Giá trị giảm giá không hợp lệ");
+                valueErrors.add("Giá trị giảm giá không hợp lệ");
             }
         }
-        
+        if (!valueErrors.isEmpty()) errors.put("discountValue", valueErrors);
         // Description
+        List<String> descErrors = new ArrayList<>();
         if (description == null || description.trim().isEmpty()) {
-            errors.put("description", "Vui lòng nhập mô tả");
+            descErrors.add("Vui lòng nhập mô tả");
         } else if (description.trim().length() > 1000) {
-            errors.put("description", "Mô tả không được vượt quá 1000 ký tự");
+            descErrors.add("Mô tả không được vượt quá 1000 ký tự");
         } else {
             promotion.setDescription(description);
         }
-
+        if (!descErrors.isEmpty()) errors.put("description", descErrors);
         // Dates
+        List<String> startDateErrors = new ArrayList<>();
+        List<String> endDateErrors = new ArrayList<>();
         LocalDateTime startDate = null, endDate = null;
         if (startDateStr == null || startDateStr.trim().isEmpty()) {
-            errors.put("startDate", "Vui lòng chọn ngày bắt đầu");
+            startDateErrors.add("Vui lòng chọn ngày bắt đầu");
         } else {
             try { 
                 startDate = LocalDate.parse(startDateStr).atStartOfDay(); 
                 promotion.setStartDate(startDate); 
             } catch (Exception e) { 
-                errors.put("startDate", "Định dạng ngày bắt đầu không hợp lệ"); 
+                startDateErrors.add("Định dạng ngày bắt đầu không hợp lệ"); 
             }
         }
         if (endDateStr == null || endDateStr.trim().isEmpty()) {
-            errors.put("endDate", "Vui lòng chọn ngày kết thúc");
+            endDateErrors.add("Vui lòng chọn ngày kết thúc");
         } else {
             try { 
                 endDate = LocalDate.parse(endDateStr).atTime(23, 59, 59); 
                 promotion.setEndDate(endDate); 
             } catch (Exception e) { 
-                errors.put("endDate", "Định dạng ngày kết thúc không hợp lệ"); 
+                endDateErrors.add("Định dạng ngày kết thúc không hợp lệ"); 
             }
         }
         if (startDate != null && endDate != null && !endDate.isAfter(startDate)) {
-            errors.put("endDate", "Ngày kết thúc phải sau ngày bắt đầu");
+            endDateErrors.add("Ngày kết thúc phải sau ngày bắt đầu");
         }
+        if (!startDateErrors.isEmpty()) errors.put("startDate", startDateErrors);
+        if (!endDateErrors.isEmpty()) errors.put("endDate", endDateErrors);
         
         promotion.setStatus(status);
         

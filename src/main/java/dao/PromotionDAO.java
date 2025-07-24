@@ -651,7 +651,7 @@ public class PromotionDAO {
         List<java.util.Map<String, Object>> usageList = new ArrayList<>();
         String sql = "SELECT pu.*, c.first_name, c.last_name, c.email, c.phone, " +
                     "p.title as promotion_title, p.promotion_code " +
-                    "FROM promotion_usage pu " +
+                    "FROM promotion_usage_history pu " +
                     "JOIN customers c ON pu.customer_id = c.customer_id " +
                     "JOIN promotions p ON pu.promotion_id = p.promotion_id " +
                     "WHERE pu.promotion_id = ? " +
@@ -692,7 +692,7 @@ public class PromotionDAO {
      * Get total usage count for a promotion
      */
     public int getTotalUsageCount(int promotionId) {
-        String sql = "SELECT COUNT(*) FROM promotion_usage WHERE promotion_id = ?";
+        String sql = "SELECT COUNT(*) FROM promotion_usage_history WHERE promotion_id = ?";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, promotionId);

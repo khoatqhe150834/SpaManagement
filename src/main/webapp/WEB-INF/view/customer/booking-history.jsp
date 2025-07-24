@@ -522,5 +522,11 @@
             localStorage.setItem('lastActivity', Date.now());
         });
     </script>
+    <% String pointMessage = (String) session.getAttribute("pointMessage");
+       if (pointMessage != null) { %>
+    <script>
+        alert("<%= pointMessage.replace("\"", "\\\"") %>");
+    </script>
+    <% session.removeAttribute("pointMessage"); } %>
 </body>
 </html>
