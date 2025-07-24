@@ -7,8 +7,6 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import model.*;
-
 import java.io.IOException;
 import java.sql.Date;
 import java.sql.SQLException;
@@ -17,6 +15,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import model.*;
+import model.Booking;
 
 @WebServlet(name = "InventoryManagerController", urlPatterns = {"/inventory-manager/*"})
 public class InventoryManagerController extends HttpServlet {
@@ -633,7 +633,7 @@ public class InventoryManagerController extends HttpServlet {
         InventoryItemDAO itemDAO = new InventoryItemDAO();
         InventoryMasterDataDAO masterDAO = new InventoryMasterDataDAO();
         BookingDAO bookingDAO = new BookingDAO();
-        List<model.Booking> booking = bookingDAO.findAll();
+        List<Booking> booking = bookingDAO.findAll();
         List<InventoryItem> items = itemDAO.findItems(null, null, null, true, 1, 100);
         List<Supplier> suppliers = masterDAO.findSuppliers(null, true, 1, 100);
         request.setAttribute("items", items);
