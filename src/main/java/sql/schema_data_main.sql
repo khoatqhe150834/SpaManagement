@@ -201,6 +201,13 @@ CREATE TABLE `bookings` (
 LOCK TABLES `bookings` WRITE;
 /*!40000 ALTER TABLE `bookings` DISABLE KEYS */;
 /*!40000 ALTER TABLE `bookings` ENABLE KEYS */;
+INSERT INTO bookings (booking_id, customer_id, payment_item_id, service_id, therapist_user_id, appointment_date, appointment_time, duration_minutes, booking_status, booking_notes, room_id)
+VALUES
+(1001, 1, 201, 1, 21, '2025-07-01', '10:00:00', 60, 'COMPLETED', 'Khách hài lòng', 1),
+(1002, 2, 202, 2, 22, '2025-07-02', '11:00:00', 90, 'COMPLETED', 'Khách quay lại lần 2', 2),
+(1003, 3, 203, 3, 23, '2025-07-03', '12:00:00', 75, 'COMPLETED', 'Khách đi cùng bạn', 3),
+(1004, 4, 204, 1, 21, '2025-07-04', '13:00:00', 60, 'COMPLETED', 'Khách VIP', 1),
+(1005, 5, 205, 2, 22, '2025-07-05', '14:00:00', 90, 'COMPLETED', 'Khách phản hồi tốt', 2);
 UNLOCK TABLES;
 
 --
@@ -1533,6 +1540,7 @@ CREATE TABLE `service_reviews` (
   `service_id` int NOT NULL COMMENT 'ID dịch vụ được đánh giá (để tiện truy vấn)',
   `customer_id` int NOT NULL COMMENT 'ID khách hàng đánh giá (để tiện truy vấn)',
   `booking_id` int NOT NULL COMMENT 'ID của lịch hẹn đã hoàn thành mà review này dành cho.',
+  `therapist_user_id` int NOT NULL COMMENT 'ID nhân viên thực hiện dịch vụ',
   `rating` tinyint unsigned NOT NULL COMMENT 'Điểm đánh giá (1-5)',
   `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `comment` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
@@ -1544,9 +1552,11 @@ CREATE TABLE `service_reviews` (
   KEY `service_id` (`service_id`),
   KEY `customer_id` (`customer_id`),
   KEY `service_reviews_ibfk_3` (`booking_id`),
+  KEY `therapist_user_id` (`therapist_user_id`),
   CONSTRAINT `service_reviews_ibfk_1` FOREIGN KEY (`service_id`) REFERENCES `services` (`service_id`) ON DELETE CASCADE,
   CONSTRAINT `service_reviews_ibfk_2` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`) ON DELETE CASCADE,
-  CONSTRAINT `service_reviews_ibfk_3` FOREIGN KEY (`booking_id`) REFERENCES `bookings` (`booking_id`)
+  CONSTRAINT `service_reviews_ibfk_3` FOREIGN KEY (`booking_id`) REFERENCES `bookings` (`booking_id`),
+  CONSTRAINT `service_reviews_ibfk_4` FOREIGN KEY (`therapist_user_id`) REFERENCES `therapists` (`user_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1557,6 +1567,13 @@ CREATE TABLE `service_reviews` (
 LOCK TABLES `service_reviews` WRITE;
 /*!40000 ALTER TABLE `service_reviews` DISABLE KEYS */;
 /*!40000 ALTER TABLE `service_reviews` ENABLE KEYS */;
+INSERT INTO service_reviews (service_id, customer_id, booking_id, therapist_user_id, rating, title, comment, is_visible, manager_reply)
+VALUES
+(1, 1, 1001, 21, 5, 'Dịch vụ tuyệt vời', 'Tôi rất hài lòng với trải nghiệm tại spa, nhân viên thân thiện.', 1, 'Cảm ơn bạn đã tin tưởng và ủng hộ spa!'),
+(2, 2, 1002, 22, 4, 'Khá ổn', 'Dịch vụ tốt nhưng phòng chờ hơi đông.', 1, 'Cảm ơn bạn, chúng tôi sẽ cải thiện không gian chờ.'),
+(3, 3, 1003, 23, 3, 'Bình thường', 'Kỹ thuật viên làm ổn nhưng chưa thực sự nổi bật.', 1, 'Cảm ơn góp ý, chúng tôi sẽ đào tạo thêm cho nhân viên.'),
+(1, 4, 1004, 21, 5, 'Rất hài lòng', 'Không gian sạch sẽ, dịch vụ chuyên nghiệp.', 1, 'Cảm ơn bạn đã phản hồi tích cực!'),
+(2, 5, 1005, 22, 2, 'Chưa hài lòng', 'Thời gian chờ lâu, cần cải thiện.', 1, 'Xin lỗi về trải nghiệm chưa tốt, chúng tôi sẽ khắc phục.');
 UNLOCK TABLES;
 
 --
