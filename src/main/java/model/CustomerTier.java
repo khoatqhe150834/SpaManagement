@@ -2,9 +2,9 @@ package model;
 
 public enum CustomerTier {
     DONG("Đồng", 0),
-    BAC("Bạc", 1000),
-    VANG("Vàng", 3000),
-    KIMCUONG("Kim Cương", 6000);
+    BAC("Bạc", 500),
+    VANG("Vàng", 1000),
+    KIMCUONG("Kim Cương", 1500);
 
     private final String label;
     private final int minPoints;

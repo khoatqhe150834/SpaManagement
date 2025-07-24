@@ -452,6 +452,15 @@
                             
                             <div class="space-y-4">
                                 <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                    <span class="text-gray-700">Hạng khách hàng:</span>
+                                    <span class="font-semibold text-amber-600">
+                                        <c:choose>
+                                            <c:when test="${not empty tier}">${tier}</c:when>
+                                            <c:otherwise>Chưa phân hạng</c:otherwise>
+                                        </c:choose>
+                                    </span>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                                     <span class="text-gray-700">Tổng booking:</span>
                                     <span class="font-semibold text-blue-600">
                                         <fmt:formatNumber value="${totalBookings}" type="number"/>

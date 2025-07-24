@@ -94,7 +94,11 @@
                                            class="w-full border rounded-lg px-3 py-2 focus:ring-primary focus:border-primary ${not empty errors.title ? 'border-red-500' : ''}" />
                                     <p class="text-gray-500 text-xs mt-1">Tối thiểu 3 ký tự, tối đa 100 ký tự. Không được trùng với tên khuyến mãi khác</p>
                                     <c:if test="${not empty errors.title}">
-                                        <p class="text-red-500 text-sm mt-1">${errors.title}</p>
+                                        <ul class="pl-4">
+                                            <c:forEach var="err" items="${errors.title}">
+                                                <li class="text-red-500 text-sm mt-1">${err}</li>
+                                            </c:forEach>
+                                        </ul>
                                     </c:if>
                                 </div>
                                 
@@ -106,7 +110,11 @@
                                            class="w-full border rounded-lg px-3 py-2 focus:ring-primary focus:border-primary ${not empty errors.promotionCode ? 'border-red-500' : ''}" />
                                     <p class="text-gray-500 text-xs mt-1">3-10 ký tự, chỉ chữ hoa và số. Hệ thống sẽ tự động chuyển thành chữ hoa</p>
                                     <c:if test="${not empty errors.promotionCode}">
-                                        <p class="text-red-500 text-sm mt-1">${errors.promotionCode}</p>
+                                        <ul class="pl-4">
+                                            <c:forEach var="err" items="${errors.promotionCode}">
+                                                <li class="text-red-500 text-sm mt-1">${err}</li>
+                                            </c:forEach>
+                                        </ul>
                                     </c:if>
                                 </div>
                             </div>
@@ -127,7 +135,11 @@
                                         <option value="FREE_SERVICE" ${promotionInput.discountType == 'FREE_SERVICE' ? 'selected' : ''}>Miễn phí dịch vụ</option>
                                     </select>
                                     <c:if test="${not empty errors.discountType}">
-                                        <p class="text-red-500 text-sm mt-1">${errors.discountType}</p>
+                                        <ul class="pl-4">
+                                            <c:forEach var="err" items="${errors.discountType}">
+                                                <li class="text-red-500 text-sm mt-1">${err}</li>
+                                            </c:forEach>
+                                        </ul>
                                     </c:if>
                                 </div>
                                 
@@ -138,7 +150,11 @@
                                            value="${not empty promotionInput.discountValue ? promotionInput.discountValue : ''}"
                                            class="w-full border rounded-lg px-3 py-2 focus:ring-primary focus:border-primary ${not empty errors.discountValue ? 'border-red-500' : ''}" />
                                     <c:if test="${not empty errors.discountValue}">
-                                        <p class="text-red-500 text-sm mt-1">${errors.discountValue}</p>
+                                        <ul class="pl-4">
+                                            <c:forEach var="err" items="${errors.discountValue}">
+                                                <li class="text-red-500 text-sm mt-1">${err}</li>
+                                            </c:forEach>
+                                        </ul>
                                     </c:if>
                                 </div>
                             </div>
@@ -155,7 +171,11 @@
                                     <input type="date" name="startDate" id="startDate" required 
                                            class="w-full border rounded-lg px-3 py-2 focus:ring-primary focus:border-primary ${not empty errors.startDate ? 'border-red-500' : ''}" />
                                     <c:if test="${not empty errors.startDate}">
-                                        <p class="text-red-500 text-sm mt-1">${errors.startDate}</p>
+                                        <ul class="pl-4">
+                                            <c:forEach var="err" items="${errors.startDate}">
+                                                <li class="text-red-500 text-sm mt-1">${err}</li>
+                                            </c:forEach>
+                                        </ul>
                                     </c:if>
                                 </div>
                                 
@@ -164,7 +184,11 @@
                                     <input type="date" name="endDate" id="endDate" required 
                                            class="w-full border rounded-lg px-3 py-2 focus:ring-primary focus:border-primary ${not empty errors.endDate ? 'border-red-500' : ''}" />
                                     <c:if test="${not empty errors.endDate}">
-                                        <p class="text-red-500 text-sm mt-1">${errors.endDate}</p>
+                                        <ul class="pl-4">
+                                            <c:forEach var="err" items="${errors.endDate}">
+                                                <li class="text-red-500 text-sm mt-1">${err}</li>
+                                            </c:forEach>
+                                        </ul>
                                     </c:if>
                                 </div>
                             </div>
@@ -221,7 +245,11 @@
                                     <img src="" alt="Preview" class="w-32 h-32 object-cover rounded-lg border">
                                 </div>
                                 <c:if test="${not empty errors.imageUrl}">
-                                    <p class="text-red-500 text-sm mt-1">${errors.imageUrl}</p>
+                                    <ul class="pl-4">
+                                        <c:forEach var="err" items="${errors.imageUrl}">
+                                            <li class="text-red-500 text-sm mt-1">${err}</li>
+                                        </c:forEach>
+                                    </ul>
                                 </c:if>
                             </div>
 
@@ -231,7 +259,11 @@
                                           placeholder="Nhập mô tả chi tiết về khuyến mãi..."
                                           class="w-full border rounded-lg px-3 py-2 focus:ring-primary focus:border-primary ${not empty errors.description ? 'border-red-500' : ''}">${not empty promotionInput.description ? promotionInput.description : ''}</textarea>
                                 <c:if test="${not empty errors.description}">
-                                    <p class="text-red-500 text-sm mt-1">${errors.description}</p>
+                                    <ul class="pl-4">
+                                        <c:forEach var="err" items="${errors.description}">
+                                            <li class="text-red-500 text-sm mt-1">${err}</li>
+                                        </c:forEach>
+                                    </ul>
                                 </c:if>
                             </div>
                         </div>

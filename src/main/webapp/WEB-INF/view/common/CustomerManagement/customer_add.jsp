@@ -151,13 +151,21 @@
                                     <input type="text" 
                                            id="fullName" 
                                            name="fullName" 
-                                           class="form-input ${errors.fullName != null ? 'is-invalid' : ''}"
+                                           class="form-input ${(errors.fullNameRequired != null || errors.fullNameLength != null || errors.fullNameFormat != null) ? 'is-invalid' : ''}"
                                            value="${customerInput.fullName}"
                                            placeholder="Nhập họ tên đầy đủ"
                                            required>
-                                    <c:if test="${errors.fullName != null}">
-                                        <div class="invalid-feedback">${errors.fullName}</div>
-                                    </c:if>
+                                    <ul class="pl-4">
+                                      <c:if test="${not empty errors.fullNameRequired}">
+                                        <li class="invalid-feedback">${errors.fullNameRequired}</li>
+                                      </c:if>
+                                      <c:if test="${not empty errors.fullNameLength}">
+                                        <li class="invalid-feedback">${errors.fullNameLength}</li>
+                                      </c:if>
+                                      <c:if test="${not empty errors.fullNameFormat}">
+                                        <li class="invalid-feedback">${errors.fullNameFormat}</li>
+                                      </c:if>
+                                    </ul>
                                 </div>
                                 
                                 <div>
@@ -175,11 +183,19 @@
                                     <input type="date" 
                                            id="birthday" 
                                            name="birthday" 
-                                           class="form-input ${errors.birthday != null ? 'is-invalid' : ''}"
+                                           class="form-input ${(errors.birthdayFormat != null || errors.birthdayAge != null || errors.birthdayFuture != null) ? 'is-invalid' : ''}"
                                            value="${customerInput.birthday}">
-                                    <c:if test="${errors.birthday != null}">
-                                        <div class="invalid-feedback">${errors.birthday}</div>
-                                    </c:if>
+                                    <ul class="pl-4">
+                                      <c:if test="${not empty errors.birthdayFormat}">
+                                        <li class="invalid-feedback">${errors.birthdayFormat}</li>
+                                      </c:if>
+                                      <c:if test="${not empty errors.birthdayAge}">
+                                        <li class="invalid-feedback">${errors.birthdayAge}</li>
+                                      </c:if>
+                                      <c:if test="${not empty errors.birthdayFuture}">
+                                        <li class="invalid-feedback">${errors.birthdayFuture}</li>
+                                      </c:if>
+                                    </ul>
                                 </div>
                                 
                                 <div>
@@ -187,12 +203,23 @@
                                     <input type="tel" 
                                            id="phoneNumber" 
                                            name="phoneNumber" 
-                                           class="form-input ${errors.phoneNumber != null ? 'is-invalid' : ''}"
+                                           class="form-input ${(errors.phoneNumberFormat != null || errors.phoneNumberLength != null || errors.phoneNumberStart != null || errors.phoneNumberDuplicate != null) ? 'is-invalid' : ''}"
                                            value="${customerInput.phoneNumber}"
                                            placeholder="Số điện thoại">
-                                    <c:if test="${errors.phoneNumber != null}">
-                                        <div class="invalid-feedback">${errors.phoneNumber}</div>
-                                    </c:if>
+                                    <ul class="pl-4">
+                                      <c:if test="${not empty errors.phoneNumberFormat}">
+                                        <li class="invalid-feedback">${errors.phoneNumberFormat}</li>
+                                      </c:if>
+                                      <c:if test="${not empty errors.phoneNumberLength}">
+                                        <li class="invalid-feedback">${errors.phoneNumberLength}</li>
+                                      </c:if>
+                                      <c:if test="${not empty errors.phoneNumberStart}">
+                                        <li class="invalid-feedback">${errors.phoneNumberStart}</li>
+                                      </c:if>
+                                      <c:if test="${not empty errors.phoneNumberDuplicate}">
+                                        <li class="invalid-feedback">${errors.phoneNumberDuplicate}</li>
+                                      </c:if>
+                                    </ul>
                                 </div>
                                 
                                 <div class="md:col-span-2">
@@ -220,12 +247,17 @@
                                     <input type="email" 
                                            id="email" 
                                            name="email" 
-                                           class="form-input ${errors.email != null ? 'is-invalid' : ''}"
+                                           class="form-input ${(errors.emailFormat != null || errors.emailDuplicate != null) ? 'is-invalid' : ''}"
                                            value="${customerInput.email}"
                                            placeholder="Email đăng nhập (tùy chọn)">
-                                    <c:if test="${errors.email != null}">
-                                        <div class="invalid-feedback">${errors.email}</div>
-                                    </c:if>
+                                    <ul class="pl-4">
+                                      <c:if test="${not empty errors.emailFormat}">
+                                        <li class="invalid-feedback">${errors.emailFormat}</li>
+                                      </c:if>
+                                      <c:if test="${not empty errors.emailDuplicate}">
+                                        <li class="invalid-feedback">${errors.emailDuplicate}</li>
+                                      </c:if>
+                                    </ul>
                                     <div class="text-sm text-gray-500 mt-1">
                                         <i data-lucide="info" class="w-4 h-4 inline mr-1"></i>
                                         Nếu không cung cấp email, khách hàng có thể đăng ký sau
@@ -237,11 +269,13 @@
                                     <input type="password" 
                                            id="password" 
                                            name="password" 
-                                           class="form-input ${errors.password != null ? 'is-invalid' : ''}"
+                                           class="form-input ${(errors.passwordLength != null) ? 'is-invalid' : ''}"
                                            placeholder="Mật khẩu (tùy chọn)">
-                                    <c:if test="${errors.password != null}">
-                                        <div class="invalid-feedback">${errors.password}</div>
-                                    </c:if>
+                                    <ul class="pl-4">
+                                      <c:if test="${not empty errors.passwordLength}">
+                                        <li class="invalid-feedback">${errors.passwordLength}</li>
+                                      </c:if>
+                                    </ul>
                                     <div class="text-sm text-gray-500 mt-1">
                                         <i data-lucide="info" class="w-4 h-4 inline mr-1"></i>
                                         Nếu không cung cấp mật khẩu, khách hàng có thể đặt lại sau
@@ -307,52 +341,78 @@
                 feedback.remove();
             });
             
-            // Validate required fields
+            // Validate họ tên
             const fullName = document.getElementById('fullName');
+            let fullNameErrors = [];
             if (!fullName.value.trim()) {
-                showError(fullName, 'Họ tên là bắt buộc');
-                isValid = false;
-            } else if (fullName.value.trim().length < 2) {
-                showError(fullName, 'Họ tên phải có ít nhất 2 ký tự');
-                isValid = false;
-            } else if (fullName.value.trim().length > 100) {
-                showError(fullName, 'Họ tên không được vượt quá 100 ký tự');
-                isValid = false;
-            } else if (!/^[\p{L}\s]+$/u.test(fullName.value.trim())) {
-                showError(fullName, 'Họ tên chỉ được chứa chữ cái và khoảng trắng, không chứa số hoặc ký tự đặc biệt.');
-                isValid = false;
-            }
-            
-            // Validate email if provided
-            const email = document.getElementById('email');
-            if (email.value.trim() && !isValidEmail(email.value)) {
-                showError(email, 'Email không hợp lệ');
-                isValid = false;
-            }
-            
-            // Validate password if provided
-            const password = document.getElementById('password');
-            if (password && password.value.trim() && password.value.length < 7) {
-                showError(password, 'Mật khẩu phải có ít nhất 7 ký tự');
-                isValid = false;
-            }
-            
-            // Validate phone if provided
-            const phoneNumber = document.getElementById('phoneNumber');
-            if (phoneNumber.value.trim()) {
-                if (!/^0[0-9]{9}$/.test(phoneNumber.value.trim())) {
-                    showError(phoneNumber, 'Số điện thoại phải bắt đầu bằng 0, gồm đúng 10 chữ số và không chứa ký tự đặc biệt.');
-                    isValid = false;
+                fullNameErrors.push('Họ tên là bắt buộc');
+            } else {
+                if (fullName.value.trim().length < 2 || fullName.value.trim().length > 100) {
+                    fullNameErrors.push('Họ tên phải có độ dài từ 2 đến 100 ký tự');
+                }
+                if (!/^[\p{L}\s]+$/u.test(fullName.value.trim())) {
+                    fullNameErrors.push('Họ tên chỉ được chứa chữ cái và khoảng trắng, không chứa số hoặc ký tự đặc biệt.');
                 }
             }
+            if (fullNameErrors.length > 0) {
+                showErrors(fullName, fullNameErrors);
+                isValid = false;
+            }
             
-            // Validate birthday if provided
+            // Validate email
+            const email = document.getElementById('email');
+            let emailErrors = [];
+            if (email.value.trim() && !isValidEmail(email.value)) {
+                emailErrors.push('Email không hợp lệ');
+            }
+            if (emailErrors.length > 0) {
+                showErrors(email, emailErrors);
+                isValid = false;
+            }
+            
+            // Validate password
+            const password = document.getElementById('password');
+            let passwordErrors = [];
+            if (password && password.value.trim() && password.value.length < 7) {
+                passwordErrors.push('Mật khẩu phải có ít nhất 7 ký tự');
+            }
+            if (passwordErrors.length > 0) {
+                showErrors(password, passwordErrors);
+                isValid = false;
+            }
+            
+            // Validate phone
+            const phoneNumber = document.getElementById('phoneNumber');
+            let phoneErrors = [];
+            if (phoneNumber.value.trim()) {
+                const val = phoneNumber.value.trim();
+                if (/[^0-9]/.test(val)) {
+                    phoneErrors.push('Số điện thoại không được chứa ký tự đặc biệt, chỉ gồm số.');
+                }
+                if (val.length !== 10) {
+                    phoneErrors.push('Số điện thoại phải gồm đúng 10 chữ số.');
+                }
+                if (!val.startsWith('0')) {
+                    phoneErrors.push('Số điện thoại phải bắt đầu bằng số 0.');
+                }
+                // Lỗi trùng số sẽ check ở backend
+            }
+            if (phoneErrors.length > 0) {
+                showErrors(phoneNumber, phoneErrors);
+                isValid = false;
+            }
+            
+            // Validate birthday
             const birthday = document.getElementById('birthday');
+            let birthdayErrors = [];
             if (birthday.value.trim()) {
                 if (!isValidBirthday(birthday.value)) {
-                    showError(birthday, 'Ngày sinh không hợp lệ, phải đủ 14 tuổi trở lên và không vượt quá ngày hiện tại.');
-                    isValid = false;
+                    birthdayErrors.push('Ngày sinh không hợp lệ, phải đủ 14 tuổi trở lên và không vượt quá ngày hiện tại.');
                 }
+            }
+            if (birthdayErrors.length > 0) {
+                showErrors(birthday, birthdayErrors);
+                isValid = false;
             }
             
             if (!isValid) {
@@ -366,16 +426,14 @@
             }
         });
         
-        function showError(input, message) {
+        function showErrors(input, messages) {
             input.classList.add('is-invalid');
-            
-            // Create error message
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'invalid-feedback';
-            errorDiv.textContent = message;
-            
-            // Insert error message after input
-            input.parentNode.insertBefore(errorDiv, input.nextSibling);
+            messages.forEach(message => {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'invalid-feedback';
+                errorDiv.textContent = message;
+                input.parentNode.insertBefore(errorDiv, input.nextSibling);
+            });
         }
         
         function isValidEmail(email) {

@@ -588,10 +588,10 @@ class BookingCheckout {
                     totalAmount: result.totalAmount
                 });
 
-                // Redirect to success page or home
+                // Redirect to dashboard sau khi thanh toán thành công
                 setTimeout(() => {
                     const contextPath = window.spaConfig ? window.spaConfig.contextPath : '';
-                    window.location.href = contextPath + '/';
+                    window.location.href = contextPath + '/dashboard';
                 }, 3000);
             } else {
                 // Handle payment failure

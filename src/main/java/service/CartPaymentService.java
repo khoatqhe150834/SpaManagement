@@ -126,9 +126,10 @@ public class CartPaymentService {
             conn.commit(); // Commit transaction
 
             // --- Thêm logic cộng điểm thưởng khi thanh toán thành công ---
+            int pointsAdded = 0;
             try {
                 RewardPointService rewardPointService = new RewardPointService();
-                rewardPointService.addOrderValuePointsIfNotYet(customerId, totalAmount.intValue());
+                pointsAdded = rewardPointService.addOrderValuePointsIfNotYet(customerId, totalAmount.intValue());
             } catch (Exception e) {
                 // Log lỗi nhưng không ảnh hưởng thanh toán
                 e.printStackTrace();
@@ -138,6 +139,9 @@ public class CartPaymentService {
             LOGGER.log(Level.INFO, "Cart payment processed successfully. Payment ID: {0}, Total: {1}", 
                       new Object[]{payment.getPaymentId(), totalAmount});
             
+            // Trả về số điểm vừa cộng để controller có thể set thông báo
+            payment.setPointsAdded(pointsAdded);
+
             return payment;
             
         } catch (Exception ex) {

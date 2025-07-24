@@ -31,6 +31,8 @@ import model.User;
 })
 public class DashboardController extends HttpServlet {
 
+    private static final Logger logger = Logger.getLogger(DashboardController.class.getName());
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -53,6 +55,12 @@ public class DashboardController extends HttpServlet {
         String pathInfo = request.getPathInfo();
 
         try {
+            // Check for sync loyalty points action
+            if (pathInfo != null && pathInfo.equals("/sync-loyalty-points")) {
+                handleSyncLoyaltyPoints(request, response);
+                return;
+            }
+
             // For main dashboard routes, use the common dashboard JSP
             if (pathInfo == null || pathInfo.equals("/") || pathInfo.equals("/dashboard")) {
                 // Load dynamic data for customer dashboard
@@ -64,8 +72,55 @@ public class DashboardController extends HttpServlet {
                 request.getRequestDispatcher("/WEB-INF/view/common/dashboard.jsp").forward(request, response);
                 return;
             }
+
+            // Handle sub-routes based on user type
+            if (pathInfo.startsWith("/admin")) {
+                handleAdminDashboard(request, response, pathInfo);
+            } else if (pathInfo.startsWith("/manager")) {
+                handleManagerDashboard(request, response, pathInfo);
+            } else if (pathInfo.startsWith("/therapist")) {
+                handleTherapistDashboard(request, response, pathInfo);
+            } else if (pathInfo.startsWith("/receptionist")) {
+                handleReceptionistDashboard(request, response, pathInfo);
+            } else if (pathInfo.startsWith("/customer")) {
+                handleCustomerDashboard(request, response, pathInfo);
+            } else {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Route not found: " + pathInfo);
+            }
+
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "Error in GET request", e);
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Đã xảy ra lỗi: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Handle sync loyalty points for all customers
+     */
+    private void handleSyncLoyaltyPoints(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        
+        // Check if user is admin or manager
+        User user = (User) request.getAttribute("currentUser");
+        if (user == null || (user.getRoleId() != 1 && user.getRoleId() != 2)) { // 1=Admin, 2=Manager
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Không có quyền thực hiện hành động này");
+            return;
+        }
+
+        try {
+            CustomerDAO customerDAO = new CustomerDAO();
+            customerDAO.syncAllLoyaltyPointsFromCustomerPoints();
+            
+            // Send success response
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write("{\"success\": true, \"message\": \"Đã đồng bộ điểm thưởng cho tất cả khách hàng\"}");
+            
+            logger.info("Loyalty points synced for all customers by user: " + user.getUserId());
+            
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error syncing loyalty points", e);
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Lỗi khi đồng bộ điểm thưởng: " + e.getMessage());
         }
     }
 

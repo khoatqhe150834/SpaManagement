@@ -257,6 +257,8 @@ public class MenuService {
     serviceMgmt.addSubItem(new MenuItem("Thiết bị", contextPath + "/manager/service/equipment", "settings"));
     menuItems.add(serviceMgmt);
 
+    menuItems.add(new MenuItem("Quản lý điểm thưởng", contextPath + "/manager/loyalty-points", "gift", "loyalty"));
+
     
     menuItems.add(new MenuItem("Quản lý phòng", contextPath + "/manager/rooms-management", "door-open", "services"));
 
@@ -299,6 +301,10 @@ public class MenuService {
 
     menuItems.add(new MenuItem("KHÁC", true));
     menuItems.add(new MenuItem("Duyệt Blog", contextPath + "/manager/blog", "file-text", "marketing"));
+
+    // Loyalty Points Management for Manager
+    menuItems.add(new MenuItem("ĐIỂM THƯỞNG", true));
+    menuItems.add(new MenuItem("Quản lý điểm thưởng", contextPath + "/manager/loyalty-points", "gift", "loyalty"));
 
     return menuItems;
   }
@@ -481,15 +487,13 @@ public class MenuService {
    * Generate menu items for CUSTOMER role
    * Self-service portal for customers
    */
-  public static List<MenuItem> getCustomerMenuItems(String contextPath) {
+  public static List<MenuItem> getCustomerMenuItems(Customer customer, String contextPath) {
     List<MenuItem> menuItems = new ArrayList<>();
 
     // Dashboard Section
-    // menuItems.add(new MenuItem("KHÁCH HÀNG", true));
     menuItems.add(new MenuItem("Dashboard", contextPath + "/dashboard", "layout-dashboard", "customer"));
 
     // Appointments Section
-    // menuItems.add(new MenuItem("LỊCH HẸN", true));
     menuItems.add(new MenuItem("Lịch hẹn của tôi", contextPath + "/customer/view", "calendar", "appointments")
         .withNotification("3", "yellow"));
     menuItems.add(new MenuItem("Đặt dịch vụ", contextPath + "/booking", "calendar-plus", "appointments"));
@@ -498,18 +502,28 @@ public class MenuService {
     menuItems.add(new MenuItem("Lịch sử điều trị", contextPath + "/customer/history", "history", "appointments"));
 
     // Account Management
-    // menuItems.add(new MenuItem("TÀI KHOẢN", true));
+    int loyaltyPoints = 0;
+    if (customer != null) {
+      loyaltyPoints = customer.getLoyaltyPoints();
+    }
+    String formattedPoints = String.format("%,d", loyaltyPoints);
     menuItems.add(new MenuItem("Điểm tích lũy", contextPath + "/customer/loyalty", "gift", "account")
-        .withNotification("2,450", "yellow"));
+        .withNotification(formattedPoints, "yellow"));
     menuItems.add(new MenuItem("Lịch sử thanh toán", contextPath + "/customer/payments", "credit-card", "account"));
     
     // Promotion Section
     MenuItem promotionMenu = new MenuItem("Kho khuyến mãi", contextPath + "/promotions/available", "star", "account")
         .withNotification("Mới", "red");
-    promotionMenu.addSubItem(new MenuItem("Kho khuyến mãi", contextPath + "/promotions/available", "gift"));
+
     promotionMenu.addSubItem(new MenuItem("Lịch sử khuyến mãi", contextPath + "/promotions/my-promotions", "history"));
     promotionMenu.addSubItem(new MenuItem("Thông báo khuyến mãi", contextPath + "/promotions/notification", "bell"));
     menuItems.add(promotionMenu);
+
+    // --- Tích hợp menu đổi điểm ---
+    MenuItem redeemMenu = new MenuItem("Đổi điểm lấy mã giảm giá", contextPath + "/redeem", "gift");
+    redeemMenu.addSubItem(new MenuItem("Lịch sử đổi điểm", contextPath + "/redeem/history", "history"));
+    menuItems.add(redeemMenu);
+    // --- End tích hợp ---
     
     menuItems.add(new MenuItem("Đăng xuất", contextPath + "/logout", "log-out", "account"));
 
@@ -538,7 +552,8 @@ public class MenuService {
       case "INVENTORY_MANAGER":
         return getInventoryManagerMenuItems(contextPath);
       case "CUSTOMER":
-        return getCustomerMenuItems(contextPath);
+        // Bắt buộc phải dùng getCustomerMenuItems(customer, contextPath) ở nơi gọi
+        return new ArrayList<>();
       default:
         return new ArrayList<>();
     }
@@ -613,13 +628,6 @@ public class MenuService {
     }
 
     return groupedItems;
-  }
-
-  /**
-   * Get menu items for Customer (from Customer object)
-   */
-  public static List<MenuItem> getCustomerMenuItems(Customer customer, String contextPath) {
-    return getCustomerMenuItems(contextPath);
   }
 
   /**

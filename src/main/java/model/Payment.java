@@ -32,6 +32,9 @@ public class Payment {
     private Customer customer;
     private List<PaymentItem> paymentItems;
     
+    // Số điểm vừa cộng cho khách hàng khi thanh toán
+    private int pointsAdded;
+    
     // Enums for payment method and status
     public enum PaymentMethod {
         BANK_TRANSFER, CREDIT_CARD, VNPAY, MOMO, ZALOPAY, CASH
@@ -179,6 +182,13 @@ public class Payment {
 
     public void setPaymentItems(List<PaymentItem> paymentItems) {
         this.paymentItems = paymentItems;
+    }
+    
+    public int getPointsAdded() {
+        return pointsAdded;
+    }
+    public void setPointsAdded(int pointsAdded) {
+        this.pointsAdded = pointsAdded;
     }
     
     // Utility methods

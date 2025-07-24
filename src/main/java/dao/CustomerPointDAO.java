@@ -99,4 +99,27 @@ public class CustomerPointDAO {
         }
         return false;
     }
+
+    public java.util.List<model.PointTransaction> getHistoryByCustomerId(int customerId) {
+        java.util.List<model.PointTransaction> list = new java.util.ArrayList<>();
+        String sql = "SELECT * FROM point_transactions WHERE customer_id = ? ORDER BY created_at DESC";
+        try (Connection conn = db.DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, customerId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    model.PointTransaction pt = new model.PointTransaction();
+                    pt.setTransactionId(rs.getInt("transaction_id"));
+                    pt.setCustomerId(rs.getInt("customer_id"));
+                    pt.setPoints(rs.getInt("points_change"));
+                    pt.setReason(rs.getString("reason"));
+                    pt.setCreatedAt(rs.getTimestamp("created_at"));
+                    list.add(pt);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 } 
