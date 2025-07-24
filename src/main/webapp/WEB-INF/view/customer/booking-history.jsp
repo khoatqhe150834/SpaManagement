@@ -292,7 +292,16 @@
                                             <span class="font-medium text-primary">#${booking.bookingId}</span>
                                         </td>
                                         <td>
-                                            <div class="font-medium text-gray-900">${booking.service.serviceName}</div>
+                                            <div class="font-medium text-gray-900">
+                                                <c:choose>
+                                                    <c:when test="${not empty booking.service}">
+                                                        ${booking.service.name}
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        (Không xác định)
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </div>
                                         </td>
                                         <td>
                                             <fmt:formatDate value="${booking.appointmentDate}" pattern="dd/MM/yyyy"/>
@@ -301,7 +310,16 @@
                                             <fmt:formatDate value="${booking.appointmentTime}" pattern="HH:mm"/>
                                         </td>
                                         <td>
-                                            <div class="font-medium text-gray-900">${booking.therapist.fullName}</div>
+                                            <div class="font-medium text-gray-900">
+                                                <c:choose>
+                                                    <c:when test="${not empty booking.therapist}">
+                                                        ${booking.therapist.fullName}
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        (Không xác định)
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </div>
                                         </td>
                                         <td>
                                             <span class="text-gray-600">${booking.durationMinutes} phút</span>
