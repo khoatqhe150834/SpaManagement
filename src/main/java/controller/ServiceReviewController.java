@@ -5,6 +5,10 @@ import model.ServiceReview;
 import model.User;
 import dao.BookingDAO;
 import model.Booking;
+import dao.ServiceTypeDAO;
+import model.ServiceType;
+import dao.ServiceDAO;
+import model.Service;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -18,12 +22,18 @@ import java.util.List;
 
 @WebServlet(name = "ServiceReviewController", urlPatterns = {"/manager/service-review", "/customer/service-review/add"})
 public class ServiceReviewController extends HttpServlet {
-    private final ServiceReviewDAO reviewDAO = new ServiceReviewDAO();
-    private final BookingDAO bookingDAO = new BookingDAO(); // Thêm DAO booking
+    private ServiceReviewDAO reviewDAO = new ServiceReviewDAO();
+    private ServiceTypeDAO serviceTypeDAO = new ServiceTypeDAO();
+    private ServiceDAO serviceDAO = new ServiceDAO();
+    private BookingDAO bookingDAO = new BookingDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String path = request.getServletPath();
+        String action = request.getParameter("action");
+        if (action == null) action = "list";
+
+        // Xử lý cho customer add review
         if ("/customer/service-review/add".equals(path)) {
             String bookingIdStr = request.getParameter("bookingId");
             if (bookingIdStr == null) {
@@ -52,31 +62,73 @@ public class ServiceReviewController extends HttpServlet {
             request.getRequestDispatcher("/WEB-INF/view/admin_pages/ServiceReview/AddServiceReview.jsp").forward(request, response);
             return;
         }
-        String action = request.getParameter("action");
-        try {
-            if ("list".equals(action)) {
-                int serviceId = Integer.parseInt(request.getParameter("serviceId"));
-                List<ServiceReview> reviews = reviewDAO.getReviewsByService(serviceId);
-                request.setAttribute("reviews", reviews);
-                request.getRequestDispatcher("/WEB-INF/view/customer/reviews/my-reviews.jsp").forward(request, response);
-            } else if ("detail".equals(action)) {
-                int reviewId = Integer.parseInt(request.getParameter("reviewId"));
-                ServiceReview review = reviewDAO.getReviewById(reviewId);
-                request.setAttribute("review", review);
-                request.getRequestDispatcher("/WEB-INF/view/customer/reviews/review-details.jsp").forward(request, response);
-            } else if ("edit".equals(action)) {
-                int reviewId = Integer.parseInt(request.getParameter("id"));
-                ServiceReview review = reviewDAO.getReviewById(reviewId);
-                request.setAttribute("review", review);
-                request.getRequestDispatcher("/WEB-INF/view/admin_pages/ServiceReview/ReviewRespond.jsp").forward(request, response);
-            } else {
-                // Nếu không có action, lấy toàn bộ review và forward về trang quản lý review cho manager
-                List<ServiceReview> reviews = reviewDAO.getAllReviews();
-                request.setAttribute("reviews", reviews);
-                request.getRequestDispatcher("/WEB-INF/view/admin_pages/ServiceReview/ServiceReviewManager.jsp").forward(request, response);
+
+        // Ưu tiên xử lý action=edit trước
+        if ("/manager/service-review".equals(path) && "edit".equals(action)) {
+            String ridStr = request.getParameter("rid");
+            if (ridStr != null) {
+                try {
+                    int reviewId = Integer.parseInt(ridStr);
+                    ServiceReview review = reviewDAO.getReviewById(reviewId);
+                    if (review != null) {
+                        request.setAttribute("review", review);
+                        request.getRequestDispatcher("/WEB-INF/view/admin_pages/ServiceReview/ReviewRespond.jsp").forward(request, response);
+                        return;
+                    }
+                } catch (Exception e) {
+                    // log lỗi nếu cần
+                }
             }
-        } catch (Exception e) {
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+            response.sendRedirect(request.getContextPath() + "/manager/service-review");
+            return;
+        }
+
+        // Các action khác (list, ...)
+        switch (action) {
+            case "list":
+            default: {
+                int limit = 5;
+                int page = 1;
+                String limitParam = request.getParameter("limit");
+                if (limitParam != null && !limitParam.isEmpty()) {
+                    try { limit = Integer.parseInt(limitParam); } catch (Exception ignored) {}
+                }
+                String pageParam = request.getParameter("page");
+                if (pageParam != null && !pageParam.isEmpty()) {
+                    try { page = Integer.parseInt(pageParam); } catch (Exception ignored) {}
+                }
+                int offset = (page - 1) * limit;
+                String keyword = request.getParameter("keyword");
+                String serviceIdParam = request.getParameter("serviceId");
+                Integer serviceId = null;
+                if (serviceIdParam != null && !serviceIdParam.isEmpty()) {
+                    try { serviceId = Integer.parseInt(serviceIdParam); } catch (Exception ignored) {}
+                }
+                String replyStatus = request.getParameter("replyStatus");
+                try {
+                    List<ServiceReview> reviews = reviewDAO.searchReviews(keyword, serviceId, offset, limit, replyStatus);
+                    int totalRecords = reviewDAO.countSearchResult(keyword, serviceId, replyStatus);
+                    int totalPages = (int) Math.ceil((double) totalRecords / limit);
+                    List<Service> services = serviceDAO.findAll();
+                    request.setAttribute("reviews", reviews);
+                    request.setAttribute("services", services);
+                    request.setAttribute("keyword", keyword);
+                    request.setAttribute("serviceId", serviceId);
+                    request.setAttribute("replyStatus", replyStatus);
+                    request.setAttribute("currentPage", page);
+                    request.setAttribute("totalPages", totalPages);
+                    request.setAttribute("totalEntries", totalRecords);
+                    request.setAttribute("limit", limit);
+                    int start = totalRecords == 0 ? 0 : offset + 1;
+                    int end = Math.min(offset + reviews.size(), totalRecords);
+                    request.setAttribute("start", start);
+                    request.setAttribute("end", end);
+                } catch (Exception e) {
+                    request.setAttribute("errorMessage", "Lỗi tải danh sách đánh giá: " + e.getMessage());
+                }
+                request.getRequestDispatcher("/WEB-INF/view/admin_pages/ServiceReview/ServiceReviewManager.jsp").forward(request, response);
+                break;
+            }
         }
     }
 
