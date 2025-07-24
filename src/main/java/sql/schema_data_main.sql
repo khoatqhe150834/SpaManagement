@@ -200,6 +200,17 @@ CREATE TABLE `bookings` (
 
 LOCK TABLES `bookings` WRITE;
 /*!40000 ALTER TABLE `bookings` DISABLE KEYS */;
+INSERT INTO bookings (
+    booking_id, customer_id, payment_item_id, service_id, therapist_user_id,
+    appointment_date, appointment_time, duration_minutes, booking_status,
+    booking_notes, cancellation_reason, cancelled_at, cancelled_by,
+    created_at, updated_at, room_id, bed_id
+) VALUES (
+    1, 1, 4, 1, 3,
+    '2025-08-01', '10:30:00', 60, 'SCHEDULED',
+    'Khách đặt massage toàn thân', NULL, NULL, NULL,
+    CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 3, 4
+);
 /*!40000 ALTER TABLE `bookings` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -548,6 +559,10 @@ CREATE TABLE `inventory_issue` (
 
 LOCK TABLES `inventory_issue` WRITE;
 /*!40000 ALTER TABLE `inventory_issue` DISABLE KEYS */;
+INSERT INTO `inventory_issue` VALUES (1,'2025-06-25 08:30:00',1,5,7,'APPROVED','Xuất vật tư cho booking 1','2025-07-14 09:18:03'),
+(2,'2025-06-25 14:00:00',1,5,7,'APPROVED','Xuất vật tư cho booking 1','2025-07-14 09:18:03'),
+(3,'2025-06-26 09:00:00',1,12,7,'APPROVED','Xuất vật tư cho booking 1','2025-07-14 09:18:03'),
+(4,'2025-06-27 10:00:00',NULL,7,7,'APPROVED','Xuất vật tư cho phòng xông hơi','2025-07-14 09:18:03');
 /*!40000 ALTER TABLE `inventory_issue` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -578,6 +593,15 @@ CREATE TABLE `inventory_issue_detail` (
 
 LOCK TABLES `inventory_issue_detail` WRITE;
 /*!40000 ALTER TABLE `inventory_issue_detail` DISABLE KEYS */;
+INSERT INTO `inventory_issue_detail` VALUES (1,1,1,100,'Xuất dầu massage cho booking 1'),
+(2,1,2,5,'Xuất khăn cho booking 1'),
+(3,1,5,20,'Xuất tinh dầu cho booking 1'),
+(4,2,2,2,'Xuất khăn cho booking 1'),
+(5,2,7,1,'Xuất bộ dụng cụ nail cho booking 1'),
+(6,3,3,2,'Xuất mặt nạ cho booking 1'),
+(7,3,6,1,'Xuất bông tẩy trang cho booking 1'),
+(8,4,5,10,'Xuất tinh dầu cho phòng xông hơi'),
+(9,4,8,2,'Xuất khẩu trang cho phòng xông hơi');
 /*!40000 ALTER TABLE `inventory_issue_detail` ENABLE KEYS */;
 UNLOCK TABLES;
 
