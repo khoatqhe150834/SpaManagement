@@ -32,8 +32,16 @@ public class ServiceReviewController extends HttpServlet {
                 ServiceReview review = reviewDAO.getReviewById(reviewId);
                 request.setAttribute("review", review);
                 request.getRequestDispatcher("/WEB-INF/view/customer/reviews/review-details.jsp").forward(request, response);
+            } else if ("edit".equals(action)) {
+                int reviewId = Integer.parseInt(request.getParameter("id"));
+                ServiceReview review = reviewDAO.getReviewById(reviewId);
+                request.setAttribute("review", review);
+                request.getRequestDispatcher("/WEB-INF/view/admin_pages/ServiceReview/ReviewRespond.jsp").forward(request, response);
             } else {
-                response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                // Nếu không có action, lấy toàn bộ review và forward về trang quản lý review cho manager
+                List<ServiceReview> reviews = reviewDAO.getAllReviews();
+                request.setAttribute("reviews", reviews);
+                request.getRequestDispatcher("/WEB-INF/view/admin_pages/ServiceReview/ServiceReviewManager.jsp").forward(request, response);
             }
         } catch (Exception e) {
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
@@ -59,7 +67,7 @@ public class ServiceReviewController extends HttpServlet {
                 review.setManagerReply("");
                 boolean success = reviewDAO.addReview(review);
                 if (success) {
-                    response.sendRedirect("/service-review?action=list&serviceId=" + review.getServiceId());
+                    response.sendRedirect(request.getContextPath() + "/manager/service-review?action=list&serviceId=" + review.getServiceId());
                 } else {
                     request.setAttribute("error", "Không thể thêm review. Vui lòng thử lại.");
                     request.getRequestDispatcher("/WEB-INF/view/customer/reviews/write-review.jsp").forward(request, response);
@@ -75,7 +83,7 @@ public class ServiceReviewController extends HttpServlet {
                 String reply = request.getParameter("managerReply");
                 boolean success = reviewDAO.updateManagerReply(reviewId, reply);
                 if (success) {
-                    response.sendRedirect("/service-review?action=detail&reviewId=" + reviewId);
+                    response.sendRedirect(request.getContextPath() + "/manager/service-review");
                 } else {
                     request.setAttribute("error", "Không thể cập nhật phản hồi.");
                     doGet(request, response);

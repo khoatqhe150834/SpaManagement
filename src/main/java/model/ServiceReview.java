@@ -15,6 +15,8 @@ public class ServiceReview {
     private Timestamp updatedAt;
     private boolean isVisible;
     private String managerReply;
+    private String serviceName;
+    private String customerName;
 
     // Getters and setters
     public int getReviewId() { return reviewId; }
@@ -52,4 +54,9 @@ public class ServiceReview {
 
     public String getManagerReply() { return managerReply; }
     public void setManagerReply(String managerReply) { this.managerReply = managerReply; }
+
+    public String getServiceName() { return serviceName; }
+    public void setServiceName(String serviceName) { this.serviceName = serviceName; }
+    public String getCustomerName() { return customerName; }
+    public void setCustomerName(String customerName) { this.customerName = customerName; }
 } 

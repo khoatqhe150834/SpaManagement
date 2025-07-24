@@ -47,7 +47,10 @@ public class ServiceReviewDAO {
 
     // Lấy review theo id
     public ServiceReview getReviewById(int reviewId) throws SQLException {
-        String sql = "SELECT * FROM service_reviews WHERE review_id = ?";
+        String sql = "SELECT r.*, s.name AS service_name, c.full_name AS customer_name FROM service_reviews r " +
+                "JOIN services s ON r.service_id = s.service_id " +
+                "JOIN customers c ON r.customer_id = c.customer_id " +
+                "WHERE r.review_id = ?";
         try (Connection conn = DBContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, reviewId);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -57,6 +60,23 @@ public class ServiceReviewDAO {
             }
         }
         return null;
+    }
+
+    // Lấy tất cả review (cho manager)
+    public List<ServiceReview> getAllReviews() throws SQLException {
+        List<ServiceReview> list = new ArrayList<>();
+        String sql = "SELECT r.*, s.name AS service_name, c.full_name AS customer_name FROM service_reviews r " +
+                "JOIN services s ON r.service_id = s.service_id " +
+                "JOIN customers c ON r.customer_id = c.customer_id " +
+                "ORDER BY r.created_at DESC";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSet(rs));
+                }
+            }
+        }
+        return list;
     }
 
     // Cập nhật phản hồi của manager
@@ -95,6 +115,9 @@ public class ServiceReviewDAO {
         review.setUpdatedAt(rs.getTimestamp("updated_at"));
         review.setVisible(rs.getBoolean("is_visible"));
         review.setManagerReply(rs.getString("manager_reply"));
+        // Map thêm tên dịch vụ và tên khách hàng nếu có
+        try { review.setServiceName(rs.getString("service_name")); } catch (SQLException ignore) {}
+        try { review.setCustomerName(rs.getString("customer_name")); } catch (SQLException ignore) {}
         return review;
     }
 } 

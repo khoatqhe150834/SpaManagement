@@ -633,7 +633,7 @@ public class InventoryManagerController extends HttpServlet {
         InventoryItemDAO itemDAO = new InventoryItemDAO();
         InventoryMasterDataDAO masterDAO = new InventoryMasterDataDAO();
         BookingDAO bookingDAO = new BookingDAO();
-        List<Booking> booking = bookingDAO.findAll();
+        List<model.Booking> booking = bookingDAO.findAll();
         List<InventoryItem> items = itemDAO.findItems(null, null, null, true, 1, 100);
         List<Supplier> suppliers = masterDAO.findSuppliers(null, true, 1, 100);
         request.setAttribute("items", items);
