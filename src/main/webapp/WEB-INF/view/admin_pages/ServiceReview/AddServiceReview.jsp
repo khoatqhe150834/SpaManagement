@@ -88,6 +88,16 @@
                         </div>
                     </div>
                 </div>
+                <!-- Hiển thị phản hồi của manager nếu có (đã di chuyển lên giữa) -->
+                <c:if test="${review != null && not empty review.managerReply}">
+                    <div class="mb-8 bg-green-50 border border-green-200 rounded-xl p-6">
+                        <div class="flex items-center gap-2 mb-2">
+                            <i data-lucide="message-circle" class="h-5 w-5 text-green-600"></i>
+                            <span class="text-green-700 font-semibold">Phản hồi từ Spa Hương Sen:</span>
+                        </div>
+                        <div class="text-green-900 text-base">${review.managerReply}</div>
+                    </div>
+                </c:if>
                 <!-- Form đánh giá -->
                 <form action="${pageContext.request.contextPath}/customer/service-review/add" method="post" class="bg-white rounded-2xl shadow-lg p-8 space-y-6">
                     <input type="hidden" name="bookingId" value="${booking.bookingId}" />
