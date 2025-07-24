@@ -22,7 +22,7 @@ public class SecurityConfig {
       "/test", "/TestController", "/api/booking-session", "/api/services", "/api/most-purchased",
       "/api/service-types", "/error", "/booking", "/api/homepage", "/result.jsp", "/test.jsp",
       "/chatbot", "/chat", "/api/chat", "/api/chatbot", "/test-chatbot.jsp", "/debug-chatbot.jsp", "/test-security.jsp", "/test-direct-api.jsp", "/simple-api-test.jsp", "/image",
-      "/test/booking", "/test-booking.jsp"));
+      "/test/booking", "/test-booking.jsp", "/api/therapist-schedule"));
 
   // File extensions that don't require authentication
   public static final Set<String> PUBLIC_EXTENSIONS = new HashSet<>(Arrays.asList(
@@ -33,7 +33,7 @@ public class SecurityConfig {
   public static final Set<String> PUBLIC_PATTERNS = new HashSet<>(Arrays.asList(
       "/assets/", "/uploads/", "/services/", "/css/", "/js/", "/images/", "/favicon", "/debug/", "/test/*",
       "/api/booking-session", "/api/services", "/api/services/*", "/api/most-purchased", "/api/service-types",
-      "/api/homepage", "/api/chat", "/api/chatbot"));
+      "/api/homepage", "/api/chat", "/api/chatbot", "/api/therapist-schedule", "/api/csp-booking/*"));
 
   /**
    * Check if the given path is a public resource

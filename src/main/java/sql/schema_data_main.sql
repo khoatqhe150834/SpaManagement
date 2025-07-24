@@ -341,43 +341,29 @@ LOCK TABLES `customer_appointment_notifications` WRITE;
 UNLOCK TABLES;
 
 --
--- Table structure for table `customer_sent_notifications`
+-- Table structure for table `customer_points`
 --
 
-DROP TABLE IF EXISTS `customer_sent_notifications`;
+DROP TABLE IF EXISTS `customer_points`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `customer_sent_notifications` (
-  `sent_notification_id` int NOT NULL AUTO_INCREMENT,
-  `master_notification_id` int NOT NULL,
-  `recipient_customer_id` int NOT NULL COMMENT 'Customer nhận thông báo',
-  `actual_title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `actual_content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `actual_link_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `related_entity_id` int DEFAULT NULL,
-  `is_read` tinyint(1) DEFAULT '0' COMMENT 'Chỉ áp dụng nếu khách hàng có giao diện xem thông báo',
-  `read_at` timestamp NULL DEFAULT NULL,
-  `delivery_channel` enum('EMAIL','SMS') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Kênh gửi chính cho khách hàng không có tài khoản',
-  `delivery_status` enum('PENDING','SENT','DELIVERED','FAILED') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'PENDING',
-  `scheduled_send_at` timestamp NULL DEFAULT NULL,
-  `actually_sent_at` timestamp NULL DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`sent_notification_id`),
-  UNIQUE KEY `uq_customer_notification` (`recipient_customer_id`,`master_notification_id`,`related_entity_id`,`created_at`),
-  KEY `master_notification_id` (`master_notification_id`),
-  CONSTRAINT `customer_sent_notifications_ibfk_1` FOREIGN KEY (`master_notification_id`) REFERENCES `notifications_master` (`master_notification_id`) ON DELETE CASCADE,
-  CONSTRAINT `customer_sent_notifications_ibfk_2` FOREIGN KEY (`recipient_customer_id`) REFERENCES `customers` (`customer_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `customer_points` (
+  `customer_id` int NOT NULL,
+  `points` int DEFAULT '0',
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`customer_id`),
+  CONSTRAINT `customer_points_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `customer_sent_notifications`
+-- Dumping data for table `customer_points`
 --
 
-LOCK TABLES `customer_sent_notifications` WRITE;
-/*!40000 ALTER TABLE `customer_sent_notifications` DISABLE KEYS */;
-INSERT INTO `customer_sent_notifications` VALUES (4,1,1,'Xác nhận lịch hẹn #5','Lịch hẹn của bạn cho dịch vụ Massage Đá Nóng với KTV Lê Minh Cường vào lúc 14:00:00 ngày 2025-06-05 đã được XÁC NHẬN.','/appointments/view/5',5,0,NULL,'EMAIL','SENT','2025-06-01 09:40:23','2025-06-01 09:40:23','2025-06-01 09:40:23'),(5,2,2,'Nhắc lịch hẹn #6 ngày mai','Đừng quên lịch hẹn của bạn cho dịch vụ Chăm Sóc Da Cơ Bản vào 10:00:00 ngày mai (2025-06-03).','/appointments/view/6',6,1,'2025-06-02 03:05:00','SMS','DELIVERED','2025-06-02 03:00:00','2025-06-02 03:00:05','2025-06-02 03:00:00');
-/*!40000 ALTER TABLE `customer_sent_notifications` ENABLE KEYS */;
+LOCK TABLES `customer_points` WRITE;
+/*!40000 ALTER TABLE `customer_points` DISABLE KEYS */;
+INSERT INTO `customer_points` VALUES (114,70,'2025-07-23 22:26:47');
+/*!40000 ALTER TABLE `customer_points` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -404,6 +390,7 @@ CREATE TABLE `customers` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `avatar_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `is_verified` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'TRUE = Email verified, FALSE = Not verified',
+  `tier` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'Đồng',
   PRIMARY KEY (`customer_id`),
   UNIQUE KEY `phone_number` (`phone_number`),
   UNIQUE KEY `email` (`email`),
@@ -420,43 +407,8 @@ CREATE TABLE `customers` (
 
 LOCK TABLES `customers` WRITE;
 /*!40000 ALTER TABLE `customers` DISABLE KEYS */;
-INSERT INTO `customers` VALUES (1,'Nguyễn Thị Mai','mai.nguyen@email.com','0988111222','$10$lyJgp/pjXtmmrRz1.ec29Osep5i8YluhNCFWj.8ckoU5qUHhQCaeG',1,'MALE','1990-07-15','123 Đường Hoa, Quận 1, TP. HCM',250,'Khách hàng VIP, thích trà gừng.',5,'2025-06-01 09:40:23','2025-07-21 19:33:17','',1),(2,'Trần Văn Nam','nam.tran@email.com','0977333444','$2b$10$abcdefghijklmnopqrstu',1,'MALE','1988-02-20','456 Đường Cây, Quận 3, TP. HCM',60,'Thường đặt dịch vụ massage chân.',5,'2025-06-01 09:40:23','2025-07-19 19:56:46','https://placehold.co/100x100/B0E0E6/333333?text=TVNam',1),(3,'Lê Thị Lan','lan.le@email.com','0966555666','$2b$10$abcdefghijklmnopqrstu',1,'FEMALE','1995-11-30','789 Đường Lá, Quận Bình Thạnh, TP. HCM',200,'Hay đi cùng bạn bè.',5,'2025-06-01 09:40:23','2025-07-19 19:56:46','https://placehold.co/100x100/98FB98/333333?text=LTLan',1),(4,'Phạm Văn Hùng','hung.pham@email.com','0955777888','$2b$10$abcdefghijklmnopqrstu',1,'MALE','1985-01-01','101 Đường Sông, Quận 2, TP. HCM',10,'Tài khoản không hoạt động.',5,'2025-06-01 09:40:23','2025-07-21 00:59:48','https://placehold.co/100x100/D3D3D3/333333?text=PVHung',1),(5,'Võ Thị Kim Chi','kimchi.vo@email.com','0944999000','$2b$10$abcdefghijklmnopqrstu',1,'FEMALE','2000-10-10','202 Đường Núi, Quận 7, TP. HCM',50,NULL,5,'2025-06-01 09:40:23','2025-07-19 19:56:46','https://placehold.co/100x100/FFE4E1/333333?text=VTKChi',1),(6,'Khách Vãng Lai A',NULL,'0912345001',NULL,1,'UNKNOWN',NULL,NULL,0,'Khách đặt qua điện thoại',NULL,'2025-06-01 09:40:23','2025-07-19 19:56:46',NULL,1),(7,'Clementine Shields','qaxyb@mailinator.com','0075252946','$2a$10$Mg7a1qbG3Wpt5/LL1hJXdORgyMD8WFuuFS49lZKuEpf33xp6wDM0G',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-01 09:44:15','2025-07-19 19:56:46',NULL,1),(8,'Preston Reeves','wogelyvi@mailinator.com','0621707951','$2a$10$LfSiDBEkpBQh9uWhQwnW1.iG3TrMf3w0ucvWyw9GisHH.LNU63Oyy',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-02 02:37:54','2025-07-19 19:56:46',NULL,1),(9,'Hector Gill','qepem@mailinator.com','0488215435','$2a$10$.GhDdGMtOZGoZsZlikXXA..J3OjZ4ka4t8iEEGEWQhRg5HXi9yESi',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-02 02:40:08','2025-07-19 19:56:46',NULL,1),(10,'John Walters','hybux@mailinator.com','0764611157','$2a$10$FIUJAcV5Tp4IGs9CD8jr5ePKbM28eoPYtMxj2egfVCtU/W8wnFQX2',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-02 02:44:44','2025-07-19 19:56:46',NULL,1),(11,'Gregory Jacobs','fetoryby@mailinator.com','0868681648','$2a$10$kZUd1FfHe9.C/KOzKJZcxOL.uShM946L30qhvxDyRp39Ga0IlKj..',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-02 02:47:15','2025-07-21 19:18:46',NULL,1),(12,'Taylor Gross','jygemi@mailinator.com','0370784956','$2a$10$xfj9S0w1KsRoYkxlCK7wveQVequmL7r6bN5KifZG6m5TUO89zWata',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-02 02:49:28','2025-07-21 19:18:46',NULL,1),(14,'Kameko Leach','vadyrud@mailinator.com','0575726427','$2a$10$Ry4BL4CuoaI7Djki6.jD0eawqu/iEUt1aG/uHBqFO.yBuuiNb/Eiq',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-05 02:53:25','2025-07-21 19:18:46',NULL,1),(15,'Geoffrey White','hudyq@mailinator.com','0838898566','$2a$10$I7NizmxcWCvvsCUQGGoFqOdtwNAWE3oaFJuakQXtCsU9/rGtI1qkq',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-05 05:26:40','2025-07-21 19:18:46',NULL,1),(16,'Denton Holder','quangkhoa51123@gmail.com','0367449306','$2a$10$aUaZEiTGhy28V9UQF/Rj0O.MuR08s.ohvt6lflBvZA1bVxRi.H6eC',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-06 15:07:09','2025-07-21 19:18:46',NULL,1),(17,'Thieu Quang Khoa','begig@mailinator.com','0770634550','$2a$10$vEkr7YHufIaNKugswSNrwekQdXqrVjhGR4nnM6qhLBK1V9UCuy9di',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-06 15:07:35','2025-07-21 19:18:46',NULL,1),(18,'Eleanor Tran','sopehoxyq@mailinator.com','0863647205','$2a$10$1i8Jd7VQrkQk/vP/UU4A3eCfkEHF2lloVQISSj0tftLyvGruTnTBu',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-06 15:27:31','2025-07-21 19:18:46',NULL,1),(19,'Bert Keller','gimibokuk@mailinator.com','0315448491','$2a$10$ZKeSAojzxiFnpDVz6eiG1etPVrRM9vO56mjHhebgvMafG1opIeasK',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-06 15:29:58','2025-07-21 19:18:46',NULL,1),(20,'Ian Schwartz','kuwidozata@mailinator.com','0981727583','$2a$10$OiABUyWOj5psL9dnXsfOsOgFIu5tb7Si/oJwlUFsmBV5T11gbAHl2',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-06 15:36:55','2025-07-21 19:18:46',NULL,1),(21,'Ian Bradshaw','hyjoz@mailinator.com','0994918210','$2a$10$k5F5H8URCFl8J.DE8XRUT.sm7jVcIBbzFhgYwy4aDbuDf80YIZIsy',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-06 15:47:51','2025-07-21 19:18:46',NULL,1),(22,'Alea Compton','xapymabo@mailinator.com','0526799608','$2a$10$bqPlpJK5LWK0kKJ6LyMzlOuHepBWUuSIpQn7eJGR8hsRuNMszQRx6',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-06 16:41:35','2025-07-19 19:56:29',NULL,1),(60,'Emmanuel Garcia','quangkhoa51132@5dulieu.com','0567692940','$2a$10$FwTfR.8kjEt7RPzwtkneu.HUXHOLmk9DOSYsvTZPrsLfJ1YdZyv/a',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-07 13:13:13','2025-07-22 07:02:28',NULL,1),(83,'Melanie Lancaster','quangkhoa5112@gmail.com','0722572791','$2a$10$TKn/I4MP1IRuqwZwJVqVIeOc7X2AK8RK4Xo2G5prcL8ywFYCz4BNS',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-10 01:36:30','2025-07-19 19:56:29',NULL,1),(110,'Dương Đỗ','abc@gmail.com','0782376648','$2a$10$2Zfcb/2y9j8CeGq049nu0Ojx9/dDBGn6zS9Bsl9NFF7m7au6eyccq',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-25 11:38:25','2025-07-19 19:56:29',NULL,1),(111,'Đỗ Hoàng Dương','dohoangduong2708@gmail.com','0705711546','$2a$10$OW1/RQ9tWxbUozfeeU1rV.gjz1FHtTv5uaGq3MAJ1AbCizmH5NdJS',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-25 11:39:32','2025-07-19 19:56:29',NULL,1),(113,'Perry Bowen','khoatqhe150834@gmail.com','0899339325','$2a$10$2Wlq1YkUUUmluzUfxcAZY.NZu1TlSCOsEl4K.4EGmswu9LUm1cXfq',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-07-15 05:58:17','2025-07-19 19:56:29',NULL,1),(114,'Nguyen Dat','vucongdat28032003@gmail.com','0908098943','$2a$10$0aQE0V18caOPiSZSpiFlseisnW.C3XNj8aY2.IrXy1Pxo6XzoJtDi',1,'UNKNOWN',NULL,'thanh xuyen 4 , pho yen ,thai nguyen thai nguyen123',0,'đẹp trai',5,'2025-07-18 00:32:50','2025-07-22 07:03:28',NULL,1),(115,'Nguyen Dat','khachhang123@beautyzone.com','0908098978','$2a$10$/teD7FqAjxDhtqAb4zKTVefEMIlZRwMSIsZtXzFM3TE0gOWftYvt.',1,'MALE',NULL,'thanh xuyen 4 ,Thai Nguyen,Pho yen123',0,NULL,5,'2025-07-22 07:06:03','2025-07-22 07:06:03',NULL,0);
+INSERT INTO `customers` VALUES (1,'Nguyễn Thị Mai','mai.nguyen@email.com','0988111222','$10$lyJgp/pjXtmmrRz1.ec29Osep5i8YluhNCFWj.8ckoU5qUHhQCaeG',1,'MALE','1990-07-15','123 Đường Hoa, Quận 1, TP. HCM',278,'Khách hàng VIP, thích trà gừng.',5,'2025-06-01 09:40:23','2025-07-24 02:09:39','',1,'Đồng'),(2,'Trần Văn Nam','nam.tran@email.com','0977333444','$2b$10$abcdefghijklmnopqrstu',1,'MALE','1988-02-20','456 Đường Cây, Quận 3, TP. HCM',110,'Thường đặt dịch vụ massage chân.',5,'2025-06-01 09:40:23','2025-07-24 02:09:39','https://placehold.co/100x100/B0E0E6/333333?text=TVNam',1,'Đồng'),(3,'Lê Thị Lan','lan.le@email.com','0966555666','$2b$10$abcdefghijklmnopqrstu',1,'FEMALE','1995-11-30','789 Đường Lá, Quận Bình Thạnh, TP. HCM',200,'Hay đi cùng bạn bè.',5,'2025-06-01 09:40:23','2025-07-24 09:42:55','https://placehold.co/100x100/98FB98/333333?text=LTLan',1,'Đồng'),(4,'Phạm Văn Hùng','hung.pham@email.com','0955777888','$2b$10$abcdefghijklmnopqrstu',1,'MALE','1985-01-01','101 Đường Sông, Quận 2, TP. HCM',300,'Tài khoản không hoạt động.',5,'2025-06-01 09:40:23','2025-07-24 09:42:55','https://placehold.co/100x100/D3D3D3/333333?text=PVHung',1,'Đồng'),(5,'Võ Thị Kim Chi','kimchi.vo@email.com','0944999000','$2b$10$abcdefghijklmnopqrstu',1,'FEMALE','2000-10-10','202 Đường Núi, Quận 7, TP. HCM',110,NULL,5,'2025-06-01 09:40:23','2025-07-24 09:42:55','https://placehold.co/100x100/FFE4E1/333333?text=VTKChi',1,'Đồng'),(6,'Khách Vãng Lai A',NULL,'0912345001',NULL,1,'UNKNOWN',NULL,NULL,200,'Khách đặt qua điện thoại',NULL,'2025-06-01 09:40:23','2025-07-24 09:42:55',NULL,1,'Đồng'),(7,'Clementine Shields','qaxyb@mailinator.com','0075252946','$2a$10$Mg7a1qbG3Wpt5/LL1hJXdORgyMD8WFuuFS49lZKuEpf33xp6wDM0G',1,'UNKNOWN',NULL,NULL,299,NULL,5,'2025-06-01 09:44:15','2025-07-24 09:42:55',NULL,1,'Đồng'),(8,'Preston Reeves','wogelyvi@mailinator.com','0621707951','$2a$10$LfSiDBEkpBQh9uWhQwnW1.iG3TrMf3w0ucvWyw9GisHH.LNU63Oyy',1,'UNKNOWN',NULL,NULL,400,NULL,5,'2025-06-02 02:37:54','2025-07-24 09:42:55',NULL,1,'Đồng'),(9,'Hector Gill','qepem@mailinator.com','0488215435','$2a$10$.GhDdGMtOZGoZsZlikXXA..J3OjZ4ka4t8iEEGEWQhRg5HXi9yESi',1,'UNKNOWN',NULL,NULL,100,NULL,5,'2025-06-02 02:40:08','2025-07-24 09:42:55',NULL,1,'Đồng'),(10,'John Walters','hybux@mailinator.com','0764611157','$2a$10$FIUJAcV5Tp4IGs9CD8jr5ePKbM28eoPYtMxj2egfVCtU/W8wnFQX2',1,'UNKNOWN',NULL,NULL,230,NULL,5,'2025-06-02 02:44:44','2025-07-24 09:42:55',NULL,1,'Đồng'),(11,'Gregory Jacobs','fetoryby@mailinator.com','0868681648','$2a$10$kZUd1FfHe9.C/KOzKJZcxOL.uShM946L30qhvxDyRp39Ga0IlKj..',1,'UNKNOWN',NULL,NULL,400,NULL,5,'2025-06-02 02:47:15','2025-07-24 09:42:55',NULL,1,'Đồng'),(12,'Taylor Gross','jygemi@mailinator.com','0370784956','$2a$10$xfj9S0w1KsRoYkxlCK7wveQVequmL7r6bN5KifZG6m5TUO89zWata',1,'UNKNOWN',NULL,NULL,5000,NULL,5,'2025-06-02 02:49:28','2025-07-24 09:42:55',NULL,1,'Đồng'),(14,'Kameko Leach','vadyrud@mailinator.com','0575726427','$2a$10$Ry4BL4CuoaI7Djki6.jD0eawqu/iEUt1aG/uHBqFO.yBuuiNb/Eiq',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-05 02:53:25','2025-07-21 19:18:46',NULL,1,'Đồng'),(15,'Geoffrey White','hudyq@mailinator.com','0838898566','$2a$10$I7NizmxcWCvvsCUQGGoFqOdtwNAWE3oaFJuakQXtCsU9/rGtI1qkq',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-05 05:26:40','2025-07-21 19:18:46',NULL,1,'Đồng'),(16,'Denton Holder','quangkhoa51123@gmail.com','0367449306','$2a$10$aUaZEiTGhy28V9UQF/Rj0O.MuR08s.ohvt6lflBvZA1bVxRi.H6eC',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-06 15:07:09','2025-07-21 19:18:46',NULL,1,'Đồng'),(17,'Thieu Quang Khoa','begig@mailinator.com','0770634550','$2a$10$vEkr7YHufIaNKugswSNrwekQdXqrVjhGR4nnM6qhLBK1V9UCuy9di',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-06 15:07:35','2025-07-21 19:18:46',NULL,1,'Đồng'),(18,'Eleanor Tran','sopehoxyq@mailinator.com','0863647205','$2a$10$1i8Jd7VQrkQk/vP/UU4A3eCfkEHF2lloVQISSj0tftLyvGruTnTBu',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-06 15:27:31','2025-07-21 19:18:46',NULL,1,'Đồng'),(19,'Bert Keller','gimibokuk@mailinator.com','0315448491','$2a$10$ZKeSAojzxiFnpDVz6eiG1etPVrRM9vO56mjHhebgvMafG1opIeasK',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-06 15:29:58','2025-07-21 19:18:46',NULL,1,'Đồng'),(20,'Ian Schwartz','kuwidozata@mailinator.com','0981727583','$2a$10$OiABUyWOj5psL9dnXsfOsOgFIu5tb7Si/oJwlUFsmBV5T11gbAHl2',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-06 15:36:55','2025-07-21 19:18:46',NULL,1,'Đồng'),(21,'Ian Bradshaw','hyjoz@mailinator.com','0994918210','$2a$10$k5F5H8URCFl8J.DE8XRUT.sm7jVcIBbzFhgYwy4aDbuDf80YIZIsy',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-06 15:47:51','2025-07-21 19:18:46',NULL,1,'Đồng'),(22,'Alea Compton','xapymabo@mailinator.com','0526799608','$2a$10$bqPlpJK5LWK0kKJ6LyMzlOuHepBWUuSIpQn7eJGR8hsRuNMszQRx6',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-06 16:41:35','2025-07-19 19:56:29',NULL,1,'Đồng'),(60,'Emmanuel Garcia','quangkhoa51132@5dulieu.com','0567692940','$2a$10$FwTfR.8kjEt7RPzwtkneu.HUXHOLmk9DOSYsvTZPrsLfJ1YdZyv/a',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-07 13:13:13','2025-07-22 07:02:28',NULL,1,'Đồng'),(83,'Melanie Lancaster','quangkhoa5112@gmail.com','0722572791','$2a$10$TKn/I4MP1IRuqwZwJVqVIeOc7X2AK8RK4Xo2G5prcL8ywFYCz4BNS',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-10 01:36:30','2025-07-19 19:56:29',NULL,1,'Đồng'),(110,'Dương Đỗ','abc@gmail.com','0782376648','$2a$10$2Zfcb/2y9j8CeGq049nu0Ojx9/dDBGn6zS9Bsl9NFF7m7au6eyccq',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-25 11:38:25','2025-07-19 19:56:29',NULL,1,'Đồng'),(111,'Đỗ Hoàng Dương','dohoangduong2708@gmail.com','0705711546','$2a$10$OW1/RQ9tWxbUozfeeU1rV.gjz1FHtTv5uaGq3MAJ1AbCizmH5NdJS',1,'UNKNOWN',NULL,NULL,0,NULL,5,'2025-06-25 11:39:32','2025-07-19 19:56:29',NULL,1,'Đồng'),(113,'Perry Bowen','khoatqhe150834@gmail.com','0899339325','$2a$10$2Wlq1YkUUUmluzUfxcAZY.NZu1TlSCOsEl4K.4EGmswu9LUm1cXfq',1,'UNKNOWN',NULL,NULL,146,NULL,5,'2025-07-15 05:58:17','2025-07-24 02:09:39',NULL,1,'Đồng'),(114,'Nguyen Dat','vucongdat28032003@gmail.com','0908098943','$2a$10$0aQE0V18caOPiSZSpiFlseisnW.C3XNj8aY2.IrXy1Pxo6XzoJtDi',1,'UNKNOWN',NULL,'thanh xuyen 4 , pho yen ,thai nguyen thai nguyen123',169,'đẹp trai',5,'2025-07-18 00:32:50','2025-07-24 02:33:37',NULL,1,'Đồng'),(115,'Nguyen Dat','khachhang123@beautyzone.com','0908098978','$2a$10$/teD7FqAjxDhtqAb4zKTVefEMIlZRwMSIsZtXzFM3TE0gOWftYvt.',1,'MALE',NULL,'thanh xuyen 4 ,Thai Nguyen,Pho yen123',0,NULL,5,'2025-07-22 07:06:03','2025-07-24 02:11:53',NULL,1,'Đồng');
 /*!40000 ALTER TABLE `customers` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `database_change_log`
---
-
-DROP TABLE IF EXISTS `database_change_log`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `database_change_log` (
-  `change_id` int NOT NULL AUTO_INCREMENT,
-  `table_name` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `operation` enum('INSERT','UPDATE','DELETE') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `record_id` int NOT NULL,
-  `old_data` json DEFAULT NULL,
-  `new_data` json DEFAULT NULL,
-  `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `processed` tinyint(1) DEFAULT '0',
-  `processed_at` timestamp NULL DEFAULT NULL,
-  `error_message` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-  PRIMARY KEY (`change_id`),
-  KEY `idx_table_operation` (`table_name`,`operation`),
-  KEY `idx_processed` (`processed`),
-  KEY `idx_timestamp` (`timestamp`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `database_change_log`
---
-
-LOCK TABLES `database_change_log` WRITE;
-/*!40000 ALTER TABLE `database_change_log` DISABLE KEYS */;
-INSERT INTO `database_change_log` VALUES (1,'services','INSERT',137,NULL,'{\"name\": \"Trigger Test Service 07:57:45\", \"price\": 50.0, \"image_url\": null, \"is_active\": 1, \"created_at\": \"2025-07-18 07:57:45.000000\", \"service_id\": 137, \"updated_at\": \"2025-07-18 07:57:45.000000\", \"description\": \"Test service to verify database triggers work\", \"average_rating\": 0.0, \"bookable_online\": 1, \"service_type_id\": 1, \"duration_minutes\": 30, \"requires_consultation\": 0, \"buffer_time_after_minutes\": 0}','2025-07-18 00:57:45',1,'2025-07-18 00:57:52',NULL),(2,'services','UPDATE',137,'{\"name\": \"Trigger Test Service 07:57:45\", \"price\": 50.0, \"image_url\": null, \"is_active\": 1, \"created_at\": \"2025-07-18 07:57:45.000000\", \"service_id\": 137, \"updated_at\": \"2025-07-18 07:57:45.000000\", \"description\": \"Test service to verify database triggers work\", \"average_rating\": 0.0, \"bookable_online\": 1, \"service_type_id\": 1, \"duration_minutes\": 30, \"requires_consultation\": 0, \"buffer_time_after_minutes\": 0}','{\"name\": \"Trigger Test Service 07:57:45\", \"price\": 75.0, \"image_url\": null, \"is_active\": 1, \"created_at\": \"2025-07-18 07:57:45.000000\", \"service_id\": 137, \"updated_at\": \"2025-07-18 07:57:46.000000\", \"description\": \"Updated test service description\", \"average_rating\": 0.0, \"bookable_online\": 1, \"service_type_id\": 1, \"duration_minutes\": 30, \"requires_consultation\": 0, \"buffer_time_after_minutes\": 0}','2025-07-18 00:57:46',1,'2025-07-18 00:57:53',NULL),(3,'services','DELETE',137,'{\"name\": \"Trigger Test Service 07:57:45\", \"price\": 75.0, \"image_url\": null, \"is_active\": 1, \"created_at\": \"2025-07-18 07:57:45.000000\", \"service_id\": 137, \"updated_at\": \"2025-07-18 07:57:46.000000\", \"description\": \"Updated test service description\", \"average_rating\": 0.0, \"bookable_online\": 1, \"service_type_id\": 1, \"duration_minutes\": 30, \"requires_consultation\": 0, \"buffer_time_after_minutes\": 0}',NULL,'2025-07-18 00:57:47',1,'2025-07-18 00:57:53',NULL),(4,'services','INSERT',138,NULL,'{\"name\": \"Luxury Diamond Facial Treatment\", \"price\": 299.99, \"image_url\": null, \"is_active\": 1, \"created_at\": \"2025-07-18 08:00:25.000000\", \"service_id\": 138, \"updated_at\": \"2025-07-18 08:00:25.000000\", \"description\": \"Indulge in our premium diamond facial treatment featuring:\\n            - Deep cleansing with diamond microdermabrasion\\n            - Hydrating collagen mask with 24k gold essence\\n            - Anti-aging serum with vitamin C and hyaluronic acid\\n            - Relaxing facial massage with hot stones\\n            - Perfect for special occasions and skin rejuvenation\", \"average_rating\": 0.0, \"bookable_online\": 1, \"service_type_id\": 1, \"duration_minutes\": 90, \"requires_consultation\": 0, \"buffer_time_after_minutes\": 15}','2025-07-18 01:00:25',1,'2025-07-18 01:00:32',NULL),(5,'services','UPDATE',138,'{\"name\": \"Luxury Diamond Facial Treatment\", \"price\": 299.99, \"image_url\": null, \"is_active\": 1, \"created_at\": \"2025-07-18 08:00:25.000000\", \"service_id\": 138, \"updated_at\": \"2025-07-18 08:00:25.000000\", \"description\": \"Indulge in our premium diamond facial treatment featuring:\\n            - Deep cleansing with diamond microdermabrasion\\n            - Hydrating collagen mask with 24k gold essence\\n            - Anti-aging serum with vitamin C and hyaluronic acid\\n            - Relaxing facial massage with hot stones\\n            - Perfect for special occasions and skin rejuvenation\", \"average_rating\": 0.0, \"bookable_online\": 1, \"service_type_id\": 1, \"duration_minutes\": 90, \"requires_consultation\": 0, \"buffer_time_after_minutes\": 15}','{\"name\": \"Luxury Diamond Facial Treatment\", \"price\": 249.99, \"image_url\": null, \"is_active\": 1, \"created_at\": \"2025-07-18 08:00:25.000000\", \"service_id\": 138, \"updated_at\": \"2025-07-18 08:00:55.000000\", \"description\": \"Indulge in our premium diamond facial treatment featuring:\\n            - Deep cleansing with diamond microdermabrasion\\n            - Hydrating collagen mask with 24k gold essence\\n            - Anti-aging serum with vitamin C and hyaluronic acid\\n            - Relaxing facial massage with hot stones\\n            - Perfect for special occasions and skin rejuvenation\\n\\n? SPECIAL PROMOTION: Save $50 this month!\", \"average_rating\": 0.0, \"bookable_online\": 1, \"service_type_id\": 1, \"duration_minutes\": 90, \"requires_consultation\": 0, \"buffer_time_after_minutes\": 15}','2025-07-18 01:00:55',1,'2025-07-18 01:01:03',NULL),(6,'services','DELETE',138,'{\"name\": \"Luxury Diamond Facial Treatment\", \"price\": 249.99, \"image_url\": null, \"is_active\": 1, \"created_at\": \"2025-07-18 08:00:25.000000\", \"service_id\": 138, \"updated_at\": \"2025-07-18 08:00:55.000000\", \"description\": \"Indulge in our premium diamond facial treatment featuring:\\n            - Deep cleansing with diamond microdermabrasion\\n            - Hydrating collagen mask with 24k gold essence\\n            - Anti-aging serum with vitamin C and hyaluronic acid\\n            - Relaxing facial massage with hot stones\\n            - Perfect for special occasions and skin rejuvenation\\n\\n? SPECIAL PROMOTION: Save $50 this month!\", \"average_rating\": 0.0, \"bookable_online\": 1, \"service_type_id\": 1, \"duration_minutes\": 90, \"requires_consultation\": 0, \"buffer_time_after_minutes\": 15}',NULL,'2025-07-18 01:01:58',1,'2025-07-18 01:02:03',NULL),(7,'services','INSERT',139,NULL,'{\"name\": \"Liệu Pháp Collagen Vàng 24K Test 081013\", \"price\": 1299000.0, \"image_url\": null, \"is_active\": 1, \"created_at\": \"2025-07-18 08:10:13.000000\", \"service_id\": 139, \"updated_at\": \"2025-07-18 08:10:13.000000\", \"description\": \"Liệu pháp chăm sóc da mặt cao cấp với collagen vàng 24K được tạo lúc 2025-07-18 08:10:13:\\n            \\n            ✨ Đặc điểm nổi bật:\\n            - Sử dụng collagen vàng 24K nguyên chất từ Thụy Sĩ\\n            - Công nghệ nano giúp thẩm thấu sâu vào da\\n            - Kích thích tái tạo tế bào da tự nhiên\\n            - Giảm nếp nhăn và tăng độ đàn hồi\\n            - Làm sáng và đều màu da\\n            \\n            ? Phù hợp cho:\\n            - Da lão hóa, xuất hiện nếp nhăn\\n            - Da thiếu sức sống, xỉn màu\\n            - Da cần phục hồi sau stress\\n            \\n            ⏰ Quy trình điều trị:\\n            1. Làm sạch da chuyên sâu (15 phút)\\n            2. Tẩy tế bào chết nhẹ nhàng (10 phút)\\n            3. Đắp mặt nạ collagen vàng 24K (30 phút)\\n            4. Massage kích thích tuần hoàn (15 phút)\\n            5. Dưỡng ẩm và chống nắng (10 phút)\\n            \\n            ? Cam kết: Da sáng mịn ngay sau liệu trình đầu tiên!\", \"average_rating\": 0.0, \"bookable_online\": 1, \"service_type_id\": 2, \"duration_minutes\": 90, \"requires_consultation\": 0, \"buffer_time_after_minutes\": 20}','2025-07-18 01:10:13',1,'2025-07-18 01:10:36',NULL),(8,'promotions','UPDATE',2,'{\"title\": \"Tri Ân Khách Hàng - Tặng Voucher 100K\", \"status\": \"SCHEDULED\", \"end_date\": \"2025-07-31 23:59:59.000000\", \"image_url\": \"https://placehold.co/400x200/E6E6FA/333333?text=VoucherPromo\", \"created_at\": \"2025-06-01 16:40:23.000000\", \"start_date\": \"2025-07-01 00:00:00.000000\", \"updated_at\": \"2025-06-01 16:40:23.000000\", \"description\": \"Tặng voucher 100.000 VNĐ cho hóa đơn từ 1.000.000 VNĐ.\", \"promotion_id\": 2, \"discount_type\": \"FIXED_AMOUNT\", \"is_auto_apply\": 0, \"discount_value\": 100000.0, \"promotion_code\": \"THANKS100K\", \"applicable_scope\": \"ENTIRE_APPOINTMENT\", \"total_usage_limit\": 200, \"created_by_user_id\": 2, \"current_usage_count\": 0, \"terms_and_conditions\": \"Mỗi khách hàng được sử dụng 1 lần.\", \"applies_to_service_id\": null, \"usage_limit_per_customer\": 1, \"minimum_appointment_value\": 1000000.0, \"applicable_service_ids_json\": null}','{\"title\": \"Tri Ân Khách Hàng - Tặng Voucher 100K\", \"status\": \"ACTIVE\", \"end_date\": \"2025-07-31 23:59:59.000000\", \"image_url\": \"https://placehold.co/400x200/E6E6FA/333333?text=VoucherPromo\", \"created_at\": \"2025-06-01 16:40:23.000000\", \"start_date\": \"2025-07-01 00:00:00.000000\", \"updated_at\": \"2025-07-20 00:39:35.000000\", \"description\": \"Tặng voucher 100.000 VNĐ cho hóa đơn từ 1.000.000 VNĐ.\", \"promotion_id\": 2, \"discount_type\": \"FIXED_AMOUNT\", \"is_auto_apply\": 0, \"discount_value\": 100000.0, \"promotion_code\": \"THANKS100K\", \"applicable_scope\": \"ENTIRE_APPOINTMENT\", \"total_usage_limit\": 200, \"created_by_user_id\": 2, \"current_usage_count\": 0, \"terms_and_conditions\": \"Mỗi khách hàng được sử dụng 1 lần.\", \"applies_to_service_id\": null, \"usage_limit_per_customer\": 1, \"minimum_appointment_value\": 1000000.0, \"applicable_service_ids_json\": null}','2025-07-20 00:39:35',0,NULL,NULL),(9,'promotions','UPDATE',3,'{\"title\": \"Đi Cùng Bạn Bè - Miễn Phí 1 Dịch Vụ Gội Đầu\", \"status\": \"ACTIVE\", \"end_date\": \"2025-07-15 23:59:59.000000\", \"image_url\": \"https://placehold.co/400x200/B0C4DE/333333?text=FriendsPromo\", \"created_at\": \"2025-06-01 16:40:23.000000\", \"start_date\": \"2025-06-15 00:00:00.000000\", \"updated_at\": \"2025-06-01 16:40:23.000000\", \"description\": \"Khi đặt 2 dịch vụ bất kỳ, tặng 1 dịch vụ gội đầu thảo dược.\", \"promotion_id\": 3, \"discount_type\": \"FREE_SERVICE\", \"is_auto_apply\": 0, \"discount_value\": 6.0, \"promotion_code\": \"FRIENDSFREE\", \"applicable_scope\": \"ENTIRE_APPOINTMENT\", \"total_usage_limit\": 50, \"created_by_user_id\": 1, \"current_usage_count\": 5, \"terms_and_conditions\": \"Dịch vụ tặng kèm là Gội Đầu Thảo Dược (ID: 6).\", \"applies_to_service_id\": null, \"usage_limit_per_customer\": 1, \"minimum_appointment_value\": 800000.0, \"applicable_service_ids_json\": null}','{\"title\": \"Đi Cùng Bạn Bè - Miễn Phí 1 Dịch Vụ Gội Đầu\", \"status\": \"INACTIVE\", \"end_date\": \"2025-07-15 23:59:59.000000\", \"image_url\": \"https://placehold.co/400x200/B0C4DE/333333?text=FriendsPromo\", \"created_at\": \"2025-06-01 16:40:23.000000\", \"start_date\": \"2025-06-15 00:00:00.000000\", \"updated_at\": \"2025-07-20 00:39:35.000000\", \"description\": \"Khi đặt 2 dịch vụ bất kỳ, tặng 1 dịch vụ gội đầu thảo dược.\", \"promotion_id\": 3, \"discount_type\": \"FREE_SERVICE\", \"is_auto_apply\": 0, \"discount_value\": 6.0, \"promotion_code\": \"FRIENDSFREE\", \"applicable_scope\": \"ENTIRE_APPOINTMENT\", \"total_usage_limit\": 50, \"created_by_user_id\": 1, \"current_usage_count\": 5, \"terms_and_conditions\": \"Dịch vụ tặng kèm là Gội Đầu Thảo Dược (ID: 6).\", \"applies_to_service_id\": null, \"usage_limit_per_customer\": 1, \"minimum_appointment_value\": 800000.0, \"applicable_service_ids_json\": null}','2025-07-20 00:39:35',0,NULL,NULL);
-/*!40000 ALTER TABLE `database_change_log` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -731,39 +683,6 @@ INSERT INTO `inventory_receipt_detail` VALUES (1,1,1,2000,1.50,'Nhập dầu mas
 UNLOCK TABLES;
 
 --
--- Table structure for table `inventory_transaction`
---
-
-DROP TABLE IF EXISTS `inventory_transaction`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `inventory_transaction` (
-  `inventory_transaction_id` int NOT NULL AUTO_INCREMENT,
-  `inventory_item_id` int NOT NULL,
-  `type` enum('IN','OUT','ADJUST') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `quantity` int NOT NULL,
-  `transaction_date` datetime NOT NULL,
-  `user_id` int DEFAULT NULL,
-  `note` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-  PRIMARY KEY (`inventory_transaction_id`),
-  KEY `inventory_item_id` (`inventory_item_id`),
-  KEY `user_id` (`user_id`),
-  CONSTRAINT `inventory_transaction_ibfk_1` FOREIGN KEY (`inventory_item_id`) REFERENCES `inventory_item` (`inventory_item_id`),
-  CONSTRAINT `inventory_transaction_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `inventory_transaction`
---
-
-LOCK TABLES `inventory_transaction` WRITE;
-/*!40000 ALTER TABLE `inventory_transaction` DISABLE KEYS */;
-INSERT INTO `inventory_transaction` VALUES (1,1,'IN',2000,'2025-06-20 09:00:00',7,'Nhập dầu massage'),(2,3,'IN',50,'2025-06-20 09:00:00',7,'Nhập mặt nạ'),(3,5,'IN',500,'2025-06-20 09:00:00',7,'Nhập tinh dầu sả chanh'),(4,2,'IN',100,'2025-06-21 10:00:00',7,'Nhập khăn spa'),(5,7,'IN',10,'2025-06-21 10:00:00',7,'Nhập bộ dụng cụ nail'),(6,4,'IN',100,'2025-06-22 11:00:00',7,'Nhập găng tay'),(7,6,'IN',30,'2025-06-22 11:00:00',7,'Nhập bông tẩy trang'),(8,8,'IN',20,'2025-06-22 11:00:00',7,'Nhập khẩu trang'),(9,1,'OUT',100,'2025-06-25 08:30:00',5,'Xuất dầu massage cho booking 143'),(10,2,'OUT',5,'2025-06-25 08:30:00',5,'Xuất khăn cho booking 143'),(11,5,'OUT',20,'2025-06-25 08:30:00',5,'Xuất tinh dầu cho booking 143'),(12,2,'OUT',2,'2025-06-25 14:00:00',5,'Xuất khăn cho booking 145'),(13,7,'OUT',1,'2025-06-25 14:00:00',5,'Xuất bộ dụng cụ nail cho booking 145'),(14,3,'OUT',2,'2025-06-26 09:00:00',12,'Xuất mặt nạ cho booking 147'),(15,6,'OUT',1,'2025-06-26 09:00:00',12,'Xuất bông tẩy trang cho booking 147'),(16,5,'OUT',10,'2025-06-27 10:00:00',7,'Xuất tinh dầu cho phòng xông hơi'),(17,8,'OUT',2,'2025-06-27 10:00:00',7,'Xuất khẩu trang cho phòng xông hơi');
-/*!40000 ALTER TABLE `inventory_transaction` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `loyalty_point_history`
 --
 
@@ -822,236 +741,6 @@ LOCK TABLES `loyalty_points` WRITE;
 UNLOCK TABLES;
 
 --
--- Table structure for table `notification_preferences`
---
-
-DROP TABLE IF EXISTS `notification_preferences`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `notification_preferences` (
-  `preference_id` int NOT NULL AUTO_INCREMENT,
-  `user_id` int DEFAULT NULL COMMENT 'User preferences (staff)',
-  `customer_id` int DEFAULT NULL COMMENT 'Customer preferences',
-  `notification_type` enum('SYSTEM_ANNOUNCEMENT','PROMOTION','MAINTENANCE','POLICY_UPDATE','BOOKING_REMINDER','PAYMENT_NOTIFICATION','SERVICE_UPDATE','EMERGENCY','MARKETING_CAMPAIGN','INVENTORY_ALERT') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `web_enabled` tinyint(1) NOT NULL DEFAULT '1' COMMENT 'Nhận thông báo trên web',
-  `email_enabled` tinyint(1) NOT NULL DEFAULT '1' COMMENT 'Nhận thông báo qua email',
-  `sms_enabled` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Nhận thông báo qua SMS',
-  `push_enabled` tinyint(1) NOT NULL DEFAULT '1' COMMENT 'Nhận push notification',
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`preference_id`),
-  UNIQUE KEY `unique_user_notification_type` (`user_id`,`notification_type`),
-  UNIQUE KEY `unique_customer_notification_type` (`customer_id`,`notification_type`),
-  KEY `idx_user_id` (`user_id`),
-  KEY `idx_customer_id` (`customer_id`),
-  CONSTRAINT `notification_preferences_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
-  CONSTRAINT `notification_preferences_ibfk_2` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`),
-  CONSTRAINT `chk_preference_type` CHECK ((((`user_id` is not null) and (`customer_id` is null)) or ((`user_id` is null) and (`customer_id` is not null))))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Cài đặt thông báo của từng user/customer';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `notification_preferences`
---
-
-LOCK TABLES `notification_preferences` WRITE;
-/*!40000 ALTER TABLE `notification_preferences` DISABLE KEYS */;
-/*!40000 ALTER TABLE `notification_preferences` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `notification_recipients`
---
-
-DROP TABLE IF EXISTS `notification_recipients`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `notification_recipients` (
-  `recipient_id` int NOT NULL AUTO_INCREMENT,
-  `notification_id` int NOT NULL,
-  `user_id` int DEFAULT NULL COMMENT 'User nhận thông báo (staff)',
-  `customer_id` int DEFAULT NULL COMMENT 'Customer nhận thông báo',
-  `is_read` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Đã đọc chưa',
-  `read_at` timestamp NULL DEFAULT NULL COMMENT 'Thời gian đọc',
-  `is_dismissed` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Đã dismiss chưa',
-  `dismissed_at` timestamp NULL DEFAULT NULL COMMENT 'Thời gian dismiss',
-  `delivery_status` enum('PENDING','DELIVERED','FAILED','EXPIRED') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PENDING' COMMENT 'Trạng thái gửi',
-  `delivery_method` enum('WEB','EMAIL','SMS','PUSH') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'WEB' COMMENT 'Phương thức gửi',
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`recipient_id`),
-  UNIQUE KEY `unique_notification_recipient` (`notification_id`,`user_id`,`customer_id`),
-  KEY `idx_notification_id` (`notification_id`),
-  KEY `idx_user_id` (`user_id`),
-  KEY `idx_customer_id` (`customer_id`),
-  KEY `idx_read_status` (`is_read`,`read_at`),
-  KEY `idx_delivery_status` (`delivery_status`),
-  KEY `idx_recipients_unread` (`user_id`,`customer_id`,`is_read`,`created_at`),
-  KEY `idx_recipients_delivery` (`delivery_status`,`delivery_method`,`created_at`),
-  CONSTRAINT `notification_recipients_ibfk_1` FOREIGN KEY (`notification_id`) REFERENCES `general_notifications` (`notification_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `notification_recipients_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
-  CONSTRAINT `notification_recipients_ibfk_3` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`),
-  CONSTRAINT `chk_recipient_type` CHECK ((((`user_id` is not null) and (`customer_id` is null)) or ((`user_id` is null) and (`customer_id` is not null))))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Bảng theo dõi người nhận thông báo và trạng thái đọc';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `notification_recipients`
---
-
-LOCK TABLES `notification_recipients` WRITE;
-/*!40000 ALTER TABLE `notification_recipients` DISABLE KEYS */;
-/*!40000 ALTER TABLE `notification_recipients` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `notification_statistics`
---
-
-DROP TABLE IF EXISTS `notification_statistics`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `notification_statistics` (
-  `stat_id` int NOT NULL AUTO_INCREMENT,
-  `notification_id` int NOT NULL,
-  `total_recipients` int NOT NULL DEFAULT '0' COMMENT 'Tổng số người nhận',
-  `delivered_count` int NOT NULL DEFAULT '0' COMMENT 'Số lượng đã gửi thành công',
-  `read_count` int NOT NULL DEFAULT '0' COMMENT 'Số lượng đã đọc',
-  `dismissed_count` int NOT NULL DEFAULT '0' COMMENT 'Số lượng đã dismiss',
-  `failed_count` int NOT NULL DEFAULT '0' COMMENT 'Số lượng gửi thất bại',
-  `click_count` int NOT NULL DEFAULT '0' COMMENT 'Số lượng click action',
-  `delivery_rate` decimal(5,2) DEFAULT '0.00' COMMENT 'Tỷ lệ gửi thành công (%)',
-  `read_rate` decimal(5,2) DEFAULT '0.00' COMMENT 'Tỷ lệ đọc (%)',
-  `engagement_rate` decimal(5,2) DEFAULT '0.00' COMMENT 'Tỷ lệ tương tác (%)',
-  `last_updated` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`stat_id`),
-  UNIQUE KEY `notification_id` (`notification_id`),
-  CONSTRAINT `notification_statistics_ibfk_1` FOREIGN KEY (`notification_id`) REFERENCES `general_notifications` (`notification_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Thống kê hiệu quả thông báo';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `notification_statistics`
---
-
-LOCK TABLES `notification_statistics` WRITE;
-/*!40000 ALTER TABLE `notification_statistics` DISABLE KEYS */;
-/*!40000 ALTER TABLE `notification_statistics` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `notification_templates`
---
-
-DROP TABLE IF EXISTS `notification_templates`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `notification_templates` (
-  `template_id` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Tên template',
-  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT 'Mô tả template',
-  `notification_type` enum('SYSTEM_ANNOUNCEMENT','PROMOTION','MAINTENANCE','POLICY_UPDATE','BOOKING_REMINDER','PAYMENT_NOTIFICATION','SERVICE_UPDATE','EMERGENCY','MARKETING_CAMPAIGN','INVENTORY_ALERT') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Loại thông báo',
-  `title_template` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Template tiêu đề với placeholders',
-  `message_template` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Template nội dung với placeholders',
-  `default_priority` enum('LOW','MEDIUM','HIGH','URGENT') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'MEDIUM',
-  `default_target_type` enum('ALL_USERS','ROLE_BASED','INDIVIDUAL','CUSTOMER_SEGMENT') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'ALL_USERS',
-  `default_role_ids` json DEFAULT NULL COMMENT 'Role mặc định cho template',
-  `placeholders` json DEFAULT NULL COMMENT 'Danh sách placeholders và mô tả',
-  `is_active` tinyint(1) NOT NULL DEFAULT '1',
-  `created_by_user_id` int NOT NULL,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`template_id`),
-  UNIQUE KEY `name` (`name`),
-  KEY `idx_notification_type` (`notification_type`),
-  KEY `idx_active` (`is_active`),
-  KEY `idx_created_by` (`created_by_user_id`),
-  CONSTRAINT `notification_templates_ibfk_1` FOREIGN KEY (`created_by_user_id`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Templates cho thông báo có thể tái sử dụng';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `notification_templates`
---
-
-LOCK TABLES `notification_templates` WRITE;
-/*!40000 ALTER TABLE `notification_templates` DISABLE KEYS */;
-INSERT INTO `notification_templates` VALUES (1,'system_maintenance','Thông báo bảo trì hệ thống','MAINTENANCE','Thông Báo Bảo Trì Hệ Thống - {maintenance_date}','Hệ thống sẽ được bảo trì vào {maintenance_date} từ {start_time} đến {end_time}. Trong thời gian này, một số chức năng có thể bị gián đoạn. Xin lỗi vì sự bất tiện này.','HIGH','ALL_USERS',NULL,'{\"end_time\": \"Giờ kết thúc\", \"start_time\": \"Giờ bắt đầu\", \"maintenance_date\": \"Ngày bảo trì\"}',1,1,'2025-07-20 08:27:42','2025-07-20 08:27:42'),(2,'new_promotion','Thông báo khuyến mãi mới','PROMOTION','Khuyến Mãi Mới: {promotion_title}','Chúng tôi vui mừng thông báo chương trình khuyến mãi mới: {promotion_title}. Giảm giá {discount_percent}% cho {service_names}. Thời gian áp dụng: {start_date} - {end_date}. Đặt lịch ngay!','MEDIUM','ROLE_BASED','[5]','{\"end_date\": \"Ngày kết thúc\", \"start_date\": \"Ngày bắt đầu\", \"service_names\": \"Tên dịch vụ\", \"promotion_title\": \"Tên chương trình\", \"discount_percent\": \"Phần trăm giảm giá\"}',1,1,'2025-07-20 08:27:42','2025-07-20 08:27:42'),(3,'booking_reminder','Nhắc nhở lịch hẹn','BOOKING_REMINDER','Nhắc Nhở: Lịch Hẹn Của Bạn Vào {appointment_date}','Xin chào {customer_name}, bạn có lịch hẹn {service_name} vào {appointment_date} lúc {appointment_time} với {therapist_name}. Vui lòng đến đúng giờ. Cảm ơn!','MEDIUM','INDIVIDUAL',NULL,'{\"service_name\": \"Tên dịch vụ\", \"customer_name\": \"Tên khách hàng\", \"therapist_name\": \"Tên kỹ thuật viên\", \"appointment_date\": \"Ngày hẹn\", \"appointment_time\": \"Giờ hẹn\"}',1,1,'2025-07-20 08:27:42','2025-07-20 08:27:42'),(4,'payment_success','Thông báo thanh toán thành công','PAYMENT_NOTIFICATION','Thanh Toán Thành Công - Đơn Hàng #{order_id}','Cảm ơn {customer_name} đã thanh toán thành công đơn hàng #{order_id} với số tiền {amount}. Chúng tôi sẽ liên hệ để sắp xếp lịch hẹn sớm nhất.','MEDIUM','INDIVIDUAL',NULL,'{\"amount\": \"Số tiền\", \"order_id\": \"Mã đơn hàng\", \"customer_name\": \"Tên khách hàng\"}',1,1,'2025-07-20 08:27:42','2025-07-20 08:27:42'),(5,'inventory_low_stock','Cảnh báo hết hàng','INVENTORY_ALERT','Cảnh Báo: Sản Phẩm {product_name} Sắp Hết','Sản phẩm {product_name} chỉ còn {quantity} {unit} trong kho. Vui lòng nhập thêm hàng để đảm bảo hoạt động kinh doanh.','HIGH','ROLE_BASED','[1, 2, 7]','{\"unit\": \"Đơn vị\", \"quantity\": \"Số lượng còn lại\", \"product_name\": \"Tên sản phẩm\"}',1,1,'2025-07-20 08:27:42','2025-07-20 08:27:42'),(6,'emergency_alert','Thông báo khẩn cấp','EMERGENCY','KHẨN CẤP: {alert_title}','{alert_message}. Vui lòng thực hiện ngay các biện pháp cần thiết. Liên hệ quản lý nếu cần hỗ trợ.','URGENT','ALL_USERS',NULL,'{\"alert_title\": \"Tiêu đề cảnh báo\", \"alert_message\": \"Nội dung cảnh báo\"}',1,1,'2025-07-20 08:27:42','2025-07-20 08:27:42');
-/*!40000 ALTER TABLE `notification_templates` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `notification_types`
---
-
-DROP TABLE IF EXISTS `notification_types`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `notification_types` (
-  `notification_type_id` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Tên mã của loại thông báo, e.g., APPOINTMENT_CONFIRMED, BIRTHDAY_WISH',
-  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-  `template_email_subject` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `template_email_body` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-  `template_sms_message` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `template_in_app_message` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-  `icon_class` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `is_customer_facing` tinyint(1) DEFAULT '1',
-  `is_staff_facing` tinyint(1) DEFAULT '0',
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`notification_type_id`),
-  UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `notification_types`
---
-
-LOCK TABLES `notification_types` WRITE;
-/*!40000 ALTER TABLE `notification_types` DISABLE KEYS */;
-INSERT INTO `notification_types` VALUES (1,'APPOINTMENT_CONFIRMATION','Xác nhận lịch hẹn thành công','Xác nhận lịch hẹn tại An nhiên Spa','Kính chào {{customer_name}}, Lịch hẹn của bạn cho dịch vụ {{service_name}} vào lúc {{start_time}} đã được xác nhận. Mã lịch hẹn: {{appointment_id}}.','AnNhienSpa: Lich hen {{service_name}} luc {{start_time}} da duoc xac nhan. Ma LH: {{appointment_id}}. Cam on!','Lịch hẹn #{{appointment_id}} cho {{service_name}} đã được xác nhận!','fas fa-calendar-check',1,1,'2025-06-01 09:40:23','2025-06-01 09:40:23'),(2,'APPOINTMENT_REMINDER','Nhắc nhở lịch hẹn sắp tới','Nhắc nhở: Lịch hẹn của bạn tại An nhiên Spa sắp diễn ra','Kính chào {{customer_name}}, Nhắc bạn lịch hẹn dịch vụ {{service_name}} vào lúc {{start_time}} ngày mai. Vui lòng có mặt trước 10 phút. Trân trọng!','AnNhienSpa: Nhac ban lich hen {{service_name}} vao {{start_time}} ngay mai. Hotline: 02412345678.','Đừng quên! Lịch hẹn #{{appointment_id}} cho {{service_name}} vào {{start_time}} ngày mai.','fas fa-bell',1,0,'2025-06-01 09:40:23','2025-06-01 09:40:23'),(3,'NEW_APPOINTMENT_FOR_THERAPIST','Thông báo lịch hẹn mới cho KTV','Bạn có lịch hẹn mới','Chào {{therapist_name}}, Bạn có lịch hẹn mới: KH {{customer_name}}, Dịch vụ {{service_name}}, Thời gian {{start_time}} - {{end_time}}. Chi tiết xem tại hệ thống.',NULL,'Lịch hẹn mới: KH {{customer_name}} - {{service_name}} lúc {{start_time}}','fas fa-user-clock',0,1,'2025-06-01 09:40:23','2025-06-01 09:40:23');
-/*!40000 ALTER TABLE `notification_types` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `notifications_master`
---
-
-DROP TABLE IF EXISTS `notifications_master`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `notifications_master` (
-  `master_notification_id` int NOT NULL AUTO_INCREMENT,
-  `notification_type_id` int NOT NULL,
-  `title_template` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Tiêu đề có thể chứa placeholder',
-  `content_template` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Nội dung có thể chứa placeholder',
-  `link_url_template` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `related_entity_type_context` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'e.g., APPOINTMENT, PROMOTION, CUSTOMER, USER, BOOKING_GROUP',
-  `created_by_user_id` int DEFAULT NULL COMMENT 'User (staff/admin) tạo thông báo thủ công',
-  `trigger_event` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Sự kiện kích hoạt thông báo tự động',
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`master_notification_id`),
-  KEY `notification_type_id` (`notification_type_id`),
-  KEY `created_by_user_id` (`created_by_user_id`),
-  CONSTRAINT `notifications_master_ibfk_1` FOREIGN KEY (`notification_type_id`) REFERENCES `notification_types` (`notification_type_id`) ON DELETE CASCADE,
-  CONSTRAINT `notifications_master_ibfk_2` FOREIGN KEY (`created_by_user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `notifications_master`
---
-
-LOCK TABLES `notifications_master` WRITE;
-/*!40000 ALTER TABLE `notifications_master` DISABLE KEYS */;
-INSERT INTO `notifications_master` VALUES (1,1,'Xác nhận lịch hẹn #{{appointment_id}}','Lịch hẹn của bạn cho dịch vụ {{service_name}} với KTV {{therapist_name}} vào lúc {{start_time}} ngày {{appointment_date}} đã được XÁC NHẬN.','/appointments/view/{{appointment_id}}','APPOINTMENT',NULL,'APPOINTMENT_STATUS_CONFIRMED','2025-06-01 09:40:23','2025-06-01 09:40:23'),(2,2,'Nhắc lịch hẹn #{{appointment_id}} ngày mai','Đừng quên lịch hẹn của bạn cho dịch vụ {{service_name}} vào {{start_time}} ngày mai ({{appointment_date}}).','/appointments/view/{{appointment_id}}','APPOINTMENT',NULL,'APPOINTMENT_REMINDER_24H','2025-06-01 09:40:23','2025-06-01 09:40:23'),(3,3,'Lịch hẹn mới: {{service_name}} - {{customer_name}}','Bạn được chỉ định thực hiện dịch vụ {{service_name}} cho khách hàng {{customer_name}} (SĐT: {{customer_phone}}) vào lúc {{start_time}} ngày {{appointment_date}}.','/staff/schedule/view/{{appointment_id}}','APPOINTMENT',NULL,'APPOINTMENT_ASSIGNED_TO_THERAPIST','2025-06-01 09:40:23','2025-06-01 09:40:23');
-/*!40000 ALTER TABLE `notifications_master` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `password_reset_tokens`
 --
 
@@ -1101,7 +790,7 @@ CREATE TABLE `payment_item_usage` (
   CONSTRAINT `payment_item_usage_ibfk_1` FOREIGN KEY (`payment_item_id`) REFERENCES `payment_items` (`payment_item_id`) ON DELETE CASCADE,
   CONSTRAINT `chk_booked_quantity_valid` CHECK (((`booked_quantity` >= 0) and (`booked_quantity` <= `total_quantity`))),
   CONSTRAINT `chk_total_quantity_positive` CHECK ((`total_quantity` > 0))
-) ENGINE=InnoDB AUTO_INCREMENT=44 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=67 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1110,7 +799,7 @@ CREATE TABLE `payment_item_usage` (
 
 LOCK TABLES `payment_item_usage` WRITE;
 /*!40000 ALTER TABLE `payment_item_usage` DISABLE KEYS */;
-INSERT INTO `payment_item_usage` (`usage_id`, `payment_item_id`, `total_quantity`, `booked_quantity`, `last_updated`) VALUES (4,4,1,0,'2025-07-16 04:14:56'),(5,5,1,0,'2025-07-16 04:14:56'),(6,6,1,0,'2025-07-16 04:14:56'),(7,7,2,0,'2025-07-16 04:26:07'),(8,8,1,0,'2025-07-16 04:26:07'),(9,9,1,0,'2025-07-16 04:26:07'),(10,10,1,0,'2025-07-16 18:00:06'),(11,11,1,0,'2025-07-16 18:00:06'),(12,12,1,0,'2025-07-16 18:00:06'),(13,13,1,0,'2025-07-16 18:00:06'),(14,14,1,0,'2025-07-17 04:00:38'),(15,15,1,0,'2025-07-17 04:00:38'),(16,16,1,0,'2025-07-17 04:00:38'),(17,17,1,0,'2025-07-17 04:00:38'),(18,18,1,0,'2025-07-17 04:00:38'),(19,19,1,0,'2025-07-17 04:00:38'),(20,20,1,0,'2025-07-17 04:00:38'),(21,21,1,0,'2025-07-17 04:00:38'),(22,22,1,0,'2025-07-17 04:00:38'),(23,23,1,0,'2025-07-17 04:00:38'),(24,24,1,0,'2025-07-17 04:00:38'),(25,25,1,0,'2025-07-17 04:00:38'),(26,26,1,0,'2025-07-17 04:00:38'),(27,27,1,0,'2025-07-17 04:00:38'),(28,28,1,0,'2025-07-17 04:00:38'),(29,29,1,0,'2025-07-17 04:00:38'),(30,30,1,0,'2025-07-17 04:00:38'),(31,31,2,0,'2025-07-17 10:50:46'),(32,32,1,0,'2025-07-17 10:50:46'),(33,33,4,0,'2025-07-17 10:50:46'),(34,34,1,0,'2025-07-17 10:50:46'),(35,35,1,0,'2025-07-17 14:20:34'),(36,36,1,0,'2025-07-17 14:20:34'),(37,37,1,0,'2025-07-17 14:20:34'),(38,38,1,0,'2025-07-17 14:20:34'),(39,39,1,0,'2025-07-17 14:20:34'),(40,40,1,0,'2025-07-17 14:20:34'),(41,41,1,0,'2025-07-17 14:20:34'),(42,42,1,0,'2025-07-17 14:20:34'),(43,43,1,0,'2025-07-17 14:20:34');
+INSERT INTO `payment_item_usage` (`usage_id`, `payment_item_id`, `total_quantity`, `booked_quantity`, `last_updated`) VALUES (4,4,1,0,'2025-07-16 04:14:56'),(5,5,1,0,'2025-07-16 04:14:56'),(6,6,1,0,'2025-07-16 04:14:56'),(7,7,2,0,'2025-07-16 04:26:07'),(8,8,1,0,'2025-07-16 04:26:07'),(9,9,1,0,'2025-07-16 04:26:07'),(10,10,1,0,'2025-07-16 18:00:06'),(11,11,1,0,'2025-07-16 18:00:06'),(12,12,1,0,'2025-07-16 18:00:06'),(13,13,1,0,'2025-07-16 18:00:06'),(14,14,1,0,'2025-07-17 04:00:38'),(15,15,1,0,'2025-07-17 04:00:38'),(16,16,1,0,'2025-07-17 04:00:38'),(17,17,1,0,'2025-07-17 04:00:38'),(18,18,1,0,'2025-07-17 04:00:38'),(19,19,1,0,'2025-07-17 04:00:38'),(20,20,1,0,'2025-07-17 04:00:38'),(21,21,1,0,'2025-07-17 04:00:38'),(22,22,1,0,'2025-07-17 04:00:38'),(23,23,1,0,'2025-07-17 04:00:38'),(24,24,1,0,'2025-07-17 04:00:38'),(25,25,1,0,'2025-07-17 04:00:38'),(26,26,1,0,'2025-07-17 04:00:38'),(27,27,1,0,'2025-07-17 04:00:38'),(28,28,1,0,'2025-07-17 04:00:38'),(29,29,1,0,'2025-07-17 04:00:38'),(30,30,1,0,'2025-07-17 04:00:38'),(31,31,2,0,'2025-07-17 10:50:46'),(32,32,1,0,'2025-07-17 10:50:46'),(33,33,4,0,'2025-07-17 10:50:46'),(34,34,1,0,'2025-07-17 10:50:46'),(35,35,1,0,'2025-07-17 14:20:34'),(36,36,1,0,'2025-07-17 14:20:34'),(37,37,1,0,'2025-07-17 14:20:34'),(38,38,1,0,'2025-07-17 14:20:34'),(39,39,1,0,'2025-07-17 14:20:34'),(40,40,1,0,'2025-07-17 14:20:34'),(41,41,1,0,'2025-07-17 14:20:34'),(42,42,1,0,'2025-07-17 14:20:34'),(43,43,1,0,'2025-07-17 14:20:34'),(44,44,1,0,'2025-07-23 08:10:45'),(45,45,1,0,'2025-07-23 08:10:45'),(46,46,1,0,'2025-07-23 08:10:45'),(47,47,1,0,'2025-07-23 08:10:45'),(48,48,1,0,'2025-07-23 22:26:47'),(49,49,1,0,'2025-07-23 22:26:47'),(50,50,1,0,'2025-07-24 00:31:14'),(51,51,1,0,'2025-07-24 00:31:14'),(52,52,1,0,'2025-07-24 00:32:17'),(53,53,1,0,'2025-07-24 00:32:17'),(54,54,1,0,'2025-07-24 01:46:26'),(55,55,1,0,'2025-07-24 01:46:26'),(56,56,1,0,'2025-07-24 02:09:39'),(57,57,1,0,'2025-07-24 02:09:39'),(58,58,1,0,'2025-07-24 02:22:37'),(59,59,1,0,'2025-07-24 02:22:37'),(60,60,1,0,'2025-07-24 02:25:39'),(61,61,1,0,'2025-07-24 02:25:39'),(62,62,1,0,'2025-07-24 02:25:39'),(63,63,1,0,'2025-07-24 02:31:56'),(64,64,1,0,'2025-07-24 02:31:56'),(65,65,1,0,'2025-07-24 02:33:37'),(66,66,1,0,'2025-07-24 02:33:37');
 /*!40000 ALTER TABLE `payment_item_usage` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1139,7 +828,7 @@ CREATE TABLE `payment_items` (
   CONSTRAINT `chk_quantity_positive` CHECK ((`quantity` > 0)),
   CONSTRAINT `chk_total_price_positive` CHECK ((`total_price` > 0)),
   CONSTRAINT `chk_unit_price_positive` CHECK ((`unit_price` > 0))
-) ENGINE=InnoDB AUTO_INCREMENT=44 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=67 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1148,60 +837,8 @@ CREATE TABLE `payment_items` (
 
 LOCK TABLES `payment_items` WRITE;
 /*!40000 ALTER TABLE `payment_items` DISABLE KEYS */;
-INSERT INTO `payment_items` VALUES (4,2,3,1,400000.00,400000.00,60,'2025-07-16 04:14:56'),(5,2,5,1,450000.00,450000.00,45,'2025-07-16 04:14:56'),(6,2,2,1,700000.00,700000.00,90,'2025-07-16 04:14:56'),(7,3,6,2,300000.00,600000.00,60,'2025-07-16 04:26:07'),(8,3,8,1,750000.00,750000.00,75,'2025-07-16 04:26:07'),(9,3,7,1,650000.00,650000.00,90,'2025-07-16 04:26:07'),(10,110,2,1,700000.00,700000.00,90,'2025-07-16 18:00:06'),(11,110,5,1,450000.00,450000.00,45,'2025-07-16 18:00:06'),(12,110,8,1,750000.00,750000.00,75,'2025-07-16 18:00:06'),(13,110,1,1,500000.00,500000.00,60,'2025-07-16 18:00:06'),(14,111,2,1,700000.00,700000.00,90,'2025-07-17 04:00:38'),(15,111,3,1,400000.00,400000.00,60,'2025-07-17 04:00:38'),(16,111,5,1,450000.00,450000.00,45,'2025-07-17 04:00:38'),(17,111,6,1,300000.00,300000.00,60,'2025-07-17 04:00:38'),(18,111,1,1,500000.00,500000.00,60,'2025-07-17 04:00:38'),(19,111,4,1,650000.00,650000.00,75,'2025-07-17 04:00:38'),(20,111,7,1,650000.00,650000.00,90,'2025-07-17 04:00:38'),(21,111,8,1,750000.00,750000.00,75,'2025-07-17 04:00:38'),(22,111,83,1,300000.00,300000.00,45,'2025-07-17 04:00:38'),(23,111,84,1,250000.00,250000.00,30,'2025-07-17 04:00:38'),(24,111,85,1,200000.00,200000.00,30,'2025-07-17 04:00:38'),(25,111,86,1,350000.00,350000.00,60,'2025-07-17 04:00:38'),(26,111,88,1,600000.00,600000.00,75,'2025-07-17 04:00:38'),(27,111,87,1,1500000.00,1500000.00,60,'2025-07-17 04:00:38'),(28,111,89,1,3000000.00,3000000.00,120,'2025-07-17 04:00:38'),(29,111,90,1,2000000.00,2000000.00,90,'2025-07-17 04:00:38'),(30,111,91,1,2500000.00,2500000.00,60,'2025-07-17 04:00:38'),(31,112,88,2,600000.00,1200000.00,75,'2025-07-17 10:50:46'),(32,112,86,1,350000.00,350000.00,60,'2025-07-17 10:50:46'),(33,112,85,4,200000.00,800000.00,30,'2025-07-17 10:50:46'),(34,112,84,1,250000.00,250000.00,30,'2025-07-17 10:50:46'),(35,113,83,1,300000.00,300000.00,45,'2025-07-17 14:20:34'),(36,113,85,1,200000.00,200000.00,30,'2025-07-17 14:20:34'),(37,113,84,1,250000.00,250000.00,30,'2025-07-17 14:20:34'),(38,113,87,1,1500000.00,1500000.00,60,'2025-07-17 14:20:34'),(39,113,88,1,600000.00,600000.00,75,'2025-07-17 14:20:34'),(40,113,86,1,350000.00,350000.00,60,'2025-07-17 14:20:34'),(41,113,89,1,3000000.00,3000000.00,120,'2025-07-17 14:20:34'),(42,113,90,1,2000000.00,2000000.00,90,'2025-07-17 14:20:34'),(43,113,91,1,2500000.00,2500000.00,60,'2025-07-17 14:20:34');
+INSERT INTO `payment_items` VALUES (4,2,3,1,400000.00,400000.00,60,'2025-07-16 04:14:56'),(5,2,5,1,450000.00,450000.00,45,'2025-07-16 04:14:56'),(6,2,2,1,700000.00,700000.00,90,'2025-07-16 04:14:56'),(7,3,6,2,300000.00,600000.00,60,'2025-07-16 04:26:07'),(8,3,8,1,750000.00,750000.00,75,'2025-07-16 04:26:07'),(9,3,7,1,650000.00,650000.00,90,'2025-07-16 04:26:07'),(10,110,2,1,700000.00,700000.00,90,'2025-07-16 18:00:06'),(11,110,5,1,450000.00,450000.00,45,'2025-07-16 18:00:06'),(12,110,8,1,750000.00,750000.00,75,'2025-07-16 18:00:06'),(13,110,1,1,500000.00,500000.00,60,'2025-07-16 18:00:06'),(14,111,2,1,700000.00,700000.00,90,'2025-07-17 04:00:38'),(15,111,3,1,400000.00,400000.00,60,'2025-07-17 04:00:38'),(16,111,5,1,450000.00,450000.00,45,'2025-07-17 04:00:38'),(17,111,6,1,300000.00,300000.00,60,'2025-07-17 04:00:38'),(18,111,1,1,500000.00,500000.00,60,'2025-07-17 04:00:38'),(19,111,4,1,650000.00,650000.00,75,'2025-07-17 04:00:38'),(20,111,7,1,650000.00,650000.00,90,'2025-07-17 04:00:38'),(21,111,8,1,750000.00,750000.00,75,'2025-07-17 04:00:38'),(22,111,83,1,300000.00,300000.00,45,'2025-07-17 04:00:38'),(23,111,84,1,250000.00,250000.00,30,'2025-07-17 04:00:38'),(24,111,85,1,200000.00,200000.00,30,'2025-07-17 04:00:38'),(25,111,86,1,350000.00,350000.00,60,'2025-07-17 04:00:38'),(26,111,88,1,600000.00,600000.00,75,'2025-07-17 04:00:38'),(27,111,87,1,1500000.00,1500000.00,60,'2025-07-17 04:00:38'),(28,111,89,1,3000000.00,3000000.00,120,'2025-07-17 04:00:38'),(29,111,90,1,2000000.00,2000000.00,90,'2025-07-17 04:00:38'),(30,111,91,1,2500000.00,2500000.00,60,'2025-07-17 04:00:38'),(31,112,88,2,600000.00,1200000.00,75,'2025-07-17 10:50:46'),(32,112,86,1,350000.00,350000.00,60,'2025-07-17 10:50:46'),(33,112,85,4,200000.00,800000.00,30,'2025-07-17 10:50:46'),(34,112,84,1,250000.00,250000.00,30,'2025-07-17 10:50:46'),(35,113,83,1,300000.00,300000.00,45,'2025-07-17 14:20:34'),(36,113,85,1,200000.00,200000.00,30,'2025-07-17 14:20:34'),(37,113,84,1,250000.00,250000.00,30,'2025-07-17 14:20:34'),(38,113,87,1,1500000.00,1500000.00,60,'2025-07-17 14:20:34'),(39,113,88,1,600000.00,600000.00,75,'2025-07-17 14:20:34'),(40,113,86,1,350000.00,350000.00,60,'2025-07-17 14:20:34'),(41,113,89,1,3000000.00,3000000.00,120,'2025-07-17 14:20:34'),(42,113,90,1,2000000.00,2000000.00,90,'2025-07-17 14:20:34'),(43,113,91,1,2500000.00,2500000.00,60,'2025-07-17 14:20:34'),(44,114,74,1,850000.00,850000.00,90,'2025-07-23 08:10:45'),(45,114,75,1,550000.00,550000.00,60,'2025-07-23 08:10:45'),(46,114,71,1,1200000.00,1200000.00,60,'2025-07-23 08:10:45'),(47,114,72,1,650000.00,650000.00,60,'2025-07-23 08:10:45'),(48,115,71,1,1200000.00,1200000.00,60,'2025-07-23 22:26:47'),(49,115,72,1,650000.00,650000.00,60,'2025-07-23 22:26:47'),(50,116,72,1,650000.00,650000.00,60,'2025-07-24 00:31:14'),(51,116,73,1,400000.00,400000.00,45,'2025-07-24 00:31:14'),(52,117,73,1,400000.00,400000.00,45,'2025-07-24 00:32:17'),(53,117,72,1,650000.00,650000.00,60,'2025-07-24 00:32:17'),(54,118,71,1,1200000.00,1200000.00,60,'2025-07-24 01:46:26'),(55,118,72,1,650000.00,650000.00,60,'2025-07-24 01:46:26'),(56,119,75,1,550000.00,550000.00,60,'2025-07-24 02:09:39'),(57,119,76,1,500000.00,500000.00,45,'2025-07-24 02:09:39'),(58,120,71,1,1200000.00,1200000.00,60,'2025-07-24 02:22:37'),(59,120,72,1,650000.00,650000.00,60,'2025-07-24 02:22:37'),(60,121,80,1,300000.00,300000.00,40,'2025-07-24 02:25:38'),(61,121,81,1,450000.00,450000.00,75,'2025-07-24 02:25:39'),(62,121,82,1,650000.00,650000.00,90,'2025-07-24 02:25:39'),(63,122,76,1,500000.00,500000.00,45,'2025-07-24 02:31:56'),(64,122,75,1,550000.00,550000.00,60,'2025-07-24 02:31:56'),(65,123,82,1,650000.00,650000.00,90,'2025-07-24 02:33:37'),(66,123,79,1,350000.00,350000.00,45,'2025-07-24 02:33:37');
 /*!40000 ALTER TABLE `payment_items` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `payment_scheduling_notifications`
---
-
-DROP TABLE IF EXISTS `payment_scheduling_notifications`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `payment_scheduling_notifications` (
-  `notification_id` int NOT NULL AUTO_INCREMENT,
-  `payment_id` int NOT NULL COMMENT 'Links to payments table',
-  `customer_id` int NOT NULL COMMENT 'Customer who made the payment',
-  `recipient_user_id` int NOT NULL COMMENT 'Manager/Admin who receives notification',
-  `notification_type` enum('PAYMENT_COMPLETED','SCHEDULING_REQUIRED','BOOKING_REMINDER','PAYMENT_UPDATED') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PAYMENT_COMPLETED',
-  `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `message` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `priority` enum('LOW','MEDIUM','HIGH','URGENT') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'HIGH',
-  `is_read` tinyint(1) NOT NULL DEFAULT '0',
-  `is_acknowledged` tinyint(1) NOT NULL DEFAULT '0',
-  `related_data` json DEFAULT NULL COMMENT 'Payment details, services, amounts, etc.',
-  `websocket_sent` tinyint(1) NOT NULL DEFAULT '0',
-  `email_sent` tinyint(1) NOT NULL DEFAULT '0',
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `read_at` timestamp NULL DEFAULT NULL,
-  `acknowledged_at` timestamp NULL DEFAULT NULL,
-  `acknowledged_by` int DEFAULT NULL COMMENT 'User who acknowledged the notification',
-  PRIMARY KEY (`notification_id`),
-  KEY `idx_payment_id` (`payment_id`),
-  KEY `idx_customer_id` (`customer_id`),
-  KEY `idx_recipient_user_id` (`recipient_user_id`),
-  KEY `idx_notification_type` (`notification_type`),
-  KEY `idx_priority` (`priority`),
-  KEY `idx_read_status` (`is_read`,`read_at`),
-  KEY `idx_acknowledged_status` (`is_acknowledged`,`acknowledged_at`),
-  KEY `idx_created_at` (`created_at`),
-  KEY `payment_scheduling_notifications_ibfk_4` (`acknowledged_by`),
-  CONSTRAINT `payment_scheduling_notifications_ibfk_1` FOREIGN KEY (`payment_id`) REFERENCES `payments` (`payment_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `payment_scheduling_notifications_ibfk_2` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `payment_scheduling_notifications_ibfk_3` FOREIGN KEY (`recipient_user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `payment_scheduling_notifications_ibfk_4` FOREIGN KEY (`acknowledged_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Specialized notifications for payment-to-scheduling workflow';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `payment_scheduling_notifications`
---
-
-LOCK TABLES `payment_scheduling_notifications` WRITE;
-/*!40000 ALTER TABLE `payment_scheduling_notifications` DISABLE KEYS */;
-/*!40000 ALTER TABLE `payment_scheduling_notifications` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -1232,7 +869,7 @@ CREATE TABLE `payments` (
   KEY `idx_reference_number` (`reference_number`),
   KEY `idx_transaction_date` (`transaction_date`),
   CONSTRAINT `payments_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`) ON DELETE RESTRICT
-) ENGINE=InnoDB AUTO_INCREMENT=114 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=124 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1241,8 +878,68 @@ CREATE TABLE `payments` (
 
 LOCK TABLES `payments` WRITE;
 /*!40000 ALTER TABLE `payments` DISABLE KEYS */;
-INSERT INTO `payments` VALUES (2,113,1705000.00,155000.00,1550000.00,'BANK_TRANSFER','PENDING','SPA969268652','2025-07-15 21:14:57',NULL,'Thanh toán qua QR Code','2025-07-16 04:14:56','2025-07-16 04:14:56'),(3,113,2200000.00,200000.00,2000000.00,'BANK_TRANSFER','PENDING','SPA679758887','2025-07-15 21:26:08',NULL,'Thanh toán qua QR Code','2025-07-16 04:26:07','2025-07-16 04:26:07'),(4,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_001','2025-07-16 08:16:48','2025-07-16 08:16:48','Test payment for debugging','2025-07-16 15:16:47','2025-07-16 15:16:47'),(5,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752679007634001','2025-07-16 08:16:48','2025-07-16 08:16:48','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 15:16:47','2025-07-16 15:16:47'),(6,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752679007641002','2025-07-16 08:16:48',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 15:16:47','2025-07-16 15:16:47'),(8,113,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752679007656002','2025-07-16 08:16:48',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 15:16:47','2025-07-16 16:29:53'),(11,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752679234854001','2025-07-16 08:20:35','2025-07-16 08:20:35','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 15:20:34','2025-07-16 15:20:34'),(12,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752679234878002','2025-07-16 08:20:35',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 15:20:34','2025-07-16 15:20:34'),(15,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752679576136','2025-07-16 08:26:16','2025-07-16 08:26:16','Test payment for debugging','2025-07-16 15:26:16','2025-07-16 15:26:16'),(16,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752679576195001','2025-07-16 08:26:16','2025-07-16 08:26:16','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 15:26:16','2025-07-16 15:26:16'),(17,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752679576201002','2025-07-16 08:26:16',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 15:26:16','2025-07-16 15:26:16'),(20,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752679723131','2025-07-16 08:28:43','2025-07-16 08:28:43','Test payment for debugging','2025-07-16 15:28:43','2025-07-16 15:28:43'),(21,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752679723188001','2025-07-16 08:28:43','2025-07-16 08:28:43','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 15:28:43','2025-07-16 15:28:43'),(22,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752679723194002','2025-07-16 08:28:43',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 15:28:43','2025-07-16 15:28:43'),(25,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752679854914','2025-07-16 08:30:55','2025-07-16 08:30:55','Test payment for debugging','2025-07-16 15:30:54','2025-07-16 15:30:54'),(26,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752679854967001','2025-07-16 08:30:55','2025-07-16 08:30:55','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 15:30:54','2025-07-16 15:30:54'),(27,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752679854974002','2025-07-16 08:30:55',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 15:30:54','2025-07-16 15:30:54'),(30,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752680333592','2025-07-16 08:38:54','2025-07-16 08:38:54','Test payment for debugging','2025-07-16 15:38:53','2025-07-16 15:38:53'),(31,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752680333641001','2025-07-16 08:38:54','2025-07-16 08:38:54','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 15:38:53','2025-07-16 15:38:53'),(32,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752680333646002','2025-07-16 08:38:54',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 15:38:53','2025-07-16 15:38:53'),(35,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752680746245','2025-07-16 08:45:46','2025-07-16 08:45:46','Test payment for debugging','2025-07-16 15:45:46','2025-07-16 15:45:46'),(36,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752680746293001','2025-07-16 08:45:46','2025-07-16 08:45:46','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 15:45:46','2025-07-16 15:45:46'),(37,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752680746298002','2025-07-16 08:45:46',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 15:45:46','2025-07-16 15:45:46'),(40,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752681025907','2025-07-16 08:50:26','2025-07-16 08:50:26','Test payment for debugging','2025-07-16 15:50:25','2025-07-16 15:50:25'),(41,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752681025962001','2025-07-16 08:50:26','2025-07-16 08:50:26','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 15:50:25','2025-07-16 15:50:25'),(42,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752681025967002','2025-07-16 08:50:26',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 15:50:25','2025-07-16 15:50:25'),(44,2,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752681025975002','2025-07-16 08:50:26',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 15:50:25','2025-07-16 15:50:25'),(45,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752681115196','2025-07-16 08:51:55','2025-07-16 08:51:55','Test payment for debugging','2025-07-16 15:51:55','2025-07-16 15:51:55'),(46,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752681115248001','2025-07-16 08:51:55','2025-07-16 08:51:55','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 15:51:55','2025-07-16 15:51:55'),(47,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752681115254002','2025-07-16 08:51:55',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 15:51:55','2025-07-16 15:51:55'),(48,2,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752681115259001','2025-07-16 08:51:55','2025-07-16 08:51:55','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 15:51:55','2025-07-16 15:51:55'),(49,2,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752681115264002','2025-07-16 08:51:55',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 15:51:55','2025-07-16 15:51:55'),(50,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752681262762','2025-07-16 08:54:23','2025-07-16 08:54:23','Test payment for debugging','2025-07-16 15:54:22','2025-07-16 15:54:22'),(51,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752681262810001','2025-07-16 08:54:23','2025-07-16 08:54:23','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 15:54:22','2025-07-16 15:54:22'),(52,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752681262816002','2025-07-16 08:54:23',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 15:54:22','2025-07-16 15:54:22'),(53,2,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752681262820001','2025-07-16 08:54:23','2025-07-16 08:54:23','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 15:54:22','2025-07-16 15:54:22'),(54,2,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752681262824002','2025-07-16 08:54:23',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 15:54:22','2025-07-16 15:54:22'),(55,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752681305259','2025-07-16 08:55:05','2025-07-16 08:55:05','Test payment for debugging','2025-07-16 15:55:05','2025-07-16 15:55:05'),(56,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752681305308001','2025-07-16 08:55:05','2025-07-16 08:55:05','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 15:55:05','2025-07-16 15:55:05'),(57,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752681305313002','2025-07-16 08:55:05',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 15:55:05','2025-07-16 15:55:05'),(58,2,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752681305316001','2025-07-16 08:55:05','2025-07-16 08:55:05','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 15:55:05','2025-07-16 15:55:05'),(59,2,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752681305321002','2025-07-16 08:55:05',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 15:55:05','2025-07-16 15:55:05'),(60,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752681646994','2025-07-16 09:00:47','2025-07-16 09:00:47','Test payment for debugging','2025-07-16 16:00:47','2025-07-16 16:00:47'),(61,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752681647039001','2025-07-16 09:00:47','2025-07-16 09:00:47','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 16:00:47','2025-07-16 16:00:47'),(62,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752681647044002','2025-07-16 09:00:47',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 16:00:47','2025-07-16 16:00:47'),(63,2,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752681647049001','2025-07-16 09:00:47','2025-07-16 09:00:47','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 16:00:47','2025-07-16 16:00:47'),(64,2,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752681647053002','2025-07-16 09:00:47',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 16:00:47','2025-07-16 16:00:47'),(65,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752681699806','2025-07-16 09:01:40','2025-07-16 09:01:40','Test payment for debugging','2025-07-16 16:01:39','2025-07-16 16:01:39'),(66,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752681699855001','2025-07-16 09:01:40','2025-07-16 09:01:40','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 16:01:39','2025-07-16 16:01:39'),(67,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752681699861002','2025-07-16 09:01:40',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 16:01:39','2025-07-16 16:01:39'),(68,2,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752681699866001','2025-07-16 09:01:40','2025-07-16 09:01:40','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 16:01:39','2025-07-16 16:01:39'),(69,2,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752681699871002','2025-07-16 09:01:40',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 16:01:39','2025-07-16 16:01:39'),(70,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752682069165','2025-07-16 09:07:49','2025-07-16 09:07:49','Test payment for debugging','2025-07-16 16:07:49','2025-07-16 16:07:49'),(71,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752682069220001','2025-07-16 09:07:49','2025-07-16 09:07:49','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 16:07:49','2025-07-16 16:07:49'),(72,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752682069226002','2025-07-16 09:07:49',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 16:07:49','2025-07-16 16:07:49'),(73,2,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752682069232001','2025-07-16 09:07:49','2025-07-16 09:07:49','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 16:07:49','2025-07-16 16:07:49'),(74,2,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752682069242002','2025-07-16 09:07:49',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 16:07:49','2025-07-16 16:07:49'),(75,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752682487592','2025-07-16 09:14:48','2025-07-16 09:14:48','Test payment for debugging','2025-07-16 16:14:47','2025-07-16 16:14:47'),(76,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752682487640001','2025-07-16 09:14:48','2025-07-16 09:14:48','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 16:14:47','2025-07-16 16:14:47'),(77,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752682487647002','2025-07-16 09:14:48',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 16:14:47','2025-07-16 16:14:47'),(78,2,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752682487653001','2025-07-16 09:14:48','2025-07-16 09:14:48','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 16:14:47','2025-07-16 16:14:47'),(79,2,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752682487658002','2025-07-16 09:14:48',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 16:14:47','2025-07-16 16:14:47'),(80,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752682960252','2025-07-16 09:22:40','2025-07-16 09:22:40','Test payment for debugging','2025-07-16 16:22:40','2025-07-16 16:22:40'),(81,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752682960305001','2025-07-16 09:22:40','2025-07-16 09:22:40','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 16:22:40','2025-07-16 16:22:40'),(82,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752682960311002','2025-07-16 09:22:40',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 16:22:40','2025-07-16 16:22:40'),(83,2,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752682960315001','2025-07-16 09:22:40','2025-07-16 09:22:40','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 16:22:40','2025-07-16 16:22:40'),(84,2,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752682960319002','2025-07-16 09:22:40',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 16:22:40','2025-07-16 16:22:40'),(85,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752683783625','2025-07-16 09:36:24','2025-07-16 09:36:24','Test payment for debugging','2025-07-16 16:36:23','2025-07-16 16:36:23'),(86,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752683783671001','2025-07-16 09:36:24','2025-07-16 09:36:24','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 16:36:23','2025-07-16 16:36:23'),(87,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752683783676002','2025-07-16 09:36:24',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 16:36:23','2025-07-16 16:36:23'),(88,2,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752683783679001','2025-07-16 09:36:24','2025-07-16 09:36:24','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 16:36:23','2025-07-16 16:36:23'),(89,2,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752683783683002','2025-07-16 09:36:24',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 16:36:23','2025-07-16 16:36:23'),(90,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752684119871','2025-07-16 09:42:00','2025-07-16 09:42:00','Test payment for debugging','2025-07-16 16:41:59','2025-07-16 16:41:59'),(91,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752684119911001','2025-07-16 09:42:00','2025-07-16 09:42:00','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 16:41:59','2025-07-16 16:41:59'),(92,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752684119916002','2025-07-16 09:42:00',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 16:41:59','2025-07-16 16:41:59'),(93,2,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752684119919001','2025-07-16 09:42:00','2025-07-16 09:42:00','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 16:41:59','2025-07-16 16:41:59'),(94,2,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752684119923002','2025-07-16 09:42:00',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 16:41:59','2025-07-16 16:41:59'),(95,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752684291820','2025-07-16 09:44:52','2025-07-16 09:44:52','Test payment for debugging','2025-07-16 16:44:51','2025-07-16 16:44:51'),(96,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752684291872001','2025-07-16 09:44:52','2025-07-16 09:44:52','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 16:44:51','2025-07-16 16:44:51'),(97,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752684291882002','2025-07-16 09:44:52',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 16:44:51','2025-07-16 16:44:51'),(98,2,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752684291887001','2025-07-16 09:44:52','2025-07-16 09:44:52','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 16:44:51','2025-07-16 16:44:51'),(99,2,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752684291892002','2025-07-16 09:44:52',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 16:44:51','2025-07-16 16:44:51'),(100,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752685668382','2025-07-16 10:07:48','2025-07-16 10:07:48','Test payment for debugging','2025-07-16 17:07:48','2025-07-16 17:07:48'),(101,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752685668428001','2025-07-16 10:07:48','2025-07-16 10:07:48','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 17:07:48','2025-07-16 17:07:48'),(102,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752685668434002','2025-07-16 10:07:48',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 17:07:48','2025-07-16 17:07:48'),(103,2,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752685668439001','2025-07-16 10:07:48','2025-07-16 10:07:48','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 17:07:48','2025-07-16 17:07:48'),(104,2,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752685668444002','2025-07-16 10:07:48',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 17:07:48','2025-07-16 17:07:48'),(105,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752685825653','2025-07-16 10:10:26','2025-07-16 10:10:26','Test payment for debugging','2025-07-16 17:10:25','2025-07-16 17:10:25'),(106,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752685825699001','2025-07-16 10:10:26','2025-07-16 10:10:26','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 17:10:25','2025-07-16 17:10:25'),(107,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752685825704002','2025-07-16 10:10:26',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 17:10:25','2025-07-16 17:10:25'),(108,2,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752685825708001','2025-07-16 10:10:26','2025-07-16 10:10:26','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 17:10:25','2025-07-16 17:10:25'),(109,2,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752685825713002','2025-07-16 10:10:26',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 17:10:25','2025-07-16 17:10:25'),(110,113,2640000.00,240000.00,2400000.00,'BANK_TRANSFER','PENDING','SPA067217234','2025-07-16 11:00:07',NULL,'Thanh toán qua QR Code','2025-07-16 18:00:06','2025-07-16 18:00:06'),(111,113,16610000.00,1510000.00,15100000.00,'BANK_TRANSFER','PENDING','SPA383023916','2025-07-16 21:00:38',NULL,'Thanh toán qua QR Code','2025-07-17 04:00:38','2025-07-17 04:00:38'),(112,113,2860000.00,260000.00,2600000.00,'BANK_TRANSFER','PAID','SPA469611316','2025-07-17 03:50:47','2025-07-17 03:50:47','Thanh toán qua QR Code','2025-07-17 10:50:46','2025-07-17 10:50:46'),(113,113,11770000.00,1070000.00,10700000.00,'BANK_TRANSFER','PAID','SPA348251767','2025-07-17 07:20:35','2025-07-17 07:20:35','Thanh toán qua QR Code','2025-07-17 14:20:34','2025-07-17 14:20:34');
+INSERT INTO `payments` VALUES (2,113,1705000.00,155000.00,1550000.00,'BANK_TRANSFER','PENDING','SPA969268652','2025-07-15 21:14:57',NULL,'Thanh toán qua QR Code','2025-07-16 04:14:56','2025-07-16 04:14:56'),(3,113,2200000.00,200000.00,2000000.00,'BANK_TRANSFER','PENDING','SPA679758887','2025-07-15 21:26:08',NULL,'Thanh toán qua QR Code','2025-07-16 04:26:07','2025-07-16 04:26:07'),(4,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_001','2025-07-16 08:16:48','2025-07-16 08:16:48','Test payment for debugging','2025-07-16 15:16:47','2025-07-16 15:16:47'),(5,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752679007634001','2025-07-16 08:16:48','2025-07-16 08:16:48','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 15:16:47','2025-07-16 15:16:47'),(6,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752679007641002','2025-07-16 08:16:48',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 15:16:47','2025-07-16 15:16:47'),(8,113,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752679007656002','2025-07-16 08:16:48',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 15:16:47','2025-07-16 16:29:53'),(11,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752679234854001','2025-07-16 08:20:35','2025-07-16 08:20:35','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 15:20:34','2025-07-16 15:20:34'),(12,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752679234878002','2025-07-16 08:20:35',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 15:20:34','2025-07-16 15:20:34'),(15,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752679576136','2025-07-16 08:26:16','2025-07-16 08:26:16','Test payment for debugging','2025-07-16 15:26:16','2025-07-16 15:26:16'),(16,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752679576195001','2025-07-16 08:26:16','2025-07-16 08:26:16','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 15:26:16','2025-07-16 15:26:16'),(17,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752679576201002','2025-07-16 08:26:16',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 15:26:16','2025-07-16 15:26:16'),(20,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752679723131','2025-07-16 08:28:43','2025-07-16 08:28:43','Test payment for debugging','2025-07-16 15:28:43','2025-07-16 15:28:43'),(21,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752679723188001','2025-07-16 08:28:43','2025-07-16 08:28:43','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 15:28:43','2025-07-16 15:28:43'),(22,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752679723194002','2025-07-16 08:28:43',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 15:28:43','2025-07-16 15:28:43'),(25,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752679854914','2025-07-16 08:30:55','2025-07-16 08:30:55','Test payment for debugging','2025-07-16 15:30:54','2025-07-16 15:30:54'),(26,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752679854967001','2025-07-16 08:30:55','2025-07-16 08:30:55','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 15:30:54','2025-07-16 15:30:54'),(27,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752679854974002','2025-07-16 08:30:55',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 15:30:54','2025-07-16 15:30:54'),(30,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752680333592','2025-07-16 08:38:54','2025-07-16 08:38:54','Test payment for debugging','2025-07-16 15:38:53','2025-07-16 15:38:53'),(31,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752680333641001','2025-07-16 08:38:54','2025-07-16 08:38:54','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 15:38:53','2025-07-16 15:38:53'),(32,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752680333646002','2025-07-16 08:38:54',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 15:38:53','2025-07-16 15:38:53'),(35,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752680746245','2025-07-16 08:45:46','2025-07-16 08:45:46','Test payment for debugging','2025-07-16 15:45:46','2025-07-16 15:45:46'),(36,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752680746293001','2025-07-16 08:45:46','2025-07-16 08:45:46','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 15:45:46','2025-07-16 15:45:46'),(37,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752680746298002','2025-07-16 08:45:46',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 15:45:46','2025-07-16 15:45:46'),(40,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752681025907','2025-07-16 08:50:26','2025-07-16 08:50:26','Test payment for debugging','2025-07-16 15:50:25','2025-07-16 15:50:25'),(41,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752681025962001','2025-07-16 08:50:26','2025-07-16 08:50:26','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 15:50:25','2025-07-16 15:50:25'),(42,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752681025967002','2025-07-16 08:50:26',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 15:50:25','2025-07-16 15:50:25'),(44,2,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752681025975002','2025-07-16 08:50:26',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 15:50:25','2025-07-16 15:50:25'),(45,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752681115196','2025-07-16 08:51:55','2025-07-16 08:51:55','Test payment for debugging','2025-07-16 15:51:55','2025-07-16 15:51:55'),(46,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752681115248001','2025-07-16 08:51:55','2025-07-16 08:51:55','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 15:51:55','2025-07-16 15:51:55'),(47,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752681115254002','2025-07-16 08:51:55',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 15:51:55','2025-07-16 15:51:55'),(48,2,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752681115259001','2025-07-16 08:51:55','2025-07-16 08:51:55','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 15:51:55','2025-07-16 15:51:55'),(49,2,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752681115264002','2025-07-16 08:51:55',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 15:51:55','2025-07-16 15:51:55'),(50,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752681262762','2025-07-16 08:54:23','2025-07-16 08:54:23','Test payment for debugging','2025-07-16 15:54:22','2025-07-16 15:54:22'),(51,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752681262810001','2025-07-16 08:54:23','2025-07-16 08:54:23','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 15:54:22','2025-07-16 15:54:22'),(52,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752681262816002','2025-07-16 08:54:23',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 15:54:22','2025-07-16 15:54:22'),(53,2,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752681262820001','2025-07-16 08:54:23','2025-07-16 08:54:23','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 15:54:22','2025-07-16 15:54:22'),(54,2,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752681262824002','2025-07-16 08:54:23',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 15:54:22','2025-07-16 15:54:22'),(55,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752681305259','2025-07-16 08:55:05','2025-07-16 08:55:05','Test payment for debugging','2025-07-16 15:55:05','2025-07-16 15:55:05'),(56,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752681305308001','2025-07-16 08:55:05','2025-07-16 08:55:05','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 15:55:05','2025-07-16 15:55:05'),(57,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752681305313002','2025-07-16 08:55:05',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 15:55:05','2025-07-16 15:55:05'),(58,2,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752681305316001','2025-07-16 08:55:05','2025-07-16 08:55:05','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 15:55:05','2025-07-16 15:55:05'),(59,2,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752681305321002','2025-07-16 08:55:05',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 15:55:05','2025-07-16 15:55:05'),(60,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752681646994','2025-07-16 09:00:47','2025-07-16 09:00:47','Test payment for debugging','2025-07-16 16:00:47','2025-07-16 16:00:47'),(61,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752681647039001','2025-07-16 09:00:47','2025-07-16 09:00:47','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 16:00:47','2025-07-16 16:00:47'),(62,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752681647044002','2025-07-16 09:00:47',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 16:00:47','2025-07-16 16:00:47'),(63,2,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752681647049001','2025-07-16 09:00:47','2025-07-16 09:00:47','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 16:00:47','2025-07-16 16:00:47'),(64,2,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752681647053002','2025-07-16 09:00:47',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 16:00:47','2025-07-16 16:00:47'),(65,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752681699806','2025-07-16 09:01:40','2025-07-16 09:01:40','Test payment for debugging','2025-07-16 16:01:39','2025-07-16 16:01:39'),(66,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752681699855001','2025-07-16 09:01:40','2025-07-16 09:01:40','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 16:01:39','2025-07-16 16:01:39'),(67,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752681699861002','2025-07-16 09:01:40',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 16:01:39','2025-07-16 16:01:39'),(68,2,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752681699866001','2025-07-16 09:01:40','2025-07-16 09:01:40','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 16:01:39','2025-07-16 16:01:39'),(69,2,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752681699871002','2025-07-16 09:01:40',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 16:01:39','2025-07-16 16:01:39'),(70,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752682069165','2025-07-16 09:07:49','2025-07-16 09:07:49','Test payment for debugging','2025-07-16 16:07:49','2025-07-16 16:07:49'),(71,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752682069220001','2025-07-16 09:07:49','2025-07-16 09:07:49','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 16:07:49','2025-07-16 16:07:49'),(72,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752682069226002','2025-07-16 09:07:49',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 16:07:49','2025-07-16 16:07:49'),(73,2,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752682069232001','2025-07-16 09:07:49','2025-07-16 09:07:49','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 16:07:49','2025-07-16 16:07:49'),(74,2,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752682069242002','2025-07-16 09:07:49',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 16:07:49','2025-07-16 16:07:49'),(75,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752682487592','2025-07-16 09:14:48','2025-07-16 09:14:48','Test payment for debugging','2025-07-16 16:14:47','2025-07-16 16:14:47'),(76,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752682487640001','2025-07-16 09:14:48','2025-07-16 09:14:48','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 16:14:47','2025-07-16 16:14:47'),(77,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752682487647002','2025-07-16 09:14:48',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 16:14:47','2025-07-16 16:14:47'),(78,2,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752682487653001','2025-07-16 09:14:48','2025-07-16 09:14:48','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 16:14:47','2025-07-16 16:14:47'),(79,2,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752682487658002','2025-07-16 09:14:48',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 16:14:47','2025-07-16 16:14:47'),(80,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752682960252','2025-07-16 09:22:40','2025-07-16 09:22:40','Test payment for debugging','2025-07-16 16:22:40','2025-07-16 16:22:40'),(81,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752682960305001','2025-07-16 09:22:40','2025-07-16 09:22:40','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 16:22:40','2025-07-16 16:22:40'),(82,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752682960311002','2025-07-16 09:22:40',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 16:22:40','2025-07-16 16:22:40'),(83,2,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752682960315001','2025-07-16 09:22:40','2025-07-16 09:22:40','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 16:22:40','2025-07-16 16:22:40'),(84,2,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752682960319002','2025-07-16 09:22:40',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 16:22:40','2025-07-16 16:22:40'),(85,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752683783625','2025-07-16 09:36:24','2025-07-16 09:36:24','Test payment for debugging','2025-07-16 16:36:23','2025-07-16 16:36:23'),(86,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752683783671001','2025-07-16 09:36:24','2025-07-16 09:36:24','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 16:36:23','2025-07-16 16:36:23'),(87,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752683783676002','2025-07-16 09:36:24',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 16:36:23','2025-07-16 16:36:23'),(88,2,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752683783679001','2025-07-16 09:36:24','2025-07-16 09:36:24','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 16:36:23','2025-07-16 16:36:23'),(89,2,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752683783683002','2025-07-16 09:36:24',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 16:36:23','2025-07-16 16:36:23'),(90,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752684119871','2025-07-16 09:42:00','2025-07-16 09:42:00','Test payment for debugging','2025-07-16 16:41:59','2025-07-16 16:41:59'),(91,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752684119911001','2025-07-16 09:42:00','2025-07-16 09:42:00','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 16:41:59','2025-07-16 16:41:59'),(92,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752684119916002','2025-07-16 09:42:00',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 16:41:59','2025-07-16 16:41:59'),(93,2,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752684119919001','2025-07-16 09:42:00','2025-07-16 09:42:00','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 16:41:59','2025-07-16 16:41:59'),(94,2,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752684119923002','2025-07-16 09:42:00',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 16:41:59','2025-07-16 16:41:59'),(95,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752684291820','2025-07-16 09:44:52','2025-07-16 09:44:52','Test payment for debugging','2025-07-16 16:44:51','2025-07-16 16:44:51'),(96,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752684291872001','2025-07-16 09:44:52','2025-07-16 09:44:52','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 16:44:51','2025-07-16 16:44:51'),(97,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752684291882002','2025-07-16 09:44:52',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 16:44:51','2025-07-16 16:44:51'),(98,2,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752684291887001','2025-07-16 09:44:52','2025-07-16 09:44:52','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 16:44:51','2025-07-16 16:44:51'),(99,2,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752684291892002','2025-07-16 09:44:52',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 16:44:51','2025-07-16 16:44:51'),(100,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752685668382','2025-07-16 10:07:48','2025-07-16 10:07:48','Test payment for debugging','2025-07-16 17:07:48','2025-07-16 17:07:48'),(101,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752685668428001','2025-07-16 10:07:48','2025-07-16 10:07:48','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 17:07:48','2025-07-16 17:07:48'),(102,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752685668434002','2025-07-16 10:07:48',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 17:07:48','2025-07-16 17:07:48'),(103,2,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752685668439001','2025-07-16 10:07:48','2025-07-16 10:07:48','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 17:07:48','2025-07-16 17:07:48'),(104,2,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752685668444002','2025-07-16 10:07:48',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 17:07:48','2025-07-16 17:07:48'),(105,1,500000.00,50000.00,450000.00,'CASH','PAID','TEST_REF_1752685825653','2025-07-16 10:10:26','2025-07-16 10:10:26','Test payment for debugging','2025-07-16 17:10:25','2025-07-16 17:10:25'),(106,1,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752685825699001','2025-07-16 10:10:26','2025-07-16 10:10:26','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 17:10:25','2025-07-16 17:10:25'),(107,1,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752685825704002','2025-07-16 10:10:26',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 17:10:25','2025-07-16 17:10:25'),(108,2,850000.00,85000.00,765000.00,'CASH','PAID','SPA1752685825708001','2025-07-16 10:10:26','2025-07-16 10:10:26','Thanh toán dịch vụ massage và chăm sóc da','2025-07-16 17:10:25','2025-07-16 17:10:25'),(109,2,650000.00,65000.00,585000.00,'BANK_TRANSFER','PENDING','SPA1752685825713002','2025-07-16 10:10:26',NULL,'Chờ xác nhận chuyển khoản','2025-07-16 17:10:25','2025-07-16 17:10:25'),(110,113,2640000.00,240000.00,2400000.00,'BANK_TRANSFER','PENDING','SPA067217234','2025-07-16 11:00:07',NULL,'Thanh toán qua QR Code','2025-07-16 18:00:06','2025-07-16 18:00:06'),(111,113,16610000.00,1510000.00,15100000.00,'BANK_TRANSFER','PENDING','SPA383023916','2025-07-16 21:00:38',NULL,'Thanh toán qua QR Code','2025-07-17 04:00:38','2025-07-17 04:00:38'),(112,113,2860000.00,260000.00,2600000.00,'BANK_TRANSFER','PAID','SPA469611316','2025-07-17 03:50:47','2025-07-17 03:50:47','Thanh toán qua QR Code','2025-07-17 10:50:46','2025-07-17 10:50:46'),(113,113,11770000.00,1070000.00,10700000.00,'BANK_TRANSFER','PAID','SPA348251767','2025-07-17 07:20:35','2025-07-17 07:20:35','Thanh toán qua QR Code','2025-07-17 14:20:34','2025-07-17 14:20:34'),(114,114,3575000.00,325000.00,3250000.00,'BANK_TRANSFER','PAID','SPA454359056','2025-07-23 01:10:45','2025-07-23 01:10:45','Thanh toán qua QR Code','2025-07-23 08:10:45','2025-07-23 08:10:45'),(115,114,2035000.00,185000.00,1850000.00,'BANK_TRANSFER','PAID','SPA076132511','2025-07-23 15:26:48','2025-07-23 15:26:48','Thanh toán qua QR Code','2025-07-23 22:26:47','2025-07-23 22:26:47'),(116,114,1155000.00,105000.00,1050000.00,'BANK_TRANSFER','PAID','SPA742698287','2025-07-23 17:31:14','2025-07-23 17:31:14','Thanh toán qua QR Code','2025-07-24 00:31:14','2025-07-24 00:31:14'),(117,114,1155000.00,105000.00,1050000.00,'BANK_TRANSFER','PAID','SPA375977493','2025-07-23 17:32:18','2025-07-23 17:32:18','Thanh toán qua QR Code','2025-07-24 00:32:17','2025-07-24 00:32:17'),(118,114,2035000.00,185000.00,1850000.00,'BANK_TRANSFER','PAID','SPA861423491','2025-07-23 18:46:26','2025-07-23 18:46:26','Thanh toán qua QR Code','2025-07-24 01:46:26','2025-07-24 01:46:26'),(119,114,1155000.00,105000.00,1050000.00,'BANK_TRANSFER','PAID','SPA795311333','2025-07-23 19:09:40','2025-07-23 19:09:40','Thanh toán qua QR Code','2025-07-24 02:09:39','2025-07-24 02:09:39'),(120,114,2035000.00,185000.00,1850000.00,'BANK_TRANSFER','PAID','SPA576551312','2025-07-23 19:22:38','2025-07-23 19:22:38','Thanh toán qua QR Code','2025-07-24 02:22:37','2025-07-24 02:22:37'),(121,114,1540000.00,140000.00,1400000.00,'BANK_TRANSFER','PAID','SPA389877983','2025-07-23 19:25:39','2025-07-23 19:25:39','Thanh toán qua QR Code','2025-07-24 02:25:38','2025-07-24 02:25:38'),(122,114,1155000.00,105000.00,1050000.00,'BANK_TRANSFER','PAID','SPA169058272','2025-07-23 19:31:57','2025-07-23 19:31:57','Thanh toán qua QR Code','2025-07-24 02:31:56','2025-07-24 02:31:56'),(123,114,1100000.00,100000.00,1000000.00,'BANK_TRANSFER','PAID','SPA172486910','2025-07-23 19:33:37','2025-07-23 19:33:37','Thanh toán qua QR Code','2025-07-24 02:33:37','2025-07-24 02:33:37');
 /*!40000 ALTER TABLE `payments` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `point_redemptions`
+--
+
+DROP TABLE IF EXISTS `point_redemptions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `point_redemptions` (
+  `redemption_id` int NOT NULL AUTO_INCREMENT,
+  `customer_id` int NOT NULL,
+  `points_used` int NOT NULL,
+  `reward_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `reward_value` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `redeemed_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'SUCCESS',
+  `note` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  PRIMARY KEY (`redemption_id`),
+  KEY `customer_id` (`customer_id`),
+  CONSTRAINT `point_redemptions_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `point_redemptions`
+--
+
+LOCK TABLES `point_redemptions` WRITE;
+/*!40000 ALTER TABLE `point_redemptions` DISABLE KEYS */;
+/*!40000 ALTER TABLE `point_redemptions` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `point_transactions`
+--
+
+DROP TABLE IF EXISTS `point_transactions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `point_transactions` (
+  `transaction_id` int NOT NULL AUTO_INCREMENT,
+  `customer_id` int DEFAULT NULL,
+  `points_change` int DEFAULT NULL,
+  `reason` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`transaction_id`),
+  KEY `customer_id` (`customer_id`),
+  CONSTRAINT `point_transactions_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `point_transactions`
+--
+
+LOCK TABLES `point_transactions` WRITE;
+/*!40000 ALTER TABLE `point_transactions` DISABLE KEYS */;
+INSERT INTO `point_transactions` VALUES (1,114,10,'Điểm đăng nhập mỗi ngày','2025-07-23 18:10:29'),(2,114,60,'Tổng hóa đơn','2025-07-23 22:26:47');
+/*!40000 ALTER TABLE `point_transactions` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -1314,7 +1011,7 @@ CREATE TABLE `promotions` (
   KEY `applies_to_service_id` (`applies_to_service_id`),
   CONSTRAINT `promotions_ibfk_1` FOREIGN KEY (`created_by_user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL,
   CONSTRAINT `promotions_ibfk_2` FOREIGN KEY (`applies_to_service_id`) REFERENCES `services` (`service_id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1323,7 +1020,7 @@ CREATE TABLE `promotions` (
 
 LOCK TABLES `promotions` WRITE;
 /*!40000 ALTER TABLE `promotions` DISABLE KEYS */;
-INSERT INTO `promotions` VALUES (1,'Chào Hè Rực Rỡ - Giảm 20%','Giảm giá 20% cho tất cả dịch vụ massage.','SUMMER20','PERCENTAGE',20.00,NULL,500000.00,'2025-05-31 17:00:00','2025-09-01 16:59:59','ACTIVE',1,100,10,'SPECIFIC_SERVICES','[1, 2]','/uploads/promotions/1753019216785_promotion.jpg','Áp dụng cho các dịch vụ massage. Không áp dụng cùng KM khác.',1,0,'2025-06-01 09:40:23','2025-07-20 13:46:56','ALL'),(2,'Tri Ân Khách Hàng - Tặng Voucher 100K','Tặng voucher 100.000 VNĐ cho hóa đơn từ 1.000.000 VNĐ.','THANKS100K','FIXED_AMOUNT',100000.00,NULL,1000000.00,'2025-07-01 00:00:00','2025-07-31 23:59:59','ACTIVE',1,200,0,'ENTIRE_APPOINTMENT',NULL,'https://placehold.co/400x200/E6E6FA/333333?text=VoucherPromo','Mỗi khách hàng được sử dụng 1 lần.',2,0,'2025-06-01 09:40:23','2025-07-17 22:03:38','ALL'),(3,'Đi Cùng Bạn Bè - Miễn Phí 1 Dịch Vụ Gội Đầu','Khi đặt 2 dịch vụ bất kỳ, tặng 1 dịch vụ gội đầu thảo dược.','FRIENDSFREE','FREE_SERVICE',6.00,NULL,800000.00,'2025-06-15 00:00:00','2025-07-15 23:59:59','INACTIVE',1,50,5,'ENTIRE_APPOINTMENT',NULL,'https://placehold.co/400x200/B0C4DE/333333?text=FriendsPromo','Dịch vụ tặng kèm là Gội Đầu Thảo Dược (ID: 6).',1,0,'2025-06-01 09:40:23','2025-07-17 22:03:38','ALL'),(4,'Giảm 50K cho hóa đơn trên 300K','Giảm trực tiếp 50,000đ cho tất cả các dịch vụ khi tổng hóa đơn của bạn từ 300,000đ trở lên.','BIGSALE5OK','FIXED_AMOUNT',50000.00,NULL,0.00,'2025-07-22 17:00:00','2025-08-09 16:59:59','ACTIVE',NULL,NULL,0,'ENTIRE_APPOINTMENT',NULL,'/uploads/promotions/1753022591204_promotion.png',NULL,NULL,0,'2025-07-20 14:43:11','2025-07-22 19:18:34','ALL'),(5,'Đi 4 tính tiền 3','Rủ hội bạn thân đi làm đẹp! Khi đặt lịch cho nhóm 4 người, bạn sẽ được miễn phí 1 suất có giá trị thấp nhất.','BUY4FREE1','PERCENTAGE',25.00,NULL,0.00,'2025-07-26 17:00:00','2025-08-20 16:59:59','SCHEDULED',NULL,NULL,0,'ENTIRE_APPOINTMENT',NULL,'/uploads/promotions/1753022968018_promotion.png',NULL,NULL,0,'2025-07-20 14:49:28','2025-07-20 14:49:28','GROUP'),(6,'Tự động giảm 30K cho khách hàng thân thiết','Tri ân khách hàng đã gắn bó, tự động giảm 30,000đ cho lần đặt lịch tiếp theo.','AUTO30K','FIXED_AMOUNT',30000.00,NULL,0.00,'2025-07-19 17:00:00','2025-07-31 16:59:59','ACTIVE',NULL,NULL,0,'ENTIRE_APPOINTMENT',NULL,'/uploads/promotions/1753023097242_promotion.png',NULL,NULL,0,'2025-07-20 14:51:37','2025-07-20 14:51:37','INDIVIDUAL'),(7,'Giảm 20% cho lần massage đầu tiên','Ưu đãi chào mừng khách hàng mới! Giảm ngay 20% cho bất kỳ liệu trình massage nào khi bạn đặt lịch lần đầu tiên tại spa.','BIGSALE50','PERCENTAGE',20.00,NULL,0.00,'2025-07-30 17:00:00','2025-08-07 16:59:59','SCHEDULED',NULL,NULL,0,'ENTIRE_APPOINTMENT',NULL,'/uploads/promotions/1753023305186_promotion.png',NULL,NULL,0,'2025-07-20 14:55:05','2025-07-20 14:55:05','ALL'),(8,'Giảm 50K cho hóa đơn trên 500K','Thư giãn nhiều hơn, trả tiền ít hơn. Giảm ngay 50,000đ khi tổng giá trị hóa đơn của bạn từ 500,000đ trở lên.','RELAX50','FIXED_AMOUNT',50000.00,NULL,0.00,'2025-07-07 17:00:00','2025-08-09 16:59:59','ACTIVE',NULL,NULL,0,'ENTIRE_APPOINTMENT',NULL,NULL,NULL,NULL,0,'2025-07-20 14:57:45','2025-07-20 14:57:45','ALL'),(9,'Giảm 15% Massage đá nóng','Trải nghiệm liệu pháp massage đá nóng giúp thư giãn sâu và giảm căng cơ với ưu đãi đặc biệt giảm 15%','HOTSTONE15','PERCENTAGE',15.00,NULL,0.00,'2025-07-14 17:00:00','2025-08-05 16:59:59','ACTIVE',NULL,NULL,0,'ENTIRE_APPOINTMENT',NULL,'/uploads/promotions/1753023677731_promotion.png',NULL,NULL,0,'2025-07-20 15:01:17','2025-07-20 15:01:17','ALL'),(10,'Tự động giảm 30K tri ân','Cảm ơn bạn đã luôn tin tưởng! Spa tự động giảm 30,000đ cho lần đặt lịch tiếp theo như một lời tri ân.','HOTSTONE16','FIXED_AMOUNT',30000.00,NULL,0.00,'2025-07-22 17:00:00','2025-08-08 16:59:59','ACTIVE',NULL,NULL,0,'ENTIRE_APPOINTMENT',NULL,'/uploads/promotions/1753023814297_promotion.png',NULL,NULL,0,'2025-07-20 15:03:34','2025-07-22 19:18:34','ALL');
+INSERT INTO `promotions` VALUES (1,'Chào Hè Rực Rỡ - Giảm 20%','Giảm giá 20% cho tất cả dịch vụ massage.','SUMMER20','PERCENTAGE',20.00,NULL,500000.00,'2025-05-31 17:00:00','2025-09-01 16:59:59','ACTIVE',1,100,10,'SPECIFIC_SERVICES','[1, 2]','/uploads/promotions/1753019216785_promotion.jpg','Áp dụng cho các dịch vụ massage. Không áp dụng cùng KM khác.',1,0,'2025-06-01 09:40:23','2025-07-20 13:46:56','ALL'),(2,'Tri Ân Khách Hàng - Tặng Voucher 100K','Tặng voucher 100.000 VNĐ cho hóa đơn từ 1.000.000 VNĐ.','THANKS100K','FIXED_AMOUNT',100000.00,NULL,1000000.00,'2025-07-01 00:00:00','2025-07-31 23:59:59','ACTIVE',1,200,0,'ENTIRE_APPOINTMENT',NULL,'https://placehold.co/400x200/E6E6FA/333333?text=VoucherPromo','Mỗi khách hàng được sử dụng 1 lần.',2,0,'2025-06-01 09:40:23','2025-07-17 22:03:38','ALL'),(3,'Đi Cùng Bạn Bè - Miễn Phí 1 Dịch Vụ Gội Đầu','Khi đặt 2 dịch vụ bất kỳ, tặng 1 dịch vụ gội đầu thảo dược.','FRIENDSFREE','FREE_SERVICE',6.00,NULL,800000.00,'2025-06-15 00:00:00','2025-07-15 23:59:59','INACTIVE',1,50,5,'ENTIRE_APPOINTMENT',NULL,'https://placehold.co/400x200/B0C4DE/333333?text=FriendsPromo','Dịch vụ tặng kèm là Gội Đầu Thảo Dược (ID: 6).',1,0,'2025-06-01 09:40:23','2025-07-17 22:03:38','ALL'),(4,'Giảm 50K cho hóa đơn trên 300K','Giảm trực tiếp 50,000đ cho tất cả các dịch vụ khi tổng hóa đơn của bạn từ 300,000đ trở lên.','BIGSALE5OK','FIXED_AMOUNT',50000.00,NULL,0.00,'2025-07-22 17:00:00','2025-08-09 16:59:59','ACTIVE',NULL,NULL,0,'ENTIRE_APPOINTMENT',NULL,'/uploads/promotions/1753022591204_promotion.png',NULL,NULL,0,'2025-07-20 14:43:11','2025-07-22 19:18:34','ALL'),(5,'Đi 4 tính tiền 3','Rủ hội bạn thân đi làm đẹp! Khi đặt lịch cho nhóm 4 người, bạn sẽ được miễn phí 1 suất có giá trị thấp nhất.','BUY4FREE1','PERCENTAGE',25.00,NULL,0.00,'2025-07-26 17:00:00','2025-08-20 16:59:59','SCHEDULED',NULL,NULL,0,'ENTIRE_APPOINTMENT',NULL,'/uploads/promotions/1753022968018_promotion.png',NULL,NULL,0,'2025-07-20 14:49:28','2025-07-20 14:49:28','GROUP'),(6,'Tự động giảm 30K cho khách hàng thân thiết','Tri ân khách hàng đã gắn bó, tự động giảm 30,000đ cho lần đặt lịch tiếp theo.','AUTO30K','FIXED_AMOUNT',30000.00,NULL,0.00,'2025-07-19 17:00:00','2025-07-31 16:59:59','ACTIVE',NULL,NULL,0,'ENTIRE_APPOINTMENT',NULL,'/uploads/promotions/1753023097242_promotion.png',NULL,NULL,0,'2025-07-20 14:51:37','2025-07-20 14:51:37','INDIVIDUAL'),(7,'Giảm 20% cho lần massage đầu tiên','Ưu đãi chào mừng khách hàng mới! Giảm ngay 20% cho bất kỳ liệu trình massage nào khi bạn đặt lịch lần đầu tiên tại spa.','BIGSALE50','PERCENTAGE',20.00,NULL,0.00,'2025-07-30 17:00:00','2025-08-07 16:59:59','SCHEDULED',NULL,NULL,0,'ENTIRE_APPOINTMENT',NULL,'/uploads/promotions/1753023305186_promotion.png',NULL,NULL,0,'2025-07-20 14:55:05','2025-07-20 14:55:05','ALL'),(8,'Giảm 50K cho hóa đơn trên 500K','Thư giãn nhiều hơn, trả tiền ít hơn. Giảm ngay 50,000đ khi tổng giá trị hóa đơn của bạn từ 500,000đ trở lên.','RELAX50','FIXED_AMOUNT',50000.00,NULL,0.00,'2025-07-07 17:00:00','2025-08-09 16:59:59','ACTIVE',NULL,NULL,0,'ENTIRE_APPOINTMENT',NULL,NULL,NULL,NULL,0,'2025-07-20 14:57:45','2025-07-20 14:57:45','ALL'),(9,'Giảm 15% Massage đá nóng','Trải nghiệm liệu pháp massage đá nóng giúp thư giãn sâu và giảm căng cơ với ưu đãi đặc biệt giảm 15%','HOTSTONE15','PERCENTAGE',15.00,NULL,0.00,'2025-07-14 17:00:00','2025-08-05 16:59:59','ACTIVE',NULL,NULL,0,'ENTIRE_APPOINTMENT',NULL,'/uploads/promotions/1753023677731_promotion.png',NULL,NULL,0,'2025-07-20 15:01:17','2025-07-20 15:01:17','ALL'),(10,'Tự động giảm 30K tri ân','Cảm ơn bạn đã luôn tin tưởng! Spa tự động giảm 30,000đ cho lần đặt lịch tiếp theo như một lời tri ân.','HOTSTONE16','FIXED_AMOUNT',30000.00,NULL,0.00,'2025-07-22 17:00:00','2025-08-08 16:59:59','ACTIVE',NULL,NULL,0,'ENTIRE_APPOINTMENT',NULL,'/uploads/promotions/1753023814297_promotion.png',NULL,NULL,0,'2025-07-20 15:03:34','2025-07-22 19:18:34','ALL'),(11,'Tự động giảm 70K tri ân','sang ,xịn ,mịn','HOTSTONE70','FIXED_AMOUNT',70000.00,NULL,0.00,'2025-07-22 17:00:00','2025-08-09 16:59:59','ACTIVE',NULL,NULL,0,'ENTIRE_APPOINTMENT',NULL,'/uploads/promotions/1753238570382_promotion.png',NULL,NULL,0,'2025-07-23 02:42:50','2025-07-23 02:42:50','ALL');
 /*!40000 ALTER TABLE `promotions` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1343,7 +1040,7 @@ CREATE TABLE `remember_me_tokens` (
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `token` (`token`)
-) ENGINE=InnoDB AUTO_INCREMENT=528 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=532 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1352,8 +1049,37 @@ CREATE TABLE `remember_me_tokens` (
 
 LOCK TABLES `remember_me_tokens` WRITE;
 /*!40000 ALTER TABLE `remember_me_tokens` DISABLE KEYS */;
-INSERT INTO `remember_me_tokens` VALUES (11,'quangkhoa5112@5dulieu.com','123456789','0cb51cb5-2380-4033-acdc-f3cd9fa385ce','2025-07-06 09:36:14','2025-06-06 09:36:13'),(24,'xapymabo@mailinator.com','A123456a@','aae04773-83ea-47ae-b622-9712d48c53f8','2025-07-07 08:05:55','2025-06-07 08:05:54'),(97,'therapist@beautyzone.com','123456','fc4ac81a-adca-4486-b47d-1ecb4d2a1a0b','2025-07-14 17:58:55','2025-06-14 17:58:55'),(149,'khoatqhe150834@fpt.edu.vn','123456','8bb29688-a91f-4ff6-b85f-6b0fcee17e56','2025-07-17 20:17:45','2025-06-17 20:17:44'),(520,'vucongdat28032003@gmail.com','123456789','90568a4e-25a6-49d2-802d-fd3cf27007d8','2025-08-21 12:00:48','2025-07-22 19:00:48'),(526,'admin@beautyzone.com','123456','aed481de-eb7c-41ae-8c02-ed0e75648e47','2025-08-21 14:04:34','2025-07-22 21:04:34'),(527,'manager@beautyzone.com','123456','57c809e2-2bb2-48e6-891e-d26e5a09c34f','2025-08-22 02:36:42','2025-07-23 09:36:42');
+INSERT INTO `remember_me_tokens` VALUES (11,'quangkhoa5112@5dulieu.com','123456789','0cb51cb5-2380-4033-acdc-f3cd9fa385ce','2025-07-06 09:36:14','2025-06-06 09:36:13'),(24,'xapymabo@mailinator.com','A123456a@','aae04773-83ea-47ae-b622-9712d48c53f8','2025-07-07 08:05:55','2025-06-07 08:05:54'),(97,'therapist@beautyzone.com','123456','fc4ac81a-adca-4486-b47d-1ecb4d2a1a0b','2025-07-14 17:58:55','2025-06-14 17:58:55'),(149,'khoatqhe150834@fpt.edu.vn','123456','8bb29688-a91f-4ff6-b85f-6b0fcee17e56','2025-07-17 20:17:45','2025-06-17 20:17:44'),(531,'manager@beautyzone.com','12345678','8fe3817c-5c93-4518-8e3c-dea505473609','2025-08-23 13:39:38','2025-07-24 20:39:38');
 /*!40000 ALTER TABLE `remember_me_tokens` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `reward_point_rules`
+--
+
+DROP TABLE IF EXISTS `reward_point_rules`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `reward_point_rules` (
+  `rule_id` int NOT NULL AUTO_INCREMENT,
+  `money_per_point` int NOT NULL,
+  `start_date` date NOT NULL,
+  `end_date` date DEFAULT NULL,
+  `is_active` tinyint(1) DEFAULT '1',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `note` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  PRIMARY KEY (`rule_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `reward_point_rules`
+--
+
+LOCK TABLES `reward_point_rules` WRITE;
+/*!40000 ALTER TABLE `reward_point_rules` DISABLE KEYS */;
+/*!40000 ALTER TABLE `reward_point_rules` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -1416,46 +1142,6 @@ INSERT INTO `rooms` VALUES (1,'Room A','Standard room for individual treatments'
 UNLOCK TABLES;
 
 --
--- Table structure for table `scheduling_sessions`
---
-
-DROP TABLE IF EXISTS `scheduling_sessions`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `scheduling_sessions` (
-  `session_id` int NOT NULL AUTO_INCREMENT,
-  `payment_id` int NOT NULL COMMENT 'Payment being scheduled',
-  `manager_user_id` int NOT NULL COMMENT 'Manager handling the scheduling',
-  `session_status` enum('ACTIVE','COMPLETED','ABANDONED','EXPIRED') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'ACTIVE',
-  `total_services` int NOT NULL DEFAULT '0' COMMENT 'Total services to schedule',
-  `scheduled_services` int NOT NULL DEFAULT '0' COMMENT 'Services already scheduled',
-  `remaining_services` int GENERATED ALWAYS AS ((`total_services` - `scheduled_services`)) STORED,
-  `session_data` json DEFAULT NULL COMMENT 'Temporary scheduling data',
-  `started_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `completed_at` timestamp NULL DEFAULT NULL,
-  `expires_at` timestamp NULL DEFAULT NULL COMMENT 'Session expiration time',
-  `last_activity` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`session_id`),
-  UNIQUE KEY `unique_active_payment_session` (`payment_id`,`manager_user_id`),
-  KEY `idx_payment_id` (`payment_id`),
-  KEY `idx_manager_user_id` (`manager_user_id`),
-  KEY `idx_session_status` (`session_status`),
-  KEY `idx_expires_at` (`expires_at`),
-  CONSTRAINT `scheduling_sessions_ibfk_1` FOREIGN KEY (`payment_id`) REFERENCES `payments` (`payment_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `scheduling_sessions_ibfk_2` FOREIGN KEY (`manager_user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Track scheduling sessions to prevent conflicts';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `scheduling_sessions`
---
-
-LOCK TABLES `scheduling_sessions` WRITE;
-/*!40000 ALTER TABLE `scheduling_sessions` DISABLE KEYS */;
-/*!40000 ALTER TABLE `scheduling_sessions` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `service_images`
 --
 
@@ -1492,36 +1178,6 @@ INSERT INTO `service_images` VALUES (87,1,'https://res.cloudinary.com/dj5wpyfvh/
 UNLOCK TABLES;
 
 --
--- Table structure for table `service_material`
---
-
-DROP TABLE IF EXISTS `service_material`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `service_material` (
-  `service_material_id` int NOT NULL AUTO_INCREMENT,
-  `service_id` int NOT NULL,
-  `inventory_item_id` int NOT NULL,
-  `quantity_per_service` int NOT NULL,
-  PRIMARY KEY (`service_material_id`),
-  KEY `service_id` (`service_id`),
-  KEY `inventory_item_id` (`inventory_item_id`),
-  CONSTRAINT `service_material_ibfk_1` FOREIGN KEY (`service_id`) REFERENCES `services` (`service_id`),
-  CONSTRAINT `service_material_ibfk_2` FOREIGN KEY (`inventory_item_id`) REFERENCES `inventory_item` (`inventory_item_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `service_material`
---
-
-LOCK TABLES `service_material` WRITE;
-/*!40000 ALTER TABLE `service_material` DISABLE KEYS */;
-INSERT INTO `service_material` VALUES (1,1,1,50),(2,1,2,1),(3,2,1,70),(4,2,2,1),(5,2,5,10),(6,3,3,1),(7,3,6,1),(8,27,2,1),(9,27,7,1),(10,27,4,1);
-/*!40000 ALTER TABLE `service_material` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `service_reviews`
 --
 
@@ -1533,6 +1189,7 @@ CREATE TABLE `service_reviews` (
   `service_id` int NOT NULL COMMENT 'ID dịch vụ được đánh giá (để tiện truy vấn)',
   `customer_id` int NOT NULL COMMENT 'ID khách hàng đánh giá (để tiện truy vấn)',
   `booking_id` int NOT NULL COMMENT 'ID của lịch hẹn đã hoàn thành mà review này dành cho.',
+  `therapist_user_id` int NOT NULL COMMENT 'ID nhân viên thực hiện dịch vụ',
   `rating` tinyint unsigned NOT NULL COMMENT 'Điểm đánh giá (1-5)',
   `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `comment` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
@@ -1544,9 +1201,11 @@ CREATE TABLE `service_reviews` (
   KEY `service_id` (`service_id`),
   KEY `customer_id` (`customer_id`),
   KEY `service_reviews_ibfk_3` (`booking_id`),
+  KEY `therapist_user_id` (`therapist_user_id`),
   CONSTRAINT `service_reviews_ibfk_1` FOREIGN KEY (`service_id`) REFERENCES `services` (`service_id`) ON DELETE CASCADE,
   CONSTRAINT `service_reviews_ibfk_2` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`) ON DELETE CASCADE,
-  CONSTRAINT `service_reviews_ibfk_3` FOREIGN KEY (`booking_id`) REFERENCES `bookings` (`booking_id`)
+  CONSTRAINT `service_reviews_ibfk_3` FOREIGN KEY (`booking_id`) REFERENCES `bookings` (`booking_id`),
+  CONSTRAINT `service_reviews_ibfk_4` FOREIGN KEY (`therapist_user_id`) REFERENCES `therapists` (`user_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1764,46 +1423,6 @@ INSERT INTO `therapists` VALUES (3,1,'Chuyên gia massage trị liệu với 5 n
 UNLOCK TABLES;
 
 --
--- Table structure for table `user_sent_notifications`
---
-
-DROP TABLE IF EXISTS `user_sent_notifications`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `user_sent_notifications` (
-  `sent_notification_id` int NOT NULL AUTO_INCREMENT,
-  `master_notification_id` int NOT NULL,
-  `recipient_user_id` int NOT NULL COMMENT 'User nhân viên nhận thông báo',
-  `actual_title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `actual_content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `actual_link_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `related_entity_id` int DEFAULT NULL,
-  `is_read` tinyint(1) DEFAULT '0',
-  `read_at` timestamp NULL DEFAULT NULL,
-  `delivery_channel` enum('IN_APP','EMAIL','SMS','PUSH_NOTIFICATION') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `delivery_status` enum('PENDING','SENT','DELIVERED','FAILED','VIEWED_IN_APP') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'PENDING',
-  `scheduled_send_at` timestamp NULL DEFAULT NULL,
-  `actually_sent_at` timestamp NULL DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`sent_notification_id`),
-  UNIQUE KEY `uq_user_notification` (`recipient_user_id`,`master_notification_id`,`related_entity_id`,`created_at`),
-  KEY `master_notification_id` (`master_notification_id`),
-  CONSTRAINT `user_sent_notifications_ibfk_1` FOREIGN KEY (`master_notification_id`) REFERENCES `notifications_master` (`master_notification_id`) ON DELETE CASCADE,
-  CONSTRAINT `user_sent_notifications_ibfk_2` FOREIGN KEY (`recipient_user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `user_sent_notifications`
---
-
-LOCK TABLES `user_sent_notifications` WRITE;
-/*!40000 ALTER TABLE `user_sent_notifications` DISABLE KEYS */;
-INSERT INTO `user_sent_notifications` VALUES (3,3,3,'Lịch hẹn mới: Massage Đá Nóng - Nguyễn Thị Mai','Bạn được chỉ định thực hiện dịch vụ Massage Đá Nóng cho khách hàng Nguyễn Thị Mai (SĐT: 0988111222) vào lúc 14:00:00 ngày 2025-06-05.','/staff/schedule/view/5',5,0,NULL,'IN_APP','VIEWED_IN_APP','2025-06-01 09:40:23','2025-06-01 09:40:23','2025-06-01 09:40:23'),(4,3,4,'Lịch hẹn mới: Chăm Sóc Da Cơ Bản - Trần Văn Nam','Bạn được chỉ định thực hiện dịch vụ Chăm Sóc Da Cơ Bản cho khách hàng Trần Văn Nam (SĐT: 0977333444) vào lúc 10:00:00 ngày 2025-06-03.','/staff/schedule/view/6',6,1,'2025-06-02 02:30:00','EMAIL','SENT','2025-06-02 02:25:00','2025-06-02 02:25:05','2025-06-02 02:25:00');
-/*!40000 ALTER TABLE `user_sent_notifications` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `users`
 --
 
@@ -1839,7 +1458,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,1,'Nguyễn Văn An','quangkhoa5112@5dulieu.com','$2a$10$Q8m8OY5RIEWeo1alSpOx1up8kZLEz.QDkfiKfyBlbO3GN0ySqwEm.','0912345678','MALE','1980-01-15',NULL,NULL,1,'2025-06-01 09:40:23','2025-06-01 09:40:23','2025-07-11 05:26:24'),(2,2,'Trần Thị Bình','manager123@spademo.com','$2b$10$abcdefghijklmnopqrstuv','0987654321','FEMALE','1985-05-20','',NULL,1,'2025-06-01 09:40:23','2025-06-01 09:40:23','2025-07-21 10:43:16'),(3,3,'Lê Minh Cường','therapist1@spademo.com','$2b$10$abcdefghijklmnopqrstuv','0905112233','MALE','1990-09-10','thanh xuyen 4 , pho yen , thai nguyen123',NULL,1,'2025-06-01 09:40:23','2025-06-01 09:40:23','2025-07-21 15:34:17'),(4,3,'Phạm Thị Dung','therapist2@spademo.com','$2a$10$OVBrE/4NZQt9PLxUsoEdG.ixzbd9nKCqnO6pQP4pVETHkqut3AI4i','0905445566','FEMALE','1992-12-01',NULL,NULL,1,'2025-06-01 09:40:23','2025-06-01 09:40:23','2025-07-21 15:42:51'),(5,4,'Hoàng Văn Em','receptionist@spademo.com','$2b$10$abcdefghijklmnopqrstuv','0918778899','MALE','1995-03-25',NULL,NULL,1,'2025-06-01 09:40:23','2025-06-01 09:40:23','2025-07-11 05:26:24'),(6,1,'Nguyễn Văn Admin','admin@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234567','MALE','1985-01-15',NULL,NULL,1,NULL,'2025-06-04 03:47:10','2025-07-11 05:26:24'),(7,2,'Trần Thị Manager','manager@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234568','FEMALE','1988-03-20','',NULL,1,NULL,'2025-06-04 03:57:48','2025-07-23 02:36:36'),(8,3,'Lê Văn Therapist','therapist@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234569','MALE','1990-07-10',NULL,NULL,1,NULL,'2025-06-04 03:57:48','2025-07-11 05:26:24'),(9,4,'Phạm Thị Receptionist','receptionist@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234570','FEMALE','1992-11-25',NULL,NULL,1,NULL,'2025-06-04 03:57:48','2025-07-11 05:26:24'),(10,1,'Hoàng Minh Quản Trị','admin2@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234571','MALE','1987-05-12',NULL,NULL,1,NULL,'2025-06-04 03:57:48','2025-07-11 05:26:24'),(11,3,'Nguyễn Thị Spa Master','therapist2@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234572','FEMALE','1989-09-18',NULL,NULL,1,NULL,'2025-06-04 03:57:48','2025-07-11 05:26:24'),(12,3,'Mai Anh Tuấn','therapist3@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234573','MALE','1991-04-12',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24'),(13,3,'Trần Ngọc Bích','therapist4@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234574','FEMALE','1993-08-22',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24'),(14,3,'Vũ Minh Đức','therapist5@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234575','MALE','1989-11-05','thanh xuyen 4 ,Thai Nguyen,Pho yen123',NULL,1,NULL,'2025-06-18 01:49:35','2025-07-21 15:33:53'),(15,3,'Hoàng Thị Thu','therapist6@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234576','FEMALE','1995-02-18',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24'),(16,3,'Đặng Văn Long','therapist7@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234577','MALE','1988-06-30',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24'),(17,3,'Ngô Mỹ Linh','therapist8@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234578','FEMALE','1992-07-21',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24'),(18,3,'Bùi Quang Huy','therapist9@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234579','MALE','1996-01-09',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24'),(19,3,'Đỗ Phương Thảo','therapist10@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234580','FEMALE','1994-03-14',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24'),(20,3,'Lương Thế Vinh','therapist11@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234581','MALE','1998-10-25',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24'),(21,6,'Phan Thị Diễm','marketing@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234582','FEMALE','1990-12-03',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24'),(22,7,'Nguyễn Thị Kho','inventory@beautyzone.com','$2a$10$testhashinventory','0909999999','FEMALE','1990-01-01','123 Đường Kho, Quận 1',NULL,1,NULL,'2025-07-16 06:45:56','2025-07-16 06:45:56'),(23,2,'Nguyen Dat','dat123@spamanagement.com','$2a$10$klZfCbtobkQ3up8FoE2qgeuZ2sITi7dDG/IhJOuO5nLKr50BqjJme','0908098943','MALE',NULL,'thanh xuyen 4 , pho yen , thai nguyen123',NULL,0,NULL,'2025-07-21 10:40:16','2025-07-21 10:40:16'),(24,3,'NguyenDat','therapist-nguyendat245@spamanagement.com','$2a$10$D.m3C.JDeQ29Xrr8MfJGbOg7vX3vz4BZ9iSduaryI6T7ZSe2L0vs6','0908098912','MALE','2004-01-04','thanh xuyen 4 , pho yen , thai nguyen123',NULL,0,NULL,'2025-07-21 18:28:08','2025-07-21 18:28:08');
+INSERT INTO `users` VALUES (1,1,'Nguyễn Văn An','quangkhoa5112@5dulieu.com','$2a$10$Q8m8OY5RIEWeo1alSpOx1up8kZLEz.QDkfiKfyBlbO3GN0ySqwEm.','0912345678','MALE','1980-01-15',NULL,NULL,1,'2025-06-01 09:40:23','2025-06-01 09:40:23','2025-07-11 05:26:24'),(2,2,'Trần Thị Bình','manager123@spademo.com','$2b$10$abcdefghijklmnopqrstuv','0987654321','FEMALE','1985-05-20','',NULL,1,'2025-06-01 09:40:23','2025-06-01 09:40:23','2025-07-21 10:43:16'),(3,3,'Lê Minh Cường','therapist1@spademo.com','$2b$10$abcdefghijklmnopqrstuv','0905112233','MALE','1990-09-10','thanh xuyen 4 , pho yen , thai nguyen123',NULL,1,'2025-06-01 09:40:23','2025-06-01 09:40:23','2025-07-21 15:34:17'),(4,3,'Phạm Thị Dung','therapist2@spademo.com','$2a$10$OVBrE/4NZQt9PLxUsoEdG.ixzbd9nKCqnO6pQP4pVETHkqut3AI4i','0905445566','FEMALE','1992-12-01',NULL,NULL,1,'2025-06-01 09:40:23','2025-06-01 09:40:23','2025-07-21 15:42:51'),(5,4,'Hoàng Văn Em','receptionist@spademo.com','$2b$10$abcdefghijklmnopqrstuv','0918778899','MALE','1995-03-25',NULL,NULL,1,'2025-06-01 09:40:23','2025-06-01 09:40:23','2025-07-11 05:26:24'),(6,1,'Nguyễn Văn Admin','admin@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234567','MALE','1985-01-15',NULL,NULL,1,NULL,'2025-06-04 03:47:10','2025-07-11 05:26:24'),(7,2,'Trần Thị Manager','manager@beautyzone.com','$2a$10$KaCLv3laOrTtr9GSvhPKguu7rkviaNGW4Ks7ZIMK3Y/VhvNzTmqle','0901234568','FEMALE','1988-03-20','',NULL,1,NULL,'2025-06-04 03:57:48','2025-07-18 02:40:04'),(8,3,'Lê Văn Therapist','therapist@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234569','MALE','1990-07-10',NULL,NULL,1,NULL,'2025-06-04 03:57:48','2025-07-11 05:26:24'),(9,4,'Phạm Thị Receptionist','receptionist@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234570','FEMALE','1992-11-25',NULL,NULL,1,NULL,'2025-06-04 03:57:48','2025-07-11 05:26:24'),(10,1,'Hoàng Minh Quản Trị','admin2@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234571','MALE','1987-05-12',NULL,NULL,1,NULL,'2025-06-04 03:57:48','2025-07-11 05:26:24'),(11,3,'Nguyễn Thị Spa Master','therapist2@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234572','FEMALE','1989-09-18',NULL,NULL,1,NULL,'2025-06-04 03:57:48','2025-07-11 05:26:24'),(12,3,'Mai Anh Tuấn','therapist3@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234573','MALE','1991-04-12',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24'),(13,3,'Trần Ngọc Bích','therapist4@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234574','FEMALE','1993-08-22',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24'),(14,3,'Vũ Minh Đức','therapist5@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234575','MALE','1989-11-05','thanh xuyen 4 ,Thai Nguyen,Pho yen123',NULL,1,NULL,'2025-06-18 01:49:35','2025-07-21 15:33:53'),(15,3,'Hoàng Thị Thu','therapist6@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234576','FEMALE','1995-02-18',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24'),(16,3,'Đặng Văn Long','therapist7@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234577','MALE','1988-06-30',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24'),(17,3,'Ngô Mỹ Linh','therapist8@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234578','FEMALE','1992-07-21',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24'),(18,3,'Bùi Quang Huy','therapist9@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234579','MALE','1996-01-09',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24'),(19,3,'Đỗ Phương Thảo','therapist10@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234580','FEMALE','1994-03-14',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24'),(20,3,'Lương Thế Vinh','therapist11@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234581','MALE','1998-10-25',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24'),(21,6,'Phan Thị Diễm','marketing@beautyzone.com','$2a$10$Y/Y.9uE0upqAMPodd.r7qeSjhv1TC4NxFvqFrFFGii0QM1.94v2CW','0901234582','FEMALE','1990-12-03',NULL,NULL,1,NULL,'2025-06-18 01:49:35','2025-07-11 05:26:24'),(22,7,'Nguyễn Thị Kho','inventory@beautyzone.com','$2a$10$testhashinventory','0909999999','FEMALE','1990-01-01','123 Đường Kho, Quận 1',NULL,1,NULL,'2025-07-16 06:45:56','2025-07-16 06:45:56'),(23,2,'Nguyen Dat','dat123@spamanagement.com','$2a$10$klZfCbtobkQ3up8FoE2qgeuZ2sITi7dDG/IhJOuO5nLKr50BqjJme','0908098943','MALE',NULL,'thanh xuyen 4 , pho yen , thai nguyen123',NULL,0,NULL,'2025-07-21 10:40:16','2025-07-21 10:40:16'),(24,3,'NguyenDat','therapist-nguyendat245@spamanagement.com','$2a$10$D.m3C.JDeQ29Xrr8MfJGbOg7vX3vz4BZ9iSduaryI6T7ZSe2L0vs6','0908098912','MALE','2004-01-04','thanh xuyen 4 , pho yen , thai nguyen123',NULL,0,NULL,'2025-07-21 18:28:08','2025-07-21 18:28:08');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -1852,4 +1471,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-07-23  9:37:00
+-- Dump completed on 2025-07-24 20:46:10
