@@ -271,7 +271,7 @@ public class MenuService {
     // Operations Section
     menuItems.add(new MenuItem("VẬN HÀNH", true));
     menuItems.add(new MenuItem("Quản lý lịch hẹn", contextPath + "/manager/scheduling", "calendar-plus", "operations"));
-    menuItems.add(new MenuItem("Quản lý đặt lịch", contextPath + "/manager/show-bookings", "calendar-check", "operations"));
+    menuItems.add(new MenuItem("Lịch đã đặt", contextPath + "/manager/show-bookings", "calendar-check", "operations"));
     menuItems.add(new MenuItem("Báo cáo phòng ban", contextPath + "/manager/reports", "bar-chart", "operations"));
     menuItems.add(new MenuItem("Khách hàng", contextPath + "/manager/customers", "users", "operations"));
     
