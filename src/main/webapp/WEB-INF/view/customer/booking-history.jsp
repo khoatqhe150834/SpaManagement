@@ -360,6 +360,13 @@
                                                         <i data-lucide="x" class="h-3 w-3"></i>
                                                     </button>
                                                 </c:if>
+                                                <c:if test="${booking.bookingStatus == 'COMPLETED'}">
+                                                    <a href="${pageContext.request.contextPath}/customer/service-review/add?bookingId=${booking.bookingId}" 
+                                                       class="px-3 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600 transition-colors flex items-center gap-1"
+                                                       title="Đánh giá dịch vụ">
+                                                        <i data-lucide="star" class="h-3 w-3"></i> Đánh giá
+                                                    </a>
+                                                </c:if>
                                             </div>
                                         </td>
                                     </tr>
