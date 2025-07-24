@@ -46,6 +46,33 @@
                 <h1 class="text-3xl font-serif text-spa-dark font-bold">Danh Sách Đánh Giá Dịch Vụ</h1>
             </div>
             <div class="bg-white rounded-2xl shadow-lg">
+                <!-- Card Header: Filters & Actions -->
+                <div class="p-6 border-b border-gray-200 flex flex-wrap items-center justify-between gap-4">
+                    <form class="flex flex-wrap items-center gap-3" method="get" action="${pageContext.request.contextPath}/manager/service-review">
+                        <select class="w-auto h-10 pl-3 pr-8 text-base placeholder-gray-600 border rounded-lg appearance-none focus:shadow-outline-blue focus:border-blue-300" name="limit" onchange="this.form.submit()">
+                            <c:forEach var="i" begin="1" end="10">
+                                <option value="${i}" ${limit==i ? 'selected' : ''}>${i}</option>
+                            </c:forEach>
+                        </select>
+                        <input type="text" class="h-10 px-4 text-base placeholder-gray-600 border rounded-lg focus:shadow-outline" name="keyword" placeholder="Tìm kiếm đánh giá, khách hàng, dịch vụ..." value="${keyword}">
+                        <select name="serviceId" class="w-auto h-10 pl-3 pr-8 text-base placeholder-gray-600 border rounded-lg appearance-none focus:shadow-outline-blue focus:border-blue-300" style="min-width:220px;">
+                            <option value="">Tất cả dịch vụ</option>
+                            <c:forEach var="svc" items="${services}">
+                                <option value="${svc.serviceId}" <c:if test="${serviceId == svc.serviceId}">selected</c:if>>
+                                    ${svc.name}
+                                </option>
+                            </c:forEach>
+                        </select>
+                        <select name="replyStatus" class="w-auto h-10 pl-3 pr-8 text-base placeholder-gray-600 border rounded-lg appearance-none focus:shadow-outline-blue focus:border-blue-300">
+                            <option value="" ${empty replyStatus ? 'selected' : ''}>Tất cả phản hồi</option>
+                            <option value="unreplied" ${replyStatus == 'unreplied' ? 'selected' : ''}>Chưa phản hồi</option>
+                            <option value="replied" ${replyStatus == 'replied' ? 'selected' : ''}>Đã phản hồi</option>
+                        </select>
+                        <input type="hidden" name="action" value="list">
+                        <input type="hidden" name="page" value="${currentPage}">
+                        <button type="submit" class="h-10 px-4 bg-primary text-white font-semibold rounded-lg hover:bg-primary-dark transition-colors">Tìm Kiếm</button>
+                    </form>
+                </div>
                 <div class="p-6">
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm text-left text-gray-700 rounded-xl">
@@ -97,7 +124,7 @@
                                                     </c:choose>
                                                 </td>
                                                 <td class="px-2 py-4 text-center flex gap-2 justify-center">
-                                                    <a href="${pageContext.request.contextPath}/manager/service-review?action=edit&id=${review.reviewId}" class="inline-flex items-center justify-center p-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-full" title="Sửa phản hồi">
+                                                    <a href="${pageContext.request.contextPath}/manager/service-review?action=edit&rid=${review.reviewId}" class="inline-flex items-center justify-center p-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-full" title="Sửa phản hồi">
                                                         <i data-lucide="edit" class="w-5 h-5"></i>
                                                     </a>
                                                     <a href="${pageContext.request.contextPath}/manager/service-review?action=delete&id=${review.reviewId}" class="inline-flex items-center justify-center p-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-full" title="Xóa đánh giá" onclick="return confirm('Bạn có chắc chắn muốn xóa đánh giá này?')">
@@ -110,6 +137,62 @@
                                 </c:choose>
                             </tbody>
                         </table>
+                    </div>
+                    <!-- Pagination -->
+                    <div class="flex items-center justify-between flex-wrap gap-2 p-6">
+                        <span>
+                            <c:choose>
+                                <c:when test="${totalEntries == 0}">
+                                    Hiển thị 0 mục
+                                </c:when>
+                                <c:otherwise>
+                                    Hiển thị ${start} đến ${end} của ${totalEntries} mục
+                                </c:otherwise>
+                            </c:choose>
+                        </span>
+                        <ul class="inline-flex items-center -space-x-px text-sm">
+                            <li>
+                                <c:choose>
+                                    <c:when test="${currentPage == 1}">
+                                        <span class="px-3 py-2 ml-0 leading-tight text-gray-400 bg-white border border-gray-300 rounded-l-lg cursor-not-allowed">&lt;</span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <a class="px-3 py-2 ml-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700" href="${pageContext.request.contextPath}/manager/service-review?action=list&page=${currentPage - 1}&limit=${limit}&keyword=${keyword}&serviceId=${serviceId}">&lt;</a>
+                                    </c:otherwise>
+                                </c:choose>
+                            </li>
+                            <c:set var="lastPage" value="0" />
+                            <c:forEach var="i" begin="1" end="${totalPages}">
+                                <c:choose>
+                                    <c:when test="${i == 1 || i == 2 || i == totalPages || i == totalPages-1 || (i >= currentPage-1 && i <= currentPage+1)}">
+                                        <c:if test="${lastPage + 1 != i}">
+                                            <li><span class="px-3 py-2 leading-tight text-gray-400 bg-white border border-gray-300">...</span></li>
+                                        </c:if>
+                                        <li>
+                                            <c:choose>
+                                                <c:when test="${i == currentPage}">
+                                                    <span class="px-3 py-2 leading-tight text-white bg-primary border border-gray-300">${i}</span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <a class="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700" href="${pageContext.request.contextPath}/manager/service-review?action=list&page=${i}&limit=${limit}&keyword=${keyword}&serviceId=${serviceId}">${i}</a>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </li>
+                                        <c:set var="lastPage" value="${i}" />
+                                    </c:when>
+                                </c:choose>
+                            </c:forEach>
+                            <li>
+                                <c:choose>
+                                    <c:when test="${currentPage == totalPages}">
+                                        <span class="px-3 py-2 leading-tight text-gray-400 bg-white border border-gray-300 rounded-r-lg cursor-not-allowed">&gt;</span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <a class="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700" href="${pageContext.request.contextPath}/manager/service-review?action=list&page=${currentPage + 1}&limit=${limit}&keyword=${keyword}&serviceId=${serviceId}">&gt;</a>
+                                    </c:otherwise>
+                                </c:choose>
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </div>

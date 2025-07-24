@@ -82,6 +82,7 @@ public class ServiceReviewDAO {
         String sql = "SELECT r.*, s.name AS service_name, c.full_name AS customer_name FROM service_reviews r " +
                 "JOIN services s ON r.service_id = s.service_id " +
                 "JOIN customers c ON r.customer_id = c.customer_id " +
+                "JOIN bookings b ON r.booking_id = b.booking_id AND b.booking_status = 'COMPLETED' " +
                 "ORDER BY r.created_at DESC";
         try (Connection conn = DBContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             try (ResultSet rs = stmt.executeQuery()) {
@@ -132,6 +133,89 @@ public class ServiceReviewDAO {
             stmt.setInt(2, serviceId);
             stmt.executeUpdate();
         }
+    }
+
+    // Tìm kiếm, lọc, phân trang review cho manager (lọc theo serviceId)
+    public List<ServiceReview> searchReviews(String keyword, Integer serviceId, int offset, int limit, String replyStatus) throws SQLException {
+        List<ServiceReview> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT r.*, s.name AS service_name, c.full_name AS customer_name FROM service_reviews r " +
+                "JOIN services s ON r.service_id = s.service_id " +
+                "JOIN customers c ON r.customer_id = c.customer_id " +
+                "JOIN bookings b ON r.booking_id = b.booking_id AND b.booking_status = 'COMPLETED' WHERE 1=1");
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append(" AND (LOWER(s.name) LIKE ? OR LOWER(c.full_name) LIKE ? OR LOWER(r.title) LIKE ? OR LOWER(r.comment) LIKE ?)");
+        }
+        if (serviceId != null) {
+            sql.append(" AND s.service_id = ?");
+        }
+        if (replyStatus != null && !replyStatus.isEmpty()) {
+            if ("unreplied".equals(replyStatus)) {
+                sql.append(" AND (r.manager_reply IS NULL OR r.manager_reply = '')");
+            } else if ("replied".equals(replyStatus)) {
+                sql.append(" AND (r.manager_reply IS NOT NULL AND r.manager_reply <> '')");
+            }
+        }
+        sql.append(" ORDER BY r.created_at DESC LIMIT ? OFFSET ?");
+        try (Connection conn = DBContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+            int idx = 1;
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                String q = "%" + keyword.trim().toLowerCase() + "%";
+                stmt.setString(idx++, q);
+                stmt.setString(idx++, q);
+                stmt.setString(idx++, q);
+                stmt.setString(idx++, q);
+            }
+            if (serviceId != null) {
+                stmt.setInt(idx++, serviceId);
+            }
+            stmt.setInt(idx++, limit);
+            stmt.setInt(idx, offset);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSet(rs));
+                }
+            }
+        }
+        return list;
+    }
+
+    public int countSearchResult(String keyword, Integer serviceId, String replyStatus) throws SQLException {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM service_reviews r " +
+                "JOIN services s ON r.service_id = s.service_id " +
+                "JOIN customers c ON r.customer_id = c.customer_id " +
+                "JOIN bookings b ON r.booking_id = b.booking_id AND b.booking_status = 'COMPLETED' WHERE 1=1");
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append(" AND (LOWER(s.name) LIKE ? OR LOWER(c.full_name) LIKE ? OR LOWER(r.title) LIKE ? OR LOWER(r.comment) LIKE ?)");
+        }
+        if (serviceId != null) {
+            sql.append(" AND s.service_id = ?");
+        }
+        if (replyStatus != null && !replyStatus.isEmpty()) {
+            if ("unreplied".equals(replyStatus)) {
+                sql.append(" AND (r.manager_reply IS NULL OR r.manager_reply = '')");
+            } else if ("replied".equals(replyStatus)) {
+                sql.append(" AND (r.manager_reply IS NOT NULL AND r.manager_reply <> '')");
+            }
+        }
+        try (Connection conn = DBContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+            int idx = 1;
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                String q = "%" + keyword.trim().toLowerCase() + "%";
+                stmt.setString(idx++, q);
+                stmt.setString(idx++, q);
+                stmt.setString(idx++, q);
+                stmt.setString(idx++, q);
+            }
+            if (serviceId != null) {
+                stmt.setInt(idx++, serviceId);
+            }
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        }
+        return 0;
     }
 
     // Map ResultSet sang ServiceReview
