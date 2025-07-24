@@ -187,7 +187,7 @@ window.TimeSelection = (function() {
         }
     }
     
-    // Load availability data from API using CSPSolver
+    // Load availability data from API
     async function loadAvailabilityData() {
         try {
             // Load calendar availability for current month
@@ -952,12 +952,12 @@ window.TimeSelection = (function() {
         const currentServiceDuration = currentModalService.estimatedDuration || 60; // Default 60 minutes
         
         try {
-            // Check if this time conflicts with other selected services using CSP
+            // Check if this time conflicts with other selected services
             const conflicts = await checkTimeConflicts(selectedDateTime, currentServiceDuration, currentModalService.serviceId);
             
             if (conflicts.length > 0) {
                 const conflictMessages = conflicts.map(conflict => 
-                    `• ${conflict.serviceName} (${conflict.time}) - ${conflict.type === 'csp' ? 'CSP' : 'Local'} conflict ${conflict.overlapMinutes !== 'Unknown' ? conflict.overlapMinutes + ' phút' : ''}`
+                    `• ${conflict.serviceName} (${conflict.time}) - ${conflict.type === 'advanced' ? 'Advanced' : 'Local'} conflict ${conflict.overlapMinutes !== 'Unknown' ? conflict.overlapMinutes + ' phút' : ''}`
                 ).join('\n');
                 
                 showError(`❌ Thời gian đã chọn xung đột với các dịch vụ khác:\n\n${conflictMessages}\n\nVui lòng chọn thời gian khác hoặc thay đổi thời gian các dịch vụ đã chọn.`);
@@ -1364,9 +1364,9 @@ window.TimeSelection = (function() {
         console.log('🎧 Event listeners setup complete');
     }
     
-    // Check for time conflicts between services using CSP solver
+    // Check for time conflicts between services
     async function checkTimeConflicts(selectedDateTime, serviceDuration, currentServiceId) {
-        console.log('🔍 Checking time conflicts using CSP solver...');
+        console.log('🔍 Checking time conflicts...');
         
         const conflicts = [];
         
@@ -1406,29 +1406,29 @@ window.TimeSelection = (function() {
             }
         }
         
-        // Then check CSP constraints for more complex conflicts
+        // Then check advanced constraints for more complex conflicts
         try {
-            const cspConflicts = await checkCSPConflicts(
-                currentServiceId, 
+            const advancedConflicts = await checkAdvancedConflicts(
+                currentServiceId,
                 selectedDateTime.toISOString().split('T')[0], // date
                 Object.values(serviceTimeSelections)
             );
-            
-            if (cspConflicts && cspConflicts.length > 0) {
-                conflicts.push(...cspConflicts.map(conflict => ({
+
+            if (advancedConflicts && advancedConflicts.length > 0) {
+                conflicts.push(...advancedConflicts.map(conflict => ({
                     ...conflict,
-                    type: 'csp'
+                    type: 'advanced'
                 })));
             }
         } catch (error) {
-            console.warn('CSP conflict checking failed, using local checking only:', error);
+            console.warn('Advanced conflict checking failed, using local checking only:', error);
         }
         
         return conflicts;
     }
 
-    // Call CSP API for advanced conflict checking
-    async function checkCSPConflicts(serviceId, date, currentSelections) {
+    // Call advanced API for conflict checking
+    async function checkAdvancedConflicts(serviceId, date, currentSelections) {
         try {
             const currentSelectionsJson = JSON.stringify(
                 Object.fromEntries(
@@ -1441,13 +1441,13 @@ window.TimeSelection = (function() {
             
             const url = `/spa/api/time-conflicts?action=check-conflicts&serviceId=${serviceId}&date=${date}&currentSelections=${encodeURIComponent(currentSelectionsJson)}`;
             
-            console.log('🔗 Calling CSP API:', url);
+            console.log('🔗 Calling advanced conflict API:', url);
             
             const response = await fetch(url);
             const data = await response.json();
             
             if (data.success && data.conflictingSlots) {
-                console.log('📊 CSP conflicts found:', data.conflictingSlots);
+                console.log('📊 Advanced conflicts found:', data.conflictingSlots);
                 return data.conflictingSlots.map(conflict => ({
                     serviceId: serviceId,
                     time: conflict.time,
@@ -1460,7 +1460,7 @@ window.TimeSelection = (function() {
             
             return [];
         } catch (error) {
-            console.error('Error checking CSP conflicts:', error);
+            console.error('Error checking advanced conflicts:', error);
             return [];
         }
     }

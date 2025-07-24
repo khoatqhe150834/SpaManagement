@@ -39,20 +39,7 @@
 
     <!-- FullCalendar CSS - REMOVED: Using custom fallback calendar implementation -->
 
-    <!-- Custom CSS for CSP Modal -->
     <style>
-        /* FullCalendar customization - REMOVED: Using custom fallback calendar */
-
-        /* Slot item animations */
-        .slot-item {
-            transition: all 0.2s ease-in-out;
-        }
-
-        .slot-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
         /* Loading animation */
         @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -61,91 +48,6 @@
 
         .animate-spin {
             animation: spin 1s linear infinite;
-        }
-
-        /* Custom scrollbar for slots container */
-        .overflow-y-auto::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .overflow-y-auto::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 3px;
-        }
-
-        .overflow-y-auto::-webkit-scrollbar-thumb {
-            background: #D4AF37;
-            border-radius: 3px;
-        }
-
-        .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-            background: #B8941F;
-        }
-
-        /* Enhanced Calendar Styles - FullCalendar styles removed, using fallback calendar */
-
-        /* Fallback Calendar Enhancements */
-        .fallback-calendar {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        .fallback-calendar .grid > div {
-            min-height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 500;
-        }
-
-        .fallback-calendar .grid > div:hover:not(.cursor-not-allowed) {
-            transform: scale(1.05);
-            transition: all 0.2s ease;
-        }
-
-        /* Service Info Panel */
-        .service-info-container {
-            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            border: 1px solid #0ea5e9;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(14, 165, 233, 0.1);
-        }
-
-        /* Calendar Navigation Buttons */
-        .calendar-nav-btn {
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            cursor: pointer;
-        }
-
-        .calendar-nav-btn:hover {
-            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
-        }
-
-        .calendar-nav-btn:active {
-            transform: translateY(0);
-        }
-
-        /* Confidence Level Indicators */
-        .confidence-high {
-            border-left: 4px solid #10b981;
-            background: linear-gradient(to right, #ecfdf5, #ffffff);
-        }
-
-        .confidence-medium {
-            border-left: 4px solid #f59e0b;
-            background: linear-gradient(to right, #fffbeb, #ffffff);
-        }
-
-        .confidence-low {
-            border-left: 4px solid #ef4444;
-            background: linear-gradient(to right, #fef2f2, #ffffff);
         }
     </style>
 
@@ -551,96 +453,7 @@
                 </div>
             </div>
         </div>
-    <!-- CSP-Enhanced Scheduling Modal -->
-    <div class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden" id="schedulingModal">
-        <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="bg-white rounded-xl shadow-2xl max-w-7xl w-full max-h-[95vh] overflow-hidden">
-                <div class="p-6 border-b border-gray-200">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h3 class="text-xl font-semibold text-spa-dark flex items-center gap-2">
-                                <i data-lucide="calendar-plus" class="h-6 w-6 text-primary"></i>
-                                Đặt lịch thông minh - CSP Solver
-                            </h3>
-                            <p class="text-sm text-gray-600 mt-1">Chọn ngày trên lịch để xem các khung giờ trống phù hợp</p>
-                        </div>
-                        <button onclick="closeSchedulingModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
-                            <i data-lucide="x" class="h-6 w-6"></i>
-                        </button>
-                    </div>
-                </div>
 
-                <!-- Two-Panel Layout -->
-                <div class="flex h-[calc(95vh-140px)]">
-                    <!-- Left Panel: Calendar -->
-                    <div class="w-1/2 border-r border-gray-200 p-6 overflow-y-auto">
-                        <div class="mb-4">
-                            <h4 class="text-lg font-medium text-gray-900 mb-3">Chọn ngày</h4>
-                            <div id="cspCalendarContainer" class="bg-gray-50 rounded-lg p-4 min-h-[400px]">
-                                <!-- FullCalendar will be initialized here -->
-                            </div>
-                        </div>
-
-                        <!-- Service Information -->
-                        <div id="serviceInfo" class="mt-6 p-4 bg-blue-50 rounded-lg">
-                            <h5 class="font-medium text-blue-900 mb-2">Thông tin dịch vụ</h5>
-                            <div id="serviceDetails" class="text-sm text-blue-800">
-                                <!-- Service details will be populated here -->
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Right Panel: Available Slots -->
-                    <div class="w-1/2 p-6 overflow-y-auto">
-                        <div class="mb-4">
-                            <h4 class="text-lg font-medium text-gray-900 mb-2">Khung giờ trống</h4>
-                            <div id="selectedDateDisplay" class="text-sm text-gray-600 mb-4">
-                                Vui lòng chọn ngày trên lịch
-                            </div>
-                        </div>
-
-                        <!-- Loading State -->
-                        <div id="slotsLoading" class="hidden text-center py-8">
-                            <div class="inline-flex items-center px-4 py-2 font-semibold leading-6 text-sm shadow rounded-md text-blue-500 bg-blue-100">
-                                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                Đang tìm kiếm khung giờ trống...
-                            </div>
-                        </div>
-
-                        <!-- Available Slots Container -->
-                        <div id="availableSlotsContainer" class="space-y-3">
-                            <div class="text-center py-8 text-gray-500">
-                                <i data-lucide="calendar-search" class="h-12 w-12 mx-auto mb-3 text-gray-300"></i>
-                                <p>Chọn ngày trên lịch để xem các khung giờ trống</p>
-                            </div>
-                        </div>
-
-                        <!-- No Slots Available -->
-                        <div id="noSlotsMessage" class="hidden text-center py-8 text-gray-500">
-                            <i data-lucide="calendar-x" class="h-12 w-12 mx-auto mb-3 text-red-300"></i>
-                            <p class="text-red-600">Không có khung giờ trống cho ngày này</p>
-                            <p class="text-sm text-gray-500 mt-2">Vui lòng chọn ngày khác</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Hidden form for booking data -->
-                <form id="cspBookingForm" class="hidden">
-                    <input type="hidden" id="paymentItemId" name="paymentItemId">
-                    <input type="hidden" id="selectedStartTime" name="startTime">
-                    <input type="hidden" id="selectedEndTime" name="endTime">
-                    <input type="hidden" id="selectedTherapistId" name="therapistId">
-                    <input type="hidden" id="selectedRoomId" name="roomId">
-                    <input type="hidden" id="selectedBedId" name="bedId">
-                    <input type="hidden" id="selectedServiceId" name="serviceId">
-                    <input type="hidden" id="selectedCustomerId" name="customerId">
-                </form>
-            </div>
-        </div>
-    </div>
 
 
     <!-- JavaScript -->
@@ -1092,360 +905,33 @@
             }, 5000);
         }
 
-        // CSP-Enhanced Modal Functions - Using fallback calendar only
-        let currentBookingData = {};
-
-        // Extract service information from DataTable row
-        function extractRowDataFromTable(paymentItemId) {
-            console.log('[CSP Modal] Extracting row data for payment item:', paymentItemId);
-
-            try {
-                // Try to get data from the manager scheduling system
-                if (typeof window.managerSchedulingSystem !== 'undefined' && window.managerSchedulingSystem.currentSchedulableItems) {
-                    const items = window.managerSchedulingSystem.currentSchedulableItems;
-                    const item = items.find(i => i.paymentItemId == paymentItemId);
-
-                    if (item) {
-                        console.log('[CSP Modal] Found item in scheduling system:', item);
-                        return {
-                            paymentItemId: paymentItemId,
-                            customerId: item.customerId,
-                            serviceId: item.serviceId,
-                            serviceName: item.serviceName,
-                            serviceDuration: item.serviceDuration || 60,
-                            customerName: item.customerName,
-                            customerPhone: item.customerPhone
-                        };
-                    }
-                }
-
-                // Fallback: Try to extract from DOM table
-                const table = document.getElementById('schedulingTable');
-                if (table) {
-                    const rows = table.querySelectorAll('tbody tr');
-                    for (const row of rows) {
-                        const button = row.querySelector(`button[onclick*="${paymentItemId}"]`);
-                        if (button) {
-                            const cells = row.querySelectorAll('td');
-                            if (cells.length >= 6) {
-                                console.log('[CSP Modal] Extracting from table row:', row);
-                                return {
-                                    paymentItemId: paymentItemId,
-                                    customerId: 1, // Default
-                                    serviceId: 1, // Default
-                                    serviceName: cells[2]?.textContent?.trim() || 'Dịch vụ không xác định',
-                                    serviceDuration: 60, // Default
-                                    customerName: cells[0]?.textContent?.trim() || 'Khách hàng không xác định',
-                                    customerPhone: cells[1]?.textContent?.trim() || 'Chưa có thông tin'
-                                };
-                            }
-                        }
-                    }
-                }
-
-                console.warn('[CSP Modal] Could not extract row data from table');
-                return null;
-
-            } catch (error) {
-                console.error('[CSP Modal] Error extracting row data:', error);
-                return null;
-            }
-        }
-
-        // Enhanced openSchedulingModal with CSP integration
+        // Simple scheduling modal function - CSP functionality will be implemented
         function openSchedulingModal(paymentItemId) {
-            console.log('[CSP Modal] Opening scheduling modal for payment item:', paymentItemId);
-            console.log('[CSP Modal] Using fallback calendar implementation');
-            console.log('[CSP Modal] jQuery available:', typeof $ !== 'undefined');
-
-            // Extract data from the DataTable row first
-            const rowData = extractRowDataFromTable(paymentItemId);
-            if (rowData) {
-                console.log('[CSP Modal] Extracted row data:', rowData);
-                currentBookingData = {
-                    paymentItemId: paymentItemId,
-                    customerId: rowData.customerId || 1,
-                    serviceId: rowData.serviceId || 1,
-                    serviceName: rowData.serviceName || 'Dịch vụ không xác định',
-                    serviceDuration: rowData.serviceDuration || 60,
-                    customerName: rowData.customerName || 'Khách hàng không xác định',
-                    customerPhone: rowData.customerPhone || 'Chưa có thông tin'
-                };
-                console.log('[CSP Modal] Using extracted row data:', currentBookingData);
-                // Update service info display immediately with row data
-                updateServiceInfoDisplay();
-            }
-
-            // Show modal
-            const modal = document.getElementById('schedulingModal');
-            if (modal) {
-                modal.classList.remove('hidden');
-                console.log('[CSP Modal] Modal shown successfully');
-            } else {
-                console.error('[CSP Modal] Modal element not found');
-                return;
-            }
-
-            // Store payment item ID
-            const paymentItemInput = document.getElementById('paymentItemId');
-            if (paymentItemInput) {
-                paymentItemInput.value = paymentItemId;
-            }
-
-            // Load item details and initialize CSP calendar
-            loadSchedulingItemDetails(paymentItemId).then(() => {
-                console.log('[CSP Modal] Item details loaded, initializing calendar...');
-
-                // Verify that service info was updated
-                if (currentBookingData && currentBookingData.serviceName && currentBookingData.customerName) {
-                    console.log('[CSP Modal] Complete booking data available:', currentBookingData);
-                } else {
-                    console.warn('[CSP Modal] Incomplete booking data, using enhanced fallback');
-                    // Preserve any existing row data, or use generic fallback
-                    if (!currentBookingData || !currentBookingData.serviceName) {
-                        currentBookingData = rowData || {
-                            paymentItemId: paymentItemId,
-                            serviceName: 'Dịch vụ Spa',
-                            serviceDuration: 60,
-                            customerName: 'Khách hàng',
-                            customerPhone: 'Chưa có thông tin'
-                        };
-                    }
-                    updateServiceInfoDisplay();
-                }
-
-                setTimeout(() => {
-                    initializeFallbackCalendar();
-                }, 500); // Small delay to ensure DOM is ready
-            }).catch(error => {
-                console.error('[CSP Modal] Error in loadSchedulingItemDetails:', error);
-
-                // Use row data if available, otherwise use generic fallback
-                currentBookingData = rowData || {
-                    paymentItemId: paymentItemId,
-                    serviceName: 'Dịch vụ Spa',
-                    serviceDuration: 60,
-                    customerName: 'Khách hàng',
-                    customerPhone: 'Chưa có thông tin'
-                };
-                updateServiceInfoDisplay();
-                initializeFallbackCalendar(); // Initialize fallback calendar
-            });
+            alert('Chức năng đặt lịch sẽ được cập nhật với CSP solver mới. Payment Item ID: ' + paymentItemId);
         }
 
-        // Load scheduling item details
-        async function loadSchedulingItemDetails(paymentItemId) {
-            try {
-                console.log('[CSP Modal] Loading details for payment item:', paymentItemId);
+        // Placeholder for future CSP functions
 
-                // Try to fetch real data from the existing system
-                const response = await fetch('${pageContext.request.contextPath}/manager/scheduling?action=get_item_details&paymentItemId=' + paymentItemId, {
-                    method: 'GET',
-                    credentials: 'same-origin', // Include session cookies
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest' // Mark as AJAX request
-                    }
-                });
-
-                console.log('[CSP Modal] API response status:', response.status);
-                console.log('[CSP Modal] API response content-type:', response.headers.get('content-type'));
-
-                if (response.ok) {
-                    const responseText = await response.text();
-                    console.log('[CSP Modal] Raw API response:', responseText.substring(0, 200));
-
-                    try {
-                        const data = JSON.parse(responseText);
-                        if (data.success && data.data) {
-                            // Merge API data with existing row data, preserving valid extracted data
-                            currentBookingData = {
-                                paymentItemId: paymentItemId,
-                                customerId: data.data.customerId || currentBookingData?.customerId || 1,
-                                serviceId: data.data.serviceId || currentBookingData?.serviceId || 1,
-                                serviceName: data.data.serviceName || currentBookingData?.serviceName || 'Dịch vụ không xác định',
-                                serviceDuration: data.data.serviceDuration || currentBookingData?.serviceDuration || 60,
-                                customerName: data.data.customerName || currentBookingData?.customerName || 'Khách hàng không xác định',
-                                customerPhone: data.data.customerPhone || currentBookingData?.customerPhone || 'Chưa có thông tin'
-                            };
-                            console.log('[CSP Modal] Updated with API data:', currentBookingData);
-                            return; // Success, exit function
-                        } else {
-                            throw new Error('API response missing success or data fields');
-                        }
-                    } catch (parseError) {
-                        console.error('[CSP Modal] JSON parse error:', parseError);
-                        console.error('[CSP Modal] Response was not JSON:', responseText);
-                        throw new Error('API returned non-JSON response: ' + responseText.substring(0, 100));
-                    }
-                } else {
-                    throw new Error(`API response not successful: ${response.status} ${response.statusText}`);
-                }
-
-            } catch (error) {
-                console.warn('[CSP Modal] Could not load real data via API, preserving extracted row data:', error);
-
-                // IMPORTANT: Do NOT overwrite currentBookingData if it already contains valid extracted data
-                if (!currentBookingData || !currentBookingData.serviceName || currentBookingData.serviceName === 'Dịch vụ không xác định') {
-                    console.log('[CSP Modal] No valid row data found, using minimal fallback');
-
-                    // Only use fallback if we have no valid data at all
-                    currentBookingData = {
-                        paymentItemId: paymentItemId,
-                        customerId: 113, // Use a realistic customer ID
-                        serviceId: 1,
-                        serviceName: 'Dịch vụ Spa',
-                        serviceDuration: 60,
-                        customerName: 'Khách hàng',
-                        customerPhone: 'Chưa có thông tin'
-                    };
-
-                    console.log('[CSP Modal] Using minimal fallback data:', currentBookingData);
-                } else {
-                    console.log('[CSP Modal] Preserving existing valid row data:', currentBookingData);
-                }
-            }
-
-            // Update service info display
-            updateServiceInfoDisplay();
+        function closeSchedulingModal() {
+            // Placeholder function
         }
 
-        // Enhanced service information display with validation and fallback
-        function updateServiceInfoDisplay() {
-            console.log('[CSP Modal] Updating service info display:', currentBookingData);
 
-            // Ensure we have booking data
-            if (!currentBookingData) {
-                console.warn('[CSP Modal] No booking data available, creating minimal data');
-                currentBookingData = {
-                    serviceName: 'Dịch vụ Spa',
-                    serviceDuration: 60,
-                    customerName: 'Khách hàng',
-                    customerPhone: 'Chưa có thông tin'
-                };
-            }
+        // All CSP functions removed - will be reimplemented
 
-            // Validate and set defaults for missing data
-            const serviceInfo = {
-                serviceName: currentBookingData.serviceName || 'Dịch vụ không xác định',
-                serviceDuration: currentBookingData.serviceDuration || 60,
-                customerName: currentBookingData.customerName || 'Khách hàng không xác định',
-                customerPhone: currentBookingData.customerPhone || 'Chưa có thông tin'
-            };
+        console.log('Manager Scheduling Page Loaded Successfully');
+    </script>
 
-            console.log('[CSP Modal] Service info to display:', serviceInfo);
+    <!-- Set context path for JavaScript -->
+    <script>
+        window.contextPath = '${pageContext.request.contextPath}';
+        console.log('[DEBUG] Context path set to:', window.contextPath);
+    </script>
 
-            const serviceDetails = document.getElementById('serviceDetails');
-            if (serviceDetails) {
-                // Create properly formatted Vietnamese service information
-                const serviceInfoHtml = `
-                    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200 shadow-sm">
-                        <h3 class="text-lg font-semibold text-blue-800 mb-3 border-b border-blue-200 pb-2 flex items-center">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            Thông tin dịch vụ
-                        </h3>
-                        <div class="space-y-3 text-sm">
-                            <div class="flex items-start">
-                                <span class="font-medium text-blue-700 w-24 flex-shrink-0">Dịch vụ:</span>
-                                <span class="text-gray-800 font-medium">${serviceInfo.serviceName}</span>
-                            </div>
-                            <div class="flex items-start">
-                                <span class="font-medium text-blue-700 w-24 flex-shrink-0">Thời gian:</span>
-                                <span class="text-gray-800">${serviceInfo.serviceDuration} phút</span>
-                            </div>
-                            <div class="flex items-start">
-                                <span class="font-medium text-blue-700 w-24 flex-shrink-0">Khách hàng:</span>
-                                <span class="text-gray-800">${serviceInfo.customerName}</span>
-                            </div>
-                            <div class="flex items-start">
-                                <span class="font-medium text-blue-700 w-24 flex-shrink-0">SĐT:</span>
-                                <span class="text-gray-800">${serviceInfo.customerPhone}</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                serviceDetails.innerHTML = serviceInfoHtml;
-                console.log('[CSP Modal] Service info display updated successfully');
-            } else {
-                console.error('[CSP Modal] Service details element not found! Looking for element with ID: serviceDetails');
-
-                // Try to find alternative elements
-                const alternativeElements = [
-                    'service-info',
-                    'serviceInfo',
-                    'booking-details',
-                    'bookingDetails'
-                ];
-
-                let found = false;
-                for (const elementId of alternativeElements) {
-                    const element = document.getElementById(elementId);
-                    if (element) {
-                        console.log('[CSP Modal] Found alternative element:', elementId);
-                        element.innerHTML = `
-                            <div class="p-4 bg-blue-50 rounded">
-                                <h4 class="font-bold text-blue-800 mb-2">Thông tin dịch vụ</h4>
-                                <p><strong>Dịch vụ:</strong> ${serviceInfo.serviceName}</p>
-                                <p><strong>Thời gian:</strong> ${serviceInfo.serviceDuration} phút</p>
-                                <p><strong>Khách hàng:</strong> ${serviceInfo.customerName}</p>
-                                <p><strong>SĐT:</strong> ${serviceInfo.customerPhone}</p>
-                            </div>
-                        `;
-                        found = true;
-                        break;
-                    }
-                }
-
-                if (!found) {
-                    console.error('[CSP Modal] No suitable element found for service info display');
-                }
-            }
-
-            // Also update any other service info elements that might exist
-            updateServiceInfoElements();
-        }
-
-        // Helper function to update individual service info elements
-        function updateServiceInfoElements() {
-            if (!currentBookingData) return;
-
-            // Update individual data attributes if they exist
-            const elements = {
-                '[data-service-name]': currentBookingData.serviceName || 'N/A',
-                '[data-service-duration]': (currentBookingData.serviceDuration || 60) + ' phút',
-                '[data-customer-name]': currentBookingData.customerName || 'N/A',
-                '[data-customer-phone]': currentBookingData.customerPhone || 'N/A'
-            };
-
-            Object.entries(elements).forEach(([selector, value]) => {
-                const element = document.querySelector(selector);
-                if (element) {
-                    element.textContent = value;
-                }
-            });
-        }
-
-        // FullCalendar initialization function REMOVED - Using fallback calendar only
-
-        // Enhanced fallback calendar with navigation
-        let currentCalendarDate = new Date();
-        let selectedDate = null;
-
-        function initializeFallbackCalendar() {
-            const calendarEl = document.getElementById('cspCalendarContainer');
-
-            // Initialize current calendar date to today if not set
-            if (!currentCalendarDate) {
-                currentCalendarDate = new Date();
-            }
-
-            renderFallbackCalendar(calendarEl);
-            console.log('[CSP Modal] Enhanced fallback calendar initialized');
-        }
-
-        function renderFallbackCalendar(calendarEl) {
+    <!-- Manager Scheduling JavaScript -->
+    <script src="${pageContext.request.contextPath}/js/manager-scheduling.js"></script>
+</body>
+</html>
             const today = new Date();
             const currentMonth = currentCalendarDate.getMonth();
             const currentYear = currentCalendarDate.getFullYear();
@@ -1989,15 +1475,7 @@
             }
         }
 
-        // Make CSP functions globally available
-        window.findAvailableSlots = findAvailableSlots;
-        window.displayAvailableSlots = displayAvailableSlots;
-        window.selectTimeSlot = selectTimeSlot;
-        window.openSchedulingModal = openSchedulingModal;
-        window.selectTimeSlotInModal = selectTimeSlotInModal;
-        window.displayAvailableSlotsInModal = displayAvailableSlotsInModal;
-
-        console.log('Manager Scheduling Page with CSP Solver Loaded Successfully');
+        console.log('Manager Scheduling Page Loaded Successfully');
     </script>
 
     <!-- Set context path for JavaScript -->
