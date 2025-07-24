@@ -428,18 +428,24 @@
                             </div>
 
                             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                                <!-- Upcoming Appointments -->
+                                <!-- Booked Services -->
                                 <div class="lg:col-span-2 bg-white rounded-xl shadow-md border border-gray-200 p-6">
                                     <div class="flex items-center justify-between mb-6">
-                                        <h3 class="text-lg font-semibold text-spa-dark">Lịch hẹn sắp tới</h3>
-                                    <a href="${pageContext.request.contextPath}/customer/view" class="text-primary hover:text-primary-dark font-medium text-sm">Xem tất cả</a>
+                                        <h3 class="text-lg font-semibold text-spa-dark flex items-center gap-2">
+                                            <i data-lucide="calendar-check" class="h-5 w-5 text-primary"></i>
+                                            Dịch vụ đã đặt lịch
+                                        </h3>
+                                        <a href="${pageContext.request.contextPath}/customer/bookings" class="text-primary hover:text-primary-dark font-medium text-sm flex items-center gap-1">
+                                            <span>Xem tất cả</span>
+                                            <i data-lucide="arrow-right" class="h-4 w-4"></i>
+                                        </a>
                                     </div>
                                     <div class="space-y-4">
                                         <c:choose>
                                             <c:when test="${not empty upcomingBookings}">
                                                 <c:forEach var="booking" items="${upcomingBookings}" varStatus="status">
                                                     <c:if test="${status.index < 3}"> <!-- Limit to 3 upcoming bookings -->
-                                                        <div class="p-4 border border-gray-200 rounded-lg hover:border-primary transition-colors">
+                                                        <div class="p-4 border border-gray-200 rounded-lg hover:border-primary transition-colors hover:shadow-md">
                                                             <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
                                                                 <div class="flex items-center space-x-3">
                                                                     <i data-lucide="calendar" class="h-5 w-5 text-primary"></i>
@@ -474,20 +480,41 @@
                                                                     </c:choose>
                                                                 </span>
                                                             </div>
-                                                            <div class="space-y-1 ml-8">
-                                                                <p class="font-medium text-gray-900">
+                                                            <div class="space-y-2 ml-8">
+                                                                <p class="font-medium text-gray-900 flex items-center gap-2">
+                                                                    <i data-lucide="scissors" class="h-4 w-4 text-primary"></i>
                                                                     ${booking.serviceName != null ? booking.serviceName : 'Dịch vụ không xác định'}
                                                                 </p>
-                                                                <p class="text-sm text-gray-600">
-                                                                    <c:choose>
-                                                                        <c:when test="${booking.therapistName != null}">
-                                                                            Nhân viên: ${booking.therapistName}
-                                                                        </c:when>
-                                                                        <c:otherwise>
-                                                                            Nhân viên: Chưa phân công
-                                                                        </c:otherwise>
-                                                                    </c:choose>
-                                                                </p>
+                                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
+                                                                    <p class="flex items-center gap-2">
+                                                                        <i data-lucide="user" class="h-4 w-4"></i>
+                                                                        <c:choose>
+                                                                            <c:when test="${booking.therapistName != null}">
+                                                                                ${booking.therapistName}
+                                                                            </c:when>
+                                                                            <c:otherwise>
+                                                                                Chưa phân công
+                                                                            </c:otherwise>
+                                                                        </c:choose>
+                                                                    </p>
+                                                                    <p class="flex items-center gap-2">
+                                                                        <i data-lucide="clock" class="h-4 w-4"></i>
+                                                                        <c:choose>
+                                                                            <c:when test="${booking.durationMinutes != null}">
+                                                                                ${booking.durationMinutes} phút
+                                                                            </c:when>
+                                                                            <c:otherwise>
+                                                                                Chưa xác định
+                                                                            </c:otherwise>
+                                                                        </c:choose>
+                                                                    </p>
+                                                                </div>
+                                                                <c:if test="${booking.bookingNotes != null && !empty booking.bookingNotes}">
+                                                                    <p class="text-sm text-gray-500 italic flex items-start gap-2">
+                                                                        <i data-lucide="message-circle" class="h-4 w-4 mt-0.5"></i>
+                                                                        ${booking.bookingNotes}
+                                                                    </p>
+                                                                </c:if>
                                                             </div>
                                                         </div>
                                                     </c:if>
@@ -568,26 +595,27 @@
                             <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
                                 <h3 class="text-lg font-semibold text-spa-dark mb-6">Thao tác nhanh</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                <a href="${pageContext.request.contextPath}/booking" class="p-4 border border-gray-200 rounded-lg hover:border-primary hover:bg-spa-cream transition-all text-center group">
+                                    <a href="${pageContext.request.contextPath}/booking" class="p-4 border border-gray-200 rounded-lg hover:border-primary hover:bg-spa-cream transition-all text-center group">
                                         <div class="mb-3 flex justify-center"><i data-lucide="calendar" class="h-8 w-8 text-primary"></i></div>
                                         <h4 class="font-semibold text-gray-900 group-hover:text-primary transition-colors">Đặt lịch mới</h4>
-                                </a>
-                                <a href="${pageContext.request.contextPath}/customer/history" class="p-4 border border-gray-200 rounded-lg hover:border-primary hover:bg-spa-cream transition-all text-center group">
+                                    </a>
+                                    <a href="${pageContext.request.contextPath}/spa/customer/history" class="p-4 border border-gray-200 rounded-lg hover:border-primary hover:bg-spa-cream transition-all text-center group">
                                         <div class="mb-3 flex justify-center"><i data-lucide="file-text" class="h-8 w-8 text-blue-500"></i></div>
                                         <h4 class="font-semibold text-gray-900 group-hover:text-primary transition-colors">Xem lịch sử</h4>
-                                </a>
-                                <a href="${pageContext.request.contextPath}/customer/payment-history" class="p-4 border border-gray-200 rounded-lg hover:border-primary hover:bg-spa-cream transition-all text-center group">
+                                    </a>
+                                    <a href="${pageContext.request.contextPath}/customer/payment-history" class="p-4 border border-gray-200 rounded-lg hover:border-primary hover:bg-spa-cream transition-all text-center group">
                                         <div class="mb-3 flex justify-center"><i data-lucide="credit-card" class="h-8 w-8 text-purple-500"></i></div>
                                         <h4 class="font-semibold text-gray-900 group-hover:text-primary transition-colors">Lịch sử thanh toán</h4>
-                                </a>
-                                <a href="${pageContext.request.contextPath}/customer/profile" class="p-4 border border-gray-200 rounded-lg hover:border-primary hover:bg-spa-cream transition-all text-center group">
+                                    </a>
+                                    <a href="${pageContext.request.contextPath}/spa/customer/profile" class="p-4 border border-gray-200 rounded-lg hover:border-primary hover:bg-spa-cream transition-all text-center group">
                                         <div class="mb-3 flex justify-center"><i data-lucide="gift" class="h-8 w-8 text-green-500"></i></div>
                                         <h4 class="font-semibold text-gray-900 group-hover:text-primary transition-colors">Đổi điểm thưởng</h4>
-                                </a>
-                                <a href="#" class="p-4 border border-gray-200 rounded-lg hover:border-primary hover:bg-spa-cream transition-all text-center group">
+                                    </a>
+                                    <a href="#" class="p-4 border border-gray-200 rounded-lg hover:border-primary hover:bg-spa-cream transition-all text-center group">
                                         <div class="mb-3 flex justify-center"><i data-lucide="message-circle" class="h-8 w-8 text-purple-500"></i></div>
                                         <h4 class="font-semibold text-gray-900 group-hover:text-primary transition-colors">Liên hệ hỗ trợ</h4>
-                                </a>
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -751,5 +779,6 @@
         
         console.log('Spa Hương Sen Dashboard Loaded Successfully');
     </script>
+    <% String pointMessage = (String) session.getAttribute("pointMessage"); if (pointMessage != null) { %><script type="text/javascript">alert('<%= pointMessage.replace("'", "\\'").replace("\n", " ") %>');</script><% session.removeAttribute("pointMessage"); } %>
 </body>
 </html>

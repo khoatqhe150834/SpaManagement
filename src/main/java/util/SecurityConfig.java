@@ -15,12 +15,12 @@ public class SecurityConfig {
       "/login", "/register", "/logout", "/", "/index.jsp",
       "/verify-email", "/email-verification-required", "/resend-verification",
       "/password/reset", "/password-reset-form",
-      "/about", "/contact", "/services", "/service-details", "/blog", "/password-reset/new", "/booking",
+      "/about", "/contact", "/services", "/service-details", "/blog", "/password-reset/new",
       "/password-reset/request", "/recently-viewed", "/most-purchased",
       "/password-reset/edit",
       "/password-reset/update",
       "/test", "/TestController", "/api/booking-session", "/api/services", "/api/most-purchased",
-      "/api/service-types", "/error", "/booking", "/api/homepage", "/result.jsp", "/test.jsp",
+      "/api/service-types", "/error", "/api/homepage", "/result.jsp", "/test.jsp",
       "/chatbot", "/chat", "/api/chat", "/api/chatbot", "/test-chatbot.jsp", "/debug-chatbot.jsp", "/test-security.jsp", "/test-direct-api.jsp", "/simple-api-test.jsp", "/image",
       "/test/booking", "/test-booking.jsp", "/api/therapist-schedule"));
 

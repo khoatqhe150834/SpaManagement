@@ -10,9 +10,11 @@ package dao;
  */
 // src/main/java/dao/SchedulingConstraintDAO.java
 
-import booking.*;
-import db.DBContext;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -22,6 +24,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import booking.BookingConstraint;
+import booking.RoomBedInfo;
+import booking.ServiceInfo;
+import booking.TherapistInfo;
+import db.DBContext;
 
 
 public class SchedulingConstraintDAO {
@@ -34,11 +42,11 @@ public class SchedulingConstraintDAO {
         List<BookingConstraint> bookings = new ArrayList<>();
         
         String query = """
-            SELECT b.therapist_user_id, b.room_id, b.bed_id,
+            SELECT b.customer_id, b.therapist_user_id, b.room_id, b.bed_id,
                    b.appointment_date, b.appointment_time, b.duration_minutes,
                    b.booking_status
-            FROM bookings b 
-            WHERE b.appointment_date = ? 
+            FROM bookings b
+            WHERE b.appointment_date = ?
             AND b.booking_status IN ('SCHEDULED', 'CONFIRMED', 'IN_PROGRESS')
             ORDER BY b.appointment_time
             """;
@@ -56,6 +64,7 @@ public class SchedulingConstraintDAO {
                     LocalDateTime endDateTime = startDateTime.plusMinutes(rs.getInt("duration_minutes"));
                     
                     BookingConstraint constraint = new BookingConstraint(
+                        rs.getInt("customer_id"),
                         rs.getInt("therapist_user_id"),
                         rs.getInt("room_id"),
                         rs.getObject("bed_id", Integer.class),

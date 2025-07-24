@@ -83,6 +83,13 @@
                                             <input type="text" name="title" id="title" required maxlength="100"
                                                    value="<c:out value='${promotion.title}'/>"
                                                    class="w-full border rounded-lg px-3 py-2 focus:ring-primary focus:border-primary">
+                                            <c:if test="${not empty errors.title}">
+                                              <ul class="pl-4">
+                                                <c:forEach var="err" items="${errors.title}">
+                                                  <li class="text-red-500 text-sm mt-1">${err}</li>
+                                                </c:forEach>
+                                              </ul>
+                                            </c:if>
                                         </div>
                                         
                                         <div>
@@ -90,6 +97,13 @@
                                             <input type="text" name="promotionCode" id="promotionCode" required maxlength="10"
                                                    value="<c:out value='${promotion.promotionCode}'/>"
                                                    class="w-full border rounded-lg px-3 py-2 focus:ring-primary focus:border-primary">
+                                            <c:if test="${not empty errors.promotionCode}">
+                                              <ul class="pl-4">
+                                                <c:forEach var="err" items="${errors.promotionCode}">
+                                                  <li class="text-red-500 text-sm mt-1">${err}</li>
+                                                </c:forEach>
+                                              </ul>
+                                            </c:if>
                                         </div>
                                     </div>
                                 </div>
@@ -106,6 +120,13 @@
                                                 <option value="PERCENTAGE" <c:if test="${promotion.discountType eq 'PERCENTAGE'}">selected</c:if>>Phần trăm (%)</option>
                                                 <option value="FIXED" <c:if test="${promotion.discountType eq 'FIXED'}">selected</c:if>>Số tiền (VNĐ)</option>
                                             </select>
+                                            <c:if test="${not empty errors.discountType}">
+                                              <ul class="pl-4">
+                                                <c:forEach var="err" items="${errors.discountType}">
+                                                  <li class="text-red-500 text-sm mt-1">${err}</li>
+                                                </c:forEach>
+                                              </ul>
+                                            </c:if>
                                         </div>
                                         
                                         <div>
@@ -113,6 +134,13 @@
                                             <input type="number" name="discountValue" id="discountValue" required min="0" step="0.01"
                                                    value="<c:out value='${promotion.discountValue}'/>"
                                                    class="w-full border rounded-lg px-3 py-2 focus:ring-primary focus:border-primary">
+                                            <c:if test="${not empty errors.discountValue}">
+                                              <ul class="pl-4">
+                                                <c:forEach var="err" items="${errors.discountValue}">
+                                                  <li class="text-red-500 text-sm mt-1">${err}</li>
+                                                </c:forEach>
+                                              </ul>
+                                            </c:if>
                                         </div>
                                     </div>
                                 </div>
@@ -128,6 +156,13 @@
                                             <input type="date" name="startDate" id="startDate" required
                                                    value="${not empty promotion.startDate ? promotion.startDate.toString().substring(0,10) : ''}"
                                                    class="w-full border rounded-lg px-3 py-2 focus:ring-primary focus:border-primary">
+                                            <c:if test="${not empty errors.startDate}">
+                                              <ul class="pl-4">
+                                                <c:forEach var="err" items="${errors.startDate}">
+                                                  <li class="text-red-500 text-sm mt-1">${err}</li>
+                                                </c:forEach>
+                                              </ul>
+                                            </c:if>
                                         </div>
                                         
                                         <div>
@@ -135,6 +170,13 @@
                                             <input type="date" name="endDate" id="endDate" required
                                                    value="${not empty promotion.endDate ? promotion.endDate.toString().substring(0,10) : ''}"
                                                    class="w-full border rounded-lg px-3 py-2 focus:ring-primary focus:border-primary">
+                                            <c:if test="${not empty errors.endDate}">
+                                              <ul class="pl-4">
+                                                <c:forEach var="err" items="${errors.endDate}">
+                                                  <li class="text-red-500 text-sm mt-1">${err}</li>
+                                                </c:forEach>
+                                              </ul>
+                                            </c:if>
                                         </div>
                                     </div>
                                 </div>
@@ -180,6 +222,13 @@
                                         <label for="description" class="block font-medium text-gray-700 mb-1">Mô tả <span class="text-red-600">*</span></label>
                                         <textarea name="description" id="description" rows="4" required
                                                   class="w-full border rounded-lg px-3 py-2 focus:ring-primary focus:border-primary"><c:out value='${promotion.description}'/></textarea>
+                                        <c:if test="${not empty errors.description}">
+                                          <ul class="pl-4">
+                                            <c:forEach var="err" items="${errors.description}">
+                                              <li class="text-red-500 text-sm mt-1">${err}</li>
+                                            </c:forEach>
+                                          </ul>
+                                        </c:if>
                                     </div>
 
                                     <div class="mt-6">
@@ -206,6 +255,13 @@
                                                 <img src="${pageContext.request.contextPath}${promotion.imageUrl}" alt="Ảnh khuyến mãi hiện tại" 
                                                      class="w-32 h-32 object-cover rounded-lg border">
                                             </div>
+                                        </c:if>
+                                        <c:if test="${not empty errors.imageUrl}">
+                                          <ul class="pl-4">
+                                            <c:forEach var="err" items="${errors.imageUrl}">
+                                              <li class="text-red-500 text-sm mt-1">${err}</li>
+                                            </c:forEach>
+                                          </ul>
                                         </c:if>
                                     </div>
                                 </div>

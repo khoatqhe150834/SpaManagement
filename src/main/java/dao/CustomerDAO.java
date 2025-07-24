@@ -48,6 +48,15 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         customer.setIsVerified(rs.getObject("is_verified") != null ? rs.getBoolean("is_verified") : false);
         customer.setAvatarUrl(rs.getString("avatar_url"));
         customer.setNotes(rs.getString("notes"));
+        
+        // Đọc cột tier nếu có
+        try {
+            customer.setTier(rs.getString("tier"));
+        } catch (SQLException e) {
+            // Cột tier chưa tồn tại, đặt giá trị mặc định
+            customer.setTier("DONG");
+        }
+        
         return customer;
     }
 
@@ -778,7 +787,7 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
                 break;
             case "loyalty":
             case "loyaltypoints":
-                orderBy = "loyalty_points";
+                orderBy = "COALESCE(loyalty_points, 0)";
                 break;
             case "createdat":
             case "created":
@@ -1630,7 +1639,6 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         String[] queries = {
             "SELECT COUNT(*) FROM payments WHERE customer_id = ?",
             "SELECT COUNT(*) FROM bookings WHERE customer_id = ?",
-            "SELECT COUNT(*) FROM shopping_carts WHERE customer_id = ?",
             "SELECT COUNT(*) FROM checkins WHERE customer_id = ?"
         };
         
@@ -1662,11 +1670,10 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         String[] queries = {
             "SELECT COUNT(*) FROM payments WHERE customer_id = ?",
             "SELECT COUNT(*) FROM bookings WHERE customer_id = ?", 
-            "SELECT COUNT(*) FROM shopping_carts WHERE customer_id = ?",
             "SELECT COUNT(*) FROM checkins WHERE customer_id = ?"
         };
         
-        String[] keys = {"payments", "bookings", "shopping_carts", "checkins"};
+        String[] keys = {"payments", "bookings", "checkins"};
         
         try (Connection conn = DBContext.getConnection()) {
             for (int i = 0; i < queries.length; i++) {
@@ -1707,6 +1714,25 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
 
     // Cập nhật tier cho khách hàng
     public void updateTier(int customerId, String tier) {
+        // Kiểm tra xem cột tier có tồn tại không, nếu không thì thêm vào
+        try {
+            String checkColumnSql = "SHOW COLUMNS FROM customers LIKE 'tier'";
+            try (Connection conn = db.DBContext.getConnection();
+                 PreparedStatement ps = conn.prepareStatement(checkColumnSql);
+                 ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    // Cột tier chưa tồn tại, thêm vào
+                    String addColumnSql = "ALTER TABLE customers ADD COLUMN tier VARCHAR(20) DEFAULT 'DONG'";
+                    try (PreparedStatement addPs = conn.prepareStatement(addColumnSql)) {
+                        addPs.executeUpdate();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        // Cập nhật tier
         String sql = "UPDATE customers SET tier = ? WHERE customer_id = ?";
         try (Connection conn = db.DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -1716,6 +1742,201 @@ public class CustomerDAO implements BaseDAO<Customer, Integer> {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    // Lấy loyalty_points hiện tại của khách hàng
+    public int getLoyaltyPoints(int customerId) {
+        String sql = "SELECT loyalty_points FROM customers WHERE customer_id = ?";
+        try (Connection conn = db.DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, customerId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("loyalty_points");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0; // Trả về 0 nếu không tìm thấy hoặc lỗi
+    }
+
+    // Cập nhật loyalty_points cho khách hàng
+    public void updateLoyaltyPoints(int customerId, int points) {
+        String sql = "UPDATE customers SET loyalty_points = ? WHERE customer_id = ?";
+        try (Connection conn = db.DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, points);
+            ps.setInt(2, customerId);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Đồng bộ loyalty_points từ customer_points cho một khách hàng cụ thể
+    public void syncLoyaltyPointsFromCustomerPoints(int customerId) {
+        String sql = "UPDATE customers c " +
+                    "JOIN customer_points cp ON c.customer_id = cp.customer_id " +
+                    "SET c.loyalty_points = cp.points " +
+                    "WHERE c.customer_id = ?";
+        try (Connection conn = db.DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, customerId);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Đồng bộ loyalty_points cho tất cả khách hàng dựa trên tổng chi tiêu (payments) + điểm thủ công (customer_points)
+    public void syncLoyaltyPointsByTotalSpent() {
+        String sql = "UPDATE customers c " +
+                "LEFT JOIN (" +
+                "  SELECT p.customer_id, " +
+                "         COALESCE(FLOOR(SUM(p.total_amount) / 100000), 0) AS points_from_payments " +
+                "  FROM payments p " +
+                "  WHERE p.payment_status = 'PAID' " +
+                "  GROUP BY p.customer_id" +
+                ") pay ON c.customer_id = pay.customer_id " +
+                "LEFT JOIN (" +
+                "  SELECT cp.customer_id, COALESCE(SUM(cp.points), 0) AS points_manual " +
+                "  FROM customer_points cp " +
+                "  GROUP BY cp.customer_id" +
+                ") manual ON c.customer_id = manual.customer_id " +
+                "SET c.loyalty_points = COALESCE(pay.points_from_payments, 0) + COALESCE(manual.points_manual, 0)";
+        try (Connection conn = db.DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Đồng bộ loyalty_points từ customer_points cho tất cả khách hàng
+    public void syncAllLoyaltyPointsFromCustomerPoints() {
+        String sql = "UPDATE customers c " +
+                    "JOIN customer_points cp ON c.customer_id = cp.customer_id " +
+                    "SET c.loyalty_points = cp.points " +
+                    "WHERE c.customer_id IS NOT NULL";
+        try (Connection conn = db.DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Đồng bộ tier cho toàn bộ khách hàng dựa trên loyalty_points
+     * (Chạy sau khi đồng bộ điểm hoặc khi cần đảm bảo dữ liệu chuẩn)
+     */
+    public void syncAllCustomerTiers() {
+        // Đảm bảo cột tier đã tồn tại
+        try {
+            String checkColumnSql = "SHOW COLUMNS FROM customers LIKE 'tier'";
+            try (Connection conn = db.DBContext.getConnection();
+                 PreparedStatement ps = conn.prepareStatement(checkColumnSql);
+                 ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    String addColumnSql = "ALTER TABLE customers ADD COLUMN tier VARCHAR(20) DEFAULT 'DONG'";
+                    try (PreparedStatement addPs = conn.prepareStatement(addColumnSql)) {
+                        addPs.executeUpdate();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        // Cập nhật tier cho toàn bộ khách hàng
+        String sql = "UPDATE customers SET tier = CASE " +
+                "WHEN loyalty_points >= 1500 THEN 'Kim Cương' " +
+                "WHEN loyalty_points >= 1000 THEN 'Vàng' " +
+                "WHEN loyalty_points >= 500 THEN 'Bạc' " +
+                "ELSE 'Đồng' END";
+        try (Connection conn = db.DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Lấy danh sách khách hàng có tìm kiếm, lọc hạng, sắp xếp, phân trang
+    public List<Customer> getPaginatedCustomersWithFilter(int page, int pageSize, String search, String tierFilter, String sortBy, String sortOrder) {
+        List<Customer> customers = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT * FROM customers WHERE 1=1");
+        List<Object> params = new ArrayList<>();
+        if (search != null && !search.trim().isEmpty()) {
+            sql.append(" AND (full_name LIKE ? OR email LIKE ?)");
+            String pattern = "%" + search.trim() + "%";
+            params.add(pattern);
+            params.add(pattern);
+        }
+        if (tierFilter != null && !tierFilter.trim().isEmpty()) {
+            sql.append(" AND tier = ?");
+            params.add(tierFilter);
+        }
+        String orderBy = "customer_id";
+        if (sortBy != null) {
+            switch (sortBy) {
+                case "name": orderBy = "full_name"; break;
+                case "email": orderBy = "email"; break;
+                case "loyaltyPoints": orderBy = "loyalty_points"; break;
+                case "tier": orderBy = "tier"; break;
+            }
+        }
+        sql.append(" ORDER BY ").append(orderBy).append(" DESC");
+        if (sortOrder != null && sortOrder.equalsIgnoreCase("asc")) {
+            sql = new StringBuilder(sql.toString().replace("DESC", "ASC"));
+        }
+        sql.append(" LIMIT ? OFFSET ?");
+        params.add(pageSize);
+        params.add((page - 1) * pageSize);
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    customers.add(buildCustomerFromResultSet(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return customers;
+    }
+
+    // Đếm tổng khách hàng theo điều kiện tìm kiếm, lọc hạng
+    public int countCustomersWithFilter(String search, String tierFilter) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM customers WHERE 1=1");
+        List<Object> params = new ArrayList<>();
+        if (search != null && !search.trim().isEmpty()) {
+            sql.append(" AND (full_name LIKE ? OR email LIKE ?)");
+            String pattern = "%" + search.trim() + "%";
+            params.add(pattern);
+            params.add(pattern);
+        }
+        if (tierFilter != null && !tierFilter.trim().isEmpty()) {
+            sql.append(" AND tier = ?");
+            params.add(tierFilter);
+        }
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 
 

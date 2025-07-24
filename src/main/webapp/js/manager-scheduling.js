@@ -138,25 +138,45 @@ class ManagerSchedulingSystem {
         const filterPanel = document.getElementById('schedulingFilterPanel');
         
         if (toggleButton && filterPanel) {
-            toggleButton.addEventListener('click', () => {
+            console.log('[MANAGER-SCHEDULING] Setting up filter toggle button');
+            
+            toggleButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('[MANAGER-SCHEDULING] Filter toggle button clicked');
+                
+                // Toggle the show class
                 filterPanel.classList.toggle('show');
                 
                 // Update button appearance
-                const icon = toggleButton.querySelector('i');
-                if (icon) {
-                    icon.classList.toggle('rotate-180');
-                }
+                const icon = toggleButton.querySelector('i[data-lucide="filter"]');
                 
                 if (filterPanel.classList.contains('show')) {
+                    console.log('[MANAGER-SCHEDULING] Showing filter panel');
                     toggleButton.classList.add('bg-primary', 'text-white');
-                    toggleButton.classList.remove('bg-white', 'text-gray-700');
-                    if (icon) icon.classList.add('text-white');
+                    toggleButton.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
+                    if (icon) {
+                        icon.classList.add('text-white');
+                        icon.classList.remove('text-gray-700');
+                    }
                 } else {
+                    console.log('[MANAGER-SCHEDULING] Hiding filter panel');
                     toggleButton.classList.remove('bg-primary', 'text-white');
-                    toggleButton.classList.add('bg-white', 'text-gray-700');
-                    if (icon) icon.classList.remove('text-white');
+                    toggleButton.classList.add('bg-white', 'text-gray-700', 'border-gray-300');
+                    if (icon) {
+                        icon.classList.remove('text-white');
+                        icon.classList.add('text-gray-700');
+                    }
+                }
+                
+                // Recreate lucide icons after class changes
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
                 }
             });
+        } else {
+            console.warn('[MANAGER-SCHEDULING] Filter toggle button or panel not found');
+            console.log('Toggle button:', toggleButton);
+            console.log('Filter panel:', filterPanel);
         }
     }
 
@@ -1243,24 +1263,34 @@ class ManagerSchedulingSystem {
 }
 
 // Global functions for JSP onclick handlers
+function openSchedulingModal(paymentItemId) {
+    // Redirect to manager booking system
+    const contextPath = window.contextPath || (window.location.pathname.includes('/spa') ? '/spa' : '');
+    window.location.href = contextPath + '/manager/schedule-booking?paymentItemId=' + paymentItemId;
+}
+
 function refreshSchedulableItems() {
-    window.managerSchedulingSystem.refreshSchedulableItems();
+    if (window.managerSchedulingSystem) {
+        window.managerSchedulingSystem.refreshSchedulableItems();
+    }
 }
 
 function checkAvailability() {
-    window.managerSchedulingSystem.checkAvailability();
+    if (window.managerSchedulingSystem) {
+        window.managerSchedulingSystem.checkAvailability();
+    }
 }
 
 function createBooking() {
-    window.managerSchedulingSystem.createBooking();
+    if (window.managerSchedulingSystem) {
+        window.managerSchedulingSystem.createBooking();
+    }
 }
 
 function closeSchedulingModal() {
-    window.managerSchedulingSystem.closeSchedulingModal();
-}
-
-function refreshSchedulableItems() {
-    window.managerSchedulingSystem.refreshSchedulableItems();
+    if (window.managerSchedulingSystem) {
+        window.managerSchedulingSystem.closeSchedulingModal();
+    }
 }
 
 // Initialize the manager scheduling system when page loads

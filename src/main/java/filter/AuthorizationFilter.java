@@ -133,7 +133,7 @@ public class AuthorizationFilter implements Filter {
         // Customer area patterns - customer-only access
         PATTERN_ROLE_MAPPINGS.put("/customer/*", new HashSet<>(Arrays.asList(RoleConstants.CUSTOMER_ID)));
 
-        // Manager area patterns
+        // Manager area patterns (includes /manager/booking-api)
         PATTERN_ROLE_MAPPINGS.put("/manager/*", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
         PATTERN_ROLE_MAPPINGS.put("/manager/payments/*", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
 

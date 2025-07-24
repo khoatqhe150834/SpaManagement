@@ -23,6 +23,7 @@ public class Customer {
     private Boolean isVerified; // TRUE = Email verified, FALSE = Not verified
     private String avatarUrl;
     private String notes;
+    private String tier; // Hạng khách hàng: DONG, BAC, VANG, KIMCUONG
 
     public Customer() {
     }
@@ -169,6 +170,14 @@ public class Customer {
 
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+    
+    public String getTier() {
+        return tier;
+    }
+
+    public void setTier(String tier) {
+        this.tier = tier;
     }
     
     // Convenience methods for better readability

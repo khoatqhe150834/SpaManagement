@@ -47,7 +47,7 @@ public class PromotionUsageDAO {
      * Save promotion usage record
      */
     public boolean save(PromotionUsage usage) {
-        String sql = "INSERT INTO promotion_usage (promotion_id, customer_id, payment_id, booking_id, " +
+        String sql = "INSERT INTO promotion_usage_history (promotion_id, customer_id, payment_id, booking_id, " +
                     "discount_amount, original_amount, final_amount, used_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         
         try (Connection conn = DBContext.getConnection();
@@ -93,7 +93,7 @@ public class PromotionUsageDAO {
      * Check if customer has already used this promotion
      */
     public boolean hasCustomerUsedPromotion(Integer promotionId, Integer customerId) {
-        String sql = "SELECT COUNT(*) FROM promotion_usage WHERE promotion_id = ? AND customer_id = ?";
+        String sql = "SELECT COUNT(*) FROM promotion_usage_history WHERE promotion_id = ? AND customer_id = ?";
         
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -117,7 +117,7 @@ public class PromotionUsageDAO {
      * Get number of times customer has used this promotion
      */
     public int getCustomerUsageCount(Integer promotionId, Integer customerId) {
-        String sql = "SELECT COUNT(*) FROM promotion_usage WHERE promotion_id = ? AND customer_id = ?";
+        String sql = "SELECT COUNT(*) FROM promotion_usage_history WHERE promotion_id = ? AND customer_id = ?";
         
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -141,7 +141,7 @@ public class PromotionUsageDAO {
      * Get total promotion usage count
      */
     public int getTotalUsageCount(Integer promotionId) {
-        String sql = "SELECT COUNT(*) FROM promotion_usage WHERE promotion_id = ?";
+        String sql = "SELECT COUNT(*) FROM promotion_usage_history WHERE promotion_id = ?";
         
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -165,7 +165,7 @@ public class PromotionUsageDAO {
      */
     public List<PromotionUsage> getCustomerUsageHistory(Integer customerId, int page, int pageSize) {
         List<PromotionUsage> usageHistory = new ArrayList<>();
-        String sql = "SELECT * FROM promotion_usage WHERE customer_id = ? ORDER BY used_at DESC LIMIT ? OFFSET ?";
+        String sql = "SELECT * FROM promotion_usage_history WHERE customer_id = ? ORDER BY used_at DESC LIMIT ? OFFSET ?";
         
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -191,7 +191,7 @@ public class PromotionUsageDAO {
      */
     public List<PromotionUsage> getPromotionUsageHistory(Integer promotionId, int page, int pageSize) {
         List<PromotionUsage> usageHistory = new ArrayList<>();
-        String sql = "SELECT * FROM promotion_usage WHERE promotion_id = ? ORDER BY used_at DESC LIMIT ? OFFSET ?";
+        String sql = "SELECT * FROM promotion_usage_history WHERE promotion_id = ? ORDER BY used_at DESC LIMIT ? OFFSET ?";
         
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -219,7 +219,7 @@ public class PromotionUsageDAO {
         List<PromotionUsage> usageHistory = new ArrayList<>();
         String sql = "SELECT pu.*, p.title as promotion_title, p.promotion_code, " +
                     "c.full_name as customer_name, c.email as customer_email " +
-                    "FROM promotion_usage pu " +
+                    "FROM promotion_usage_history pu " +
                     "JOIN promotions p ON pu.promotion_id = p.promotion_id " +
                     "JOIN customers c ON pu.customer_id = c.customer_id " +
                     "WHERE pu.promotion_id = ? " +
@@ -250,7 +250,7 @@ public class PromotionUsageDAO {
      * Calculate total discount amount for a promotion
      */
     public BigDecimal getTotalDiscountAmount(Integer promotionId) {
-        String sql = "SELECT SUM(discount_amount) FROM promotion_usage WHERE promotion_id = ?";
+        String sql = "SELECT SUM(discount_amount) FROM promotion_usage_history WHERE promotion_id = ?";
         
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -274,7 +274,7 @@ public class PromotionUsageDAO {
      * Delete promotion usage record
      */
     public boolean deleteById(Integer usageId) {
-        String sql = "DELETE FROM promotion_usage WHERE usage_id = ?";
+        String sql = "DELETE FROM promotion_usage_history WHERE usage_id = ?";
         
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -292,7 +292,7 @@ public class PromotionUsageDAO {
      * Find promotion usage by ID
      */
     public Optional<PromotionUsage> findById(Integer usageId) {
-        String sql = "SELECT * FROM promotion_usage WHERE usage_id = ?";
+        String sql = "SELECT * FROM promotion_usage_history WHERE usage_id = ?";
         
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -320,7 +320,7 @@ public class PromotionUsageDAO {
     public Integer getRemainingUsageCount(Integer promotionId, Integer customerId) {
         String sql = "SELECT p.usage_limit_per_customer, COUNT(pu.usage_id) as used_count " +
                     "FROM promotions p " +
-                    "LEFT JOIN promotion_usage pu ON p.promotion_id = pu.promotion_id AND pu.customer_id = ? " +
+                    "LEFT JOIN promotion_usage_history pu ON p.promotion_id = pu.promotion_id AND pu.customer_id = ? " +
                     "WHERE p.promotion_id = ? " +
                     "GROUP BY p.promotion_id, p.usage_limit_per_customer";
         
@@ -364,7 +364,7 @@ public class PromotionUsageDAO {
                     "  ELSE GREATEST(0, p.usage_limit_per_customer - COUNT(pu.usage_id)) " +
                     "END as remaining_count " +
                     "FROM promotions p " +
-                    "LEFT JOIN promotion_usage pu ON p.promotion_id = pu.promotion_id AND pu.customer_id = ? " +
+                    "LEFT JOIN promotion_usage_history pu ON p.promotion_id = pu.promotion_id AND pu.customer_id = ? " +
                     "WHERE p.status = 'ACTIVE' " +
                     "GROUP BY p.promotion_id, p.title, p.promotion_code, p.discount_type, " +
                     "p.discount_value, p.usage_limit_per_customer, p.status, p.start_date, p.end_date " +
@@ -410,7 +410,7 @@ public class PromotionUsageDAO {
                     "FROM promotions p " +
                     "LEFT JOIN ( " +
                     "  SELECT promotion_id, COUNT(*) as used_count " +
-                    "  FROM promotion_usage " +
+                    "  FROM promotion_usage_history " +
                     "  WHERE customer_id = ? " +
                     "  GROUP BY promotion_id " +
                     ") pu ON p.promotion_id = pu.promotion_id " +

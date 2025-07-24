@@ -682,6 +682,83 @@ public class BookingController extends HttpServlet {
             Payment payment = cartPaymentService.processCartPayment(
                 customerId, cartItems, paymentMethod, notes);
 
+            // --- Đồng bộ điểm thưởng cho khách hàng vừa thanh toán ---
+            try {
+                dao.CustomerDAO customerDAO = new dao.CustomerDAO();
+                // Đồng bộ lại điểm thưởng
+                customerDAO.syncLoyaltyPointsByTotalSpent();
+                // Đồng bộ lại tier cho toàn bộ khách hàng
+                customerDAO.syncAllCustomerTiers();
+                // Load lại thông tin khách hàng mới nhất vào session
+                model.Customer updatedCustomer = customerDAO.findById(customerId).orElse(null);
+                if (updatedCustomer != null) {
+                    session.setAttribute("customer", updatedCustomer);
+                }
+            } catch (Exception e) {
+                LOGGER.log(Level.WARNING, "Lỗi khi đồng bộ điểm thưởng và tier cho khách hàng", e);
+            }
+            // --- End đồng bộ ---
+
+            // --- Thông báo cộng điểm thưởng ---
+            if (payment.getPointsAdded() > 0) {
+                session.setAttribute("pointMessage", "Bạn vừa được cộng " + payment.getPointsAdded() + " điểm thưởng!");
+            }
+            // --- End thông báo ---
+
+            // --- Áp dụng khuyến mãi sau khi thanh toán thành công ---
+            try {
+                Object appliedPromotionObj = session.getAttribute("appliedPromotion");
+                if (appliedPromotionObj != null && appliedPromotionObj instanceof model.Promotion) {
+                    model.Promotion appliedPromotion = (model.Promotion) appliedPromotionObj;
+                    String promotionCode = appliedPromotion.getPromotionCode();
+                    service.PromotionService promotionService = new service.PromotionService();
+                    service.PromotionService.PromotionApplicationResult promoResult = 
+                        promotionService.applyPromotionCode(
+                            promotionCode,
+                            customerId,
+                            payment.getTotalAmount(),
+                            payment.getPaymentId(),
+                            null // bookingId nếu có
+                        );
+                    if (promoResult.isSuccess()) {
+                        // Có thể gửi thông báo thành công cho khách hàng ở đây
+                        LOGGER.info("Áp dụng khuyến mãi thành công cho paymentId: " + payment.getPaymentId());
+                    } else {
+                        LOGGER.warning("Áp dụng khuyến mãi thất bại: " + promoResult.getMessage());
+                    }
+                    // Xóa session appliedPromotion sau khi áp dụng
+                    session.removeAttribute("appliedPromotion");
+                }
+            } catch (Exception e) {
+                LOGGER.log(Level.WARNING, "Lỗi khi áp dụng khuyến mãi sau thanh toán", e);
+            }
+            // --- End áp dụng khuyến mãi ---
+
+            // --- Gửi email thông báo thanh toán thành công ---
+            try {
+                model.Customer customerObj = (model.Customer) session.getAttribute("customer");
+                if (customerObj != null && customerObj.getEmail() != null) {
+                    String toEmail = customerObj.getEmail();
+                    String fullName = customerObj.getFullName();
+                    String subject = "Xác nhận thanh toán thành công - BeautyZone Spa";
+                    String content = "<p>Xin chào <b>" + fullName + "</b>,</p>"
+                        + "<p>Bạn đã thanh toán thành công cho đơn hàng mã <b>" + payment.getPaymentId() + "</b>.</p>"
+                        + "<p>Tổng số tiền: <b>" + payment.getTotalAmount() + "</b> VND</p>"
+                        + "<p>Cảm ơn bạn đã sử dụng dịch vụ của BeautyZone Spa!</p>";
+                    service.email.EmailService emailService = new service.email.EmailService();
+                    // Tạm thời dùng sendAccountInfoEmail để gửi email xác nhận thanh toán
+                    boolean sent = emailService.sendAccountInfoEmail(toEmail, fullName, content);
+                    if (sent) {
+                        LOGGER.info("Đã gửi email xác nhận thanh toán thành công tới: " + toEmail);
+                    } else {
+                        LOGGER.warning("Gửi email xác nhận thanh toán thất bại tới: " + toEmail);
+                    }
+                }
+            } catch (Exception e) {
+                LOGGER.log(Level.WARNING, "Lỗi khi gửi email xác nhận thanh toán thành công", e);
+            }
+            // --- End gửi email ---
+
             // 6. Update payment with reference number if provided
             if (referenceNumber != null && !referenceNumber.trim().isEmpty()) {
                 payment.setReferenceNumber(referenceNumber.trim());
