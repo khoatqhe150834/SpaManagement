@@ -331,12 +331,14 @@ public class LoginController extends HttpServlet {
             session.setAttribute("user", user);
             roleId = user.getRoleId();
             userType = RoleConstants.getUserTypeFromRole(roleId);
+            session.setAttribute("userRole", userType); // Đảm bảo đồng bộ cho staff
         } else {
             Customer customer = (Customer) account;
             session.setAttribute("customer", customer);
+            session.setAttribute("customerId", customer.getCustomerId()); // Thêm dòng này
+            session.setAttribute("userRole", "CUSTOMER"); // Thêm dòng này
             roleId = customer.getRoleId();
             userType = RoleConstants.getUserTypeFromRole(roleId);
-
             // --- Thêm logic cộng điểm đăng nhập mỗi ngày ---
             try {
                 RewardPointService rewardPointService = new RewardPointService();

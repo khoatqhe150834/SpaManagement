@@ -94,7 +94,7 @@
         <jsp:include page="/WEB-INF/view/common/header.jsp" />
 
         <!-- ===== Banner & breadcrumb ===== -->
-        <section class="relative py-20 bg-cover bg-center" 
+        <section class="relative py-32 bg-cover bg-center" 
                  style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('${pageContext.request.contextPath}/assets/home/images/banner/bnr1.jpg');">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
                 <h1 class="text-4xl md:text-5xl font-serif mb-4 line-clamp-2">${blog.title}</h1>

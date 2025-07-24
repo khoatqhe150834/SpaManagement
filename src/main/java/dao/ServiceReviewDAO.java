@@ -62,6 +62,20 @@ public class ServiceReviewDAO {
         return null;
     }
 
+    // Lấy review theo bookingId
+    public ServiceReview getReviewByBookingId(int bookingId) throws SQLException {
+        String sql = "SELECT * FROM service_reviews WHERE booking_id = ?";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, bookingId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSet(rs);
+                }
+            }
+        }
+        return null;
+    }
+
     // Lấy tất cả review (cho manager)
     public List<ServiceReview> getAllReviews() throws SQLException {
         List<ServiceReview> list = new ArrayList<>();
@@ -88,6 +102,26 @@ public class ServiceReviewDAO {
             int affected = stmt.executeUpdate();
             return affected > 0;
         }
+    }
+
+    // Cập nhật review (cho phép khách hàng sửa lại đánh giá)
+    public boolean updateReview(ServiceReview review) throws SQLException {
+        String sql = "UPDATE service_reviews SET service_id=?, therapist_user_id=?, rating=?, title=?, comment=?, is_visible=? WHERE review_id=?";
+        try (Connection conn = DBContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, review.getServiceId());
+            stmt.setInt(2, review.getTherapistUserId());
+            stmt.setInt(3, review.getRating());
+            stmt.setString(4, review.getTitle());
+            stmt.setString(5, review.getComment());
+            stmt.setBoolean(6, review.isVisible());
+            stmt.setInt(7, review.getReviewId());
+            int affected = stmt.executeUpdate();
+            if (affected > 0) {
+                updateServiceAverageRating(review.getServiceId(), conn);
+                return true;
+            }
+        }
+        return false;
     }
 
     // Cập nhật average_rating cho bảng services
