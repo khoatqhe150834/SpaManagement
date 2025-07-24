@@ -98,8 +98,8 @@
                     </h2>
                     <div class="grid grid-cols-1 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-spa-dark mb-2">Số sao <span class="text-red-500">*</span></label>
-                            <select name="rating" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                            <label class="block text-sm font-medium text-spa-dark mb-2">Số sao</label>
+                            <select name="rating" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
                                 <option value="">Chọn số sao</option>
                                 <option value="5" <c:if test="${review != null && review.rating == 5}">selected</c:if>>5 - Xuất sắc</option>
                                 <option value="4" <c:if test="${review != null && review.rating == 4}">selected</c:if>>4 - Tốt</option>
@@ -109,13 +109,13 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-spa-dark mb-2">Tiêu đề <span class="text-red-500">*</span></label>
-                            <input type="text" name="title" maxlength="100" required placeholder="Nhập tiêu đề đánh giá" class="block w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary" value="<c:out value='${review != null ? review.title : ""}'/>" />
+                            <label class="block text-sm font-medium text-spa-dark mb-2">Tiêu đề</label>
+                            <input type="text" name="title" maxlength="100" placeholder="Nhập tiêu đề đánh giá" class="block w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary" value="<c:out value='${review != null ? review.title : ""}'/>" />
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-spa-dark mb-2">Nội dung <span class="text-red-500">*</span></label>
-                            <textarea name="comment" rows="4" maxlength="500" required placeholder="Nhập nội dung đánh giá..." class="block w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"><c:out value='${review != null ? review.comment : ""}'/></textarea>
-                            <small class="text-gray-400">Tối đa 500 ký tự</small>
+                            <label class="block text-sm font-medium text-spa-dark mb-2">Nội dung</label>
+                            <textarea name="comment" rows="4" maxlength="500" placeholder="Nhập nội dung đánh giá..." class="block w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"><c:out value='${review != null ? review.comment : ""}'/></textarea>
+                            <small class="text-gray-400">Tối đa 500 ký tự. Bạn có thể bỏ qua nếu không muốn đánh giá.</small>
                         </div>
                     </div>
                     <div class="flex items-center justify-end gap-4 mt-6">
