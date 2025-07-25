@@ -1,0 +1,1 @@
+<%-- cancelled.jsp: Thống kê số booking bị hủy/khách không đến (placeholder) --%> 

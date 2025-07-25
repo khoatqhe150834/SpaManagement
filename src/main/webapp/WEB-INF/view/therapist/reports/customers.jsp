@@ -1,0 +1,1 @@
+<%-- customers.jsp: Thống kê số khách hàng phục vụ (mới/quay lại) (placeholder) --%> 

@@ -1,0 +1,1 @@
+<%-- inventory.jsp: Thống kê số vật tư đã sử dụng (placeholder) --%> 
