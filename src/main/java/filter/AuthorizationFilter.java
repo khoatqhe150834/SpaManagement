@@ -67,6 +67,7 @@ public class AuthorizationFilter implements Filter {
         // Manager areas
         URL_ROLE_MAPPINGS.put("/manager", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
         URL_ROLE_MAPPINGS.put("/manager/scheduling", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
+        URL_ROLE_MAPPINGS.put("/manager/show-bookings", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
         URL_ROLE_MAPPINGS.put("/manager/payment-edit", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
         URL_ROLE_MAPPINGS.put("/manager/payment-add", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
         URL_ROLE_MAPPINGS.put("/manager/payment-details", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID)));
@@ -78,6 +79,7 @@ public class AuthorizationFilter implements Filter {
 
         // Therapist areas
         URL_ROLE_MAPPINGS.put("/therapist", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID)));
+        URL_ROLE_MAPPINGS.put("/therapist/show-bookings", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID)));
         URL_ROLE_MAPPINGS.put("/schedule", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID, RoleConstants.RECEPTIONIST_ID)));
         URL_ROLE_MAPPINGS.put("/treatments", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID)));
         URL_ROLE_MAPPINGS.put("/appointment", new HashSet<>(Arrays.asList(RoleConstants.ADMIN_ID, RoleConstants.MANAGER_ID, RoleConstants.THERAPIST_ID, RoleConstants.RECEPTIONIST_ID)));
