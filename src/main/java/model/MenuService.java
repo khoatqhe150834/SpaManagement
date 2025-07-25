@@ -173,7 +173,7 @@ public class MenuService {
 
     // User Management (Admin - full access)
     MenuItem userMgmt = new MenuItem("Quản lý nhân viên", contextPath + "/user-management/list", "users", "management");
-    userMgmt.addSubItem(new MenuItem("Danh sách nhân viên", contextPath + "/user-management/list", "list"));
+    userMgmt.addSubItem(new MenuItem("Danh sách nhân viên", contextPath + "/admin/staff", "list"));
     userMgmt.addSubItem(new MenuItem("Thêm nhân viên", contextPath + "/user-management/add", "user-plus"));
     userMgmt.addSubItem(new MenuItem("Phân quyền hệ thống", contextPath + "/user-management/permissions", "shield"));
     menuItems.add(userMgmt);

@@ -49,7 +49,7 @@
                                                     </c:forEach>
                                                 </select>
                                             </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label for="fullNameInput" class="block font-semibold mb-2">Họ và tên</label>
                             <input type="text" id="fullNameInput" name="fullName" class="w-full border rounded-lg px-3 py-2 bg-gray-100" readonly placeholder="Tên sẽ tự động điền..." />
@@ -58,14 +58,14 @@
                             <label for="ageInput" class="block font-semibold mb-2">Tuổi</label>
                             <input type="text" id="ageInput" class="w-full border rounded-lg px-3 py-2 bg-gray-100 text-center" readonly placeholder="--" />
                                             </div>
-                                        </div>
+                                        </div> -->
                     <!-- Thông tin chuyên môn -->
                     <div>
                         <label for="bio" class="block font-semibold mb-2">Tiểu sử <span class="text-red-500">*</span></label>
                         <textarea name="bio" id="bio" rows="4" minlength="20" maxlength="500" required class="w-full border rounded-lg px-3 py-2 resize-none"></textarea>
                         <div class="flex justify-end text-xs text-gray-500 mt-1"><span id="bioCharCount">0</span>/500</div>
                     </div>
-                    <!-- BẮT ĐẦU: Chứng chỉ hành nghề -->
+<!--                     BẮT ĐẦU: Chứng chỉ hành nghề 
                     <div class="mt-8">
                         <h3 class="font-semibold text-lg mb-2">Chứng chỉ hành nghề</h3>
                         <div id="certificatesContainer">
@@ -97,7 +97,7 @@
                         container.appendChild(row);
                     }
                     </script>
-                    <!-- KẾT THÚC: Chứng chỉ hành nghề -->
+                     KẾT THÚC: Chứng chỉ hành nghề -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label for="serviceTypeId" class="block font-semibold mb-2">Loại dịch vụ <span class="text-red-500">*</span></label>
@@ -118,10 +118,10 @@
                                                 <option value="ON_LEAVE">Nghỉ phép</option>
                                             </select>
                                         </div>
-                        <div>
+<!--                        <div>
                             <label for="yearsOfExperience" class="block font-semibold mb-2">Số năm kinh nghiệm <span class="text-red-500">*</span></label>
                             <input type="number" id="yearsOfExperience" name="yearsOfExperience" class="w-full border rounded-lg px-3 py-2" required min="0" max="60" />
-                        </div>
+                        </div>-->
                     </div>
                     <div class="flex justify-end gap-3">
                         <a href="staff" class="px-6 py-2 rounded-lg border border-red-500 text-red-600 hover:bg-red-50 font-semibold">Hủy</a>
