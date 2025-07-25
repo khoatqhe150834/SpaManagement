@@ -599,17 +599,19 @@
                                     <div class="mb-3 flex justify-center"><i data-lucide="calendar" class="h-8 w-8 text-primary"></i></div>
                                     <h4 class="font-semibold text-gray-900 group-hover:text-primary transition-colors">Đặt lịch mới</h4>
                                 </a>
+                                <!-- Thêm nút Đổi điểm lấy mã giảm giá -->
+                                <a href="${pageContext.request.contextPath}/spa/customer/profile" class="p-4 border border-gray-200 rounded-lg hover:border-primary hover:bg-spa-cream transition-all text-center group">
+                                    <div class="mb-3 flex justify-center"><i data-lucide="gift" class="h-8 w-8 text-green-500"></i></div>
+                                    <h4 class="font-semibold text-gray-900 group-hover:text-primary transition-colors">Đổi điểm lấy mã giảm giá</h4>
+                                </a>
+                                <!-- Thêm nút Lịch sử đổi điểm -->
                                 <a href="${pageContext.request.contextPath}/spa/customer/history" class="p-4 border border-gray-200 rounded-lg hover:border-primary hover:bg-spa-cream transition-all text-center group">
                                     <div class="mb-3 flex justify-center"><i data-lucide="file-text" class="h-8 w-8 text-blue-500"></i></div>
-                                    <h4 class="font-semibold text-gray-900 group-hover:text-primary transition-colors">Xem lịch sử</h4>
+                                    <h4 class="font-semibold text-gray-900 group-hover:text-primary transition-colors">Lịch sử đổi điểm</h4>
                                 </a>
                                 <a href="${pageContext.request.contextPath}/customer/payment-history" class="p-4 border border-gray-200 rounded-lg hover:border-primary hover:bg-spa-cream transition-all text-center group">
                                     <div class="mb-3 flex justify-center"><i data-lucide="credit-card" class="h-8 w-8 text-purple-500"></i></div>
                                     <h4 class="font-semibold text-gray-900 group-hover:text-primary transition-colors">Lịch sử thanh toán</h4>
-                                </a>
-                                <a href="${pageContext.request.contextPath}/spa/customer/profile" class="p-4 border border-gray-200 rounded-lg hover:border-primary hover:bg-spa-cream transition-all text-center group">
-                                    <div class="mb-3 flex justify-center"><i data-lucide="gift" class="h-8 w-8 text-green-500"></i></div>
-                                    <h4 class="font-semibold text-gray-900 group-hover:text-primary transition-colors">Đổi điểm thưởng</h4>
                                 </a>
                                 <a href="#" class="p-4 border border-gray-200 rounded-lg hover:border-primary hover:bg-spa-cream transition-all text-center group">
                                     <div class="mb-3 flex justify-center"><i data-lucide="message-circle" class="h-8 w-8 text-purple-500"></i></div>
