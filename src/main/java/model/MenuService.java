@@ -173,7 +173,7 @@ public class MenuService {
 
     // User Management (Admin - full access)
     MenuItem userMgmt = new MenuItem("Quản lý nhân viên", contextPath + "/user-management/list", "users", "management");
-    userMgmt.addSubItem(new MenuItem("Danh sách nhân viên", contextPath + "/user-management/list", "list"));
+    userMgmt.addSubItem(new MenuItem("Danh sách nhân viên", contextPath + "/admin/staff", "list"));
     userMgmt.addSubItem(new MenuItem("Thêm nhân viên", contextPath + "/user-management/add", "user-plus"));
     userMgmt.addSubItem(new MenuItem("Phân quyền hệ thống", contextPath + "/user-management/permissions", "shield"));
     menuItems.add(userMgmt);
@@ -298,6 +298,20 @@ public class MenuService {
     menuItems.add(new MenuItem("NHÂN SỰ", true));
     menuItems.add(new MenuItem("Lương & Thưởng", contextPath + "/manager/payroll", "dollar-sign", "hr"));
     menuItems.add(new MenuItem("Đánh giá hiệu suất", contextPath + "/manager/performance", "trending-up", "hr"));
+
+    // === Thêm dropdown thống kê nhân viên vào mục NHÂN SỰ ===
+    MenuItem staffStatsHR = new MenuItem("Thống kê nhân viên", contextPath + "/manager/staff-statistics", "user-check", "hr");
+    staffStatsHR.addSubItem(new MenuItem("Tổng số booking đã thực hiện", contextPath + "/manager/staff-statistics/bookings", "calendar-check", "hr"));
+    staffStatsHR.addSubItem(new MenuItem("Tổng doanh thu cá nhân", contextPath + "/manager/staff-statistics/revenue", "dollar-sign", "hr"));
+    staffStatsHR.addSubItem(new MenuItem("Điểm đánh giá trung bình & số lượng đánh giá", contextPath + "/manager/staff-statistics/reviews", "star", "hr"));
+    staffStatsHR.addSubItem(new MenuItem("Số khách hàng phục vụ (mới/quay lại)", contextPath + "/manager/staff-statistics/customers", "users", "hr"));
+    staffStatsHR.addSubItem(new MenuItem("Top dịch vụ đã thực hiện", contextPath + "/manager/staff-statistics/top-services", "award", "hr"));
+    staffStatsHR.addSubItem(new MenuItem("Số giờ làm việc", contextPath + "/manager/staff-statistics/working-hours", "clock", "hr"));
+    staffStatsHR.addSubItem(new MenuItem("Số booking bị hủy/khách không đến", contextPath + "/manager/staff-statistics/cancelled", "x-circle", "hr"));
+    staffStatsHR.addSubItem(new MenuItem("Số vật tư đã sử dụng", contextPath + "/manager/staff-statistics/inventory", "package", "hr"));
+    staffStatsHR.addSubItem(new MenuItem("So sánh hiệu suất với trung bình phòng ban", contextPath + "/manager/staff-statistics/compare", "bar-chart-2", "hr"));
+    menuItems.add(staffStatsHR);
+    // === Kết thúc thêm dropdown ===
 
     menuItems.add(new MenuItem("KHÁC", true));
     menuItems.add(new MenuItem("Duyệt Blog", contextPath + "/manager/blog", "file-text", "marketing"));

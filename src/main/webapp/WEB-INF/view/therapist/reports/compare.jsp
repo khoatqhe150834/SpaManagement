@@ -1,0 +1,1 @@
+<%-- compare.jsp: Thống kê so sánh hiệu suất với trung bình phòng ban (placeholder) --%> 

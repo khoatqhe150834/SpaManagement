@@ -1,0 +1,1 @@
+<%-- reviews.jsp: Thống kê điểm đánh giá trung bình & số lượng đánh giá (placeholder) --%> 

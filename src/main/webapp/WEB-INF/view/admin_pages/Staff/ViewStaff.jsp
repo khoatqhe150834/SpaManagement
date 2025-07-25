@@ -41,7 +41,7 @@
                 <div class="bg-white rounded-2xl shadow-lg p-8">
                     <!-- Thông tin cá nhân -->
                     <div class="flex flex-col items-center mb-8">
-                        <img src="${not empty staff.user.avatarUrl ? staff.user.avatarUrl : pageContext.request.contextPath.concat('/assets/images/user-grid/user-grid-img14.png')}" alt="Avatar" class="w-32 h-32 rounded-full border-4 border-primary mb-4 object-cover">
+                        <!-- <img src="${not empty staff.user.avatarUrl ? staff.user.avatarUrl : pageContext.request.contextPath.concat('/assets/images/user-grid/user-grid-img14.png')}" alt="Avatar" class="w-32 h-32 rounded-full border-4 border-primary mb-4 object-cover"> -->
                         <h2 class="text-2xl font-bold text-spa-dark">${staff.user.fullName}</h2>
                         <p class="text-gray-500">${staff.user.email}</p>
                     </div>
@@ -72,7 +72,7 @@
                         <div class="bg-gray-50 rounded-lg p-4 text-gray-700 whitespace-pre-line">${staff.bio}</div>
                     </div>
 
-                    <h2 class="text-lg font-semibold mt-6 mb-2">Chứng chỉ hành nghề</h2>
+                    <!-- <h2 class="text-lg font-semibold mt-6 mb-2">Chứng chỉ hành nghề</h2>
                     <c:choose>
                         <c:when test="${empty staff.certificates}">
                             <div class="text-gray-500">Chưa có chứng chỉ nào.</div>
@@ -116,7 +116,7 @@
                                 </tbody>
                             </table>
                         </c:otherwise>
-                    </c:choose>
+                    </c:choose> -->
                 </div>
             </div>
         </main>
