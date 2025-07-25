@@ -24,25 +24,72 @@ public class CustomerPointDAO {
         return 0;
     }
 
-    // Thêm điểm cho khách hàng và ghi lịch sử
-    public void addPoints(int customerId, int points, String reason) {
+    // Cộng điểm cho khách hàng và ghi lịch sử (chỉ nhận points > 0)
+    public boolean addPoints(int customerId, int points, String reason) {
+        if (points <= 0) throw new IllegalArgumentException("Chỉ dùng cho cộng điểm, points phải > 0");
         String updateSql = "INSERT INTO customer_points (customer_id, points, updated_at) VALUES (?, ?, NOW()) ON DUPLICATE KEY UPDATE points = points + VALUES(points), updated_at = NOW()";
         String historySql = "INSERT INTO point_transactions (customer_id, points_change, reason) VALUES (?, ?, ?)";
-        try (Connection conn = DBContext.getConnection()) {
+        Connection conn = null;
+        try {
+            conn = DBContext.getConnection();
+            conn.setAutoCommit(false);
             try (PreparedStatement ps1 = conn.prepareStatement(updateSql);
                  PreparedStatement ps2 = conn.prepareStatement(historySql)) {
-                // Update điểm
                 ps1.setInt(1, customerId);
                 ps1.setInt(2, points);
                 ps1.executeUpdate();
-                // Ghi lịch sử
                 ps2.setInt(1, customerId);
                 ps2.setInt(2, points);
                 ps2.setString(3, reason);
                 ps2.executeUpdate();
+                conn.commit();
+                return true;
+            } catch (SQLException e) {
+                if (conn != null) conn.rollback();
+                throw e;
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            return false;
+        } finally {
+            if (conn != null) try { conn.setAutoCommit(true); conn.close(); } catch (SQLException ignore) {}
+        }
+    }
+
+    // Trừ điểm cho khách hàng và ghi lịch sử (chỉ nhận points > 0, kiểm tra đủ điểm)
+    public boolean subtractPoints(int customerId, int points, String reason) {
+        if (points <= 0) throw new IllegalArgumentException("Chỉ dùng cho trừ điểm, points phải > 0");
+        int currentPoints = getPointsByCustomerId(customerId);
+        if (currentPoints < points) {
+            // Không đủ điểm để trừ
+            return false;
+        }
+        String updateSql = "INSERT INTO customer_points (customer_id, points, updated_at) VALUES (?, ?, NOW()) ON DUPLICATE KEY UPDATE points = points - VALUES(points), updated_at = NOW()";
+        String historySql = "INSERT INTO point_transactions (customer_id, points_change, reason) VALUES (?, ?, ?)";
+        Connection conn = null;
+        try {
+            conn = DBContext.getConnection();
+            conn.setAutoCommit(false);
+            try (PreparedStatement ps1 = conn.prepareStatement(updateSql);
+                 PreparedStatement ps2 = conn.prepareStatement(historySql)) {
+                ps1.setInt(1, customerId);
+                ps1.setInt(2, points);
+                ps1.executeUpdate();
+                ps2.setInt(1, customerId);
+                ps2.setInt(2, -points); // Lưu lịch sử là số âm
+                ps2.setString(3, reason);
+                ps2.executeUpdate();
+                conn.commit();
+                return true;
+            } catch (SQLException e) {
+                if (conn != null) conn.rollback();
+                throw e;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            if (conn != null) try { conn.setAutoCommit(true); conn.close(); } catch (SQLException ignore) {}
         }
     }
 

@@ -110,13 +110,22 @@ public class LoyaltyPointManagerController extends HttpServlet {
             String note = req.getParameter("note");
             int customerId = Integer.parseInt(customerIdStr);
             int points = Integer.parseInt(pointsStr);
-            customerPointDAO.addPoints(customerId, points, note != null ? note : "Điều chỉnh thủ công bởi manager");
+            boolean success;
+            if (points > 0) {
+                success = customerPointDAO.addPoints(customerId, points, note != null ? note : "Điều chỉnh thủ công bởi manager");
+            } else if (points < 0) {
+                success = customerPointDAO.subtractPoints(customerId, -points, note != null ? note : "Điều chỉnh thủ công bởi manager");
+            } else {
+                success = true;
+            }
             // Sau khi cộng/trừ điểm, đồng bộ lại tier
             rewardPointService.updateCustomerTierInDb(customerId);
-            if (points > 0) {
+            if (points > 0 && success) {
                 session.setAttribute("successMessage", "Cộng điểm thành công!");
-            } else if (points < 0) {
+            } else if (points < 0 && success) {
                 session.setAttribute("successMessage", "Trừ điểm thành công!");
+            } else if (!success) {
+                session.setAttribute("errorMessage", "Không đủ điểm để trừ!");
             } else {
                 session.setAttribute("successMessage", "Không thay đổi điểm.");
             }

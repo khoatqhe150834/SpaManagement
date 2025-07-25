@@ -23,7 +23,6 @@ public class RewardPointService {
 
     // Cộng điểm khi đăng nhập mỗi ngày
     public void addDailyLoginPoints(int customerId, int points) {
-        // Ghi nhận điểm đăng nhập mỗi ngày
         customerPointDAO.addPoints(customerId, points, "Điểm đăng nhập mỗi ngày");
     }
 
@@ -37,7 +36,6 @@ public class RewardPointService {
 
     // Cộng điểm khi dùng dịch vụ
     public void addServiceUsagePoints(int customerId, int points, String serviceName) {
-        // Ghi nhận điểm khi sử dụng dịch vụ
         customerPointDAO.addPoints(customerId, points, "Dùng dịch vụ: " + serviceName);
     }
 
@@ -73,7 +71,6 @@ public class RewardPointService {
         RewardPointRuleDAO ruleDAO = new RewardPointRuleDAO();
         RewardPointRule rule = ruleDAO.getActiveRule();
         if (rule == null || rule.getMoneyPerPoint() == null || rule.getMoneyPerPoint() <= 0) {
-            // fallback mặc định nếu chưa có rule
             return orderValue / 100000;
         }
         return orderValue / rule.getMoneyPerPoint();
@@ -95,7 +92,8 @@ public class RewardPointService {
         int currentPoints = getPoints(customerId);
         if (currentPoints < pointsToUse) return false; // Không đủ điểm
         // Trừ điểm
-        customerPointDAO.addPoints(customerId, -pointsToUse, "Đổi điểm lấy " + rewardType + ": " + rewardValue);
+        boolean success = customerPointDAO.subtractPoints(customerId, pointsToUse, "Đổi điểm lấy " + rewardType + ": " + rewardValue);
+        if (!success) return false;
         // Ghi lịch sử đổi điểm
         PointRedemption redemption = new PointRedemption();
         redemption.setCustomerId(customerId);
