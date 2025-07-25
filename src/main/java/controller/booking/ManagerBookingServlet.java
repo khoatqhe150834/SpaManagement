@@ -31,7 +31,7 @@ import model.ServiceType;
 import model.User;
 
 
-@WebServlet("/manager/show-bookings")
+@WebServlet(name = "ManagerShowBookingsServlet", urlPatterns = {"/manager/show-bookings"})
 public class ManagerBookingServlet extends HttpServlet {
     private static final Logger LOGGER = Logger.getLogger(ManagerBookingServlet.class.getName());
     private BookingDAO bookingDAO;

@@ -759,6 +759,8 @@ avatarMenuItems.add(new MenuItem("Trang điều khiển", contextPath + "/dashbo
         avatarMenuItems.add(new MenuItem("Đăng xuất", contextPath + "/logout", "log-out"));
         break;
 
+     
+
       case "CUSTOMER":
       avatarMenuItems.add(new MenuItem("Trang điều khiển", contextPath + "/dashboard", "bar-chart"));
         avatarMenuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/profile", "user"));

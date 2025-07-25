@@ -19,7 +19,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-@WebServlet("/customer/show-bookings")
+@WebServlet(name = "CustomerShowBookingsServlet", urlPatterns = {"/customer/show-bookings"})
 public class CustomerBookingServlet extends HttpServlet {
     private static final Logger LOGGER = Logger.getLogger(CustomerBookingServlet.class.getName());
     private BookingDAO bookingDAO;
@@ -72,10 +72,10 @@ public class CustomerBookingServlet extends HttpServlet {
             // Configure Gson to properly serialize LocalDate and LocalTime
             Gson gson = new com.google.gson.GsonBuilder()
                 .registerTypeAdapter(java.time.LocalDate.class,
-                    (com.google.gson.JsonSerializer<java.time.LocalDate>) (src, typeOfSrc, context) ->
+                    (com.google.gson.JsonSerializer<java.time.LocalDate>) (src, typeOfSrc, context) -> 
                         new com.google.gson.JsonPrimitive(src.format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)))
                 .registerTypeAdapter(java.time.LocalTime.class,
-                    (com.google.gson.JsonSerializer<java.time.LocalTime>) (src, typeOfSrc, context) ->
+                    (com.google.gson.JsonSerializer<java.time.LocalTime>) (src, typeOfSrc, context) -> 
                         new com.google.gson.JsonPrimitive(src.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"))))
                 .create();
             jsonResponse.add("data", gson.toJsonTree(bookings));

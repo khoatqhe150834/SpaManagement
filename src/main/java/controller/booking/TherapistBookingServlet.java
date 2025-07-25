@@ -28,7 +28,7 @@ import model.Booking;
 import model.RoleConstants;
 import model.User;
 
-@WebServlet("/therapist/show-bookings")
+@WebServlet(name = "TherapistShowBookingsServlet", urlPatterns = {"/therapist/show-bookings"})
 public class TherapistBookingServlet extends HttpServlet {
     private static final Logger LOGGER = Logger.getLogger(TherapistBookingServlet.class.getName());
     private BookingDAO bookingDAO;

@@ -39,7 +39,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import model.Booking;
 
-@WebServlet({"/customer/schedule-booking", "/customer/booking-api"})
+@WebServlet(name = "CustomerScheduleBookingServlet", urlPatterns = {"/customer/schedule-booking", "/customer/booking-api"})
 public class BookingServlet extends HttpServlet {
     private static final Logger LOGGER = Logger.getLogger(BookingServlet.class.getName());
     
@@ -766,6 +766,10 @@ public class BookingServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Convert database constraint violations to user-friendly messages
+     */
+    
     /**
      * Convert database constraint violations to user-friendly messages
      */
