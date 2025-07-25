@@ -160,6 +160,7 @@
         .payment-items-table th:nth-child(4) { text-align: center; }  /* Thời gian */
         .payment-items-table th:nth-child(5) { text-align: right; }   /* Thành tiền */
         .payment-items-table th:nth-child(6) { text-align: center; }  /* Tình trạng sử dụng */
+        .payment-items-table th:nth-child(7) { text-align: center; }  /* Đặt lịch */
 
         .payment-items-table td:nth-child(1) { text-align: left; }    /* Dịch vụ */
         .payment-items-table td:nth-child(2) { text-align: center; }  /* Số lượng */
@@ -167,6 +168,7 @@
         .payment-items-table td:nth-child(4) { text-align: center; }  /* Thời gian */
         .payment-items-table td:nth-child(5) { text-align: right; }   /* Thành tiền */
         .payment-items-table td:nth-child(6) { text-align: center; }  /* Tình trạng sử dụng */
+        .payment-items-table td:nth-child(7) { text-align: center; }  /* Đặt lịch */
 
         /* Vertical alignment for all cells */
         .payment-items-table th,
@@ -205,6 +207,9 @@
 
         .payment-items-table th:nth-child(6),
         .payment-items-table td:nth-child(6) { width: 150px; }  /* Tình trạng sử dụng */
+
+        .payment-items-table th:nth-child(7),
+        .payment-items-table td:nth-child(7) { width: 120px; }  /* Đặt lịch */
 
         /* Progress bar container improvements */
         .usage-progress {
@@ -557,6 +562,7 @@
                                                 <th>Thời gian</th>
                                                 <th>Thành tiền</th>
                                                 <th>Tình trạng sử dụng</th>
+                                                <th>Đặt lịch</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -600,6 +606,23 @@
                                                             </c:when>
                                                             <c:otherwise>
                                                                 <span class="text-gray-500 text-sm">Chưa có thông tin</span>
+                                                            </c:otherwise>
+                                                        </c:choose>
+                                                    </td>
+                                                    <td>
+                                                        <c:choose>
+                                                            <c:when test="${item.usage != null && item.usage.remainingQuantity > 0}">
+                                                                <a href="${pageContext.request.contextPath}/customer/schedule-booking?paymentItemId=${item.paymentItemId}&serviceId=${item.serviceId}"
+                                                                   class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-white bg-primary rounded-md hover:bg-primary-dark transition-colors duration-200">
+                                                                    <i data-lucide="calendar-plus" class="h-3 w-3 mr-1"></i>
+                                                                    Đặt lịch
+                                                                </a>
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                <span class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-gray-400 bg-gray-100 rounded-md cursor-not-allowed">
+                                                                    <i data-lucide="calendar-x" class="h-3 w-3 mr-1"></i>
+                                                                    Hết lượt
+                                                                </span>
                                                             </c:otherwise>
                                                         </c:choose>
                                                     </td>

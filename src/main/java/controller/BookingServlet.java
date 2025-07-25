@@ -39,7 +39,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import model.Booking;
 
-@WebServlet({"/manager/schedule-booking", "/manager/booking-api"})
+@WebServlet({"/customer/schedule-booking", "/customer/booking-api"})
 public class BookingServlet extends HttpServlet {
     private static final Logger LOGGER = Logger.getLogger(BookingServlet.class.getName());
     
@@ -160,7 +160,7 @@ public class BookingServlet extends HttpServlet {
 
         if (customerId == null) {
             // For testing, use a default customer ID
-            customerId = 114; // Use an existing customer ID from your database
+            
             LOGGER.warning("No customer ID found, using default customer ID for testing: " + customerId);
         } else {
             LOGGER.info("Using customer ID: " + customerId);

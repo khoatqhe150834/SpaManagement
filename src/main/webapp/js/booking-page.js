@@ -180,7 +180,7 @@ async function loadAvailableSlots() {
     try {
         // Use absolute URL to ensure correct routing
         const contextPath = window.location.pathname.includes('/spa') ? '/spa' : '';
-        const url = `${contextPath}/manager/booking-api?action=getAvailableSlots&paymentItemId=${currentPaymentItem.id}&date=${selectedDate}`;
+        const url = `${contextPath}/customer/booking-api?action=getAvailableSlots&paymentItemId=${currentPaymentItem.id}&date=${selectedDate}`;
         console.log('Fetching available slots from:', url);
         console.log('Current location:', window.location.href);
 
@@ -285,7 +285,7 @@ async function loadAvailableResources() {
     try {
         // Use absolute URL to ensure correct routing
         const contextPath = window.location.pathname.includes('/spa') ? '/spa' : '';
-        const url = `${contextPath}/manager/booking-api?action=getAvailableResources&paymentItemId=${selectedPaymentItem.id}&date=${selectedDate}&time=${selectedTime}`;
+        const url = `${contextPath}/customer/booking-api?action=getAvailableResources&paymentItemId=${selectedPaymentItem.id}&date=${selectedDate}&time=${selectedTime}`;
         console.log('Fetching available resources from:', url);
 
         const response = await fetch(url, {
@@ -435,10 +435,10 @@ async function confirmBooking() {
 
         // Use absolute URL to ensure correct routing
         const contextPath = window.location.pathname.includes('/spa') ? '/spa' : '';
-        console.log('Sending booking request to:', `${contextPath}/manager/booking-api`);
+        console.log('Sending booking request to:', `${contextPath}/customer/booking-api`);
         console.log('Form data:', Object.fromEntries(formData));
 
-        const response = await fetch(`${contextPath}/manager/booking-api`, {
+        const response = await fetch(`${contextPath}/customer/booking-api`, {
             method: 'POST',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
