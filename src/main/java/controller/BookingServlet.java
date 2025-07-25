@@ -620,7 +620,10 @@ public class BookingServlet extends HttpServlet {
 
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
-            errorResponse.put("message", "Lỗi cơ sở dữ liệu: " + e.getMessage());
+
+            // Handle specific constraint violations with user-friendly messages
+            String userMessage = getUserFriendlyErrorMessage(e);
+            errorResponse.put("message", userMessage);
             errorResponse.put("sqlState", e.getSQLState());
             errorResponse.put("errorCode", e.getErrorCode());
 
@@ -760,6 +763,40 @@ public class BookingServlet extends HttpServlet {
 
         try (PrintWriter out = response.getWriter()) {
             out.print(gson.toJson(debugData));
+        }
+    }
+
+    /**
+     * Convert database constraint violations to user-friendly messages
+     */
+    private String getUserFriendlyErrorMessage(SQLException e) {
+        int errorCode = e.getErrorCode();
+        String errorMessage = e.getMessage().toLowerCase();
+
+        // Handle MySQL constraint violations (Error Code 1062 = Duplicate entry)
+        if (errorCode == 1062) {
+            if (errorMessage.contains("uk_therapist_no_overlap")) {
+                return "Nhân viên này đã có lịch hẹn vào thời gian đã chọn. Vui lòng chọn thời gian khác hoặc nhân viên khác.";
+            } else if (errorMessage.contains("uk_bed_no_overlap")) {
+                return "Giường này đã được đặt vào thời gian đã chọn. Vui lòng chọn giường khác hoặc thời gian khác.";
+            } else if (errorMessage.contains("uk_room_single_bed_no_overlap")) {
+                return "Phòng này đã được đặt vào thời gian đã chọn. Vui lòng chọn phòng khác hoặc thời gian khác.";
+            } else {
+                return "Thời gian đã chọn không khả dụng. Vui lòng chọn thời gian khác.";
+            }
+        }
+
+        // Handle other common database errors
+        switch (errorCode) {
+            case 1452: // Foreign key constraint fails
+                return "Dữ liệu tham chiếu không hợp lệ. Vui lòng kiểm tra lại thông tin đặt lịch.";
+            case 1048: // Column cannot be null
+                return "Thiếu thông tin bắt buộc. Vui lòng điền đầy đủ thông tin.";
+            case 1406: // Data too long for column
+                return "Thông tin nhập vào quá dài. Vui lòng rút gọn nội dung.";
+            default:
+                // For unknown errors, provide a generic message
+                return "Không thể tạo lịch hẹn. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.";
         }
     }
 }

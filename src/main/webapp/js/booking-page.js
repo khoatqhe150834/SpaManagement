@@ -474,11 +474,12 @@ async function confirmBooking() {
             document.getElementById('successMessage').style.display = 'block';
             updateStepIndicator(5, 'completed');
         } else {
-            alert('Booking failed: ' + result.message);
+            // Show user-friendly error message
+            showBookingError(result.message || 'Đặt lịch không thành công. Vui lòng thử lại.');
         }
     } catch (error) {
         console.error('Error creating booking:', error);
-        alert('Error creating booking. Please try again.');
+        showBookingError('Lỗi kết nối. Vui lòng kiểm tra kết nối mạng và thử lại.');
     } finally {
         // Re-enable button
         button.disabled = false;
@@ -607,6 +608,39 @@ function resetBookingForm() {
     updateStepIndicator(5, 'inactive');
 }
 
+function showBookingError(message) {
+    // Create a user-friendly error modal or notification
+    const errorHtml = `
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" style="margin: 20px 0;">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-exclamation-triangle me-2" style="color: #dc3545;"></i>
+                <div>
+                    <strong>Không thể đặt lịch</strong><br>
+                    ${message}
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    `;
+
+    // Show error in the confirmation step area
+    const confirmationDiv = document.getElementById('confirmation');
+    if (confirmationDiv) {
+        confirmationDiv.insertAdjacentHTML('afterbegin', errorHtml);
+
+        // Auto-dismiss after 8 seconds
+        setTimeout(() => {
+            const alertElement = confirmationDiv.querySelector('.alert');
+            if (alertElement) {
+                alertElement.remove();
+            }
+        }, 8000);
+    } else {
+        // Fallback to alert if confirmation div not found
+        alert(message);
+    }
+}
+
 // Make functions globally accessible
 window.selectServiceCard = selectServiceCard;
 window.changeService = changeService;
@@ -620,6 +654,7 @@ window.nextStep = nextStep;
 window.nextStepToConfirmation = nextStepToConfirmation;
 window.confirmBooking = confirmBooking;
 window.initializePreSelectedService = initializePreSelectedService;
+window.showBookingError = showBookingError;
 
 console.log('All functions made globally accessible');
 

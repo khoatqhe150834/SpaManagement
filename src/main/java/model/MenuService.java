@@ -187,8 +187,7 @@ public class MenuService {
     menuItems.add(customerMgmt);
 
     // System Management
-    menuItems.add(new MenuItem("Cài đặt hệ thống", contextPath + "/admin/settings", "settings", "management"));
-    menuItems.add(new MenuItem("Hoạt động hệ thống", contextPath + "/admin/activity", "activity", "management"));
+   
 
     // Financial Management Section
     menuItems.add(new MenuItem("TÀI CHÍNH", true));
@@ -497,10 +496,9 @@ public class MenuService {
     // Appointments Section
     menuItems.add(new MenuItem("Lịch hẹn của tôi", contextPath + "/customer/view", "calendar", "appointments")
         .withNotification("3", "yellow"));
-    menuItems.add(new MenuItem("Đặt dịch vụ", contextPath + "/booking", "calendar-plus", "appointments"));
     menuItems.add(new MenuItem("Dịch vụ đã đặt", contextPath + "/customer/show-bookings", "calendar-check", "appointments"));
-    // menuItems.add(new MenuItem("Lịch sử đặt lịch", contextPath + "/customer/booking-history", "clock", "appointments"));
-    menuItems.add(new MenuItem("Lịch sử điều trị", contextPath + "/customer/history", "history", "appointments"));
+    menuItems.add(new MenuItem("Lịch sử đặt lịch", contextPath + "/customer/booking-history", "clock", "appointments"));
+    // menuItems.add(new MenuItem("Lịch sử điều trị", contextPath + "/customer/history", "history", "appointments"));
 
     // Account Management
     int loyaltyPoints = 0;
@@ -691,7 +689,6 @@ public class MenuService {
       case "ADMIN":
       avatarMenuItems.add(new MenuItem("Trang điều khiển", contextPath + "/dashboard", "bar-chart"));
         avatarMenuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/profile", "user"));
-        avatarMenuItems.add(new MenuItem("Cài đặt tài khoản", contextPath + "/admin/settings", "settings"));
         avatarMenuItems.add(new MenuItem("Thay đổi mật khẩu", contextPath + "/password/change", "key"));
         avatarMenuItems.add(new MenuItem()); // Divider
         avatarMenuItems.add(new MenuItem("Đăng xuất", contextPath + "/logout", "log-out"));
@@ -701,7 +698,6 @@ public class MenuService {
               avatarMenuItems.add(new MenuItem("Trang điều khiển", contextPath + "/dashboard", "bar-chart"));
 
         avatarMenuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/profile", "user"));
-        avatarMenuItems.add(new MenuItem("Cài đặt cá nhân", contextPath + "/manager/settings", "settings"));
         avatarMenuItems.add(new MenuItem("Thay đổi mật khẩu", contextPath + "/password/change", "key"));
         avatarMenuItems.add(new MenuItem()); // Divider
         
@@ -711,7 +707,6 @@ public class MenuService {
       case "THERAPIST":
 avatarMenuItems.add(new MenuItem("Trang điều khiển", contextPath + "/dashboard", "bar-chart"));
         avatarMenuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/profile", "user"));
-        avatarMenuItems.add(new MenuItem("Cài đặt cá nhân", contextPath + "/therapist/settings", "settings"));
         avatarMenuItems.add(new MenuItem("Thay đổi mật khẩu", contextPath + "/password/change", "key"));
         avatarMenuItems.add(new MenuItem()); // Divider
         avatarMenuItems.add(new MenuItem("Lịch cá nhân", contextPath + "/therapist/schedule", "calendar"));
@@ -723,7 +718,6 @@ avatarMenuItems.add(new MenuItem("Trang điều khiển", contextPath + "/dashbo
       case "RECEPTIONIST":
       avatarMenuItems.add(new MenuItem("Trang điều khiển", contextPath + "/dashboard", "bar-chart"));
         avatarMenuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/profile", "user"));
-        avatarMenuItems.add(new MenuItem("Cài đặt cá nhân", contextPath + "/receptionist/settings", "settings"));
         avatarMenuItems.add(new MenuItem("Thay đổi mật khẩu", contextPath + "/password/change", "key"));
         avatarMenuItems.add(new MenuItem()); // Divider
         avatarMenuItems.add(new MenuItem("Ca làm việc", contextPath + "/receptionist/shifts", "clock"));
@@ -734,7 +728,6 @@ avatarMenuItems.add(new MenuItem("Trang điều khiển", contextPath + "/dashbo
       case "MARKETING":
       avatarMenuItems.add(new MenuItem("Trang điều khiển", contextPath + "/dashboard", "bar-chart"));
         avatarMenuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/profile", "user"));
-        avatarMenuItems.add(new MenuItem("Cài đặt cá nhân", contextPath + "/marketing/settings", "settings"));
         avatarMenuItems.add(new MenuItem("Thay đổi mật khẩu", contextPath + "/password/change", "key"));
         avatarMenuItems.add(new MenuItem()); // Divider
         avatarMenuItems.add(new MenuItem("Chiến dịch của tôi", contextPath + "/marketing/my-campaigns", "megaphone"));
@@ -745,7 +738,6 @@ avatarMenuItems.add(new MenuItem("Trang điều khiển", contextPath + "/dashbo
       case "INVENTORY_MANAGER":
       avatarMenuItems.add(new MenuItem("Trang điều khiển", contextPath + "/dashboard", "bar-chart"));
         avatarMenuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/profile", "user"));
-        avatarMenuItems.add(new MenuItem("Cài đặt cá nhân", contextPath + "/inventory-manager/settings", "settings"));
         avatarMenuItems.add(new MenuItem("Thay đổi mật khẩu", contextPath + "/password/change", "key"));
         avatarMenuItems.add(new MenuItem()); // Divider
         avatarMenuItems.add(new MenuItem("Báo cáo cá nhân", contextPath + "/inventory-manager/personal-reports", "file-text"));
@@ -756,7 +748,6 @@ avatarMenuItems.add(new MenuItem("Trang điều khiển", contextPath + "/dashbo
       case "CUSTOMER":
       avatarMenuItems.add(new MenuItem("Trang điều khiển", contextPath + "/dashboard", "bar-chart"));
         avatarMenuItems.add(new MenuItem("Hồ sơ cá nhân", contextPath + "/profile", "user"));
-        avatarMenuItems.add(new MenuItem("Cài đặt tài khoản", contextPath + "/customer/settings", "settings"));
         avatarMenuItems.add(new MenuItem("Thay đổi mật khẩu", contextPath + "/password/change", "key"));
         avatarMenuItems.add(new MenuItem()); // Divider
         avatarMenuItems.add(new MenuItem("Điểm tích lũy", contextPath + "/customer/loyalty", "gift"));

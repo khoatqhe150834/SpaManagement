@@ -1,7 +1,5 @@
 package dao;
 
-import booking.*;
-import db.DBContext;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -19,6 +17,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import booking.BookingCustomerView;
+import booking.BookingManagerFilter;
+import booking.BookingManagerView;
+import booking.BookingTherapistView;
+import booking.PaymentItemDetails;
+import db.DBContext;
 import model.Booking;
 import model.Customer;
 import model.Service;
@@ -1089,13 +1094,15 @@ public List<BookingCustomerView> findBookingsForCustomer(Integer customerId) thr
                 "r.name as room_name, " +
                 "p.payment_status, p.total_amount, p.reference_number " +
                 "FROM bookings b " +
-                "JOIN services s ON b.service_id = s.service_id " +
-                "JOIN users u ON b.therapist_user_id = u.user_id " +
-                "JOIN rooms r ON b.room_id = r.room_id " +
-                "JOIN payment_items pi ON b.payment_item_id = pi.payment_item_id " +
-                "JOIN payments p ON pi.payment_id = p.payment_id " +
+                "LEFT JOIN services s ON b.service_id = s.service_id " +
+                "LEFT JOIN users u ON b.therapist_user_id = u.user_id " +
+                "LEFT JOIN rooms r ON b.room_id = r.room_id " +
+                "LEFT JOIN payment_items pi ON b.payment_item_id = pi.payment_item_id " +
+                "LEFT JOIN payments p ON pi.payment_id = p.payment_id " +
                 "WHERE b.customer_id = ? " +
                 "ORDER BY b.appointment_date DESC, b.appointment_time DESC";
+
+    LOGGER.info("Finding bookings for customer ID: " + customerId);
     
     List<BookingCustomerView> bookings = new ArrayList<>();
     
@@ -1110,12 +1117,14 @@ public List<BookingCustomerView> findBookingsForCustomer(Integer customerId) thr
                 bookings.add(booking);
             }
         }
-        
+
+        LOGGER.info("Found " + bookings.size() + " bookings for customer ID: " + customerId);
+
     } catch (SQLException ex) {
         LOGGER.log(Level.SEVERE, "Error finding bookings for customer: " + customerId, ex);
         throw ex;
     }
-    
+
     return bookings;
 }
 
