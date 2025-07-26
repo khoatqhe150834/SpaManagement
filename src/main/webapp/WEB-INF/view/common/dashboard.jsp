@@ -366,20 +366,7 @@
                             <div class="flex items-center justify-between">
                                 <div>
                                     <h1 class="text-2xl md:text-3xl font-bold mb-2">Chào mừng trở lại, ${sessionScope.customer.fullName}!</h1>
-                                    <p class="opacity-90">Hôm nay là ngày tuyệt vời để chăm sóc bản thân.
-                                        <c:choose>
-                                            <c:when test="${not empty upcomingBookings}">
-                                                <c:set var="bookingCount" value="0" />
-                                                <c:forEach var="booking" items="${upcomingBookings}">
-                                                    <c:set var="bookingCount" value="${bookingCount + 1}" />
-                                                </c:forEach>
-                                                Bạn có ${bookingCount} lịch hẹn sắp tới.
-                                            </c:when>
-                                            <c:otherwise>
-                                                Bạn chưa có lịch hẹn nào sắp tới.
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </p>
+                                    <p class="opacity-90">Hôm nay là ngày tuyệt vời để chăm sóc bản thân.</p>
                                 </div>
                                 <i data-lucide="heart" class="h-12 w-12 opacity-80 hidden md:block"></i>
                             </div>
