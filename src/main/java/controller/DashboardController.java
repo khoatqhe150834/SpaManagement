@@ -1,12 +1,5 @@
 package controller;
 
-import java.io.IOException;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import dao.BookingDAO;
 import dao.CustomerDAO;
 import dao.PaymentDAO;
@@ -15,7 +8,15 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import model.Booking;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import model.Customer;
 import model.User;
 
@@ -66,6 +67,11 @@ public class DashboardController extends HttpServlet {
                 // Load dynamic data for customer dashboard
                 if ("CUSTOMER".equals(userType) && customer != null) {
                     loadCustomerDashboardData(request, customer);
+                }
+
+                // Load dynamic data for therapist dashboard
+                if ("THERAPIST".equals(userType) && user != null) {
+                    loadTherapistDashboardData(request, user);
                 }
 
                 // Forward to common dashboard that uses conditional rendering based on userType
@@ -483,15 +489,15 @@ public class DashboardController extends HttpServlet {
             Map<String, Integer> bookingStats = bookingDAO.getBookingStatsByCustomerId(customerId);
             request.setAttribute("bookingStats", bookingStats);
 
-            // Get upcoming bookings (limit to next 5)
-            List<Booking> upcomingBookings = bookingDAO.findByCustomerId(customerId);
+            // Get upcoming bookings using BookingCustomerView (limit to next 5)
+            List<booking.BookingCustomerView> allCustomerBookings = bookingDAO.findBookingsForCustomer(customerId);
             // Filter for upcoming bookings only
             LocalDate today = LocalDate.now();
-            List<Booking> filteredUpcomingBookings = upcomingBookings.stream()
+            List<booking.BookingCustomerView> filteredUpcomingBookings = allCustomerBookings.stream()
                 .filter(booking -> booking.getAppointmentDate() != null &&
-                        booking.getAppointmentDate().toLocalDate().isAfter(today.minusDays(1)))
+                        booking.getAppointmentDate().isAfter(today.minusDays(1)))
                 .limit(5)
-                .collect(java.util.stream.Collectors.toList());
+                .collect(Collectors.toList());
             request.setAttribute("upcomingBookings", filteredUpcomingBookings);
 
             // Get customer payment statistics
@@ -507,10 +513,10 @@ public class DashboardController extends HttpServlet {
             request.setAttribute("membershipTier", membershipTier);
 
             // Calculate this month's bookings count
-            int thisMonthBookings = (int) upcomingBookings.stream()
+            int thisMonthBookings = (int) allCustomerBookings.stream()
                 .filter(booking -> booking.getAppointmentDate() != null &&
-                        booking.getAppointmentDate().toLocalDate().getMonth() == today.getMonth() &&
-                        booking.getAppointmentDate().toLocalDate().getYear() == today.getYear())
+                        booking.getAppointmentDate().getMonth() == today.getMonth() &&
+                        booking.getAppointmentDate().getYear() == today.getYear())
                 .count();
             request.setAttribute("thisMonthBookings", thisMonthBookings);
 
@@ -518,6 +524,58 @@ public class DashboardController extends HttpServlet {
             // Log error but don't break the page
             Logger.getLogger(DashboardController.class.getName()).log(Level.SEVERE,
                 "Error loading customer dashboard data for customer: " + customer.getCustomerId(), e);
+
+            // Set fallback data to prevent JSP errors
+            request.setAttribute("bookingStats", new HashMap<String, Integer>());
+            request.setAttribute("upcomingBookings", new ArrayList<>());
+            request.setAttribute("paymentStats", new HashMap<String, Object>());
+            request.setAttribute("relatedDataSummary", new HashMap<String, Integer>());
+            request.setAttribute("membershipTier", "Bronze");
+            request.setAttribute("thisMonthBookings", 0);
+        }
+    }
+
+    /**
+     * Load dynamic therapist dashboard data from database
+     */
+    private void loadTherapistDashboardData(HttpServletRequest request, User therapist) {
+        try {
+            // Initialize DAOs
+            BookingDAO bookingDAO = new BookingDAO();
+
+            Integer therapistId = therapist.getUserId();
+
+            // Get therapist dashboard statistics
+            Map<String, Object> therapistStats = bookingDAO.getTherapistDashboardStats(therapistId);
+            request.setAttribute("therapistStats", therapistStats);
+
+            // Get today's schedule
+            List<booking.BookingTherapistView> todaySchedule = bookingDAO.getTodayScheduleForTherapist(therapistId);
+            request.setAttribute("todaySchedule", todaySchedule);
+
+            // Log the loaded data for debugging
+            Logger.getLogger(DashboardController.class.getName()).info(
+                "Loaded therapist dashboard data for therapist ID: " + therapistId +
+                ", Today's bookings: " + (therapistStats.get("todayTotal") != null ? therapistStats.get("todayTotal") : 0) +
+                ", Schedule items: " + todaySchedule.size()
+            );
+
+        } catch (Exception e) {
+            // Log error but don't break the page
+            Logger.getLogger(DashboardController.class.getName()).log(Level.SEVERE,
+                "Error loading therapist dashboard data for therapist: " + therapist.getUserId(), e);
+
+            // Set default values to prevent JSP errors
+            Map<String, Object> defaultStats = new HashMap<>();
+            defaultStats.put("todayTotal", 0);
+            defaultStats.put("todayCompleted", 0);
+            defaultStats.put("todayUpcoming", 0);
+            defaultStats.put("averageRating", 0.0);
+            defaultStats.put("totalBookings", 0);
+            defaultStats.put("totalCompleted", 0);
+            defaultStats.put("uniqueCustomers", 0);
+            request.setAttribute("therapistStats", defaultStats);
+            request.setAttribute("todaySchedule", new ArrayList<>());
         }
     }
 

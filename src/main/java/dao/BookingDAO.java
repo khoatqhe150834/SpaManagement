@@ -832,6 +832,91 @@ public class BookingDAO implements BaseDAO<Booking, Integer> {
         return bookings;
     }
 
+    /**
+     * Get therapist dashboard statistics
+     */
+    public Map<String, Object> getTherapistDashboardStats(Integer therapistId) throws SQLException {
+        Map<String, Object> stats = new HashMap<>();
+
+        // Get today's date
+        LocalDate today = LocalDate.now();
+        Date todayDate = Date.valueOf(today);
+
+        // Query for today's bookings
+        String todayBookingsSql = "SELECT COUNT(*) as today_total, " +
+                "COUNT(CASE WHEN booking_status = 'COMPLETED' THEN 1 END) as today_completed, " +
+                "COUNT(CASE WHEN booking_status IN ('SCHEDULED', 'CONFIRMED') THEN 1 END) as today_upcoming " +
+                "FROM bookings WHERE therapist_user_id = ? AND appointment_date = ?";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(todayBookingsSql)) {
+
+            stmt.setInt(1, therapistId);
+            stmt.setDate(2, todayDate);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    stats.put("todayTotal", rs.getInt("today_total"));
+                    stats.put("todayCompleted", rs.getInt("today_completed"));
+                    stats.put("todayUpcoming", rs.getInt("today_upcoming"));
+                }
+            }
+        }
+
+        // Get average rating
+        String ratingSql = "SELECT AVG(rating) as avg_rating, COUNT(*) as review_count " +
+                "FROM reviews r JOIN bookings b ON r.booking_id = b.booking_id " +
+                "WHERE b.therapist_user_id = ?";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(ratingSql)) {
+
+            stmt.setInt(1, therapistId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    double avgRating = rs.getDouble("avg_rating");
+                    int reviewCount = rs.getInt("review_count");
+                    stats.put("averageRating", avgRating > 0 ? Math.round(avgRating * 10.0) / 10.0 : 0.0);
+                    stats.put("reviewCount", reviewCount);
+                }
+            }
+        }
+
+        // Get total statistics
+        String totalStatsSql = "SELECT " +
+                "COUNT(*) as total_bookings, " +
+                "COUNT(CASE WHEN booking_status = 'COMPLETED' THEN 1 END) as total_completed, " +
+                "COUNT(CASE WHEN booking_status = 'CANCELLED' THEN 1 END) as total_cancelled, " +
+                "COUNT(DISTINCT customer_id) as unique_customers " +
+                "FROM bookings WHERE therapist_user_id = ?";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(totalStatsSql)) {
+
+            stmt.setInt(1, therapistId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    stats.put("totalBookings", rs.getInt("total_bookings"));
+                    stats.put("totalCompleted", rs.getInt("total_completed"));
+                    stats.put("totalCancelled", rs.getInt("total_cancelled"));
+                    stats.put("uniqueCustomers", rs.getInt("unique_customers"));
+                }
+            }
+        }
+
+        return stats;
+    }
+
+    /**
+     * Get today's schedule for therapist
+     */
+    public List<BookingTherapistView> getTodayScheduleForTherapist(Integer therapistId) throws SQLException {
+        LocalDate today = LocalDate.now();
+        return findBookingsForTherapist(therapistId, today);
+    }
+
 
 
 

@@ -359,6 +359,7 @@
                     
                 <%-- ============================ CUSTOMER DASHBOARD ============================ --%>
                 <c:when test="${sessionScope.userType == 'CUSTOMER'}">
+                    <c:catch var="customerDashboardError">
                     <div class="space-y-8">
                         <!-- Welcome Section -->
                         <div class="bg-gradient-to-r from-[#D4AF37] to-[#B8941F] rounded-xl shadow-lg p-6 text-white">
@@ -427,112 +428,7 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                            <!-- Booked Services -->
-                            <div class="lg:col-span-2 bg-white rounded-xl shadow-md border border-gray-200 p-6">
-                                <div class="flex items-center justify-between mb-6">
-                                    <h3 class="text-lg font-semibold text-spa-dark flex items-center gap-2">
-                                        <i data-lucide="calendar-check" class="h-5 w-5 text-primary"></i>
-                                        Dịch vụ đã đặt lịch
-                                    </h3>
-                                    <a href="${pageContext.request.contextPath}/customer/bookings" class="text-primary hover:text-primary-dark font-medium text-sm flex items-center gap-1">
-                                        <span>Xem tất cả</span>
-                                        <i data-lucide="arrow-right" class="h-4 w-4"></i>
-                                    </a>
-                                </div>
-                                <div class="space-y-4">
-                                    <c:choose>
-                                        <c:when test="${not empty upcomingBookings}">
-                                            <c:forEach var="booking" items="${upcomingBookings}" varStatus="status">
-                                                <c:if test="${status.index < 3}"> <!-- Limit to 3 upcoming bookings -->
-                                                    <div class="p-4 border border-gray-200 rounded-lg hover:border-primary transition-colors hover:shadow-md">
-                                                        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-                                                            <div class="flex items-center space-x-3">
-                                                                <i data-lucide="calendar" class="h-5 w-5 text-primary"></i>
-                                                                <span class="font-medium text-gray-800">
-                                                                    <fmt:formatDate value="${booking.appointmentDate}" pattern="dd/MM/yyyy"/> -
-                                                                    <fmt:formatDate value="${booking.appointmentTime}" pattern="HH:mm"/>
-                                                                </span>
-                                                                <span class="px-2 py-1
-                                                                    <c:choose>
-                                                                        <c:when test="${booking.bookingStatus == 'SCHEDULED'}">bg-green-100 text-green-800</c:when>
-                                                                        <c:when test="${booking.bookingStatus == 'CONFIRMED'}">bg-blue-100 text-blue-800</c:when>
-                                                                        <c:when test="${booking.bookingStatus == 'COMPLETED'}">bg-gray-100 text-gray-800</c:when>
-                                                                        <c:otherwise>bg-yellow-100 text-yellow-800</c:otherwise>
-                                                                    </c:choose>
-                                                                    text-xs rounded-full font-medium">
-                                                                    <c:choose>
-                                                                        <c:when test="${booking.bookingStatus == 'SCHEDULED'}">Đã lên lịch</c:when>
-                                                                        <c:when test="${booking.bookingStatus == 'CONFIRMED'}">Đã xác nhận</c:when>
-                                                                        <c:when test="${booking.bookingStatus == 'COMPLETED'}">Hoàn thành</c:when>
-                                                                        <c:otherwise>${booking.bookingStatus}</c:otherwise>
-                                                                    </c:choose>
-                                                                </span>
-                                                            </div>
-                                                            <span class="font-bold text-primary">
-                                                                <c:choose>
-                                                                    <c:when test="${booking.totalPrice != null}">
-                                                                        <fmt:formatNumber value="${booking.totalPrice}" pattern="#,###"/> VNĐ
-                                                                    </c:when>
-                                                                    <c:otherwise>
-                                                                        Chưa có giá
-                                                                    </c:otherwise>
-                                                                </c:choose>
-                                                            </span>
-                                                        </div>
-                                                        <div class="space-y-2 ml-8">
-                                                            <p class="font-medium text-gray-900 flex items-center gap-2">
-                                                                <i data-lucide="scissors" class="h-4 w-4 text-primary"></i>
-                                                                ${booking.serviceName != null ? booking.serviceName : 'Dịch vụ không xác định'}
-                                                            </p>
-                                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
-                                                                <p class="flex items-center gap-2">
-                                                                    <i data-lucide="user" class="h-4 w-4"></i>
-                                                                    <c:choose>
-                                                                        <c:when test="${booking.therapistName != null}">
-                                                                            ${booking.therapistName}
-                                                                        </c:when>
-                                                                        <c:otherwise>
-                                                                            Chưa phân công
-                                                                        </c:otherwise>
-                                                                    </c:choose>
-                                                                </p>
-                                                                <p class="flex items-center gap-2">
-                                                                    <i data-lucide="clock" class="h-4 w-4"></i>
-                                                                    <c:choose>
-                                                                        <c:when test="${booking.durationMinutes != null}">
-                                                                            ${booking.durationMinutes} phút
-                                                                        </c:when>
-                                                                        <c:otherwise>
-                                                                            Chưa xác định
-                                                                        </c:otherwise>
-                                                                    </c:choose>
-                                                                </p>
-                                                            </div>
-                                                            <c:if test="${booking.bookingNotes != null && !empty booking.bookingNotes}">
-                                                                <p class="text-sm text-gray-500 italic flex items-start gap-2">
-                                                                    <i data-lucide="message-circle" class="h-4 w-4 mt-0.5"></i>
-                                                                    ${booking.bookingNotes}
-                                                                </p>
-                                                            </c:if>
-                                                        </div>
-                                                    </div>
-                                                </c:if>
-                                            </c:forEach>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <div class="text-center py-8">
-                                                <i data-lucide="calendar-x" class="h-12 w-12 text-gray-400 mx-auto mb-4"></i>
-                                                <p class="text-gray-500">Bạn chưa có lịch hẹn nào sắp tới</p>
-                                                <a href="${pageContext.request.contextPath}/services" class="inline-block mt-4 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors">
-                                                    Đặt lịch ngay
-                                                </a>
-                                            </div>
-                                        </c:otherwise>
-                                    </c:choose>
-                                </div>
-                            </div>
-
+                        <div class="grid grid-cols-1 lg:grid-cols-1 gap-8">
                             <!-- Recent Activity -->
                             <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
                                 <h3 class="text-lg font-semibold text-spa-dark mb-6">Hoạt động gần đây</h3>
@@ -618,6 +514,26 @@
                             </div>
                         </div>
                     </div>
+                    </c:catch>
+                    <c:if test="${not empty customerDashboardError}">
+                        <div class="bg-red-50 border border-red-200 rounded-xl p-6">
+                            <div class="flex items-center mb-4">
+                                <i data-lucide="alert-circle" class="h-6 w-6 text-red-600 mr-3"></i>
+                                <h3 class="text-lg font-semibold text-red-800">Lỗi tải dữ liệu dashboard</h3>
+                            </div>
+                            <p class="text-red-700 mb-4">Đã xảy ra lỗi khi tải thông tin dashboard. Vui lòng thử lại sau.</p>
+                            <div class="flex gap-4">
+                                <a href="${pageContext.request.contextPath}/dashboard" class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
+                                    <i data-lucide="refresh-cw" class="h-4 w-4 mr-2"></i>
+                                    Tải lại
+                                </a>
+                                <a href="${pageContext.request.contextPath}/services" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors">
+                                    <i data-lucide="calendar" class="h-4 w-4 mr-2"></i>
+                                    Đặt lịch dịch vụ
+                                </a>
+                            </div>
+                        </div>
+                    </c:if>
                 </c:when>
 
                 <%-- ============================ THERAPIST DASHBOARD ============================ --%>
@@ -628,7 +544,10 @@
                             <div class="flex items-center justify-between">
                                 <div>
                                     <h1 class="text-2xl md:text-3xl font-bold mb-2">Chào mừng, ${sessionScope.user.fullName}!</h1>
-                                    <p class="opacity-90">Hôm nay bạn có 8 lịch hẹn cần thực hiện. Chúc bạn làm việc hiệu quả!</p>
+                                    <p class="opacity-90">
+                                        Hôm nay bạn có ${therapistStats.todayTotal != null ? therapistStats.todayTotal : 0} lịch hẹn cần thực hiện.
+                                        Chúc bạn làm việc hiệu quả!
+                                    </p>
                                 </div>
                                 <i data-lucide="user-round" class="h-12 w-12 opacity-80 hidden md:block"></i>
                             </div>

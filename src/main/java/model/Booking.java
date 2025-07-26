@@ -5,7 +5,6 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalTime;
-
 import lombok.ToString;
 
 /**
@@ -43,7 +42,11 @@ public class Booking {
     
     // Enum for booking status
     public enum BookingStatus {
-        SCHEDULED, CONFIRMED, IN_PROGRESS, COMPLETED, CANCELLED, NO_SHOW
+        SCHEDULED, CONFIRMED, IN_PROGRESS, COMPLETED, CANCELLED, NO_SHOW;
+
+        public String getDisplayName() {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
     }
     
     // Constructors
