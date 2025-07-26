@@ -779,11 +779,11 @@ public class BookingServlet extends HttpServlet {
 
         // Handle MySQL constraint violations (Error Code 1062 = Duplicate entry)
         if (errorCode == 1062) {
-            if (errorMessage.contains("uk_therapist_no_overlap")) {
+            if (errorMessage.contains("uk_therapist_no_overlap") || errorMessage.contains("uk_therapist_no_overlap_active")) {
                 return "Nhân viên này đã có lịch hẹn vào thời gian đã chọn. Vui lòng chọn thời gian khác hoặc nhân viên khác.";
-            } else if (errorMessage.contains("uk_bed_no_overlap")) {
+            } else if (errorMessage.contains("uk_bed_no_overlap") || errorMessage.contains("uk_bed_no_overlap_active")) {
                 return "Giường này đã được đặt vào thời gian đã chọn. Vui lòng chọn giường khác hoặc thời gian khác.";
-            } else if (errorMessage.contains("uk_room_single_bed_no_overlap")) {
+            } else if (errorMessage.contains("uk_room_single_bed_no_overlap") || errorMessage.contains("uk_room_single_bed_no_overlap_active")) {
                 return "Phòng này đã được đặt vào thời gian đã chọn. Vui lòng chọn phòng khác hoặc thời gian khác.";
             } else {
                 return "Thời gian đã chọn không khả dụng. Vui lòng chọn thời gian khác.";

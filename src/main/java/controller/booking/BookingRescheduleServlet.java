@@ -1,19 +1,5 @@
 package controller.booking;
 
-import booking.AvailableTimeSlot;
-import booking.PaymentItemDetails;
-import booking.SpaCspSolver;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonSerializer;
-import dao.BookingDAO;
-import dao.SchedulingConstraintDAO;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Date;
@@ -32,6 +18,22 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSerializer;
+
+import booking.AvailableTimeSlot;
+import booking.PaymentItemDetails;
+import booking.SpaCspSolver;
+import dao.BookingDAO;
+import dao.SchedulingConstraintDAO;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import model.Booking;
 
 @WebServlet(name = "BookingRescheduleServlet", urlPatterns = {"/customer/reschedule/*", "/manager/reschedule/*"})
@@ -640,11 +642,11 @@ public class BookingRescheduleServlet extends HttpServlet {
         
         // Handle MySQL constraint violations (Error Code 1062 = Duplicate entry)
         if (errorCode == 1062) {
-            if (errorMessage.contains("uk_therapist_no_overlap")) {
+            if (errorMessage.contains("uk_therapist_no_overlap") || errorMessage.contains("uk_therapist_no_overlap_active")) {
                 return "Nhân viên này đã có lịch hẹn vào thời gian đã chọn. Vui lòng chọn thời gian khác hoặc nhân viên khác.";
-            } else if (errorMessage.contains("uk_bed_no_overlap")) {
+            } else if (errorMessage.contains("uk_bed_no_overlap") || errorMessage.contains("uk_bed_no_overlap_active")) {
                 return "Giường này đã được đặt vào thời gian đã chọn. Vui lòng chọn giường khác hoặc thời gian khác.";
-            } else if (errorMessage.contains("uk_room_single_bed_no_overlap")) {
+            } else if (errorMessage.contains("uk_room_single_bed_no_overlap") || errorMessage.contains("uk_room_single_bed_no_overlap_active")) {
                 return "Phòng này đã được đặt vào thời gian đã chọn. Vui lòng chọn phòng khác hoặc thời gian khác.";
             } else {
                 return "Thời gian đã chọn không khả dụng. Vui lòng chọn thời gian khác.";
