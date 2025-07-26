@@ -638,7 +638,10 @@
                 button.innerHTML = '<i data-lucide="loader-2" class="h-3 w-3 animate-spin"></i>';
                 button.disabled = true;
 
-                fetch('${pageContext.request.contextPath}/customer/booking/cancel/' + bookingId, {
+                const cancelUrl = '${pageContext.request.contextPath}/customer/cancel-booking/' + bookingId;
+                console.log('Sending cancel request to:', cancelUrl);
+
+                fetch(cancelUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -646,8 +649,17 @@
                     }
                 })
                 .then(function(response) {
-                    if (response.ok) return response.json();
-                    throw new Error('Network response was not ok');
+                    console.log('Response status:', response.status);
+                    console.log('Response headers:', response.headers);
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        // Try to get error details from response
+                        return response.text().then(text => {
+                            console.log('Error response body:', text);
+                            throw new Error(`HTTP ${response.status}: ${text}`);
+                        });
+                    }
                 })
                 .then(function(data) {
                     if (data.success) {

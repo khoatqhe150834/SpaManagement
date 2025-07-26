@@ -172,11 +172,10 @@ function cancelBooking(bookingId) {
     
     // Send cancellation request
     $.ajax({
-        url: contextPath + '/customer/bookings/cancel',
+        url: contextPath + '/customer/cancel-booking/' + bookingId + '?reason=' + encodeURIComponent(reason || ''),
         method: 'POST',
-        data: {
-            bookingId: bookingId,
-            reason: reason || ''
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
         },
         dataType: 'json',
         success: function(response) {

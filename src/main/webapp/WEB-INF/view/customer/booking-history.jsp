@@ -482,11 +482,10 @@
 
                 // Send AJAX request to cancel booking
                 $.ajax({
-                    url: '${pageContext.request.contextPath}/customer/booking-history',
+                    url: '${pageContext.request.contextPath}/customer/cancel-booking/' + bookingId,
                     type: 'POST',
-                    data: {
-                        action: 'cancel',
-                        bookingId: bookingId
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
                     },
                     dataType: 'json',
                     success: function(response) {

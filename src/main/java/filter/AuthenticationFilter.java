@@ -184,6 +184,7 @@ public class AuthenticationFilter implements Filter {
     boolean isApiEndpoint = requestURI.contains("/api/") ||
                            requestURI.contains("action=") ||
                            requestURI.endsWith("/scheduling") ||
+                           requestURI.contains("/cancel-booking/") ||
                            (request.getParameter("action") != null);
 
     System.out.println("[AuthenticationFilter] AJAX detection - URI: " + requestURI +

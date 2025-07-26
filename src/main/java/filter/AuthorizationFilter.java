@@ -413,6 +413,7 @@ public class AuthorizationFilter implements Filter {
                                requestURI.endsWith("/scheduling") ||
                                requestURI.contains("/manager/payments/") ||
                                requestURI.contains("/payment/") ||
+                               requestURI.contains("/cancel-booking/") ||
                                (request.getParameter("action") != null);
 
         System.out.println("[AuthorizationFilter] AJAX detection - URI: " + requestURI +

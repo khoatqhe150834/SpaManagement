@@ -333,15 +333,12 @@
             const reason = prompt('Vui lòng nhập lý do hủy lịch (tùy chọn):');
             
             // Send cancellation request
-            fetch('${pageContext.request.contextPath}/customer/bookings/cancel', {
+            fetch('${pageContext.request.contextPath}/customer/cancel-booking/' + bookingId + '?reason=' + encodeURIComponent(reason || ''), {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: new URLSearchParams({
-                    bookingId: bookingId,
-                    reason: reason || ''
-                })
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
             })
             .then(response => response.json())
             .then(data => {
